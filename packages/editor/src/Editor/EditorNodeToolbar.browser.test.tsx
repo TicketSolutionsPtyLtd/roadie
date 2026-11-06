@@ -574,7 +574,7 @@ describe('Editor email block toolbar placement', () => {
     }
   )
 
-  it('keeps off a long line before columns, on a phone', async () => {
+  it('keeps off a long line before columns, in their top-end corner on a phone', async () => {
     await page.viewport(390, 800)
     onTestFinished(() => page.viewport(1280, 800))
     const fees = 'Ticket prices include booking fees and are final at checkout'
@@ -596,8 +596,9 @@ describe('Editor email block toolbar placement', () => {
     await waitFor(() => {
       const bar = toolbar.getBoundingClientRect()
       const box = node.getBoundingClientRect()
-      expect(bar.top >= box.bottom || bar.bottom <= box.top).toBe(true)
-      for (const text of [fees, 'Doors', 'Ochre Kite', 'Kazoo Hollow']) {
+      expect(bar.top).toBeGreaterThanOrEqual(box.top)
+      expect(bar.right).toBeLessThanOrEqual(box.right)
+      for (const text of [fees, 'Doors']) {
         const range = document.createRange()
         range.selectNodeContents(within(textbox).getByText(text))
         for (const covered of range.getClientRects()) {
@@ -655,7 +656,7 @@ describe('Editor email block toolbar placement', () => {
     }
   })
 
-  it('sits outside columns that start the content, on a phone', async () => {
+  it('docks in the top-end corner of columns that start the content, on a phone', async () => {
     await page.viewport(390, 800)
     onTestFinished(() => page.viewport(1280, 800))
     render(
@@ -671,11 +672,13 @@ describe('Editor email block toolbar placement', () => {
       name: 'Columns actions'
     })
     const node = textbox.querySelector('[data-type="columns"]')!
-    await waitFor(() =>
-      expect(toolbar.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-        node.getBoundingClientRect().bottom
-      )
-    )
+    await waitFor(() => {
+      const bar = toolbar.getBoundingClientRect()
+      const box = node.getBoundingClientRect()
+      expect(bar.top).toBeGreaterThanOrEqual(box.top)
+      expect(bar.right).toBeLessThanOrEqual(box.right)
+      expect(box.right - bar.right).toBeLessThan(16)
+    })
   })
 
   it.each([16, undefined, 64])(

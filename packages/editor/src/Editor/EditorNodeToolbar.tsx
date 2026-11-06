@@ -102,8 +102,8 @@ const BESIDE = new Set<EditorNodeType>(['spacer'])
  * top-end corner. Once the top scrolls off, or under the docked bar, the line
  * follows that edge, stopping where the toolbar would leave the node. A
  * spacer puts it past its end instead where the frame has room, across its
- * middle. Columns put it outside themselves, clear of their neighbours'
- * text where it can be; see `columnsPlace`. Below a node, the line is the
+ * middle. Columns put it beside or above themselves where that's clear,
+ * else in their top-end corner; see `columnsPlace`. Below a node, the line is the
  * toolbar's width from the node's start, so the toolbar's end meets it there.
  */
 function insideTopEdge(editor: TiptapEditor, menu: HTMLElement | null) {
@@ -153,9 +153,9 @@ const overlaps = (a: DOMRect, b: DOMRect) =>
 
 /**
  * The first place for the columns toolbar that's on screen and clear of the
- * text before and after the columns: past their end at the top, above their
- * end, then below it. With none clear, above or below where it's on screen,
- * so it covers none of the columns' own text while either edge shows.
+ * text before the columns: past their end at the top, then above their end.
+ * Otherwise it docks inside their top-end corner, or the top of what shows,
+ * rather than below, where the next block's own controls and badges sit.
  */
 function columnsPlace(
   editor: TiptapEditor,
@@ -167,14 +167,10 @@ function columnsPlace(
   const top = visibleTop(editor)
   const frame = editor.view.dom.closest('[data-slot="editor"]')
   const frameRight = frame?.getBoundingClientRect().right ?? box.right
-  const neighbours = [
-    ...textRects(element.previousElementSibling),
-    ...textRects(element.nextElementSibling)
-  ]
+  const neighbours = textRects(element.previousElementSibling)
   // Each as the line the toolbar's end meets, and the toolbar it places.
   const beside = new DOMRect(box.right + GAP, Math.max(box.top, top), width, 0)
   const above = new DOMRect(box.left, box.top - GAP - height, box.width, 0)
-  const below = new DOMRect(box.left, box.bottom + GAP, box.width, 0)
   const toolbarAt = (line: DOMRect) =>
     new DOMRect(line.right - width, line.top, width, height)
   const onScreen = (line: DOMRect) =>
@@ -184,11 +180,8 @@ function columnsPlace(
   const clear = (line: DOMRect) =>
     neighbours.every((rect) => !overlaps(rect, toolbarAt(line)))
   return (
-    [beside, above, below].find((line) => onScreen(line) && clear(line)) ??
-    [above, below].find(onScreen) ??
-    // Both edges off screen: over the end of what shows, as the only place
-    // in reach.
-    new DOMRect(box.left, top + INSET, box.width - INSET, 0)
+    [beside, above].find((line) => onScreen(line) && clear(line)) ??
+    new DOMRect(box.left, Math.max(box.top, top) + INSET, box.width - INSET, 0)
   )
 }
 

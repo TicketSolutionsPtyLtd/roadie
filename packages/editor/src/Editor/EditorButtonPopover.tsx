@@ -3,6 +3,7 @@
 import {
   type ReactNode,
   type RefObject,
+  useEffect,
   useRef,
   useState,
   useSyncExternalStore
@@ -439,6 +440,20 @@ export function EditorButtonPopover({
   const emphasisRef = useRef<HTMLButtonElement>(null)
   const live = useLiveEdit(editor, open, onOpenChange)
   const narrow = useNarrow()
+  const sheet = open && narrow
+  useEffect(() => {
+    if (!sheet || !editor) return
+    const frame = requestAnimationFrame(() => {
+      const found = selectedNode(editor.state)
+      const element = found && editor.view.nodeDOM(found.pos)
+      if (!(element instanceof HTMLElement)) return
+      // Above the sheet, which takes the bottom half of the screen.
+      element.style.scrollMarginBottom = 'calc(50dvh + 1rem)'
+      element.scrollIntoView({ block: 'end' })
+      element.style.scrollMarginBottom = ''
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [sheet, editor])
   if (!editor) return null
   const editing = selectedNodeType(editor.state) === 'button'
   const { from, to } = editor.state.selection
@@ -470,10 +485,16 @@ export function EditorButtonPopover({
   )
   if (editing && narrow) {
     return (
-      <Drawer open={open} onOpenChange={live.onOpenChange} side='bottom'>
+      // No blur, so the button shows its changes above the half-height sheet.
+      <Drawer
+        open={open}
+        onOpenChange={live.onOpenChange}
+        side='bottom'
+        emphasis='subtler'
+      >
         <Drawer.Content
           {...{ [EDITOR_POPUP]: '' }}
-          size='fit'
+          size='sm'
           initialFocus={initialFocus}
           finalFocus={finalFocus}
         >
@@ -501,7 +522,7 @@ export function EditorButtonPopover({
       >
         {editing ? (
           <>
-            <Popover.Header>
+            <Popover.Header className='text-start'>
               <Popover.Title>Button settings</Popover.Title>
             </Popover.Header>
             {form}

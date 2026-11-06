@@ -186,6 +186,28 @@ describe('Editor button settings', () => {
     )
   })
 
+  it('opens a half-height sheet on a phone, over an unblurred page, with the button scrolled above it', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const filler = Array.from({ length: 12 }, (_, index) => ({
+      type: 'paragraph',
+      content: [{ type: 'text', text: `Set time ${index + 1}` }]
+    }))
+    renderEmail(email(...filler, button(), ...filler))
+    const dialog = await openSettings()
+
+    await waitFor(() => {
+      const sheet = dialog.getBoundingClientRect()
+      expect(sheet.height).toBeLessThanOrEqual(window.innerHeight / 2 + 1)
+      expect(drawn().getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        sheet.top
+      )
+      expect(drawn().getBoundingClientRect().top).toBeGreaterThanOrEqual(0)
+    })
+    const backdrop = document.querySelector('[data-slot="drawer-backdrop"]')!
+    expect(getComputedStyle(backdrop).backdropFilter).toBe('none')
+  })
+
   it('keeps a touch screen’s docked bar above the keyboard while the drawer is open', async () => {
     await page.viewport(390, 700)
     onTestFinished(() => page.viewport(1280, 800))
