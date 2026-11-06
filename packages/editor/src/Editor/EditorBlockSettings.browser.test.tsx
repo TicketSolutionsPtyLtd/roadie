@@ -122,7 +122,7 @@ const page: EditorValue = {
   }
 }
 
-function renderPage() {
+function renderPage(props: Partial<Parameters<typeof Editor>[0]> = {}) {
   const onValueChange = vi.fn()
   render(
     <Editor
@@ -130,6 +130,7 @@ function renderPage() {
       extensions={[promo]}
       defaultValue={page}
       onValueChange={onValueChange}
+      {...props}
     />
   )
   return onValueChange
@@ -582,5 +583,128 @@ describe('Editor block settings', () => {
           .right
       ).toBeLessThanOrEqual(drawer.getBoundingClientRect().left + 1)
     )
+  })
+
+  it('marks its phone sheet as the editor’s popup', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    renderPage()
+
+    expect(await openFromMenu()).toHaveAttribute('data-editor-popup')
+  })
+
+  it('closes on Escape with nothing changed, leaving the history alone', async () => {
+    const onValueChange = renderPage()
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+    await userEvent.keyboard('!')
+    await openFromMenu()
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content![0]
+      ).toMatchObject({ content: [{ text: 'Doors 7pm' }] })
+    )
+  })
+
+  it('uploads an image, and says so when it can’t', async () => {
+    const onUploadImage = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Too big'))
+      .mockResolvedValueOnce({ src: '/uploads/band.webp', alt: 'The band' })
+    const onValueChange = renderPage({ onUploadImage })
+    await userEvent.click(await screen.findByText('Velvet Kookaburra'))
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+    const file = new File(['x'], 'band.webp', { type: 'image/webp' })
+
+    await userEvent.upload(within(drawer).getByLabelText('Photo file'), file)
+    expect(await within(drawer).findByRole('alert')).toHaveTextContent(
+      'That image couldn’t be uploaded.'
+    )
+    await userEvent.upload(within(drawer).getByLabelText('Photo file'), file)
+
+    await waitFor(() =>
+      expect(savedPromo(onValueChange)!.lineup).toMatchObject([
+        { photo: { src: '/uploads/band.webp', alt: 'The band' } }
+      ])
+    )
+    expect(within(drawer).queryByRole('alert')).toBe(null)
+  })
+
+  it('opens the item clicked when two share their text', async () => {
+    renderPage({
+      defaultValue: {
+        ...page,
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'promo',
+              attrs: {
+                lineup: [
+                  { name: 'Marri Lane', photo: { src: '', alt: '' } },
+                  { name: 'Marri Lane', photo: { src: '', alt: '' } }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    })
+
+    const [, second] = await screen.findAllByText('Marri Lane')
+    await userEvent.click(second!)
+
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+    const names = within(drawer).getAllByRole('textbox', { name: 'Name' })
+    await waitFor(() => expect(names.at(-1)).toHaveFocus())
+    expect(names).toHaveLength(1)
+    expect(
+      within(drawer).getByRole('button', { name: 'Remove Marri Lane (2)' })
+    ).toBeVisible()
+  })
+
+  it('leaves a drag that selects text ending on a block alone', async () => {
+    renderPage()
+    const doors = await screen.findByText('Doors 7pm')
+    const name = await screen.findByText('Velvet Kookaburra')
+    const centre = (element: Element) => {
+      const box = element.getBoundingClientRect()
+      return { clientX: box.left + 4, clientY: box.top + box.height / 2 }
+    }
+    const press = (element: Element, at = centre(element)) =>
+      element.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          bubbles: true,
+          pointerType: 'mouse',
+          button: 0,
+          ...at
+        })
+      )
+    const release = (element: Element) =>
+      element.dispatchEvent(
+        new MouseEvent('mouseup', {
+          bubbles: true,
+          button: 0,
+          ...centre(element)
+        })
+      )
+
+    // A click selects the block as it opens it, at once.
+    const selected = () => name.closest('.ProseMirror-selectednode')
+
+    press(doors)
+    release(name)
+    expect(selected()).toBe(null)
+    press(name)
+    release(name)
+
+    expect(selected()).not.toBe(null)
+    expect(
+      await screen.findByRole('dialog', { name: 'Promo settings' })
+    ).toBeVisible()
   })
 })
