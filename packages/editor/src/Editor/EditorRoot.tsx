@@ -14,6 +14,7 @@ import type {
   EmbedProvider,
   Preset
 } from '../schema'
+import { EditorEmailStart, isBlankDoc } from './EditorEmailStart'
 import type {
   EditorPreviewRecipient,
   EditorRenderPreview,
@@ -189,6 +190,17 @@ export function EditorRoot(props: EditorRootProps) {
         )}
       />
     )
+    const blankEmail =
+      resolvedPreset(props) === 'email' &&
+      !props.readOnly &&
+      !props.disabled &&
+      !field.disabled &&
+      isBlankDoc(startingValue(props))
+    const emailStart = blankEmail ? (
+      <div inert className='invisible'>
+        <EditorEmailStart />
+      </div>
+    ) : null
     const frame = cn(
       'flex min-w-0 flex-col',
       EDITOR_MIN_HEIGHT[size],
@@ -226,6 +238,7 @@ export function EditorRoot(props: EditorRootProps) {
                 <Skeleton className='w-2/3' />
               </div>
             </div>
+            {emailStart}
           </div>
         ) : (
           <Skeleton
@@ -235,6 +248,7 @@ export function EditorRoot(props: EditorRootProps) {
           >
             {toolbarRoom}
             <div className={editorContentClass(size, emphasis)} />
+            {emailStart}
           </Skeleton>
         )}
         {props.name ? (

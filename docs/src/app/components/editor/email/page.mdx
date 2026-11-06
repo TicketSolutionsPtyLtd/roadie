@@ -307,6 +307,12 @@ There are two ways to add a block. Both list the blocks under the same
 headings: Text, Media, Layout, Email, and Sections. Image shows only with
 `onUploadImage`, and Merge tag is in the `/` menu only, with `variables`.
 
+- **An empty email** says "Type / for blocks, or pick a section" on its
+  first line ("Tap Blocks to add a block or section" on a touch screen), as the empty line with the caret does while the editor has
+  focus, unless `placeholder` replaces it. Under it, Start your email offers
+  Sections and Blocks, which open the drawer at its sections or its blocks,
+  and Import, which opens Import HTML or MJML. It goes once the email holds
+  anything, and doesn't show when the editor is read-only or disabled.
 - **Blocks** in the toolbar opens a drawer of tiles, one per block, in its
   group. It starts the docked toolbar, so it shows on a phone, and ends the
   floating toolbar over a selection. The drawer opens from the right, or
@@ -323,7 +329,15 @@ headings: Text, Media, Layout, Email, and Sections. Image shows only with
   groups of blocks to edit: Header (also `/banner`), Event (`/tickets`,
   `/cta`), Two events, and Lineup. Each goes after the top-level block with
   the caret, or in place of an empty top-level line, never inside a section,
-  and no empty line follows it, with its first line's text selected, so typing replaces it.
+  and no empty line follows it. Its placeholder copy, such as Headline,
+  shows as a hint on each empty line, in the subtler text colour, and saves
+  as nothing, so there's nothing to delete: the caret starts on its first
+  line, a hint goes once its line has text, and Enter at the end of a line
+  moves into the next one while it shows a hint, as a form moves to its
+  next field. Hints live only while
+  the email is open in the editor that added the section: undo and redo,
+  or loading it again, leave the lines empty, and an editor that's
+  read-only or disabled shows none.
   Their buttons have no link until you set one, and send as text until then.
   Footer, also found as `/unsubscribe`, with a line on why the reader gets
   the email and an Unsubscribe link, shows when one of `variables` is a link

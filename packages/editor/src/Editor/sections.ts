@@ -11,6 +11,7 @@ import type { JSONContent } from '@tiptap/core'
 import { type EditorVariable, linkVariables } from '../schema/variables'
 import { TOP_LEVEL } from './blockActions'
 import { dropEmptiedLine, insertBlockAfter } from './emailEditing'
+import { hintLines } from './emptyLineHint'
 import type { EditorInsertItem } from './insertItems'
 
 const text = (value: string): JSONContent => ({ type: 'text', text: value })
@@ -20,11 +21,22 @@ const paragraph = (...content: JSONContent[]): JSONContent => ({
   content
 })
 
-const heading = (level: number, value: string): JSONContent => ({
+// Placeholder copy is a hint on an empty line, so nothing needs deleting.
+const heading = (level: number, hint: string): JSONContent => ({
   type: 'heading',
   attrs: { level },
-  content: [text(value)]
+  hint
 })
+
+const hintedLine = (hint: string): JSONContent => ({ type: 'paragraph', hint })
+
+const TEXT_LINES = new Set(['paragraph', 'heading', 'button'])
+
+// Each text line's hint, in document order, as `hintLines` pairs them.
+function hintsOf(node: JSONContent): (string | undefined)[] {
+  if (TEXT_LINES.has(node.type ?? '')) return [node.hint as string | undefined]
+  return (node.content ?? []).flatMap(hintsOf)
+}
 
 // Unlinked, so it sends as text until the author links it.
 const getTickets: JSONContent = {
@@ -34,7 +46,7 @@ const getTickets: JSONContent = {
 
 const event = [
   heading(3, 'Event name'),
-  paragraph(text('Fri 14 Mar, 7:30pm · Venue, City')),
+  hintedLine('Fri 14 Mar, 7:30pm · Venue, City'),
   getTickets
 ]
 
@@ -46,6 +58,7 @@ function section(
   keywords?: readonly string[]
 ): EditorInsertItem {
   const insert = insertBlockAfter(content, TOP_LEVEL)
+  const placed = hintLines(hintsOf(content))
   return {
     label,
     icon,
@@ -54,7 +67,9 @@ function section(
     block: content,
     containers: TOP_LEVEL,
     topLevel: 'always',
-    insert: (chain) => chain.command(dropEmptiedLine).command(insert),
+    placed,
+    insert: (chain) =>
+      chain.command(dropEmptiedLine).command(insert).command(placed),
     enabled: (_editor, afterQuery) =>
       afterQuery().command(dropEmptiedLine).command(insert).run()
   }
@@ -67,7 +82,7 @@ const header = section(
     type: 'section',
     content: [
       heading(2, 'Headline'),
-      paragraph(text('A line or two on what this email is about.'))
+      hintedLine('A line or two on what this email is about.')
     ]
   },
   ['banner', 'hero']
@@ -80,9 +95,9 @@ const eventSection = section(
   ['tickets', 'cta', 'gig', 'show']
 )
 
-const act = (value: string): JSONContent => ({
+const act = (hint: string): JSONContent => ({
   type: 'listItem',
-  content: [paragraph(text(value))]
+  content: [hintedLine(hint)]
 })
 
 const lineup = section(
