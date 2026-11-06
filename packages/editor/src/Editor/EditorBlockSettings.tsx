@@ -266,9 +266,12 @@ export function EditorBlockSettings({
       focusElement && dom.contains(focusElement) ? focusElement : dom
     )
   }, [editor, from, phone, focusElement])
+  // The block the room around the drawer was last made for.
+  const roomRef = useRef<number | null>(null)
   useEffect(() => {
     if (!open || !editor) return
     return () => {
+      roomRef.current = null
       const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
       if (root) {
         root.style.paddingRight = ''
@@ -330,7 +333,10 @@ export function EditorBlockSettings({
           // Once it's there to measure, which can be after the effect that
           // scrolls, so the block scrolls up again into the room it makes.
           ref={(sheet: HTMLDivElement | null) => {
-            if (!sheet) return
+            // A new ref each render; the room is made once per block opened,
+            // so typing never scrolls the page back.
+            if (!sheet || roomRef.current === selection.from) return
+            roomRef.current = selection.from
             makeRoomBelow(editor, sheet)
             const block = editor.view.nodeDOM(selection.from)
             const target =
@@ -359,7 +365,8 @@ export function EditorBlockSettings({
               data-editor-popup=''
               // Once it's there to measure, before its block scrolls in.
               ref={(popup) => {
-                if (popup) {
+                if (popup && roomRef.current !== selection.from) {
+                  roomRef.current = selection.from
                   makeRoomBeside(
                     editor,
                     popup,
