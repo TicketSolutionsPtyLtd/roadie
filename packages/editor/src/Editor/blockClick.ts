@@ -59,12 +59,21 @@ export function clickedSetting(
   return undefined
 }
 
+/** The innermost element at (x, y) in a block, to keep in view. */
+function clickedElement(block: Element, x: number, y: number) {
+  const under = [...block.querySelectorAll('*')].filter((element) => {
+    const box = element.getBoundingClientRect()
+    return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom
+  })
+  return under.at(-1) ?? null
+}
+
 const FIELD = 'input, textarea, select, button, [contenteditable="true"]'
 
 type BlockClickOptions = {
   hasSettings: (name: string) => boolean
   /** Opens the selected block's settings, at the path clicked if any. */
-  onEdit: (path: string | undefined) => void
+  onEdit: (path: string | undefined, element: Element | null) => void
 }
 
 /**
@@ -76,9 +85,10 @@ export const BlockClick = Extension.create<BlockClickOptions>({
   name: 'blockClick',
   addProseMirrorPlugins() {
     const { hasSettings, onEdit } = this.options
-    // The press, by mouse, that a release must end where it began; a touch
-    // laptop's primary pointer is a mouse, so it's the press's own pointer.
-    let press: { x: number; y: number } | null = null
+    // The press that a release must end where it began. A touch counts only
+    // on a block already selected, so a tap selects and a scroll does nothing;
+    // a touch laptop's primary pointer is a mouse, so it's the press's own.
+    let press: { x: number; y: number; selected: number | null } | null = null
     let pending: ReturnType<typeof setTimeout> | undefined
     // A block's own view takes its presses, so the click is read from the
     // DOM: the block with settings holding the target, if any.
@@ -103,15 +113,17 @@ export const BlockClick = Extension.create<BlockClickOptions>({
         return true
       })
       if (at === undefined) return false
+      if (begun.selected !== null && begun.selected !== at) return false
       const node = view.state.doc.nodeAt(at)!
       const dom = view.nodeDOM(at) as Element
       view.dispatch(
         view.state.tr.setSelection(NodeSelection.create(view.state.doc, at))
       )
       const path = clickedSetting(dom, event.clientX, event.clientY, node.attrs)
+      const element = clickedElement(dom, event.clientX, event.clientY)
       // After the click this release makes, which a drawer with a backdrop
       // would otherwise hear as a press outside it.
-      pending = setTimeout(() => onEdit(path))
+      pending = setTimeout(() => onEdit(path, element))
       return true
     }
     return [
@@ -120,12 +132,20 @@ export const BlockClick = Extension.create<BlockClickOptions>({
       new Plugin({
         view: (view) => {
           const pointerdown = (event: PointerEvent) => {
-            const plain =
-              event.pointerType === 'mouse' &&
-              event.button === 0 &&
-              !event.ctrlKey &&
-              !event.metaKey
-            press = plain ? { x: event.clientX, y: event.clientY } : null
+            const plain = event.button === 0 && !event.ctrlKey && !event.metaKey
+            const { selection } = view.state
+            const touch =
+              event.pointerType === 'touch' || event.pointerType === 'pen'
+            // A touch opens only the block it was already on.
+            const selected = touch
+              ? selection instanceof NodeSelection
+                ? selection.from
+                : -1
+              : null
+            press =
+              plain && (touch || event.pointerType === 'mouse')
+                ? { x: event.clientX, y: event.clientY, selected }
+                : null
           }
           // On release, as ProseMirror's own clicks are. A double click's
           // second release opens it again after its first press closed it.

@@ -155,11 +155,11 @@ import {
   - `list`: items to add, remove, and drag or move to reorder, each in its
     own fold, of `fields`, or of an `item` that's an `image` or an `action`.
 
-  Each change shows as it's made. Done, Enter in a text setting, or a click
-  or tap away keeps the changes as one step to undo. Escape puts the block
-  back as one step too, so Redo brings the changes back. Either way the
-  caret goes to the nearest text, so the next key types rather than
-  replacing the block.
+  Each change shows as it's made. Done, Escape, Enter in a text setting, or
+  a click or tap away keeps the changes, and Undo takes the whole visit back
+  in one step. The caret goes back where it was before the block was
+  selected, or after the block, so the next key types rather than replacing
+  it. Opened from the keyboard with Enter, the block stays selected.
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
@@ -267,7 +267,7 @@ render(<Page />)
 | --- | --- |
 | `/` | Open the insert menu, in the blocks preset |
 | `Enter` | With a block that has settings selected, open them |
-| `Escape` | In a block's settings, put the block back and close them |
+| `Escape` | In a block's settings, keep the changes and close them |
 
 Every preset's other keys are on the [Editor](/components/editor#accessibility)
 page.

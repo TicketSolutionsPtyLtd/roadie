@@ -455,11 +455,19 @@ export function EditorEngine({
   const [editingVariable, setEditingVariable] = useState(false)
   const [editingSettings, setEditingSettings] = useState(false)
   const [focusSetting, setFocusSetting] = useState<string | undefined>()
-  const editSettings = (path?: string) => {
+  const [focusElement, setFocusElement] = useState<Element | null>(null)
+  const [keepSelected, setKeepSelected] = useState(false)
+  const editSettings = (
+    path?: string,
+    element: Element | null = null,
+    fromKeyboard = false
+  ) => {
     setFocusSetting(path)
+    setFocusElement(element)
+    setKeepSelected(fromKeyboard)
     setEditingSettings(true)
   }
-  // Read by the editor's plugins, made before the editor they select in.
+  // Read by the editor's plugins and toolbars, made before the editor.
   const editorRef = useRef<TiptapEditor | null>(null)
   const editSettingsAt = (pos: number) => {
     const current = editorRef.current
@@ -560,7 +568,7 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       SettingsShortcut.configure({
         has: hasSettings,
-        onEdit: () => editSettings()
+        onEdit: () => editSettings(undefined, null, true)
       }),
       BlockClick.configure({ hasSettings, onEdit: editSettings }),
       ImageUpload.configure(uploads),
@@ -839,6 +847,8 @@ export function EditorEngine({
         ...ui,
         openBlocks:
           drawerItems.length > 0 ? () => setAddingBlocks(true) : undefined,
+        hasSettings,
+        editSettingsAt,
         editingLink,
         embedProviders,
         variables,
@@ -942,6 +952,8 @@ export function EditorEngine({
           onOpenChange={setEditingSettings}
           blocks={blockSettings}
           focusSetting={focusSetting}
+          focusElement={focusElement}
+          keepSelected={keepSelected}
           uploadImage={canUpload ? onUploadImage : undefined}
         />
         <EditorVariablePopover
