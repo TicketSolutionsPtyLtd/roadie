@@ -37,7 +37,9 @@ type Shown = {
 function SectionToolbar({ rule, label, open }: Shown) {
   const unknown = rule && label === undefined
   return (
-    <div className='flex items-center gap-1'>
+    // Its own floating surface, so it reads on a canvas pinned to the email's
+    // light colours as well as on the app's dark one.
+    <div className='flex items-center gap-1 rounded-full emphasis-floating p-0.5'>
       {rule ? (
         <Badge
           intent={unknown ? 'warning' : 'info'}
@@ -61,7 +63,7 @@ function SectionToolbar({ rule, label, open }: Shown) {
       ) : null}
       <IconButton
         size='xs'
-        emphasis='normal'
+        emphasis='subtler'
         aria-label='Section settings'
         tabIndex={-1}
         data-slot='editor-section-settings'
@@ -94,6 +96,7 @@ export const SectionToolbars = Extension.create<SectionToolbarOptions>({
   name: 'sectionToolbars',
   addProseMirrorPlugins() {
     const { variables, onSettings } = this.options
+    const { editor } = this
     const labelOf = (key: string) =>
       variables()?.find((variable) => variable.key === key)?.label
     return [
@@ -102,7 +105,8 @@ export const SectionToolbars = Extension.create<SectionToolbarOptions>({
         props: {
           decorations: (state) => {
             const decorations: Decoration[] = []
-            const active = activeSection(state)
+            // Before the editor has focus no section holds the caret.
+            const active = editor.isFocused ? activeSection(state) : null
             // Sections sit only at the top, so nothing inside is read.
             state.doc.forEach((node, pos) => {
               if (node.type.name !== 'section') return

@@ -13,7 +13,8 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { clickIntoEditor } from './testUtils'
+import { apcaLc, shownFill, shownText } from './contrastTestUtils'
+import { MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Email'
 
@@ -243,5 +244,94 @@ describe('Editor email section settings', () => {
         textbox.querySelector('[aria-label="Section settings"]')
       ).not.toBeVisible()
     )
+  })
+
+  it('reads its toolbar in the dark', async () => {
+    document.documentElement.classList.add('dark')
+    onTestFinished(() => document.documentElement.classList.remove('dark'))
+    renderEmail(
+      email(section({ showWhen: { key: 'tickets_left', op: 'exists' } }))
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Gates 6pm'))
+
+    const badge = await screen.findByText('Only when Tickets left is set')
+    const settings = await screen.findByRole('button', {
+      name: 'Section settings'
+    })
+
+    expect(
+      Math.abs(apcaLc(shownText(badge), shownFill(badge)))
+    ).toBeGreaterThanOrEqual(60)
+    expect(
+      Math.abs(apcaLc(shownText(settings), shownFill(settings)))
+    ).toBeGreaterThanOrEqual(45)
+  })
+
+  it('hides Settings before the editor has focus', async () => {
+    renderEmail(email(section()))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+
+    await waitFor(() =>
+      expect(
+        textbox.querySelector('[aria-label="Section settings"]')
+      ).not.toBeVisible()
+    )
+  })
+
+  it('brings Escape’s changes back on Redo', async () => {
+    const onValueChange = renderEmail(email(section()))
+    const drawer = await openSettings()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Tint' }))
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedSection(onValueChange).attrs).toBeUndefined()
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(savedSection(onValueChange).attrs).toEqual({ look: 'tint' })
+    )
+  })
+
+  it('keeps the email clear of the drawer on a wide page', async () => {
+    await page.viewport(1280, 800)
+    renderEmail(email(section()))
+
+    const drawer = await openSettings()
+
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-type="section"]')!.getBoundingClientRect()
+          .right
+      ).toBeLessThanOrEqual(drawer.getBoundingClientRect().left)
+    )
+  })
+
+  it('brings the section above its phone sheet', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    render(
+      <div style={{ height: 2400 }}>
+        <div style={{ height: 900 }} />
+        <Editor
+          aria-label={LABEL}
+          preset='email'
+          variables={variables}
+          defaultValue={email(section())}
+        />
+      </div>
+    )
+
+    const drawer = await openSettings()
+
+    await waitFor(() => {
+      const top = document
+        .querySelector('[data-type="section"]')!
+        .getBoundingClientRect().top
+      expect(top).toBeGreaterThan(0)
+      expect(top).toBeLessThan(drawer.getBoundingClientRect().top)
+    })
   })
 })
