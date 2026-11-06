@@ -157,7 +157,7 @@ describe('Editor email canvas', () => {
       const { section } = await renderCard()
       // The last test can leave the pointer over the section.
       await userEvent.hover(screen.getByText('Outside'))
-      // Past the hover's fade out, which a loaded machine is still running.
+      // Past the outline's fade, which is never transparent midway.
       await Promise.all(section.getAnimations().map((fade) => fade.finished))
       const resting = getComputedStyle(section)
       // The outline fades out, so a hover the last test left takes a moment.
