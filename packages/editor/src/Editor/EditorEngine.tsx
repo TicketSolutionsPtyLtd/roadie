@@ -523,7 +523,8 @@ export function EditorEngine({
       InsertMenu.configure({
         items: insertItems,
         ui: () => uiRef.current!,
-        onChange: setInsertMenu
+        onChange: setInsertMenu,
+        noMatches: 'No blocks match'
       }),
       BlockMenuShortcut.configure({
         open: () => {
