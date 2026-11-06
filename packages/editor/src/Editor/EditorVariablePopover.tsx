@@ -1,9 +1,9 @@
 'use client'
 
-import { use, useState } from 'react'
+import { type RefObject, use, useRef, useState } from 'react'
 
 import { posToDOMRect } from '@tiptap/core'
-import { NodeSelection } from '@tiptap/pm/state'
+import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
 import { Field } from '@oztix/roadie-components/field'
@@ -30,12 +30,13 @@ function selectedTag(editor: TiptapEditor): Tag | undefined {
 
 type TagFormProps = {
   tag: Tag
+  fallbackRef: RefObject<HTMLInputElement | null>
   apply: LiveEdit['apply']
   onDone: () => void
 }
 
 /** Applies each change as it's made. */
-function TagForm({ tag, apply, onDone }: TagFormProps) {
+function TagForm({ tag, fallbackRef, apply, onDone }: TagFormProps) {
   const variables = textVariables(use(EditorContext)?.variables)
   const [key, setKey] = useState(tag.key)
   const [fallback, setFallback] = useState(tag.fallback)
@@ -86,6 +87,7 @@ function TagForm({ tag, apply, onDone }: TagFormProps) {
       <Field>
         <Field.Label>Fallback</Field.Label>
         <Field.Input
+          ref={fallbackRef}
           value={fallback}
           onChange={(event) => {
             const value = event.target.value
@@ -119,7 +121,7 @@ type EditorVariablePopoverProps = {
 
 /**
  * Edits the selected merge tag: the variable it shows, and its fallback.
- * Escape puts it back as it was.
+ * Escape keeps the changes, which undo puts back in one step.
  */
 export function EditorVariablePopover({
   editor,
@@ -127,6 +129,7 @@ export function EditorVariablePopover({
   onOpenChange
 }: EditorVariablePopoverProps) {
   const live = useLiveEdit(editor, open, onOpenChange)
+  const fallbackRef = useRef<HTMLInputElement>(null)
   if (!editor) return null
   const tag = open ? selectedTag(editor) : undefined
   const { from, to } = editor.state.selection
@@ -142,18 +145,30 @@ export function EditorVariablePopover({
         align='start'
         className='w-80 max-w-(--available-width)'
         positionerProps={{ anchor }}
+        // A tag without one needs it most, so that's where typing goes.
+        initialFocus={tag?.fallback ? true : fallbackRef}
         finalFocus={() => {
+          // After the tag, so typing carries on rather than replacing it.
+          const { selection } = editor.state
+          if (selection instanceof NodeSelection) {
+            editor.view.dispatch(
+              editor.state.tr.setSelection(
+                TextSelection.create(editor.state.doc, selection.to)
+              )
+            )
+          }
           focusEditor(editor)
           return false
         }}
       >
-        <Popover.Header>
+        <Popover.Header className='text-start'>
           <Popover.Title>Merge tag</Popover.Title>
         </Popover.Header>
         {tag ? (
           <TagForm
             key={`${from}`}
             tag={tag}
+            fallbackRef={fallbackRef}
             apply={live.apply}
             onDone={live.done}
           />

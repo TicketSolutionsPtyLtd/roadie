@@ -8,7 +8,10 @@ import { Badge } from '@oztix/roadie-components/badge'
 
 import { EditorContext } from './EditorContext'
 
-/** A merge tag in the editor: a chip with its variable's label. */
+/**
+ * A merge tag in the editor: a chip with its variable's label and its
+ * fallback, or a warning dot without one.
+ */
 export function EditorVariableView({
   node,
   selected,
@@ -17,6 +20,8 @@ export function EditorVariableView({
 }: ReactNodeViewProps) {
   const variables = use(EditorContext)?.variables
   const key = String(node.attrs.key)
+  const fallback =
+    typeof node.attrs.fallback === 'string' ? node.attrs.fallback : ''
   const variable = variables?.find((listed) => listed.key === key)
   const invalid = variables !== undefined && !variable
   const pos = getPos()
@@ -41,6 +46,19 @@ export function EditorVariableView({
         contentEditable={false}
       >
         {variable?.label ?? key}
+        {fallback ? (
+          <>
+            <span aria-hidden>·</span>
+            <span className='text-subtler'>{fallback}</span>
+          </>
+        ) : invalid ? null : (
+          <span
+            role='img'
+            aria-label='No fallback'
+            title='No fallback'
+            className='size-1.5 shrink-0 rounded-full bg-strong intent-warning'
+          />
+        )}
       </Badge>
     </NodeViewWrapper>
   )
