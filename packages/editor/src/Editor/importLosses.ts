@@ -54,10 +54,6 @@ export function importLosses({
       'style, such as a font or colour',
       'styles, such as fonts and colours'
     ),
-    ...counted(
-      count('hidden'),
-      'piece of hidden text, such as a preheader',
-      'pieces of hidden text, such as a preheader'
-    )
+    ...counted(count('hidden'), 'piece of hidden text', 'pieces of hidden text')
   ]
 }

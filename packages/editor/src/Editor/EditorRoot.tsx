@@ -199,6 +199,21 @@ export function EditorRoot(props: EditorRootProps) {
         )}
       />
     )
+    const preheaderRoom = email ? (
+      // Laid out as the field is, in the email's gutter, stacked on a phone,
+      // its text unseen.
+      <div className='ps-(--email-gutter)'>
+        <div className='@container invisible mx-auto w-full max-w-[600px] px-6 pt-3'>
+          <div className='grid items-center gap-x-3 gap-y-1 @min-[30rem]:grid-cols-[auto_minmax(0,1fr)]'>
+            <span className='text-sm'>Preview text</span>
+            <div className='h-8' />
+            <span className='text-xs @min-[30rem]:col-start-2'>
+              About 40 to 90 characters show.
+            </span>
+          </div>
+        </div>
+      </div>
+    ) : null
     const blankEmail =
       resolvedPreset(props) === 'email' &&
       !props.readOnly &&
@@ -227,6 +242,7 @@ export function EditorRoot(props: EditorRootProps) {
             className={cn(frame, props.className)}
           >
             {toolbarRoom}
+            {preheaderRoom}
             <div
               className={cn(
                 editorContentClass(size, emphasis),
@@ -256,6 +272,7 @@ export function EditorRoot(props: EditorRootProps) {
             className={cn(frame, 'h-auto rounded-lg', props.className)}
           >
             {toolbarRoom}
+            {preheaderRoom}
             <div className={editorContentClass(size, emphasis)} />
             {emailStart}
           </Skeleton>
