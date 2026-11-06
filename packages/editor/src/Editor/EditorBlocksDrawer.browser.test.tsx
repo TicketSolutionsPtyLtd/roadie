@@ -750,13 +750,13 @@ describe('Editor blocks drawer in the blocks preset', () => {
     expect(groupNames(drawer)).toEqual(['Sections', 'Text', 'Media', 'Layout'])
   })
 
-  it('keeps the preset’s order on a desktop', async () => {
+  it('lists Sections first on a desktop too, above the fold', async () => {
     renderPage({ toolbar: 'docked', extensions: [hero] })
     await clickInto('Doors 7pm')
 
     const drawer = await openFromDockedBar()
 
-    expect(groupNames(drawer)).toEqual(['Text', 'Media', 'Layout', 'Sections'])
+    expect(groupNames(drawer)).toEqual(['Sections', 'Text', 'Media', 'Layout'])
   })
 
   it('opens from the docked toolbar with the preset’s blocks as tiles', async () => {
