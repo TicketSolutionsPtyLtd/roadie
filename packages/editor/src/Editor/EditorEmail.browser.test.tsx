@@ -522,6 +522,10 @@ describe('Editor with the email preset', () => {
 
     expect(view).not.toHaveAttribute('data-selected')
     expect(container.querySelector('.ProseMirror-selectednode')).toBeNull()
+    // A loaded WebKit lays the failed image out late, with no size till then.
+    await expect
+      .poll(() => image.getBoundingClientRect().height, { timeout: 5000 })
+      .toBeGreaterThan(0)
 
     await userEvent.click(image)
     await waitFor(() => expect(view).toHaveAttribute('data-selected'))
