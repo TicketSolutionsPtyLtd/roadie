@@ -113,10 +113,12 @@ function makeRoomBeside(editor: TiptapEditor, drawer: HTMLElement | null) {
   const page = root?.ownerDocument.documentElement
   const view = root?.ownerDocument.defaultView ?? window
   // The window's width, as a page scrollbar narrows the document's.
-  if (!root || !drawer || !page || view.innerWidth < ROOM_FROM) return
+  if (!root || !drawer || !page) return
   const covered =
     root.getBoundingClientRect().right - (page.clientWidth - drawer.offsetWidth)
-  root.style.paddingInlineEnd = covered > 0 ? `${covered}px` : ''
+  // The drawer is on the right whatever the direction, so the padding is too.
+  root.style.paddingRight =
+    covered > 0 && view.innerWidth >= ROOM_FROM ? `${covered}px` : ''
 }
 
 /**
@@ -203,7 +205,7 @@ export function EditorBlockSettings({
     if (!open || !editor) return
     return () => {
       const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
-      if (root) root.style.paddingInlineEnd = ''
+      if (root) root.style.paddingRight = ''
     }
   }, [editor, open])
   const lost = open && !block
@@ -258,6 +260,7 @@ export function EditorBlockSettings({
       {phone ? (
         // Under half a phone's height, so the block shows above it.
         <Drawer.Content
+          data-editor-popup=''
           size='fit'
           className='max-h-[50dvh]'
           // The sheet itself, so the keyboard doesn't cover the block.
@@ -273,6 +276,7 @@ export function EditorBlockSettings({
         <Drawer.Portal>
           <Drawer.Viewport className='pointer-events-none'>
             <Drawer.Popup
+              data-editor-popup=''
               // Once it's there to measure, before its block scrolls in.
               ref={(popup) => {
                 if (popup) makeRoomBeside(editor, popup)
