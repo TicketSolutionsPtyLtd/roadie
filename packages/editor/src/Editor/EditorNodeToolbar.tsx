@@ -37,7 +37,7 @@ const HOLDING = new Set<EditorNodeType>(['button', 'columns'])
  * The node with its own toolbar: a selected image, embed or spacer, or the
  * button or columns holding the selection.
  */
-function selectedNode(
+export function selectedNode(
   state: EditorState
 ): { type: EditorNodeType; pos: number } | undefined {
   const { selection } = state
@@ -60,16 +60,11 @@ export const selectedNodeType = (state: EditorState) =>
 
 // Keeps the toolbar this far inside the node's media, clear of its edges.
 const INSET = 8
-// How far a toolbar beside its node sits from it.
+// How far a toolbar below its node sits from it.
 const GAP = 4
 
-// Toolbars that would cover the text they act on sit beside their node.
-const BESIDE: Partial<Record<EditorNodeType, 'above' | 'below'>> = {
-  button: 'below',
-  spacer: 'below',
-  variable: 'below',
-  columns: 'above'
-}
+// Toolbars that would cover the text they act on sit below their node.
+const BELOW = new Set<EditorNodeType>(['button', 'variable'])
 
 function selectedElement(editor: TiptapEditor) {
   const found = selectedNode(editor.state)
@@ -83,35 +78,151 @@ function selectedElement(editor: TiptapEditor) {
   }
 }
 
+/**
+ * Where the top of the view is for the toolbar: under the editor's docked
+ * bar while that's stuck over the node, as the node scrolls under it.
+ */
+function visibleTop(editor: TiptapEditor) {
+  const bar = editor.view.dom
+    .closest('[data-slot="editor"]')
+    ?.querySelector('[data-slot="editor-toolbar"]')
+  return Math.max(bar?.getBoundingClientRect().bottom ?? 0, 0)
+}
+
 const virtualLine = (edge: DOMRect) => ({
   getBoundingClientRect: () => edge,
   getClientRects: () => [edge]
 })
 
+// A short block whose toolbar goes beside it where the frame has room.
+const BESIDE = new Set<EditorNodeType>(['spacer'])
+
 /**
- * A line across the media's top, so the toolbar hangs inside it at the
- * top-end corner. Once the top scrolls off, the line follows the viewport's
- * top, stopping where the toolbar would leave the media. Beside a node, the
- * line is the toolbar's width from the node's start, so the toolbar's end
- * meets it there.
+ * A line across the node's top, so the toolbar hangs inside it at the
+ * top-end corner. Once the top scrolls off, or under the docked bar, the line
+ * follows that edge, stopping where the toolbar would leave the node. A
+ * spacer puts it past its end instead where the frame has room, across its
+ * middle. Columns put it beside or above themselves where that's clear,
+ * else in their top-end corner; see `columnsPlace`. Below a node, the line is the
+ * toolbar's width from the node's start, so the toolbar's end meets it there.
  */
 function insideTopEdge(editor: TiptapEditor, menu: HTMLElement | null) {
   const selected = selectedElement(editor)
   if (!selected) return null
   const box = selected.element.getBoundingClientRect()
   const height = menu?.offsetHeight ?? 0
-  const side = BESIDE[selected.type]
-  if (side) {
-    const above = box.top - GAP - height
-    const roomAbove = above >= editor.view.dom.getBoundingClientRect().top
-    const top = side === 'above' && roomAbove ? above : box.bottom + GAP
-    return virtualLine(new DOMRect(box.left, top, menu?.offsetWidth ?? 0, 0))
+  const width = menu?.offsetWidth ?? 0
+  if (BELOW.has(selected.type)) {
+    return virtualLine(new DOMRect(box.left, box.bottom + GAP, width, 0))
+  }
+  if (selected.type === 'columns') {
+    return virtualLine(columnsPlace(editor, selected.element, width, height))
   }
   const lowest = box.bottom - height - INSET
-  const top = Math.max(Math.min(Math.max(box.top, 0) + INSET, lowest), box.top)
+  const top =
+    selected.type === 'spacer'
+      ? box.top + (box.height - height) / 2
+      : Math.max(
+          Math.min(Math.max(box.top, visibleTop(editor)) + INSET, lowest),
+          box.top
+        )
+  const frame = editor.view.dom.closest('[data-slot="editor"]')
+  const besideEnd = box.right + GAP + width
+  if (
+    BESIDE.has(selected.type) &&
+    frame &&
+    besideEnd <= frame.getBoundingClientRect().right - INSET
+  ) {
+    return virtualLine(new DOMRect(box.right + GAP, top, width, 0))
+  }
   return virtualLine(
     new DOMRect(box.left + INSET, top, box.width - 2 * INSET, 0)
   )
+}
+
+/** The text's own line boxes in an element, not the block around them. */
+function textRects(element: Element | null) {
+  if (!element) return []
+  const rects: DOMRect[] = []
+  const range = document.createRange()
+  // Each text node's own lines, as a range over the element also holds the
+  // boxes of the blocks inside it.
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    range.selectNodeContents(node)
+    rects.push(...Array.from(range.getClientRects()))
+  }
+  return rects
+}
+
+const overlaps = (a: DOMRect, b: DOMRect) =>
+  a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+
+/**
+ * The first place for the columns toolbar that's on screen and covers no
+ * text: past their end at the top, above their end or start, inside their
+ * top-end or top-start corner, then in the top padding of the block holding
+ * them. It never goes below them, where the next block's own controls and
+ * badges sit. With none clear, it docks in their top-end corner.
+ */
+function columnsPlace(
+  editor: TiptapEditor,
+  element: Element,
+  width: number,
+  height: number
+) {
+  const box = element.getBoundingClientRect()
+  // No higher than the text's own top, under the editor's fields above it.
+  const content = editor.view.dom.closest('[data-slot="editor-content"]')
+  const top = Math.max(
+    visibleTop(editor),
+    content?.getBoundingClientRect().top ?? 0
+  )
+  const frame = editor.view.dom.closest('[data-slot="editor"]')
+  const frameRight = frame?.getBoundingClientRect().right ?? box.right
+  const holder = element.parentElement?.closest('[data-type]')
+  const inside = holder && editor.view.dom.contains(holder) ? holder : null
+  // All of the holder's text, so its top padding stays clear of a heading.
+  const text = textRects(inside ?? element.previousElementSibling).concat(
+    inside ? [] : textRects(element)
+  )
+  const corner = Math.max(
+    Math.min(Math.max(box.top, top) + INSET, box.bottom - height - INSET),
+    box.top
+  )
+  const padding = inside ? inside.getBoundingClientRect().top + INSET : -1
+  // Each as the toolbar's top and where its end sits.
+  const places = [
+    [Math.max(box.top, top), box.right + GAP + width],
+    [box.top - GAP - height, box.right],
+    [box.top - GAP - height, box.left + width],
+    [corner, box.right - INSET],
+    [corner, box.left + INSET + width],
+    [padding, box.right]
+  ] as const
+  const toolbarAt = ([y, end]: readonly [number, number]) =>
+    new DOMRect(end - width, y, width, height)
+  const fits = (place: readonly [number, number]) => {
+    const toolbar = toolbarAt(place)
+    return (
+      toolbar.top >= top &&
+      toolbar.bottom <= window.innerHeight &&
+      toolbar.right <= frameRight - INSET &&
+      text.every((rect) => !overlaps(rect, toolbar))
+    )
+  }
+  // Then down the row's end, then its start, for a gap between its lines.
+  const rows = Array.from(
+    {
+      length: Math.max(0, Math.floor((box.bottom - height - box.top) / 4)) + 1
+    },
+    (_, step) => box.top + step * 4
+  )
+  const scanned = [box.right, box.left + width].flatMap((edge) =>
+    rows.map((row) => [row, edge] as const)
+  )
+  const [y, end] = places.find(fits) ?? scanned.find(fits) ?? places[3]
+  return new DOMRect(end - width, y, width, 0)
 }
 
 const PLUGIN_KEY = 'editorNodeToolbar'
@@ -154,8 +265,9 @@ type EditorNodeToolbarProps = {
 }
 
 /**
- * A selected node's actions: inside an image's or embed's top-end corner,
- * below a button or spacer, and above columns.
+ * A selected node's actions: inside the top-end corner of an image or an
+ * embed, past the end of a spacer or columns where there's room, and below a
+ * button or merge tag.
  */
 export function EditorNodeToolbar({
   editor,
@@ -197,7 +309,8 @@ export function EditorNodeToolbar({
       ref={menuRef}
       options={floating}
       data-slot='editor-node-toolbar'
-      className='z-sticky'
+      // Under the docked bar, as the node it's pinned to scrolls under it.
+      className='z-docked'
     >
       {type ? (
         <Toolbar

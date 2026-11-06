@@ -221,8 +221,9 @@ values it's given, on your server, since MJML needs Node, and resolve to its
   the value, the address, and the recipient's values. Until the address is
   whole, it says what Send needs. A rejection's message shows under the
   address.
-- **The inbox row**, above the frame, shows the email as an inbox lists it,
-  with `sender` and `subject` when you pass them.
+- **The inbox row**, above the frame, shows the email as an inbox lists it:
+  `sender` and `subject` when you pass them, and the
+  [preview text](#preview-text).
 
 This example's footer links to the unsubscribe page, a link variable, so
 Footer is in the Blocks drawer's Sections, and each recipient's
@@ -301,12 +302,36 @@ function PreviewedEmail() {
 render(<PreviewedEmail />)
 ```
 
+### Preview text
+
+Preview text, above the canvas, is the email's preheader: the line an inbox
+shows after the subject. Its label sits beside the field, or above it on a
+phone, so the field keeps its width. Under it, a hint says about 40 to 90 characters
+show, and Preview's inbox row shows it after the subject. It saves as the doc's `preheader` attr, on one
+line, with none when it's empty, and `renderEmail` writes it as the
+`mj-preview` an inbox reads, left out of the plain text. Typing there is its
+own undo, not the email's.
+
+```ts
+const value = {
+  version: 1,
+  preset: 'email',
+  doc: { type: 'doc', attrs: { preheader: 'Two weeks to go' }, content: [] }
+}
+```
+
 ### Adding blocks
 
 There are two ways to add a block. Both list the blocks under the same
 headings: Text, Media, Layout, Email, and Sections. Image shows only with
 `onUploadImage`, and Merge tag is in the `/` menu only, with `variables`.
 
+- **An empty email** says "Type / for blocks, or pick a section" on its
+  first line ("Tap Blocks to add a block or section" on a touch screen), as the empty line with the caret does while the editor has
+  focus, unless `placeholder` replaces it. Under it, Start your email offers
+  Sections and Blocks, which open the drawer at its sections or its blocks,
+  and Import, which opens Import HTML or MJML. It goes once the email holds
+  anything, and doesn't show when the editor is read-only or disabled.
 - **Blocks** in the toolbar opens a drawer of tiles, one per block, in its
   group. It starts the docked toolbar, so it shows on a phone, and ends the
   floating toolbar over a selection. The drawer opens from the right, or
@@ -323,7 +348,15 @@ headings: Text, Media, Layout, Email, and Sections. Image shows only with
   groups of blocks to edit: Header (also `/banner`), Event (`/tickets`,
   `/cta`), Two events, and Lineup. Each goes after the top-level block with
   the caret, or in place of an empty top-level line, never inside a section,
-  and no empty line follows it, with its first line's text selected, so typing replaces it.
+  and no empty line follows it. Its placeholder copy, such as Headline,
+  shows as a hint on each empty line, in the subtler text colour, and saves
+  as nothing, so there's nothing to delete: the caret starts on its first
+  line, a hint goes once its line has text, and Enter at the end of a line
+  moves into the next one while it shows a hint, as a form moves to its
+  next field. Hints live only while
+  the email is open in the editor that added the section: undo and redo,
+  or loading it again, leave the lines empty, and an editor that's
+  read-only or disabled shows none.
   Their buttons have no link until you set one, and send as text until then.
   Footer, also found as `/unsubscribe`, with a line on why the reader gets
   the email and an Unsubscribe link, shows when one of `variables` is a link
@@ -391,8 +424,8 @@ Escape closes it, keeping what you typed, as does moving focus away. When
 nothing matches, a No blocks match row keeps it open, so Enter inserts nothing,
 until you type a space. With a mouse or trackpad, each block made by markdown
 shows its shortcut, such as `##` for Heading 2. One undo takes a block the menu inserts
-back to what you typed; an image, embed, or button, which arrives after its
-upload or link, takes a second. A paragraph, heading, or list turns the caret's line into
+back to the line as it was before the `/`, with no query left, as it does an
+image, embed, or button once its upload or link arrives. A paragraph, heading, or list turns the caret's line into
 one. Any other block takes an empty line's place, goes before a line the `/` starts, or after a line with text, and a
 section or columns puts the caret in its first line. Enter on the empty last
 line of a section takes that line out after the section, as Enter on an empty
@@ -410,7 +443,7 @@ a section. Image is offered with `onUploadImage`.
 With `variables`, type `{{` anywhere, even straight after a word, to list
 them under the caret. The list filters by label or key as you type, and Enter
 inserts the active one as a chip. Merge tag in the `/` menu opens the same
-list. A button's label takes merge tags too.
+list, and Escape there takes its `{{` back out. A button's label takes merge tags too.
 
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
 Remove merge tag. Edit merge tag opens a form to change which variable the
@@ -442,10 +475,13 @@ Button asks for its link first, which must be a full web address, or a
 such as oztix.com.au, gets `https://`. The button's label is selected, so
 typing replaces it, and Enter in a button starts a new paragraph after it.
 
-Button settings, in the button's toolbar, edits its link and its look. Each
-change shows on the button as it's made, so there's no Save. Enter in Link,
-Escape or a click away keeps the changes, as one step to undo, and Undo puts
-the button back. A link applies once it's a full address, and the button keeps
+Button settings, in the button's toolbar, edits its link and its look. It
+opens under the button, clear of it, or on a narrow screen as a half-height
+sheet from the bottom, over an unblurred page with the button scrolled above
+it. It opens with focus on Emphasis, or on Link while the button has no link
+yet. Each change shows on the button as it's made, so there's no Save. Enter in
+Link, Escape or a click away keeps the changes, as one step to undo, and Undo
+puts the button back. A link applies once it's a full address, and the button keeps
 its last one until then.
 
 - **Emphasis:** Strong, a fill in the theme's accent, for the action that
@@ -464,12 +500,16 @@ Each of these blocks has its own toolbar:
 
 - **A button**, with the caret in it: Button settings and Remove button, below
   it.
-- **Columns**, with the caret in them: a menu of 2, 3, or 4 columns, above
-  them, or below when they start the content. Removing columns moves their
-  blocks into the last column left, and undo puts them back.
+- **Columns**, with the caret in them: a menu of 2, 3, or 4 columns, in the
+  first place that covers no text: past their end, above their end or start,
+  in their top-end or top-start corner, or in the top padding of the section
+  holding them, or a clear gap between their lines at their end or start. With none clear it sits in their top-end corner. It never goes
+  below them, where the next block's controls sit. Removing columns
+  moves their blocks into the last column left, and undo puts them back.
 - **A selected merge tag**: Edit merge tag and Remove merge tag, below it.
 - **A selected spacer**: a Height menu of Small (16px), Medium (32px), Large
-  (64px), and Extra large (96px), and Remove spacer.
+  (64px), and Extra large (96px), and Remove spacer, past the spacer's end, or
+  inside it where there's no room.
 
 An image the email shows must be served over https, as a mail client loads it
 from outside your site. An `onUploadImage` that resolves to a path on the site
@@ -481,8 +521,12 @@ Import HTML or MJML, in the toolbar, or in the floating toolbar's … menu,
 brings an existing email across. Paste its source, whole or in part, and the
 dialog says whether it's reading MJML, which starts with `<mjml>`, or HTML.
 Before anything changes, it lists what won't come across: styles, a table's
-layout, images not on https, links an email can't open, hidden text such as a
-preheader, and merge tags the editor doesn't know. Text is always kept. To send an email as written,
+layout, images not on https, links an email can't open, hidden text past the
+preheader, and merge tags the editor doesn't know. Text is always kept. An
+`mj-preview`, or hidden text before any the email shows, becomes the
+[preview text](#preview-text). In place of the whole email, the email keeps
+its own preview text unless the source has one; below the cursor, it takes
+the source's only when it has none. To send an email as written,
 with its own look, save it as an [HTML email](#html-emails) instead.
 
 Into an empty email, Import fills it. With content, Put it chooses Below the
@@ -536,7 +580,8 @@ const { value, format, dropped, restyled, unknownMergeTags } = importEmail(
 )
 ```
 
-`dropped` lists images, embeds, hidden text, links on images, links an
+`dropped` lists images, embeds, hidden text past the preheader, which
+`value.doc.attrs.preheader` holds, links on images, links an
 email can't open, such as `javascript:`, and MJML elements with no block of their own, in order. `restyled` counts style sheets
 and styled elements, and tables, outermost only. `unknownMergeTags` lists
 each token no variable matches, kept as text.

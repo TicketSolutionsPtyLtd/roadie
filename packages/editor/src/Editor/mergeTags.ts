@@ -3,6 +3,7 @@ import { NodeSelection } from '@tiptap/pm/state'
 
 import type { EditorVariable } from '../schema'
 import type { EditorInsertItem } from './insertItems'
+import { TYPED_FOR_AUTHOR } from './insertMenu'
 
 /** Typed to open the merge tag menu, as most template languages open a tag. */
 export const MERGE_TAG_OPEN = '{{'
@@ -44,6 +45,11 @@ export const mergeTagItem: EditorInsertItem = {
   icon: BracketsCurlyIcon,
   group: 'Email',
   keywords: ['variable', 'personalise', 'personalize', 'name', 'placeholder'],
-  insert: (chain) => chain.insertContent(MERGE_TAG_OPEN),
+  // Out of history, as the author never typed it: the tag picked is the step.
+  insert: (chain) =>
+    chain
+      .insertContent(MERGE_TAG_OPEN)
+      .setMeta('addToHistory', false)
+      .setMeta(TYPED_FOR_AUTHOR, true),
   enabled: (editor) => editor.can().insertContent(tagOf(''))
 }

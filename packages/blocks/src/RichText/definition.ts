@@ -20,6 +20,7 @@ export const richTextDefinition = {
   description:
     'Use it for a short statement between busier sections, or for an article or policy.',
   group: 'explain',
+  keywords: ['text', 'statement', 'article'],
   presets: [
     {
       name: 'statement',
