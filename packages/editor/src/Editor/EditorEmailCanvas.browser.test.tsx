@@ -401,7 +401,13 @@ describe('Editor email canvas', () => {
     await userEvent.click(image)
     await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
     // Out of the settings the click opens, back to the selected image.
-    await screen.findByRole('dialog', { name: 'Image settings' })
+    const settings = await screen.findByRole('dialog', {
+      name: 'Image settings'
+    })
+    // Once it has focus, or Escape goes to the editor instead.
+    await waitFor(() =>
+      expect(settings.contains(document.activeElement)).toBe(true)
+    )
     await userEvent.keyboard('{Escape}')
     await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
     await userEvent.keyboard('{ArrowLeft}')
@@ -447,7 +453,13 @@ describe('Editor email canvas', () => {
     await userEvent.click(image)
     await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
     // Out of the settings the click opens, back to the selected image.
-    await screen.findByRole('dialog', { name: 'Image settings' })
+    const settings = await screen.findByRole('dialog', {
+      name: 'Image settings'
+    })
+    // Once it has focus, or Escape goes to the editor instead.
+    await waitFor(() =>
+      expect(settings.contains(document.activeElement)).toBe(true)
+    )
     await userEvent.keyboard('{Escape}')
     await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
     await userEvent.keyboard('{ArrowLeft}')

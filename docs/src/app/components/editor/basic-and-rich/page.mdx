@@ -236,6 +236,13 @@ narrower one, and an optional `caption`. `renderEditorValue` and
 `renderEditorHtml` draw an image with any of these as a `figure`, its
 caption in a `figcaption`. `migrate` drops any other value.
 
+An image in the rich and blocks presets saves its look only where it
+differs from the default, its own width from the start of the text:
+`fullWidth: true` across the text, `align: 'center' | 'right'` for a
+narrower one, and an optional `caption`. `renderEditorValue` and
+`renderEditorHtml` draw an image with any of these as a `figure`, its
+caption in a `figcaption`. `migrate` drops any other value.
+
 ### Embeds
 
 The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify,
