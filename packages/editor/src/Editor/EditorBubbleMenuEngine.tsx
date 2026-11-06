@@ -241,10 +241,15 @@ function SelectionMenu({
 
   useEffect(() => {
     if (!shown || !states || !focusOnShowRef.current) return
-    focusOnShowRef.current = false
-    bubbleMenuRef.current
-      ?.querySelector<HTMLElement>('button:not([aria-disabled="true"])')
-      ?.focus()
+    // A frame on, once the toolbar has listed its controls, or the arrow keys
+    // start from none and the first press lands on the control focused.
+    const frame = requestAnimationFrame(() => {
+      focusOnShowRef.current = false
+      bubbleMenuRef.current
+        ?.querySelector<HTMLElement>('button:not([aria-disabled="true"])')
+        ?.focus()
+    })
+    return () => cancelAnimationFrame(frame)
   }, [shown, states, bubbleMenuRef])
 
   useRepositionOnResize(editor, menuRef, PLUGIN_KEY)
@@ -301,6 +306,14 @@ function SelectionMenu({
           {...props}
           onKeyDownCapture={(event) => {
             onKeyDownCapture?.(event)
+            // Tab leaves the one Tab stop for the text it formats, not the
+            // page past the menu, which sits outside the reading order.
+            if (event.key === 'Tab') {
+              event.preventDefault()
+              forcedAtRef.current = null
+              focusEditor(editor)
+              return
+            }
             if (event.key !== 'Escape') return
             // Opened at a caret, it has no selection to stay over.
             forcedAtRef.current = null

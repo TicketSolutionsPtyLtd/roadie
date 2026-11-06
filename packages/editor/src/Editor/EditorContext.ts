@@ -54,6 +54,11 @@ export type EditorContextValue = {
   openBlocks: (() => void) | undefined
   /** Opens the import of an email's HTML or MJML, or undefined outside the email preset. */
   importSource: ((source?: string) => void) | undefined
+  /**
+   * Opens the selected block's settings, set by whatever holds them while a
+   * block with settings is selected.
+   */
+  editSettings?: () => void
   TiptapContent: typeof EditorContent
   ToolbarEngine: ComponentType<EditorToolbarProps>
   BubbleMenuEngine: ComponentType<EditorBubbleMenuProps>

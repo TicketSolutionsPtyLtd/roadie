@@ -436,6 +436,38 @@ describe('Floating toolbar keys', () => {
     )
   })
 
+  it('moves to the next control on the first ArrowRight after Alt+F10', async () => {
+    render(<Page toolbar='floating' />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText(TEXT))
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    const toolbar = await floating()
+    const first = within(toolbar).getByRole('button', { name: /^Block type/ })
+    await waitFor(() => expect(first).toHaveFocus())
+
+    await userEvent.keyboard('{ArrowRight}')
+
+    expect(within(toolbar).getByRole('button', { name: 'Bold' })).toHaveFocus()
+  })
+
+  it.each(['{Tab}', '{Shift>}{Tab}{/Shift}'])(
+    'puts focus back in the text on %s out of the toolbar opened with Alt+F10',
+    async (keys) => {
+      render(<Page toolbar='floating' />)
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(within(textbox).getByText(TEXT))
+      await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+      const toolbar = await floating()
+      await waitFor(() =>
+        expect(toolbar.contains(document.activeElement)).toBe(true)
+      )
+
+      await userEvent.keyboard(keys)
+
+      await waitFor(() => expect(textbox).toHaveFocus())
+    }
+  )
+
   it('moves focus to the table actions with Alt+F10 at a caret in a cell, not opening the toolbar', async () => {
     const cell = (text: string) => ({
       type: 'tableCell',

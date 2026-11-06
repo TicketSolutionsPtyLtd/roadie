@@ -16,7 +16,19 @@ import { Popover } from '@oztix/roadie-components/popover'
 import { Separator } from '@oztix/roadie-components/separator'
 
 import { EditorContext } from './EditorContext'
+import type { LiveEdit } from './useLiveEdit'
 import { EDITOR_TOOLBAR_SIZE } from './variants'
+
+/**
+ * A live edit's close, where Escape keeps the changes, as the maintainer
+ * decided, and Undo takes the whole edit back in one step.
+ */
+export const keepingOnEscape =
+  (live: LiveEdit) =>
+  (open: boolean, details: Parameters<LiveEdit['onOpenChange']>[1]) => {
+    if (!open && details.reason === 'escape-key') live.done()
+    else live.onOpenChange(open, details)
+  }
 
 /** Gives `Popover.Content` its one-row width and tighter padding. */
 export const EDITOR_POPOVER_CLASS =
