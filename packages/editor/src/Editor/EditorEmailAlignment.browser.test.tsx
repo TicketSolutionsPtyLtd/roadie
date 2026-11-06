@@ -102,19 +102,22 @@ describe('Editor email alignment', () => {
   )
 
   // The canvas is as wide as the screen the email reaches, and MJML puts
-  // columns side by side from a 480px screen.
+  // columns side by side from a 480px screen. The frame's border takes 2px.
   it.each([
-    [470, 'stacks'],
-    [520, 'sets side by side']
-  ])('at %ipx, %s columns as the email does', async (width) => {
-    const { canvas, line } = await renderCanvas(width)
-    const canvasWidth = canvas.getBoundingClientRect().width
-    const sideBySide =
-      line('Velvet Kookaburra').getBoundingClientRect().top ===
-      line('Marri Lane').getBoundingClientRect().top
+    [479, 'stacks', false],
+    [480, 'sets side by side', true]
+  ])(
+    'on a %ipx canvas, %s columns as the email does',
+    async (width, _, sideBySide) => {
+      const { canvas, line } = await renderCanvas(width + 2)
 
-    expect(sideBySide).toBe(canvasWidth >= 480)
-  })
+      expect(canvas.getBoundingClientRect().width).toBe(width)
+      expect(
+        line('Velvet Kookaburra').getBoundingClientRect().top ===
+          line('Marri Lane').getBoundingClientRect().top
+      ).toBe(sideBySide)
+    }
+  )
 
   it.each([375, 1280])(
     'lines a column’s outline up with its section’s at %ipx',
