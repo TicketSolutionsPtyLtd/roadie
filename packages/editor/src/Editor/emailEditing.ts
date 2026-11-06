@@ -156,8 +156,10 @@ export function dropEmptiedLine({ tr }: CommandProps) {
   ) {
     const before = $from.before()
     tr.delete(before, $from.after())
-    // Back into the same block: the next one is nearer forwards from its end.
-    tr.setSelection(Selection.near(tr.doc.resolve(before), -1))
+    // Kept inside the holder, whose line before or after this one stays put;
+    // a bare position at its edge resolves into the next block instead.
+    const bias = $from.index(-1) > 0 ? -1 : 1
+    tr.setSelection(Selection.near(tr.doc.resolve(before), bias))
   }
   return true
 }
