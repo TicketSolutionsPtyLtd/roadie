@@ -364,38 +364,19 @@ describe.each(POPOVERS)('Editor $name popover row', (popover) => {
     expect(popover.shown(textbox)).toBe(null)
   })
 
-  // The maintainer's call: Escape keeps a live edit, and Undo takes it back.
-  it.runIf(popover.name === 'Link')(
-    'closes with Escape, keeping what’s typed, which undo takes back',
-    async () => {
-      const textbox = await renderEditor(popover.value)
-      const field = await popover.open(textbox)
-      await userEvent.type(field, popover.typed)
+  // Escape keeps what's applied, as the maintainer decided; Undo takes it back.
+  it('closes with Escape, keeping what it applied', async () => {
+    const textbox = await renderEditor(popover.value)
+    const field = await popover.open(textbox)
+    await userEvent.type(field, popover.typed)
 
-      await userEvent.keyboard('{Escape}')
+    await userEvent.keyboard('{Escape}')
 
-      await waitFor(() => expect(field).not.toBeInTheDocument())
-      await waitFor(() => expect(textbox).toHaveFocus())
-      expect(popover.shown(textbox)).toBeVisible()
-      await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
-      await waitFor(() => expect(popover.shown(textbox)).toBe(null))
-    }
-  )
-
-  it.skipIf(popover.name === 'Link')(
-    'closes with Escape, putting back what was there',
-    async () => {
-      const textbox = await renderEditor(popover.value)
-      const field = await popover.open(textbox)
-      await userEvent.type(field, popover.typed)
-
-      await userEvent.keyboard('{Escape}')
-
-      await waitFor(() => expect(field).not.toBeInTheDocument())
-      await waitFor(() => expect(textbox).toHaveFocus())
-      expect(popover.shown(textbox)).toBe(null)
-    }
-  )
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    await waitFor(() => expect(textbox).toHaveFocus())
+    if (popover.live) expect(popover.shown(textbox)).toBeVisible()
+    else expect(popover.shown(textbox)).toBe(null)
+  })
 
   it.runIf(popover.live)('applies what’s typed as it’s typed', async () => {
     const textbox = await renderEditor(popover.value)
@@ -444,7 +425,7 @@ describe('Editor link popover', () => {
     expect(document.getSelection()?.toString()).toBe('Sold out')
   })
 
-  it('keeps the link on Escape, and undo puts the old one back', async () => {
+  it('keeps the link on Escape, and Undo puts it back', async () => {
     const textbox = await renderEditor(linked)
     await userEvent.click(within(textbox).getByText('tickets'))
     await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)

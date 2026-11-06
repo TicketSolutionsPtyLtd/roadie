@@ -242,7 +242,10 @@ describe('Editor merge tags', () => {
     await userEvent.keyboard('/merge')
 
     await waitFor(() => expect(textbox).toHaveTextContent('/merge'))
-    expect(screen.queryByRole('listbox')).toBe(null)
+    const insert = await screen.findByRole('listbox', { name: 'Insert' })
+    expect(within(insert).getByRole('option')).toHaveTextContent(
+      'No blocks match'
+    )
   })
 })
 
@@ -317,7 +320,7 @@ describe('Editor merge tag editing', () => {
     expect(onValueChange).toHaveBeenLastCalledWith(edited)
   })
 
-  it('puts the tag back as it opened on Escape', async () => {
+  it('keeps the tag on Escape, and Undo puts it back', async () => {
     const onValueChange = renderEmail({ defaultValue: greeting })
     await changeTag(await editTag())
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(edited))
@@ -325,8 +328,12 @@ describe('Editor merge tag editing', () => {
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(onValueChange).toHaveBeenLastCalledWith(greeting)
+    expect(onValueChange).toHaveBeenLastCalledWith(edited)
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(greeting)
+    )
   })
 
   it('undoes every change it made in one step, and redoes them in one', async () => {
@@ -390,7 +397,10 @@ describe('Editor merge tag editing', () => {
 
   it('keeps a key the editor doesn’t list, as one of its choices', async () => {
     const onValueChange = renderEmail({
-      defaultValue: email({ type: 'paragraph', content: [tag('ticket_count')] })
+      defaultValue: email({
+        type: 'paragraph',
+        content: [tag('ticket_count')]
+      })
     })
     await screen.findByRole('textbox', { name: LABEL })
     await userEvent.click(await screen.findByText('ticket_count'))

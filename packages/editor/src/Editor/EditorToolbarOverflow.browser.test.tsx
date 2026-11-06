@@ -44,10 +44,12 @@ async function shownToolbar() {
   return toolbar
 }
 
+// Named ones only: WebKit counts an open menu's unnamed focus guards too.
 const controls = (toolbar: HTMLElement) =>
   within(toolbar)
     .getAllByRole('button')
     .map((button) => button.ariaLabel ?? button.textContent)
+    .filter(Boolean)
 
 const rows = (toolbar: HTMLElement) =>
   new Set(
@@ -493,16 +495,18 @@ describe('Editor toolbar on a touch screen', () => {
       )
     )
     const line = within(textbox).getByText(`${TEXT} 20`)
-    // Under the bar, though still on screen.
+    await userEvent.keyboard('{ArrowDown}'.repeat(20) + '{End}')
+    // Under the bar, though still on screen, as the browser's own arrow
+    // scrolling leaves it.
     window.scrollBy(
       0,
       line.getBoundingClientRect().bottom - window.innerHeight + 8
     )
-
     expect(line.getBoundingClientRect().bottom).toBeGreaterThan(
       toolbar.getBoundingClientRect().top
     )
-    await userEvent.keyboard('{ArrowDown}'.repeat(20) + '{End}')
+
+    await userEvent.keyboard('!')
 
     await waitFor(() =>
       expect(line.getBoundingClientRect().bottom).toBeLessThanOrEqual(
