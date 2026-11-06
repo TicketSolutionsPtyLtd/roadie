@@ -336,6 +336,21 @@ describe('Editor empty email', () => {
     )
   })
 
+  it('leaves Enter to an open / menu over a hinted line', async () => {
+    const onValueChange = renderEmail()
+    await clickIntoEditor(await textbox())
+
+    await userEvent.keyboard('/lineup{Enter}Saturday /div')
+    await screen.findByRole('listbox', { name: 'Insert' })
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(
+        JSON.stringify((onValueChange.mock.lastCall![0] as EditorValue).doc)
+      ).toContain('horizontalRule')
+    )
+  })
+
   it('shows no placeholder copy once the editor is read-only', async () => {
     const { rerender } = render(<Editor aria-label={LABEL} preset='email' />)
     await userEvent.click(
