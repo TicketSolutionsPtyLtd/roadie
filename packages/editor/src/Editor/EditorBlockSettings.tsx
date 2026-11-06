@@ -2,7 +2,13 @@
 
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 
-import { NodeSelection, Selection } from '@tiptap/pm/state'
+import {
+  NodeSelection,
+  Selection,
+  type SelectionBookmark,
+  TextSelection,
+  type Transaction
+} from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Button } from '@oztix/roadie-components/button'
@@ -75,28 +81,30 @@ function SettingsForm({
 }
 
 /**
- * Brings a block near the top, a fifth of the screen down, clear of a sticky
- * bar above it and of the sheet below. Each scroller from the block out takes
- * what's left of that fifth, as only one may have room to give.
+ * Brings an element a fifth of the screen down, clear of a sticky bar above
+ * it and of the sheet below, moving only if it isn't there already. Each
+ * scroller from it out takes what it can of the move, as one may be at its
+ * end.
  */
-function scrollNearTop(block: HTMLElement) {
-  const document = block.ownerDocument
+function scrollNearTop(element: Element) {
+  const document = element.ownerDocument
   const view = document.defaultView ?? window
-  // Instant, as a page's smooth scrolling would leave each scrollTop read
-  // mid-move, and the room taken from it wrong.
-  block.scrollIntoView({ block: 'start', behavior: 'instant' })
-  let left = view.innerHeight * 0.2
+  const target = view.innerHeight * 0.2
+  let left = element.getBoundingClientRect().top - target
+  // Below the sheet's top is out of sight; above the target is fine.
+  if (left < 0 && element.getBoundingClientRect().top >= 0) return
   const scrollers: Element[] = []
-  for (let at = block.parentElement; at; at = at.parentElement) {
+  for (let at = element.parentElement; at; at = at.parentElement) {
     const { overflowY } = view.getComputedStyle(at)
     if (overflowY === 'auto' || overflowY === 'scroll') scrollers.push(at)
   }
   if (document.scrollingElement) scrollers.push(document.scrollingElement)
   for (const scroller of scrollers) {
-    if (left <= 0) return
+    if (Math.abs(left) < 1) return
     const before = scroller.scrollTop
-    scroller.scrollTo({ top: before - left, behavior: 'instant' })
-    left -= before - scroller.scrollTop
+    // Instant, as a page's smooth scrolling would leave scrollTop mid-move.
+    scroller.scrollTo({ top: before + left, behavior: 'instant' })
+    left -= scroller.scrollTop - before
   }
 }
 
@@ -108,30 +116,51 @@ const ROOM_FROM = 1280
  * page width sits beside the drawer rather than under it. The editor's own
  * box, not ProseMirror's, so the selection never sees it.
  */
-function makeRoomBeside(editor: TiptapEditor, drawer: HTMLElement | null) {
+function makeRoomBeside(
+  editor: TiptapEditor,
+  drawer: HTMLElement | null,
+  kept: Element | null
+) {
   const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
   const page = root?.ownerDocument.documentElement
   const view = root?.ownerDocument.defaultView ?? window
-  // The window's width, as a page scrollbar narrows the document's.
   if (!root || !drawer || !page) return
   const covered =
-    root.getBoundingClientRect().right - (page.clientWidth - drawer.offsetWidth)
+    root.getBoundingClientRect().right -
+    (page.clientWidth - drawer.offsetWidth) +
+    DRAWER_GAP
+  const before = kept?.getBoundingClientRect().top
   // The drawer is on the right whatever the direction, so the padding is too.
+  // The window's width, as a page scrollbar narrows the document's.
   root.style.paddingRight =
     covered > 0 && view.innerWidth >= ROOM_FROM ? `${covered}px` : ''
+  // The narrower page reflows, so what was edited goes back where it was,
+  // under the pointer, rather than jumping.
+  if (kept && before !== undefined) {
+    const moved = kept.getBoundingClientRect().top - before
+    if (moved) (page.ownerDocument.scrollingElement ?? page).scrollBy(0, moved)
+  }
+}
+
+// Clear of the drawer, so a block's ring never touches its edge.
+const DRAWER_GAP = 16
+
+/** Pads the editor's end by the sheet's height, so its last block can rise above it. */
+function makeRoomBelow(editor: TiptapEditor, sheet: HTMLElement | null) {
+  const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
+  if (root && sheet) root.style.paddingBottom = `${sheet.offsetHeight}px`
 }
 
 /**
- * Puts the caret in the block, or after an atom, so the next key types rather
- * than replacing the block a tap can't deselect on a phone.
+ * Puts the caret after the block, so the next key types rather than
+ * replacing the block a tap can't deselect on a phone.
  */
 function leaveBlock(editor: TiptapEditor) {
   const { state, view } = editor
   const { selection } = state
   if (!(selection instanceof NodeSelection)) return
-  const from = state.doc.resolve(
-    selection.node.isAtom ? selection.to : selection.from + 1
-  )
+  // After it, never in it: text typed in a section would take its rule.
+  const from = state.doc.resolve(selection.to)
   // Text only: a block selected next, such as a second section or an image
   // first in this one, would be replaced by the next key all the same.
   const caret =
@@ -153,12 +182,20 @@ type EditorBlockSettingsProps = {
   blocks: Readonly<Record<string, BlockSettings>>
   /** The setting to open the way to and focus, such as the text clicked. */
   focusSetting?: string
+  /** What was clicked or tapped, to keep in view. */
+  focusElement?: Element | null
+  /**
+   * Opened from the keyboard on the selected block, so closing leaves it
+   * selected; otherwise the caret goes back where it was.
+   */
+  keepSelected?: boolean
   uploadImage?: UploadSettingImage
 }
 
 /**
  * The selected block's settings, from the side on a desktop and the bottom on
- * a phone. Each change shows as it's made; Escape puts the block back.
+ * a phone. Each change shows as it's made, every close keeps them, and Undo
+ * takes the visit back in one step.
  */
 export function EditorBlockSettings({
   editor,
@@ -166,25 +203,43 @@ export function EditorBlockSettings({
   onOpenChange,
   blocks,
   focusSetting,
+  focusElement,
+  keepSelected = false,
   uploadImage
 }: EditorBlockSettingsProps) {
   const phone = useOnPhone()
+  // Where the caret was before a block was selected, kept in step with edits.
+  const caretRef = useRef<SelectionBookmark | null>(null)
+  useEffect(() => {
+    if (!editor) return
+    const follow = ({ transaction }: { transaction: Transaction }) => {
+      const { selection } = editor.state
+      caretRef.current =
+        selection instanceof TextSelection
+          ? selection.getBookmark()
+          : (caretRef.current?.map(transaction.mapping) ?? null)
+    }
+    editor.on('transaction', follow)
+    return () => {
+      editor.off('transaction', follow)
+    }
+  }, [editor])
+  const returnFrom = (current: TiptapEditor) => {
+    if (keepSelected && !phone) return
+    const { state, view } = current
+    if (!(state.selection instanceof NodeSelection)) return
+    const caret = caretRef.current?.resolve(state.doc)
+    if (caret instanceof TextSelection) {
+      view.dispatch(state.tr.setSelection(caret).setMeta('addToHistory', false))
+    } else {
+      leaveBlock(current)
+    }
+  }
   const live = useLiveEdit(editor, open, (next) => {
-    if (!next && editor) leaveBlock(editor)
+    if (!next && editor) returnFrom(editor)
     onOpenChange(next)
   })
   const bodyRef = useRef<HTMLDivElement>(null)
-  // Escape puts the block back as one step to undo, so Redo brings the edits
-  // back rather than losing them.
-  const onDrawerOpenChange: typeof live.onOpenChange = (next, details) => {
-    if (next || details.reason !== 'escape-key' || !editor || !live.edited()) {
-      live.onOpenChange(next, details)
-      return
-    }
-    live.done()
-    editor.commands.undo()
-    leaveBlock(editor)
-  }
   const selection = useEditorState({ editor, selector: selectedNode })
   const block = selection && blocks[selection.node.type.name]
   const from = open && block ? selection.from : null
@@ -195,7 +250,7 @@ export function EditorBlockSettings({
     if (!(dom instanceof HTMLElement)) return
     if (!phone) {
       // A frame on, once the room made beside the drawer has reflowed the
-      // page, which can move the block.
+      // page, and only if it's out of view.
       const frame = requestAnimationFrame(() =>
         dom.scrollIntoView({ block: 'nearest' })
       )
@@ -203,13 +258,18 @@ export function EditorBlockSettings({
     }
     // Never through the block's own style: ProseMirror reads a change there
     // as an edit and drops the selection, closing the drawer.
-    scrollNearTop(dom)
-  }, [editor, from, phone])
+    scrollNearTop(
+      focusElement && dom.contains(focusElement) ? focusElement : dom
+    )
+  }, [editor, from, phone, focusElement])
   useEffect(() => {
     if (!open || !editor) return
     return () => {
       const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
-      if (root) root.style.paddingRight = ''
+      if (root) {
+        root.style.paddingRight = ''
+        root.style.paddingBottom = ''
+      }
     }
   }, [editor, open])
   const lost = open && !block
@@ -227,11 +287,9 @@ export function EditorBlockSettings({
       <Drawer.Header className='flex items-center justify-between gap-2'>
         <div className='grid gap-0.5'>
           <Drawer.Title>{block.label} settings</Drawer.Title>
-          {/* So Escape's revert never surprises: it says what it does. */}
+          {/* Nothing waits on a save, so it says how to take changes back. */}
           <Drawer.Description className='text-sm text-subtle'>
-            {phone
-              ? 'Changes apply as you go.'
-              : 'Changes apply as you go. Esc puts them back.'}
+            Changes apply as you go. Undo puts them back.
           </Drawer.Description>
         </div>
         <Button size='sm' emphasis='strong' intent='accent' onClick={live.done}>
@@ -254,7 +312,7 @@ export function EditorBlockSettings({
   return (
     <Drawer
       open={open}
-      onOpenChange={onDrawerOpenChange}
+      onOpenChange={live.onOpenChange}
       side={phone ? 'bottom' : 'right'}
       // The block shows its changes as they're made, so nothing covers it,
       // and the page stays usable, but Tab stays in the drawer.
@@ -265,6 +323,20 @@ export function EditorBlockSettings({
         // Under half a phone's height, so the block shows above it.
         <Drawer.Content
           data-editor-popup=''
+          // Once it's there to measure, which can be after the effect that
+          // scrolls, so the block scrolls up again into the room it makes.
+          ref={(sheet: HTMLDivElement | null) => {
+            if (!sheet) return
+            makeRoomBelow(editor, sheet)
+            const block = editor.view.nodeDOM(selection.from)
+            const target =
+              focusElement &&
+              block instanceof Element &&
+              block.contains(focusElement)
+                ? focusElement
+                : block
+            if (target instanceof Element) scrollNearTop(target)
+          }}
           size='fit'
           className='max-h-[50dvh]'
           // The sheet itself, so the keyboard doesn't cover the block.
@@ -283,7 +355,14 @@ export function EditorBlockSettings({
               data-editor-popup=''
               // Once it's there to measure, before its block scrolls in.
               ref={(popup) => {
-                if (popup) makeRoomBeside(editor, popup)
+                if (popup) {
+                  makeRoomBeside(
+                    editor,
+                    popup,
+                    focusElement ??
+                      (editor.view.nodeDOM(selection.from) as Element | null)
+                  )
+                }
               }}
               size='sm'
               className='pointer-events-auto'

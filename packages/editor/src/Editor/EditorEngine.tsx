@@ -453,9 +453,29 @@ export function EditorEngine({
   const [editingVariable, setEditingVariable] = useState(false)
   const [editingSettings, setEditingSettings] = useState(false)
   const [focusSetting, setFocusSetting] = useState<string | undefined>()
-  const editSettings = (path?: string) => {
+  const [focusElement, setFocusElement] = useState<Element | null>(null)
+  const [keepSelected, setKeepSelected] = useState(false)
+  const editSettings = (
+    path?: string,
+    element: Element | null = null,
+    fromKeyboard = false
+  ) => {
     setFocusSetting(path)
+    setFocusElement(element)
+    setKeepSelected(fromKeyboard)
     setEditingSettings(true)
+  }
+  // Read by the editor's plugins and toolbars, made before the editor.
+  const editorRef = useRef<TiptapEditor | null>(null)
+  const editSettingsAt = (pos: number) => {
+    const current = editorRef.current
+    if (!current?.isEditable) return
+    current.view.dispatch(
+      current.state.tr.setSelection(
+        NodeSelection.create(current.state.doc, pos)
+      )
+    )
+    editSettings()
   }
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
@@ -543,7 +563,7 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       SettingsShortcut.configure({
         has: hasSettings,
-        onEdit: () => editSettings()
+        onEdit: () => editSettings(undefined, null, true)
       }),
       BlockClick.configure({ hasSettings, onEdit: editSettings }),
       ImageUpload.configure(uploads),
@@ -726,6 +746,10 @@ export function EditorEngine({
   }, [toolbar])
 
   useEffect(() => {
+    editorRef.current = editor
+  }, [editor])
+
+  useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
     variablesRef.current = variables
@@ -814,6 +838,8 @@ export function EditorEngine({
         ...ui,
         openBlocks:
           drawerItems.length > 0 ? () => setAddingBlocks(true) : undefined,
+        hasSettings,
+        editSettingsAt,
         editingLink,
         embedProviders,
         variables,
@@ -859,14 +885,7 @@ export function EditorEngine({
             canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
             hasSettings={hasSettings}
-            onSettings={(pos) => {
-              editor.view.dispatch(
-                editor.state.tr.setSelection(
-                  NodeSelection.create(editor.state.doc, pos)
-                )
-              )
-              editSettings()
-            }}
+            onSettings={editSettingsAt}
           />
         ) : null}
         {editor && blockHandle && drawerItems.length > 0 ? (
@@ -924,6 +943,8 @@ export function EditorEngine({
           onOpenChange={setEditingSettings}
           blocks={blockSettings}
           focusSetting={focusSetting}
+          focusElement={focusElement}
+          keepSelected={keepSelected}
           uploadImage={canUpload ? onUploadImage : undefined}
         />
         <EditorVariablePopover
