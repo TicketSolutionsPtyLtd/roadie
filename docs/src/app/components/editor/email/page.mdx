@@ -315,7 +315,10 @@ headings: Text, Media, Layout, and Email. Image shows only with
   line, a text block takes the line's place, and any other block goes before
   it. A section or columns picked in a column goes after the whole row,
   since columns can't hold one. Image and Button open the file picker and
-  the link field on a new line there, or on the empty line.
+  the link field on a new line there, or on the empty line. Find a block
+  filters the tiles as `/` does, and from 1280 pixels wide the drawer
+  leaves the email usable beside it, padding the editor's end so it covers
+  none of the email.
 - **Sections** at the end of the drawer are ready-made groups of blocks to
   edit: Header, Event, and Two events. Their buttons have no link until you
   set one, and send as text until then. Footer, with a line on why the
@@ -818,8 +821,11 @@ const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
   `group` named for it. With `variables`, `{{` opens a `listbox` named Merge
   tags the same way.
 - Blocks in the toolbar opens a `dialog` named Blocks, with focus on its
-  first tile. Each heading's tiles sit in a `group` named for it, and Tab
-  moves between them. Enter or Space adds a block, and Escape closes the
+  first tile. A search field named Find a block comes first. Each heading's
+  tiles sit in a `group` named for it, and the tiles take one Tab stop: the
+  arrow keys move between them, across the headings, Home and End go to the
+  first and last, ArrowUp from the top row goes to the search field, and
+  typing a letter types it there. Enter or Space adds a block, and Escape closes the
   drawer. Either way, focus goes back to the text, or to the link field
   after Button.
 - In the email preset, a button's, a spacer's, columns', or a merge tag's own
