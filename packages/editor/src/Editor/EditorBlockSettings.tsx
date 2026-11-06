@@ -194,8 +194,12 @@ export function EditorBlockSettings({
     const dom = editor.view.nodeDOM(from)
     if (!(dom instanceof HTMLElement)) return
     if (!phone) {
-      dom.scrollIntoView({ block: 'nearest' })
-      return
+      // A frame on, once the room made beside the drawer has reflowed the
+      // page, which can move the block.
+      const frame = requestAnimationFrame(() =>
+        dom.scrollIntoView({ block: 'nearest' })
+      )
+      return () => cancelAnimationFrame(frame)
     }
     // Never through the block's own style: ProseMirror reads a change there
     // as an edit and drops the selection, closing the drawer.
