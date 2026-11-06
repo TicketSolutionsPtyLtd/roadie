@@ -6,8 +6,10 @@ import {
   buttonLook,
   sectionLook
 } from '../schema/emailAttrs'
+import { preheaderOf } from '../schema/preheader'
 import type { ShowWhen } from '../schema/showWhen'
 import type { ShowsWhen } from './conditions'
+import { untokenedText } from './mergeTags'
 import {
   type TextContext,
   emailHref,
@@ -278,8 +280,14 @@ function rows(nodes: JSONContent[], text: TreeContext): MjmlNode[] {
   return built
 }
 
-function head({ text, fontFamily, button, buttonText, divider }: EmailTheme) {
+function head(
+  { text, fontFamily, button, buttonText, divider }: EmailTheme,
+  preheader: string | undefined
+) {
   return mj('mj-head', {}, [
+    ...(preheader
+      ? [leaf('mj-preview', {}, escapeHtml(untokenedText(preheader)))]
+      : []),
     mj('mj-attributes', {}, [
       mj('mj-all', { 'font-family': fontFamily }),
       mj('mj-section', { padding: '0' }),
@@ -307,7 +315,7 @@ function head({ text, fontFamily, button, buttonText, divider }: EmailTheme) {
 export function mjmlTree(doc: JSONContent, text: TreeContext): MjmlNode {
   const { theme } = text
   return mj('mjml', {}, [
-    head(theme),
+    head(theme, preheaderOf(doc.attrs?.preheader)),
     mj(
       'mj-body',
       { width: `${EMAIL_WIDTH}px`, 'background-color': theme.background },

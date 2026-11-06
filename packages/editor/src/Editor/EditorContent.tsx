@@ -12,10 +12,10 @@ export type EditorContentProps = Omit<ComponentProps<'div'>, 'children' | 'ref'>
 export function EditorContent({ className, ...props }: EditorContentProps) {
   const context = use(EditorContext)
   if (!context) throw new Error('Editor.Content must be inside an Editor.')
-  const { editor, TiptapContent, preview } = context
+  const { editor, TiptapContent, preview, preheader } = context
   return (
     <>
-      {preview}
+      {preview ?? preheader}
       <TiptapContent
         data-slot='editor-content'
         editor={editor}

@@ -59,10 +59,12 @@ const looked = (attrs: Record<string, unknown>) =>
     )
   )
 
+// The preheader is the email's, not a block's, so it's the doc's attr.
 const EmailDoc = Node.create({
   name: 'doc',
   topNode: true,
-  content: `(block | ${EMAIL_BLOCK} | ${LAYOUT})+`
+  content: `(block | ${EMAIL_BLOCK} | ${LAYOUT})+`,
+  addAttributes: () => ({ preheader: { default: undefined } })
 })
 
 // Undefined, as a rule is, so a plain section saves no attrs.
