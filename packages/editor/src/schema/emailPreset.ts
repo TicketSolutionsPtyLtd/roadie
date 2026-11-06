@@ -51,10 +51,12 @@ const showWhen = {
 const shownWhen = ({ 'data-show-when': rule }: Record<string, unknown>) =>
   rule ? { 'data-show-when': String(rule) } : {}
 
+// The preheader is the email's, not a block's, so it's the doc's attr.
 const EmailDoc = Node.create({
   name: 'doc',
   topNode: true,
-  content: `(block | ${EMAIL_BLOCK} | ${LAYOUT})+`
+  content: `(block | ${EMAIL_BLOCK} | ${LAYOUT})+`,
+  addAttributes: () => ({ preheader: { default: undefined } })
 })
 
 export const Section = layoutNode(

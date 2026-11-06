@@ -207,6 +207,10 @@ describe('Editor.BubbleMenu', () => {
     expect(itemsOf(await menu())).toEqual(
       expect.arrayContaining(['Bold', 'Italic', 'Underline', 'Link'])
     )
+    // Closed first, by collapsing the selection, as it can sit over the
+    // button with the email's Preview text above the canvas.
+    await userEvent.keyboard('{ArrowRight}')
+    await noMenu()
 
     await selectText('Get tickets')
     await noMenu()

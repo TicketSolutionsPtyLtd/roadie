@@ -122,8 +122,11 @@ describe('Editor email import', () => {
       within(dialog).getByRole('button', { name: 'Import' })
     ).toBeDisabled()
     await userEvent.fill(source, MJML)
-    // Found once its deferred read lands, not looked for at once.
-    expect(await within(dialog).findByText('Reading it as MJML.')).toBeVisible()
+    // The format reads from a deferred copy of the source, which can render a
+    // beat later, so both the lookup and the check retry.
+    await waitFor(() =>
+      expect(within(dialog).getByText('Reading it as MJML.')).toBeVisible()
+    )
     expect(within(dialog).queryByRole('radiogroup')).toBeNull()
     await userEvent.click(
       within(dialog).getByRole('button', { name: 'Import' })
@@ -157,7 +160,9 @@ describe('Editor email import', () => {
       '1 table’s layout, keeping its text',
       '1 style, such as a font or colour'
     ])
-    expect(within(dialog).getByText('Reading it as HTML.')).toBeInTheDocument()
+    expect(
+      await within(dialog).findByText('Reading it as HTML.')
+    ).toBeInTheDocument()
   })
 
   it('reads a known merge tag as a merge tag', async () => {

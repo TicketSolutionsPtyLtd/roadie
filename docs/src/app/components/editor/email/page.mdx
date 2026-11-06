@@ -221,8 +221,9 @@ values it's given, on your server, since MJML needs Node, and resolve to its
   the value, the address, and the recipient's values. Until the address is
   whole, it says what Send needs. A rejection's message shows under the
   address.
-- **The inbox row**, above the frame, shows the email as an inbox lists it,
-  with `sender` and `subject` when you pass them.
+- **The inbox row**, above the frame, shows the email as an inbox lists it:
+  `sender` and `subject` when you pass them, and the
+  [preview text](#preview-text).
 
 This example's footer links to the unsubscribe page, a link variable, so
 Footer is in the Blocks drawer's Sections, and each recipient's
@@ -299,6 +300,24 @@ function PreviewedEmail() {
 }
 
 render(<PreviewedEmail />)
+```
+
+### Preview text
+
+Preview text, above the canvas, is the email's preheader: the line an inbox
+shows after the subject. Its label sits beside the field, or above it on a
+phone, so the field keeps its width. Under it, a hint says about 40 to 90 characters
+show, and Preview's inbox row shows it after the subject. It saves as the doc's `preheader` attr, on one
+line, with none when it's empty, and `renderEmail` writes it as the
+`mj-preview` an inbox reads, left out of the plain text. Typing there is its
+own undo, not the email's.
+
+```ts
+const value = {
+  version: 1,
+  preset: 'email',
+  doc: { type: 'doc', attrs: { preheader: 'Two weeks to go' }, content: [] }
+}
 ```
 
 ### Adding blocks
@@ -495,8 +514,12 @@ Import HTML or MJML, in the toolbar, or in the floating toolbar's … menu,
 brings an existing email across. Paste its source, whole or in part, and the
 dialog says whether it's reading MJML, which starts with `<mjml>`, or HTML.
 Before anything changes, it lists what won't come across: styles, a table's
-layout, images not on https, links an email can't open, hidden text such as a
-preheader, and merge tags the editor doesn't know. Text is always kept. To send an email as written,
+layout, images not on https, links an email can't open, hidden text past the
+preheader, and merge tags the editor doesn't know. Text is always kept. An
+`mj-preview`, or hidden text before any the email shows, becomes the
+[preview text](#preview-text). In place of the whole email, the email keeps
+its own preview text unless the source has one; below the cursor, it takes
+the source's only when it has none. To send an email as written,
 with its own look, save it as an [HTML email](#html-emails) instead.
 
 Into an empty email, Import fills it. With content, Put it chooses Below the
@@ -550,7 +573,8 @@ const { value, format, dropped, restyled, unknownMergeTags } = importEmail(
 )
 ```
 
-`dropped` lists images, embeds, hidden text, links on images, links an
+`dropped` lists images, embeds, hidden text past the preheader, which
+`value.doc.attrs.preheader` holds, links on images, links an
 email can't open, such as `javascript:`, and MJML elements with no block of their own, in order. `restyled` counts style sheets
 and styled elements, and tables, outermost only. `unknownMergeTags` lists
 each token no variable matches, kept as text.
