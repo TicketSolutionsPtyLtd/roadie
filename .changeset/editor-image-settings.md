@@ -6,4 +6,4 @@ Add Image settings, in place of the image toolbar's Alt text. It edits the image
 
 A gap cursor between blocks, such as between an image and a section, is now a line across the section, column or page it's in, rather than a 20px mark over the block before it.
 
-In the `blocks` and `email` presets, a click on an image or an embed opens its settings, a popover or, on a phone, a sheet, rather than a toolbar, and their block menus lead with Settings. A touch opens them on one already selected. Image settings and Embed settings are led by their title, "Changes apply as you go. Undo puts them back.", and Done. A gap cursor below an image draws its line in the gap, not over the image.
+In the `blocks` and `email` presets, a click on an image or an embed opens its settings first, an image's as a popover or, on a phone, a sheet, with its toolbar once they close, and their block menus lead with Settings. A touch opens them on one already selected. Image settings and Embed settings are led by their title, "Changes apply as you go. Undo puts them back.", and Done. A gap cursor below an image draws its line in the gap, not over the image.

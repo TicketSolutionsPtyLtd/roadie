@@ -41,8 +41,15 @@ export const SettingsClick = Extension.create<SettingsClickOptions>({
             const { selection } = view.state
             const target = event.target instanceof Node ? event.target : null
             const at = target ? atomAt(view, target, types) : null
+            // A modified press extends the selection or opens a menu.
+            const plain =
+              event.button === 0 &&
+              !event.shiftKey &&
+              !event.ctrlKey &&
+              !event.metaKey &&
+              !event.altKey
             press =
-              at === null || event.button !== 0
+              at === null || !plain
                 ? null
                 : {
                     x: event.clientX,
@@ -60,7 +67,9 @@ export const SettingsClick = Extension.create<SettingsClickOptions>({
             if (!begun || !target || !view.editable) return
             const moved =
               Math.hypot(event.clientX - begun.x, event.clientY - begun.y) > 4
-            if (moved || !(begun.mouse || begun.selected)) return
+            // A double click's second would reopen what its first closed.
+            const again = event.detail > 1
+            if (moved || again || !(begun.mouse || begun.selected)) return
             const at = atomAt(view, target, types)
             if (at === null) return
             view.dispatch(

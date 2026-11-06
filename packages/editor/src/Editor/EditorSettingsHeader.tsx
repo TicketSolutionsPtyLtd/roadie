@@ -1,7 +1,5 @@
 'use client'
 
-import type { Ref } from 'react'
-
 import { Button } from '@oztix/roadie-components/button'
 import { Drawer } from '@oztix/roadie-components/drawer'
 import { Popover } from '@oztix/roadie-components/popover'
@@ -11,7 +9,6 @@ type EditorSettingsHeaderProps = {
   /** A phone's sheet rather than a popover. */
   sheet: boolean
   onDone: () => void
-  titleRef?: Ref<HTMLHeadingElement>
 }
 
 /**
@@ -21,8 +18,7 @@ type EditorSettingsHeaderProps = {
 export function EditorSettingsHeader({
   title,
   sheet,
-  onDone,
-  titleRef
+  onDone
 }: EditorSettingsHeaderProps) {
   const Header = sheet ? Drawer.Header : Popover.Header
   const Title = sheet ? Drawer.Title : Popover.Title
@@ -30,10 +26,8 @@ export function EditorSettingsHeader({
   return (
     <Header className='flex items-start justify-between gap-2 text-start'>
       <div className='grid gap-0.5'>
-        <Title ref={titleRef} tabIndex={-1} className='outline-none'>
-          {title}
-        </Title>
-        <Description className='text-sm text-subtle'>
+        <Title>{title}</Title>
+        <Description className='text-sm'>
           Changes apply as you go. Undo puts them back.
         </Description>
       </div>
