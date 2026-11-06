@@ -1,0 +1,276 @@
+import { renderToStaticMarkup } from 'react-dom/server'
+import { describe, expect, it } from 'vitest'
+
+import { AlternatingRows } from '../AlternatingRows'
+import { CallToAction } from '../CallToAction'
+import { Cards } from '../Cards'
+import { FAQ } from '../FAQ'
+import { Gallery } from '../Gallery'
+import { Hero } from '../Hero'
+import { Mosaic } from '../Mosaic'
+import { RichText } from '../RichText'
+import { SideBySide } from '../SideBySide'
+import { Stats } from '../Stats'
+import { Testimonial } from '../Testimonial'
+import { catalogueSections } from './sections'
+
+const thumbnailUrl = (file: string) => `/thumbnails/${file}`
+
+const sectionsOf = () =>
+  catalogueSections({
+    components: { hero: Hero, 'call-to-action': CallToAction },
+    thumbnailUrl
+  })
+
+const hero = () => sectionsOf().find(({ label }) => label === 'Hero')!
+
+describe('catalogueSections', () => {
+  it('offers only the blocks it’s given, each named for the saved value', () => {
+    expect(sectionsOf().map(({ name, label }) => [name, label])).toEqual([
+      ['heroSection', 'Hero'],
+      ['callToActionSection', 'Call to action']
+    ])
+  })
+
+  it('gives each preset a template, with its thumbnail', () => {
+    expect(
+      hero().templates!.map(({ label, thumbnail, attrs }) => [
+        label,
+        thumbnail,
+        attrs?.preset
+      ])
+    ).toEqual([
+      ['Hero: Bento', '/thumbnails/hero-bento.svg', 'bento'],
+      ['Hero: Image', '/thumbnails/hero-image.svg', 'image'],
+      ['Hero: Title', '/thumbnails/hero-title.svg', 'title'],
+      ['Hero: Partner', '/thumbnails/hero-partner.svg', 'partner']
+    ])
+  })
+
+  it('draws a section with its block, from its attrs', () => {
+    const { render, attrs } = hero()
+
+    const html = renderToStaticMarkup(
+      render({ attrs: { ...attrs, preset: 'title', title: 'Kazoo Hollow' } })
+    )
+
+    expect(html).toContain('data-block="hero"')
+    expect(html).toContain('data-preset="title"')
+    expect(html).toContain('Kazoo Hollow')
+  })
+
+  it('shows only the settings the section’s preset reads', () => {
+    const { settings } = hero()
+    const shown = (preset: string) =>
+      settings!
+        .filter((setting) => setting.available?.({ preset }) ?? true)
+        .map(({ name }) => name)
+
+    expect(shown('bento')).not.toContain('eyebrow')
+    expect(shown('title')).toEqual(
+      expect.arrayContaining(['preset', 'eyebrow', 'title', 'description'])
+    )
+  })
+
+  const everyBlock = () =>
+    catalogueSections({
+      components: {
+        'alternating-rows': AlternatingRows,
+        'call-to-action': CallToAction,
+        cards: Cards,
+        faq: FAQ,
+        gallery: Gallery,
+        hero: Hero,
+        mosaic: Mosaic,
+        'rich-text': RichText,
+        'side-by-side': SideBySide,
+        stats: Stats,
+        testimonial: Testimonial
+      }
+    })
+
+  it.each(
+    everyBlock().flatMap((section) =>
+      section.templates.map((template) => [template.label, section, template])
+    )
+  )(
+    'draws a new %s section, before anything’s added to it',
+    (_, section, template) => {
+      const { render, attrs } = section as ReturnType<typeof everyBlock>[number]
+      expect(() =>
+        renderToStaticMarkup(
+          render({
+            attrs: { ...attrs, ...(template as { attrs: object }).attrs }
+          })
+        )
+      ).not.toThrow()
+    }
+  )
+
+  it('draws a section whose saved list isn’t one', () => {
+    const stats = everyBlock().find(({ label }) => label === 'Stats')!
+
+    expect(() =>
+      renderToStaticMarkup(
+        stats.render({ attrs: { ...stats.attrs, stats: 'x', actions: {} } })
+      )
+    ).not.toThrow()
+  })
+
+  it.each([
+    ['Call to action', 'cta'],
+    ['Call to action', 'banner'],
+    ['FAQ', 'questions'],
+    ['FAQ', 'accordion']
+  ])('finds %s by %s', (label, word) => {
+    const section = everyBlock().find((entry) => entry.label === label)!
+
+    expect(
+      section.templates.every(({ keywords }) => keywords?.includes(word))
+    ).toBe(true)
+  })
+
+  it('shows what a block draws while align, size and colour are unset', () => {
+    const defaults = Object.fromEntries(
+      hero().settings.flatMap((setting) =>
+        setting.type === 'choice' && setting.defaultValue
+          ? [[setting.name, setting.defaultValue]]
+          : []
+      )
+    )
+
+    expect(defaults).toMatchObject({
+      align: 'start',
+      size: 'lg',
+      intent: 'neutral'
+    })
+  })
+
+  const settingOf = (label: string, name: string) =>
+    everyBlock()
+      .find((section) => section.label === label)!
+      .settings.find((setting) => setting.name === name)
+
+  it('edits a block’s items as a list, each with its own fields', () => {
+    const cards = settingOf('Cards', 'cards')
+
+    expect(cards).toMatchObject({ type: 'list', itemLabel: 'Card' })
+    expect(
+      cards?.type === 'list' &&
+        cards.fields?.map(({ name, type }) => [name, type])
+    ).toEqual(
+      expect.arrayContaining([
+        ['title', 'text'],
+        ['description', 'text'],
+        ['image', 'image'],
+        ['href', 'text']
+      ])
+    )
+    expect(settingOf('FAQ', 'questions')).toMatchObject({
+      type: 'list',
+      itemLabel: 'Question'
+    })
+  })
+
+  it('edits only what each preset’s items hold, up to its own limit', () => {
+    const cards = everyBlock()
+      .find(({ label }) => label === 'Cards')!
+      .settings.filter(({ name }) => name === 'cards')
+    const shown = (preset: string) =>
+      cards.find((setting) => setting.available?.({ preset }))
+
+    expect(shown('text-blocks')).toMatchObject({ max: 4 })
+    expect(shown('plain')).not.toHaveProperty('max')
+    const lists = shown('lists')
+    expect(
+      lists?.type === 'list' && lists.fields?.map(({ name }) => name)
+    ).toEqual(['title', 'href'])
+  })
+
+  it('draws no image or button that hasn’t been filled in', () => {
+    const hero = everyBlock().find(({ label }) => label === 'Hero')!
+    const attrs = { ...hero.attrs, preset: 'title', title: 'Kazoo Hollow' }
+
+    expect(
+      renderToStaticMarkup(
+        hero.render({
+          attrs: { ...attrs, actions: [{ label: '', href: '' }] }
+        })
+      )
+    ).toBe(renderToStaticMarkup(hero.render({ attrs })))
+  })
+
+  it('edits buttons and images, up to a preset’s limit', () => {
+    expect(settingOf('Hero', 'actions')).toMatchObject({
+      type: 'list',
+      item: 'action',
+      max: 2
+    })
+    expect(settingOf('Hero', 'image')).toMatchObject({ type: 'image' })
+    expect(settingOf('Hero', 'images')).toMatchObject({
+      type: 'list',
+      item: 'image'
+    })
+    expect(settingOf('Gallery', 'images')).toMatchObject({
+      type: 'list',
+      item: 'image'
+    })
+  })
+
+  it('shows no surface as the Surface default, and draws it as none', () => {
+    const stats = everyBlock().find(({ label }) => label === 'Stats')!
+    const surface = settingOf('Stats', 'emphasis')
+
+    expect(surface).toMatchObject({ defaultValue: 'none' })
+    expect(
+      renderToStaticMarkup(
+        stats.render({ attrs: { ...stats.attrs, emphasis: 'none' } })
+      )
+    ).toBe(renderToStaticMarkup(stats.render({ attrs: stats.attrs })))
+  })
+
+  it('hints at a blank item, and shows a placeholder photo, only while editing', () => {
+    const cards = everyBlock().find(({ label }) => label === 'Cards')!
+    const attrs = {
+      ...cards.attrs,
+      preset: 'photo',
+      cards: [{ title: '', subtitle: '' }]
+    }
+
+    const editing = renderToStaticMarkup(cards.render({ attrs, editing: true }))
+    const page = renderToStaticMarkup(cards.render({ attrs }))
+
+    expect(editing).toContain('>Card<')
+    expect(editing).toContain('data:image/svg+xml')
+    expect(page).not.toContain('>Card<')
+    expect(page).not.toContain('data:image/svg+xml')
+  })
+
+  it.each([
+    ['Hero', 'event'],
+    ['Call to action', 'tickets'],
+    ['Cards', 'lineup'],
+    ['Gallery', 'gallery']
+  ])('finds %s by %s too', (label, word) => {
+    const section = everyBlock().find((entry) => entry.label === label)!
+
+    expect(section.templates[0]!.keywords).toContain(word)
+  })
+
+  it('saves no id, so a copy never repeats one', () => {
+    expect(everyBlock().some(({ attrs }) => 'id' in attrs)).toBe(false)
+  })
+
+  it('starts each template with the app’s content, over its own', () => {
+    const [heroSection] = catalogueSections({
+      components: { hero: Hero },
+      content: (block, preset) =>
+        preset.name === 'title' ? { title: `${block.title} title` } : {}
+    })
+
+    expect(
+      heroSection!.templates!.find(({ attrs }) => attrs?.preset === 'title')
+        ?.attrs
+    ).toMatchObject({ title: 'Hero title' })
+  })
+})

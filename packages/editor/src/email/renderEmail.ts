@@ -85,6 +85,8 @@ function plainText(html: string) {
     selectors: [
       ...HEADINGS,
       { selector: 'img', format: 'skip' },
+      // The preheader, which inboxes read from the HTML only.
+      { selector: 'div[style*="display:none"]', format: 'skip' },
       // A layout table's cells are columns, not words of one line.
       { selector: 'td', format: 'paragraph' },
       { selector: 'th', format: 'paragraph' },

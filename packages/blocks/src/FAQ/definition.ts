@@ -9,6 +9,7 @@ export const faqDefinition = {
   description:
     'Use it for the questions people ask before they buy or sign up.',
   group: 'explain',
+  keywords: ['questions', 'accordion', 'help'],
   presets: [
     {
       name: 'accordion',

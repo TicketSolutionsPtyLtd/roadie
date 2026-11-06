@@ -1,0 +1,5 @@
+---
+'@oztix/roadie-editor': minor
+---
+
+The blocks and email presets say what to do on an empty line: "Type / to add a block", or "Type / for blocks, or pick a section" in an email, on an empty document and on the empty line with the caret while the editor has focus. A `placeholder` replaces it, and still shows only while the editor is empty. An empty email also shows Start your email under its first line, with Sections and Blocks, which open the Blocks drawer at its sections or its blocks, and Import. The skeleton keeps its room, so the email doesn't grow as it loads. A ready-made email section's placeholder copy, such as Headline, now shows as a hint on its empty lines rather than as text to delete, and isn't saved, so it lasts only until the line has text, an undo, or a reload. On a touch screen, where `/` is a keyboard layer away, the hint points at Blocks instead: "Tap Blocks to add a block", or "Tap Blocks to add a block or section" in an email. Enter at the end of a line moves into the next line while that line shows placeholder copy, so a Lineup's acts fill in turn rather than gaining items.

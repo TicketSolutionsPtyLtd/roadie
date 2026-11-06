@@ -8,6 +8,7 @@ import {
   report
 } from './importHtml'
 import { mergeTagTokens } from './mergeTagTokens'
+import { preheaderOf } from './preheader'
 import { CURRENT_VERSION, type EditorValue, migrate } from './value'
 import type { EditorVariable } from './variables'
 
@@ -61,6 +62,8 @@ type Reading = {
   doc: Document
   dropped: DroppedContent[]
   styles: number
+  /** The line inboxes show after the subject, from `mj-preview` or hidden text. */
+  preheader?: string
 }
 
 const tagOf = (element: Element) => element.localName
@@ -309,7 +312,10 @@ function readMjml(source: string): Reading & { container: HTMLElement } {
   const head = elementsOf(root, 'mj-head')[0]
   if (head) {
     for (const element of head.querySelectorAll('mj-preview')) {
-      if (element.textContent?.trim()) reading.dropped.push({ kind: 'hidden' })
+      const text = preheaderOf(element.textContent)
+      if (!text) continue
+      if (reading.preheader) reading.dropped.push({ kind: 'hidden' })
+      else reading.preheader = text
     }
     reading.styles += head.querySelectorAll('mj-style').length
   }
@@ -335,6 +341,24 @@ function readHtml(source: string): Reading & { container: HTMLElement } {
   const reading: Reading = { doc, dropped: [], styles: sheets.length }
   sheets.forEach((sheet) => sheet.remove())
   return { ...reading, container: doc.body }
+}
+
+function shownTextBefore(container: HTMLElement, hidden: Element) {
+  const walker = container.ownerDocument.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT
+  )
+  while (walker.nextNode()) {
+    const node = walker.currentNode
+    if (hidden.contains(node)) return false
+    const before =
+      node.compareDocumentPosition(hidden) & Node.DOCUMENT_POSITION_FOLLOWING
+    if (!before) return false
+    if (node.textContent?.trim() && !node.parentElement?.closest(HIDDEN)) {
+      return true
+    }
+  }
+  return false
 }
 
 function outermost(container: HTMLElement, selector: string) {
@@ -400,7 +424,8 @@ function readTokens(
  * an email preset value, through `migrate`. MJML sections, columns, buttons,
  * images, spacers and dividers become the editor's own, and `mj-text` is read
  * as HTML. An HTML layout's tables give way to their text and images.
- * Hidden text, such as a preheader, is dropped. Each token of a `variables`
+ * Hidden text before any the email shows, or `mj-preview`, becomes the
+ * preheader, and any other hidden text is dropped. Each token of a `variables`
  * entry becomes a merge tag, or a link variable as a link's or button's
  * whole href, and a Liquid `default` becomes its fallback.
  *
@@ -427,8 +452,12 @@ export function importEmail(
   container
     .querySelectorAll('script, noscript, template')
     .forEach((element) => element.remove())
+  // A sender's preheader is hidden text before any the email shows.
   for (const hidden of outermost(container, HIDDEN)) {
-    dropped.push({ kind: 'hidden' })
+    const text = preheaderOf(hidden.textContent)
+    const first = !reading.preheader && !shownTextBefore(container, hidden)
+    if (text && first) reading.preheader = text
+    else if (text) dropped.push({ kind: 'hidden' })
     hidden.remove()
   }
   // An HTML image block takes no link from around it, so that one is lost.
@@ -461,8 +490,11 @@ export function importEmail(
     dropped.push(report('unsafe-link', href))
   }
   const read = bodyToDoc(container, 'email', embedProviders)
+  const doc = reading.preheader
+    ? { ...read.doc, attrs: { preheader: reading.preheader } }
+    : read.doc
   const value = migrate(
-    { version: CURRENT_VERSION, preset: 'email', doc: read.doc },
+    { version: CURRENT_VERSION, preset: 'email', doc },
     'email'
   )
   return {

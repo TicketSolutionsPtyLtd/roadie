@@ -25,7 +25,9 @@ the images, embeds, and tables this preset holds too.
 
 `preset='blocks'` holds everything the rich preset does, for a page built
 from blocks, and every block keeps an id as it moves. Type `/` to add a
-block.
+block. An empty page, and the empty line with the caret while the editor has
+focus, say so: "Type / to add a block", or on a touch screen, where `/` is a keyboard layer away, "Tap Blocks to add a block". A `placeholder` replaces it, and shows
+only while the page is empty.
 
 A page is edited in place, so a `blocks` editor opens with
 `emphasis='subtler'`, with no box, and `toolbar='floating'`: select text to
@@ -172,6 +174,86 @@ the first and last blocks. Closing the menu puts focus back in the text.
 | `Enter` | Run the action |
 | `Delete`, `Backspace` | In the menu, delete its block |
 | `Escape` | Close the menu, back to the text |
+
+### Sections
+
+`sections` adds designed sections, such as a hero or a row of cards, drawn
+in the editor as the page draws them. `catalogueSections()` from
+`@oztix/roadie-blocks/catalogue/sections` makes them from the blocks you
+pass, so a page loads only those:
+
+```tsx
+import { catalogueSections } from '@oztix/roadie-blocks/catalogue/sections'
+```
+
+- Each block is a section, and each of its presets a template, listed under
+  Sections in `/` and as a tile with the preset's thumbnail in the Blocks
+  drawer. Serve the package's `thumbnails` folder and pass `thumbnailUrl`;
+  without it, tiles show an icon.
+- A section is one block, drawn across the page rather than in the text's
+  measure. With a mouse, a click opens its Settings at the text you
+  clicked, such as its title, and the page stays usable beside them. On a
+  touch screen a tap selects it, and Settings is in its menu. Settings edit
+  every part of it: its layout, text, alignment, size, surface, and colour,
+  its images and buttons, and its items, such as cards or questions, which
+  you add, remove, and drag to reorder. A click on a card or question opens
+  its fold. Only the settings its layout reads show. Its links and buttons
+  can't be followed or focused while you edit.
+- Each block has keywords too, so `/cta` finds Call to action and
+  `/questions` finds FAQ.
+- `content` gives each template its starting attrs, such as an app's
+  images, cards, or questions, over the placeholder copy.
+- Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
+  section from its `render`:
+  `Object.fromEntries(sections.map(({ name, render }) => [name, render]))`.
+- Each saves its fields as attrs, under its node name, such as
+  `heroSection`, so that name stays put once pages hold it. A section reads
+  its saved lists as lists, and in the editor one that still can't be drawn
+  shows a message in its place.
+
+```tsx-live-prose-noinline
+const photo = { src: '/brand/photography/08.webp', alt: '', width: 1280, height: 850 }
+
+const sections = catalogueSections({
+  components: { hero: Hero, cards: Cards, faq: FAQ, 'call-to-action': CallToAction },
+  thumbnailUrl: blockThumbnailUrl,
+  content: (block, preset) => ({
+    title: 'Ochre Kite Weekender',
+    description: 'Two days in the sun at Jumbuck Orchard Park, Brisbane.',
+    ...(preset.fields.includes('image') && { image: photo }),
+    ...(block.name === 'cards' && {
+      cards: [
+        { title: 'Camping', description: 'Pitch a tent by the main stage.' },
+        { title: 'Food', description: 'Twenty stalls, open till late.' },
+        { title: 'Getting there', description: 'Shuttles run from the city.' }
+      ]
+    }),
+    ...(block.name === 'faq' && {
+      questions: [
+        { question: 'Is it all ages?', answer: 'Yes, under 16s come with an adult.' }
+      ]
+    })
+  })
+})
+
+render(
+  <Editor
+    aria-label='Page'
+    sections={sections}
+    defaultValue={{
+      version: 1,
+      preset: 'blocks',
+      doc: {
+        type: 'doc',
+        content: [
+          { type: 'heroSection', attrs: { preset: 'title', eyebrow: 'Brisbane', title: 'Ochre Kite Weekender', description: 'Two days in the sun at Jumbuck Orchard Park.' } },
+          { type: 'paragraph', content: [{ type: 'text', text: 'Type / and search for cards, or pick Blocks.' }] }
+        ]
+      }
+    }}
+  />
+)
+```
 
 ### Custom blocks
 

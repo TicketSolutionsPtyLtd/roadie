@@ -10,6 +10,24 @@
   pointer-events: none;
 }
 
+/* The caret's empty line in a preset with the `/` menu, from emptyLineHint. */
+[data-slot='editor-content'] .ProseMirror-focused [data-hint]::before {
+  content: attr(data-hint);
+  float: inline-start;
+  block-size: 0;
+  color: var(--intent-text-subtler);
+  pointer-events: none;
+}
+
+/* A ready-made section's placeholder copy, from hintLines, shown until typed over. */
+[data-slot='editor-content'] [data-copy-hint]::before {
+  content: attr(data-copy-hint);
+  float: inline-start;
+  block-size: 0;
+  color: var(--intent-text-subtler);
+  pointer-events: none;
+}
+
 /* Every selection of whole blocks takes one ring. A node view rings its own
    wrapper, which can be narrower than the row. */
 [data-slot='editor-content'] .ProseMirror-selectednode:not(.react-renderer),
@@ -234,7 +252,8 @@
   );
 }
 
-[data-preset='email'] [data-slot='editor-content'] {
+[data-preset='email']
+  :is([data-slot='editor-content'], [data-slot='editor-preheader-row']) {
   padding-inline-start: var(--email-gutter);
 }
 
@@ -451,6 +470,24 @@
 
 [data-email] [data-type='spacer'] + .ProseMirror-gapcursor:after {
   top: calc(var(--spacing) - 1px);
+}
+
+/* A section under the pointer takes a ring a step quieter than a selected
+   one, and shows its name. */
+[data-slot='editor-section-name'] {
+  visibility: hidden;
+}
+
+[data-slot='editor-content']
+  [data-slot='editor-section']:hover:not([data-selected]) {
+  outline: 1px solid var(--intent-border-subtle);
+  outline-offset: 2px;
+}
+
+[data-slot='editor-content']
+  [data-slot='editor-section']:hover
+  > [data-slot='editor-section-name'] {
+  visibility: visible;
 }
 
 /* Preview takes the canvas's place, and the formatting it can't apply goes
