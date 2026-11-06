@@ -573,6 +573,14 @@ describe('Editor blocks drawer finding and moving', () => {
     )
   })
 
+  // The phone toolbar stays docked above the keyboard while a popup is open.
+  it('marks itself as one of the editor’s popups', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+
+    expect(await openFromDockedBar()).toHaveAttribute('data-editor-popup')
+  })
+
   it('opens with an empty filter after a pick', async () => {
     renderEmail()
     await clickInto('Doors 7pm')
