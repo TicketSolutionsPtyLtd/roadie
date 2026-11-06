@@ -540,10 +540,13 @@
   outline-offset: 2px;
 }
 
-[data-slot='editor-content']
-  [data-slot='editor-section']:hover
-  > [data-slot='editor-section-name'] {
-  visibility: visible;
+/* Only where the pointer hovers, as a tap's hover outstays it. */
+@media (hover: hover) {
+  [data-slot='editor-content']
+    [data-slot='editor-section']:hover
+    > [data-slot='editor-section-name'] {
+    visibility: visible;
+  }
 }
 
 /* Preview takes the canvas's place, and the formatting it can't apply goes
