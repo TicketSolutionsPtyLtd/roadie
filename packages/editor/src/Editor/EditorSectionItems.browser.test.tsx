@@ -268,6 +268,46 @@ describe('Editor section items', () => {
     )
     expect(within(drawer).getAllByText('Tickets')).toHaveLength(1)
   })
+
+  it('shows a link as it was once Undo takes its edit back', async () => {
+    renderPage(
+      page(intro, {
+        type: 'lineup',
+        attrs: {
+          blockId: 'lineup',
+          buttons: [{ label: 'Tickets', href: '/tickets' }]
+        }
+      })
+    )
+    await clickAct('Marri Lane')
+    const drawer = await screen.findByRole('dialog', {
+      name: 'Lineup settings'
+    })
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Tickets' })
+    )
+    const link = within(drawer).getByRole('textbox', { name: 'Link' })
+    await userEvent.type(link, '/vip')
+    expect(link).toHaveValue('/tickets/vip')
+
+    await undo()
+
+    await waitFor(() => expect(link).toHaveValue('/tickets'))
+  })
+
+  it('tells only the selected section which item is open', async () => {
+    renderPage(page(intro, savedLineup, { ...savedLineup, attrs: {} }))
+    const [, other] = await screen.findAllByText('Marri Lane', {
+      selector: 'li'
+    })
+
+    await userEvent.click(other!, { force: true })
+    await screen.findByRole('dialog', { name: 'Lineup settings' })
+
+    await waitFor(() => expect(other).toHaveAttribute('data-open'))
+    const [first] = screen.getAllByText('Marri Lane', { selector: 'li' })
+    expect(first).not.toHaveAttribute('data-open')
+  })
 })
 
 const tap = (element: Element) => {
@@ -322,6 +362,7 @@ describe('Editor section items on a phone', () => {
       expect(field.bottom).toBeLessThanOrEqual(shown.bottom)
     })
     expect(document.activeElement?.matches('input, textarea')).toBe(false)
+    expect(tapped).toHaveAttribute('data-open')
   })
 
   it('keeps an item just added above the sheet while it’s typed', async () => {
