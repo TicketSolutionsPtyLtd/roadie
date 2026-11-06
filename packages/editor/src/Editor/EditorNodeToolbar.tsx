@@ -164,7 +164,12 @@ function columnsPlace(
   height: number
 ) {
   const box = element.getBoundingClientRect()
-  const top = visibleTop(editor)
+  // No higher than the text's own top, under the editor's fields above it.
+  const content = editor.view.dom.closest('[data-slot="editor-content"]')
+  const top = Math.max(
+    visibleTop(editor),
+    content?.getBoundingClientRect().top ?? 0
+  )
   const frame = editor.view.dom.closest('[data-slot="editor"]')
   const frameRight = frame?.getBoundingClientRect().right ?? box.right
   const neighbours = textRects(element.previousElementSibling)

@@ -656,6 +656,36 @@ describe('Editor email block toolbar placement', () => {
     }
   })
 
+  it('stays below the fields above the text when columns start it', async () => {
+    await page.viewport(390, 800)
+    onTestFinished(() => page.viewport(1280, 800))
+    render(
+      <div style={{ paddingTop: 96 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={email(columns, p('Doors 7pm'))}
+        >
+          <input aria-label='Preview text' style={{ blockSize: 40 }} />
+          <Editor.Content />
+        </Editor>
+      </div>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Ochre Kite'))
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    const field = screen.getByRole('textbox', { name: 'Preview text' })
+    await waitFor(() => {
+      const bar = toolbar.getBoundingClientRect()
+      expect(bar.width).toBeGreaterThan(0)
+      expect(bar.top).toBeGreaterThanOrEqual(
+        field.getBoundingClientRect().bottom
+      )
+    })
+  })
+
   it('docks in the top-end corner of columns that start the content, on a phone', async () => {
     await page.viewport(390, 800)
     onTestFinished(() => page.viewport(1280, 800))
