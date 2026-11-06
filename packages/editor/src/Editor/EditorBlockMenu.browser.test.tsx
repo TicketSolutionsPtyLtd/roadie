@@ -406,6 +406,7 @@ describe('Editor block menu', () => {
       await userEvent.click(await handle())
 
       const sheet = await screen.findByRole('dialog', { name: 'Paragraph' })
+      expect(sheet).toHaveAttribute('data-editor-popup')
       await waitFor(() => {
         const { bottom } = sheet.getBoundingClientRect()
         expect(bottom).toBeCloseTo(window.innerHeight, 0)
