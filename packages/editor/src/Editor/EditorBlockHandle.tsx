@@ -2,6 +2,7 @@
 
 import {
   type RefObject,
+  createElement,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -11,11 +12,23 @@ import {
 import {
   ArrowDownIcon,
   ArrowUpIcon,
+  ArrowsClockwiseIcon,
   CopySimpleIcon,
   DotsSixVerticalIcon,
+  type Icon,
+  LinkIcon,
+  ListBulletsIcon,
+  ListNumbersIcon,
   PlusIcon,
+  QuotesIcon,
+  RectangleIcon,
   SelectionPlusIcon,
   SlidersHorizontalIcon,
+  TextHFourIcon,
+  TextHIcon,
+  TextHThreeIcon,
+  TextHTwoIcon,
+  TextTIcon,
   TrashIcon
 } from '@phosphor-icons/react'
 import { closeHistory } from '@tiptap/pm/history'
@@ -28,28 +41,96 @@ import {
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { createPortal } from 'react-dom'
 
+import { Badge } from '@oztix/roadie-components/badge'
 import { IconButton } from '@oztix/roadie-components/button'
 import { Menu } from '@oztix/roadie-components/menu'
+import { cn } from '@oztix/roadie-core/utils'
 
+import { EditorBlockSheet } from './EditorBlockSheet'
 import { hideBubbleMenu } from './EditorBubbleMenuEngine'
 import {
   BLOCK_ACTION_KEYS,
   type BlockContainers,
+  type BlockKind,
+  TEXT_BLOCK_KINDS,
   blockAt,
+  blockIdAt,
+  blockKind,
   canMoveBlock,
   deleteBlock,
   duplicateBlock,
+  findBlockId,
+  insertBelow,
   moveBlock,
-  parentBlock
+  moveBlockTo,
+  movePlaces,
+  parentBlock,
+  turnInto
 } from './blockActions'
 import { draggedBlocks } from './blockDrag'
 import { focusEditor } from './focusEditor'
 import { markMenuBlock } from './focusedBlock'
+import { useOnPhone } from './toolbarMode'
 
 // A button's width and the gap to the text, in px.
 const HANDLE_SIZE = 24
 const HANDLE_GAP = 4
+// Wider on a phone, so the grip's 44px target ends at the text.
+const PHONE_HANDLE_GAP = 6
 const GUTTER = HANDLE_SIZE * 2 + HANDLE_GAP
+
+const HEADING_ICONS: Record<number, Icon> = {
+  2: TextHTwoIcon,
+  3: TextHThreeIcon,
+  4: TextHFourIcon
+}
+
+const KIND_NAMES = {
+  paragraph: ['Paragraph', TextTIcon],
+  bulletList: ['Bulleted list', ListBulletsIcon],
+  orderedList: ['Numbered list', ListNumbersIcon],
+  blockquote: ['Quote', QuotesIcon]
+} as const satisfies Record<string, readonly [string, Icon]>
+
+const kindLabel = (kind: BlockKind) =>
+  kind.type === 'heading' ? `Heading ${kind.level}` : KIND_NAMES[kind.type][0]
+
+const kindIcon = (kind: BlockKind): Icon =>
+  kind.type === 'heading'
+    ? (HEADING_ICONS[kind.level] ?? TextHTwoIcon)
+    : KIND_NAMES[kind.type][1]
+
+function blockLink(blockId: string) {
+  const url = new URL(window.location.href)
+  url.hash = blockId
+  return url.href
+}
+
+// A hash the page holds for something else may not decode.
+function hashId() {
+  try {
+    return decodeURIComponent(window.location.hash.slice(1))
+  } catch {
+    return ''
+  }
+}
+
+function useScrollToLinkedBlock(editor: TiptapEditor) {
+  useEffect(() => {
+    const id = hashId()
+    if (!id) return
+    const scroll = () => {
+      const pos = findBlockId(editor.state.doc, id)
+      const dom = pos === null ? null : editor.view.nodeDOM(pos)
+      if (dom instanceof HTMLElement) dom.scrollIntoView({ block: 'center' })
+    }
+    if (editor.isInitialized) scroll()
+    editor.on('create', scroll)
+    return () => {
+      editor.off('create', scroll)
+    }
+  }, [editor])
+}
 
 /**
  * A box of the handle's own in the editor's content wrapper, once Tiptap has
@@ -141,18 +222,41 @@ function inReach(
   return clientX >= from && clientX <= to && clientY >= top && clientY <= bottom
 }
 
+// Its first line, below any padding a section has: the first block down its
+// first children, text or not.
+function firstLineOf(editor: TiptapEditor, pos: number, dom: HTMLElement) {
+  let node = editor.state.doc.nodeAt(pos)
+  let at = pos
+  while (node && !node.isTextblock && !node.isAtom && node.firstChild) {
+    at += 1
+    node = node.firstChild
+  }
+  const line = at === pos ? null : editor.view.nodeDOM(at)
+  return line instanceof HTMLElement ? line : dom
+}
+
 // Centred on the block's first line, just before its start edge.
-function placeAt(editor: TiptapEditor, wrapper: HTMLElement, pos: number) {
+function placeAt(
+  editor: TiptapEditor,
+  wrapper: HTMLElement,
+  pos: number,
+  gap: number
+) {
   const dom = editor.view.nodeDOM(pos)
   if (!(dom instanceof HTMLElement)) return null
   const box = dom.getBoundingClientRect()
   const frame = wrapper.getBoundingClientRect()
-  const line = parseFloat(getComputedStyle(dom).lineHeight) || box.height
+  const text = firstLineOf(editor, pos, dom)
+  const textBox = text === dom ? box : text.getBoundingClientRect()
+  const line = parseFloat(getComputedStyle(text).lineHeight) || textBox.height
   return {
-    top: box.top - frame.top + (Math.min(line, box.height) - HANDLE_SIZE) / 2,
+    top:
+      textBox.top -
+      frame.top +
+      (Math.min(line, textBox.height) - HANDLE_SIZE) / 2,
     left: isRtl(editor)
-      ? box.right - frame.left + HANDLE_GAP
-      : box.left - frame.left - HANDLE_SIZE - HANDLE_GAP
+      ? box.right - frame.left + gap
+      : box.left - frame.left - HANDLE_SIZE - gap
   }
 }
 
@@ -177,6 +281,21 @@ function addAfter(editor: TiptapEditor, pos: number) {
     closeHistory(tr.setSelection(TextSelection.create(tr.doc, caret)))
   )
   focusEditor(editor)
+}
+
+// The menu's width and a margin, which the grip must have before it.
+const MENU_ROOM = 240
+
+function roomBeside(
+  editor: TiptapEditor,
+  wrapper: HTMLElement,
+  place: { left: number }
+) {
+  const grip = wrapper.getBoundingClientRect().left + place.left
+  const room = isRtl(editor)
+    ? document.documentElement.clientWidth - grip - HANDLE_SIZE
+    : grip
+  return room >= MENU_ROOM
 }
 
 const PARENT_LABELS: Record<string, string> = {
@@ -240,6 +359,14 @@ export function EditorBlockHandle({
   onSettings
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
+  const phone = useOnPhone()
+  // Where the copied block's grip was, as the grip moves on once the menu closes.
+  const [copied, setCopied] = useState<{
+    top: number
+    left: number
+    at: number
+  } | null>(null)
+  useScrollToLinkedBlock(editor)
   const wrapper = host?.parentElement ?? null
   const [hovered, setHovered] = useState<number | null>(null)
   const [menuAt, setMenuAt] = useState<number | null>(null)
@@ -259,13 +386,17 @@ export function EditorBlockHandle({
     editor,
     selector: ({ editor: current }) => current.isEditable
   })
-  const shown = menuAt ?? hovered ?? caretBlock
+  // After a tap, as the hover a tap leaves would outstay the caret's block.
+  const [touched, setTouched] = useState(false)
+  const shown =
+    menuAt ?? (touched ? (caretBlock ?? hovered) : (hovered ?? caretBlock))
   const shownRef = useRef(shown)
   useLayoutEffect(() => {
     shownRef.current = shown
   })
   // Read by each move before `hovered` renders, so it's mapped through edits too.
   const pointerBlock = useRef<number | null>(null)
+  const afterClose = useRef<(() => void) | null>(null)
 
   // On the page, as a subtler editor's grip hangs outside the wrapper, and
   // leaving the wrapper for the gap would hide it.
@@ -298,10 +429,14 @@ export function EditorBlockHandle({
       pointerBlock.current = null
       setHovered(null)
     }
+    const onPress = ({ pointerType }: PointerEvent) =>
+      setTouched(pointerType === 'touch')
+    page.addEventListener('pointerdown', onPress, true)
     page.addEventListener('mousemove', onMove)
     page.addEventListener('mouseout', onOut)
     host.addEventListener('pointerdown', pin)
     return () => {
+      page.removeEventListener('pointerdown', onPress, true)
       page.removeEventListener('mousemove', onMove)
       page.removeEventListener('mouseout', onOut)
       host.removeEventListener('pointerdown', pin)
@@ -312,11 +447,49 @@ export function EditorBlockHandle({
     if (!editable) setMenuAt(null)
   }, [editable])
 
+  // Long enough to read, as the menu that copied it has closed.
+  useEffect(() => {
+    if (!copied) return
+    const timer = setTimeout(() => setCopied(null), 2000)
+    return () => clearTimeout(timer)
+  }, [copied])
+
+  // Mounted throughout, as a live region added with its text goes unread.
+  const status = host
+    ? createPortal(
+        <span role='status' className='sr-only'>
+          {copied ? 'Link copied' : ''}
+        </span>,
+        host
+      )
+    : null
+
   // Its blur check counts focus on the grip as staying in the editor.
   const menuOpen = menuAt !== null
+  const menuAtRef = useRef(menuAt)
+  useLayoutEffect(() => {
+    menuAtRef.current = menuAt
+  })
   useEffect(() => {
     if (menuOpen) hideBubbleMenu(editor)
   }, [editor, menuOpen])
+
+  // Opened from Mod+/, the first action is ready for Enter, as a menu opened
+  // from its trigger's keys has it.
+  const fromKeys = useRef(false)
+  const popupRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!menuOpen || !fromKeys.current) return
+    fromKeys.current = false
+    const frame = requestAnimationFrame(() =>
+      popupRef.current
+        ?.querySelector<HTMLElement>(
+          '[role^="menuitem"]:not([aria-disabled="true"])'
+        )
+        ?.focus()
+    )
+    return () => cancelAnimationFrame(frame)
+  }, [menuOpen])
 
   useEffect(() => {
     const follow = ({ transaction }: { transaction: Transaction }) => {
@@ -339,7 +512,10 @@ export function EditorBlockHandle({
   useEffect(() => {
     openMenuRef.current = () => {
       const { from } = editor.state.selection
-      setMenuAt(blockAt(editor.state, from, containers))
+      const block = blockAt(editor.state, from, containers)
+      // Only an opening focuses its first action, not a menu already open.
+      fromKeys.current = block !== null && menuAtRef.current === null
+      setMenuAt(block)
     }
     return () => {
       openMenuRef.current = null
@@ -350,12 +526,29 @@ export function EditorBlockHandle({
     markMenuBlock(editor.view, menuAt)
   }, [editor, menuAt])
 
-  // After every change, as text above or in the block moves it.
+  // After every change, as text above or in the block moves it, and as the
+  // editor resizes, as a drawer opening beside it reflows its text.
+  const [resized, setResized] = useState(0)
+  useEffect(() => {
+    const observer = new ResizeObserver(() => setResized((count) => count + 1))
+    observer.observe(editor.view.dom)
+    return () => observer.disconnect()
+  }, [editor])
   useLayoutEffect(() => {
-    setPlace(wrapper && shown != null ? placeAt(editor, wrapper, shown) : null)
-  }, [editor, wrapper, shown, doc])
+    const gap = phone ? PHONE_HANDLE_GAP : HANDLE_GAP
+    setPlace(
+      wrapper && shown != null ? placeAt(editor, wrapper, shown, gap) : null
+    )
+  }, [editor, wrapper, shown, doc, phone, resized])
 
-  if (!wrapper || !editable || shown == null || !place) return null
+  if (!wrapper || !editable || shown == null || !place) {
+    return (
+      <>
+        {status}
+        {null}
+      </>
+    )
+  }
 
   const parent = parentBlock(editor.state, shown, containers)
   const parentName = parent === null ? null : doc.nodeAt(parent)!.type.name
@@ -364,6 +557,19 @@ export function EditorBlockHandle({
     const tr = action(shown)
     // Its own undo step, even straight after the last.
     if (tr) editor.view.dispatch(closeHistory(tr))
+  }
+
+  // The menu stays open on the block where it lands.
+  const move = (step: -1 | 1) => {
+    run((pos) => moveBlock(editor.state, pos, step, containers))
+    setMenuAt(blockAt(editor.state, editor.state.selection.from, containers))
+  }
+
+  const handBack = () => {
+    focusEditor(editor)
+    afterClose.current?.()
+    afterClose.current = null
+    return false
   }
 
   const onDragStart = (event: React.DragEvent) => {
@@ -385,138 +591,314 @@ export function EditorBlockHandle({
     draggedBlocks.set(view, { from: shown, containers })
   }
 
-  return createPortal(
+  const label = blockLabel(doc.nodeAt(shown)!, appLabels)
+  const kind = blockKind(doc, shown)
+  const kinds = kind
+    ? TEXT_BLOCK_KINDS.filter(({ type }) => Boolean(editor.schema.nodes[type]))
+    : []
+  const blockId = blockIdAt(doc, shown)
+  const close = () => setMenuAt(null)
+
+  const settings: BlockAction[] =
+    onSettings && hasSettings?.(doc.nodeAt(shown)!.type.name)
+      ? [
+          {
+            label: 'Settings',
+            icon: SlidersHorizontalIcon,
+            // Once the menu's handed focus back, or the drawer would lose it.
+            run: () => {
+              afterClose.current = () => onSettings(shown)
+            }
+          }
+        ]
+      : []
+  const moves: BlockAction[] = [
+    {
+      label: 'Move up',
+      icon: ArrowUpIcon,
+      shortcut: BLOCK_ACTION_KEYS.moveUp,
+      disabled: !canMoveBlock(doc, shown, -1, containers),
+      // Stays open on the block, so it can go up again.
+      keepOpen: true,
+      run: () => move(-1)
+    },
+    {
+      label: 'Move down',
+      icon: ArrowDownIcon,
+      shortcut: BLOCK_ACTION_KEYS.moveDown,
+      disabled: !canMoveBlock(doc, shown, 1, containers),
+      keepOpen: true,
+      run: () => move(1)
+    },
+    ...(parent !== null
+      ? [
+          {
+            label: PARENT_LABELS[parentName!] ?? 'Select parent block',
+            icon: SelectionPlusIcon,
+            // Stays open on the parent, the keyboard's way to a section.
+            keepOpen: true,
+            run: () => setMenuAt(parent)
+          }
+        ]
+      : []),
+    {
+      label: 'Duplicate',
+      icon: CopySimpleIcon,
+      shortcut: BLOCK_ACTION_KEYS.duplicate,
+      run: () => run((pos) => duplicateBlock(editor.state, pos))
+    }
+  ]
+  const more: BlockAction[] = [
+    {
+      label: 'Insert below',
+      icon: PlusIcon,
+      // Once the menu's let go of focus, or the insert menu would close.
+      run: () => {
+        afterClose.current = () => run((pos) => insertBelow(editor.state, pos))
+      }
+    },
+    ...(blockId
+      ? [
+          {
+            label: 'Copy link to block',
+            icon: LinkIcon,
+            run: () =>
+              void navigator.clipboard
+                ?.writeText(blockLink(blockId))
+                .then(() =>
+                  setCopied({
+                    top: place.top - HANDLE_SIZE,
+                    left: place.left,
+                    at: Date.now()
+                  })
+                )
+                // A refused copy changes nothing on the page, so it's let go.
+                .catch(() => {})
+          }
+        ]
+      : [])
+  ]
+  const remove: BlockAction = {
+    label: 'Delete',
+    icon: TrashIcon,
+    shortcut: BLOCK_ACTION_KEYS.delete,
+    intent: 'danger',
+    run: () => run((pos) => deleteBlock(editor.state, pos))
+  }
+  const turn = (to: BlockKind) => {
+    editor.chain().command(turnInto(shown, to)).run()
+    focusEditor(editor)
+  }
+
+  const grip = (
+    <IconButton
+      size='xs'
+      emphasis='subtler'
+      aria-label='Block actions'
+      draggable
+      // It shows only beside the caret's block, so focus on it would
+      // hide it; Mod+/ is the keyboard path.
+      tabIndex={-1}
+      data-slot='editor-block-handle'
+      className={cn(
+        'absolute cursor-grab text-subtle',
+        // A thumb's 44px target, where a phone has no hover to find it.
+        'max-sm:before:absolute max-sm:before:top-1/2 max-sm:before:left-1/2 max-sm:before:size-11 max-sm:before:-translate-1/2',
+        'pointer-coarse:before:absolute pointer-coarse:before:top-1/2 pointer-coarse:before:left-1/2 pointer-coarse:before:size-11 pointer-coarse:before:-translate-1/2'
+      )}
+      style={place}
+      onClick={() => setMenuAt(shown)}
+      onDragStart={onDragStart}
+      onDragEnd={() => {
+        editor.view.dragging = null
+        draggedBlocks.delete(editor.view)
+      }}
+    >
+      <DotsSixVerticalIcon weight='bold' className='size-4' aria-hidden />
+    </IconButton>
+  )
+
+  return (
     <>
-      {canAdd ? (
-        <IconButton
-          size='xs'
-          emphasis='subtler'
-          aria-label='Add block'
-          // As the grip: Mod+/ and `/` are the keyboard paths.
-          tabIndex={-1}
-          data-slot='editor-block-add'
-          className='absolute text-subtle'
-          style={{
-            top: place.top,
-            left: place.left + (isRtl(editor) ? HANDLE_SIZE : -HANDLE_SIZE)
-          }}
-          onClick={() => addAfter(editor, shown)}
-        >
-          <PlusIcon weight='bold' className='size-4' aria-hidden />
-        </IconButton>
-      ) : null}
-      <Menu
-        open={menuAt !== null}
-        onOpenChange={(open) => {
-          if (!open) setMenuAt(null)
-        }}
-      >
-        <Menu.Trigger
-          render={
+      {status}
+      {createPortal(
+        <>
+          {copied ? (
+            <Badge
+              aria-hidden
+              intent='success'
+              emphasis='subtle'
+              size='sm'
+              className='absolute'
+              style={{ top: copied.top, left: copied.left }}
+            >
+              Link copied
+            </Badge>
+          ) : null}
+          {canAdd ? (
             <IconButton
               size='xs'
               emphasis='subtler'
-              aria-label='Block actions'
-              draggable
-              // It shows only beside the caret's block, so focus on it would
-              // hide it; Mod+/ is the keyboard path.
+              aria-label='Add block'
+              // As the grip: Mod+/ and `/` are the keyboard paths.
               tabIndex={-1}
-              data-slot='editor-block-handle'
-              className='absolute cursor-grab text-subtle'
-              style={place}
-              onClick={() => setMenuAt(shown)}
-              onDragStart={onDragStart}
-              onDragEnd={() => {
-                editor.view.dragging = null
-                draggedBlocks.delete(editor.view)
+              data-slot='editor-block-add'
+              // A phone adds from the toolbar and the block's menu, leaving the
+              // gutter to the grip.
+              className='absolute text-subtle max-sm:hidden pointer-coarse:hidden'
+              style={{
+                top: place.top,
+                left: place.left + (isRtl(editor) ? HANDLE_SIZE : -HANDLE_SIZE)
+              }}
+              onClick={() => addAfter(editor, shown)}
+            >
+              <PlusIcon weight='bold' className='size-4' aria-hidden />
+            </IconButton>
+          ) : null}
+          {phone ? (
+            <>
+              {grip}
+              <EditorBlockSheet
+                open={menuOpen}
+                onClose={close}
+                onFinalFocus={handBack}
+                label={label}
+                block={
+                  menuOpen
+                    ? (editor.view.nodeDOM(shown) as HTMLElement | null)
+                    : null
+                }
+                moveUp={moves[0]!}
+                moveDown={moves[1]!}
+                actions={[...settings, ...moves.slice(2), ...more]}
+                remove={remove}
+                kinds={kinds.map((each) => ({
+                  label: kindLabel(each),
+                  icon: kindIcon(each),
+                  chosen: kind !== null && kindLabel(each) === kindLabel(kind),
+                  run: () => turn(each)
+                }))}
+                places={(menuOpen
+                  ? movePlaces(doc, shown, containers)
+                  : []
+                ).map((place) => ({
+                  label: place.label,
+                  icon: place.kind === 'heading' ? TextHIcon : RectangleIcon,
+                  chosen: false,
+                  run: () =>
+                    run((pos) => moveBlockTo(editor.state, pos, place.to))
+                }))}
+              />
+            </>
+          ) : (
+            <Menu
+              open={menuOpen}
+              onOpenChange={(open) => {
+                if (!open) close()
               }}
             >
-              <DotsSixVerticalIcon
-                weight='bold'
-                className='size-4'
-                aria-hidden
-              />
-            </IconButton>
-          }
-        />
-        <Menu.Content
-          // Beside the grip, as Notion's is, so the block stays in view.
-          side='left'
-          align='start'
-          // Delete acts on the block, as the menu's open on it.
-          onKeyDown={(event) => {
-            if (event.key !== 'Delete' && event.key !== 'Backspace') return
-            event.preventDefault()
-            run((pos) => deleteBlock(editor.state, pos))
-            setMenuAt(null)
-          }}
-          finalFocus={() => {
-            focusEditor(editor)
-            return false
-          }}
-        >
-          <Menu.Group>
-            <Menu.GroupLabel>
-              {blockLabel(doc.nodeAt(shown)!, appLabels)}
-            </Menu.GroupLabel>
-            {onSettings && hasSettings?.(doc.nodeAt(shown)!.type.name) ? (
-              <Menu.Item
-                icon={<SlidersHorizontalIcon weight='bold' />}
-                onClick={() => onSettings(shown)}
+              <Menu.Trigger render={grip} />
+              <Menu.Content
+                ref={popupRef}
+                // Beside the grip, as Notion's is, so the block stays in view,
+                // or below it where the page has no room beside it.
+                side={
+                  roomBeside(editor, wrapper, place)
+                    ? isRtl(editor)
+                      ? 'right'
+                      : 'left'
+                    : 'bottom'
+                }
+                align='start'
+                // Delete acts on the block, as the menu's open on it.
+                onKeyDown={(event) => {
+                  if (event.key !== 'Delete' && event.key !== 'Backspace')
+                    return
+                  event.preventDefault()
+                  remove.run()
+                  close()
+                }}
+                finalFocus={handBack}
               >
-                Settings
-              </Menu.Item>
-            ) : null}
-            <Menu.Item
-              icon={<ArrowUpIcon weight='bold' />}
-              shortcut={BLOCK_ACTION_KEYS.moveUp}
-              disabled={!canMoveBlock(doc, shown, -1, containers)}
-              onClick={() =>
-                run((pos) => moveBlock(editor.state, pos, -1, containers))
-              }
-            >
-              Move up
-            </Menu.Item>
-            <Menu.Item
-              icon={<ArrowDownIcon weight='bold' />}
-              shortcut={BLOCK_ACTION_KEYS.moveDown}
-              disabled={!canMoveBlock(doc, shown, 1, containers)}
-              onClick={() =>
-                run((pos) => moveBlock(editor.state, pos, 1, containers))
-              }
-            >
-              Move down
-            </Menu.Item>
-            {parent !== null ? (
-              <Menu.Item
-                icon={<SelectionPlusIcon weight='bold' />}
-                // Stays open on the parent, the keyboard's way to a section.
-                closeOnClick={false}
-                onClick={() => setMenuAt(parent)}
-              >
-                {PARENT_LABELS[parentName!] ?? 'Select parent block'}
-              </Menu.Item>
-            ) : null}
-            <Menu.Item
-              icon={<CopySimpleIcon weight='bold' />}
-              shortcut={BLOCK_ACTION_KEYS.duplicate}
-              onClick={() => run((pos) => duplicateBlock(editor.state, pos))}
-            >
-              Duplicate
-            </Menu.Item>
-            <Menu.Separator />
-            <Menu.Item
-              icon={<TrashIcon weight='bold' />}
-              shortcut={BLOCK_ACTION_KEYS.delete}
-              intent='danger'
-              onClick={() => run((pos) => deleteBlock(editor.state, pos))}
-            >
-              Delete
-            </Menu.Item>
-          </Menu.Group>
-        </Menu.Content>
-      </Menu>
-    </>,
-    host!
+                <Menu.Group>
+                  <Menu.GroupLabel>{label}</Menu.GroupLabel>
+                  {[...settings, ...moves].map((action) => (
+                    <Menu.Item
+                      key={action.label}
+                      icon={createElement(action.icon, { weight: 'bold' })}
+                      shortcut={action.shortcut}
+                      disabled={action.disabled}
+                      closeOnClick={!action.keepOpen}
+                      onClick={action.run}
+                    >
+                      {action.label}
+                    </Menu.Item>
+                  ))}
+                  {kinds.length > 0 ? (
+                    <Menu.SubmenuRoot>
+                      <Menu.SubmenuTrigger
+                        icon={<ArrowsClockwiseIcon weight='bold' />}
+                      >
+                        Turn into
+                      </Menu.SubmenuTrigger>
+                      <Menu.Content>
+                        <Menu.RadioGroup value={kindLabel(kind!)}>
+                          {kinds.map((each) => (
+                            <Menu.RadioItem
+                              key={kindLabel(each)}
+                              value={kindLabel(each)}
+                              icon={createElement(kindIcon(each), {
+                                weight: 'bold'
+                              })}
+                              closeOnClick
+                              onClick={() => turn(each)}
+                            >
+                              {kindLabel(each)}
+                            </Menu.RadioItem>
+                          ))}
+                        </Menu.RadioGroup>
+                      </Menu.Content>
+                    </Menu.SubmenuRoot>
+                  ) : null}
+                  {more.map((action) => (
+                    <Menu.Item
+                      key={action.label}
+                      icon={createElement(action.icon, { weight: 'bold' })}
+                      shortcut={action.shortcut}
+                      disabled={action.disabled}
+                      closeOnClick={!action.keepOpen}
+                      onClick={action.run}
+                    >
+                      {action.label}
+                    </Menu.Item>
+                  ))}
+                  <Menu.Separator />
+                  <Menu.Item
+                    icon={<TrashIcon weight='bold' />}
+                    shortcut={remove.shortcut}
+                    intent='danger'
+                    onClick={remove.run}
+                  >
+                    {remove.label}
+                  </Menu.Item>
+                </Menu.Group>
+              </Menu.Content>
+            </Menu>
+          )}
+        </>,
+        host!
+      )}
+    </>
   )
+}
+
+type BlockAction = {
+  label: string
+  icon: Icon
+  shortcut?: readonly string[]
+  disabled?: boolean
+  intent?: 'danger'
+  /** Leaves the menu open, on the block wherever it went. */
+  keepOpen?: boolean
+  run: () => void
 }
