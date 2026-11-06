@@ -53,6 +53,8 @@ export type FAQProps = {
   description?: string
   /** The questions, in the order people ask them. */
   questions: readonly FAQItem[]
+  /** The question that starts open, counting from 0, such as the one an editor is editing. */
+  openQuestion?: number
   /** Links under the questions, such as to every FAQ. The first is the strong one. */
   actions?: readonly BlockAction[]
   /** The block's intent, for the highlighted words, the questions' tint and the strong action. */
@@ -82,6 +84,7 @@ export type FAQProps = {
 export function FAQ(props: FAQProps) {
   const {
     questions,
+    openQuestion,
     itemEmphasis = faqDefinition.presets[0].defaults.itemEmphasis,
     size
   } = props
@@ -109,7 +112,10 @@ export function FAQ(props: FAQProps) {
           )}
         >
           {questions.map(({ question, answer }, index) => (
-            <Accordion.Item key={`${index}-${question}`}>
+            <Accordion.Item
+              key={`${index}-${question}`}
+              open={index === openQuestion || undefined}
+            >
               <Accordion.Trigger>
                 <h3>{question}</h3>
               </Accordion.Trigger>

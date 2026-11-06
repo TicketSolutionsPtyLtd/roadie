@@ -12,6 +12,7 @@ import type { RichTextProps } from '../RichText'
 import type { SideBySideProps } from '../SideBySide'
 import type { StatsProps } from '../Stats'
 import type { TestimonialProps } from '../Testimonial'
+import { EditingImages, PLACEHOLDER_IMAGE } from './EditingImages'
 
 type Attrs = Record<string, unknown>
 
@@ -58,7 +59,11 @@ export type CatalogueSection = {
   label: string
   attrs: Readonly<Attrs>
   settings: readonly CatalogueSetting[]
-  render: (props: { attrs: Attrs; editing?: boolean }) => ReactNode
+  render: (props: {
+    attrs: Attrs
+    editing?: boolean
+    editingItem?: string
+  }) => ReactNode
   templates: readonly {
     label: string
     thumbnail?: string
@@ -171,8 +176,15 @@ const isAttrs = (value: unknown): value is Attrs =>
 
 const hasLinkAndLabel = ({ label, href }: Attrs) => Boolean(label && href)
 
+const hasLabel = ({ label }: Attrs) => Boolean(label)
+
 // Side by side's stats are a panel holding its figures, not a list.
-function propOf(block: string, name: string, value: unknown): unknown {
+function propOf(
+  block: string,
+  name: string,
+  value: unknown,
+  editing = false
+): unknown {
   if (name === 'emphasis' && value === 'none') return undefined
   if (block === 'side-by-side' && name === 'stats') {
     const panel = isAttrs(value) ? value : {}
@@ -180,28 +192,34 @@ function propOf(block: string, name: string, value: unknown): unknown {
   }
   if (!LISTS.has(name)) return value
   if (!Array.isArray(value)) return []
-  // A new image or button draws nothing until it's filled in.
-  if (name === 'actions') return value.filter(isAttrs).filter(hasLinkAndLabel)
+  // A new image or button draws nothing on the page until it's filled in,
+  // but a button shows while it's edited, before it has a link.
+  if (name === 'actions') {
+    return value.filter(isAttrs).filter(editing ? hasLabel : hasLinkAndLabel)
+  }
   if (name === 'images' || name === 'logos') {
     return value.filter(isAttrs).filter(({ src }) => Boolean(src))
   }
   return value
 }
 
-const propsOf = (block: string, attrs: Attrs): Attrs =>
+const propsOf = (block: string, attrs: Attrs, editing = false): Attrs =>
   Object.fromEntries(
     Object.entries(attrs).map(([name, value]) => [
       name,
-      propOf(block, name, value)
+      propOf(block, name, value, editing)
     ])
   )
 
-// A grey photo, for a part waiting on its image while it's edited.
-const PLACEHOLDER_IMAGE = {
-  src: `data:image/svg+xml,${encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><rect width="3" height="2" fill="#d7e2ed"/><path d="M0.9 1.4l0.45-0.5 0.35 0.35 0.4-0.45 0.5 0.6z" fill="#a9b8c7"/></svg>'
-  )}`,
-  alt: ''
+// The prop that shows an item open, for blocks that fold their items away.
+const OPENS: Readonly<Record<string, readonly [string, string]>> = {
+  faq: ['questions', 'openQuestion']
+}
+
+function openedBy(block: string, editingItem: string | undefined): Attrs {
+  const [list, prop] = OPENS[block] ?? []
+  const [name, index] = editingItem?.split('.') ?? []
+  return list && prop && name === list && index ? { [prop]: Number(index) } : {}
 }
 
 const blankText = (value: unknown) =>
@@ -211,8 +229,9 @@ const hasNoImage = (value: unknown) => !isAttrs(value) || blankText(value.src)
 
 /**
  * What a section shows while it's edited: a blank item's text as its item's
- * name, such as "Card", and a missing image as a placeholder, so nothing
- * draws as an empty tile. The page never sees these.
+ * name, such as "Card", a blank button's label as "Button", and a missing
+ * image as a placeholder, so nothing draws as an empty tile. The page never
+ * sees these.
  */
 function hinted(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
   const shown: Attrs = { ...attrs }
@@ -222,9 +241,15 @@ function hinted(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
     if (setting.type === 'image' && hasNoImage(value)) {
       shown[setting.name] = PLACEHOLDER_IMAGE
     }
-    if (setting.type !== 'list' || !setting.fields || !Array.isArray(value)) {
-      continue
+    if (setting.type !== 'list' || !Array.isArray(value)) continue
+    if (setting.item === 'action') {
+      shown[setting.name] = value.map((item) =>
+        isAttrs(item) && blankText(item.label)
+          ? { ...item, label: setting.itemLabel }
+          : item
+      )
     }
+    if (!setting.fields) continue
     const { fields, itemLabel } = setting
     const texts = fields.filter(({ type }) => type === 'text')
     shown[setting.name] = value.map((item) => {
@@ -435,11 +460,22 @@ export function catalogueSections({
         attrs: { ...fields, preset: first.name },
         settings,
         // Its attrs are its props by name, as saved, so lists are checked.
-        render: ({ attrs, editing }) =>
-          createElement(
-            component as ComponentType<Attrs>,
-            propsOf(block.name, editing ? hinted(settings, attrs) : attrs)
-          ),
+        render: ({ attrs, editing, editingItem }) => {
+          if (!editing) {
+            return createElement(
+              component as ComponentType<Attrs>,
+              propsOf(block.name, attrs)
+            )
+          }
+          return createElement(
+            EditingImages,
+            null,
+            createElement(component as ComponentType<Attrs>, {
+              ...propsOf(block.name, hinted(settings, attrs), true),
+              ...openedBy(block.name, editingItem)
+            })
+          )
+        },
         templates: block.presets.map((preset) => ({
           label:
             block.presets.length > 1
