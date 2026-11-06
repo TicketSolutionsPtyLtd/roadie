@@ -113,4 +113,45 @@ describe('Preset skeleton', () => {
       ).toBeLessThanOrEqual(1)
     }
   )
+
+  it.each(['normal', 'subtler'] as const)(
+    'holds a %s email’s height and text inset in a narrow frame',
+    async (emphasis) => {
+      const host = document.createElement('div')
+      host.style.width = '390px'
+      host.innerHTML = renderToString(
+        <Editor aria-label={LABEL} preset='email' emphasis={emphasis} />
+      )
+      document.body.append(host)
+      onTestFinished(() => host.remove())
+      const skeleton = host.firstElementChild as HTMLElement
+      // A subtler skeleton's lines are its only Skeletons.
+      const skeletonLine = skeleton.querySelector<HTMLElement>(
+        '[data-slot="skeleton"]'
+      )
+      render(
+        <div style={{ width: 390 }}>
+          <Editor aria-label={LABEL} preset='email' emphasis={emphasis} />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const loaded = textbox.closest<HTMLElement>('[data-slot="editor"]')!
+
+      expect(
+        Math.abs(
+          skeleton.getBoundingClientRect().height -
+            loaded.getBoundingClientRect().height
+        )
+      ).toBeLessThanOrEqual(1)
+      if (emphasis === 'subtler') {
+        const textStart =
+          textbox.getBoundingClientRect().left +
+          parseFloat(getComputedStyle(textbox).paddingInlineStart)
+        expect(skeletonLine!.getBoundingClientRect().left).toBeCloseTo(
+          textStart,
+          0
+        )
+      }
+    }
+  )
 })
