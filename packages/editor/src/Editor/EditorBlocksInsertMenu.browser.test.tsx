@@ -158,6 +158,44 @@ describe('Editor insert menu in the blocks preset', () => {
     )
   })
 
+  it('opens straight after a word once a letter names a block', async () => {
+    const onValueChange = renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard('Doors 7pm/div')
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual(['Divider'])
+    )
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)).toMatchObject([
+        { type: 'paragraph', content: [text('Doors 7pm')] },
+        { type: 'horizontalRule' },
+        { type: 'paragraph' }
+      ])
+    )
+  })
+
+  it.each([
+    ['a date', 'Sat 7/8'],
+    ['a link', 'oztix.com.au/tickets'],
+    ['a fraction', 'Half 1/']
+  ])('stays shut after a word for %s', async (_, typed) => {
+    const onValueChange = renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard(`${typed}{Enter}`)
+
+    expect(screen.queryByRole('listbox')).toBe(null)
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)).toMatchObject([
+        { type: 'paragraph', content: [text(typed)] },
+        { type: 'paragraph' }
+      ])
+    )
+  })
+
   it('keeps a No blocks match row open, so Enter inserts nothing', async () => {
     const onValueChange = renderBlocks()
     const textbox = await focusedTextbox()
