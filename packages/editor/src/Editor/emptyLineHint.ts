@@ -1,6 +1,12 @@
 import { type CommandProps, Extension } from '@tiptap/core'
 import type { Node as PMNode } from '@tiptap/pm/model'
-import { Plugin, PluginKey, Selection, TextSelection } from '@tiptap/pm/state'
+import {
+  type EditorState,
+  Plugin,
+  PluginKey,
+  Selection,
+  TextSelection
+} from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 type EmptyLineHintOptions = { hint: () => string | undefined }
@@ -8,6 +14,17 @@ type EmptyLineHintOptions = { hint: () => string | undefined }
 type LineHint = { pos: number; hint: string }
 
 const lineHints = new PluginKey<DecorationSet>('lineHints')
+
+type MenuStorage = Record<
+  string,
+  { key?: PluginKey<{ active: boolean }> } | undefined
+>
+
+// The `/` and `{{` menus take Enter while open, and run after this.
+const menuOpen = (storage: object, state: EditorState) =>
+  ['insertMenu', 'mergeTagMenu'].some(
+    (name) => (storage as MenuStorage)[name]?.key?.getState(state)?.active
+  )
 
 const isEmptyLine = (node: PMNode | null) =>
   Boolean(node?.isTextblock && node.content.size === 0)
@@ -56,13 +73,15 @@ export const EmptyLineHint = Extension.create<EmptyLineHintOptions>({
           empty &&
           $from.parent.isTextblock &&
           $from.parentOffset === $from.parent.content.size
-        if (!atEnd) return false
+        if (!atEnd || menuOpen(editor.storage, state)) return false
         const next = Selection.findFrom(
           state.doc.resolve($from.after()),
           1,
           true
         )
         if (!(next instanceof TextSelection)) return false
+        // Within its own section, not into the next one's first line.
+        if (next.$from.before(1) !== $from.before(1)) return false
         if (!isEmptyLine(next.$from.parent)) return false
         const line = next.$from.before()
         const hinted = lineHints
