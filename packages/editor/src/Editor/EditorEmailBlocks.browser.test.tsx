@@ -448,3 +448,92 @@ describe('Editor email blocks', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('Editor email columns by keyboard', () => {
+  it('moves to the next column on Tab, keeping what’s typed there', async () => {
+    const onValueChange = renderEmail()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(textbox)
+    await waitFor(() => expect(textbox).toHaveFocus())
+
+    await userEvent.keyboard('/2 col{Enter}Left{Tab}Right')
+
+    await saved(onValueChange, email(columns(['Left'], ['Right'])))
+    expect(textbox).toHaveFocus()
+  })
+
+  it('opens a line after a row that ends the email on Tab from its last column', async () => {
+    const onValueChange = renderEmail(email(columns(['Lineup'], ['Set times'])))
+    await clickText('Set times')
+
+    await userEvent.keyboard('{Tab}All ages')
+
+    await saved(
+      onValueChange,
+      email(columns(['Lineup'], ['Set times']), p('All ages'))
+    )
+  })
+
+  it('moves back to the end of the column before on Shift+Tab', async () => {
+    const onValueChange = renderEmail(email(columns(['Lineup'], ['Set times'])))
+    await clickText('Set times')
+
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}!')
+
+    await saved(onValueChange, email(columns(['Lineup!'], ['Set times'])))
+  })
+
+  it.each([
+    [
+      'Tab from the last column',
+      'Set times',
+      '{Tab}',
+      [p('Doors 7pm'), p('XAll ages')]
+    ],
+    [
+      'Shift+Tab from the first column',
+      'Lineup',
+      '{Shift>}{Tab}{/Shift}',
+      [p('Doors 7pmX'), p('All ages')]
+    ]
+  ])('leaves the row on %s', async (_, start, keys, [before, after]) => {
+    const onValueChange = renderEmail(
+      email(p('Doors 7pm'), columns(['Lineup'], ['Set times']), p('All ages'))
+    )
+    await clickText(start)
+
+    await userEvent.keyboard(`${keys}X`)
+
+    await saved(
+      onValueChange,
+      email(before!, columns(['Lineup'], ['Set times']), after!)
+    )
+  })
+
+  it('still indents a list item in a column on Tab', async () => {
+    const onValueChange = renderEmail(email(columns(['Lineup'], ['Set times'])))
+    await clickText('Lineup')
+
+    await userEvent.keyboard(`${LINE_END}{Enter}- Doors{Enter}Gates{Tab}`)
+
+    await waitFor(() =>
+      expect(JSON.stringify(onValueChange.mock.lastCall![0])).toContain(
+        JSON.stringify({
+          type: 'bulletList',
+          content: [
+            {
+              type: 'listItem',
+              content: [
+                p('Doors'),
+                {
+                  type: 'bulletList',
+                  content: [{ type: 'listItem', content: [p('Gates')] }]
+                }
+              ]
+            }
+          ]
+        })
+      )
+    )
+  })
+})

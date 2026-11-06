@@ -43,11 +43,13 @@ type Context = TreeContext & {
   padding: string
 }
 
-/** A block's inset from the email's sides, outside columns, in pixels. */
+/** A block's inset from the email's sides, in pixels. */
 export const EMAIL_BLOCK_INSET = 24
 
 const BLOCK_PADDING = `8px ${EMAIL_BLOCK_INSET}px`
 const COLUMN_BLOCK_PADDING = '8px 12px'
+// With each column's 12px, columns' text sits in as far as any other block's.
+const COLUMNS_PADDING = `0 ${EMAIL_BLOCK_INSET - 12}px`
 
 const mj = (
   tagName: string,
@@ -239,8 +241,12 @@ function columns(node: JSONContent, text: TreeContext) {
     )
   )
   return look.stack
-    ? mj('mj-section', { direction: 'rtl' }, built.reverse())
-    : mj('mj-section', {}, built)
+    ? mj(
+        'mj-section',
+        { padding: COLUMNS_PADDING, direction: 'rtl' },
+        built.reverse()
+      )
+    : mj('mj-section', { padding: COLUMNS_PADDING }, built)
 }
 
 const SECTION_PADDING = { tight: '8px 0', roomy: '32px 0' } as const
