@@ -96,6 +96,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await openFromDockedBar()
 
     expect(tileGroups(drawer)).toEqual([
+      ['Sections', ['Header', 'Event', 'Two events']],
       [
         'Text',
         [
@@ -112,8 +113,7 @@ describe('Editor blocks drawer', () => {
         'Layout',
         ['Section', '2 columns', '3 columns', '4 columns', 'Spacer', 'Divider']
       ],
-      ['Email', ['Button']],
-      ['Sections', ['Header', 'Event', 'Two events']]
+      ['Email', ['Button']]
     ])
     for (const tile of within(drawer).getAllByRole('button')) {
       expect(tile.querySelector('svg')).not.toBe(null)
@@ -438,7 +438,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await screen.findByRole('dialog', { name: 'Blocks' })
     await waitFor(() =>
       expect(
-        within(drawer).getByRole('button', { name: 'Paragraph' })
+        within(drawer).getByRole('button', { name: 'Header' })
       ).toHaveFocus()
     )
     await userEvent.keyboard('{Escape}')
@@ -454,11 +454,11 @@ describe('Editor blocks drawer', () => {
     await waitFor(() =>
       expect(
         within(screen.getByRole('dialog')).getByRole('button', {
-          name: 'Paragraph'
+          name: 'Header'
         })
       ).toHaveFocus()
     )
-    await userEvent.keyboard('{ArrowRight}'.repeat(10))
+    await userEvent.keyboard('{ArrowRight}'.repeat(13))
     expect(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
     ).toHaveFocus()
@@ -640,15 +640,16 @@ describe('Editor blocks drawer finding and moving', () => {
     await clickInto('Doors 7pm')
     const drawer = await openFromDockedBar()
     const tile = (name: string) => within(drawer).getByRole('button', { name })
-    await waitFor(() => expect(tile('Paragraph')).toHaveFocus())
+    const [first, second] = tileNames(drawer)
+    await waitFor(() => expect(tile(first!)).toHaveFocus())
 
     await userEvent.keyboard('{ArrowRight}')
-    expect(tile('Heading 2')).toHaveFocus()
+    expect(tile(second!)).toHaveFocus()
     await userEvent.keyboard('{ArrowDown}')
     const moved = (
       document.activeElement as HTMLElement
     ).getBoundingClientRect()
-    const above = tile('Heading 2').getBoundingClientRect()
+    const above = tile(second!).getBoundingClientRect()
     expect(moved.top).toBeGreaterThan(above.top)
     expect(Math.abs(moved.left - above.left)).toBeLessThan(2)
     await userEvent.keyboard('{End}')
@@ -750,13 +751,13 @@ describe('Editor blocks drawer in the blocks preset', () => {
     expect(groupNames(drawer)).toEqual(['Sections', 'Text', 'Media', 'Layout'])
   })
 
-  it('keeps the preset’s order on a desktop', async () => {
+  it('lists Sections first on a desktop too, above the fold', async () => {
     renderPage({ toolbar: 'docked', extensions: [hero] })
     await clickInto('Doors 7pm')
 
     const drawer = await openFromDockedBar()
 
-    expect(groupNames(drawer)).toEqual(['Text', 'Media', 'Layout', 'Sections'])
+    expect(groupNames(drawer)).toEqual(['Sections', 'Text', 'Media', 'Layout'])
   })
 
   it('opens from the docked toolbar with the preset’s blocks as tiles', async () => {

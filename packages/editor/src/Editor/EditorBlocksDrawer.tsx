@@ -133,9 +133,8 @@ export function EditorBlocksDrawer({
   const shown = rankedInsertItems(namedInsertItems(items, query, ui), query)
   const usable = (item: EditorInsertItem) =>
     editor.can().command(insertion(item, containers))
-  // A phone's sheet shows a screen of tiles at a time, so the quickest way
-  // to a whole page leads there.
-  const groups = phone ? sectionsFirst(groupsOf(shown)) : groupsOf(shown)
+  // The quickest way to a whole page leads, above the fold of a short screen.
+  const groups = sectionsFirst(groupsOf(shown))
   const ordered = groups.flatMap(([, tiles]) => tiles)
   const enabled = ordered.filter(usable)
   const current = Math.min(active, Math.max(enabled.length - 1, 0))
