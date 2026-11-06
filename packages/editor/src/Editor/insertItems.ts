@@ -319,11 +319,18 @@ export function matchingInsertItems(
     item.enabled(editor, afterQuery)
   )
   // Ranked before grouping, so the group of the best match leads.
-  const ranked = matches
+  return inGroupOrder(rankedInsertItems(matches, query))
+}
+
+/** The items in order of how well their label starts with `query`. */
+export function rankedInsertItems(
+  items: readonly EditorInsertItem[],
+  query: string
+) {
+  return items
     .map((item, index) => ({ item, index, rank: matchRank(item, query) }))
     .sort((a, b) => a.rank - b.rank || a.index - b.index)
     .map(({ item }) => item)
-  return inGroupOrder(ranked)
 }
 
 const wordsOf = (text: string) => text.toLowerCase().trim().split(/\s+/)

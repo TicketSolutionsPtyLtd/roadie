@@ -174,7 +174,7 @@ const BlockShortcuts = Extension.create<BlockShortcutsOptions>({
 const BLOCK_HANDLES: Partial<
   Record<Preset, { containers: BlockContainers; canAdd: boolean }>
 > = {
-  blocks: { containers: TOP_LEVEL, canAdd: false },
+  blocks: { containers: TOP_LEVEL, canAdd: true },
   email: { containers: new Set(['doc', 'section', 'column']), canAdd: true }
 }
 
