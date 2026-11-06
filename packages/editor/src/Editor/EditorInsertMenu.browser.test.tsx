@@ -722,6 +722,52 @@ describe('Editor insert menu', () => {
     expect(note(listbox, 'Spacer')).toBeUndefined()
   })
 
+  it('keeps /section typed on a section’s empty first line after that section', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(p('Intro'), {
+        type: 'section',
+        content: [p(), p('Doors 7pm')]
+      })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{ArrowUp}/section')
+    await insertMenu()
+    await userEvent.keyboard('{Enter}All ages')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          p('Intro'),
+          { type: 'section', content: [p('Doors 7pm')] },
+          { type: 'section', content: [p('All ages')] }
+        )
+      )
+    )
+  })
+
+  it('drops the placement note once the caret leaves the section', async () => {
+    renderEmail({
+      defaultValue: email(
+        { type: 'section', content: [p('Doors 7pm')] },
+        p('Gates 6pm')
+      )
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+    await userEvent.keyboard('{End} /sec')
+    await waitFor(async () =>
+      expect(note(await insertMenu(), 'Section')).toBe('after this section')
+    )
+    await userEvent.keyboard('{Escape}')
+
+    await userEvent.click(await screen.findByText('Gates 6pm'))
+    await userEvent.keyboard('{End} /sec')
+
+    await waitFor(async () =>
+      expect(note(await insertMenu(), 'Section')).toBeUndefined()
+    )
+  })
+
   it('puts /section typed in a section after it, in place of the emptied line', async () => {
     const onValueChange = renderEmail({
       defaultValue: email(
