@@ -24,7 +24,7 @@ import {
   reactNodeView
 } from '../extensions'
 import type { EditorValue } from '../schema'
-import { MOD } from './testUtils'
+import { LINE_END, MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -205,24 +205,6 @@ describe('Editor block settings', () => {
     expect(savedPromo(onValueChange)).toMatchObject({
       title: 'Kazoo Hollow',
       tone: 'loud'
-    })
-  })
-
-  it('puts the block back on Escape', async () => {
-    const onValueChange = renderPage()
-    const drawer = await openFromMenu()
-
-    await userEvent.type(
-      within(drawer).getByRole('textbox', { name: 'Title' }),
-      '!'
-    )
-    await screen.findByText('Ochre Kite Weekender!', { selector: 'p' })
-    await userEvent.keyboard('{Escape}')
-
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(await promoView()).toBeVisible()
-    expect(savedPromo(onValueChange)).toMatchObject({
-      title: 'Ochre Kite Weekender'
     })
   })
 
@@ -492,15 +474,17 @@ describe('Editor block settings', () => {
     const photo = within(drawer).getByRole('group', { name: 'Photo' })
 
     await userEvent.type(
-      within(photo).getByRole('textbox', { name: 'Link' }),
+      within(photo).getByRole('textbox', { name: 'Image address' }),
       'http://example.com/a.jpg'
     )
     expect(
-      within(photo).getByRole('textbox', { name: 'Link' })
+      within(photo).getByRole('textbox', { name: 'Image address' })
     ).toHaveAttribute('aria-invalid', 'true')
-    await userEvent.clear(within(photo).getByRole('textbox', { name: 'Link' }))
+    await userEvent.clear(
+      within(photo).getByRole('textbox', { name: 'Image address' })
+    )
     await userEvent.type(
-      within(photo).getByRole('textbox', { name: 'Link' }),
+      within(photo).getByRole('textbox', { name: 'Image address' }),
       '/blocks/velvet.webp'
     )
     await userEvent.type(
@@ -537,16 +521,6 @@ describe('Editor block settings', () => {
     ).not.toMatch(/^javascript:/i)
   })
 
-  it('says Escape puts the block back', async () => {
-    renderPage()
-
-    const drawer = await openFromMenu()
-
-    expect(drawer).toHaveAccessibleDescription(
-      'Changes apply as you go. Esc puts them back.'
-    )
-  })
-
   it('keeps the changes on Done', async () => {
     const onValueChange = renderPage()
     const drawer = await openFromMenu()
@@ -556,21 +530,6 @@ describe('Editor block settings', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     expect(savedPromo(onValueChange)).toMatchObject({ tone: 'loud' })
-  })
-
-  it('brings Escape’s changes back on Redo', async () => {
-    const onValueChange = renderPage()
-    const drawer = await openFromMenu()
-    await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
-
-    await userEvent.keyboard('{Escape}')
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedPromo(onValueChange)).toMatchObject({ tone: 'calm' })
-    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
-
-    await waitFor(() =>
-      expect(savedPromo(onValueChange)).toMatchObject({ tone: 'loud' })
-    )
   })
 
   it('makes room for the block beside the drawer on a wide page', async () => {
@@ -720,5 +679,194 @@ describe('Editor block settings', () => {
     expect(
       await screen.findByRole('dialog', { name: 'Promo settings' })
     ).toBeVisible()
+  })
+
+  const tap = (element: Element) => {
+    const box = element.getBoundingClientRect()
+    const at = { clientX: box.left + 4, clientY: box.top + box.height / 2 }
+    element.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        pointerType: 'touch',
+        button: 0,
+        ...at
+      })
+    )
+    // A tap's compatibility mouse events, which ProseMirror selects with.
+    element.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, button: 0, ...at })
+    )
+    element.dispatchEvent(
+      new MouseEvent('mouseup', { bubbles: true, button: 0, ...at })
+    )
+  }
+
+  it('opens on a second tap, at the item tapped, expanded', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    renderPage()
+    const name = await screen.findByText('Velvet Kookaburra')
+    const selected = () => name.closest('.ProseMirror-selectednode')
+
+    tap(name)
+    await waitFor(() => expect(selected()).not.toBe(null))
+    expect(screen.queryByRole('dialog')).toBe(null)
+    tap(name)
+
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+    expect(within(drawer).getByRole('textbox', { name: 'Name' })).toHaveValue(
+      'Velvet Kookaburra'
+    )
+  })
+
+  it('focuses a new item’s first field', async () => {
+    renderPage()
+    const drawer = await openFromMenu()
+
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Add act' })
+    )
+
+    await waitFor(() =>
+      expect(
+        within(drawer).getAllByRole('textbox', { name: 'Name' }).at(-1)
+      ).toHaveFocus()
+    )
+  })
+
+  it('keeps a gap between the block and the drawer, and the block where it was', async () => {
+    await viewport.viewport(1280, 800)
+    renderPage()
+    const name = await screen.findByText('Velvet Kookaburra')
+    const before = name.getBoundingClientRect().top
+
+    await userEvent.click(name)
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-slot=promo]')!.getBoundingClientRect()
+          .right
+      ).toBeLessThanOrEqual(drawer.getBoundingClientRect().left - 8)
+    )
+    expect(
+      Math.abs(name.getBoundingClientRect().top - before)
+    ).toBeLessThanOrEqual(4)
+  })
+
+  it('keeps the last block above its phone sheet', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    render(
+      <div style={{ paddingTop: 900 }}>
+        <Editor
+          aria-label={LABEL}
+          extensions={[promo]}
+          defaultValue={{
+            ...page,
+            doc: { type: 'doc', content: [page.doc.content![1]!] }
+          }}
+        />
+      </div>
+    )
+
+    const drawer = await openFromMenu()
+
+    await waitFor(() => {
+      const top = document
+        .querySelector('[data-slot=promo]')!
+        .getBoundingClientRect().top
+      expect(top).toBeGreaterThan(0)
+      expect(top).toBeLessThan(drawer.getBoundingClientRect().top)
+    })
+  })
+
+  it('keeps the changes on Escape, and Undo takes the visit back in one step', async () => {
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+
+    await userEvent.type(
+      within(drawer).getByRole('textbox', { name: 'Title' }),
+      '!'
+    )
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedPromo(onValueChange)).toMatchObject({
+      title: 'Ochre Kite Weekender!',
+      tone: 'loud'
+    })
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(savedPromo(onValueChange)).toMatchObject({
+        title: 'Ochre Kite Weekender',
+        tone: 'calm'
+      })
+    )
+  })
+
+  it('says Undo puts the changes back', async () => {
+    renderPage()
+
+    const drawer = await openFromMenu()
+
+    expect(drawer).toHaveAccessibleDescription(
+      'Changes apply as you go. Undo puts them back.'
+    )
+  })
+
+  it.each([
+    [
+      'Done',
+      async (drawer: HTMLElement) =>
+        userEvent.click(within(drawer).getByRole('button', { name: 'Done' }))
+    ],
+    ['Escape', async () => userEvent.keyboard('{Escape}')],
+    [
+      'a click away',
+      async () => userEvent.click(document.body, { position: { x: 4, y: 4 } })
+    ]
+  ])(
+    'keeps the caret where it was after %s, and the next key types there',
+    async (_, close) => {
+      const onValueChange = renderPage()
+      await clickIntoEditor(await screen.findByText('Doors 7pm'))
+      await userEvent.keyboard(LINE_END)
+
+      const drawer = await openFromMenu()
+      await userEvent.click(
+        within(drawer).getByRole('button', { name: 'Loud' })
+      )
+      await close(drawer)
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+      await userEvent.keyboard('!')
+
+      await waitFor(() =>
+        expect(
+          (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.slice(
+            0,
+            2
+          )
+        ).toMatchObject([
+          { type: 'paragraph', content: [{ text: 'Doors 7pm!' }] },
+          { type: 'promo', attrs: { tone: 'loud' } }
+        ])
+      )
+    }
+  )
+
+  it('leaves the block selected when its settings opened from the keyboard', async () => {
+    renderPage()
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+    await userEvent.keyboard('{End}{ArrowDown}{Enter}')
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Done' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(
+      screen.getByText('Velvet Kookaburra').closest('.ProseMirror-selectednode')
+    ).not.toBe(null)
   })
 })

@@ -133,7 +133,8 @@ function ImageFields({
   const change = (next: Attrs) => onValueChange({ ...image, ...next })
   return (
     <Fieldset className='grid gap-3 [&>*+*]:mt-0'>
-      <Fieldset.Legend className='text-sm font-medium text-normal'>
+      {/* A legend sits outside the fieldset's grid, so gap misses it. */}
+      <Fieldset.Legend className='mb-1.5 text-sm font-medium text-normal'>
         {label}
       </Fieldset.Legend>
       {isSafeImageSrc(image.src) ? (
@@ -144,7 +145,7 @@ function ImageFields({
         />
       ) : null}
       <TextInput
-        label='Link'
+        label='Image address'
         path={`${path}.src`}
         value={src}
         onValueChange={(next) => {
@@ -215,7 +216,7 @@ function ImageFields({
         value={textOf(image.alt)}
         onValueChange={(alt) => change({ alt })}
         onDone={onDone}
-        helperText='What it shows, for a screen reader. Leave it empty for decoration.'
+        helperText='What a screen reader says, and what shows if it doesn’t load.'
       />
     </Fieldset>
   )
@@ -234,7 +235,8 @@ function ActionFields({
   const change = (next: Attrs) => onValueChange({ ...action, ...next })
   return (
     <Fieldset className='grid gap-3 [&>*+*]:mt-0'>
-      <Fieldset.Legend className='text-sm font-medium text-normal'>
+      {/* A legend sits outside the fieldset's grid, so gap misses it. */}
+      <Fieldset.Legend className='mb-1.5 text-sm font-medium text-normal'>
         {label}
       </Fieldset.Legend>
       <TextInput
@@ -319,6 +321,19 @@ function ListField({
   const opened = focusPath?.startsWith(`${path}.`)
     ? Number(focusPath.slice(path.length + 1).split('.')[0])
     : null
+  // A new item takes focus at its first field, so typing fills it in rather
+  // than pressing Add again.
+  const [focusKey, setFocusKey] = useState<string | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!focusKey) return
+    listRef.current
+      ?.querySelector<HTMLElement>(
+        `[data-item="${CSS.escape(focusKey)}"] :is(input:not([type=hidden]), textarea)`
+      )
+      ?.focus()
+    setFocusKey(null)
+  }, [focusKey])
   const [open, setOpen] = useState<ReadonlySet<string>>(
     () => new Set(opened === null ? [] : [keys[opened] ?? ''])
   )
@@ -333,6 +348,7 @@ function ListField({
   }
   const add = () => {
     const key = newKey()
+    setFocusKey(key)
     setOpen((current) => new Set([...current, key]))
     update([...items, blankItem(setting)], [...shown, key])
   }
@@ -346,7 +362,8 @@ function ListField({
 
   return (
     <Fieldset className='grid gap-2 [&>*+*]:mt-0'>
-      <Fieldset.Legend className='text-sm font-medium text-normal'>
+      {/* A legend sits outside the fieldset's grid, so gap misses it. */}
+      <Fieldset.Legend className='mb-1.5 text-sm font-medium text-normal'>
         {setting.label}
       </Fieldset.Legend>
       <Sortable
@@ -359,7 +376,7 @@ function ListField({
           )
         }
       >
-        <div className='grid gap-2'>
+        <div ref={listRef} className='grid gap-2'>
           {items.map((item, index) => {
             const key = shown[index]!
             const title = itemTitle(setting, items, index)
@@ -369,6 +386,7 @@ function ListField({
                 key={key}
                 value={key}
                 label={title}
+                data-item={key}
                 className='grid emphasis-normal rounded-lg'
               >
                 <Collapsible
