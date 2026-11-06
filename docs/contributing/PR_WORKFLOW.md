@@ -190,7 +190,11 @@ Every PR is checked against these before review. Fix every real hit.
   pre-push hook waits up to 15 seconds for the load, then checks only what
   the diff touches: the repo guards, formatting, an incremental typecheck of
   the changed packages, and their tests beside the change plus their guard
-  tests. It builds what the typecheck reads with no time budget, since a
+  tests. It runs the browser tests beside the change, or components' CSS
+  suite for a change to core's CSS, in Chromium, Firefox, and WebKit, one
+  engine at a time, and names each engine it ran. An engine Playwright
+  hasn't installed is left out, with the command to install it. It builds
+  what the typecheck and browser tests read with no time budget, since a
   build stopped midway empties `dist`, and gives every other step one. It
   prints what it left to CI with the command to run each, so never push with
   `--no-verify`. Give browser tests explicit timeouts and never wait on an

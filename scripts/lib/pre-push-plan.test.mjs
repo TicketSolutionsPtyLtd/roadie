@@ -1,11 +1,20 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, test } from 'node:test'
+import { after, describe, test } from 'node:test'
 
 import { repoRoot } from './machine.mjs'
 import {
+  ENGINES,
   incrementalTypecheck,
+  installedEngines,
   isGuardTest,
   planPrePush,
   readWorkspaces
@@ -162,6 +171,170 @@ describe('the pre-push hook', () => {
       ),
       files
     )
+  })
+
+  test('quotes a route path in the reruns it prints, for zsh', () => {
+    const route = 'docs/src/app/overview/changelog/[release]/page.tsx'
+    const tests = {
+      ...repo.testFiles,
+      docs: [
+        ...repo.testFiles.docs,
+        'src/app/overview/changelog/[release]/page.test.tsx'
+      ]
+    }
+    const result = planPrePush({
+      ...repo,
+      testFiles: tests,
+      files: [route],
+      cacheDir: '/cache'
+    })
+    const [step] = result.steps.filter(({ kind }) => kind === 'tests')
+    assert.ok(
+      step.rerun.includes(
+        '"src/app/overview/changelog/[release]/page.test.tsx"'
+      )
+    )
+    assert.ok(
+      result.skipped.some((line) =>
+        line.includes('"src/app/overview/changelog/[release]/page.tsx"')
+      )
+    )
+  })
+
+  describe('browser tests', () => {
+    const toolbar = 'packages/components/src/components/Toolbar/index.tsx'
+    const browserSteps = (result) =>
+      result.steps.filter((step) => step.kind === 'browser')
+    const engineOf = (step) =>
+      step.commands[0]
+        .find((arg) => arg.startsWith('--browsers='))
+        ?.slice('--browsers='.length)
+    const testsOf = (step) =>
+      step.commands[0].slice(
+        3,
+        step.commands[0].findIndex((arg) => arg.startsWith('-'))
+      )
+
+    test('runs those beside the change in every engine, one at a time', () => {
+      const steps = browserSteps(plan([toolbar]))
+      assert.deepEqual(steps.map(engineOf), ['chromium', 'firefox', 'webkit'])
+      for (const step of steps) {
+        assert.match(step.label, new RegExp(`in ${engineOf(step)}`))
+        // Every shell runs the rerun as printed: no env prefix, double quotes.
+        assert.match(step.rerun, /^pnpm test:gated /)
+        assert.ok(step.rerun.includes(`--browsers=${engineOf(step)}`))
+        assert.deepEqual(testsOf(step), [
+          'src/components/Toolbar/Toolbar.browser.test.tsx',
+          'src/components/Toolbar/Toolbar.touch.browser.test.tsx'
+        ])
+        assert.ok(step.commands[0].includes('browser*'))
+        assert.match(step.rerun, /--project "browser\*"/)
+      }
+    })
+
+    test('runs a changed browser test on its own', () => {
+      const changed = 'packages/charts/src/LineChart/LineChart.browser.test.tsx'
+      const steps = browserSteps(plan([changed]))
+      assert.equal(steps.length, 3)
+      for (const step of steps)
+        assert.ok(
+          testsOf(step).includes('src/LineChart/LineChart.browser.test.tsx')
+        )
+    })
+
+    test('runs no engine when no browser test is beside the change', () => {
+      assert.deepEqual(browserSteps(plan(DIFFS.component)), [])
+      assert.deepEqual(browserSteps(plan(DIFFS.docs)), [])
+      assert.deepEqual(browserSteps(plan(DIFFS.lockfile)), [])
+    })
+
+    test('asks for no engine install when no browser test runs', () => {
+      const { skipped } = planPrePush({
+        ...repo,
+        files: DIFFS.component,
+        engines: ['chromium'],
+        cacheDir: '/cache'
+      })
+      assert.ok(!skipped.some((line) => line.includes('playwright install')))
+    })
+
+    test("a core CSS change runs components' CSS suite", () => {
+      const steps = browserSteps(plan(['packages/core/src/css/emphasis.css']))
+      assert.equal(steps.length, 3)
+      for (const step of steps) {
+        const tests = testsOf(step)
+        assert.ok(tests.includes('src/css/focusRing.browser.test.tsx'))
+        assert.ok(tests.every((test) => test.startsWith('src/css/')))
+      }
+    })
+
+    test("builds what components' CSS suite imports before running it", () => {
+      const result = plan([
+        'packages/core/src/css/emphasis.css',
+        'packages/core/src/utils/cn.ts'
+      ])
+      const [build] = commandsOf('build', result)
+      assert.ok(build?.includes('--filter=@oztix/roadie-components^...'))
+      const kinds = result.steps.map(({ kind }) => kind)
+      assert.ok(kinds.indexOf('build') < kinds.indexOf('browser'))
+    })
+
+    test('runs only the engines installed, and says how to add the rest', () => {
+      const result = planPrePush({
+        ...repo,
+        files: [toolbar],
+        engines: ['chromium', 'webkit'],
+        cacheDir: '/cache'
+      })
+      assert.deepEqual(browserSteps(result).map(engineOf), [
+        'chromium',
+        'webkit'
+      ])
+      assert.ok(
+        result.skipped.some((line) =>
+          line.includes('pnpm exec playwright install firefox')
+        )
+      )
+    })
+
+    test('leaves perf tests to the Perf workflow', () => {
+      for (const step of browserSteps(plan([toolbar])))
+        assert.ok(testsOf(step).every((test) => !test.includes('.perf.')))
+    })
+
+    describe('installedEngines', () => {
+      const roots = []
+      after(() => {
+        for (const root of roots) rmSync(root, { recursive: true, force: true })
+      })
+      const rootWith = (playwright) => {
+        const root = mkdtempSync(join(tmpdir(), 'pre-push-engines-'))
+        roots.push(root)
+        writeFileSync(join(root, 'package.json'), '{}')
+        if (playwright) {
+          const dir = join(root, 'node_modules', 'playwright')
+          mkdirSync(dir, { recursive: true })
+          writeFileSync(join(dir, 'index.js'), playwright)
+        }
+        return root
+      }
+
+      test('keeps Chromium and each engine whose browser is on disk', () => {
+        const root = rootWith(`
+          const missing = () => '/no/such/browser'
+          module.exports = {
+            chromium: { executablePath: missing },
+            firefox: { executablePath: () => __filename },
+            webkit: { executablePath: missing }
+          }
+        `)
+        assert.deepEqual(installedEngines(root), ['chromium', 'firefox'])
+      })
+
+      test('assumes every engine when Playwright is missing', () => {
+        assert.deepEqual(installedEngines(rootWith(null)), ENGINES)
+      })
+    })
   })
 
   test('every step but the build has a time budget', () => {
