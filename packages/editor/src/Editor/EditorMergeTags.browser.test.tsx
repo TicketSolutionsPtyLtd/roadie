@@ -259,6 +259,10 @@ describe('Editor merge tags', () => {
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(hi(tag('first_name')))
     )
+    // Out of the fallback form a tag with none opens, back to the text.
+    await screen.findByRole('dialog', { name: 'Merge tag' })
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(hi()))
