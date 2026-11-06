@@ -244,4 +244,61 @@ describe('Editor email filled section', () => {
       expect(document.scrollingElement!.scrollWidth).toBeLessThanOrEqual(width)
     }
   )
+
+  it('outlines the band on its edge, not past the email’s', async () => {
+    render(<Editor aria-label={LABEL} defaultValue={filled('tint')} />)
+    const canvas = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).getBoundingClientRect()
+    const section = screen
+      .getByText('Bringing a friend?')
+      .closest<HTMLElement>('[data-type="section"]')!
+    const offset = parseFloat(getComputedStyle(section).outlineOffset)
+
+    expect(section.getBoundingClientRect().left - offset).toBeGreaterThan(
+      canvas.left - 0.5
+    )
+    expect(section.getBoundingClientRect().right + offset).toBeLessThan(
+      canvas.right + 0.5
+    )
+  })
+
+  it('sets the band against a spacer beside it, as the email does', async () => {
+    const spacer = { type: 'spacer', attrs: { height: 32 } }
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              p('Hi there'),
+              spacer,
+              {
+                type: 'section',
+                attrs: { look: 'tint' },
+                content: [p('Bringing a friend?')]
+              },
+              spacer,
+              p('See you there')
+            ]
+          }
+        }}
+      />
+    )
+    await screen.findByRole('textbox', { name: LABEL })
+    const band = screen
+      .getByText('Bringing a friend?')
+      .closest('[data-type="section"]')!
+      .getBoundingClientRect()
+    const [above, below] = Array.from(
+      document.querySelectorAll('[data-type="spacer"]'),
+      (element) => element.getBoundingClientRect()
+    )
+
+    expect(band.top - above!.bottom).toBeCloseTo(0, 0)
+    expect(below!.top - band.bottom).toBeCloseTo(0, 0)
+  })
 })
