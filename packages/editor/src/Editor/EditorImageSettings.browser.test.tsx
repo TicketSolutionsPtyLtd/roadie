@@ -94,6 +94,7 @@ describe('Editor image settings', () => {
     renderImage()
 
     const dialog = await openSettings()
+    expect(dialog).toHaveAttribute('data-editor-popup')
 
     for (const name of ['Image address', 'Link', 'Alt text']) {
       expect(within(dialog).getByRole('textbox', { name })).toBeVisible()
@@ -352,6 +353,7 @@ describe('Editor image settings', () => {
         expect(sheet.contains(document.activeElement)).toBe(true)
       )
       expect(document.activeElement?.tagName).not.toBe('INPUT')
+      expect(sheet).toHaveAttribute('data-editor-popup')
       // Half the screen, with the image above it and the page unblurred.
       const image = textbox.querySelector('img')!
       await waitFor(() =>
