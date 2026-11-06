@@ -1,6 +1,6 @@
 import { type CommandProps, Extension } from '@tiptap/core'
 import type { Node as PMNode } from '@tiptap/pm/model'
-import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { Plugin, PluginKey, Selection, TextSelection } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 type EmptyLineHintOptions = { hint: () => string | undefined }
@@ -42,6 +42,39 @@ export function hintLines(hints: readonly (string | undefined)[]) {
  */
 export const EmptyLineHint = Extension.create<EmptyLineHintOptions>({
   name: 'emptyLineHint',
+  // Ahead of a list item's or heading's own Enter, which would split them.
+  priority: 1000,
+
+  addKeyboardShortcuts() {
+    return {
+      // At a line's end, Enter moves into the next line while it shows
+      // placeholder copy, as a form moves to its next field.
+      Enter: ({ editor }) => {
+        const { state } = editor
+        const { $from, empty } = state.selection
+        const atEnd =
+          empty &&
+          $from.parent.isTextblock &&
+          $from.parentOffset === $from.parent.content.size
+        if (!atEnd) return false
+        const next = Selection.findFrom(
+          state.doc.resolve($from.after()),
+          1,
+          true
+        )
+        if (!(next instanceof TextSelection)) return false
+        if (!isEmptyLine(next.$from.parent)) return false
+        const line = next.$from.before()
+        const hinted = lineHints
+          .getState(state)
+          ?.find(line, line + 1)
+          .some(({ from }) => from === line)
+        if (!hinted) return false
+        editor.view.dispatch(state.tr.setSelection(next).scrollIntoView())
+        return true
+      }
+    }
+  },
 
   addOptions() {
     return { hint: () => undefined }

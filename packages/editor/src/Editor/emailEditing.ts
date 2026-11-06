@@ -141,6 +141,35 @@ export function insertBlockAfter(
   }
 }
 
+// An emptied line goes with the query in a section or column, which would
+// otherwise keep it, as the new section lands after the whole block.
+export function dropEmptiedLine({ tr }: CommandProps) {
+  const { $from, empty } = tr.selection
+  const holder = $from.node(-1)
+  const emptied =
+    empty && $from.parent.isTextblock && !$from.parent.content.size
+  if (
+    emptied &&
+    $from.depth > 1 &&
+    holder.childCount > 1 &&
+    (holder.type.name === 'section' || holder.type.name === 'column')
+  ) {
+    tr.delete($from.before(), $from.after())
+  }
+  return true
+}
+
+/**
+ * Inserts `content` at the caret as `insertBlock` does, or, where its section
+ * or columns can't hold it, after that top-level block.
+ */
+export function insertBlockHereOrAfter(content: JSONContent) {
+  return (props: CommandProps) =>
+    insertBlock(content)(props) ||
+    (dropEmptiedLine(props) &&
+      insertBlockAfter(content, new Set(['doc']))(props))
+}
+
 /** Opens an empty line after the selection's block, unless the caret is on one. */
 export function openLineAfter(containers: ReadonlySet<string>) {
   return (props: CommandProps) =>
@@ -194,7 +223,12 @@ function leaveButton({ tr, dispatch }: CommandProps) {
     const { $from } = tr.selection
     if ($from.parent.type.name !== 'button') return true
     const after = $from.after()
-    tr.insert(after, tr.doc.type.schema.nodes.paragraph!.create())
+    // Into an empty line already there, so a second Enter can leave a section.
+    const next = tr.doc.nodeAt(after)
+    const emptyLine = next?.type.name === 'paragraph' && next.content.size === 0
+    if (!emptyLine) {
+      tr.insert(after, tr.doc.type.schema.nodes.paragraph!.create())
+    }
     tr.setSelection(TextSelection.create(tr.doc, after + 1)).scrollIntoView()
   }
   return true

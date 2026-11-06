@@ -8,6 +8,8 @@ import { createPortal } from 'react-dom'
 import { Kbd } from '@oztix/roadie-components/kbd'
 
 import { MenuGroups } from './EditorMenuGroups'
+import { insertBlock } from './emailEditing'
+import type { EditorInsertItem } from './insertItems'
 import type { InsertMenuState } from './insertMenu'
 
 type EditorInsertMenuProps = {
@@ -18,6 +20,25 @@ type EditorInsertMenuProps = {
 }
 
 const optionId = (listboxId: string, index: number) => `${listboxId}-${index}`
+
+const AFTER: Record<string, string> = {
+  section: 'after this section',
+  columns: 'after these columns',
+  bulletList: 'after this list',
+  orderedList: 'after this list'
+}
+
+const goesAfter = (editor: TiptapEditor, item: EditorInsertItem) =>
+  item.topLevel === 'always' ||
+  (item.topLevel === 'fallback' &&
+    item.block !== undefined &&
+    !editor.can().command(insertBlock(item.block)))
+
+// Where a top-level item goes from the caret, when it can't go here.
+function outerBlock(editor: TiptapEditor) {
+  const { $from } = editor.state.selection
+  return $from.depth > 1 ? AFTER[$from.node(1).type.name] : undefined
+}
 
 // A touch screen types no markdown, and Kbd's hover check misses one that
 // reports hover. Swap for useShowsShortcuts once it ships in components.
@@ -69,6 +90,7 @@ export function EditorInsertMenu({
     }
   }, [editor, id, active])
 
+  const holder = outerBlock(editor)
   if (!state) return null
   return createPortal(
     <div
@@ -113,6 +135,14 @@ export function EditorInsertMenu({
               <span data-slot='editor-insert-label' className='grow'>
                 {item.label}
               </span>
+              {holder && goesAfter(editor, item) ? (
+                <span
+                  data-slot='editor-insert-note'
+                  className='ms-4 text-xs text-subtle'
+                >
+                  {holder}
+                </span>
+              ) : null}
               {item.shortcut && showsShortcuts ? (
                 <Kbd
                   emphasis='subtler'

@@ -724,7 +724,12 @@ describe('Editor insert menu', () => {
     )
   })
 
-  it('offers no section or columns inside a column', async () => {
+  const note = (listbox: HTMLElement, name: string) =>
+    within(listbox)
+      .getByRole('option', { name: new RegExp(`^${name}`) })
+      .querySelector('[data-slot="editor-insert-note"]')?.textContent
+
+  it('offers a section or columns in a column, to go after the row', async () => {
     renderEmail({
       defaultValue: email({
         type: 'columns',
@@ -735,10 +740,33 @@ describe('Editor insert menu', () => {
 
     await userEvent.keyboard('{End} /')
 
-    const names = optionNames(await insertMenu())
-    expect(names).toContain('Spacer')
-    expect(names).not.toContain('Section')
-    expect(names).not.toContain('2 columns')
+    const listbox = await insertMenu()
+    expect(note(listbox, 'Section')).toBe('after these columns')
+    expect(note(listbox, '2 columns')).toBe('after these columns')
+    expect(note(listbox, 'Spacer')).toBeUndefined()
+  })
+
+  it('puts /section typed in a section after it, in place of the emptied line', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({ type: 'section', content: [p('Doors 7pm')] })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End}{Enter}/section')
+    const listbox = await insertMenu()
+    await waitFor(() =>
+      expect(note(listbox, 'Section')).toBe('after this section')
+    )
+    await userEvent.keyboard('{Enter}All ages')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          { type: 'section', content: [p('Doors 7pm')] },
+          { type: 'section', content: [p('All ages')] }
+        )
+      )
+    )
   })
 
   it('offers only the other list type in a list', async () => {
@@ -752,14 +780,20 @@ describe('Editor insert menu', () => {
 
     await userEvent.keyboard('{End} /')
 
-    // A ready-made section goes after the list, as it goes after any block.
-    expect(optionNames(await insertMenu())).toEqual([
+    // A section or columns goes after the list, as it goes after any block.
+    const listbox = await insertMenu()
+    expect(optionNames(listbox)).toEqual([
       'Numbered list',
+      'Section',
+      '2 columns',
+      '3 columns',
+      '4 columns',
       'Header',
       'Event',
       'Two events',
       'Lineup'
     ])
+    expect(note(listbox, 'Section')).toBe('after this list')
   })
 
   it('uploads the image chosen, before the emptied line', async () => {

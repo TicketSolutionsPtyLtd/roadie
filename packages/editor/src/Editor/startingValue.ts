@@ -30,7 +30,7 @@ const PRESET_HINTS: Partial<Record<Preset, string>> = {
 
 // A touch keyboard keeps `/` a layer away, so a touch screen points at Blocks.
 const TOUCH_HINTS: Partial<Record<Preset, string>> = {
-  blocks: 'Tap Blocks to add one',
+  blocks: 'Tap Blocks to add a block',
   email: 'Tap Blocks to add a block or section'
 }
 
