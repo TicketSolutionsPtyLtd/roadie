@@ -108,9 +108,8 @@ const ROOM_FROM = 1280
  * page width sits beside the drawer rather than under it. The editor's own
  * box, not ProseMirror's, so the selection never sees it.
  */
-function makeRoomBeside(editor: TiptapEditor, body: HTMLElement | null) {
+function makeRoomBeside(editor: TiptapEditor, drawer: HTMLElement | null) {
   const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
-  const drawer = body?.closest<HTMLElement>('[role=dialog]')
   const page = root?.ownerDocument.documentElement
   const view = root?.ownerDocument.defaultView ?? window
   // The window's width, as a page scrollbar narrows the document's.
@@ -193,7 +192,6 @@ export function EditorBlockSettings({
     const dom = editor.view.nodeDOM(from)
     if (!(dom instanceof HTMLElement)) return
     if (!phone) {
-      makeRoomBeside(editor, bodyRef.current)
       dom.scrollIntoView({ block: 'nearest' })
       return
     }
@@ -275,6 +273,10 @@ export function EditorBlockSettings({
         <Drawer.Portal>
           <Drawer.Viewport className='pointer-events-none'>
             <Drawer.Popup
+              // Once it's there to measure, before its block scrolls in.
+              ref={(popup) => {
+                if (popup) makeRoomBeside(editor, popup)
+              }}
               size='sm'
               className='pointer-events-auto'
               // The first setting, as its title takes none.
