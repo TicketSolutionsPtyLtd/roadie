@@ -450,20 +450,16 @@ describe('Editor email block handle', () => {
         }
       })
 
-      await expectOutline(
-        onValueChange,
-        {
-          section: [
-            {
-              columns: [
-                { column: ['Left one', 'Left two', 'Left three'] },
-                { column: ['Right one', 'Closing'] }
-              ]
-            }
-          ]
-        },
-        ''
-      )
+      await expectOutline(onValueChange, {
+        section: [
+          {
+            columns: [
+              { column: ['Left one', 'Left two', 'Left three'] },
+              { column: ['Right one', 'Closing'] }
+            ]
+          }
+        ]
+      })
     })
 
     it('moves a block between columns, leaving an empty line behind', async () => {
@@ -816,8 +812,7 @@ describe('Editor email block handle', () => {
       onValueChange,
       { section: ['Charlie one'] },
       { section: ['Alpha one'] },
-      { section: ['Bravo one'] },
-      ''
+      { section: ['Bravo one'] }
     )
     expect(
       within(screen.getByRole('menu')).getByRole('group', { name: 'Section' })
