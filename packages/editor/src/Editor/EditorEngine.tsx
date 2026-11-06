@@ -12,10 +12,12 @@ import {
 import {
   Extension,
   type Extensions,
+  InputRule,
   type JSONContent,
   type Node,
   getSchema
 } from '@tiptap/core'
+import { Typography } from '@tiptap/extension-typography'
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
 import { closeHistory } from '@tiptap/pm/history'
@@ -179,6 +181,61 @@ const BLOCK_HANDLES: Partial<
   blocks: { containers: TOP_LEVEL, canAdd: true },
   email: { containers: new Set(['doc', 'section', 'column']), canAdd: true }
 }
+
+// As Notion does.
+const HeadingBackspace = Extension.create({
+  name: 'headingBackspace',
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        const { empty, $from } = editor.state.selection
+        if (!empty || $from.parentOffset > 0) return false
+        if ($from.parent.type.name !== 'heading') return false
+        return editor.commands.first(({ commands }) => [
+          () => commands.undoInputRule(),
+          () => commands.setParagraph()
+        ])
+      }
+    }
+  }
+})
+
+// Quotes, the ellipsis and dashes only: the rest turn text an author meant.
+const SmartPunctuation = Typography.configure({
+  emDash: false,
+  leftArrow: false,
+  rightArrow: false,
+  copyright: false,
+  trademark: false,
+  servicemark: false,
+  registeredTrademark: false,
+  oneHalf: false,
+  plusMinus: false,
+  notEqual: false,
+  laquo: false,
+  raquo: false,
+  multiplication: false,
+  superscriptTwo: false,
+  superscriptThree: false,
+  oneQuarter: false,
+  threeQuarters: false
+})
+
+// Not in a `/` query, where `--` names a block, such as `/---` for Divider.
+const EmDash = Extension.create({
+  name: 'emDash',
+  addInputRules: () => [
+    new InputRule({
+      find: /--$/,
+      handler: ({ state, range }) => {
+        const $from = state.doc.resolve(range.from)
+        const before = $from.parent.textBetween(0, $from.parentOffset)
+        if (/(^|\s)\/\S*$/.test(before)) return null
+        state.tr.insertText('—', range.from, range.to)
+      }
+    })
+  ]
+})
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
 
@@ -566,10 +623,13 @@ export function EditorEngine({
     ...blocks.map(customInsertItem)
   ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
-  const insertItems = () =>
-    holdsMergeTags && textVariables(variablesRef.current).length
-      ? [...presetItems, mergeTagItem]
-      : presetItems
+  const insertItems = () => [
+    ...presetItems,
+    ...(holdsMergeTags && textVariables(variablesRef.current).length
+      ? [mergeTagItem]
+      : []),
+    ...(preset === 'email' ? emailSections(variablesRef.current) : [])
+  ]
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -584,6 +644,9 @@ export function EditorEngine({
         placeholder: () => placeholderRef.current ?? ''
       }),
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
+      HeadingBackspace,
+      SmartPunctuation,
+      EmDash,
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       SettingsShortcut.configure({
         has: hasSettings,
@@ -876,10 +939,11 @@ export function EditorEngine({
   useEffect(() => {
     uiRef.current = ui
   })
+  // Sections lead, as the quickest way to a whole email.
   const drawerItems = blockHandle?.canAdd
     ? [
-        ...presetItems.filter((item) => item.available?.(ui) ?? true),
-        ...(preset === 'email' ? emailSections(variables) : [])
+        ...(preset === 'email' ? emailSections(variables) : []),
+        ...presetItems.filter((item) => item.available?.(ui) ?? true)
       ]
     : []
 
