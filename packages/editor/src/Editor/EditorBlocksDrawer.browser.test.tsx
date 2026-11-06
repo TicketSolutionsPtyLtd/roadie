@@ -691,7 +691,23 @@ describe('Editor blocks drawer finding and moving', () => {
       expect(end).toBeLessThanOrEqual(drawer.getBoundingClientRect().left + 1)
     })
     await userEvent.keyboard('{Escape}')
-    await waitFor(() => expect(root.style.paddingInlineEnd).toBe(''))
+    await waitFor(() => expect(root.style.paddingRight).toBe(''))
+  })
+
+  it('keeps the editor’s own end padding as well as the room it makes', async () => {
+    renderEmail({ className: 'pe-8' })
+    await clickInto('Doors 7pm')
+    const root = (await textbox()).closest<HTMLElement>('[data-slot="editor"]')!
+
+    const drawer = await openFromDockedBar()
+    await Promise.all(drawer.getAnimations().map((slide) => slide.finished))
+
+    await waitFor(() => {
+      const end =
+        root.getBoundingClientRect().right -
+        parseFloat(getComputedStyle(root).paddingRight)
+      expect(end).toBeLessThanOrEqual(drawer.getBoundingClientRect().left - 31)
+    })
   })
 
   it('takes over the page below 1280px wide', async () => {
