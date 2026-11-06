@@ -148,7 +148,11 @@ function EmbedSettingsForm({
     apply(setSelectedAttrs({ provider, id, params: params ?? null }))
     return true
   }
-  const { save, resolving } = useEmbedding(resolveUrl, change)
+  const { save, resolving } = useEmbedding(resolveUrl, (url) => {
+    if (!change(url)) return false
+    onDone()
+    return true
+  })
 
   return (
     <form
@@ -159,8 +163,7 @@ function EmbedSettingsForm({
         // React bubbles a portalled submit to the form around the editor.
         event.stopPropagation()
         if (resolving) return
-        if (await save(typed)) onDone()
-        else setRefused(true)
+        if (!(await save(typed))) setRefused(true)
       }}
     >
       <Field invalid={refused}>

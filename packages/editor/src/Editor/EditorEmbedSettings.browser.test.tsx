@@ -136,7 +136,9 @@ describe('Editor embed settings', () => {
     expect(first).toHaveTextContent('Settings')
     await userEvent.click(first)
 
-    const dialog = await screen.findByRole('dialog', { name: 'Embed settings' })
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Embed settings'
+    })
     await waitFor(() => expect(dialog).toBeVisible())
   })
 
@@ -210,7 +212,9 @@ describe('Editor embed settings', () => {
 
     await userEvent.keyboard('{ArrowUp}{Enter}')
 
-    const dialog = await screen.findByRole('dialog', { name: 'Embed settings' })
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Embed settings'
+    })
     await waitFor(() => expect(dialog).toBeVisible())
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveTextContent(
       'Doors 7pm'
@@ -238,5 +242,37 @@ describe('Editor embed settings', () => {
       )
     )
     expect(sheet.getBoundingClientRect().left).toBeLessThanOrEqual(1)
+  })
+  it('lets a link that resolved after it closed leave the next settings open', async () => {
+    let resolve = (_url: string) => {}
+    const resolveUrl = vi.fn(
+      () =>
+        new Promise<string>((done) => {
+          resolve = done
+        })
+    )
+    renderPage({ resolveUrl })
+    const field = within(await openSettings()).getByRole('textbox', {
+      name: 'Video or audio link'
+    })
+    await userEvent.clear(field)
+    await userEvent.type(field, 'https://spoti.fi/example{Enter}')
+    await waitFor(() => expect(resolveUrl).toHaveBeenCalled())
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+
+    await clickIntoEditor(screen.getByText('Doors 7pm'))
+    await userEvent.keyboard('{ArrowUp}')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Embed settings' })
+    )
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Embed settings'
+    })
+    await waitFor(() => expect(dialog).toBeVisible())
+    resolve(SPOTIFY)
+
+    await new Promise((settle) => requestAnimationFrame(settle))
+    expect(dialog).toBeVisible()
   })
 })
