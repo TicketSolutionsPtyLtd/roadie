@@ -208,6 +208,53 @@ describe('Editor merge tags', () => {
     )
   })
 
+  const hi = (...content: JSONContent[]) =>
+    email({
+      type: 'paragraph',
+      content: [{ type: 'text', text: 'Hi ' }, ...content]
+    })
+
+  it('takes the {{ it typed back out on Escape, from Merge tag in the / menu', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('Hi /merge{Enter}')
+    await mergeTagMenu()
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(hi()))
+  })
+
+  it('keeps a typed {{ on Escape', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard(`Hi ${OPEN}`)
+    await mergeTagMenu()
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      email({ type: 'paragraph', content: [{ type: 'text', text: 'Hi {{' }] })
+    )
+  })
+
+  it('undoes a tag from the / menu in one step, back to the line before the /', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('Hi /merge{Enter}')
+    await mergeTagMenu()
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(hi(tag('first_name')))
+    )
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(hi()))
+  })
+
   it.each(['basic', 'rich'] as const)(
     'offers no merge tags in %s, which can’t hold them',
     async (preset) => {

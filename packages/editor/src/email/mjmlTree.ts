@@ -150,7 +150,11 @@ function blockContent(node: JSONContent, context: Context) {
         })
       ]
     default: {
-      const html = textBlockHtml(node, context)
+      // An empty line is room to type in, not space to send.
+      if (isBlankParagraph(node)) return []
+      const kept = withoutBlankItems(node)
+      if (!kept) return []
+      const html = textBlockHtml(kept, context)
       return html
         ? [
             leaf(
@@ -162,6 +166,33 @@ function blockContent(node: JSONContent, context: Context) {
         : []
     }
   }
+}
+
+const isBlankParagraph = (node: JSONContent) => isBlankText(node, 'paragraph')
+
+// A paragraph or heading with no words: empty, spaces, or breaks.
+const isBlankText = (node: JSONContent, ...types: string[]) =>
+  types.includes(node.type ?? '') &&
+  (node.content ?? []).every(
+    (child) =>
+      child.type === 'hardBreak' ||
+      (child.type === 'text' && !child.text?.trim())
+  )
+
+const LISTS = new Set(['bulletList', 'orderedList'])
+
+// A list item with no words, such as a hinted line left empty, would send as
+// a blank bullet, so it goes, and a list left with none goes too.
+function withoutBlankItems(node: JSONContent): JSONContent | null {
+  if (!LISTS.has(node.type ?? '')) return node
+  const items = (node.content ?? []).flatMap((listItem) => {
+    const content = (listItem.content ?? []).flatMap((child) => {
+      const kept = withoutBlankItems(child)
+      return kept && !isBlankText(kept, 'paragraph', 'heading') ? [kept] : []
+    })
+    return content.length > 0 ? [{ ...listItem, content }] : []
+  })
+  return items.length > 0 ? { ...node, content: items } : null
 }
 
 const column = (blocks: JSONContent[], context: Context) =>
@@ -222,16 +253,22 @@ function rows(nodes: JSONContent[], text: TreeContext): MjmlNode[] {
         ? { ...text, theme: lookTheme(text.theme, look), filled: true }
         : text
       built.push(
-        ...shownNodes(node, text, () => [
-          mj(
-            'mj-wrapper',
-            {
-              ...(spacing && { padding: SECTION_PADDING[spacing] }),
-              ...(look && { 'background-color': inner.theme.background })
-            },
-            rows(node.content ?? [], inner)
-          )
-        ])
+        ...shownNodes(node, text, () => {
+          const built = rows(node.content ?? [], inner)
+          // An empty section's padding is space to send, too.
+          return built.length > 0
+            ? [
+                mj(
+                  'mj-wrapper',
+                  {
+                    ...(spacing && { padding: SECTION_PADDING[spacing] }),
+                    ...(look && { 'background-color': inner.theme.background })
+                  },
+                  built
+                )
+              ]
+            : []
+        })
       )
     } else {
       run.push(node)

@@ -154,7 +154,7 @@ describe('Editor extensions', () => {
     ])
   })
 
-  it('undoes an app’s block back to what was typed', async () => {
+  it('undoes an app’s block in one step, back to the line before the /', async () => {
     const onValueChange = vi.fn()
     render(
       <Editor
@@ -170,11 +170,12 @@ describe('Editor extensions', () => {
     await screen.findByRole('textbox', { name: 'Event' })
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
-    await waitFor(() =>
-      expect(lastValue(onValueChange).doc.content).toMatchObject([
-        { type: 'paragraph', content: [{ type: 'text', text: '/gig' }] }
-      ])
-    )
+    await waitFor(() => {
+      const [line, ...rest] = lastValue(onValueChange).doc.content!
+      expect(line).toMatchObject({ type: 'paragraph' })
+      expect(line!.content).toBeUndefined()
+      expect(rest).toEqual([])
+    })
   })
 
   it('offers no app’s block in a table cell', async () => {
@@ -226,6 +227,59 @@ describe('Editor extensions', () => {
         renderEditorValue(lastValue(onValueChange), { nodeMapping })
       )
     ).toContain('<aside>Event <!-- -->okw-2026</aside>')
+  })
+
+  it('undoes and redoes typing in an app’s block’s field', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        extensions={[eventCard]}
+        defaultValue={{
+          version: 1,
+          preset: 'blocks',
+          doc: {
+            type: 'doc',
+            content: [{ type: 'eventCard', attrs: { eventId: 'okw' } }]
+          }
+        }}
+      />
+    )
+    const input = await screen.findByRole('textbox', { name: 'Event' })
+    await userEvent.type(input, '-2026')
+    await waitFor(() => expect(input).toHaveValue('okw-2026'))
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() => expect(input).toHaveValue('okw'))
+    expect(input).toHaveFocus()
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+
+    await waitFor(() => expect(input).toHaveValue('okw-2026'))
+  })
+
+  it('undoes typing in the field of an app’s block inserted from the menu', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+    await userEvent.keyboard('/gig{Enter}')
+    const input = await screen.findByRole('textbox', { name: 'Event' })
+    await userEvent.type(input, 'okw')
+    await waitFor(() => expect(input).toHaveValue('okw'))
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    // Typed straight after the insert, it may undo with it, in one step.
+    await waitFor(() =>
+      expect(JSON.stringify(lastValue(onValueChange).doc)).not.toContain('okw')
+    )
   })
 
   it.each([

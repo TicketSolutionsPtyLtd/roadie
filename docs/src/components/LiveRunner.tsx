@@ -86,6 +86,7 @@ import { toPreviewCode, withBasePath } from '@/lib/fence-layout.mjs'
 import { AlternatingRows } from '@oztix/roadie-blocks/alternating-rows'
 import { CallToAction } from '@oztix/roadie-blocks/call-to-action'
 import { Cards } from '@oztix/roadie-blocks/cards'
+import { catalogueSections } from '@oztix/roadie-blocks/catalogue/sections'
 import { FAQ } from '@oztix/roadie-blocks/faq'
 import { Gallery } from '@oztix/roadie-blocks/gallery'
 import { Hero } from '@oztix/roadie-blocks/hero'
@@ -117,6 +118,7 @@ import {
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
+import type { renderEmail as RenderEmail } from '@oztix/roadie-editor/email'
 import { EmailHtmlField } from '@oztix/roadie-editor/email-html-field'
 import {
   Node,
@@ -233,11 +235,19 @@ function PreviewCell({
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 
+// Where the docs serve the package's thumbnails, as an app would.
+const blockThumbnailUrl = (file: string) =>
+  `${BASE_PATH}/blocks/thumbnails/${file}`
+// MJML loads only once an example previews an email, in the browser.
+const renderEmail: typeof RenderEmail = async (...args) =>
+  (await import('@oztix/roadie-editor/email')).renderEmail(...args)
+
 const scope = {
   ...RoadieComponents,
   ...RoadieCharts,
   Editor,
   EmailHtmlField,
+  renderEmail,
   useEditorContext,
   renderEditorValue,
   htmlToEditorValue,
@@ -246,6 +256,8 @@ const scope = {
   mergeAttributes,
   reactNodeView,
   BlocksProvider,
+  catalogueSections,
+  blockThumbnailUrl,
   Hero,
   RichText,
   Cards,

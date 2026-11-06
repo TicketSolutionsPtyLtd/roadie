@@ -75,6 +75,7 @@ export function EditorInsertMenu({
       ref={listRef}
       id={id}
       role='listbox'
+      data-editor-popup=''
       aria-label={label}
       data-slot='editor-insert-menu'
       className='z-popover grid max-h-80 min-w-56 gap-0.5 overflow-y-auto rounded-xl emphasis-floating is-translucent p-1'
@@ -109,10 +110,32 @@ export function EditorInsertMenu({
               onClick={() => state.choose(index)}
               className='flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal select-none aria-selected:bg-subtle'
             >
-              <Icon weight='bold' className='size-4 text-subtle' aria-hidden />
+              {item.thumbnail ? (
+                <img
+                  src={item.thumbnail}
+                  alt=''
+                  width={36}
+                  height={24}
+                  className='h-6 w-9 rounded-sm bg-subtle object-cover'
+                />
+              ) : (
+                <Icon
+                  weight='bold'
+                  className='size-4 text-subtle'
+                  aria-hidden
+                />
+              )}
               <span data-slot='editor-insert-label' className='grow'>
                 {item.label}
               </span>
+              {state.notes[index] ? (
+                <span
+                  data-slot='editor-insert-note'
+                  className='ms-4 text-xs text-subtle'
+                >
+                  {state.notes[index]}
+                </span>
+              ) : null}
               {item.shortcut && showsShortcuts ? (
                 <Kbd
                   emphasis='subtler'

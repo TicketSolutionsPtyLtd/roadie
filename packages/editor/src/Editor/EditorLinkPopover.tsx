@@ -1,19 +1,27 @@
 'use client'
 
-import { type RefObject, use, useRef, useState } from 'react'
+import { type RefObject, use, useEffect, useRef, useState } from 'react'
 
-import { type ChainedCommands, posToDOMRect } from '@tiptap/core'
-import type { Editor as TiptapEditor } from '@tiptap/react'
+import { LinkBreakIcon, PencilSimpleIcon } from '@phosphor-icons/react'
+import { type ChainedCommands, getMarkRange, posToDOMRect } from '@tiptap/core'
+import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
+import { BubbleMenu, type BubbleMenuProps } from '@tiptap/react/menus'
 
+import { Badge } from '@oztix/roadie-components/badge'
 import { Button } from '@oztix/roadie-components/button'
 import { Popover } from '@oztix/roadie-components/popover'
+import { Toolbar } from '@oztix/roadie-components/toolbar'
+import { Tooltip } from '@oztix/roadie-components/tooltip'
 
 import { isText } from '../schema/isText'
 import { type EditorVariable, linkVariables } from '../schema/variables'
 import { EditorContext } from './EditorContext'
+import { useRepositionOnResize } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { focusEditor } from './focusEditor'
+import { EDITOR_POPUP } from './toolbarMode'
 import { type LiveEdit, useLiveEdit } from './useLiveEdit'
+import { EDITOR_TOOLBAR_SIZE } from './variants'
 
 const HAS_SCHEME = /^[a-z][a-z\d+.-]*:/i
 const BARE_DOMAIN = /^[^\s/?#:@]+\.[a-z]{2,}(?:[/?#:]|$)/i
@@ -171,6 +179,195 @@ function LinkForm({ editor, inputRef, apply, revert, onDone }: LinkFormProps) {
   )
 }
 
+/**
+ * A web link as its host and path, the parts that say where it goes; any
+ * other link, such as `mailto:`, as its address.
+ */
+function linkTarget(href: string) {
+  if (!URL.canParse(href)) return href
+  const url = new URL(href)
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    return href.slice(url.protocol.length)
+  }
+  const path = url.pathname === '/' ? '' : url.pathname.replace(/\/$/, '')
+  return `${url.host.replace(/^www\./, '')}${path}`
+}
+
+const CARD_KEY = 'editorLinkCard'
+
+/**
+ * The visible screen, less the editor's bar on a touch screen, which docks
+ * over the keyboard as the caret lands.
+ */
+function clearOfKeyboardBar(editor: TiptapEditor) {
+  const viewport = window.visualViewport
+  const top = viewport?.offsetTop ?? 0
+  const bottom = top + (viewport?.height ?? window.innerHeight)
+  const bar = editor.view.dom
+    .closest('[data-slot="editor"]')
+    ?.querySelector<HTMLElement>('[data-slot="editor-toolbar"] > div')
+  const touch = window.matchMedia('(pointer: coarse)').matches
+  const docked = touch && bar ? bar.offsetHeight : 0
+  return {
+    x: 0,
+    y: top,
+    width: window.innerWidth,
+    height: bottom - docked - top
+  }
+}
+
+const caretInLink: NonNullable<BubbleMenuProps['shouldShow']> = ({
+  editor,
+  view,
+  state,
+  element
+}) =>
+  editor.isEditable &&
+  state.selection.empty &&
+  editor.isActive('link') &&
+  (view.hasFocus() || element.contains(document.activeElement))
+
+/** The whole link around the caret, which the card hangs under. */
+function linkAtCaret(editor: TiptapEditor) {
+  const { $from } = editor.state.selection
+  const type = editor.schema.marks.link
+  const range = type && getMarkRange($from, type)
+  if (!range) return null
+  const box = posToDOMRect(editor.view, range.from, range.to)
+  return { getBoundingClientRect: () => box, getClientRects: () => [box] }
+}
+
+type LinkCardProps = {
+  editor: TiptapEditor
+  /** Whether the link editor is open, which the card makes way for. */
+  editing: boolean
+  onEdit: () => void
+}
+
+/**
+ * At a caret in a link: where it goes, opening in a new tab, then Edit and
+ * Remove. A link variable shows its name, as the sending system fills in
+ * its address.
+ */
+function LinkCard({ editor, editing, onEdit }: LinkCardProps) {
+  const context = use(EditorContext)
+  const variables = linkVariables(context?.variables)
+  const size = EDITOR_TOOLBAR_SIZE[context?.size ?? 'md']
+  const link = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      current.isEditable && current.state.selection.empty
+        ? currentLink(current)
+        : undefined
+  })
+  const editable = useEditorState({
+    editor,
+    selector: ({ editor: current }) => current.isEditable
+  })
+  // The plugin asks shouldShow only when the selection or doc changes, and
+  // turning read-only changes neither.
+  useEffect(() => {
+    if (editable || editor.isDestroyed) return
+    editor.view.dispatch(
+      editor.state.tr.setMeta(CARD_KEY, 'hide').setMeta('addToHistory', false)
+    )
+  }, [editor, editable])
+  const menuRef = useRef<HTMLDivElement>(null)
+  const editingRef = useRef(editing)
+  useEffect(() => {
+    editingRef.current = editing
+  }, [editing])
+  useRepositionOnResize(editor, menuRef, CARD_KEY)
+  const variable =
+    link?.variable === undefined
+      ? undefined
+      : (variables.find(({ key }) => key === link.variable)?.label ??
+        link.variable)
+
+  const remove = () => {
+    if (!editor.isEditable) return
+    editor.chain().focus().extendMarkRange('link').unsetLink().run()
+  }
+
+  return (
+    <BubbleMenu
+      editor={editor}
+      pluginKey={CARD_KEY}
+      updateDelay={0}
+      shouldShow={(props) => !editingRef.current && caretInLink(props)}
+      getReferencedVirtualElement={() => linkAtCaret(editor)}
+      ref={menuRef}
+      options={{
+        placement: 'bottom-start',
+        offset: 4,
+        // Over the link where there's no room under it.
+        flip: () => ({ rootBoundary: clearOfKeyboardBar(editor) }),
+        shift: { padding: 8 },
+        // The plugin makes its element a tab stop; the toolbar inside is the one.
+        onShow: () => menuRef.current?.setAttribute('tabindex', '-1')
+      }}
+      data-slot='editor-link-card'
+      // Under the docked bar, as the link it hangs from scrolls under it.
+      className='z-docked'
+    >
+      {link && !editing ? (
+        <Toolbar
+          aria-label='Link actions'
+          size={size}
+          emphasis='floating'
+          // Captured, as an open tooltip keeps Escape from bubbling.
+          onKeyDownCapture={(event) => {
+            if (event.key === 'Escape') editor.commands.focus()
+          }}
+          // Keeps a dialog around the editor open.
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') event.stopPropagation()
+          }}
+        >
+          {variable === undefined ? (
+            <a
+              href={link.href}
+              target='_blank'
+              rel='noopener noreferrer'
+              title={link.href}
+              className='is-interactive max-w-56 truncate rounded-sm px-2 text-sm text-subtle'
+            >
+              {linkTarget(link.href ?? '')}
+            </a>
+          ) : (
+            <Badge emphasis='subtle'>{variable}</Badge>
+          )}
+          <Toolbar.Separator />
+          <Tooltip>
+            <Tooltip.Trigger
+              render={
+                <Toolbar.Button aria-label='Edit link' onClick={onEdit}>
+                  <PencilSimpleIcon
+                    weight='bold'
+                    className='size-4'
+                    aria-hidden
+                  />
+                </Toolbar.Button>
+              }
+            />
+            <Tooltip.Content>Edit link</Tooltip.Content>
+          </Tooltip>
+          <Tooltip>
+            <Tooltip.Trigger
+              render={
+                <Toolbar.Button aria-label='Remove link' onClick={remove}>
+                  <LinkBreakIcon weight='bold' className='size-4' aria-hidden />
+                </Toolbar.Button>
+              }
+            />
+            <Tooltip.Content>Remove link</Tooltip.Content>
+          </Tooltip>
+        </Toolbar>
+      ) : null}
+    </BubbleMenu>
+  )
+}
+
 type EditorLinkPopoverProps = {
   editor: TiptapEditor | null
   open: boolean
@@ -179,7 +376,8 @@ type EditorLinkPopoverProps = {
 
 /**
  * Adds, changes or removes the link on the selection, anchored to it. Escape
- * or Close puts the link back as it was.
+ * keeps the link, as Enter does, and Close puts it back as it was. At a caret
+ * in a link, a card shows where it goes, with Edit and Remove.
  */
 export function EditorLinkPopover({
   editor,
@@ -196,26 +394,34 @@ export function EditorLinkPopover({
     contextElement: editor.view.dom
   }
   return (
-    <Popover open={open} onOpenChange={live.onOpenChange}>
-      <Popover.Content
-        side='bottom'
-        align='start'
-        className={EDITOR_POPOVER_CLASS}
-        positionerProps={{ anchor }}
-        initialFocus={inputRef}
-        finalFocus={() => {
-          focusEditor(editor)
-          return false
-        }}
-      >
-        <LinkForm
-          editor={editor}
-          inputRef={inputRef}
-          apply={live.apply}
-          revert={live.revert}
-          onDone={live.done}
-        />
-      </Popover.Content>
-    </Popover>
+    <>
+      <LinkCard
+        editor={editor}
+        editing={open}
+        onEdit={() => onOpenChange(true)}
+      />
+      <Popover open={open} onOpenChange={live.onOpenChange}>
+        <Popover.Content
+          {...{ [EDITOR_POPUP]: '' }}
+          side='bottom'
+          align='start'
+          className={EDITOR_POPOVER_CLASS}
+          positionerProps={{ anchor }}
+          initialFocus={inputRef}
+          finalFocus={() => {
+            focusEditor(editor)
+            return false
+          }}
+        >
+          <LinkForm
+            editor={editor}
+            inputRef={inputRef}
+            apply={live.apply}
+            revert={live.revert}
+            onDone={live.done}
+          />
+        </Popover.Content>
+      </Popover>
+    </>
   )
 }

@@ -4,6 +4,7 @@ import {
   ArrowCounterClockwiseIcon,
   ColumnsPlusLeftIcon,
   ColumnsPlusRightIcon,
+  EyeIcon,
   FileCodeIcon,
   FilmStripIcon,
   ImageIcon,
@@ -47,6 +48,10 @@ export type EditorControlUi = {
   editVariable: () => void
   /** Opens the import of an email's HTML or MJML, in the email preset. */
   importSource?: (source?: string) => void
+  /** Opens the selected block's settings, while it has any. */
+  editSettings?: () => void
+  /** Shows the email as it sends, in the email preset with `onRenderPreview`. */
+  preview?: () => void
 }
 
 export type EditorControl = {
@@ -118,7 +123,7 @@ const underline: EditorControl = {
   pressed: (editor) => editor.isActive('underline')
 }
 
-const link: EditorControl = {
+export const link: EditorControl = {
   label: 'Link',
   icon: LinkIcon,
   shortcut: ['mod', 'k'],
@@ -156,7 +161,7 @@ export const undo: EditorControl = {
   enabled: (editor) => editor.can().undo()
 }
 
-const redo: EditorControl = {
+export const redo: EditorControl = {
   label: 'Redo',
   icon: ArrowClockwiseIcon,
   shortcut: ['mod', 'shift', 'z'],
@@ -245,6 +250,13 @@ const importSource: EditorControl = {
   available: (ui) => Boolean(ui.importSource)
 }
 
+export const preview: EditorControl = {
+  label: 'Preview',
+  icon: EyeIcon,
+  run: (_editor, ui) => ui.preview?.(),
+  available: (ui) => Boolean(ui.preview)
+}
+
 const emailBlockType = { ...blockType, types: [paragraph, ...headings] }
 
 /** The text controls, which the floating toolbar shows over a selection. */
@@ -263,7 +275,7 @@ export const overflowControls: Record<Preset, readonly EditorControl[]> = {
   basic: [redo],
   rich: [...inserts, redo],
   blocks: [...inserts, redo],
-  email: [importSource, redo]
+  email: [preview, importSource, redo]
 }
 
 // Each preset lists only controls for extensions it holds.
@@ -286,6 +298,7 @@ export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
   email: [
     ...floatingControls.email,
     SEPARATOR,
+    preview,
     importSource,
     SEPARATOR,
     ...history
@@ -317,6 +330,14 @@ function remove(label: string): EditorControl {
     icon: TrashIcon,
     run: (editor) => editor.chain().focus().deleteSelection().run()
   }
+}
+
+/** A phone's bar's way to a selected block's settings. */
+export const blockSettings: EditorControl = {
+  label: 'Settings',
+  icon: SlidersHorizontalIcon,
+  run: (_editor, { editSettings }) => editSettings?.(),
+  available: ({ editSettings }) => Boolean(editSettings)
 }
 
 const editButton: EditorControl = {

@@ -157,6 +157,8 @@ describe('Editor email canvas', () => {
       const { section } = await renderCard()
       // The last test can leave the pointer over the section.
       await userEvent.hover(screen.getByText('Outside'))
+      // Past the outline's fade, which is never transparent midway.
+      await Promise.all(section.getAnimations().map((fade) => fade.finished))
       const resting = getComputedStyle(section)
       // The outline fades out, so a hover the last test left takes a moment.
       await waitFor(() =>
@@ -197,6 +199,55 @@ describe('Editor email canvas', () => {
       expect(getComputedStyle(section).outlineStyle).toBe('solid')
       // Flush with the tint, or a stripe shows between them.
       expect(getComputedStyle(section).outlineOffset).toBe('0px')
+    })
+
+    it('lines a section’s grip up with its first line, not its padding', async () => {
+      const { box, section } = await renderCard()
+      await userEvent.hover(section, { position: { x: 4, y: 4 } })
+      const grip = await screen.findByRole('button', { name: 'Block actions' })
+      const heading = box('Ochre Kite Weekender')
+      const centre = () => {
+        const { top, bottom } = grip.getBoundingClientRect()
+        return (top + bottom) / 2
+      }
+
+      await expect.poll(centre).toBeGreaterThan(heading.top)
+      expect(centre()).toBeLessThan(heading.bottom)
+    })
+
+    it('lines a grip up with the top of a section that starts with an image', async () => {
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: [
+                {
+                  type: 'section',
+                  content: [
+                    {
+                      type: 'image',
+                      attrs: { src: 'https://example.test/a.webp', alt: 'A' }
+                    },
+                    p('Gates 11am')
+                  ]
+                }
+              ]
+            }
+          }}
+        />
+      )
+      const text = await screen.findByText('Gates 11am')
+      const section = text.closest<HTMLElement>('[data-type="section"]')!
+      await userEvent.hover(section, { position: { x: 4, y: 4 } })
+      const grip = await screen.findByRole('button', { name: 'Block actions' })
+
+      await expect
+        .poll(() => grip.getBoundingClientRect().bottom)
+        .toBeLessThanOrEqual(text.getBoundingClientRect().top)
     })
 
     it('keeps the chosen halo on a spacer while its menu is open', async () => {
