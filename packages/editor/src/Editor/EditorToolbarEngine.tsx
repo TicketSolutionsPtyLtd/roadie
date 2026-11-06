@@ -33,7 +33,9 @@ import {
   type EditorToolbarItem,
   SEPARATOR,
   ariaKeyShortcuts,
+  blockSettings,
   floatingControls,
+  link,
   presetControls,
   redo,
   undo
@@ -266,7 +268,8 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource
+    importSource,
+    editSettings
   } = context
   return {
     editLink,
@@ -276,7 +279,8 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource
+    importSource,
+    editSettings
   }
 }
 
@@ -356,6 +360,8 @@ const slotOf = (item: EditorToolbarItem, index: number): ToolbarSlot => {
   if (item === SEPARATOR) return 'separator'
   if (item === undo) return 'undo'
   if (item === redo) return 'redo'
+  // A phone's bar keeps Link in reach, as linking is what people do most.
+  if (item === link) return 'first'
   return index === 0 && 'kind' in item && item.kind === 'blockMenu'
     ? 'lead'
     : 'item'
@@ -647,6 +653,9 @@ export function EditorToolbarEngine({
     selector: ({ editor: current }) =>
       current?.state.selection instanceof NodeSelection
   })
+  // Its settings take the place of the text controls, a tap away.
+  const settingsShown =
+    phone && blockSelected && (blockSettings.available?.(ui) ?? false)
   // A selected block has no text to format, as the floating bar knows.
   const formatting = new Set<EditorToolbarItem>(floatingControls[preset])
   const items = withoutStraySeparators(
@@ -673,7 +682,7 @@ export function EditorToolbarEngine({
     barRef,
     rowRef,
     moreRef,
-    leading: openBlocks ? 2 : 0,
+    leading: (openBlocks ? 2 : 0) + (settingsShown ? 1 : 0),
     docked: !floating,
     held: moreOpen && !floating
   })
@@ -757,6 +766,14 @@ export function EditorToolbarEngine({
             disabled={!editable}
             separator='after'
           />
+          {settingsShown ? (
+            <Control
+              control={blockSettings}
+              state={{ pressed: false, enabled: true }}
+              editor={editor}
+              ui={ui}
+            />
+          ) : null}
           <ToolbarItems
             items={visible}
             states={stateOfVisible}
