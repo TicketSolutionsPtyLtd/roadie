@@ -17,8 +17,9 @@ type OpenChange = NonNullable<PopoverProps['onOpenChange']>
 
 const OWN = 'liveEdit'
 
-// Escape and a close button put things back; any other close keeps them.
-const REVERTING: ReadonlySet<string> = new Set(['escape-key', 'close-press'])
+// A close button puts things back; Escape and any other close keep them, for
+// undo to put back.
+const REVERTING: ReadonlySet<string> = new Set(['close-press'])
 
 type Applied = {
   inverses: Step[]
@@ -42,8 +43,8 @@ export const setSelectedAttrs =
     })
 
 /**
- * A popover's edits, shown in the document as they're made. Escape or its
- * close button puts the document back as it opened; any other close keeps
+ * A popover's edits, shown in the document as they're made. Its close
+ * button puts the document back as it opened; Escape or any other close keeps
  * them as one undo step.
  */
 export function useLiveEdit(

@@ -374,7 +374,7 @@ type EditorButtonPopoverProps = {
 
 /**
  * Adds a button from its link, or edits the selected button's link, style,
- * width and alignment. Escape puts an edited button back as it was.
+ * width and alignment. Undo puts an edited button back as it was.
  */
 export function EditorButtonPopover({
   editor,
