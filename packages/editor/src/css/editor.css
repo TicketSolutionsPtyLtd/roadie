@@ -217,6 +217,31 @@
   padding-inline-start: var(--email-gutter);
 }
 
+/* Below 480px the email sends at the phone's width, 24px in from each side,
+   so the canvas takes the frame's whole width and keeps no gutter. In a
+   frame, the grip sits in the email's own padding, and blocks are added
+   from the toolbar's Blocks or `/`, as the add button would have no room. A
+   boxless editor's handles stay in the page's margin. */
+[data-preset='email'] {
+  container: email-frame / inline-size;
+}
+
+@container email-frame (max-width: 479px) {
+  [data-preset='email'] > * {
+    --email-gutter: 0px;
+  }
+
+  [data-preset='email']:not([data-emphasis='subtler'])
+    [data-slot='editor-block-handle'] {
+    translate: calc(var(--spacing) * 1) 0;
+  }
+
+  [data-preset='email']:not([data-emphasis='subtler'])
+    [data-slot='editor-block-add'] {
+    display: none;
+  }
+}
+
 /* A column pads its blocks 12px a side and a block outside columns 24px, so
    in the email columns reach 12px further out than the text around them. */
 [data-email] [data-type='columns'] {
