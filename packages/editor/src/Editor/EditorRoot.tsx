@@ -148,6 +148,8 @@ export function EditorRoot(props: EditorRootProps) {
     const size = props.size ?? 'md'
     const look = presetLook(resolvedPreset(props))
     const emphasis = props.emphasis ?? look.emphasis
+    const preset = resolvedPreset(props)
+    const email = preset === 'email'
     const floating =
       (props.toolbar ?? props.defaultToolbar ?? look.toolbar) === 'floating'
     const toolbarRoom = (
@@ -172,12 +174,25 @@ export function EditorRoot(props: EditorRootProps) {
           <div
             aria-hidden='true'
             data-slot='editor-skeleton'
+            data-preset={preset}
             className={cn(frame, props.className)}
           >
             {toolbarRoom}
-            <div className={editorContentClass(size, emphasis)}>
+            <div
+              className={cn(
+                editorContentClass(size, emphasis),
+                // An email keeps its gutter and its 24px inset, as editor.css
+                // gives the loaded canvas.
+                email && 'ps-(--email-gutter)'
+              )}
+            >
               {/* One block, so prose's flow spacing doesn't add to its height. */}
-              <div className='grid gap-2'>
+              <div
+                className={cn(
+                  'grid gap-2',
+                  email && 'mx-auto w-full max-w-[600px] px-6'
+                )}
+              >
                 <Skeleton />
                 <Skeleton />
                 <Skeleton className='w-2/3' />
@@ -187,6 +202,7 @@ export function EditorRoot(props: EditorRootProps) {
         ) : (
           <Skeleton
             shape='block'
+            data-preset={preset}
             className={cn(frame, 'h-auto rounded-lg', props.className)}
           >
             {toolbarRoom}
