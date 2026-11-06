@@ -341,7 +341,6 @@ function buttonClass(attrs: Attrs) {
   )
 }
 
-// Side by side from the width MJML stops stacking columns at.
 const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
   // Drawn as a div, as Chrome types over a whole link's text outside it.
   button: Button.extend({
@@ -371,10 +370,12 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
       Enter: ({ editor }) => editor.commands.command(leaveSection)
     })
   }),
-  // Each column pads its blocks 12px a side, so 24px between them.
+  // Side by side from a 480px canvas, as MJML sets them from a 480px
+  // screen; the query reads the canvas inside its 24px insets. 24px apart,
+  // as the email's columns pad their blocks 12px a side.
   columns: outlined(
     Columns,
-    'prose-bleed grid gap-4 @min-[480px]:auto-cols-fr @min-[480px]:grid-flow-col @min-[480px]:gap-6'
+    'prose-bleed grid gap-4 @min-[432px]:auto-cols-fr @min-[432px]:grid-flow-col @min-[432px]:gap-6'
   ),
   column: outlined(Column, 'min-w-0 rounded-md'),
   spacer: outlined(Spacer, 'prose-bleed rounded-md', (attrs) => ({

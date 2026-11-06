@@ -214,9 +214,9 @@ exports[`renderEmail > each node > renders a section around its blocks and colum
           <tbody>
             <tr>
               <td
-                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+                 style="direction:ltr;font-size:0px;padding:0 12px;text-align:center;"
               >
-                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:288px;" ><![endif]-->
             
       <div
          class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
@@ -244,7 +244,7 @@ exports[`renderEmail > each node > renders a section around its blocks and colum
     
       </div>
     
-          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:288px;" ><![endif]-->
             
       <div
          class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
@@ -558,9 +558,9 @@ exports[`renderEmail > each node > renders columns that stack on phones and hold
           <tbody>
             <tr>
               <td
-                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+                 style="direction:ltr;font-size:0px;padding:0 12px;text-align:center;"
               >
-                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:200px;" ><![endif]-->
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:192px;" ><![endif]-->
             
       <div
          class="mj-column-per-33-333333333333336 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
@@ -588,7 +588,7 @@ exports[`renderEmail > each node > renders columns that stack on phones and hold
     
       </div>
     
-          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:200px;" ><![endif]-->
+          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:192px;" ><![endif]-->
             
       <div
          class="mj-column-per-33-333333333333336 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
@@ -616,7 +616,7 @@ exports[`renderEmail > each node > renders columns that stack on phones and hold
     
       </div>
     
-          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:200px;" ><![endif]-->
+          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:192px;" ><![endif]-->
             
       <div
          class="mj-column-per-33-333333333333336 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
@@ -997,9 +997,9 @@ exports[`renderEmail > renders a whole template as an HTML page and its plain te
           <tbody>
             <tr>
               <td
-                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+                 style="direction:ltr;font-size:0px;padding:0 12px;text-align:center;"
               >
-                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:288px;" ><![endif]-->
             
       <div
          class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
@@ -1020,10 +1020,10 @@ exports[`renderEmail > renders a whole template as an HTML page and its plain te
       >
         <tbody>
           <tr>
-            <td  style="width:276px;">
+            <td  style="width:264px;">
               
       <img
-         alt="The crowd at sunset" src="https://assets.oztix.com.au/ochre-kite-weekender.webp" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="276" height="auto"
+         alt="The crowd at sunset" src="https://assets.oztix.com.au/ochre-kite-weekender.webp" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="264" height="auto"
       />
     
             </td>
@@ -1039,7 +1039,7 @@ exports[`renderEmail > renders a whole template as an HTML page and its plain te
     
       </div>
     
-          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:288px;" ><![endif]-->
             
       <div
          class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"

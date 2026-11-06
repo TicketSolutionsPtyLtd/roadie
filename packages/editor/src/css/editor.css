@@ -266,12 +266,6 @@
   }
 }
 
-/* A column pads its blocks 12px a side and a block outside columns 24px, so
-   in the email columns reach 12px further out than the text around them. */
-[data-email] [data-type='columns'] {
-  margin-inline: calc(var(--spacing) * -3);
-}
-
 /* Drawn as renderEmail draws each emphasis, in the theme's colours: a
    button's, and a section's look of tint or accent. */
 [data-email] [data-type='button'].emphasis-strong {
