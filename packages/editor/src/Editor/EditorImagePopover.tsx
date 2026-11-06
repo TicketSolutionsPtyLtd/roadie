@@ -41,11 +41,18 @@ const inEmail = (editor: TiptapEditor) =>
   Boolean(editor.schema.nodes.image?.spec.attrs?.width)
 
 // Into the top half, which a half-height sheet leaves clear.
+// A toolbar docked at the top can cover what scrolls under it.
+const ABOVE_SHEET_MARGIN = 72
+
 function keepAboveSheet(dom: unknown) {
-  if (!(dom instanceof HTMLElement)) return
+  if (!(dom instanceof HTMLElement)) return undefined
   const { top, bottom } = dom.getBoundingClientRect()
-  if (top >= 16 && bottom <= window.innerHeight / 2) return
-  requestAnimationFrame(() => dom.scrollIntoView({ block: 'start' }))
+  if (top >= ABOVE_SHEET_MARGIN && bottom <= window.innerHeight / 2) {
+    return undefined
+  }
+  return requestAnimationFrame(() =>
+    window.scrollBy({ top: top - ABOVE_SHEET_MARGIN })
+  )
 }
 
 const REFUSED = 'Enter an image’s https address.'
@@ -177,11 +184,16 @@ const WIDTHS = [
   { value: 'fit', label: 'Fit' }
 ] as const
 
-const ALIGNS = [
-  { value: 'left', label: 'Start' },
-  { value: 'center', label: 'Centre' },
-  { value: 'right', label: 'End' }
-] as const
+// Start and End are where the text begins and ends, so they swap sides in
+// right-to-left text, while the saved values name the physical side.
+function alignChoices(editor: TiptapEditor) {
+  const rtl = getComputedStyle(editor.view.dom).direction === 'rtl'
+  return [
+    { value: rtl ? 'right' : 'left', label: 'Start' },
+    { value: 'center', label: 'Centre' },
+    { value: rtl ? 'left' : 'right', label: 'End' }
+  ] as const
+}
 
 type Saved = {
   src: string
@@ -334,7 +346,7 @@ function ImageSettingsForm({
           />
           <ImageChoice
             legend='Align'
-            choices={ALIGNS}
+            choices={alignChoices(editor)}
             value={align ?? 'center'}
             onValueChange={(choice) => {
               const next = choice === 'center' ? undefined : choice
@@ -359,10 +371,15 @@ function ImageSettingsForm({
           />
           <ImageChoice
             legend='Align'
-            choices={ALIGNS}
-            value={page.align ?? 'left'}
+            choices={alignChoices(editor)}
+            value={page.align ?? alignChoices(editor)[0].value}
             onValueChange={(choice) =>
-              changePage({ align: choice === 'left' ? undefined : choice })
+              changePage({
+                align:
+                  choice === alignChoices(editor)[0].value || choice === 'left'
+                    ? undefined
+                    : choice
+              })
             }
             disabled={page.fullWidth}
             helperText={page.fullWidth ? 'A full image spans the text.' : null}
@@ -451,8 +468,10 @@ export function EditorImagePopover({
   })
   const sheetFor = open && phone && !adding ? (selected?.from ?? null) : null
   useEffect(() => {
-    if (editor && sheetFor !== null) {
-      keepAboveSheet(editor.view.nodeDOM(sheetFor))
+    if (!editor || sheetFor === null) return
+    const frame = keepAboveSheet(editor.view.nodeDOM(sheetFor))
+    return () => {
+      if (frame !== undefined) cancelAnimationFrame(frame)
     }
   }, [editor, sheetFor])
   if (!editor) return null

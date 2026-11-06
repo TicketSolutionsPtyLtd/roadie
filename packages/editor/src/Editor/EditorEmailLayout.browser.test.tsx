@@ -294,3 +294,39 @@ describe('Editor gap cursor', () => {
     expect(parseFloat(line.borderTopWidth)).toBe(2)
   })
 })
+
+describe('Editor gap cursor in a column', () => {
+  it('keeps the line within its column', async () => {
+    const textbox = await renderEmail([
+      {
+        type: 'columns',
+        content: [
+          {
+            type: 'column',
+            content: [
+              {
+                type: 'image',
+                attrs: { src: POSTER, alt: 'Crowd', width: null }
+              },
+              p('Gates 11am')
+            ]
+          },
+          { type: 'column', content: [p('Tickets')] }
+        ]
+      }
+    ])
+    await userEvent.click(await screen.findByText('Gates 11am'))
+    await userEvent.keyboard('{Home}{ArrowUp}{ArrowUp}')
+
+    const gap = await waitFor(() => {
+      const found = textbox.querySelector('.ProseMirror-gapcursor')
+      expect(found).not.toBe(null)
+      return found!
+    })
+    const column = boxOf(gap.closest('[data-type="column"]')!)
+    const line = boxOf(gap)
+
+    expect(line.left).toBeGreaterThanOrEqual(column.left - 1)
+    expect(line.right).toBeLessThanOrEqual(column.right + 1)
+  })
+})

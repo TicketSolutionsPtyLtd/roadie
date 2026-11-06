@@ -467,6 +467,10 @@ export function EditorBlockHandle({
 
   // Its blur check counts focus on the grip as staying in the editor.
   const menuOpen = menuAt !== null
+  const menuAtRef = useRef(menuAt)
+  useLayoutEffect(() => {
+    menuAtRef.current = menuAt
+  })
   useEffect(() => {
     if (menuOpen) hideBubbleMenu(editor)
   }, [editor, menuOpen])
@@ -510,8 +514,10 @@ export function EditorBlockHandle({
   useEffect(() => {
     openMenuRef.current = () => {
       const { from } = editor.state.selection
-      fromKeys.current = true
-      setMenuAt(blockAt(editor.state, from, containers))
+      const block = blockAt(editor.state, from, containers)
+      // Only an opening focuses its first action, not a menu already open.
+      fromKeys.current = block !== null && menuAtRef.current === null
+      setMenuAt(block)
     }
     return () => {
       openMenuRef.current = null
@@ -839,15 +845,16 @@ export function EditorBlockHandle({
                   chosen: kind !== null && kindLabel(each) === kindLabel(kind),
                   run: () => turn(each)
                 }))}
-                places={(blocks ? [] : movePlaces(doc, shown, containers)).map(
-                  (place) => ({
-                    label: place.label,
-                    icon: place.kind === 'heading' ? TextHIcon : RectangleIcon,
-                    chosen: false,
-                    run: () =>
-                      run((pos) => moveBlockTo(editor.state, pos, place.to))
-                  })
-                )}
+                places={(menuOpen && !blocks
+                  ? movePlaces(doc, shown, containers)
+                  : []
+                ).map((place) => ({
+                  label: place.label,
+                  icon: place.kind === 'heading' ? TextHIcon : RectangleIcon,
+                  chosen: false,
+                  run: () =>
+                    run((pos) => moveBlockTo(editor.state, pos, place.to))
+                }))}
               />
             </>
           ) : (
@@ -863,7 +870,11 @@ export function EditorBlockHandle({
                 // Beside the grip, as Notion's is, so the block stays in view,
                 // or below it where the page has no room beside it.
                 side={
-                  roomBeside(editor, wrapper, place) ? 'inline-start' : 'bottom'
+                  roomBeside(editor, wrapper, place)
+                    ? isRtl(editor)
+                      ? 'right'
+                      : 'left'
+                    : 'bottom'
                 }
                 align='start'
                 // Delete acts on the block, as the menu's open on it.
