@@ -363,7 +363,7 @@ describe('Editor toolbar on a touch screen', () => {
     )
   })
 
-  it('stays docked in an editor popup, even as focus drops to the page', async () => {
+  it('stays docked in its own menu, and undocks once focus leaves the editor', async () => {
     onTouchScreen()
     await page.viewport(390, 700)
     render(
@@ -373,9 +373,6 @@ describe('Editor toolbar on a touch screen', () => {
           defaultValue={valueIn('email')}
           toolbar='docked'
         />
-        <div data-editor-popup=''>
-          <button type='button'>Move down</button>
-        </div>
         <button type='button'>Save</button>
       </>
     )
@@ -390,13 +387,12 @@ describe('Editor toolbar on a touch screen', () => {
     await userEvent.click(within(textbox).getByText(TEXT))
     await waitFor(() => expect(docked()).toBe(true))
 
-    const move = screen.getByRole('button', { name: 'Move down' })
-    move.focus()
-    move.blur()
+    await moreMenu(toolbar)
     await new Promise(requestAnimationFrame)
     await new Promise(requestAnimationFrame)
     expect(docked()).toBe(true)
 
+    await userEvent.keyboard('{Escape}')
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(docked()).toBe(false))
   })

@@ -222,7 +222,7 @@ describe('Editor link card', () => {
     await waitFor(() => expect(textbox).toHaveFocus())
     expect(onOpenChange).not.toHaveBeenCalled()
   })
-  it('keeps a touch screen’s docked bar above the keyboard while its actions have focus', async () => {
+  it('keeps a touch screen’s docked bar above the keyboard in the link editor', async () => {
     const matchMedia = window.matchMedia.bind(window)
     vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
       matchMedia(query.replaceAll('(pointer: coarse)', 'all'))
@@ -241,14 +241,20 @@ describe('Editor link card', () => {
       ) < 1
     await waitFor(() => expect(docked()).toBe(true))
 
-    within(await card())
-      .getByRole('button', { name: 'Edit link' })
-      .focus()
+    await userEvent.click(
+      within(await card()).getByRole('button', { name: 'Edit link' })
+    )
+    const url = await screen.findByRole('textbox', { name: 'Link' })
+    await waitFor(() => expect(url).toHaveFocus())
+    // As a control that re-renders as it's tapped drops focus to the page.
+    url.blur()
     await new Promise(requestAnimationFrame)
     await new Promise(requestAnimationFrame)
 
+    expect(document.activeElement).toBe(document.body)
     expect(docked()).toBe(true)
   })
+
   it('stays on screen for a link at the bottom of a phone’s screen, clear of the docked bar', async () => {
     await page.viewport(390, 700)
     onTestFinished(() => page.viewport(1280, 800))
