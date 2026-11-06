@@ -142,7 +142,9 @@ keeps out of a public screenshot (Roadie: PR workflow section 7).
   `<prefix>/<topic>-screenshots` branch, push it (Roadie's pre-push hook
   skips a branch with no history in common with `main`; elsewhere, use
   `--no-verify` only where the hooks can't run on it), and embed each one with
-  `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`. If the
+  `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`. Then
+  delete the local copy (`git branch -D <branch>`); the pushed one is what
+  the PR shows. If the
   preview is stopped before the OK, say so and give the command that restarts
   it.
 

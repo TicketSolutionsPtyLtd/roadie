@@ -9,7 +9,11 @@ import { constants } from 'node:os'
 import { join } from 'node:path'
 
 import { killGroup, repoRoot, waitForLoad } from './lib/machine.mjs'
-import { planPrePush, readWorkspaces } from './lib/pre-push-plan.mjs'
+import {
+  installedEngines,
+  planPrePush,
+  readWorkspaces
+} from './lib/pre-push-plan.mjs'
 import { runStep } from './lib/pre-push-run.mjs'
 
 const base = process.env.ROADIE_PRE_PUSH_BASE || 'origin/main'
@@ -79,7 +83,8 @@ const { steps, skipped } = planPrePush({
   workspaces,
   testFiles,
   guards,
-  cacheDir
+  cacheDir,
+  engines: installedEngines(repoRoot)
 })
 
 console.log(
