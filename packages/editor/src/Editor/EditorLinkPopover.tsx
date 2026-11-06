@@ -380,8 +380,8 @@ type EditorLinkPopoverProps = {
 
 /**
  * Adds, changes or removes the link on the selection, anchored to it. Escape
- * or Close puts the link back as it was. At a caret in a link, a card shows
- * where it goes, with Edit and Remove.
+ * keeps the link, as Enter does, and Close puts it back as it was. At a caret
+ * in a link, a card shows where it goes, with Edit and Remove.
  */
 export function EditorLinkPopover({
   editor,
