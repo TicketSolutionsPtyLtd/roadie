@@ -16,6 +16,7 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, Preset } from '../schema'
+import { LINE_END, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Event description'
 const TEXT = 'Gates open at 4pm'
@@ -486,7 +487,10 @@ describe('Editor toolbar on a touch screen', () => {
     )
     const toolbar = await shownToolbar()
     const textbox = await screen.findByRole('textbox', { name: LABEL })
-    await userEvent.click(within(textbox).getByText(`${TEXT} 0`))
+    const line = within(textbox).getByText(`${TEXT} 20`)
+    line.scrollIntoView({ block: 'center' })
+    await clickIntoEditor(line)
+    await userEvent.keyboard(LINE_END)
     const viewport = window.visualViewport!
     await waitFor(() =>
       expect(toolbar.getBoundingClientRect().bottom).toBeCloseTo(
@@ -494,10 +498,7 @@ describe('Editor toolbar on a touch screen', () => {
         0
       )
     )
-    const line = within(textbox).getByText(`${TEXT} 20`)
-    await userEvent.keyboard('{ArrowDown}'.repeat(20) + '{End}')
-    // Under the bar, though still on screen, as the browser's own arrow
-    // scrolling leaves it.
+    // Under the bar, though still on screen.
     window.scrollBy(
       0,
       line.getBoundingClientRect().bottom - window.innerHeight + 8
@@ -507,6 +508,7 @@ describe('Editor toolbar on a touch screen', () => {
     )
 
     await userEvent.keyboard('!')
+    await waitFor(() => expect(line).toHaveTextContent(`${TEXT} 20!`))
 
     await waitFor(() =>
       expect(line.getBoundingClientRect().bottom).toBeLessThanOrEqual(

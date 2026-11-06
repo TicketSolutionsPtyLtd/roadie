@@ -1,8 +1,10 @@
+import type { Command } from '@tiptap/core'
 import { Fragment, type Node, Slice } from '@tiptap/pm/model'
 import type { EditorState, Transaction } from '@tiptap/pm/state'
 import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import { dropPoint } from '@tiptap/pm/transform'
 
+import { HEADING_LEVELS } from '../schema/headings'
 import { BLOCK_ID } from '../schema/presetShapes'
 
 /** The node types whose children each get a block handle. */
@@ -227,4 +229,165 @@ export function deleteBlock(state: EditorState, pos: number) {
   return tr
     .setSelection(TextSelection.near(tr.doc.resolve(at)))
     .scrollIntoView()
+}
+
+/** A place Move to offers: a heading the block goes after, or a section it goes into the end of. */
+export type MovePlace = {
+  kind: 'heading' | 'section'
+  label: string
+  to: number
+}
+
+// A section by its first line, as its whole text runs its lines together.
+function placeLabel(node: Node) {
+  let first = ''
+  node.descendants((child) => {
+    if (first) return false
+    if (child.isTextblock) first = child.textContent.trim()
+    return !child.isTextblock
+  })
+  const text = node.isTextblock ? node.textContent.trim() : first
+  return text.slice(0, 48)
+}
+
+/**
+ * The page's headings and sections the block at `from` can move under, in
+ * reading order, leaving out the block itself and any place it already is.
+ */
+export function movePlaces(
+  doc: Node,
+  from: number,
+  containers: BlockContainers = TOP_LEVEL
+): MovePlace[] {
+  const block = doc.nodeAt(from)
+  if (!block) return []
+  const end = from + block.nodeSize
+  const found: MovePlace[] = []
+  const fits = (to: number) => {
+    if (to >= from && to <= end) return false
+    const $to = doc.resolve(to)
+    return $to.parent.canReplaceWith($to.index(), $to.index(), block.type)
+  }
+  doc.descendants((node, pos, parent) => {
+    if (pos >= from && pos < end) return false
+    if (!parent || !containers.has(parent.type.name)) return true
+    if (node.type.name === 'heading') {
+      const to = pos + node.nodeSize
+      const label = placeLabel(node) || 'Heading'
+      if (fits(to)) found.push({ kind: 'heading', label, to })
+    }
+    if (node.type.name === 'section') {
+      const to = pos + node.nodeSize - 1
+      const label = placeLabel(node) || 'Section'
+      if (fits(to)) found.push({ kind: 'section', label, to })
+    }
+    return true
+  })
+  return found
+}
+
+/** What Turn into can make a text block. */
+export type BlockKind =
+  | { type: 'paragraph' }
+  | { type: 'heading'; level: number }
+  | { type: 'bulletList' }
+  | { type: 'orderedList' }
+  | { type: 'blockquote' }
+
+export const TEXT_BLOCK_KINDS: readonly BlockKind[] = [
+  { type: 'paragraph' },
+  ...HEADING_LEVELS.map((level) => ({ type: 'heading' as const, level })),
+  { type: 'bulletList' },
+  { type: 'orderedList' },
+  { type: 'blockquote' }
+]
+
+const isKind = (node: Node, kind: BlockKind) =>
+  kind.type === node.type.name &&
+  (kind.type !== 'heading' || kind.level === node.attrs.level)
+
+/** The kind of the block at `pos`, if Turn into can change it. */
+export function blockKind(doc: Node, pos: number): BlockKind | null {
+  const node = doc.nodeAt(pos)
+  return (node && TEXT_BLOCK_KINDS.find((kind) => isKind(node, kind))) ?? null
+}
+
+function makeKind(kind: BlockKind): Command {
+  switch (kind.type) {
+    case 'heading':
+      return ({ commands }) =>
+        commands.setNode('heading', { level: kind.level })
+    case 'bulletList':
+      return ({ commands }) => commands.toggleBulletList()
+    case 'orderedList':
+      return ({ commands }) => commands.toggleOrderedList()
+    case 'blockquote':
+      return ({ commands }) => commands.wrapIn('blockquote')
+    default:
+      return () => true
+  }
+}
+
+/**
+ * Turns the text block at `pos` into another kind, in one step, keeping its
+ * text and its `blockId`.
+ */
+export function turnInto(pos: number, kind: BlockKind): Command {
+  return ({ tr, chain }) => {
+    const node = tr.doc.nodeAt(pos)
+    if (!node) return false
+    const id: unknown = node.attrs[BLOCK_ID]
+    const end = pos + node.nodeSize
+    const { selection } = tr
+    return chain()
+      .command(({ tr: current }) => {
+        const { doc } = current
+        current.setSelection(
+          TextSelection.between(doc.resolve(pos), doc.resolve(end))
+        )
+        return true
+      })
+      .clearNodes()
+      .command(makeKind(kind))
+      .command(({ tr: current }) => {
+        const at = current.mapping.map(pos, -1)
+        const turned = current.doc.nodeAt(at)
+        if (id && turned && BLOCK_ID in turned.attrs) {
+          current.setNodeAttribute(at, BLOCK_ID, id)
+        }
+        // The caret goes back where it was, not over the turned text.
+        current.setSelection(selection.map(current.doc, current.mapping))
+        return true
+      })
+      .run()
+  }
+}
+
+/** Opens a line below the block at `pos`, with `/` typed there to open the insert menu. */
+export function insertBelow(state: EditorState, pos: number) {
+  const node = state.doc.nodeAt(pos)
+  if (!node) return null
+  const at = pos + node.nodeSize
+  const { schema } = state
+  const tr = state.tr.insert(
+    at,
+    schema.nodes.paragraph!.create(null, schema.text('/'))
+  )
+  return tr.setSelection(TextSelection.create(tr.doc, at + 2))
+}
+
+/** The `blockId` of the block at `pos`, to link to it. */
+export function blockIdAt(doc: Node, pos: number): string | null {
+  const id: unknown = doc.nodeAt(pos)?.attrs[BLOCK_ID]
+  return typeof id === 'string' && id !== '' ? id : null
+}
+
+/** Where the block with this `blockId` starts, if there is one. */
+export function findBlockId(doc: Node, id: string): number | null {
+  let found: number | null = null
+  doc.descendants((node, pos) => {
+    if (found === null && node.attrs[BLOCK_ID] === id) found = pos
+    return found === null
+  })
+  return found
 }

@@ -151,6 +151,8 @@ async function openMenuOn(text: string) {
 
 async function chooseMove(name: 'Move up' | 'Move down') {
   await userEvent.click(await screen.findByRole('menuitem', { name }))
+  // The menu stays open on the moved block, for another move.
+  await userEvent.keyboard('{Escape}')
   await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
 }
 
@@ -477,9 +479,7 @@ describe('Editor email block handle', () => {
             'Alpha two',
             { columns: [{ column: ['Left one'] }, { column: ['Right one'] }] }
           ]
-        },
-        // A doc always ends in a line to type on.
-        ''
+        }
       )
     })
 
@@ -594,7 +594,6 @@ describe('Editor email block handle', () => {
         section: [
           'Alpha one',
           'horizontalRule',
-          '',
           'Alpha two',
           { columns: [{ column: ['Left one'] }, { column: ['Right one'] }] }
         ]
@@ -619,20 +618,16 @@ describe('Editor email block handle', () => {
       await screen.findByRole('option', { name: 'Divider' })
     )
 
-    await expectOutline(
-      onValueChange,
-      {
-        section: [
-          {
-            columns: [
-              { column: ['Left one'] },
-              { column: ['horizontalRule', ''] }
-            ]
-          }
-        ]
-      },
-      ''
-    )
+    await expectOutline(onValueChange, {
+      section: [
+        {
+          columns: [
+            { column: ['Left one'] },
+            { column: ['horizontalRule', ''] }
+          ]
+        }
+      ]
+    })
   })
 
   it('moves a block into and out of columns by keyboard', async () => {
@@ -681,15 +676,11 @@ describe('Editor email block handle', () => {
     await openMenuOn('Left two')
     await chooseMove('Move down')
 
-    await expectOutline(
-      onValueChange,
-      {
-        section: [
-          { columns: [{ column: ['Left one'] }, { column: ['Left two'] }] }
-        ]
-      },
-      ''
-    )
+    await expectOutline(onValueChange, {
+      section: [
+        { columns: [{ column: ['Left one'] }, { column: ['Left two'] }] }
+      ]
+    })
   })
 
   it('moves the last block of the last column out after the columns', async () => {
@@ -728,8 +719,7 @@ describe('Editor email block handle', () => {
           { columns: [{ column: ['Left one'] }, { column: ['Right one'] }] }
         ]
       },
-      { section: ['Bravo one', 'Closing'] },
-      ''
+      { section: ['Bravo one', 'Closing'] }
     )
   })
 

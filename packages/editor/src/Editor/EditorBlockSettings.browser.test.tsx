@@ -149,6 +149,14 @@ async function openFromMenu() {
   await userEvent.click(
     await screen.findByRole('button', { name: 'Block actions' })
   )
+  // A phone's block menu is a sheet, led by the same Settings.
+  if (window.innerWidth < 640) {
+    const sheet = await screen.findByRole('dialog', { name: 'Promo' })
+    await userEvent.click(
+      within(sheet).getByRole('button', { name: 'Settings' })
+    )
+    return screen.findByRole('dialog', { name: 'Promo settings' })
+  }
   const menu = await screen.findByRole('menu')
   const [first] = within(menu).getAllByRole('menuitem')
   expect(first).toHaveTextContent('Settings')

@@ -12,10 +12,12 @@ import {
 import {
   Extension,
   type Extensions,
+  InputRule,
   type JSONContent,
   type Node,
   getSchema
 } from '@tiptap/core'
+import { Typography } from '@tiptap/extension-typography'
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
 import { closeHistory } from '@tiptap/pm/history'
@@ -67,6 +69,7 @@ import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
+import { EditorEmailStart } from './EditorEmailStart'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
 import { EditorImageView } from './EditorImageView'
@@ -74,6 +77,7 @@ import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
+import { EditorPreview } from './EditorPreview'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
@@ -92,6 +96,7 @@ import type { EditorControlUi } from './controls'
 import { emailCanvasStyle } from './emailCanvas'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
+import { EmptyLineHint } from './emptyLineHint'
 import { focusEditor } from './focusEditor'
 import { FocusedBlock, MenuBlock } from './focusedBlock'
 import {
@@ -107,7 +112,7 @@ import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
-import { presetLook, resolvedPreset } from './startingValue'
+import { presetHint, presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import { useToolbarMode } from './toolbarMode'
 import {
@@ -176,6 +181,61 @@ const BLOCK_HANDLES: Partial<
   blocks: { containers: TOP_LEVEL, canAdd: true },
   email: { containers: new Set(['doc', 'section', 'column']), canAdd: true }
 }
+
+// As Notion does.
+const HeadingBackspace = Extension.create({
+  name: 'headingBackspace',
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        const { empty, $from } = editor.state.selection
+        if (!empty || $from.parentOffset > 0) return false
+        if ($from.parent.type.name !== 'heading') return false
+        return editor.commands.first(({ commands }) => [
+          () => commands.undoInputRule(),
+          () => commands.setParagraph()
+        ])
+      }
+    }
+  }
+})
+
+// Quotes, the ellipsis and dashes only: the rest turn text an author meant.
+const SmartPunctuation = Typography.configure({
+  emDash: false,
+  leftArrow: false,
+  rightArrow: false,
+  copyright: false,
+  trademark: false,
+  servicemark: false,
+  registeredTrademark: false,
+  oneHalf: false,
+  plusMinus: false,
+  notEqual: false,
+  laquo: false,
+  raquo: false,
+  multiplication: false,
+  superscriptTwo: false,
+  superscriptThree: false,
+  oneQuarter: false,
+  threeQuarters: false
+})
+
+// Not in a `/` query, where `--` names a block, such as `/---` for Divider.
+const EmDash = Extension.create({
+  name: 'emDash',
+  addInputRules: () => [
+    new InputRule({
+      find: /--$/,
+      handler: ({ state, range }) => {
+        const $from = state.doc.resolve(range.from)
+        const before = $from.parent.textBetween(0, $from.parentOffset)
+        if (/(^|\s)\/\S*$/.test(before)) return null
+        state.tr.insertText('—', range.from, range.to)
+      }
+    })
+  ]
+})
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
 
@@ -295,6 +355,16 @@ function readsDoc(schema: Schema, doc: JSONContent) {
   } catch {
     return false
   }
+}
+
+/** As `isBlankDoc` reads a saved value, so the skeleton matches. */
+function holdsOnlyAnEmptyLine(doc: ProseMirrorNode) {
+  const line = doc.firstChild
+  return (
+    doc.childCount === 1 &&
+    line?.type.name === 'paragraph' &&
+    line.content.size === 0
+  )
 }
 
 function presetHoldsImages(preset: Preset) {
@@ -422,6 +492,11 @@ export function EditorEngine({
   extensions: extensionsProp,
   variables,
   theme,
+  onRenderPreview,
+  previewRecipients,
+  onSendTest,
+  sender,
+  subject,
   toolbar: toolbarProp,
   defaultToolbar,
   onToolbarChange,
@@ -488,6 +563,8 @@ export function EditorEngine({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
   const [addingBlocks, setAddingBlocks] = useState(false)
+  const [drawerStart, setDrawerStart] = useState<string>()
+  const [previewing, setPreviewing] = useState<EditorValue | null>(null)
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
@@ -544,10 +621,13 @@ export function EditorEngine({
     ...blocks.map(customInsertItem)
   ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
-  const insertItems = () =>
-    holdsMergeTags && textVariables(variablesRef.current).length
-      ? [...presetItems, mergeTagItem]
-      : presetItems
+  const insertItems = () => [
+    ...presetItems,
+    ...(holdsMergeTags && textVariables(variablesRef.current).length
+      ? [mergeTagItem]
+      : []),
+    ...(preset === 'email' ? emailSections(variablesRef.current) : [])
+  ]
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -559,9 +639,21 @@ export function EditorEngine({
     extensions: [
       ...withBlocks(editorExtensions[preset], blocks),
       Placeholder.configure({
-        placeholder: () => placeholderRef.current ?? ''
+        // Tiptap counts an empty section as empty too, which would draw the
+        // hint on it as well as on its line.
+        placeholder: ({ editor: current }) =>
+          placeholderRef.current ??
+          (holdsOnlyAnEmptyLine(current.state.doc) ? presetHint(preset) : '') ??
+          ''
+      }),
+      EmptyLineHint.configure({
+        hint: () =>
+          placeholderRef.current === undefined ? presetHint(preset) : undefined
       }),
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
+      HeadingBackspace,
+      SmartPunctuation,
+      EmDash,
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       SettingsShortcut.configure({
         has: hasSettings,
@@ -636,8 +728,15 @@ export function EditorEngine({
           // in the gutter beside it, which editor.css keeps.
           blockHandle &&
             preset !== 'email' &&
-            emphasis !== 'subtler' &&
-            (blockHandle.canAdd ? 'ps-15' : 'ps-10')
+            cn(
+              // A page's grip hangs in the editor's own padding, so neither
+              // a host's overflow nor a docs frame clips it.
+              (preset === 'blocks' || emphasis !== 'subtler') &&
+                (blockHandle.canAdd ? 'ps-15' : 'ps-10'),
+              // On a phone, only the grip's room at the start, in a subtler
+              // editor too, as the page may clip it; its target may overlap.
+              'max-sm:ps-8 pointer-coarse:ps-8'
+            )
         )
       },
       handleDOMEvents: {
@@ -688,6 +787,12 @@ export function EditorEngine({
     },
     onUpdate: ({ editor: updated }) =>
       onValueChange?.(currentValue(updated, preset))
+  })
+
+  const blankEmail = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      Boolean(current?.isEditable && holdsOnlyAnEmptyLine(current.state.doc))
   })
 
   const leftOut = preset !== 'blocks' && Boolean(extensionsProp?.length)
@@ -781,6 +886,34 @@ export function EditorEngine({
     if (!editor?.isEditable) return
     setImporting(({ count }) => ({ open: true, source, count: count + 1 }))
   }
+  const previewClosed = useRef(false)
+  // The canvas shows again only on the render after Preview closes.
+  useEffect(() => {
+    if (previewing || !previewClosed.current || !editor) return
+    previewClosed.current = false
+    focusEditor(editor)
+  }, [previewing, editor])
+  const openPreview =
+    preset === 'email' && onRenderPreview
+      ? () => {
+          if (!editor) return
+          setPreviewing(currentValue(editor, preset))
+        }
+      : undefined
+  const preview =
+    previewing && onRenderPreview ? (
+      <EditorPreview
+        value={previewing}
+        inbox={{ sender, subject }}
+        recipients={previewRecipients}
+        onRenderPreview={onRenderPreview}
+        onSendTest={onSendTest}
+        onClose={() => {
+          previewClosed.current = true
+          setPreviewing(null)
+        }}
+      />
+    ) : null
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
     editLink: () => {
@@ -808,15 +941,21 @@ export function EditorEngine({
     replaceImage: canUpload
       ? () => replaceInputRef.current?.click()
       : undefined,
-    importSource: preset === 'email' ? importSource : undefined
+    importSource: preset === 'email' ? importSource : undefined,
+    preview: openPreview
   }
   useEffect(() => {
     uiRef.current = ui
   })
+  const openDrawer = (group?: string) => {
+    setDrawerStart(group)
+    setAddingBlocks(true)
+  }
+  // Sections lead, as the quickest way to a whole email.
   const drawerItems = blockHandle?.canAdd
     ? [
-        ...presetItems.filter((item) => item.available?.(ui) ?? true),
-        ...(preset === 'email' ? emailSections(variables) : [])
+        ...(preset === 'email' ? emailSections(variables) : []),
+        ...presetItems.filter((item) => item.available?.(ui) ?? true)
       ]
     : []
 
@@ -841,8 +980,9 @@ export function EditorEngine({
         toolbarRef,
         bubbleMenuRef,
         ...ui,
-        openBlocks:
-          drawerItems.length > 0 ? () => setAddingBlocks(true) : undefined,
+        openBlocks: drawerItems.length > 0 ? () => openDrawer() : undefined,
+        openPreview,
+        preview,
         hasSettings,
         editSettingsAt,
         editingLink,
@@ -856,6 +996,7 @@ export function EditorEngine({
       <div
         data-slot='editor'
         data-preset={preset}
+        data-previewing={preview ? '' : undefined}
         data-emphasis={emphasis}
         style={preset === 'email' ? emailCanvasStyle(theme) : undefined}
         aria-invalid={field.invalid || undefined}
@@ -903,6 +1044,14 @@ export function EditorEngine({
             items={drawerItems}
             ui={ui}
             containers={blockHandle.containers}
+            startAt={drawerStart}
+          />
+        ) : null}
+        {preset === 'email' && blankEmail ? (
+          <EditorEmailStart
+            onSections={() => openDrawer('Sections')}
+            onBlocks={() => openDrawer('Text')}
+            onImport={() => importSource()}
           />
         ) : null}
         {editor ? (

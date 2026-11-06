@@ -10,6 +10,24 @@
   pointer-events: none;
 }
 
+/* The caret's empty line in a preset with the `/` menu, from emptyLineHint. */
+[data-slot='editor-content'] .ProseMirror-focused [data-hint]::before {
+  content: attr(data-hint);
+  float: inline-start;
+  block-size: 0;
+  color: var(--intent-text-subtler);
+  pointer-events: none;
+}
+
+/* A ready-made section's placeholder copy, from hintLines, shown until typed over. */
+[data-slot='editor-content'] [data-copy-hint]::before {
+  content: attr(data-copy-hint);
+  float: inline-start;
+  block-size: 0;
+  color: var(--intent-text-subtler);
+  pointer-events: none;
+}
+
 /* A node view rings its own wrapper, which can be narrower than the row. */
 [data-slot='editor-content'] .ProseMirror-selectednode:not(.react-renderer),
 [data-slot='editor-content'] [data-node-view-wrapper][data-selected] {
@@ -402,4 +420,10 @@
     outline: 2px solid Highlight;
     outline-offset: -2px;
   }
+}
+
+/* Preview takes the canvas's place, and the formatting it can't apply goes
+   with it. */
+[data-slot='editor'][data-previewing] > [data-slot='editor-toolbar'] {
+  display: none;
 }
