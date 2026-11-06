@@ -187,9 +187,19 @@ export function EditorRoot(props: EditorRootProps) {
         )}
       />
     )
-    // As tall as the Preview text field above an email's canvas.
     const preheaderRoom =
-      resolvedPreset(props) === 'email' ? <div className='h-16' /> : null
+      resolvedPreset(props) === 'email' ? (
+        // Laid out as the field is, stacked on a phone, its text unseen.
+        <div className='@container invisible mx-auto w-full max-w-[600px] px-6 pt-3'>
+          <div className='grid items-center gap-x-3 gap-y-1 @min-[30rem]:grid-cols-[auto_minmax(0,1fr)]'>
+            <span className='text-sm'>Preview text</span>
+            <div className='h-8' />
+            <span className='text-xs @min-[30rem]:col-start-2'>
+              About 40 to 90 characters show.
+            </span>
+          </div>
+        </div>
+      ) : null
     const frame = cn(
       'flex min-w-0 flex-col',
       EDITOR_MIN_HEIGHT[size],
