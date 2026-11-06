@@ -97,6 +97,7 @@ import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { emailCanvasStyle } from './emailCanvas'
 import { withEmailEditing } from './emailEditing'
+import { emailSectionSettings } from './emailSectionSettings'
 import { EmbedPaste } from './embedPaste'
 import { EmptyLineHint } from './emptyLineHint'
 import { focusEditor } from './focusEditor'
@@ -118,6 +119,7 @@ import {
   variableInsertItems
 } from './mergeTags'
 import { sectionBlock, sectionInsertItems } from './sectionNodes'
+import { SectionToolbars } from './sectionToolbars'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
 import { presetHint, presetLook, resolvedPreset } from './startingValue'
@@ -631,13 +633,16 @@ export function EditorEngine({
   const [blockLabels] = useState(() =>
     Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
   )
-  const [blockSettings] = useState(() =>
-    Object.fromEntries(
+  const [blockSettings] = useState(() => ({
+    ...Object.fromEntries(
       blocks.flatMap(({ node, label, settings }): [string, BlockSettings][] =>
         settings?.length ? [[node.name, { label, settings }]] : []
       )
-    )
-  )
+    ),
+    ...(preset === 'email' && {
+      section: emailSectionSettings(() => variablesRef.current)
+    })
+  }))
   const hasSettings = (name: string) => Object.hasOwn(blockSettings, name)
   const [schema] = useState(() =>
     blocks.length > 0
@@ -710,6 +715,10 @@ export function EditorEngine({
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
         ? [
+            SectionToolbars.configure({
+              variables: () => variablesRef.current,
+              onSettings: (pos) => editSettingsAt(pos)
+            }),
             SourcePaste.configure({
               onSource: (source) => uiRef.current?.importSource?.(source)
             })

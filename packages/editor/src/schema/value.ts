@@ -8,6 +8,7 @@ import {
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
+  sectionLook,
   spacerHeight
 } from './emailAttrs'
 import { embedAttrs } from './embedAttrs'
@@ -112,6 +113,7 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
     }
   }
   if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
+  if (type === 'section') return sectionLook(attrs)
   if (type === 'button') {
     const variable: unknown = attrs?.variable
     return {
