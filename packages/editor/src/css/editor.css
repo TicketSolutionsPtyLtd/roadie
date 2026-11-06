@@ -421,3 +421,9 @@
   > [data-slot='editor-section-name'] {
   visibility: visible;
 }
+
+/* Preview takes the canvas's place, and the formatting it can't apply goes
+   with it. */
+[data-slot='editor'][data-previewing] > [data-slot='editor-toolbar'] {
+  display: none;
+}
