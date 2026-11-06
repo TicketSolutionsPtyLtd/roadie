@@ -12,18 +12,21 @@ import type { EditorToolbarMode } from './variants'
 /** Below the small breakpoint, or on a touch screen, the toolbar docks. */
 export const PHONE_QUERY = '(width < 40rem), (pointer: coarse)'
 
-function subscribeToPhone(onChange: () => void) {
-  const query = window.matchMedia(PHONE_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
+/** Whether `query` matches, following it as it changes; `onServer` before hydration. */
+export function useMediaQuery(query: string, onServer = false) {
+  return useSyncExternalStore(
+    (onChange) => {
+      const list = window.matchMedia(query)
+      list.addEventListener('change', onChange)
+      return () => list.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia(query).matches,
+    () => onServer
+  )
 }
 
-const onPhone = () => window.matchMedia(PHONE_QUERY).matches
-const notOnServer = () => false
-
 /** Whether the screen is a phone's, by `PHONE_QUERY`. */
-export const useOnPhone = () =>
-  useSyncExternalStore(subscribeToPhone, onPhone, notOnServer)
+export const useOnPhone = () => useMediaQuery(PHONE_QUERY)
 
 type ToolbarModeOptions = {
   toolbar?: EditorToolbarMode
