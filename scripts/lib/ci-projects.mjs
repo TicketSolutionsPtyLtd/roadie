@@ -58,3 +58,16 @@ export function gatedProjects({ scripts, files, perf, vitestArgs }) {
     env: run.env
   }
 }
+
+const ALL_BROWSERS = ['chromium', 'webkit', 'firefox']
+
+/** The engines a gated run uses, as ROADIE_BROWSERS; null when one is unknown. */
+export function gatedBrowsers(args, env) {
+  if (args.includes('--all-browsers')) return ALL_BROWSERS.join(',')
+  const flag = args.findLast((arg) => arg.startsWith('--browsers='))
+  const browsers = flag
+    ? flag.slice('--browsers='.length)
+    : env.ROADIE_BROWSERS || 'chromium'
+  const names = browsers.split(',')
+  return names.every((name) => ALL_BROWSERS.includes(name)) ? browsers : null
+}

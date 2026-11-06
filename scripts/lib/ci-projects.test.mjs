@@ -6,6 +6,7 @@ import { describe, test } from 'node:test'
 import {
   CI_SCRIPTS,
   ciProjects,
+  gatedBrowsers,
   gatedProjects,
   projectsIn
 } from './ci-projects.mjs'
@@ -94,5 +95,34 @@ describe('test:gated stays in step with CI', () => {
       ),
       ['browser (*)', 'a b', 'jsdom']
     )
+  })
+})
+
+describe('gatedBrowsers', () => {
+  test('runs Chromium unless asked otherwise', () => {
+    assert.equal(gatedBrowsers([], {}), 'chromium')
+  })
+
+  test('reads ROADIE_BROWSERS', () => {
+    assert.equal(gatedBrowsers([], { ROADIE_BROWSERS: 'webkit' }), 'webkit')
+  })
+
+  test('--browsers wins over ROADIE_BROWSERS', () => {
+    assert.equal(
+      gatedBrowsers(['--browsers=firefox'], { ROADIE_BROWSERS: 'webkit' }),
+      'firefox'
+    )
+  })
+
+  test('--all-browsers runs every engine', () => {
+    assert.equal(
+      gatedBrowsers(['--all-browsers', '--browsers=firefox'], {}),
+      'chromium,webkit,firefox'
+    )
+  })
+
+  test('rejects an engine Playwright has no project for', () => {
+    assert.equal(gatedBrowsers(['--browsers=safari'], {}), null)
+    assert.equal(gatedBrowsers(['--browsers='], {}), null)
   })
 })

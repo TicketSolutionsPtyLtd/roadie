@@ -3,7 +3,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs'
 import { availableParallelism, constants } from 'node:os'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
-import { gatedProjects } from './lib/ci-projects.mjs'
+import { gatedBrowsers, gatedProjects } from './lib/ci-projects.mjs'
 import {
   isWindows,
   killGroup,
@@ -23,10 +23,11 @@ const PACKAGES = [
   'lint-plugin',
   'docs'
 ]
-const usage = `Usage: pnpm test:gated <${PACKAGES.join('|')}> [files] [--all] [--all-browsers] [--perf] [vitest args]
+const usage = `Usage: pnpm test:gated <${PACKAGES.join('|')}> [files] [--all] [--all-browsers | --browsers=<engines>] [--perf] [vitest args]
 Runs the tests related to the files or folders given, or to the changes since origin/main,
 in the projects CI runs (the package's test and test:browser scripts).
---all runs the whole suite, --all-browsers runs WebKit and Firefox too.
+--all runs the whole suite, --all-browsers runs WebKit and Firefox too, and
+--browsers=firefox (or webkit, or a comma-separated list) picks the engines.
 --perf runs the package's test:perf projects instead, as do perf test files given alone.
 --project picks the projects yourself.
 Example: pnpm test:gated components src/components/Badge/index.tsx --project 'browser*'`
@@ -48,10 +49,18 @@ if (!existsSync(join(cwd, 'package.json'))) {
 }
 
 const all = rest.includes('--all')
-const allBrowsers = rest.includes('--all-browsers')
 const perf = rest.includes('--perf')
+const browsers = gatedBrowsers(rest, process.env)
+if (!browsers) {
+  console.error(usage)
+  process.exit(2)
+}
 const passThrough = rest.filter(
-  (arg) => arg !== '--all' && arg !== '--all-browsers' && arg !== '--perf'
+  (arg) =>
+    arg !== '--all' &&
+    arg !== '--all-browsers' &&
+    !arg.startsWith('--browsers=') &&
+    arg !== '--perf'
 )
 const firstFlag = passThrough.findIndex((arg) => arg.startsWith('-'))
 const fileArgs =
@@ -145,9 +154,7 @@ const args = [
 const env = {
   ...process.env,
   ...projects.env,
-  ROADIE_BROWSERS: allBrowsers
-    ? 'chromium,webkit,firefox'
-    : process.env.ROADIE_BROWSERS || 'chromium'
+  ROADIE_BROWSERS: browsers
 }
 const shownEnv = Object.entries({
   ...projects.env,

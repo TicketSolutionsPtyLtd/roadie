@@ -66,7 +66,8 @@ const folderOf = (path) => path.slice(0, path.lastIndexOf('/') + 1)
 
 const isIn = (file, { dir }) => file.startsWith(`${dir}/`)
 
-const shellQuoted = (arg) => (/^[\w./=:-]+$/.test(arg) ? arg : `'${arg}'`)
+// Double quotes, since cmd.exe keeps single quotes as part of the argument.
+const shellQuoted = (arg) => (/^[\w./=:-]+$/.test(arg) ? arg : `"${arg}"`)
 
 /**
  * Each `tsc` or `vue-tsc` in a typecheck script, with a build-info file so the
@@ -291,8 +292,7 @@ export function planPrePush({
       steps.push({
         kind: 'browser',
         label: `browser tests ${workspace.short} in ${engine} (${count(tests.length, 'file')})`,
-        rerun: `ROADIE_BROWSERS=${engine} pnpm test:gated ${[workspace.short, ...tests, ...projectArgs].map(shellQuoted).join(' ')}`,
-        env: { ROADIE_BROWSERS: engine },
+        rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs, `--browsers=${engine}`].map(shellQuoted).join(' ')}`,
         commands: [
           [
             'node',
@@ -300,7 +300,8 @@ export function planPrePush({
             workspace.short,
             ...tests,
             '--passWithNoTests',
-            ...projectArgs
+            ...projectArgs,
+            `--browsers=${engine}`
           ]
         ]
       })

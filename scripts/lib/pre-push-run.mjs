@@ -56,7 +56,7 @@ export async function runStep(
   for (const command of step.commands) {
     const result = await runCommand(command, {
       cwd: step.cwd,
-      env: { ...env, ...step.env },
+      env,
       deadline,
       onChild
     })

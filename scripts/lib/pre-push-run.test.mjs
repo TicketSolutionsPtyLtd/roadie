@@ -49,19 +49,6 @@ describe('runStep', () => {
     assert.equal(outcome, 'passed')
   })
 
-  test("adds the step's own env to the caller's", async () => {
-    const needsBoth = [
-      'node',
-      '-e',
-      'process.exit(process.env.ROADIE_PROBE === "set" && process.env.ROADIE_STEP === "step" ? 0 : 1)'
-    ]
-    const { outcome } = await runStep(
-      { commands: [needsBoth], budgetS: 10, env: { ROADIE_STEP: 'step' } },
-      { env: { ...process.env, ROADIE_PROBE: 'set' } }
-    )
-    assert.equal(outcome, 'passed')
-  })
-
   test('lets the caller stop the running command', async () => {
     const started = Date.now()
     const { outcome } = await runStep(

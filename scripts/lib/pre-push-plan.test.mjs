@@ -177,6 +177,10 @@ describe('the pre-push hook', () => {
     const toolbar = 'packages/components/src/components/Toolbar/index.tsx'
     const browserSteps = (result) =>
       result.steps.filter((step) => step.kind === 'browser')
+    const engineOf = (step) =>
+      step.commands[0]
+        .find((arg) => arg.startsWith('--browsers='))
+        ?.slice('--browsers='.length)
     const testsOf = (step) =>
       step.commands[0].slice(
         3,
@@ -185,22 +189,18 @@ describe('the pre-push hook', () => {
 
     test('runs those beside the change in every engine, one at a time', () => {
       const steps = browserSteps(plan([toolbar]))
-      assert.deepEqual(
-        steps.map(({ env }) => env.ROADIE_BROWSERS),
-        ['chromium', 'firefox', 'webkit']
-      )
+      assert.deepEqual(steps.map(engineOf), ['chromium', 'firefox', 'webkit'])
       for (const step of steps) {
-        assert.match(step.label, new RegExp(`in ${step.env.ROADIE_BROWSERS}`))
-        assert.match(
-          step.rerun,
-          new RegExp(`^ROADIE_BROWSERS=${step.env.ROADIE_BROWSERS} `)
-        )
+        assert.match(step.label, new RegExp(`in ${engineOf(step)}`))
+        // Every shell runs the rerun as printed: no env prefix, double quotes.
+        assert.match(step.rerun, /^pnpm test:gated /)
+        assert.ok(step.rerun.includes(`--browsers=${engineOf(step)}`))
         assert.deepEqual(testsOf(step), [
           'src/components/Toolbar/Toolbar.browser.test.tsx',
           'src/components/Toolbar/Toolbar.touch.browser.test.tsx'
         ])
         assert.ok(step.commands[0].includes('browser*'))
-        assert.match(step.rerun, /--project 'browser\*'/)
+        assert.match(step.rerun, /--project "browser\*"/)
       }
     })
 
@@ -258,10 +258,10 @@ describe('the pre-push hook', () => {
         engines: ['chromium', 'webkit'],
         cacheDir: '/cache'
       })
-      assert.deepEqual(
-        browserSteps(result).map(({ env }) => env.ROADIE_BROWSERS),
-        ['chromium', 'webkit']
-      )
+      assert.deepEqual(browserSteps(result).map(engineOf), [
+        'chromium',
+        'webkit'
+      ])
       assert.ok(
         result.skipped.some((line) =>
           line.includes('pnpm exec playwright install firefox')
