@@ -371,6 +371,7 @@ export function EditorNodeToolbar({
                 menu={item}
                 state={states[index]}
                 editor={editor}
+                headed
               />
             ) : (item.available?.(ui) ?? true) ? (
               <Control

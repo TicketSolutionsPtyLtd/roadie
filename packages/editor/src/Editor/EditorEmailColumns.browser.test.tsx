@@ -212,6 +212,70 @@ describe('Editor email columns', () => {
     )
   })
 
+  it('heads each of the columns’ toolbar menus with what it sets', async () => {
+    renderEmail(row('Lineup', 'Tickets'))
+    await clickText('Lineup')
+
+    for (const [trigger, heading] of [
+      ['Columns: 2 columns', 'Columns'],
+      ['Layout: Equal', 'Layout'],
+      ['Stack on phone: Left first', 'Stack on phone']
+    ]) {
+      await userEvent.click(
+        await screen.findByRole('button', { name: trigger })
+      )
+      const menu = await screen.findByRole('menu')
+      await waitFor(() =>
+        expect(within(menu).getByRole('group', { name: heading })).toBeVisible()
+      )
+      expect(within(menu).getByText(heading)).toBeVisible()
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    }
+  })
+
+  it.each([
+    [undefined, ['Lineup', 'Tickets', 'Doors']],
+    ['reverse', ['Doors', 'Tickets', 'Lineup']]
+  ] as const)(
+    'moves a stacked column up and down on a phone (stack %s)',
+    async (stack, shown) => {
+      await page.viewport(390, 700)
+      document.body.style.paddingInline = '0'
+      onTestFinished(() => {
+        document.body.style.paddingInline = ''
+        return page.viewport(1280, 800)
+      })
+      const onValueChange = renderEmail({
+        ...row('Lineup', 'Tickets', 'Doors'),
+        attrs: { ...(stack && { stack }) }
+      })
+      await clickText('Tickets')
+      const top = (text: string) =>
+        screen.getByText(text).getBoundingClientRect().top
+      expect([...shown].sort((a, b) => top(a) - top(b))).toEqual(shown)
+
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Column actions' })
+      )
+      const menu = await screen.findByRole('menu')
+      expect(
+        within(menu)
+          .getAllByRole('menuitem')
+          .map((item) => item.textContent)
+      ).toEqual(['Move up', 'Move down', 'Duplicate', 'Delete'])
+      await userEvent.click(
+        within(menu).getByRole('menuitem', { name: 'Move up' })
+      )
+
+      // Up the screen, whichever way the row stacks.
+      await waitFor(() => expect(top('Tickets')).toBeLessThan(top(shown[0])))
+      expect(texts(lastDoc(onValueChange)[0]!)).toEqual(
+        stack ? ['Lineup', 'Doors', 'Tickets'] : ['Tickets', 'Lineup', 'Doors']
+      )
+    }
+  )
+
   it('puts the columns’ menus in one Layout menu on a phone, in about 200px', async () => {
     await page.viewport(390, 700)
     onTestFinished(() => page.viewport(1280, 800))
