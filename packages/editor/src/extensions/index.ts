@@ -37,6 +37,57 @@ export function reactNodeView(component: ComponentType<EditorNodeViewProps>) {
   return ReactNodeViewRenderer(EditableOnly)
 }
 
+/** One choice in a `choice` setting. */
+export type EditorSettingOption = { value: string; label: string }
+
+/**
+ * One of a block's settings, which its Settings drawer edits as one field.
+ * `name` is the attr it sets.
+ */
+export type EditorSetting = {
+  name: string
+  label: string
+  helperText?: string
+} & (
+  | {
+      /** A line of text, or a few with `multiline`. */
+      type: 'text'
+      multiline?: boolean
+    }
+  | {
+      /** One of its options, as buttons up to three, or a select past that. */
+      type: 'choice'
+      options: readonly EditorSettingOption[]
+      /** The option shown chosen while the attr is unset, as the block draws it. */
+      defaultValue?: string
+    }
+  | {
+      /**
+       * An image, `{ src, alt }`: a link, or an upload with the editor's
+       * `onUploadImage`, and its alt text.
+       */
+      type: 'image'
+    }
+  | {
+      /** A link with its label, `{ label, href }`, such as a button. */
+      type: 'action'
+    }
+  | {
+      /**
+       * A list the author adds to, removes from and reorders, each item edited
+       * in its own fold: an object of `fields`, or an `item` that's an image
+       * or an action.
+       */
+      type: 'list'
+      /** What one is called, as in "Add card". */
+      itemLabel: string
+      fields?: readonly EditorSetting[]
+      item?: 'image' | 'action'
+      /** The most it takes. */
+      max?: number
+    }
+)
+
 /** An app's own block, for the `blocks` editor's `extensions`. */
 export type EditorBlock = {
   /**
@@ -56,4 +107,10 @@ export type EditorBlock = {
    * @default 'More'
    */
   group?: string
+  /**
+   * What its Settings drawer edits, one field each, so its view can render
+   * it as the page will rather than as a form. The block menu leads with
+   * Settings, and Enter opens it on the selected block.
+   */
+  settings?: readonly EditorSetting[]
 }
