@@ -169,6 +169,8 @@ const UNSAVED: ReadonlySet<string> = new Set(['id'])
 const isAttrs = (value: unknown): value is Attrs =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
+const hasLinkAndLabel = ({ label, href }: Attrs) => Boolean(label && href)
+
 // Side by side's stats are a panel holding its figures, not a list.
 function propOf(block: string, name: string, value: unknown): unknown {
   if (name === 'emphasis' && value === 'none') return undefined
@@ -176,7 +178,14 @@ function propOf(block: string, name: string, value: unknown): unknown {
     const panel = isAttrs(value) ? value : {}
     return { ...panel, figures: propOf('', 'figures', panel.figures) }
   }
-  return LISTS.has(name) && !Array.isArray(value) ? [] : value
+  if (!LISTS.has(name)) return value
+  if (!Array.isArray(value)) return []
+  // A new image or button draws nothing until it's filled in.
+  if (name === 'actions') return value.filter(isAttrs).filter(hasLinkAndLabel)
+  if (name === 'images' || name === 'logos') {
+    return value.filter(isAttrs).filter(({ src }) => Boolean(src))
+  }
+  return value
 }
 
 const propsOf = (block: string, attrs: Attrs): Attrs =>
@@ -242,43 +251,55 @@ type Part = CatalogueSetting extends infer Setting
   : never
 
 // The fields a drawer edits as a whole: images, buttons, and the items.
+// Presets differ in what an item holds and how many they take, so a list is
+// one setting for each set of presets that agree, shown only for those.
 function partsOf(block: CatalogueBlock, fields: Set<string>) {
-  const parts: [string, Part][] = []
-  const most = (name: string) =>
-    Math.max(
-      ...block.presets.map(
-        (preset) =>
-          (preset.limits as Record<string, { max?: number }> | undefined)?.[
-            name
-          ]?.max ?? Infinity
-      )
-    )
+  const parts: [string, Part, readonly string[]][] = []
+  const reading = (name: string) =>
+    block.presets.filter((preset) => preset.fields.includes(name))
+  const maxOf = (preset: BlockPreset, name: string) =>
+    (preset.limits as Record<string, { max?: number }> | undefined)?.[name]?.max
+  const byAgreement = (name: string, part: (preset: BlockPreset) => Part) => {
+    const groups = new Map<string, { part: Part; presets: string[] }>()
+    for (const preset of reading(name)) {
+      const made = part(preset)
+      const key = JSON.stringify(made)
+      const group = groups.get(key) ?? { part: made, presets: [] }
+      group.presets.push(preset.name)
+      groups.set(key, group)
+    }
+    for (const { part: made, presets } of groups.values()) {
+      parts.push([name, made, presets])
+    }
+  }
+  const limited = (max: number | undefined) =>
+    max === undefined ? {} : { max }
+
   if (fields.has('actions')) {
-    const max = most('actions')
-    parts.push([
-      'actions',
-      {
-        label: 'Buttons',
-        type: 'list',
-        itemLabel: 'Button',
-        item: 'action',
-        ...(Number.isFinite(max) && { max })
-      }
-    ])
+    byAgreement('actions', (preset) => ({
+      label: 'Buttons',
+      type: 'list',
+      itemLabel: 'Button',
+      item: 'action',
+      ...limited(maxOf(preset, 'actions'))
+    }))
   }
   for (const name of ['image', 'logo', 'poster']) {
-    if (fields.has(name))
-      parts.push([name, { label: sentence(name), type: 'image' }])
+    if (fields.has(name)) {
+      byAgreement(name, () => ({ label: sentence(name), type: 'image' }))
+    }
   }
   for (const [name, itemLabel] of [
     ['images', 'Image'],
     ['logos', 'Logo']
   ] as const) {
     if (fields.has(name)) {
-      parts.push([
-        name,
-        { label: sentence(name), type: 'list', itemLabel, item: 'image' }
-      ])
+      byAgreement(name, () => ({
+        label: sentence(name),
+        type: 'list',
+        itemLabel,
+        item: 'image'
+      }))
     }
   }
   for (const [name, itemLabel] of Object.entries(ITEMS)) {
@@ -289,20 +310,13 @@ function partsOf(block: CatalogueBlock, fields: Set<string>) {
     ) {
       continue
     }
-    const names = [
-      ...new Set(block.presets.flatMap((preset) => preset.itemFields ?? []))
-    ]
-    const max = most(name)
-    parts.push([
-      name,
-      {
-        label: sentence(name),
-        type: 'list',
-        itemLabel,
-        fields: itemSettings(names),
-        ...(Number.isFinite(max) && { max })
-      }
-    ])
+    byAgreement(name, (preset) => ({
+      label: sentence(name),
+      type: 'list',
+      itemLabel,
+      fields: itemSettings(preset.itemFields ?? []),
+      ...limited(maxOf(preset, name))
+    }))
   }
   return parts
 }
@@ -333,8 +347,13 @@ function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
       .filter(([name]) => fields.has(name))
       .map(([name, field]) => ({ ...field, name, available: reads(name) })),
     ...partsOf(block, fields).map(
-      ([name, part]) =>
-        ({ ...part, name, available: reads(name) }) as CatalogueSetting
+      ([name, part, presets]) =>
+        ({
+          ...part,
+          name,
+          available: (attrs: Readonly<Attrs>) =>
+            presets.includes(String(attrs.preset))
+        }) as CatalogueSetting
     )
   ]
 }

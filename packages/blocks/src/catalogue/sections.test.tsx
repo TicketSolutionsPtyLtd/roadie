@@ -172,6 +172,34 @@ describe('catalogueSections', () => {
     })
   })
 
+  it('edits only what each preset’s items hold, up to its own limit', () => {
+    const cards = everyBlock()
+      .find(({ label }) => label === 'Cards')!
+      .settings.filter(({ name }) => name === 'cards')
+    const shown = (preset: string) =>
+      cards.find((setting) => setting.available?.({ preset }))
+
+    expect(shown('text-blocks')).toMatchObject({ max: 4 })
+    expect(shown('plain')).not.toHaveProperty('max')
+    const lists = shown('lists')
+    expect(
+      lists?.type === 'list' && lists.fields?.map(({ name }) => name)
+    ).toEqual(['title', 'href'])
+  })
+
+  it('draws no image or button that hasn’t been filled in', () => {
+    const hero = everyBlock().find(({ label }) => label === 'Hero')!
+    const attrs = { ...hero.attrs, preset: 'title', title: 'Kazoo Hollow' }
+
+    expect(
+      renderToStaticMarkup(
+        hero.render({
+          attrs: { ...attrs, actions: [{ label: '', href: '' }] }
+        })
+      )
+    ).toBe(renderToStaticMarkup(hero.render({ attrs })))
+  })
+
   it('edits buttons and images, up to a preset’s limit', () => {
     expect(settingOf('Hero', 'actions')).toMatchObject({
       type: 'list',
