@@ -720,13 +720,15 @@ describe('Editor email block toolbar placement', () => {
   it('stays below the fields above the text when columns start it', async () => {
     await page.viewport(390, 800)
     onTestFinished(() => page.viewport(1280, 800))
-    // The email's own Preview text field sits above its canvas.
     render(
       <div style={{ paddingTop: 96 }}>
         <Editor
           aria-label={LABEL}
           defaultValue={email(columns, p('Doors 7pm'))}
-        />
+        >
+          <input aria-label='Subject' style={{ blockSize: 40 }} />
+          <Editor.Content />
+        </Editor>
       </div>
     )
     const textbox = await screen.findByRole('textbox', { name: LABEL })
@@ -735,7 +737,7 @@ describe('Editor email block toolbar placement', () => {
     const toolbar = await screen.findByRole('toolbar', {
       name: 'Columns actions'
     })
-    const field = screen.getByRole('textbox', { name: 'Preview text' })
+    const field = screen.getByRole('textbox', { name: 'Subject' })
     await waitFor(() => {
       const bar = toolbar.getBoundingClientRect()
       expect(bar.width).toBeGreaterThan(0)

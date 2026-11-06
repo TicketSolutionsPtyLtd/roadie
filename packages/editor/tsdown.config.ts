@@ -10,7 +10,12 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 // Unbundle mode is load-bearing for RSC safety, and keeps 'use client' per file
 // so its warning is noise — see packages/components/tsdown.config.ts.
 export default defineConfig(({ watch }) => ({
-  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}', '!**/testUtils.ts'],
+  entry: [
+    'src/**/*.{ts,tsx}',
+    '!**/*.test.{ts,tsx}',
+    '!**/testUtils.ts',
+    '!**/*TestUtils.ts'
+  ],
   unbundle: true,
   suppressWarnings: 'module level directive "use client"',
   // With one subpath, the common base would be src/schema and drop it from dist.

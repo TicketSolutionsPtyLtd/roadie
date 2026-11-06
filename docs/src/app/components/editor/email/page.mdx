@@ -44,6 +44,7 @@ variables, the unsubscribe page and the email in a browser.
   preset='email'
   variables={[
     { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+    { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } },
     { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } },
     { key: 'view_url', label: 'View in browser', kind: 'url', tokens: { ae: '[ViewInBrowserLink]', liquid: '{{ view_url }}' } }
   ]}
@@ -515,6 +516,34 @@ Each of these blocks has its own toolbar:
 An image the email shows must be served over https, as a mail client loads it
 from outside your site. An `onUploadImage` that resolves to a path on the site
 shows an error and adds nothing.
+
+### Section settings
+
+A section has a small toolbar on its top edge, on its own floating surface so
+it reads in either scheme. Its Settings button shows while the editor has
+focus and the section holds the caret, or while the section is under the
+pointer, and its menu leads with Settings too. Settings opens from the side,
+shifting the email over so nothing's covered, or as a sheet under half a
+phone's screen, with the section scrolled above it. Each change shows as
+it's made, and the drawer says so. Done, Escape, or a click or tap away
+keeps the changes, and Undo takes the whole visit back in one step. The
+caret goes back where it was before the section was selected, or after it,
+never inside it, so text typed next can't take the section's rule.
+
+- **Look:** Plain, Tint, the theme's `tint`, or Accent, the strong
+  button's fill, with its text, links, and buttons turned to stay legible.
+  There's no free colour, so every section stays on brand.
+- **Spacing:** Tight, Normal, or Roomy: 8, 16, or 32 pixels above and below.
+- **Show to:** Everyone, or those whose merge tag is set, is or isn't a
+  value, or is less or more than a number. It writes the section's
+  [`showWhen`](#conditions), and applies once the rule is whole.
+
+A section shown only to some keeps a faint outline, and its toolbar carries
+a badge that reads its rule, such as "Only when Tickets left < 50". A rule
+naming a merge tag that `variables` doesn't list shows a warning badge
+instead, as it can't send. A section saves only what
+differs from the defaults: `look: 'tint' | 'accent'` and
+`spacing: 'tight' | 'roomy'`.
 
 ### Importing HTML or MJML
 
