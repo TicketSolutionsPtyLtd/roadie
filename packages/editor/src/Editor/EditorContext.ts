@@ -56,6 +56,8 @@ export type EditorContextValue = {
   hasSettings: (name: string) => boolean
   /** Selects the block at `pos` and opens its Settings drawer. */
   editSettingsAt: (pos: number) => void
+  /** The list item open in the selected block's Settings drawer, by its path. */
+  editingItem: string | null
   /** Opens the import of an email's HTML or MJML, or undefined outside the email preset. */
   importSource: ((source?: string) => void) | undefined
   /** Shows Preview in place of the canvas, or undefined without `onRenderPreview`. */

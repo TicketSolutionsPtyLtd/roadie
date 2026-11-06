@@ -59,6 +59,39 @@ export function clickedSetting(
   return undefined
 }
 
+// The innermost elements showing just this text, in document order.
+const showing = (block: Element, text: string) =>
+  [...block.querySelectorAll('*')].filter(
+    (element) =>
+      element.textContent?.trim() === text &&
+      ![...element.children].some((child) => child.textContent?.trim() === text)
+  )
+
+/**
+ * The element a block draws one of a list's items with, found by its text as
+ * `clickedSetting` finds the item from the element. Items sharing a text are
+ * told apart by place, and a blank item by its list's item name, which a
+ * section shows for it while it's edited.
+ */
+export function itemElement(
+  block: Element,
+  items: readonly unknown[],
+  index: number,
+  itemLabel: string
+): Element | null {
+  const textsAt = (at: number) => textsOf(items[at], '').map(([, text]) => text)
+  const texts = textsAt(index)
+  for (const text of texts.length > 0 ? texts : [itemLabel]) {
+    const before = items.slice(0, index).filter((_, at) => {
+      const others = textsAt(at)
+      return texts.length > 0 ? others.includes(text) : others.length === 0
+    }).length
+    const found = showing(block, text)[before]
+    if (found) return found
+  }
+  return null
+}
+
 /** The innermost element at (x, y) in a block, to keep in view. */
 function clickedElement(block: Element, x: number, y: number) {
   const under = [...block.querySelectorAll('*')].filter((element) => {
