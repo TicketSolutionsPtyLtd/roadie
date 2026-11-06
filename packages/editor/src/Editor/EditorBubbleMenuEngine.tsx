@@ -2,6 +2,7 @@
 
 import { type ReactNode, use, useEffect, useRef, useState } from 'react'
 
+import type { MiddlewareState } from '@floating-ui/dom'
 import { DotsThreeIcon, PushPinIcon } from '@phosphor-icons/react'
 import { type EditorState, NodeSelection, Selection } from '@tiptap/pm/state'
 import { CellSelection } from '@tiptap/pm/tables'
@@ -24,6 +25,7 @@ import {
   stateOf
 } from './EditorToolbarEngine'
 import { BlockSelection } from './blockSelection'
+import { SECTION_CONTROLS, controlRects } from './canvasControls'
 import {
   type EditorControl,
   type EditorControlUi,
@@ -147,6 +149,38 @@ function clearOfActions(
     return { top: 0, bottom: box.top - OFFSET, keepPlacement: true }
   }
   return page
+}
+
+/**
+ * Shifts the menu clear of a section's Settings and badge level with it, to
+ * the side away from them. Runs before the offset, so it allows for that.
+ */
+function clearOfSectionControls(
+  editor: TiptapEditor,
+  { y, placement, rects: { reference, floating } }: MiddlewareState
+) {
+  const top = y + (placement.startsWith('top') ? -OFFSET : OFFSET)
+  const bottom = top + floating.height
+  const middle = reference.x + reference.width / 2
+  let left = 0
+  let right = document.documentElement.clientWidth
+  const frame = editor.view.dom.closest('[data-slot="editor"]')
+  for (const control of controlRects(frame, SECTION_CONTROLS)) {
+    if (control.bottom <= top || control.top >= bottom) continue
+    if (control.left + control.width / 2 >= middle) {
+      right = Math.min(right, control.left - OFFSET)
+    } else {
+      left = Math.max(left, control.right + OFFSET)
+    }
+  }
+  return {
+    rootBoundary: {
+      x: left,
+      y: 0,
+      width: Math.max(right - left, 0),
+      height: window.innerHeight
+    }
+  }
 }
 
 /** Whether a caret sits in text, where Alt+F10 can open the menu. */
@@ -286,6 +320,7 @@ function SelectionMenu({
         offset: OFFSET,
         flip: ({ elements }) =>
           clearOfChrome(editor, elements.reference.getBoundingClientRect()),
+        shift: (state) => clearOfSectionControls(editor, state),
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
           menuRef.current?.setAttribute('tabindex', '-1')

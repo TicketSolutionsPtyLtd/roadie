@@ -451,8 +451,8 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
     })
   }),
   section: outlined(Section, sectionClass, (attrs) => ({
-    ...(attrs.showWhen && { 'data-conditional': '' }),
-    ...(sectionLook(attrs).look && { 'data-filled': '' })
+    ...(attrs.showWhen ? { 'data-conditional': '' } : {}),
+    ...(sectionLook(attrs).look ? { 'data-filled': '' } : {})
   })).extend({
     addKeyboardShortcuts: () => ({
       Enter: ({ editor }) => editor.commands.command(leaveSection)

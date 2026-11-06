@@ -10,6 +10,7 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 import { EditorBlockMenuGroup } from './EditorBlockMenuGroup'
 import { BlockMenu, Control, stateOf } from './EditorToolbarEngine'
+import { GRIPS, SECTION_CONTROLS, controlRects } from './canvasControls'
 import {
   type EditorBlockMenu,
   type EditorControlUi,
@@ -161,22 +162,6 @@ function textRects(element: Element | null) {
 const overlaps = (a: DOMRect, b: DOMRect) =>
   a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
 
-const CANVAS_CONTROLS = [
-  '[data-slot="editor-column-handle"]',
-  '[data-slot="editor-block-handle"]',
-  '[data-slot="editor-section-settings"]',
-  '[data-slot="editor-section-toolbar"] [data-slot="badge"]'
-].join(', ')
-
-/** The canvas's own shown controls: grips, Section settings and badges. */
-function controlRects(frame: Element | null) {
-  if (!frame) return []
-  return Array.from(frame.querySelectorAll(CANVAS_CONTROLS))
-    .filter((control) => getComputedStyle(control).visibility === 'visible')
-    .map((control) => control.getBoundingClientRect())
-    .filter((rect) => rect.width > 0 && rect.height > 0)
-}
-
 /**
  * The first place for the columns toolbar that's on screen and covers no
  * text or canvas control: past their end at the top, above their end or start, inside their
@@ -205,7 +190,7 @@ function columnsPlace(
   const text = textRects(inside ?? element.previousElementSibling).concat(
     inside ? [] : textRects(element)
   )
-  const controls = controlRects(frame)
+  const controls = controlRects(frame, `${GRIPS}, ${SECTION_CONTROLS}`)
   const corner = Math.max(
     Math.min(Math.max(box.top, top) + INSET, box.bottom - height - INSET),
     box.top

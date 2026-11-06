@@ -220,7 +220,7 @@ describe('Editor email columns', () => {
       ['Columns: 2 columns', 'Columns'],
       ['Layout: Equal', 'Layout'],
       ['Stack on phone: Left first', 'Stack on phone']
-    ]) {
+    ] as const) {
       await userEvent.click(
         await screen.findByRole('button', { name: trigger })
       )
