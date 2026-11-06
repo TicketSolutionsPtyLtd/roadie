@@ -173,6 +173,34 @@ describe('the pre-push hook', () => {
     )
   })
 
+  test('quotes a route path in the reruns it prints, for zsh', () => {
+    const route = 'docs/src/app/overview/changelog/[release]/page.tsx'
+    const tests = {
+      ...repo.testFiles,
+      docs: [
+        ...repo.testFiles.docs,
+        'src/app/overview/changelog/[release]/page.test.tsx'
+      ]
+    }
+    const result = planPrePush({
+      ...repo,
+      testFiles: tests,
+      files: [route],
+      cacheDir: '/cache'
+    })
+    const [step] = result.steps.filter(({ kind }) => kind === 'tests')
+    assert.ok(
+      step.rerun.includes(
+        '"src/app/overview/changelog/[release]/page.test.tsx"'
+      )
+    )
+    assert.ok(
+      result.skipped.some((line) =>
+        line.includes('"src/app/overview/changelog/[release]/page.tsx"')
+      )
+    )
+  })
+
   describe('browser tests', () => {
     const toolbar = 'packages/components/src/components/Toolbar/index.tsx'
     const browserSteps = (result) =>

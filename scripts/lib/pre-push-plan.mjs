@@ -260,7 +260,7 @@ export function planPrePush({
     steps.push({
       kind: 'tests',
       label: `tests ${workspace.short} (${own.length} beside the change, ${count(guardFiles.length, 'guard')})`,
-      rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs].join(' ')}`,
+      rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs].map(shellQuoted).join(' ')}`,
       commands: [
         [
           'node',
@@ -276,7 +276,7 @@ export function planPrePush({
     const changedSource = changed.filter((file) => !TEST.test(file))
     if (changedSource.length)
       skipped.push(
-        `tests elsewhere in ${workspace.short} that import the change: pnpm test:gated ${workspace.short} ${changedSource.join(' ')}`
+        `tests elsewhere in ${workspace.short} that import the change: pnpm test:gated ${workspace.short} ${changedSource.map(shellQuoted).join(' ')}`
       )
     skipped.push(
       `the whole ${workspace.short} suite: pnpm test:gated ${workspace.short} --all`
