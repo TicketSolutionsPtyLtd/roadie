@@ -15,7 +15,7 @@ import {
   PlusIcon,
   PushPinSlashIcon
 } from '@phosphor-icons/react'
-import { NodeSelection } from '@tiptap/pm/state'
+import { NodeSelection, type Transaction } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Menu } from '@oztix/roadie-components/menu'
@@ -359,17 +359,24 @@ const KEYBOARD_SCROLL_MARGIN = { top: 5, right: 5, bottom: 96, left: 5 }
 // How far above that bar the caret stays.
 const CARET_GAP = 8
 
-/** The box that scrolls the editor, or the page. */
-function scrollerOf(element: Element): Element | Window {
-  for (let box = element.parentElement; box; box = box.parentElement) {
+/**
+ * Scrolls `element` up by `distance` in each box around it that can still
+ * scroll, then the page, until it has gone that far.
+ */
+function scrollBy(element: Element, distance: number) {
+  let left = distance
+  for (
+    let box = element.parentElement;
+    box && left > 0;
+    box = box.parentElement
+  ) {
     const { overflowY } = getComputedStyle(box)
-    if (
-      (overflowY === 'auto' || overflowY === 'scroll') &&
-      box.scrollHeight > box.clientHeight
-    )
-      return box
+    if (overflowY !== 'auto' && overflowY !== 'scroll') continue
+    const from = box.scrollTop
+    box.scrollTop += left
+    left -= box.scrollTop - from
   }
-  return window
+  if (left > 0) window.scrollBy(0, left)
 }
 
 const slotOf = (item: EditorToolbarItem, index: number): ToolbarSlot => {
@@ -733,27 +740,26 @@ export function EditorToolbarEngine({
   // The caret scrolls clear of the bar over the keyboard, not just the screen.
   useEffect(() => {
     if (!editor || editor.isDestroyed || !aboveKeyboard) return
-    const before = editor.options.editorProps
-    editor.setOptions({
-      editorProps: { ...before, scrollMargin: KEYBOARD_SCROLL_MARGIN }
-    })
+    const { view } = editor
+    // Only the margin, as the engine sets the other props on every render.
+    const before = view.props.scrollMargin
+    view.setProps({ scrollMargin: KEYBOARD_SCROLL_MARGIN })
     // ProseMirror's margin counts only from the scroll box's edge, which a
     // phone's browser can put under the keyboard, so the caret is lifted
-    // clear of the bar itself too.
-    const lift = () => {
+    // clear of the bar too, when ProseMirror itself would scroll to it.
+    const lift = ({ transaction }: { transaction: Transaction }) => {
       const bar = barRef.current
-      if (!bar || editor.isDestroyed || !editor.view.hasFocus()) return
-      const caret = editor.view.coordsAtPos(editor.state.selection.head)
+      const { selection } = editor.state
+      if (!transaction.scrolledIntoView || !bar || !view.hasFocus()) return
+      if (selection instanceof NodeSelection) return
+      const caret = view.coordsAtPos(selection.head)
       const clear = bar.getBoundingClientRect().top - CARET_GAP
-      if (caret.bottom > clear)
-        scrollerOf(editor.view.dom).scrollBy(0, caret.bottom - clear)
+      if (caret.bottom > clear) scrollBy(view.dom, caret.bottom - clear)
     }
-    editor.on('selectionUpdate', lift)
-    editor.on('update', lift)
+    editor.on('transaction', lift)
     return () => {
-      editor.off('selectionUpdate', lift)
-      editor.off('update', lift)
-      if (!editor.isDestroyed) editor.setOptions({ editorProps: before })
+      editor.off('transaction', lift)
+      if (!editor.isDestroyed) view.setProps({ scrollMargin: before ?? 5 })
     }
   }, [editor, aboveKeyboard])
 
