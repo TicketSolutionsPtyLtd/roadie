@@ -43,7 +43,7 @@ variables, the unsubscribe page and the email in a browser.
   aria-label='Newsletter'
   preset='email'
   variables={[
-    { key: 'first_name', label: 'First name', fallback: 'there', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+    { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
     { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } },
     { key: 'view_url', label: 'View in browser', kind: 'url', tokens: { ae: '[ViewInBrowserLink]', liquid: '{{ view_url }}' } }
   ]}
@@ -155,28 +155,180 @@ toolbars: select text to format it. It keeps its box, unlike a `blocks`
 page, as an email isn't read on the page it's written on, and the box shows
 where it ends. Pass `toolbar='docked'` for a bar across the top.
 
+### The email's colours
+
+The canvas stays light in a dark app, as the email it sends does. Pass the
+same `theme` that `renderEmail` takes, and its background, text, links,
+buttons, dividers, and font show in the canvas as they send, and a tinted
+or accent section swaps its blocks' colours as the email does. Without one, the canvas takes `defaultEmailTheme`, as
+`renderEmail` does, except that its links and strong buttons take the
+accent of a `ThemeProvider` around the editor, which `renderEmail` doesn't
+know, so pass `theme` for an exact match. Text outside columns sits 24
+pixels in from each side of the canvas, so it wraps where it sends, and
+columns reach 12 pixels further out, as they do in the email. The grip and
+add button sit in the gutter beside the canvas, which the editor keeps
+where the frame is too narrow for one. In a frame narrower than 544
+pixels, as on a phone, the email sends at the screen's width, so the canvas
+takes the frame's whole width with no gutter: the grip sits in the email's
+own padding, and Blocks in the toolbar or `/` adds a block. A boxless
+editor keeps its gutter for its handles. The outlines, the
+caret's tint, selected text, and the placeholder mix from the theme's
+colours, so they show on any background. A colour that isn't hex throws, as
+it does in `renderEmail`.
+
+```tsx-live-prose
+<Editor
+  aria-label='Newsletter'
+  preset='email'
+  theme={{ background: '#fdf6e3', text: '#2b2b2b', accent: '#5f270f', tint: '#f3e6cf' }}
+  defaultValue={{
+    version: 1,
+    preset: 'email',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Gates 11am at Jumbuck Orchard Park. ' }, { type: 'text', text: 'See the lineup', marks: [{ type: 'link', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' } }] }, { type: 'text', text: '.' }] },
+        { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' }, content: [{ type: 'text', text: 'Get tickets' }] },
+        { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender', emphasis: 'subtle' }, content: [{ type: 'text', text: 'Set times' }] }
+      ]
+    }
+  }}
+/>
+```
+
+### Previewing and sending a test
+
+With `onRenderPreview`, Preview, at the end of the docked toolbar's editing
+controls and in the floating toolbar's … menu, shows the email as it sends
+in place of the canvas. The host renders it: call `renderEmail` with the
+values it's given, on your server, since MJML needs Node, and resolve to its
+`html`. This page has no server, so it renders in the browser.
+
+- **Desktop** and **Phone** lay it out 600 and 375 pixels wide, as
+  [`EmailHtmlField`](#html-emails) does, scaled down to fit a narrower
+  screen.
+- **Dark** simulates the forced dark mode some mail apps apply, inverting
+  the email's colours but not its images, and says it's simulated, as other
+  apps keep an email light. The frame stays light, so an email's own dark
+  styles don't apply under the inversion.
+- **Preview as**, with `previewRecipients`, fills the merge tags with a
+  recipient's values and shows only the sections their conditions allow. It
+  starts on the first. Without recipients, merge tags show their fallbacks.
+  On a phone, the bar keeps to one row: its labels give way to icons, and
+  Preview as becomes an icon that opens a menu of the recipients.
+- **Send test**, with `onSendTest`, asks for an address and calls it with
+  the value, the address, and the recipient's values. Until the address is
+  whole, it says what Send needs. A rejection's message shows under the
+  address.
+- **The inbox row**, above the frame, shows the email as an inbox lists it,
+  with `sender` and `subject` when you pass them.
+
+This example's footer links to the unsubscribe page, a link variable, so
+Footer is in the Blocks drawer's Sections, and each recipient's
+`unsubscribe_url` is the link Preview shows. Preview shows the email as it
+was when Preview opened. Back to editing, or
+Escape, puts the canvas back and focuses it. The frame is sandboxed, so it
+runs none of the email's scripts.
+
+```tsx-live-noinline
+const variables = [
+  { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+  { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } },
+  { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { liquid: '{{ unsubscribe_url }}' } }
+]
+
+const unsubscribe = 'https://www.oztix.com.au/unsubscribe'
+
+function PreviewedEmail() {
+  return (
+    <Editor
+      aria-label='Newsletter'
+      preset='email'
+      toolbar='docked'
+      variables={variables}
+      previewRecipients={[
+        { label: 'Alex, 12 tickets left', values: { first_name: 'Alex', tickets_left: '12', unsubscribe_url: unsubscribe } },
+        { label: 'No name, 300 tickets left', values: { tickets_left: '300', unsubscribe_url: unsubscribe } }
+      ]}
+      onRenderPreview={async (value, { values }) =>
+        (await renderEmail({ kind: 'design', value }, { variables, values })).html
+      }
+      // A real app sends from its server; this one only waits.
+      onSendTest={() => new Promise((resolve) => setTimeout(resolve, 600))}
+      sender='Ochre Kite Weekender'
+      subject='Two weeks until the gates open'
+      defaultValue={{
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+            {
+              type: 'paragraph',
+              content: [
+                { type: 'text', text: 'Hi ' },
+                { type: 'variable', attrs: { key: 'first_name', fallback: 'there' } },
+                { type: 'text', text: ', the gates open at Jumbuck Orchard Park on Saturday 14 March.' }
+              ]
+            },
+            {
+              type: 'section',
+              attrs: { showWhen: { key: 'tickets_left', op: 'lessThan', value: 50 } },
+              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Fewer than 50 tickets are left, so grab yours soon.' }] }]
+            },
+            { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' }, content: [{ type: 'text', text: 'Get tickets' }] },
+            {
+              type: 'section',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [
+                    { type: 'text', text: 'You’re getting this email because you bought tickets on Oztix. ' },
+                    { type: 'text', text: 'Unsubscribe', marks: [{ type: 'link', attrs: { variable: 'unsubscribe_url' } }] }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }}
+    />
+  )
+}
+
+render(<PreviewedEmail />)
+```
+
 ### Adding blocks
 
 There are two ways to add a block. Both list the blocks under the same
-headings: Text, Media, Layout, and Email. Image adds one from its link, or
-an upload with `onUploadImage`, and Merge tag is in the `/` menu only, with
-`variables`.
+headings: Text, Media, Layout, Email, and Sections. Image adds one from its
+link, or an upload with `onUploadImage`, and Merge tag is in the `/` menu
+only, with `variables`.
 
 - **Blocks** in the toolbar opens a drawer of tiles, one per block, in its
   group. It starts the docked toolbar, so it shows on a phone, and ends the
   floating toolbar over a selection. The drawer opens from the right, or
   from the bottom on a phone. A tile adds its block after the block with the
   caret, and the drawer closes with the caret in the new block. On an empty
-  line, a text block takes the line's place, and any other block goes before
-  it. A section or columns picked in a column goes after the whole row,
+  line, the block takes the line's place, so no empty line is left behind,
+  except one an empty button holds on its own. A section or columns picked in a column goes after the whole row,
   since columns can't hold one. Image and Button open the file picker and
-  the link field on a new line there, or on the empty line.
-- **Sections** at the end of the drawer are ready-made groups of blocks to
-  edit: Header, Event, and Two events. Their buttons have no link until you
-  set one, and send as text until then. Footer, with a line on why the
-  reader gets the email and an Unsubscribe link, shows when one of
-  `variables` is a link variable whose key or label names the unsubscribe
-  page. The `/` menu leaves sections out.
+  the link field on a new line there, or on the empty line. Find a block
+  filters the tiles as `/` does, and from 1280 pixels wide the drawer
+  leaves the email usable beside it, padding the editor's end so it covers
+  none of the email.
+- **Sections** lead the drawer and end the `/` menu. They're ready-made
+  groups of blocks to edit: Header (also `/banner`), Event (`/tickets`,
+  `/cta`), Two events, and Lineup. Each goes after the top-level block with
+  the caret, or in place of an empty top-level line, never inside a section,
+  and no empty line follows it, with its first line's text selected, so typing replaces it.
+  Their buttons have no link until you set one, and send as text until then.
+  Footer, also found as `/unsubscribe`, with a line on why the reader gets
+  the email and an Unsubscribe link, shows when one of `variables` is a link
+  variable whose key or label names the unsubscribe page.
 - **`/`** opens the insert menu under the caret. Type to filter it. A
   heading with no matches hides, and the arrow keys step through the
   matches in the order shown, across the headings.
@@ -233,15 +385,26 @@ block you're typing in, and its menu moves the block.
 
 ### Composing a layout
 
-Type `/` to insert a block at the caret. The list filters as you type, the
-arrow keys move through it, Enter inserts, and Escape closes it, keeping what
-you typed, as does moving focus away. One undo takes a block the menu inserts
+Type `/` to insert a block at the caret, after a space or straight after a word, as in `7pm/section`; after a word it opens only once you type the start of a block's name, and not in a word with `.`, `:`, `/` or `@`, so dates such as `7/8` and links stay text. The list filters as you type, by the
+start of each word in a block's name or its other names, such as `/h1`, `/img`,
+`/hr`, `/btn`, or `/cta`, listing first a block whose name starts with what you typed, so `/2` offers 2 columns before Heading 2. The arrow keys move through it, Enter inserts, and
+Escape closes it, keeping what you typed, as does moving focus away. When
+nothing matches, a No blocks match row keeps it open, so Enter inserts nothing,
+until you type a space. With a mouse or trackpad, each block made by markdown
+shows its shortcut, such as `##` for Heading 2. One undo takes a block the menu inserts
 back to what you typed; an image, embed, or button, which arrives after its
 upload or link, takes a second. A paragraph, heading, or list turns the caret's line into
-one. Any other block goes before an empty line, or after a line with text, and a
-section or columns puts the caret in its first line. Only the blocks that fit
-at the caret are offered, so there's no section or columns inside a column, and
-only the other list type inside a list.
+one. Any other block takes an empty line's place, goes before a line the `/` starts, or after a line with text, and a
+section or columns puts the caret in its first line. Enter on the empty last
+line of a section takes that line out after the section, as Enter on an empty
+list item leaves the list, so what you type next isn't in the section. An
+email can end with a section or columns, with no empty line after them. Only the blocks that fit
+at the caret are offered, and only the other list type inside a list. Inside
+a section, columns, or list, Section and columns that can't go there, and
+the ready-made sections, go after that whole block instead, and the menu
+says so beside them, such as "after this section". Enter at the end of a
+button moves into an empty line already after it, so a second Enter leaves
+a section.
 
 ### Adding and editing merge tags
 
@@ -250,17 +413,11 @@ them under the caret. The list filters by label or key as you type, and Enter
 inserts the active one as a chip. Merge tag in the `/` menu opens the same
 list. A button's label takes merge tags too.
 
-A variable's `fallback`, such as `'there'` for a first name, goes on each tag
-as it's inserted. A variable with none opens the merge tag form as its tag is
-inserted, with focus in Fallback, as Edit merge tag does on any tag without
-one, and Enter there goes back to the text after the chip. Each chip shows its fallback after its label, as "First name ·
-there", or a warning dot when it has none.
-
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
 Remove merge tag. Edit merge tag opens a form to change which variable the
 tag shows and its fallback, the text anyone without a value sees. Each change
-shows in the email as you make it. Enter in Fallback, Escape, or a click
-away keeps them, as one step to undo, which puts the tag back as it was. An empty
+shows in the email as you make it. Enter in Fallback or a click away keeps
+them, as does Escape, as one step to undo, and Undo puts the tag back. An empty
 fallback saves none. Without `variables`, `{{` is only text and `/` offers no Merge tag.
 
 ### Unsubscribe and view-in-browser links
@@ -288,8 +445,8 @@ typing replaces it, and Enter in a button starts a new paragraph after it.
 
 Button settings, in the button's toolbar, edits its link and its look. Each
 change shows on the button as it's made, so there's no Save. Enter in Link,
-Escape, or a click away keeps the changes, as one step to undo, which puts
-the button back as it was. A link applies once it's a full address, and the button keeps
+Escape or a click away keeps the changes, as one step to undo, and Undo puts
+the button back. A link applies once it's a full address, and the button keeps
 its last one until then.
 
 - **Emphasis:** Strong, a fill in the theme's accent, for the action that
@@ -301,9 +458,8 @@ its last one until then.
 
 A button saves only what differs from a strong, left-aligned button at its
 label's width: `align`, `emphasis: 'normal' | 'subtle'`, and
-`fullWidth: true`. On the page, a strong button takes the accent the editor
-sits in, so wrap the editor in a `ThemeProvider` with the email's accent to
-match it.
+`fullWidth: true`. On the page, a button takes the colours of
+[`theme`](#the-emails-colours), as the email does.
 
 Images, text, and columns save their look the same way, only where it
 differs from the default:
@@ -443,6 +599,10 @@ const nextConfig = { serverExternalPackages: ['mjml'] }
   centred heading or paragraph an `mj-text` with `align="center"`.
 - `text` writes each link as its text then its href in brackets, unless the
   two match, and leaves out images, spacers, and dividers.
+- An empty line, a paragraph with no text, is left out, as it's room to type
+  in the editor, not space to send, and so is a section holding only empty
+  lines, a list item with no words, which would send as a blank bullet, and
+  a list left with no items. A spacer sends space.
 
 It reads the value into the email preset first, as `migrate` does, so a value
 from another preset renders too, keeping its text. A link or button needs an
@@ -691,8 +851,11 @@ const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
   `group` named for it. With `variables`, `{{` opens a `listbox` named Merge
   tags the same way.
 - Blocks in the toolbar opens a `dialog` named Blocks, with focus on its
-  first tile. Each heading's tiles sit in a `group` named for it, and Tab
-  moves between them. Enter or Space adds a block, and Escape closes the
+  first tile. A search field named Find a block comes first. Each heading's
+  tiles sit in a `group` named for it, and the tiles take one Tab stop: the
+  arrow keys move between them, across the headings, Home and End go to the
+  first and last, ArrowUp from the top row goes to the search field, and
+  typing a letter types it there. Enter or Space adds a block, and Escape closes the
   drawer. Either way, focus goes back to the text, or to the link field
   after Button.
 - In the email preset, a button's, a spacer's, columns', or a merge tag's own

@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { createPortal } from 'react-dom'
+
+import { Kbd } from '@oztix/roadie-components/kbd'
 
 import { MenuGroups } from './EditorMenuGroups'
 import type { InsertMenuState } from './insertMenu'
@@ -17,6 +19,23 @@ type EditorInsertMenuProps = {
 
 const optionId = (listboxId: string, index: number) => `${listboxId}-${index}`
 
+// A touch screen types no markdown, and Kbd's hover check misses one that
+// reports hover. Swap for useShowsShortcuts once it ships in components.
+const FINE_POINTER = '(any-pointer: fine)'
+
+function subscribeToPointer(onChange: () => void) {
+  const query = window.matchMedia(FINE_POINTER)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+
+const useFinePointer = () =>
+  useSyncExternalStore(
+    subscribeToPointer,
+    () => window.matchMedia(FINE_POINTER).matches,
+    () => false
+  )
+
 /**
  * What `/` or `{{` can insert, under the caret. Focus stays in the editor,
  * which points `aria-activedescendant` at the active option.
@@ -28,6 +47,7 @@ export function EditorInsertMenu({
   label
 }: EditorInsertMenuProps) {
   const listRef = useRef<HTMLDivElement>(null)
+  const showsShortcuts = useFinePointer()
   const mount = state?.mount
   const active = state ? optionId(id, state.active) : undefined
 
@@ -55,12 +75,24 @@ export function EditorInsertMenu({
       ref={listRef}
       id={id}
       role='listbox'
+      data-editor-popup=''
       aria-label={label}
       data-slot='editor-insert-menu'
       className='z-popover grid max-h-80 min-w-56 gap-0.5 overflow-y-auto rounded-xl emphasis-floating is-translucent p-1'
       // A press here would otherwise take focus from the editor.
       onMouseDown={(event) => event.preventDefault()}
     >
+      {state.items.length === 0 ? (
+        <div
+          id={optionId(id, 0)}
+          role='option'
+          aria-selected='false'
+          aria-disabled='true'
+          className='px-3 py-2 text-sm text-subtle select-none'
+        >
+          {state.noMatches}
+        </div>
+      ) : null}
       <MenuGroups
         items={state.items}
         id={id}
@@ -79,7 +111,26 @@ export function EditorInsertMenu({
               className='flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal select-none aria-selected:bg-subtle'
             >
               <Icon weight='bold' className='size-4 text-subtle' aria-hidden />
-              {item.label}
+              <span data-slot='editor-insert-label' className='grow'>
+                {item.label}
+              </span>
+              {state.notes[index] ? (
+                <span
+                  data-slot='editor-insert-note'
+                  className='ms-4 text-xs text-subtle'
+                >
+                  {state.notes[index]}
+                </span>
+              ) : null}
+              {item.shortcut && showsShortcuts ? (
+                <Kbd
+                  emphasis='subtler'
+                  data-slot='editor-insert-shortcut'
+                  className='ms-4 text-subtle'
+                >
+                  {item.shortcut}
+                </Kbd>
+              ) : null}
             </div>
           )
         }}

@@ -69,7 +69,20 @@ Text, Image and Embed under Media, and Divider and Table under Layout, then
 More for an app's own blocks. It offers only those that fit at the caret, so
 a table cell offers Paragraph alone. Image opens a popover to add one from
 its link, or with `onUploadImage` an upload, and Embed opens the Embed
-popover.
+popover. Other names find
+blocks too: `/youtube` or `/link` for Embed, `/h1` or `/title` for a heading,
+`/ul`, `/ol`, `/hr`, `/---`, and `/>`. Each block that markdown makes shows
+its shortcut, such as `##` or `---`, with a mouse or trackpad.
+
+**Blocks** in the toolbar, docked or floating, opens a drawer of the same
+blocks as tiles under their headings, from the right on a desktop or the
+bottom on a phone. A tile adds its block after the caret's, and the drawer
+closes with the caret in it. Find a block, at its top, filters the tiles as
+`/` does; typing on a tile types there, and Enter adds the first match. The
+arrow keys move between tiles. From 1280 pixels wide the drawer leaves the
+page usable beside it, with no backdrop, so you can move the caret without
+closing it. The [email preset](/components/editor/email#composing-a-layout)
+has the same drawer.
 
 ### Block handle
 
@@ -78,12 +91,15 @@ with the caret while the editor has focus. Drag it to move the block; a line
 shows where it will land, before the block under the pointer or, past its
 middle, after it. Click or tap it, or press `Mod+/` in the text, for
 the block's menu: Move up, Move down, Duplicate, Turn into, Insert below,
-Copy link to block, and Delete. The menu opens beside the grip, clear of
-the text, or below it where the page has no room beside it. `Mod+/` opens
-it with its first action ready for `Enter`. It's headed by
-the block's type, with each action's keys, and the block takes the chosen
-tint while it's open, so it's clear which block it acts on. Each is one step
-to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
+Copy link to block, and Delete, led by Settings on a block that has them.
+The menu opens beside the grip, clear of the text, or below it where the
+page has no room beside it. `Mod+/` opens it with its first action ready for
+`Enter`. It's headed by the block's type, with each action's keys, and the
+block takes the chosen tint while it's open, so it's clear which block it
+acts on. Each is one step to undo, a moved block keeps its `blockId`, and a
+copy gets one of its own. The add button before the grip opens the insert
+menu on a new line after the block, or in the block itself when it's an
+empty line.
 
 - **Settings** leads an image's or an embed's menu, and opens the same
   settings a click on it does.
@@ -111,8 +127,9 @@ is inset at its start by the grip's room, in a `subtler` editor too, so the
 page can't clip it. Its menu opens as a sheet over the lower half of the
 screen, with the block scrolled into the half above, which stays undimmed.
 The sheet leads with Move up and Move down buttons and Done, then Turn into
-and Move to, each a step of its own, the other actions, and Delete last. Move to lists the page's headings and sections,
-and puts the block under the one tapped, as one step to undo.
+and Move to, each a step of its own, the other actions, and Delete last.
+Move to lists the page's headings and sections, and puts the block under
+the one tapped, as one step to undo.
 
 ```tsx-live-prose
 <Editor
@@ -134,7 +151,7 @@ and puts the block under the one tapped, as one step to undo.
 />
 ```
 
-The editor makes room for the grip at the start of its text, in a
+The editor makes room for the add button and grip at the start of its text, in a
 `subtler` editor too, so neither its host nor a frame clips it. The grip
 sits on a block's first line of text, below a section's padding, and keeps
 its place as the editor resizes.
@@ -174,6 +191,26 @@ import {
 - A block is an atom (`group: 'block'`, `atom: true`). Its attrs are all it
   saves, so keep them to its inputs, such as `{ label, href }`, never
   rendered content.
+- Give it `settings`, and its view can show it as the page will, not as a
+  form. With a mouse, a click on the block opens them at the text clicked,
+  such as a card's title; on a touch screen a tap selects it. Settings also
+  leads its block menu, and Enter on the selected block opens them. They
+  open in a drawer from the side that leaves the page usable, and makes room
+  for the block beside it on a wide page, or a sheet under half the screen
+  on a phone, with a field for each:
+  - `text`: a line, or a few with `multiline`.
+  - `choice`: its `options` as buttons, or a select past three, with
+    `defaultValue` chosen while its attr is unset.
+  - `image`: `{ src, alt }`, from a link or, with `onUploadImage`, an upload.
+  - `action`: `{ label, href }`, such as a button.
+  - `list`: items to add, remove, and drag or move to reorder, each in its
+    own fold, of `fields`, or of an `item` that's an `image` or an `action`.
+
+  Each change shows as it's made. Done, Escape, Enter in a text setting, or
+  a click or tap away keeps the changes, and Undo takes the whole visit back
+  in one step. The caret goes back where it was before the block was
+  selected, or after the block, so the next key types rather than replacing
+  it. Opened from the keyboard with Enter, the block stays selected.
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
@@ -198,23 +235,12 @@ import {
   so a server page that renders saved content doesn't import Tiptap.
 
 ```tsx-live-prose-noinline
-function CallToActionView({ node, updateAttributes }) {
+function CallToActionView({ node }) {
   return (
-    <NodeViewWrapper className='grid gap-2 rounded-xl emphasis-subtle p-3'>
-      <Field>
-        <Field.Label>Button</Field.Label>
-        <Field.Input
-          value={node.attrs.label}
-          onChange={(event) => updateAttributes({ label: event.target.value })}
-        />
-      </Field>
-      <Field>
-        <Field.Label>Link</Field.Label>
-        <Field.Input
-          value={node.attrs.href}
-          onChange={(event) => updateAttributes({ href: event.target.value })}
-        />
-      </Field>
+    <NodeViewWrapper className='grid justify-items-start'>
+      <Button intent='brand' emphasis='strong'>
+        {String(node.attrs.label)}
+      </Button>
     </NodeViewWrapper>
   )
 }
@@ -223,6 +249,10 @@ const callToAction = {
   label: 'Call to action',
   icon: TicketIcon,
   keywords: ['button'],
+  settings: [
+    { name: 'label', label: 'Button', type: 'text' },
+    { name: 'href', label: 'Link', type: 'text', helperText: 'A page on this site, such as /events.' }
+  ],
   node: Node.create({
     name: 'callToAction',
     group: 'block',
@@ -288,6 +318,8 @@ render(<Page />)
 | Keys | Action |
 | --- | --- |
 | `/` | Open the insert menu, in the blocks preset |
+| `Enter` | With a block that has settings selected, open them |
+| `Escape` | In a block's settings, keep the changes and close them |
 
 Every preset's other keys are on the [Editor](/components/editor#accessibility)
 page.

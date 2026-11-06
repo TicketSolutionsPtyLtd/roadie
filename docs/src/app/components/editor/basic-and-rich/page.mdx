@@ -73,13 +73,13 @@ a web address links it as you go.
 The Link, Embed, Edit link, and Image popovers are one row: an input, a
 check button that saves, and Close. Editing a link adds Remove link between
 the two. An embed's Edit link opens as Embed settings, under its title, a
-hint, and Done.
-The popovers that change what's there show each change as it's typed: a
-selection's link while it's a whole address, an embed's player while a
-provider reads its link. Enter, the check, Escape, or a click away keeps the
-changes as one step to undo, and Close puts things back as they were. A link
-at a caret with nothing selected, a new embed from the Embed control, and a
-new image from the Image control are added on save.
+hint, and Done. The popovers that change what's there show each change as
+it's typed: a selection's link while it's a whole address, an embed's player
+while a provider reads its link. Enter, the check, or a click away keeps the
+changes as one step to undo, and so does Escape; Undo takes them back, and
+Close puts things back as they were. A link at a caret with nothing selected,
+a new embed from the Embed control, and a new image from the Image control
+are added on save.
 
 ```tsx-live-prose
 <Editor
@@ -359,7 +359,7 @@ phone.
   disabled. Each action is one step to undo.
 - An image's settings are a dialog named Image settings, with labelled
   fields, opened by Enter on a selected image or its Image settings action.
-  Escape puts the image back and returns focus to it. An upload in progress is a `status`, and an upload error
+  Escape keeps the changes and returns focus to the image. An upload in progress is a `status`, and an upload error
   shows in `Field.ErrorText`, or under the editor outside a `Field`.
 - An embed's player is titled with its provider and id, and takes no Tab
   stop in the editor. Arrow keys select an embed or an image, and Backspace

@@ -39,12 +39,14 @@ async function focusedTextbox() {
   return textbox
 }
 
+const OPTION_LABEL = '[data-slot="editor-insert-label"]'
+
 const insertMenu = () => screen.findByRole('listbox', { name: 'Insert' })
 
 const optionNames = (listbox: HTMLElement) =>
   within(listbox)
     .getAllByRole('option')
-    .map((option) => option.textContent)
+    .map((option) => option.querySelector(OPTION_LABEL)?.textContent)
 
 const groupNames = (listbox: HTMLElement) =>
   within(listbox)
@@ -131,6 +133,235 @@ describe('Editor insert menu in the blocks preset', () => {
         attrs: { src: '/images/crowd.webp' }
       })
     )
+  })
+
+  it.each([
+    ['youtube', ['Embed']],
+    ['vimeo', ['Embed']],
+    ['spotify', ['Embed']],
+    ['soundcloud', ['Embed']],
+    ['tiktok', ['Embed']],
+    ['link', ['Embed']],
+    ['h1', ['Heading 2']],
+    ['h2', ['Heading 2']],
+    ['h3', ['Heading 3']],
+    ['h4', ['Heading 4']],
+    ['title', ['Heading 2', 'Heading 3', 'Heading 4']],
+    ['img', ['Image']],
+    ['photo', ['Image']],
+    ['ul', ['Bulleted list']],
+    ['ol', ['Numbered list']],
+    ['hr', ['Divider']],
+    ['rule', ['Divider']],
+    ['---', ['Divider']],
+    ['>', ['Quote']]
+  ])('finds /%s', async (query, names) => {
+    renderBlocks(withUploads)
+    await focusedTextbox()
+
+    await userEvent.keyboard(`/${query}`)
+
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual(names)
+    )
+  })
+
+  it('opens straight after a word once a letter names a block', async () => {
+    const onValueChange = renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard('Doors 7pm/div')
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual(['Divider'])
+    )
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)).toMatchObject([
+        { type: 'paragraph', content: [text('Doors 7pm')] },
+        { type: 'horizontalRule' },
+        { type: 'paragraph' }
+      ])
+    )
+  })
+
+  it.each([
+    ['a date', 'Sat 7/8'],
+    ['a link', 'oztix.com.au/tickets'],
+    ['a fraction', 'Half 1/'],
+    ['a pair of words', 'Song/Title'],
+    ['a pair naming a keyword', 'Tickets/Link']
+  ])('stays shut after a word for %s', async (_, typed) => {
+    const onValueChange = renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard(`${typed}{Enter}`)
+
+    expect(screen.queryByRole('listbox')).toBe(null)
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)).toMatchObject([
+        { type: 'paragraph', content: [text(typed)] },
+        { type: 'paragraph' }
+      ])
+    )
+  })
+
+  it('keeps a No blocks match row open, so Enter inserts nothing', async () => {
+    const onValueChange = renderBlocks()
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/hero')
+    const listbox = await insertMenu()
+    await waitFor(() =>
+      expect(within(listbox).getByRole('option')).toHaveTextContent(
+        'No blocks match'
+      )
+    )
+    const row = within(listbox).getByRole('option')
+    expect(row).toHaveAttribute('aria-disabled', 'true')
+    expect(textbox).toHaveAttribute('aria-activedescendant', row.id)
+    await userEvent.keyboard('{Enter}')
+
+    expect(lastBlocks(onValueChange)).toMatchObject([
+      { type: 'paragraph', content: [text('/hero')] }
+    ])
+    expect(lastBlocks(onValueChange)).toHaveLength(1)
+    expect(screen.getByRole('listbox', { name: 'Insert' })).toBe(listbox)
+  })
+
+  it('closes once a space follows a query that matches nothing', async () => {
+    const onValueChange = renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/hero')
+    await insertMenu()
+    await userEvent.keyboard(' {Enter}')
+
+    expect(screen.queryByRole('listbox')).toBe(null)
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)).toMatchObject([
+        { type: 'paragraph', content: [text('/hero ')] },
+        { type: 'paragraph' }
+      ])
+    )
+  })
+
+  it('breaks the line on Enter past a space, where nothing that fits is named', async () => {
+    const onValueChange = renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard('- Doors /bulleted list')
+    await insertMenu()
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)[0]).toMatchObject({
+        type: 'bulletList',
+        content: [
+          {
+            type: 'listItem',
+            content: [{ content: [text('Doors /bulleted list')] }]
+          },
+          { type: 'listItem' }
+        ]
+      })
+    )
+  })
+
+  it.each([
+    ['Heading 2', '## ', { type: 'heading', attrs: { level: 2 } }],
+    ['Heading 3', '### ', { type: 'heading', attrs: { level: 3 } }],
+    ['Heading 4', '#### ', { type: 'heading', attrs: { level: 4 } }],
+    ['Bulleted list', '- ', { type: 'bulletList' }],
+    ['Numbered list', '1. ', { type: 'orderedList' }],
+    ['Quote', '> ', { type: 'blockquote' }],
+    ['Divider', '---', { type: 'horizontalRule' }]
+  ])('shows the shortcut that makes a %s', async (name, typed, block) => {
+    const onValueChange = renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const option = within(await insertMenu()).getByRole('option', { name })
+    expect(
+      option.querySelector('[data-slot="editor-insert-shortcut"]')
+    ).toHaveTextContent(typed.trim())
+    await userEvent.keyboard('{Escape}{Backspace}')
+    await userEvent.keyboard(typed)
+
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)[0]).toMatchObject(block)
+    )
+  })
+
+  it('shows no shortcuts without a fine pointer, as on a touch screen', async () => {
+    const real = window.matchMedia.bind(window)
+    const matchMedia = vi
+      .spyOn(window, 'matchMedia')
+      .mockImplementation((query) =>
+        query === '(any-pointer: fine)'
+          ? ({
+              matches: false,
+              media: query,
+              addEventListener: () => {},
+              removeEventListener: () => {}
+            } as unknown as MediaQueryList)
+          : real(query)
+      )
+    try {
+      renderBlocks()
+      await focusedTextbox()
+
+      await userEvent.keyboard('/')
+      const listbox = await insertMenu()
+
+      expect(optionNames(listbox)).toContain('Heading 2')
+      expect(
+        listbox.querySelector('[data-slot="editor-insert-shortcut"]')
+      ).toBe(null)
+    } finally {
+      matchMedia.mockRestore()
+    }
+  })
+
+  it('inserts a block before a line with text when / starts it', async () => {
+    const onValueChange = renderBlocks({
+      defaultValue: {
+        version: 1,
+        preset: 'blocks',
+        doc: {
+          type: 'doc',
+          content: [{ type: 'paragraph', content: [text('Doors 7pm')] }]
+        }
+      }
+    })
+    const textbox = await focusedTextbox()
+    await userEvent.click(within(textbox).getByText('Doors 7pm'), {
+      position: { x: 1, y: 4 }
+    })
+
+    await userEvent.keyboard('/divider{Enter}')
+
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)).toMatchObject([
+        { type: 'horizontalRule' },
+        { type: 'paragraph', content: [text('Doors 7pm')] }
+      ])
+    )
+  })
+
+  it('shows no shortcut for a block without one', async () => {
+    renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const listbox = await insertMenu()
+
+    for (const name of ['Paragraph', 'Embed', 'Table']) {
+      const option = within(listbox).getByRole('option', { name })
+      expect(option.querySelector('[data-slot="editor-insert-shortcut"]')).toBe(
+        null
+      )
+    }
   })
 
   it.each([
