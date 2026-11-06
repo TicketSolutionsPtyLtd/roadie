@@ -905,7 +905,12 @@ describe('Editor block handle', () => {
     it('moves to a new line the caret makes, from the block tapped', async () => {
       await page.viewport(390, 700)
       renderLineup()
-      await userEvent.click(await paragraph('Doors'))
+      const doors = await paragraph('Doors')
+      await userEvent.click(doors)
+      // A tap's own press, which leaves the hover on the block tapped.
+      doors.dispatchEvent(
+        new PointerEvent('pointerdown', { pointerType: 'touch', bubbles: true })
+      )
       await userEvent.keyboard(`${LINE_END}{Enter}`)
 
       const textbox = await screen.findByRole('textbox', { name: LABEL })
@@ -917,6 +922,16 @@ describe('Editor block handle', () => {
         expect(centre).toBeLessThan(bottom)
       })
     })
+  })
+
+  it('stays beside the hovered block in a narrow window with a mouse', async () => {
+    await page.viewport(390, 700)
+    renderLineup()
+    await userEvent.click(await paragraph('Doors'))
+
+    await userEvent.hover(await paragraph('Headliner'))
+
+    await expectHandleBeside('Headliner')
   })
 
   describe('right to left', () => {

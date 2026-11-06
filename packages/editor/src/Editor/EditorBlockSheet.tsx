@@ -183,7 +183,12 @@ export function EditorBlockSheet({
                   </IconButton>
                 )
               })}
-              <Button size='md' emphasis='strong' onClick={onClose}>
+              <Button
+                size='md'
+                emphasis='strong'
+                intent='accent'
+                onClick={onClose}
+              >
                 Done
               </Button>
             </>
