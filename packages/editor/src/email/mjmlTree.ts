@@ -37,7 +37,10 @@ type Context = TreeContext & {
   padding: string
 }
 
-const BLOCK_PADDING = '8px 24px'
+/** A block's inset from the email's sides, outside columns, in pixels. */
+export const EMAIL_BLOCK_INSET = 24
+
+const BLOCK_PADDING = `8px ${EMAIL_BLOCK_INSET}px`
 const COLUMN_BLOCK_PADDING = '8px 12px'
 
 const mj = (
