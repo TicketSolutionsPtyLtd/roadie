@@ -71,13 +71,28 @@ async function openSettings() {
   await userEvent.click(
     await screen.findByRole('button', { name: 'Block actions' })
   )
-  await userEvent.click(
-    await screen.findByRole('menuitem', { name: 'Select section' })
-  )
-  await waitFor(() =>
-    expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Settings')
-  )
-  await userEvent.click(screen.getAllByRole('menuitem')[0]!)
+  // A phone gets the block's sheet, of buttons, in place of its menu.
+  const sheet = await waitFor(() => {
+    const opened = screen.queryByRole('dialog')
+    if (!opened) expect(screen.getByRole('menu')).toBeVisible()
+    return opened
+  })
+  if (sheet) {
+    await userEvent.click(
+      within(sheet).getByRole('button', { name: 'Select section' })
+    )
+    await userEvent.click(
+      await within(sheet).findByRole('button', { name: 'Settings' })
+    )
+  } else {
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Select section' })
+    )
+    await waitFor(() =>
+      expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Settings')
+    )
+    await userEvent.click(screen.getAllByRole('menuitem')[0]!)
+  }
   return screen.findByRole('dialog', { name: 'Section settings' })
 }
 
