@@ -34,33 +34,38 @@ export function EditorPreheader({ editor, className }: EditorPreheaderProps) {
   // The label sits beside the field where there's room, and above it on a
   // phone, so the field keeps its width.
   return (
-    <div className={cn('@container mx-auto w-full max-w-[600px]', className)}>
-      <Field
-        data-slot='editor-preheader'
-        className='items-center gap-x-3 gap-y-1 @min-[30rem]:grid-cols-[auto_minmax(0,1fr)]'
-      >
-        <Field.Label className='text-sm text-subtle'>Preview text</Field.Label>
-        <Field.Input
-          size='sm'
-          emphasis='subtle'
-          value={preheader}
-          readOnly={!editable}
-          placeholder='Shown after the subject in the inbox'
-          onChange={(event) => {
-            const { state, view } = editor
-            // Its own field, so typing here is undone here, not in the email.
-            view.dispatch(
-              withPreheader(state.tr, event.target.value).setMeta(
-                'addToHistory',
-                false
+    // The row keeps the email's gutter, as the canvas does, so the two line up.
+    <div data-slot='editor-preheader-row'>
+      <div className={cn('@container mx-auto w-full max-w-[600px]', className)}>
+        <Field
+          data-slot='editor-preheader'
+          className='items-center gap-x-3 gap-y-1 @min-[30rem]:grid-cols-[auto_minmax(0,1fr)]'
+        >
+          <Field.Label className='text-sm text-subtle'>
+            Preview text
+          </Field.Label>
+          <Field.Input
+            size='sm'
+            emphasis='subtle'
+            value={preheader}
+            readOnly={!editable}
+            placeholder='Shown after the subject in the inbox'
+            onChange={(event) => {
+              const { state, view } = editor
+              // Its own field, so typing here is undone here, not in the email.
+              view.dispatch(
+                withPreheader(state.tr, event.target.value).setMeta(
+                  'addToHistory',
+                  false
+                )
               )
-            )
-          }}
-        />
-        <Field.HelperText className='text-xs @min-[30rem]:col-start-2'>
-          About 40 to 90 characters show.
-        </Field.HelperText>
-      </Field>
+            }}
+          />
+          <Field.HelperText className='text-xs @min-[30rem]:col-start-2'>
+            About 40 to 90 characters show.
+          </Field.HelperText>
+        </Field>
+      </div>
     </div>
   )
 }

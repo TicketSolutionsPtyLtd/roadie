@@ -159,13 +159,16 @@ describe('Editor preheader', () => {
       const box = input.getBoundingClientRect()
       const result = {
         stacked: label.getBoundingClientRect().bottom <= box.top,
-        width: box.width
+        width: box.width,
+        left: label.getBoundingClientRect().left,
+        textLeft: screen.getByText('Doors 7pm').getBoundingClientRect().left
       }
       cleanup()
       return result
     }
     const phone = await place(390)
     expect(phone.stacked).toBe(true)
+    expect(phone.left).toBeCloseTo(phone.textLeft, 0)
     expect(phone.width).toBeGreaterThan(300)
     expect((await place(900)).stacked).toBe(false)
   })
