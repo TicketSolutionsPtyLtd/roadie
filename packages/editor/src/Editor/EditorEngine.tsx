@@ -77,6 +77,7 @@ import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
+import { EditorPreview } from './EditorPreview'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
@@ -491,6 +492,11 @@ export function EditorEngine({
   extensions: extensionsProp,
   variables,
   theme,
+  onRenderPreview,
+  previewRecipients,
+  onSendTest,
+  sender,
+  subject,
   toolbar: toolbarProp,
   defaultToolbar,
   onToolbarChange,
@@ -558,6 +564,7 @@ export function EditorEngine({
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
   const [addingBlocks, setAddingBlocks] = useState(false)
   const [drawerStart, setDrawerStart] = useState<string>()
+  const [previewing, setPreviewing] = useState<EditorValue | null>(null)
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
@@ -872,6 +879,34 @@ export function EditorEngine({
     if (!editor?.isEditable) return
     setImporting(({ count }) => ({ open: true, source, count: count + 1 }))
   }
+  const previewClosed = useRef(false)
+  // The canvas shows again only on the render after Preview closes.
+  useEffect(() => {
+    if (previewing || !previewClosed.current || !editor) return
+    previewClosed.current = false
+    focusEditor(editor)
+  }, [previewing, editor])
+  const openPreview =
+    preset === 'email' && onRenderPreview
+      ? () => {
+          if (!editor) return
+          setPreviewing(currentValue(editor, preset))
+        }
+      : undefined
+  const preview =
+    previewing && onRenderPreview ? (
+      <EditorPreview
+        value={previewing}
+        inbox={{ sender, subject }}
+        recipients={previewRecipients}
+        onRenderPreview={onRenderPreview}
+        onSendTest={onSendTest}
+        onClose={() => {
+          previewClosed.current = true
+          setPreviewing(null)
+        }}
+      />
+    ) : null
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
     editLink: () => {
@@ -899,7 +934,8 @@ export function EditorEngine({
     replaceImage: canUpload
       ? () => replaceInputRef.current?.click()
       : undefined,
-    importSource: preset === 'email' ? importSource : undefined
+    importSource: preset === 'email' ? importSource : undefined,
+    preview: openPreview
   }
   useEffect(() => {
     uiRef.current = ui
@@ -938,6 +974,8 @@ export function EditorEngine({
         bubbleMenuRef,
         ...ui,
         openBlocks: drawerItems.length > 0 ? () => openDrawer() : undefined,
+        openPreview,
+        preview,
         hasSettings,
         editSettingsAt,
         editingLink,
@@ -951,6 +989,7 @@ export function EditorEngine({
       <div
         data-slot='editor'
         data-preset={preset}
+        data-previewing={preview ? '' : undefined}
         data-emphasis={emphasis}
         style={preset === 'email' ? emailCanvasStyle(theme) : undefined}
         aria-invalid={field.invalid || undefined}
