@@ -477,9 +477,7 @@ describe('Editor email block handle', () => {
             'Alpha two',
             { columns: [{ column: ['Left one'] }, { column: ['Right one'] }] }
           ]
-        },
-        // A doc always ends in a line to type on.
-        ''
+        }
       )
     })
 
@@ -594,7 +592,6 @@ describe('Editor email block handle', () => {
         section: [
           'Alpha one',
           'horizontalRule',
-          '',
           'Alpha two',
           { columns: [{ column: ['Left one'] }, { column: ['Right one'] }] }
         ]
@@ -619,20 +616,16 @@ describe('Editor email block handle', () => {
       await screen.findByRole('option', { name: 'Divider' })
     )
 
-    await expectOutline(
-      onValueChange,
-      {
-        section: [
-          {
-            columns: [
-              { column: ['Left one'] },
-              { column: ['horizontalRule', ''] }
-            ]
-          }
-        ]
-      },
-      ''
-    )
+    await expectOutline(onValueChange, {
+      section: [
+        {
+          columns: [
+            { column: ['Left one'] },
+            { column: ['horizontalRule', ''] }
+          ]
+        }
+      ]
+    })
   })
 
   it('moves a block into and out of columns by keyboard', async () => {
@@ -681,15 +674,11 @@ describe('Editor email block handle', () => {
     await openMenuOn('Left two')
     await chooseMove('Move down')
 
-    await expectOutline(
-      onValueChange,
-      {
-        section: [
-          { columns: [{ column: ['Left one'] }, { column: ['Left two'] }] }
-        ]
-      },
-      ''
-    )
+    await expectOutline(onValueChange, {
+      section: [
+        { columns: [{ column: ['Left one'] }, { column: ['Left two'] }] }
+      ]
+    })
   })
 
   it('moves the last block of the last column out after the columns', async () => {
@@ -728,8 +717,7 @@ describe('Editor email block handle', () => {
           { columns: [{ column: ['Left one'] }, { column: ['Right one'] }] }
         ]
       },
-      { section: ['Bravo one', 'Closing'] },
-      ''
+      { section: ['Bravo one', 'Closing'] }
     )
   })
 

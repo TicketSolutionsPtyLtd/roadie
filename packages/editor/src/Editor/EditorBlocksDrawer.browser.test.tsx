@@ -96,7 +96,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await openFromDockedBar()
 
     expect(tileGroups(drawer)).toEqual([
-      ['Sections', ['Header', 'Event', 'Two events']],
+      ['Sections', ['Header', 'Event', 'Two events', 'Lineup']],
       [
         'Text',
         [
@@ -207,8 +207,7 @@ describe('Editor blocks drawer', () => {
             type: 'columns',
             content: [column(p('Lineup')), column(p('Set times'))]
           },
-          { type: 'section', content: [p()] },
-          p()
+          { type: 'section', content: [p()] }
         )
       )
     )
@@ -377,7 +376,6 @@ describe('Editor blocks drawer', () => {
             attrs: { href: 'https://example.com/tickets' },
             content: [{ type: 'text', text: 'Button' }]
           },
-          p(),
           p('Gates 6pm')
         )
       )
@@ -458,7 +456,7 @@ describe('Editor blocks drawer', () => {
         })
       ).toHaveFocus()
     )
-    await userEvent.keyboard('{ArrowRight}'.repeat(13))
+    await userEvent.keyboard('{ArrowRight}'.repeat(14))
     expect(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
     ).toHaveFocus()
@@ -653,7 +651,8 @@ describe('Editor blocks drawer finding and moving', () => {
     ).getBoundingClientRect()
     const above = tile(second!).getBoundingClientRect()
     expect(moved.top).toBeGreaterThan(above.top)
-    expect(Math.abs(moved.left - above.left)).toBeLessThan(2)
+    // The nearest tile in the next row, which is under it unless that row is short.
+    expect(moved.left).toBeLessThanOrEqual(above.left + 1)
     await userEvent.keyboard('{End}')
     const last = document.activeElement
     expect(last?.textContent).toBe(tileNames(drawer).at(-1))
@@ -939,6 +938,75 @@ describe('Editor blocks drawer sections', () => {
     await waitFor(async () => expect(await textbox()).toHaveFocus())
   })
 
+  it('selects the section’s first placeholder, so typing replaces it', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Header' })
+    )
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+    await userEvent.keyboard('Ochre Kite Weekender')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          p('Doors 7pm'),
+          {
+            type: 'section',
+            content: [
+              heading(2, 'Ochre Kite Weekender'),
+              p('A line or two on what this email is about.')
+            ]
+          },
+          p('Gates 6pm')
+        )
+      )
+    )
+  })
+
+  it('puts a section in place of an empty email’s line, with no empty line after it', async () => {
+    const onValueChange = renderEmail({ defaultValue: email(p()) })
+    await clickIntoEditor((await textbox()).querySelector('p')!)
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Header' })
+    )
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
+          ({ type }) => type
+        )
+      ).toEqual(['section'])
+    )
+  })
+
+  it('puts a section after the section with the caret, not inside it', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(
+        { type: 'section', content: [p('Doors 7pm'), p('Gates 6pm')] },
+        p('All ages')
+      )
+    })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Event' }))
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          { type: 'section', content: [p('Doors 7pm'), p('Gates 6pm')] },
+          { type: 'section', content: event },
+          p('All ages')
+        )
+      )
+    )
+  })
+
   it('offers a footer linking to the unsubscribe page when the app has one', async () => {
     const onValueChange = renderEmail({
       variables: [
@@ -954,7 +1022,7 @@ describe('Editor blocks drawer sections', () => {
       within(sections)
         .getAllByRole('button')
         .map((tile) => tile.textContent)
-    ).toEqual(['Header', 'Event', 'Two events', 'Footer'])
+    ).toEqual(['Header', 'Event', 'Two events', 'Lineup', 'Footer'])
     await userEvent.click(
       within(sections).getByRole('button', { name: 'Footer' })
     )

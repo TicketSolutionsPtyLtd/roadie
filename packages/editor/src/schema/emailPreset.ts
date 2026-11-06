@@ -316,6 +316,9 @@ export const email: Extensions = [
   StarterKit.configure({
     ...starterKitOptions,
     document: false,
+    // An empty last line sends as blank space, so a section or columns can
+    // end the email: Enter leaves a section, and Tab the columns.
+    trailingNode: { notAfter: ['paragraph', 'section', 'columns'] },
     blockquote: false,
     heading: false,
     horizontalRule: false
