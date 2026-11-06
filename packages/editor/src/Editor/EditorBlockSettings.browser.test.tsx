@@ -39,6 +39,11 @@ function PromoView({ node }: EditorNodeViewProps) {
     <NodeViewWrapper data-slot='promo'>
       <p>{String(node.attrs.title)}</p>
       <p>{String(node.attrs.tone)}</p>
+      <ul>
+        {(node.attrs.lineup as { name: string }[]).map(({ name }) => (
+          <li key={name}>{name}</li>
+        ))}
+      </ul>
     </NodeViewWrapper>
   )
 }
@@ -53,7 +58,11 @@ const promo: EditorBlock = {
     addAttributes: () => ({
       title: { default: 'Ochre Kite Weekender' },
       tone: { default: 'calm' },
-      size: { default: undefined }
+      size: { default: undefined },
+      lineup: {
+        default: [{ name: 'Velvet Kookaburra', photo: { src: '', alt: '' } }]
+      },
+      tickets: { default: { label: 'Get tickets', href: '/tickets' } }
     }),
     parseHTML: () => [{ tag: 'div[data-promo]' }],
     renderHTML: ({ HTMLAttributes }) => [
@@ -82,7 +91,18 @@ const promo: EditorBlock = {
         { value: 'sm', label: 'Small' },
         { value: 'md', label: 'Medium' }
       ]
-    }
+    },
+    {
+      name: 'lineup',
+      label: 'Lineup',
+      type: 'list',
+      itemLabel: 'Act',
+      fields: [
+        { name: 'name', label: 'Name', type: 'text' },
+        { name: 'photo', label: 'Photo', type: 'image' }
+      ]
+    },
+    { name: 'tickets', label: 'Tickets', type: 'action' }
   ]
 }
 
@@ -367,7 +387,6 @@ describe('Editor block settings', () => {
     )
 
     await userEvent.click(await promoView())
-    await userEvent.keyboard('{Enter}')
     const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
 
     await waitFor(() => {
@@ -381,12 +400,187 @@ describe('Editor block settings', () => {
 
   it('opens on Enter with the block selected', async () => {
     renderPage()
+    await userEvent.click(await screen.findByText('Doors 7pm'))
 
-    await userEvent.click(await promoView())
-    await userEvent.keyboard('{Enter}')
+    await userEvent.keyboard('{End}{ArrowDown}{Enter}')
 
     expect(
       await screen.findByRole('dialog', { name: 'Promo settings' })
     ).toBeVisible()
+  })
+
+  it('opens on a click, at the list item clicked', async () => {
+    renderPage()
+
+    await userEvent.click(await screen.findByText('Velvet Kookaburra'))
+
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+    await waitFor(() =>
+      expect(
+        within(drawer).getByRole('textbox', { name: 'Name' })
+      ).toHaveFocus()
+    )
+    expect(within(drawer).getByRole('textbox', { name: 'Name' })).toHaveValue(
+      'Velvet Kookaburra'
+    )
+  })
+
+  it('adds, edits and removes a list’s items', async () => {
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Add act' })
+    )
+    const names = within(drawer).getAllByRole('textbox', { name: 'Name' })
+    await userEvent.type(names.at(-1)!, 'Marri Lane')
+    await waitFor(() =>
+      expect(savedPromo(onValueChange)!.lineup).toEqual([
+        { name: 'Velvet Kookaburra', photo: { src: '', alt: '' } },
+        { name: 'Marri Lane' }
+      ])
+    )
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Remove Velvet Kookaburra' })
+    )
+
+    await waitFor(() =>
+      expect(savedPromo(onValueChange)!.lineup).toEqual([
+        { name: 'Marri Lane' }
+      ])
+    )
+    expect(
+      await screen.findByText('Marri Lane', { selector: 'li' })
+    ).toBeVisible()
+  })
+
+  it('reorders a list’s items from its handle’s menu', async () => {
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Add act' })
+    )
+    await userEvent.type(
+      within(drawer).getAllByRole('textbox', { name: 'Name' }).at(-1)!,
+      'Marri Lane'
+    )
+
+    const handles = within(drawer).getAllByRole('button', { name: /^Reorder/ })
+    await userEvent.click(handles[0]!)
+    await userEvent.click(
+      await screen.findByRole('menuitem', {
+        name: 'Move Velvet Kookaburra down'
+      })
+    )
+
+    await waitFor(() =>
+      expect(
+        (savedPromo(onValueChange)!.lineup as { name: string }[]).map(
+          ({ name }) => name
+        )
+      ).toEqual(['Marri Lane', 'Velvet Kookaburra'])
+    )
+  })
+
+  it('sets an image by its link and alt text, and refuses a link that can’t load', async () => {
+    const onValueChange = renderPage()
+    await userEvent.click(await screen.findByText('Velvet Kookaburra'))
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+    const photo = within(drawer).getByRole('group', { name: 'Photo' })
+
+    await userEvent.type(
+      within(photo).getByRole('textbox', { name: 'Link' }),
+      'http://example.com/a.jpg'
+    )
+    expect(
+      within(photo).getByRole('textbox', { name: 'Link' })
+    ).toHaveAttribute('aria-invalid', 'true')
+    await userEvent.clear(within(photo).getByRole('textbox', { name: 'Link' }))
+    await userEvent.type(
+      within(photo).getByRole('textbox', { name: 'Link' }),
+      '/blocks/velvet.webp'
+    )
+    await userEvent.type(
+      within(photo).getByRole('textbox', { name: 'Alt text' }),
+      'The band on stage'
+    )
+
+    await waitFor(() =>
+      expect(savedPromo(onValueChange)!.lineup).toMatchObject([
+        { photo: { src: '/blocks/velvet.webp', alt: 'The band on stage' } }
+      ])
+    )
+  })
+
+  it('sets an action’s label and link, keeping an unsafe link out', async () => {
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+    const tickets = within(drawer).getByRole('group', { name: 'Tickets' })
+
+    await userEvent.type(
+      within(tickets).getByRole('textbox', { name: 'Label' }),
+      '!'
+    )
+    const link = within(tickets).getByRole('textbox', { name: 'Link' })
+    await userEvent.clear(link)
+    await userEvent.type(link, 'javascript:alert(1)')
+
+    await waitFor(() => expect(link).toHaveAttribute('aria-invalid', 'true'))
+    expect(savedPromo(onValueChange)!.tickets).toMatchObject({
+      label: 'Get tickets!'
+    })
+    expect(
+      String((savedPromo(onValueChange)!.tickets as { href: string }).href)
+    ).not.toMatch(/^javascript:/i)
+  })
+
+  it('says Escape puts the block back', async () => {
+    renderPage()
+
+    const drawer = await openFromMenu()
+
+    expect(drawer).toHaveAccessibleDescription(
+      'Changes apply as you go. Esc puts them back.'
+    )
+  })
+
+  it('keeps the changes on Done', async () => {
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Done' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedPromo(onValueChange)).toMatchObject({ tone: 'loud' })
+  })
+
+  it('brings Escape’s changes back on Redo', async () => {
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedPromo(onValueChange)).toMatchObject({ tone: 'calm' })
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(savedPromo(onValueChange)).toMatchObject({ tone: 'loud' })
+    )
+  })
+
+  it('makes room for the block beside the drawer on a wide page', async () => {
+    await viewport.viewport(1280, 800)
+    renderPage()
+
+    const drawer = await openFromMenu()
+
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-slot=promo]')!.getBoundingClientRect()
+          .right
+      ).toBeLessThanOrEqual(drawer.getBoundingClientRect().left + 1)
+    )
   })
 })

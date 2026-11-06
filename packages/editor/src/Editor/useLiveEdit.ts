@@ -147,7 +147,10 @@ export function useLiveEdit(
     onOpenChange(false)
   }
 
-  return { apply, revert, done, onOpenChange: handleOpenChange }
+  /** Whether anything's applied since it opened. */
+  const edited = () => applied.current.inverses.length > 0
+
+  return { apply, revert, done, edited, onOpenChange: handleOpenChange }
 }
 
 export type LiveEdit = ReturnType<typeof useLiveEdit>

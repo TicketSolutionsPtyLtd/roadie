@@ -61,6 +61,31 @@ export type EditorSetting = {
       /** The option shown chosen while the attr is unset, as the block draws it. */
       defaultValue?: string
     }
+  | {
+      /**
+       * An image, `{ src, alt }`: a link, or an upload with the editor's
+       * `onUploadImage`, and its alt text.
+       */
+      type: 'image'
+    }
+  | {
+      /** A link with its label, `{ label, href }`, such as a button. */
+      type: 'action'
+    }
+  | {
+      /**
+       * A list the author adds to, removes from and reorders, each item edited
+       * in its own fold: an object of `fields`, or an `item` that's an image
+       * or an action.
+       */
+      type: 'list'
+      /** What one is called, as in "Add card". */
+      itemLabel: string
+      fields?: readonly EditorSetting[]
+      item?: 'image' | 'action'
+      /** The most it takes. */
+      max?: number
+    }
 )
 
 /** An app's own block, for the `blocks` editor's `extensions`. */

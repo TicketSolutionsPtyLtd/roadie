@@ -86,6 +86,7 @@ import {
   duplicateBlock,
   moveBlock
 } from './blockActions'
+import { BlockClick } from './blockClick'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
@@ -453,6 +454,11 @@ export function EditorEngine({
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
   const [editingSettings, setEditingSettings] = useState(false)
+  const [focusSetting, setFocusSetting] = useState<string | undefined>()
+  const editSettings = (path?: string) => {
+    setFocusSetting(path)
+    setEditingSettings(true)
+  }
   // Read by the editor's plugins, made before the editor they select in.
   const editorRef = useRef<TiptapEditor | null>(null)
   const editSettingsAt = (pos: number) => {
@@ -463,7 +469,7 @@ export function EditorEngine({
         NodeSelection.create(current.state.doc, pos)
       )
     )
-    setEditingSettings(true)
+    editSettings()
   }
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
@@ -554,8 +560,9 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       SettingsShortcut.configure({
         has: hasSettings,
-        onEdit: () => setEditingSettings(true)
+        onEdit: () => editSettings()
       }),
+      BlockClick.configure({ hasSettings, onEdit: editSettings }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
@@ -934,6 +941,8 @@ export function EditorEngine({
           open={editingSettings}
           onOpenChange={setEditingSettings}
           blocks={blockSettings}
+          focusSetting={focusSetting}
+          uploadImage={canUpload ? onUploadImage : undefined}
         />
         <EditorVariablePopover
           editor={editor}
