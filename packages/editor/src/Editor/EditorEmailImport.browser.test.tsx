@@ -86,7 +86,12 @@ async function openImport() {
   await userEvent.click(
     await screen.findByRole('button', { name: 'Import HTML or MJML' })
   )
-  return screen.findByRole('dialog', { name: 'Import HTML or MJML' })
+  const dialog = await screen.findByRole('dialog', {
+    name: 'Import HTML or MJML'
+  })
+  // Visible only once it has faded in.
+  await Promise.all(dialog.getAnimations().map((fade) => fade.finished))
+  return dialog
 }
 
 // Firefox ignores the clipboardData a ClipboardEvent is made with and gives
@@ -108,6 +113,38 @@ afterEach(() => {
 })
 
 describe('Editor email import', () => {
+  it.each([
+    ['an MJML file', 'newsletter.mjml', ''],
+    ['an HTML file', 'newsletter.html', 'text/html']
+  ])('reads %s into Source', async (_, name, type) => {
+    renderEmail()
+    const dialog = await openImport()
+    const input = within(dialog).getByLabelText('Email file')
+    expect(input).toHaveAttribute('accept', '.html,.htm,.mjml,text/html')
+
+    await userEvent.upload(input, new File([MJML], name, { type }))
+
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Source' })
+      ).toHaveValue(MJML)
+    )
+  })
+
+  it('opens the file picker from Choose a file', async () => {
+    renderEmail()
+    const dialog = await openImport()
+    const input = within(dialog).getByLabelText<HTMLInputElement>('Email file')
+    const picked = vi.fn((event: Event) => event.preventDefault())
+    input.addEventListener('click', picked)
+
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Choose a file' })
+    )
+
+    expect(picked).toHaveBeenCalled()
+  })
+
   it('imports MJML into an empty email from the toolbar', async () => {
     const onValueChange = renderEmail()
     const dialog = await openImport()

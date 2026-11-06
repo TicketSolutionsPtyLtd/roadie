@@ -302,6 +302,50 @@ export function setColumnCount(count: number) {
   }
 }
 
+/**
+ * Moves the caret to the start of the next column, or the end of the one
+ * before, as Tab moves between a table's cells. Past the row's ends it goes
+ * to the line after or before the row, and Tab opens one after a row that
+ * ends its container. A list item that can indent keeps Tab.
+ */
+function goToColumn(dir: 1 | -1) {
+  return ({ tr, dispatch, can }: CommandProps) => {
+    const { $from } = tr.selection
+    let depth = $from.depth
+    while (depth > 0 && $from.node(depth).type.name !== 'column') depth--
+    if (depth === 0) return false
+    if (dir === 1 && can().sinkListItem('listItem')) return false
+    if (dir === -1 && can().liftListItem('listItem')) return false
+    const row = $from.node(depth - 1)
+    const target = $from.index(depth - 1) + dir
+    let from: number
+    if (target < 0 || target >= row.childCount) {
+      from = dir === 1 ? $from.after(depth - 1) : $from.before(depth - 1)
+    } else {
+      from = $from.start(depth - 1)
+      for (let index = 0; index < target; index++) {
+        from += row.child(index).nodeSize
+      }
+      if (dir === -1) from += row.child(target).nodeSize
+    }
+    const $past = tr.doc.resolve(from)
+    const last =
+      dir === 1 && from === $from.after(depth - 1) && !$past.nodeAfter
+    if (last) {
+      if (dispatch) {
+        tr.insert(from, tr.doc.type.schema.nodes.paragraph!.create())
+        tr.setSelection(TextSelection.create(tr.doc, from + 1))
+        dispatch(tr.scrollIntoView())
+      }
+      return true
+    }
+    const found = Selection.findFrom($past, dir, true)
+    if (!found) return false
+    dispatch?.(tr.setSelection(found).scrollIntoView())
+    return true
+  }
+}
+
 type Attrs = Record<string, unknown>
 
 // The saved schema renders bare divs; editor.css outlines them for editing.
@@ -360,7 +404,6 @@ function buttonClass(attrs: Attrs) {
   )
 }
 
-// Side by side from the width MJML stops stacking columns at.
 const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
   // Drawn as a div, as Chrome types over a whole link's text outside it.
   button: Button.extend({
@@ -391,12 +434,19 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
       Enter: ({ editor }) => editor.commands.command(leaveSection)
     })
   }),
-  // Each column pads its blocks 12px a side, so 24px between them.
+  // Side by side from a 480px canvas, as MJML sets them from a 480px
+  // screen; the query reads the canvas inside its 24px insets. 24px apart,
+  // as the email's columns pad their blocks 12px a side.
   columns: outlined(
     Columns,
-    'prose-bleed grid gap-4 @min-[480px]:auto-cols-fr @min-[480px]:grid-flow-col @min-[480px]:gap-6'
+    'prose-bleed grid gap-4 @min-[432px]:auto-cols-fr @min-[432px]:grid-flow-col @min-[432px]:gap-6'
   ),
-  column: outlined(Column, 'min-w-0 rounded-md'),
+  column: outlined(Column, 'min-w-0 rounded-md').extend({
+    addKeyboardShortcuts: () => ({
+      Tab: ({ editor }) => editor.commands.command(goToColumn(1)),
+      'Shift-Tab': ({ editor }) => editor.commands.command(goToColumn(-1))
+    })
+  }),
   spacer: outlined(Spacer, 'prose-bleed rounded-md', (attrs) => ({
     'data-height': String(attrs.height),
     style: `height: ${Number(attrs.height)}px`
