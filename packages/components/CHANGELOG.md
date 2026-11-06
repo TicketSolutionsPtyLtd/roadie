@@ -1,5 +1,16 @@
 # @oztix/roadie-components
 
+## 2.19.0
+
+### Minor Changes
+
+- 52bbc17: Add `flush` to `Toolbar`, for a bar docked along an edge. A flush toolbar drops its border, shadow, and pill shape, and `emphasis` sets only its fill. Its controls keep the inset every toolbar has, so a hover or focus ring never meets the edge. Draw a divider with `className`, such as `border-b border-subtler`, and clip the parent's corners with `overflow-clip`.
+
+### Patch Changes
+
+- 52bbc17: A `Toolbar.Separator`'s line stops 6px short of the controls at each end, so it sits between them instead of running their full height.
+- 52bbc17: A single-value `Toolbar.ToggleGroup` slides its fill to a toggle that's also a `Tooltip.Trigger`. The trigger's own `data-slot` had hidden the pressed toggle from it.
+
 ## 2.18.0
 
 ### Minor Changes

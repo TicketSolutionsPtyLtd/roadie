@@ -1,5 +1,13 @@
 # roadie-skills
 
+## 0.6.1
+
+### Patch Changes
+
+- 2d83fd3: `/roadie:shepherd` and `/roadie:release` wait on CI and npm without foreground polling: end the turn and let Auto-fix or `ci-monitor-event` messages wake the session, or run one watch command in the background.
+- daf6776: `/roadie:shepherd` cleans up after a merge with `pnpm cleanup --delete --branch <branch>`, and `/roadie:demo` deletes its local screenshots branch once it's pushed.
+- 2ef95fc: `/roadie:implement` and `/roadie:test` point to Roadie's pre-push hook, which now runs the touched browser tests in Chromium, Firefox, and WebKit, instead of a manual `--all-browsers` run.
+
 ## 0.6.0
 
 ### Minor Changes
