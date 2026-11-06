@@ -60,14 +60,40 @@ export function gatedProjects({ scripts, files, perf, vitestArgs }) {
 }
 
 const ALL_BROWSERS = ['chromium', 'webkit', 'firefox']
+const OWN_FLAGS = ['--all', '--all-browsers', '--perf']
+const BROWSERS_FLAG = '--browsers='
 
 /** The engines a gated run uses, as ROADIE_BROWSERS; null when one is unknown. */
-export function gatedBrowsers(args, env) {
+function gatedBrowsers(args, env) {
   if (args.includes('--all-browsers')) return ALL_BROWSERS.join(',')
-  const flag = args.findLast((arg) => arg.startsWith('--browsers='))
-  const browsers = flag
-    ? flag.slice('--browsers='.length)
-    : env.ROADIE_BROWSERS || 'chromium'
-  const names = browsers.split(',')
-  return names.every((name) => ALL_BROWSERS.includes(name)) ? browsers : null
+  const flag = args.findLast((arg) => arg.startsWith(BROWSERS_FLAG))
+  // Split as vitest.browsers.config.ts splits ROADIE_BROWSERS.
+  const names = (
+    flag ? flag.slice(BROWSERS_FLAG.length) : env.ROADIE_BROWSERS || 'chromium'
+  )
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean)
+  return names.length && names.every((name) => ALL_BROWSERS.includes(name))
+    ? names.join(',')
+    : null
+}
+
+/**
+ * test:gated's own flags, wherever they sit, then the files before the first
+ * other flag, then the vitest arguments.
+ */
+export function gatedArgs(args, env) {
+  const passThrough = args.filter(
+    (arg) => !OWN_FLAGS.includes(arg) && !arg.startsWith(BROWSERS_FLAG)
+  )
+  const firstFlag = passThrough.findIndex((arg) => arg.startsWith('-'))
+  const filesEnd = firstFlag === -1 ? passThrough.length : firstFlag
+  return {
+    all: args.includes('--all'),
+    perf: args.includes('--perf'),
+    browsers: gatedBrowsers(args, env),
+    fileArgs: passThrough.slice(0, filesEnd),
+    vitestArgs: passThrough.slice(filesEnd)
+  }
 }

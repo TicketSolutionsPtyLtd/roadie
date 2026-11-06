@@ -3,7 +3,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs'
 import { availableParallelism, constants } from 'node:os'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
-import { gatedBrowsers, gatedProjects } from './lib/ci-projects.mjs'
+import { gatedArgs, gatedProjects } from './lib/ci-projects.mjs'
 import {
   isWindows,
   killGroup,
@@ -48,24 +48,16 @@ if (!existsSync(join(cwd, 'package.json'))) {
   process.exit(2)
 }
 
-const all = rest.includes('--all')
-const perf = rest.includes('--perf')
-const browsers = gatedBrowsers(rest, process.env)
+const { all, perf, browsers, fileArgs, vitestArgs } = gatedArgs(
+  rest,
+  process.env
+)
 if (!browsers) {
-  console.error(usage)
+  console.error(
+    `--browsers and ROADIE_BROWSERS take chromium, webkit, or firefox, comma-separated.\n\n${usage}`
+  )
   process.exit(2)
 }
-const passThrough = rest.filter(
-  (arg) =>
-    arg !== '--all' &&
-    arg !== '--all-browsers' &&
-    !arg.startsWith('--browsers=') &&
-    arg !== '--perf'
-)
-const firstFlag = passThrough.findIndex((arg) => arg.startsWith('-'))
-const fileArgs =
-  firstFlag === -1 ? passThrough : passThrough.slice(0, firstFlag)
-const vitestArgs = firstFlag === -1 ? [] : passThrough.slice(firstFlag)
 
 function packageRelative(arg) {
   const inPackage = [resolve(cwd, arg), resolve(repoRoot, arg)]

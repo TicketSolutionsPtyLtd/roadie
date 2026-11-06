@@ -6,7 +6,7 @@ import { describe, test } from 'node:test'
 import {
   CI_SCRIPTS,
   ciProjects,
-  gatedBrowsers,
+  gatedArgs,
   gatedProjects,
   projectsIn
 } from './ci-projects.mjs'
@@ -98,31 +98,67 @@ describe('test:gated stays in step with CI', () => {
   })
 })
 
-describe('gatedBrowsers', () => {
-  test('runs Chromium unless asked otherwise', () => {
-    assert.equal(gatedBrowsers([], {}), 'chromium')
+describe('test:gated arguments', () => {
+  const browsersOf = (args, env = {}) => gatedArgs(args, env).browsers
+
+  test('run Chromium unless asked otherwise', () => {
+    assert.equal(browsersOf([]), 'chromium')
   })
 
-  test('reads ROADIE_BROWSERS', () => {
-    assert.equal(gatedBrowsers([], { ROADIE_BROWSERS: 'webkit' }), 'webkit')
-  })
-
-  test('--browsers wins over ROADIE_BROWSERS', () => {
+  test('read ROADIE_BROWSERS as the browser config does', () => {
+    assert.equal(browsersOf([], { ROADIE_BROWSERS: 'webkit' }), 'webkit')
     assert.equal(
-      gatedBrowsers(['--browsers=firefox'], { ROADIE_BROWSERS: 'webkit' }),
+      browsersOf([], { ROADIE_BROWSERS: 'chromium, webkit,' }),
+      'chromium,webkit'
+    )
+  })
+
+  test('take the last --browsers over ROADIE_BROWSERS', () => {
+    assert.equal(
+      browsersOf(['--browsers=webkit', '--browsers=firefox'], {
+        ROADIE_BROWSERS: 'chromium'
+      }),
       'firefox'
     )
   })
 
-  test('--all-browsers runs every engine', () => {
+  test('run every engine with --all-browsers', () => {
     assert.equal(
-      gatedBrowsers(['--all-browsers', '--browsers=firefox'], {}),
+      browsersOf(['--all-browsers', '--browsers=firefox']),
       'chromium,webkit,firefox'
     )
   })
 
-  test('rejects an engine Playwright has no project for', () => {
-    assert.equal(gatedBrowsers(['--browsers=safari'], {}), null)
-    assert.equal(gatedBrowsers(['--browsers='], {}), null)
+  test('reject an engine Playwright has no project for', () => {
+    assert.equal(browsersOf(['--browsers=safari']), null)
+    assert.equal(browsersOf(['--browsers=firefox,safari']), null)
+    assert.equal(browsersOf(['--browsers=']), null)
+  })
+
+  test('read files up to the first flag that is not its own', () => {
+    assert.deepEqual(
+      gatedArgs(
+        [
+          '--browsers=webkit',
+          'src/a.tsx',
+          '--all',
+          'src/b.tsx',
+          '--perf',
+          '--all-browsers',
+          '-t',
+          'Escape',
+          '--project',
+          'browser*'
+        ],
+        {}
+      ),
+      {
+        all: true,
+        perf: true,
+        browsers: 'chromium,webkit,firefox',
+        fileArgs: ['src/a.tsx', 'src/b.tsx'],
+        vitestArgs: ['-t', 'Escape', '--project', 'browser*']
+      }
+    )
   })
 })
