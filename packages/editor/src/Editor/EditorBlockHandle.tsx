@@ -23,6 +23,7 @@ import {
   QuotesIcon,
   RectangleIcon,
   SelectionPlusIcon,
+  SlidersHorizontalIcon,
   TextHFourIcon,
   TextHIcon,
   TextHThreeIcon,
@@ -362,6 +363,10 @@ type EditorBlockHandleProps = {
   canAdd?: boolean
   /** An app's blocks' names, by node name, to head their menus. */
   appLabels?: Readonly<Record<string, string>>
+  /** Whether a block, by node name, has settings, which its menu leads with. */
+  hasSettings?: (name: string) => boolean
+  /** Opens the settings of the block at `pos`. */
+  onSettings?: (pos: number) => void
 }
 
 /**
@@ -373,7 +378,9 @@ export function EditorBlockHandle({
   openMenuRef,
   containers,
   canAdd = false,
-  appLabels = {}
+  appLabels = {},
+  hasSettings,
+  onSettings
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
   const phone = useOnPhone()
@@ -650,6 +657,20 @@ export function EditorBlockHandle({
   const blockId = blocks ? null : blockIdAt(doc, shown)
   const close = () => setMenuAt(null)
 
+  const settings: BlockAction[] =
+    !blocks && onSettings && hasSettings?.(doc.nodeAt(shown)!.type.name)
+      ? [
+          {
+            label: 'Settings',
+            icon: SlidersHorizontalIcon,
+            // Once the menu's handed focus back, or it would close them.
+            run: () => {
+              const at = shown
+              afterClose.current = () => onSettings(at)
+            }
+          }
+        ]
+      : []
   const moves: BlockAction[] = [
     {
       label: 'Move up',
@@ -825,7 +846,7 @@ export function EditorBlockHandle({
                 }
                 moveUp={moves[0]!}
                 moveDown={moves[1]!}
-                actions={[...moves.slice(2), ...more]}
+                actions={[...settings, ...moves.slice(2), ...more]}
                 remove={remove}
                 kinds={kinds.map((each) => ({
                   label: kindLabel(each),
@@ -877,7 +898,7 @@ export function EditorBlockHandle({
               >
                 <Menu.Group>
                   <Menu.GroupLabel>{label}</Menu.GroupLabel>
-                  {moves.map((action) => (
+                  {[...settings, ...moves].map((action) => (
                     <Menu.Item
                       key={action.label}
                       icon={createElement(action.icon, { weight: 'bold' })}

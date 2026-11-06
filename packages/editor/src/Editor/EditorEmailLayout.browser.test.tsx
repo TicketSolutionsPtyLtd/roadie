@@ -295,6 +295,31 @@ describe('Editor gap cursor', () => {
   })
 })
 
+describe('Editor gap cursor after an image', () => {
+  it('draws its line in the gap below the image, not over it', async () => {
+    const textbox = await renderEmail([
+      { type: 'image', attrs: { src: POSTER, alt: 'Crowd', width: null } },
+      { type: 'section', content: [p('Gates 11am')] }
+    ])
+    await userEvent.click(await screen.findByText('Gates 11am'))
+    await userEvent.keyboard('{Home}{ArrowUp}')
+
+    const gap = await waitFor(() => {
+      const found = textbox.querySelector('.ProseMirror-gapcursor')
+      expect(found).not.toBe(null)
+      return found!
+    })
+    const image = boxOf(textbox.querySelector('img')!)
+    const section = boxOf(textbox.querySelector('[data-type="section"]')!)
+    // The line is the gap's ::after, placed from the gap's own box.
+    const top =
+      boxOf(gap).top + parseFloat(getComputedStyle(gap, '::after').top)
+
+    expect(top).toBeGreaterThanOrEqual(image.bottom)
+    expect(top + 2).toBeLessThanOrEqual(section.top)
+  })
+})
+
 describe('Editor gap cursor in a column', () => {
   it('keeps the line within its column', async () => {
     const textbox = await renderEmail([

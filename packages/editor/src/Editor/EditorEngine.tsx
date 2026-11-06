@@ -94,6 +94,7 @@ import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
 import { emailSections } from './sections'
+import { SettingsClick } from './settingsClick'
 import { SourcePaste } from './sourcePaste'
 import { presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
@@ -210,6 +211,9 @@ const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
     }
   }
 })
+
+// The nodes whose settings a click or their block menu opens.
+const SETTINGS_TYPES: readonly string[] = ['image', 'embed']
 
 const NODE_VIEWS: Record<string, ComponentType<ReactNodeViewProps>> = {
   image: EditorImageView,
@@ -457,6 +461,7 @@ export function EditorEngine({
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
+  const editSettingsRef = useRef<((name: string) => void) | null>(null)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -530,6 +535,15 @@ export function EditorEngine({
         }
       }),
       ImageUpload.configure(uploads),
+      // Where a block menu holds what a node toolbar would.
+      ...(blockHandle
+        ? [
+            SettingsClick.configure({
+              types: SETTINGS_TYPES,
+              onEdit: (name) => editSettingsRef.current?.(name)
+            })
+          ]
+        : []),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
         ? [
@@ -780,8 +794,13 @@ export function EditorEngine({
       : undefined,
     importSource: preset === 'email' ? importSource : undefined
   }
+  const editSettings = (name: string) => {
+    if (name === 'image') ui.editAlt()
+    if (name === 'embed') ui.editEmbed()
+  }
   useEffect(() => {
     uiRef.current = ui
+    editSettingsRef.current = editSettings
   })
   const drawerItems = blockHandle?.canAdd
     ? [
@@ -857,6 +876,15 @@ export function EditorEngine({
             containers={blockHandle.containers}
             canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
+            hasSettings={(name) => SETTINGS_TYPES.includes(name)}
+            onSettings={(pos) => {
+              editor.view.dispatch(
+                editor.state.tr.setSelection(
+                  NodeSelection.create(editor.state.doc, pos)
+                )
+              )
+              editSettings(editor.state.doc.nodeAt(pos)!.type.name)
+            }}
           />
         ) : null}
         {editor && blockHandle && drawerItems.length > 0 ? (

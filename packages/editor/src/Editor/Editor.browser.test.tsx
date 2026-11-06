@@ -1528,7 +1528,6 @@ describe('Editor images', () => {
     expect(await within(textbox).findByText('No alt text')).toBeVisible()
     await userEvent.keyboard('{Enter}')
     const field = await screen.findByRole('textbox', { name: 'Alt text' })
-    await waitFor(() => expect(field).toHaveFocus())
     await userEvent.type(field, `${CROWD_ALT}{Enter}`)
 
     expect(

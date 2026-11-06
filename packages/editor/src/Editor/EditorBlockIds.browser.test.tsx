@@ -330,7 +330,7 @@ describe('Editor blocks preset ids on drag', () => {
         onValueChange={onValueChange}
       />
     )
-    await focusedTextbox()
+    // On the text, as a click on the image would open its settings.
     const doors = await screen.findByText('Doors 7pm')
     await userEvent.click(doors)
     await userEvent.keyboard(`${LINE_START}{Shift>}{ArrowRight>6/}{/Shift}`)

@@ -318,6 +318,10 @@ describe('Editor email canvas', () => {
 
     await userEvent.click(image)
     await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
+    // Out of the settings the click opens, back to the selected image.
+    await screen.findByRole('dialog', { name: 'Image settings' })
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
     await userEvent.keyboard('{ArrowLeft}')
 
     await expect
@@ -360,6 +364,10 @@ describe('Editor email canvas', () => {
 
     await userEvent.click(image)
     await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
+    // Out of the settings the click opens, back to the selected image.
+    await screen.findByRole('dialog', { name: 'Image settings' })
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
     await userEvent.keyboard('{ArrowLeft}')
 
     await expect

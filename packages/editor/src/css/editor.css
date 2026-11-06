@@ -213,3 +213,13 @@
   inline-size: auto;
   border-top: 2px solid var(--color-accent-9);
 }
+
+/* Centred in an email's 16px gap, or its 8px one after a spacer, rather than
+   over the edge of the block before it. */
+[data-email] .ProseMirror-gapcursor:not(:first-child):after {
+  top: calc(var(--spacing) * 2 - 1px);
+}
+
+[data-email] [data-type='spacer'] + .ProseMirror-gapcursor:after {
+  top: calc(var(--spacing) - 1px);
+}

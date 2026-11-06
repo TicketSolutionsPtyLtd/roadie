@@ -102,6 +102,8 @@ type Popover = {
   shown: (textbox: HTMLElement) => HTMLElement | null
   /** Whether it edits what's there as you type, rather than adding on save. */
   live: boolean
+  /** Whether it's led by a settings header, with Done, above the row. */
+  settings?: boolean
 }
 
 const POPOVERS: Popover[] = [
@@ -160,7 +162,8 @@ const POPOVERS: Popover[] = [
       within(textbox).findByTitle('Spotify embed exampleTrack0000000001'),
     shown: (textbox) =>
       within(textbox).queryByTitle('Spotify embed exampleTrack0000000001'),
-    live: true
+    live: true,
+    settings: true
   },
   {
     name: 'Image',
@@ -184,6 +187,9 @@ const POPOVERS: Popover[] = [
     live: false
   }
 ]
+
+// The form's row, below a settings header where there is one.
+const rowOf = (field: HTMLElement) => field.closest<HTMLElement>('form')!
 
 function enterWhileComposing(
   field: HTMLElement,
@@ -213,12 +219,12 @@ describe.each(POPOVERS)('Editor $name popover', (popover) => {
   it('saves with the check button at the end of the field, and has no text buttons', async () => {
     const textbox = await renderEditor(popover.value)
     const field = await popover.open(textbox)
-    const popup = field.closest<HTMLElement>('[data-slot="popover-popup"]')!
-    const check = within(popup).getByRole('button', {
+    const row = rowOf(field)
+    const check = within(row).getByRole('button', {
       name: popover.submitLabel
     })
 
-    for (const button of within(popup).getAllByRole('button')) {
+    for (const button of within(row).getAllByRole('button')) {
       expect(button.textContent.trim()).toBe('')
     }
     expect(check.getBoundingClientRect().left).toBeGreaterThan(
@@ -270,11 +276,12 @@ describe.each(POPOVERS)('Editor $name popover row', (popover) => {
     const textbox = await renderEditor(popover.value)
     const field = await popover.open(textbox)
     const popup = popupOf(field)
-    const separator = within(popup).getByRole('separator')
-    const check = within(popup).getByRole('button', {
+    const row = rowOf(field)
+    const separator = within(row).getByRole('separator')
+    const check = within(row).getByRole('button', {
       name: popover.submitLabel
     })
-    const close = within(popup).getByRole('button', { name: 'Close' })
+    const close = within(row).getByRole('button', { name: 'Close' })
 
     expect(field).toHaveAttribute('placeholder', popover.placeholder)
     expect(popup.querySelector('label')).toBe(null)
@@ -290,6 +297,7 @@ describe.each(POPOVERS)('Editor $name popover row', (popover) => {
     expect(close.getBoundingClientRect().left).toBeGreaterThan(
       check.getBoundingClientRect().right - 1
     )
+    if (popover.settings) return
     const style = getComputedStyle(popup)
     const chrome =
       px(style.paddingTop) +
@@ -321,7 +329,7 @@ describe.each(POPOVERS)('Editor $name popover row', (popover) => {
   it('makes the buttons subtler and the same size as each other', async () => {
     const textbox = await renderEditor(popover.value)
     const field = await popover.open(textbox)
-    const buttons = within(popupOf(field)).getAllByRole('button')
+    const buttons = within(rowOf(field)).getAllByRole('button')
     const [first] = buttons
 
     for (const button of buttons) {

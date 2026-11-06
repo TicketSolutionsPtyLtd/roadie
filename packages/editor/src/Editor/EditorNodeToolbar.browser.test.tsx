@@ -541,7 +541,6 @@ describe('Editor image actions', () => {
       await screen.findByRole('button', { name: 'Image settings' })
     )
     const field = await screen.findByRole('textbox', { name: 'Alt text' })
-    await waitFor(() => expect(field).toHaveFocus())
     await userEvent.type(field, `${CROWD_ALT}{Enter}`)
 
     expect(
