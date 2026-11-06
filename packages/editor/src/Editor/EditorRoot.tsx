@@ -217,6 +217,7 @@ export function EditorRoot(props: EditorRootProps) {
             aria-hidden='true'
             data-slot='editor-skeleton'
             data-preset={preset}
+            data-emphasis={emphasis}
             className={cn(frame, props.className)}
           >
             {toolbarRoom}
