@@ -125,8 +125,9 @@ describe('Preset skeleton', () => {
       document.body.append(host)
       onTestFinished(() => host.remove())
       const skeleton = host.firstElementChild as HTMLElement
+      // A subtler skeleton's lines are its only Skeletons.
       const skeletonLine = skeleton.querySelector<HTMLElement>(
-        '[data-slot="skeleton"] [data-slot="skeleton"], .grid > *'
+        '[data-slot="skeleton"]'
       )
       render(
         <div style={{ width: 390 }}>
