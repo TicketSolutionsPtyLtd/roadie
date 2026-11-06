@@ -530,6 +530,8 @@ export function EditorImagePopover({
           // Its title, as the keyboard a field brings up would cover the sheet.
           initialFocus={titleRef}
           finalFocus={handBack}
+          // The editor's own, so a docked phone toolbar stays put.
+          data-editor-popup=''
         >
           <Drawer.Header>
             <Drawer.Title ref={titleRef} tabIndex={-1} className='outline-none'>
@@ -544,6 +546,7 @@ export function EditorImagePopover({
   return (
     <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
+        data-editor-popup=''
         side='bottom'
         align='start'
         className={
