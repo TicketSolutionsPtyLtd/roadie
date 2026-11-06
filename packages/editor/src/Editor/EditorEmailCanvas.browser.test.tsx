@@ -198,6 +198,20 @@ describe('Editor email canvas', () => {
       expect(getComputedStyle(section).outlineOffset).toBe('0px')
     })
 
+    it('lines a section’s grip up with its first line, not its padding', async () => {
+      const { box, section } = await renderCard()
+      await userEvent.hover(section, { position: { x: 4, y: 4 } })
+      const grip = await screen.findByRole('button', { name: 'Block actions' })
+      const heading = box('Ochre Kite Weekender')
+      const centre = () => {
+        const { top, bottom } = grip.getBoundingClientRect()
+        return (top + bottom) / 2
+      }
+
+      await expect.poll(centre).toBeGreaterThan(heading.top)
+      expect(centre()).toBeLessThan(heading.bottom)
+    })
+
     it('keeps the chosen halo on a spacer while its menu is open', async () => {
       render(
         <Editor
