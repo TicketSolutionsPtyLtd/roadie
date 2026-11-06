@@ -184,7 +184,7 @@ export function EditorImportDialog({
         if (!next) onClose()
       }}
     >
-      <Dialog.Content size='lg'>
+      <Dialog.Content size='lg' data-editor-popup=''>
         {editor ? (
           <ImportForm
             key={count}
