@@ -6,6 +6,7 @@ import { useFieldContext } from '@oztix/roadie-components/field'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { EmailTheme } from '../email/theme'
 import type { EditorBlock } from '../extensions'
 import type {
   EditorValue,
@@ -106,6 +107,16 @@ export type EditorRootProps = {
    * listed shows as invalid. Without it, a chip shows its key.
    */
   variables?: readonly EditorVariable[]
+  /**
+   * The email's colours and font, for the `email` preset, as `renderEmail`
+   * takes them. The canvas shows the email in them, light or dark as it
+   * sends, whatever the app's theme. A colour left out takes
+   * `defaultEmailTheme`'s, but the accent, link and button colours take a
+   * `ThemeProvider`'s accent, so pass the theme `renderEmail` gets for an
+   * exact match. Throws, as it does, on a
+   * colour that isn't hex.
+   */
+  theme?: Partial<EmailTheme>
   'aria-label'?: string
   'aria-labelledby'?: string
   /**
@@ -137,6 +148,8 @@ export function EditorRoot(props: EditorRootProps) {
     const size = props.size ?? 'md'
     const look = presetLook(resolvedPreset(props))
     const emphasis = props.emphasis ?? look.emphasis
+    const preset = resolvedPreset(props)
+    const email = preset === 'email'
     const floating =
       (props.toolbar ?? props.defaultToolbar ?? look.toolbar) === 'floating'
     const toolbarRoom = (
@@ -161,12 +174,26 @@ export function EditorRoot(props: EditorRootProps) {
           <div
             aria-hidden='true'
             data-slot='editor-skeleton'
+            data-preset={preset}
+            data-emphasis={emphasis}
             className={cn(frame, props.className)}
           >
             {toolbarRoom}
-            <div className={editorContentClass(size, emphasis)}>
+            <div
+              className={cn(
+                editorContentClass(size, emphasis),
+                // An email keeps its gutter and its 24px inset, as editor.css
+                // gives the loaded canvas.
+                email && 'ps-(--email-gutter)'
+              )}
+            >
               {/* One block, so prose's flow spacing doesn't add to its height. */}
-              <div className='grid gap-2'>
+              <div
+                className={cn(
+                  'grid gap-2',
+                  email && 'mx-auto w-full max-w-[600px] px-6'
+                )}
+              >
                 <Skeleton />
                 <Skeleton />
                 <Skeleton className='w-2/3' />
@@ -176,6 +203,7 @@ export function EditorRoot(props: EditorRootProps) {
         ) : (
           <Skeleton
             shape='block'
+            data-preset={preset}
             className={cn(frame, 'h-auto rounded-lg', props.className)}
           >
             {toolbarRoom}
