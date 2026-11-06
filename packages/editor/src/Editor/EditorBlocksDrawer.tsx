@@ -208,6 +208,7 @@ export function EditorBlocksDrawer({
         {/* Wide, the viewport lets the page under it take the pointer. */}
         <Drawer.Viewport className={beside ? 'pointer-events-none' : undefined}>
           <Drawer.Popup
+            data-editor-popup=''
             size={phone ? 'fit' : 'sm'}
             className={beside ? 'pointer-events-auto' : undefined}
             initialFocus={() => {
