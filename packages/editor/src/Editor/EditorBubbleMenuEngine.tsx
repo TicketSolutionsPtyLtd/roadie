@@ -16,6 +16,7 @@ import { EditorContext } from './EditorContext'
 import { useRepositionOnResize } from './EditorNodeToolbar'
 import {
   BlocksButton,
+  Control,
   type ControlState,
   ToolbarItems,
   availableItems,
@@ -27,9 +28,11 @@ import {
   type EditorControl,
   type EditorControlUi,
   floatingControls,
-  overflowControls
+  overflowControls,
+  undo
 } from './controls'
 import { focusEditor } from './focusEditor'
+import { useShowsShortcuts } from './menuGroups'
 import {
   EDITOR_TOOLBAR_SIZE,
   type EditorSize,
@@ -40,6 +43,8 @@ const PLUGIN_KEY = 'editorBubbleMenu'
 
 /** Whether the selection is text the menu's marks can format. */
 function selectsText({ selection, doc, schema }: EditorState) {
+  // A caret's own text block still falls between its ends.
+  if (selection.empty) return false
   // A Mod-click selects the block, which has its own text.
   if (selection instanceof NodeSelection) return false
   if (selection instanceof CellSelection) return false
@@ -77,7 +82,44 @@ export const RESIZE_DELAY = 80
 function between(top: number, bottom: number) {
   const y = Math.max(top, 0)
   return {
-    rootBoundary: { x: 0, y, width: window.innerWidth, height: bottom - y }
+    rootBoundary: {
+      x: 0,
+      y,
+      width: window.innerWidth,
+      height: Math.max(bottom - y, 0)
+    }
+  }
+}
+
+/**
+ * The bottom of the editor's own fields above its text, such as an email's
+ * Preview text, which the menu keeps below.
+ */
+function chromeBottom(editor: TiptapEditor) {
+  const content = editor.view.dom.closest('[data-slot="editor-content"]')
+  let bottom = 0
+  for (
+    let sibling = content?.previousElementSibling;
+    sibling;
+    sibling = sibling.previousElementSibling
+  ) {
+    // Not one laid over the text, such as a block's floating controls.
+    const { position } = getComputedStyle(sibling)
+    if (position === 'absolute' || position === 'fixed') continue
+    bottom = Math.max(bottom, sibling.getBoundingClientRect().bottom)
+  }
+  return bottom
+}
+
+/** The bounds clear of both the node actions and the editor's own fields. */
+function clearOfChrome(
+  editor: TiptapEditor,
+  selection: { top: number; bottom: number }
+) {
+  const { top, bottom, keepPlacement } = clearOfActions(editor, selection)
+  return {
+    ...between(Math.max(top, chromeBottom(editor) + OFFSET), bottom),
+    ...(keepPlacement && { fallbackStrategy: 'initialPlacement' as const })
   }
 }
 
@@ -91,22 +133,20 @@ function clearOfActions(
   editor: TiptapEditor,
   selection: { top: number; bottom: number }
 ) {
+  const page = { top: 0, bottom: window.innerHeight, keepPlacement: false }
   const actions = editor.view.dom.parentElement?.querySelector(
     '[data-slot="editor-table-toolbar"], [data-slot="editor-node-toolbar"]'
   )
-  if (!actions) return {}
+  if (!actions) return page
   const box = actions.getBoundingClientRect()
   if (box.bottom <= selection.top) {
-    return between(box.bottom + OFFSET, window.innerHeight)
+    return { ...page, top: box.bottom + OFFSET }
   }
   if (box.top >= selection.bottom) {
     // With no room either side, off the top of the page, not over them.
-    return {
-      ...between(0, box.top - OFFSET),
-      fallbackStrategy: 'initialPlacement' as const
-    }
+    return { top: 0, bottom: box.top - OFFSET, keepPlacement: true }
   }
-  return {}
+  return page
 }
 
 /** Whether a caret sits in text, where Alt+F10 can open the menu. */
@@ -171,6 +211,11 @@ function SelectionMenu({
     editor,
     selector: ({ editor: current }) => current.isEditable
   })
+  const undoable = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      current.isEditable && current.can().undo()
+  })
   // The plugin asks shouldShow only when the selection or doc changes. Focus
   // moves to the link editor, but a click on the menu's Link keeps the menu
   // from hiding on that blur, and turning read-only changes neither.
@@ -199,10 +244,15 @@ function SelectionMenu({
 
   useEffect(() => {
     if (!shown || !states || !focusOnShowRef.current) return
-    focusOnShowRef.current = false
-    bubbleMenuRef.current
-      ?.querySelector<HTMLElement>('button:not([aria-disabled="true"])')
-      ?.focus()
+    // A frame on, once the toolbar has listed its controls, or the arrow keys
+    // start from none and the first press lands on the control focused.
+    const frame = requestAnimationFrame(() => {
+      focusOnShowRef.current = false
+      bubbleMenuRef.current
+        ?.querySelector<HTMLElement>('button:not([aria-disabled="true"])')
+        ?.focus()
+    })
+    return () => cancelAnimationFrame(frame)
   }, [shown, states, bubbleMenuRef])
 
   useRepositionOnResize(editor, menuRef, PLUGIN_KEY)
@@ -235,7 +285,7 @@ function SelectionMenu({
         placement: 'top',
         offset: OFFSET,
         flip: ({ elements }) =>
-          clearOfActions(editor, elements.reference.getBoundingClientRect()),
+          clearOfChrome(editor, elements.reference.getBoundingClientRect()),
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
           menuRef.current?.setAttribute('tabindex', '-1')
@@ -243,6 +293,7 @@ function SelectionMenu({
         },
         onHide: () => {
           forcedAtRef.current = null
+          focusOnShowRef.current = false
           setShown(false)
         }
       }}
@@ -259,6 +310,15 @@ function SelectionMenu({
           {...props}
           onKeyDownCapture={(event) => {
             onKeyDownCapture?.(event)
+            // Tab leaves the one Tab stop for the text it formats, not the
+            // page past the menu, which sits outside the reading order.
+            const inToolbar = event.currentTarget.contains(event.target as Node)
+            if (event.key === 'Tab' && inToolbar) {
+              event.preventDefault()
+              forcedAtRef.current = null
+              focusEditor(editor)
+              return
+            }
             if (event.key !== 'Escape') return
             // Opened at a caret, it has no selection to stay over.
             forcedAtRef.current = null
@@ -274,6 +334,17 @@ function SelectionMenu({
           />
           <BlocksButton openBlocks={openBlocks} separator='before' />
           {children}
+          {undoable ? (
+            <>
+              <Toolbar.Separator />
+              <Control
+                control={undo}
+                state={{ pressed: false, enabled: true }}
+                editor={editor}
+                ui={ui}
+              />
+            </>
+          ) : null}
           <OverflowMenu
             editor={editor}
             controls={overflow}
@@ -314,6 +385,7 @@ function OverflowMenu({
   setToolbar,
   onOpenChange
 }: OverflowMenuProps) {
+  const showsShortcuts = useShowsShortcuts()
   const run = (control: EditorControl) => {
     // An insert goes after the selected text rather than over it.
     const { to } = editor.state.selection
@@ -343,7 +415,7 @@ function OverflowMenu({
           <Menu.Item
             key={control.label}
             icon={<control.icon weight='bold' />}
-            shortcut={control.shortcut}
+            shortcut={showsShortcuts ? control.shortcut : undefined}
             disabled={!states[index]?.enabled}
             onClick={() => run(control)}
           >

@@ -529,7 +529,7 @@ describe('Editor block menu', () => {
           emphasis='normal'
           defaultValue={{
             version: 1,
-            preset: 'email',
+            preset: 'blocks',
             doc: {
               type: 'doc',
               content: [
@@ -551,7 +551,6 @@ describe('Editor block menu', () => {
       expect(parseFloat(paddingLeft)).toBeGreaterThanOrEqual(30)
       expect(parseFloat(paddingLeft)).toBeLessThanOrEqual(36)
       expect(parseFloat(paddingRight)).toBeLessThan(parseFloat(paddingLeft))
-      expect(screen.queryByRole('button', { name: 'Add block' })).toBe(null)
     })
 
     it('gives the grip a 44px target that ends at the text', async () => {

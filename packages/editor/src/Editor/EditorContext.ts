@@ -52,8 +52,16 @@ export type EditorContextValue = {
   editVariable: () => void
   /** Opens the Blocks drawer, or undefined in a preset without one. */
   openBlocks: (() => void) | undefined
+  /** Whether a block, by node name, has a Settings drawer. */
+  hasSettings: (name: string) => boolean
+  /** Selects the block at `pos` and opens its Settings drawer. */
+  editSettingsAt: (pos: number) => void
   /** Opens the import of an email's HTML or MJML, or undefined outside the email preset. */
   importSource: ((source?: string) => void) | undefined
+  /** Shows Preview in place of the canvas, or undefined without `onRenderPreview`. */
+  openPreview: (() => void) | undefined
+  /** Preview, while it shows, which `Editor.Content` puts in the canvas's place. */
+  preview: ReactNode
   TiptapContent: typeof EditorContent
   ToolbarEngine: ComponentType<EditorToolbarProps>
   BubbleMenuEngine: ComponentType<EditorBubbleMenuProps>

@@ -23,7 +23,11 @@ import type { EditorBlock } from '../extensions'
 import type { Preset } from '../schema'
 import { COLUMN_COUNTS } from '../schema/emailAttrs'
 import type { EditorControlUi } from './controls'
-import { buttonBlock, insertBlock } from './emailEditing'
+import {
+  buttonBlock,
+  insertBlock,
+  insertBlockHereOrAfter
+} from './emailEditing'
 import { inGroupOrder } from './menuGroups'
 
 /** One choice in the insert menu that `/` opens. */
@@ -34,6 +38,8 @@ export type EditorInsertItem = {
   group?: string
   /** More words it's found by, besides its label. */
   keywords?: readonly string[]
+  /** The markdown that makes it as you type, shown beside it. */
+  shortcut?: string
   /** Adds itself to the chain that removes the typed `/` and query. */
   insert: (chain: ChainedCommands, ui: EditorControlUi) => ChainedCommands
   /**
@@ -49,6 +55,13 @@ export type EditorInsertItem = {
    * Without one, the drawer runs it on a new line there.
    */
   block?: JSONContent
+  /** The only places the drawer counts, in place of the block handle's. */
+  containers?: ReadonlySet<string>
+  /**
+   * Goes after the caret's top-level section or columns, always or only where
+   * they can't hold it, which the menu says beside it.
+   */
+  topLevel?: 'always' | 'fallback'
 }
 
 const paragraph: EditorInsertItem = {
@@ -65,17 +78,19 @@ const paragraph: EditorInsertItem = {
       : editor.can().setParagraph()
 }
 
+// The page owns h1, so a heading 1 is found as the top level there is.
 const HEADINGS = [
-  [2, TextHTwoIcon],
-  [3, TextHThreeIcon],
-  [4, TextHFourIcon]
+  [2, TextHTwoIcon, ['h1', 'h2']],
+  [3, TextHThreeIcon, ['h3']],
+  [4, TextHFourIcon, ['h4']]
 ] as const
 
-const headings = HEADINGS.map(([level, icon]): EditorInsertItem => ({
+const headings = HEADINGS.map(([level, icon, tags]): EditorInsertItem => ({
   label: `Heading ${level}`,
   icon,
   group: 'Text',
-  keywords: ['title'],
+  keywords: [...tags, 'title'],
+  shortcut: '#'.repeat(level),
   block: { type: 'heading', attrs: { level } },
   insert: (chain) => chain.setHeading({ level }),
   enabled: (editor) => editor.can().setHeading({ level })
@@ -90,6 +105,8 @@ const bulletList: EditorInsertItem = {
   label: 'Bulleted list',
   icon: ListBulletsIcon,
   group: 'Text',
+  keywords: ['ul'],
+  shortcut: '-',
   block: listOf('bulletList'),
   insert: (chain) => chain.toggleBulletList(),
   // In its own list, the toggle would take the line out of it.
@@ -101,6 +118,8 @@ const orderedList: EditorInsertItem = {
   label: 'Numbered list',
   icon: ListNumbersIcon,
   group: 'Text',
+  keywords: ['ol'],
+  shortcut: '1.',
   block: listOf('orderedList'),
   insert: (chain) => chain.toggleOrderedList(),
   enabled: (editor) =>
@@ -128,33 +147,44 @@ function block(
 
 const emptyParagraph = { type: 'paragraph' }
 
-const section = block(
-  'Section',
-  RectangleIcon,
-  { type: 'section', content: [emptyParagraph] },
-  ['layout']
-)
+function layout(
+  label: string,
+  icon: Icon,
+  content: JSONContent
+): EditorInsertItem {
+  const insert = insertBlockHereOrAfter(content)
+  return {
+    label,
+    icon,
+    group: 'Layout',
+    keywords: ['layout'],
+    block: content,
+    topLevel: 'fallback',
+    insert: (chain) => chain.command(insert),
+    enabled: (_editor, afterQuery) => afterQuery().command(insert).run()
+  }
+}
+
+const section = layout('Section', RectangleIcon, {
+  type: 'section',
+  content: [emptyParagraph]
+})
 
 const columns = COLUMN_COUNTS.map((count) =>
-  block(
-    `${count} columns`,
-    ColumnsIcon,
-    {
-      type: 'columns',
-      content: Array.from({ length: count }, () => ({
-        type: 'column',
-        content: [emptyParagraph]
-      }))
-    },
-    ['layout']
-  )
+  layout(`${count} columns`, ColumnsIcon, {
+    type: 'columns',
+    content: Array.from({ length: count }, () => ({
+      type: 'column',
+      content: [emptyParagraph]
+    }))
+  })
 )
 
 const image: EditorInsertItem = {
   label: 'Image',
   icon: ImageIcon,
   group: 'Media',
-  keywords: ['picture', 'photo'],
+  keywords: ['picture', 'photo', 'img'],
   insert: (chain, { pickImage }) => {
     pickImage?.()
     return chain
@@ -170,7 +200,7 @@ const button: EditorInsertItem = {
   label: 'Button',
   icon: CursorClickIcon,
   group: 'Email',
-  keywords: ['link', 'call to action'],
+  keywords: ['link', 'call to action', 'btn', 'cta'],
   insert: (chain, { editButton }) => {
     editButton()
     return chain
@@ -186,16 +216,22 @@ const spacer = block('Spacer', ArrowsVerticalIcon, { type: 'spacer' }, [
   'gap'
 ])
 
-const divider = block('Divider', MinusIcon, { type: 'horizontalRule' }, [
+const emailDivider = block('Divider', MinusIcon, { type: 'horizontalRule' }, [
   'line',
-  'rule'
+  'rule',
+  'hr',
+  '---'
 ])
+
+// Only the blocks preset's rule turns `---` into one.
+const divider: EditorInsertItem = { ...emailDivider, shortcut: '---' }
 
 const quote: EditorInsertItem = {
   label: 'Quote',
   icon: QuotesIcon,
   group: 'Text',
-  keywords: ['blockquote'],
+  keywords: ['blockquote', '>'],
+  shortcut: '>',
   insert: (chain) => chain.wrapIn('blockquote'),
   enabled: (editor) =>
     !editor.isActive('blockquote') && editor.can().wrapIn('blockquote')
@@ -205,7 +241,16 @@ const embed: EditorInsertItem = {
   label: 'Embed',
   icon: FilmStripIcon,
   group: 'Media',
-  keywords: ['video', 'audio'],
+  keywords: [
+    'video',
+    'audio',
+    'link',
+    'youtube',
+    'vimeo',
+    'spotify',
+    'soundcloud',
+    'tiktok'
+  ],
   insert: (chain, { editEmbed }) => {
     editEmbed()
     return chain
@@ -253,7 +298,7 @@ export const presetInsertItems: Partial<
     section,
     ...columns,
     spacer,
-    divider,
+    emailDivider,
     button
   ]
 }
@@ -280,7 +325,6 @@ export function matchingInsertItems(
   editor: Editor,
   ui: EditorControlUi
 ) {
-  const words = query.toLowerCase().trim().split(/\s+/)
   // `can()` changes nothing as it checks, so the query would still be there.
   const afterQuery = () =>
     editor
@@ -291,13 +335,51 @@ export function matchingInsertItems(
       })
       .deleteRange(range)
   // Matched by name first, as a block's fit is a transaction on each keystroke.
-  const matches = items.filter((item) => {
-    const names = [item.label, ...(item.keywords ?? [])].join(' ').toLowerCase()
+  const matches = namedInsertItems(items, query, ui).filter((item) =>
+    item.enabled(editor, afterQuery)
+  )
+  // Ranked before grouping, so the group of the best match leads.
+  return inGroupOrder(rankedInsertItems(matches, query))
+}
+
+/** The items in order of how well their label starts with `query`. */
+export function rankedInsertItems(
+  items: readonly EditorInsertItem[],
+  query: string
+) {
+  return items
+    .map((item, index) => ({ item, index, rank: matchRank(item, query) }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map(({ item }) => item)
+}
+
+const wordsOf = (text: string) => text.toLowerCase().trim().split(/\s+/)
+
+// 0 when the label starts with the query, 1 when another of its words does,
+// and 2 when only a keyword does.
+function matchRank({ label }: EditorInsertItem, query: string) {
+  const typed = query.toLowerCase().trim()
+  const name = label.toLowerCase()
+  if (name.startsWith(typed)) return 0
+  const [first = ''] = wordsOf(typed)
+  return wordsOf(name).some((word) => word.startsWith(first)) ? 1 : 2
+}
+
+/** The items with a word in their label or keywords starting each word of `query`. */
+export function namedInsertItems(
+  items: readonly EditorInsertItem[],
+  query: string,
+  ui: EditorControlUi
+) {
+  const words = wordsOf(query)
+  return items.filter((item) => {
+    const names = [item.label, ...(item.keywords ?? [])]
+      .join(' ')
+      .toLowerCase()
+      .split(/\s+/)
     return (
-      words.every((word) => names.includes(word)) &&
-      (item.available?.(ui) ?? true) &&
-      item.enabled(editor, afterQuery)
+      words.every((word) => names.some((name) => name.startsWith(word))) &&
+      (item.available?.(ui) ?? true)
     )
   })
-  return inGroupOrder(matches)
 }
