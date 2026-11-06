@@ -252,7 +252,8 @@
   );
 }
 
-[data-preset='email'] [data-slot='editor-content'] {
+[data-preset='email']
+  :is([data-slot='editor-content'], [data-slot='editor-preheader-row']) {
   padding-inline-start: var(--email-gutter);
 }
 

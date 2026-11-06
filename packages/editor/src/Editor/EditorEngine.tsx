@@ -48,6 +48,7 @@ import {
   migrate,
   presets
 } from '../schema'
+import { preheaderOf } from '../schema/preheader'
 import {
   BLOCK_ID,
   BLOCK_ID_TYPES,
@@ -71,6 +72,7 @@ import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
+import { EditorPreheader, withPreheader } from './EditorPreheader'
 import { EditorPreview } from './EditorPreview'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
@@ -386,6 +388,13 @@ function holdsDoc(
 // none, as it did before rules.
 function savedDoc(json: JSONContent): JSONContent {
   const saved = { ...json }
+  // The field holds what's typed, spaces and all; the value holds the line.
+  if (saved.attrs && Object.hasOwn(saved.attrs, 'preheader')) {
+    saved.attrs = {
+      ...saved.attrs,
+      preheader: preheaderOf(saved.attrs.preheader)
+    }
+  }
   if (saved.attrs && Object.values(saved.attrs).every((v) => v === undefined)) {
     delete saved.attrs
   }
@@ -396,10 +405,16 @@ function savedDoc(json: JSONContent): JSONContent {
 // A block the value gives no id holds the one the editor gave it, or a parent
 // that keeps no ids would have the editor set its value, and new ids, forever.
 function holdsBlocks(held: ProseMirrorNode, given: ProseMirrorNode): boolean {
-  const filled =
-    given.attrs[BLOCK_ID] === null
-      ? { ...given.attrs, [BLOCK_ID]: held.attrs[BLOCK_ID] }
-      : given.attrs
+  const filled = {
+    ...given.attrs,
+    ...(given.attrs[BLOCK_ID] === null && { [BLOCK_ID]: held.attrs[BLOCK_ID] }),
+    // A preheader being typed saves trimmed, which mustn't reset the field.
+    ...(Object.hasOwn(given.attrs, 'preheader') &&
+      preheaderOf(held.attrs.preheader) ===
+        preheaderOf(given.attrs.preheader) && {
+        preheader: held.attrs.preheader
+      })
+  }
   if (
     !held.hasMarkup(given.type, filled, given.marks) ||
     held.text !== given.text ||
@@ -878,6 +893,14 @@ export function EditorEngine({
       return
     }
     editor.commands.setContent(readableDoc, { emitUpdate: false })
+    if (preset === 'email') {
+      const { state, view } = editor
+      view.dispatch(
+        withPreheader(state.tr, readableDoc.attrs?.preheader)
+          .setMeta('preventUpdate', true)
+          .setMeta('addToHistory', false)
+      )
+    }
     // The blocks preset gives each block without an id one as it's set.
     if (presetKeepsBlockIds(preset) && !holdsDoc(editor, readableDoc)) {
       onValueChange?.(currentValue(editor, preset))
@@ -906,7 +929,11 @@ export function EditorEngine({
     previewing && onRenderPreview ? (
       <EditorPreview
         value={previewing}
-        inbox={{ sender, subject }}
+        inbox={{
+          sender,
+          subject,
+          preheader: preheaderOf(previewing.doc.attrs?.preheader)
+        }}
         recipients={previewRecipients}
         onRenderPreview={onRenderPreview}
         onSendTest={onSendTest}
@@ -986,6 +1013,11 @@ export function EditorEngine({
         openBlocks: drawerItems.length > 0 ? () => openDrawer() : undefined,
         openPreview,
         preview,
+        preheader:
+          preset === 'email' && editor ? (
+            // Inset as the canvas's text is, so the two start together.
+            <EditorPreheader editor={editor} className='px-6 pt-3' />
+          ) : null,
         hasSettings,
         editSettingsAt,
         editingLink,

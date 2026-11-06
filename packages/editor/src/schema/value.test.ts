@@ -1263,3 +1263,37 @@ describe('migrate and an app’s own blocks', () => {
     ).toEqual(docOf(para('Doors')))
   })
 })
+
+describe('migrate and an email’s preheader', () => {
+  const withPreheader = (preheader: unknown, preset = 'email') => ({
+    version: 1,
+    preset,
+    doc: { ...doc, attrs: { preheader } }
+  })
+
+  it('keeps an email’s preheader, on one line', () => {
+    expect(migrate(withPreheader('  Two weeks\n to go ')).doc.attrs).toEqual({
+      preheader: 'Two weeks to go'
+    })
+  })
+
+  it('reads the preheader the schema saves', () => {
+    const { doc: migrated } = migrate(withPreheader('Two weeks to go'))
+    const node = Node.fromJSON(getSchema(presets.email), migrated)
+    expect(node.attrs.preheader).toBe('Two weeks to go')
+  })
+
+  it.each([
+    ['empty', ''],
+    ['only spaces', '   '],
+    ['not text', 42]
+  ])('saves no preheader that is %s', (_, preheader) => {
+    expect(migrate(withPreheader(preheader)).doc.attrs).toBeUndefined()
+  })
+
+  it('drops a preheader outside the email preset', () => {
+    expect(
+      migrate(withPreheader('Two weeks to go', 'rich')).doc.attrs
+    ).toBeUndefined()
+  })
+})
