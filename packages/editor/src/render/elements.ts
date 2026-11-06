@@ -4,6 +4,7 @@ import { isUnsafeHref } from '@oztix/roadie-core/utils'
 
 import { type EmbedProvider, type Preset, presets } from '../schema'
 import { headingLevel } from '../schema/headings'
+import { pageImageLook } from '../schema/imageAttrs'
 import { isSafeImageSrc } from '../schema/imageSrc'
 import { EMBED_ALLOW, EMBED_SANDBOX, embedFrame } from './embedFrame'
 
@@ -48,11 +49,29 @@ function link({ href }: SavedAttrs): Element | null {
     : null
 }
 
-function image({ src, alt }: SavedAttrs): Element | null {
+function image({ src, alt, fullWidth }: SavedAttrs): Element | null {
   if (!isSafeImageSrc(src)) return null
   return {
     tag: 'img',
-    attrs: { src, alt: typeof alt === 'string' ? alt : '', loading: 'lazy' }
+    attrs: { src, alt: typeof alt === 'string' ? alt : '', loading: 'lazy' },
+    ...(fullWidth === true && { style: { width: '100%' } })
+  }
+}
+
+const FIGURE_ALIGN: Record<string, Record<string, string>> = {
+  center: { marginInline: 'auto' },
+  // Physical, as Left, Centre and Right name it, whatever the text's direction.
+  right: { marginLeft: 'auto' }
+}
+
+// Its own width, so an aligned image moves as a whole with its caption.
+function imageFigure(attrs: SavedAttrs): Element {
+  const { fullWidth, align } = pageImageLook(attrs)
+  return {
+    tag: 'figure',
+    style: fullWidth
+      ? { width: '100%' }
+      : { width: 'fit-content', ...(align && FIGURE_ALIGN[align]) }
   }
 }
 
@@ -110,6 +129,16 @@ const NODES: Record<string, ToElement> = {
   column: () => null
 }
 
+// Nodes `withImageFigures` adds around a page's image, never saved.
+const IMAGE_PARTS: Record<string, ToElement> = {
+  imageFigure,
+  // Sized by the image, never widening the figure past it.
+  imageCaption: () => ({
+    tag: 'figcaption',
+    style: { contain: 'inline-size' }
+  })
+}
+
 // Nodes `withTableSections` adds around a saved table's rows, never saved.
 const TABLE_PARTS: Record<string, ToElement> = {
   tableScroll: () => ({ tag: 'div', attrs: { class: 'prose-scroll' } }),
@@ -137,8 +166,13 @@ function known(table: Record<string, ToElement>, names: readonly string[]) {
 function elementsFor(extensions: Extensions): Elements {
   const schema = getSchema(extensions)
   const nodes = known(NODES, Object.keys(schema.nodes))
+  if (nodes.table) Object.assign(nodes, TABLE_PARTS)
+  // An email's image takes a width of its own, and no caption.
+  if (nodes.image && !schema.nodes.image?.spec.attrs?.width) {
+    Object.assign(nodes, IMAGE_PARTS)
+  }
   return {
-    nodes: nodes.table ? Object.assign(nodes, TABLE_PARTS) : nodes,
+    nodes,
     marks: known(MARKS, Object.keys(schema.marks))
   }
 }
@@ -198,6 +232,33 @@ export function withTableSections(node: JSONContent): JSONContent {
   return {
     type: 'tableScroll',
     content: [{ ...node, content: tableSections(content ?? []) }]
+  }
+}
+
+/**
+ * Puts a page's image with a look or a caption in a `figure`, with its
+ * caption in a `figcaption`, so it sits and moves as one.
+ */
+export function withImageFigures(node: JSONContent): JSONContent {
+  const content = node.content?.map(withImageFigures)
+  const look = node.type === 'image' ? pageImageLook(node.attrs) : {}
+  if (Object.keys(look).length === 0) {
+    return content ? { ...node, content } : node
+  }
+  return {
+    type: 'imageFigure',
+    attrs: look,
+    content: [
+      node,
+      ...(look.caption
+        ? [
+            {
+              type: 'imageCaption',
+              content: [{ type: 'text', text: look.caption }]
+            }
+          ]
+        : [])
+    ]
   }
 }
 

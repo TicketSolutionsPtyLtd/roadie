@@ -187,7 +187,6 @@ describe('importEmail from MJML', () => {
     expect(imported.value.doc.attrs).toEqual({ preheader: 'Two weeks to go' })
     expect(imported.dropped).toEqual([
       { kind: 'image', src: 'http://cdn.oztix.com.au/old.jpg' },
-      { kind: 'link', src: 'https://www.oztix.com.au' },
       { kind: 'element', tag: 'mj-accordion' }
     ])
     // The sheet, the section, the text block and its span.
@@ -198,7 +197,8 @@ describe('importEmail from MJML', () => {
         attrs: {
           src: 'https://cdn.oztix.com.au/poster.jpg',
           alt: '',
-          width: null
+          width: null,
+          href: 'https://www.oztix.com.au'
         }
       },
       paragraph(text('Sold out')),
@@ -363,6 +363,51 @@ describe('importEmail from MJML', () => {
     )
     expect(imported.dropped).toEqual([])
     expect(imported.unknownMergeTags).toEqual([])
+  })
+
+  it('reads back an image’s link and alignment, centred text, and column widths and order', () => {
+    const doc: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: 'https://cdn.oztix.com.au/hero.jpg',
+            alt: 'Hero',
+            width: 300,
+            align: 'right',
+            href: 'https://www.oztix.com.au'
+          }
+        },
+        { ...paragraph(text('Gates 11am')), attrs: { align: 'center' } },
+        {
+          type: 'heading',
+          attrs: { level: 2, align: 'center' },
+          content: [text('Lineup')]
+        },
+        ...(['wide-left', 'wide-right'] as const).map((layout) => ({
+          type: 'columns',
+          attrs: { layout, stack: 'reverse' },
+          content: [
+            { type: 'column', content: [paragraph(text('Poster'))] },
+            { type: 'column', content: [paragraph(text('Details'))] }
+          ]
+        }))
+      ]
+    }
+    const tree = mjmlTree(doc, {
+      theme: defaultEmailTheme,
+      tag: () => '',
+      linkTag: () => undefined,
+      showsWhen: () => true
+    })
+
+    const imported = importEmail(asMjml(tree))
+
+    expect(imported.value.doc).toEqual(
+      migrate({ version: 1, preset: 'email', doc }, 'email').doc
+    )
+    expect(imported.dropped).toEqual([])
   })
 })
 

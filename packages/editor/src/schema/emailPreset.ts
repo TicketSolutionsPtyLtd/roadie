@@ -1,15 +1,18 @@
-import { type Extensions, Node } from '@tiptap/core'
+import { Extension, type Extensions, Node } from '@tiptap/core'
 import { StarterKit } from '@tiptap/starter-kit'
 
 import { SafeLink, starterKitOptions } from './basicPreset'
 import {
   SPACER_HEIGHT,
   buttonLook,
+  columnsLook,
+  imageLook,
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
   sectionLook,
-  spacerHeight
+  spacerHeight,
+  textAlign
 } from './emailAttrs'
 import { RichHeading } from './headings'
 import { Image } from './image'
@@ -96,7 +99,48 @@ export const Section = layoutNode(
     0
   ]
 })
-export const Columns = layoutNode('columns', LAYOUT, 'column{2,4}')
+export const Columns = layoutNode('columns', LAYOUT, 'column{2,4}').extend({
+  addAttributes: () => ({
+    layout: {
+      default: undefined,
+      parseHTML: (element: HTMLElement) =>
+        columnsLook({ layout: element.getAttribute('data-layout') }).layout,
+      renderHTML: ({ layout }: Record<string, unknown>) =>
+        layout ? { 'data-layout': String(layout) } : {}
+    },
+    stack: {
+      default: undefined,
+      parseHTML: (element: HTMLElement) =>
+        columnsLook({ stack: element.getAttribute('data-stack') }).stack,
+      renderHTML: ({ stack }: Record<string, unknown>) =>
+        stack ? { 'data-stack': String(stack) } : {}
+    }
+  }),
+  renderHTML: ({ HTMLAttributes }) => [
+    'div',
+    { ...HTMLAttributes, 'data-type': 'columns' },
+    0
+  ]
+})
+
+// A heading or paragraph centred, from its data attribute alone.
+const TextAlign = Extension.create({
+  name: 'textAlign',
+  addGlobalAttributes: () => [
+    {
+      types: ['paragraph', 'heading'],
+      attributes: {
+        align: {
+          default: undefined,
+          parseHTML: (element: HTMLElement) =>
+            textAlign(element.getAttribute('data-align')),
+          renderHTML: ({ align }: Record<string, unknown>) =>
+            align ? { 'data-align': String(align), class: 'text-center' } : {}
+        }
+      }
+    }
+  ]
+})
 export const Column = layoutNode(
   'column',
   undefined,
@@ -267,12 +311,33 @@ const Divider = Node.create({
 const EmailImage = Image.extend({
   group: EMAIL_BLOCK,
   addAttributes() {
+    // An email's image takes a width in pixels in place of a page's look.
+    const inherited = { ...this.parent?.() }
+    delete inherited.fullWidth
+    delete inherited.align
+    delete inherited.caption
     return {
-      ...this.parent?.(),
+      ...inherited,
       width: {
         default: null,
         parseHTML: (element) =>
           imageWidth(Number(element.getAttribute('width')))
+      },
+      // From data attributes alone, as Tiptap reads a bare one by default.
+      align: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          imageLook({ align: element.getAttribute('data-align') }).align
+      },
+      href: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          imageLook({ href: element.getAttribute('data-href') }).href
+      },
+      variable: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('data-variable') ?? undefined
       },
       ...showWhen
     }
@@ -288,9 +353,18 @@ const EmailImage = Image.extend({
   },
   renderHTML({ node, HTMLAttributes }) {
     const { src, alt, width } = node.attrs
+    const { align, href, variable } = imageLook(node.attrs)
     return [
       'img',
-      { src, alt, ...(width && { width }), ...shownWhen(HTMLAttributes) }
+      {
+        src,
+        alt,
+        ...(width && { width }),
+        ...(align && { 'data-align': align }),
+        ...(href && { 'data-href': href }),
+        ...(variable && { 'data-variable': variable }),
+        ...shownWhen(HTMLAttributes)
+      }
     ]
   },
   addCommands() {
@@ -352,6 +426,7 @@ export const email: Extensions = [
   }),
   EmailDoc,
   RichHeading,
+  TextAlign,
   EmailLink,
   Section,
   Columns,

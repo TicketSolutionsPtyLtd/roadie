@@ -67,7 +67,10 @@ const richNodes = {
   heading: { content: 'inline', attrs: ['level'] },
   blockquote: { content: 'blocks' },
   horizontalRule: { content: 'none' },
-  image: { content: 'none', attrs: ['src', 'alt'] },
+  image: {
+    content: 'none',
+    attrs: ['src', 'alt', 'fullWidth', 'align', 'caption']
+  },
   embed: { content: 'none', attrs: ['provider', 'id', 'params'] },
   table: { content: 'tableRows' },
   tableRow: { content: 'tableCells' },
@@ -120,14 +123,15 @@ export const presetShapes = {
         attrs: ['preheader'],
         holds: [...emailBlocks, 'section', 'columns']
       },
+      paragraph: { content: 'inline', attrs: ['align'] },
       listItem: { content: 'paragraphFirst', holds: textBlocks },
-      heading: { content: 'inline', attrs: ['level'] },
+      heading: { content: 'inline', attrs: ['align', 'level'] },
       section: {
         content: 'blocks',
         attrs: ['showWhen', 'look', 'spacing'],
         holds: [...emailBlocks, 'columns']
       },
-      columns: { content: 'columns' },
+      columns: { content: 'columns', attrs: ['layout', 'stack'] },
       column: { content: 'blocks', holds: emailBlocks },
       button: {
         content: 'inline',
@@ -141,7 +145,10 @@ export const presetShapes = {
         ],
         plainText: true
       },
-      image: { content: 'none', attrs: ['src', 'alt', 'width', 'showWhen'] },
+      image: {
+        content: 'none',
+        attrs: ['src', 'alt', 'width', 'align', 'href', 'variable', 'showWhen']
+      },
       spacer: { content: 'none', attrs: ['height', 'showWhen'] },
       horizontalRule: { content: 'none', attrs: ['showWhen'] },
       variable: { inline: true, content: 'none', attrs: ['key', 'fallback'] }

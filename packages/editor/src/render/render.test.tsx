@@ -93,6 +93,30 @@ const renderers = [
 ] as const
 
 describe.each(renderers)('%s', (_, render) => {
+  it('renders an email’s aligned image as an image, with no figure', () => {
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'image',
+              attrs: {
+                src: 'https://assets.example.com/a.png',
+                alt: 'A',
+                align: 'right'
+              }
+            }
+          ]
+        }
+      })
+    ).toBe(
+      '<img src="https://assets.example.com/a.png" alt="A" loading="lazy">'
+    )
+  })
+
   it.each<[string, JSONContent[], string]>([
     [
       'a paragraph',
@@ -460,6 +484,50 @@ describe.each(renderers)('%s', (_, render) => {
         'an image with no alt text as decorative',
         [{ type: 'image', attrs: { src: '/images/crowd.webp' } }],
         '<img src="/images/crowd.webp" alt="" loading="lazy">'
+      ],
+      [
+        'an image with its caption, in a figure',
+        [
+          {
+            type: 'image',
+            attrs: {
+              src: '/images/crowd.webp',
+              alt: 'The crowd',
+              caption: 'Gates <open> at 11am'
+            }
+          }
+        ],
+        '<figure style="width:fit-content"><img src="/images/crowd.webp" alt="The crowd" loading="lazy"><figcaption style="contain:inline-size">Gates &lt;open&gt; at 11am</figcaption></figure>'
+      ],
+      [
+        'a centred image',
+        [
+          {
+            type: 'image',
+            attrs: { src: '/images/crowd.webp', alt: '', align: 'center' }
+          }
+        ],
+        '<figure style="width:fit-content;margin-inline:auto"><img src="/images/crowd.webp" alt="" loading="lazy"></figure>'
+      ],
+      [
+        'a right-aligned image, on the right in any direction',
+        [
+          {
+            type: 'image',
+            attrs: { src: '/images/crowd.webp', alt: '', align: 'right' }
+          }
+        ],
+        '<figure style="width:fit-content;margin-left:auto"><img src="/images/crowd.webp" alt="" loading="lazy"></figure>'
+      ],
+      [
+        'an image across the text',
+        [
+          {
+            type: 'image',
+            attrs: { src: '/images/crowd.webp', alt: '', fullWidth: true }
+          }
+        ],
+        '<figure style="width:100%"><img src="/images/crowd.webp" alt="" loading="lazy" style="width:100%"></figure>'
       ],
       [
         'an image with markup in its alt text, escaped',

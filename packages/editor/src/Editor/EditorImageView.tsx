@@ -4,20 +4,59 @@ import { WarningIcon } from '@phosphor-icons/react'
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
 
 import { Badge } from '@oztix/roadie-components/badge'
+import { cn } from '@oztix/roadie-core/utils'
 
-/** An image in the editor, flagged until it has alt text. */
+import { imageLook, imageWidth } from '../schema/emailAttrs'
+import { pageImageLook } from '../schema/imageAttrs'
+
+// Physical, as Left, Centre and Right name it, whatever the text's direction.
+const ALIGN = {
+  left: 'mr-auto',
+  center: 'mx-auto',
+  right: 'ml-auto'
+} as const
+
+/**
+ * An image in the editor, flagged until it has alt text. An email's image
+ * fills its column, or sits at its width, centred unless aligned, as the
+ * email draws it. A page's image sits at its own width or across the text,
+ * aligned, with its caption under it.
+ */
 export function EditorImageView({ node, selected }: ReactNodeViewProps) {
   const src = String(node.attrs.src)
   const alt = String(node.attrs.alt ?? '')
+  const inEmail = 'width' in node.attrs
+  const width = imageWidth(node.attrs.width)
+  const { align } = imageLook(node.attrs)
+  const page = pageImageLook(node.attrs)
 
   return (
     <NodeViewWrapper
+      as={page.caption ? 'figure' : 'div'}
       data-slot='editor-image'
       data-selected={selected ? '' : undefined}
       // Hugs the image, rounded as prose rounds it, so the ring follows it.
-      className='relative grid w-fit max-w-full rounded-md'
+      className={cn(
+        'relative grid max-w-full rounded-md',
+        !inEmail && (page.fullWidth ? 'w-full' : 'w-fit'),
+        !inEmail && page.align && ALIGN[page.align],
+        inEmail && width === null && 'w-full',
+        inEmail && width !== null && (align ? ALIGN[align] : 'mx-auto')
+      )}
+      style={inEmail && width !== null ? { width } : undefined}
     >
-      <img src={src} alt={alt} draggable={false} className='m-0' />
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        className={cn('m-0', (inEmail || page.fullWidth) && 'w-full')}
+      />
+      {page.caption ? (
+        // Sized by the image, never widening it past the image.
+        <figcaption contentEditable={false} className='[contain:inline-size]'>
+          {page.caption}
+        </figcaption>
+      ) : null}
       {alt ? null : (
         <div contentEditable={false} className='absolute start-2 top-2'>
           <Badge intent='warning' emphasis='strong'>

@@ -4,7 +4,11 @@ import {
   EMAIL_WIDTH,
   type SectionLook,
   buttonLook,
-  sectionLook
+  columnWidths,
+  columnsLook,
+  imageLook,
+  sectionLook,
+  textAlign
 } from '../schema/emailAttrs'
 import { preheaderOf } from '../schema/preheader'
 import type { ShowWhen } from '../schema/showWhen'
@@ -135,15 +139,20 @@ function blockContent(node: JSONContent, context: Context) {
         )
       ]
     }
-    case 'image':
+    case 'image': {
+      const { align } = imageLook(attrs)
+      const href = emailHref(imageLook(attrs), context)
       return [
         mj('mj-image', {
           src: escapeHtml(String(attrs.src)),
           alt: escapeHtml(String(attrs.alt ?? '')),
           padding,
-          ...(attrs.width && { width: `${attrs.width}px` })
+          ...(attrs.width && { width: `${attrs.width}px` }),
+          ...(align && { align }),
+          ...(href && { href })
         })
       ]
+    }
     case 'spacer':
       return [mj('mj-spacer', { height: `${attrs.height}px` })]
     case 'horizontalRule':
@@ -159,11 +168,16 @@ function blockContent(node: JSONContent, context: Context) {
       const kept = withoutBlankItems(node)
       if (!kept) return []
       const html = textBlockHtml(kept, context)
+      const align = textAlign(attrs.align)
       return html
         ? [
             leaf(
               'mj-text',
-              { padding, ...(context.filled && { color: context.theme.text }) },
+              {
+                padding,
+                ...(align && { align }),
+                ...(context.filled && { color: context.theme.text })
+              },
               html
             )
           ]
@@ -199,20 +213,40 @@ function withoutBlankItems(node: JSONContent): JSONContent | null {
   return items.length > 0 ? { ...node, content: items } : null
 }
 
-const column = (blocks: JSONContent[], context: Context) =>
+const column = (
+  blocks: JSONContent[],
+  context: Context,
+  attributes: Record<string, string> = {}
+) =>
   mj(
     'mj-column',
-    {},
+    attributes,
     blocks.flatMap((block) => blockNodes(block, context))
   )
 
+const percent = (share: number) => `${Number(share.toFixed(2))}%`
+
+// MJML stacks columns in their order, so a reversed stack writes them last
+// first and lays the row out right to left, which puts them back on a desktop.
 function columns(node: JSONContent, text: TreeContext) {
   const context = { ...text, padding: COLUMN_BLOCK_PADDING }
-  return mj(
-    'mj-section',
-    { padding: COLUMNS_PADDING },
-    (node.content ?? []).map((child) => column(child.content ?? [], context))
+  const look = columnsLook(node.attrs)
+  const children = node.content ?? []
+  const widths = columnWidths(children.length, look)
+  const built = children.map((child, index) =>
+    column(
+      child.content ?? [],
+      context,
+      look.layout ? { width: percent(widths[index]!) } : {}
+    )
   )
+  return look.stack
+    ? mj(
+        'mj-section',
+        { padding: COLUMNS_PADDING, direction: 'rtl' },
+        built.reverse()
+      )
+    : mj('mj-section', { padding: COLUMNS_PADDING }, built)
 }
 
 const SECTION_PADDING = { tight: '8px 0', roomy: '32px 0' } as const

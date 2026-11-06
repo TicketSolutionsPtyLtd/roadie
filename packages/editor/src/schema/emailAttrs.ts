@@ -66,6 +66,71 @@ export type ButtonLook = {
   fullWidth?: true
 }
 
+/** A heading's or a paragraph's alignment: from its start, or centred. */
+export function textAlign(align: unknown): 'center' | undefined {
+  return align === 'center' ? align : undefined
+}
+
+/**
+ * How an image sits and where it links. Each is saved only when it isn't the
+ * default: centred, as a mail client centres it, and unlinked. Its width is
+ * `width`, so it aligns only at a width narrower than its column.
+ */
+export type ImageLook = {
+  align?: 'left' | 'right'
+  href?: string
+  /** A link variable's key, such as the unsubscribe page, in place of `href`. */
+  variable?: string
+}
+
+/** The saved parts of an image's look, dropping defaults and anything unknown. */
+export function imageLook(attrs: unknown): ImageLook {
+  if (typeof attrs !== 'object' || attrs === null) return {}
+  const { align, href, variable } = attrs as Record<string, unknown>
+  const linked =
+    typeof variable === 'string' && variable.trim() !== ''
+      ? { variable }
+      : isEmailHref(href)
+        ? { href }
+        : {}
+  return {
+    ...((align === 'left' || align === 'right') && { align }),
+    ...linked
+  }
+}
+
+/**
+ * How a row of columns shares its width and stacks on a phone. Each is saved
+ * only when it isn't the default: equal widths, stacked in order.
+ */
+export type ColumnsLook = {
+  /** The first or last column twice the width of each other, as 2:1 or 1:2 in two. */
+  layout?: 'wide-left' | 'wide-right'
+  /** Stacked last column first on a phone. */
+  stack?: 'reverse'
+}
+
+/** The saved parts of a row of columns' look, dropping defaults and anything unknown. */
+export function columnsLook(attrs: unknown): ColumnsLook {
+  if (typeof attrs !== 'object' || attrs === null) return {}
+  const { layout, stack } = attrs as Record<string, unknown>
+  return {
+    ...((layout === 'wide-left' || layout === 'wide-right') && { layout }),
+    ...(stack === 'reverse' && { stack })
+  }
+}
+
+/** Each column's share of the row, in percent, by its look. */
+export function columnWidths(count: number, { layout }: ColumnsLook) {
+  const wide =
+    layout === 'wide-left' ? 0 : layout === 'wide-right' ? count - 1 : -1
+  const parts = wide < 0 ? count : count + 1
+  return Array.from(
+    { length: count },
+    (_, index) => ((index === wide ? 2 : 1) * 100) / parts
+  )
+}
+
 /** The saved parts of a button's look, dropping defaults and anything unknown. */
 export function buttonLook(attrs: unknown): ButtonLook {
   if (typeof attrs !== 'object' || attrs === null) return {}

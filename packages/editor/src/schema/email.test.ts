@@ -103,12 +103,14 @@ describe('presets.email', () => {
       'button',
       ['href', 'variable', 'align', 'emphasis', 'fullWidth', 'showWhen']
     ],
-    ['image', ['src', 'alt', 'width', 'showWhen']],
+    ['image', ['src', 'alt', 'width', 'align', 'href', 'variable', 'showWhen']],
+    ['paragraph', ['align']],
+    ['heading', ['align', 'level']],
     ['spacer', ['height', 'showWhen']],
     ['horizontalRule', ['showWhen']],
     ['variable', ['key', 'fallback']],
     ['section', ['showWhen', 'look', 'spacing']],
-    ['columns', []],
+    ['columns', ['layout', 'stack']],
     ['column', []]
   ])('saves only these attrs of a %s', (name, attrs) => {
     expect(Object.keys(schema.nodes[name]!.spec.attrs ?? {})).toEqual(attrs)
@@ -288,6 +290,149 @@ describe('presets.email', () => {
       { href: tickets, emphasis: 'subtle' },
       { href: tickets }
     ])
+  })
+
+  it('saves only the parts of an image’s look that aren’t the default', () => {
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc(
+        {
+          ...image(poster, 200),
+          attrs: {
+            ...image(poster, 200).attrs,
+            align: 'right',
+            href: tickets
+          }
+        },
+        {
+          ...image(poster),
+          attrs: { ...image(poster).attrs, variable: 'view_url', href: tickets }
+        },
+        {
+          ...image(poster),
+          attrs: {
+            ...image(poster).attrs,
+            align: 'center',
+            href: 'javascript:alert(1)'
+          }
+        },
+        { ...image(poster), attrs: { ...image(poster).attrs, href: '/x' } }
+      )
+    })
+    expect(saved.doc.content?.map((block) => block.attrs)).toEqual([
+      { ...image(poster, 200).attrs, align: 'right', href: tickets },
+      { ...image(poster).attrs, variable: 'view_url' },
+      image(poster).attrs,
+      image(poster).attrs
+    ])
+  })
+
+  it('saves a centred heading or paragraph, and nothing else of alignment', () => {
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc(
+        {
+          ...p('Lineup'),
+          type: 'heading',
+          attrs: { level: 2, align: 'center' }
+        },
+        { ...p('Gates 11am'), attrs: { align: 'center' } },
+        { ...p('All ages'), attrs: { align: 'right' } }
+      )
+    })
+    expect(saved.doc.content?.map((block) => block.attrs)).toEqual([
+      { level: 2, align: 'center' },
+      { align: 'center' },
+      undefined
+    ])
+    expect(
+      migrate({
+        version: 1,
+        preset: 'rich',
+        doc: doc({ ...p('Gates 11am'), attrs: { align: 'center' } })
+      }).doc.content![0]!.attrs
+    ).toBe(undefined)
+  })
+
+  it('saves only the parts of a row of columns’ look that aren’t the default', () => {
+    const row = (attrs: Record<string, unknown>) => ({
+      ...columns(column(p('Lineup')), column(p('Tickets'))),
+      attrs
+    })
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc(
+        row({ layout: 'wide-left', stack: 'reverse' }),
+        row({ layout: 'wide-right' }),
+        row({ layout: 'thirds', stack: 'forward' })
+      )
+    })
+    expect(saved.doc.content?.map((block) => block.attrs)).toEqual([
+      { layout: 'wide-left', stack: 'reverse' },
+      { layout: 'wide-right' },
+      undefined
+    ])
+  })
+
+  it.each([
+    [
+      'image',
+      { ...image(poster, 200).attrs, align: 'left', href: tickets },
+      { align: 'left', href: tickets }
+    ],
+    [
+      'image',
+      { ...image(poster).attrs, variable: 'view_url' },
+      { variable: 'view_url' }
+    ],
+    ['paragraph', { align: 'center' }, { align: 'center' }],
+    // A heading's level comes from its tag, which this element has none of.
+    ['heading', { level: 3, align: 'center' }, { align: 'center' }],
+    [
+      'columns',
+      { layout: 'wide-left', stack: 'reverse' },
+      { layout: 'wide-left', stack: 'reverse' }
+    ]
+  ])('keeps a %s’s look through its copied HTML', (name, attrs, kept) => {
+    const content =
+      name === 'columns'
+        ? [column(p('Lineup')), column(p('Tickets'))]
+        : name === 'image'
+          ? undefined
+          : [text('Lineup')]
+    const node = schema.nodeFromJSON({ type: name, attrs, content })
+    const [, copied] = schema.nodes[name]!.spec.toDOM!(node) as [
+      string,
+      Record<string, string>
+    ]
+    expect(
+      pastedAttrs(name, {
+        getAttribute: (attr: string) => copied[attr] ?? null
+      })
+    ).toMatchObject(kept)
+  })
+
+  it('reads no image look or text alignment from bare attributes', () => {
+    const bare: Record<string, string> = {
+      src: poster,
+      align: 'right',
+      href: tickets,
+      variable: 'view_url'
+    }
+    const pasted = pastedAttrs('image', {
+      getAttribute: (attr: string) => bare[attr] ?? null
+    })
+    expect(pasted).not.toHaveProperty('align', 'right')
+    expect(pasted).not.toHaveProperty('href', tickets)
+    expect(pasted).not.toHaveProperty('variable', 'view_url')
+    expect(
+      pastedAttrs('paragraph', {
+        getAttribute: (attr: string) => (attr === 'align' ? 'center' : null)
+      })
+    ).not.toHaveProperty('align', 'center')
   })
 
   it('keeps a link or a button that links to a link variable', () => {

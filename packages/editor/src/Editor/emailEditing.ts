@@ -9,7 +9,12 @@ import { Selection, TextSelection } from '@tiptap/pm/state'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { buttonLook, sectionLook } from '../schema/emailAttrs'
+import {
+  buttonLook,
+  columnWidths,
+  columnsLook,
+  sectionLook
+} from '../schema/emailAttrs'
 import { Button, Column, Columns, Section, Spacer } from '../schema/emailPreset'
 
 function firstTextblock(node: PMNode) {
@@ -386,6 +391,19 @@ function sectionClass(attrs: Attrs) {
   )
 }
 
+// Side by side from the width MJML stops stacking columns at, each its
+// share of the row.
+function columnsClass(attrs: Attrs) {
+  const { layout, stack } = columnsLook(attrs)
+  return cn(
+    'prose-bleed grid gap-4 @min-[432px]:auto-cols-fr @min-[432px]:grid-flow-col @min-[432px]:gap-6',
+    layout && '@min-[432px]:grid-cols-(--email-columns)',
+    // Stacked from the last column, as the email stacks it on a phone; a
+    // grid has no reverse order.
+    stack && '@max-[431px]:flex @max-[431px]:flex-col-reverse'
+  )
+}
+
 const BUTTON_ALIGN = { center: 'mx-auto', right: 'ms-auto' } as const
 
 // Matches how renderEmail draws each emphasis, whatever intent the editor sits in.
@@ -437,10 +455,35 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
   // Side by side from a 480px canvas, as MJML sets them from a 480px
   // screen; the query reads the canvas inside its 24px insets. 24px apart,
   // as the email's columns pad their blocks 12px a side.
-  columns: outlined(
-    Columns,
-    'prose-bleed grid gap-4 @min-[432px]:auto-cols-fr @min-[432px]:grid-flow-col @min-[432px]:gap-6'
-  ),
+  // A view of its own, as each column's share follows how many there are.
+  columns: Columns.extend({
+    addNodeView:
+      () =>
+      ({ node }) => {
+        const dom = document.createElement('div')
+        const draw = (current: PMNode) => {
+          const look = columnsLook(current.attrs)
+          dom.dataset.type = 'columns'
+          dom.className = columnsClass(current.attrs)
+          dom.style.setProperty(
+            '--email-columns',
+            columnWidths(current.childCount, look)
+              .map((share) => `${Number(share.toFixed(4))}fr`)
+              .join(' ')
+          )
+        }
+        draw(node)
+        return {
+          dom,
+          contentDOM: dom,
+          update: (updated) => {
+            if (updated.type !== node.type) return false
+            draw(updated)
+            return true
+          }
+        }
+      }
+  }),
   column: outlined(Column, 'min-w-0 rounded-md').extend({
     addKeyboardShortcuts: () => ({
       Tab: ({ editor }) => editor.commands.command(goToColumn(1)),

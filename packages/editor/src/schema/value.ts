@@ -5,14 +5,18 @@ import { isUnsafeHref } from '@oztix/roadie-core/utils'
 import {
   COLUMN_COUNTS,
   buttonLook,
+  columnsLook,
+  imageLook,
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
   sectionLook,
-  spacerHeight
+  spacerHeight,
+  textAlign
 } from './emailAttrs'
 import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
+import { pageImageLook } from './imageAttrs'
 import { isSafeImageSrc } from './imageSrc'
 import { isText } from './isText'
 import { preheaderOf } from './preheader'
@@ -91,7 +95,13 @@ function cleanedMarks(marks: unknown[], shape: PresetShape) {
   return [...kept.values()]
 }
 
-function cleanedAttrs({ type, attrs }: JSONContent) {
+function aligned(attrs: JSONContent['attrs']) {
+  const { align, ...rest } = attrs ?? {}
+  const kept = textAlign(align)
+  return kept ? { ...rest, align: kept } : rest
+}
+
+function cleanedAttrs({ type, attrs }: JSONContent, email: boolean) {
   if (type === 'doc') {
     const preheader = preheaderOf(attrs?.preheader)
     return preheader ? { preheader } : undefined
@@ -103,15 +113,24 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
       ...(isSpan('rowspan', rowspan) && { rowspan })
     }
   }
-  if (type === 'heading') return { ...attrs, level: headingLevel(attrs?.level) }
+  if (type === 'heading') {
+    return { ...aligned(attrs), level: headingLevel(attrs?.level) }
+  }
+  if (type === 'paragraph') return attrs && aligned(attrs)
   if (type === 'image') {
     const alt: unknown = attrs?.alt
+    const { align, href, variable, fullWidth, caption, ...rest } = attrs ?? {}
+    // The preset's shape keeps an email's look or a page's, never both.
     return {
-      ...attrs,
+      ...rest,
       alt: typeof alt === 'string' ? alt : '',
-      width: imageWidth(attrs?.width)
+      width: imageWidth(attrs?.width),
+      ...(email
+        ? imageLook({ align, href, variable })
+        : pageImageLook({ align, fullWidth, caption }))
     }
   }
+  if (type === 'columns') return columnsLook(attrs)
   if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
   if (type === 'section') return sectionLook(attrs)
   if (type === 'button') {
@@ -395,7 +414,10 @@ function cleaned(
   const { type, text, marks, content, attrs: stored } = node
   const attrs = picked(
     withBlockId(
-      withRule(cleanedAttrs({ type, attrs: stored }), stored),
+      withRule(
+        cleanedAttrs({ type, attrs: stored }, shape.httpsImages === true),
+        stored
+      ),
       stored
     ),
     nodeShape.attrs
