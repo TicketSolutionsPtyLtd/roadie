@@ -706,8 +706,15 @@ export function EditorEngine({
           // in the gutter beside it, which editor.css keeps.
           blockHandle &&
             preset !== 'email' &&
-            emphasis !== 'subtler' &&
-            (blockHandle.canAdd ? 'ps-15' : 'ps-10')
+            cn(
+              // A page's grip hangs in the editor's own padding, so neither
+              // a host's overflow nor a docs frame clips it.
+              (preset === 'blocks' || emphasis !== 'subtler') &&
+                (blockHandle.canAdd ? 'ps-15' : 'ps-10'),
+              // On a phone, only the grip's room at the start, in a subtler
+              // editor too, as the page may clip it; its target may overlap.
+              'max-sm:ps-8 pointer-coarse:ps-8'
+            )
         )
       },
       handleDOMEvents: {
