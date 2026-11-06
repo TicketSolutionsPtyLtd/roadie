@@ -19,7 +19,6 @@ import {
   SquareSplitVerticalIcon,
   SwapIcon,
   TableIcon,
-  TextAaIcon,
   TextBIcon,
   TextItalicIcon,
   TextUnderlineIcon,
@@ -39,6 +38,7 @@ export type EditorControlUi = {
   /** Opens the embed editor, on the selected embed if there is one. */
   editEmbed: () => void
   pickImage: (() => void) | undefined
+  /** Opens the selected image's settings: its link, alt text and look. */
   editAlt: () => void
   /** Opens the file picker to replace the selected image, or undefined without `onUploadImage`. */
   replaceImage: (() => void) | undefined
@@ -305,9 +305,9 @@ export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
   ]
 }
 
-const altText: EditorControl = {
-  label: 'Alt text',
-  icon: TextAaIcon,
+const imageSettings: EditorControl = {
+  label: 'Image settings',
+  icon: SlidersHorizontalIcon,
   run: (_editor, { editAlt }) => editAlt()
 }
 
@@ -404,7 +404,7 @@ export type EditorNodeItem = EditorControl | EditorBlockMenu
 
 /** The actions in the toolbar of the node the selection is on or in. */
 export const nodeControls: Record<EditorNodeType, readonly EditorNodeItem[]> = {
-  image: [altText, replaceImage, remove('Remove image')],
+  image: [imageSettings, replaceImage, remove('Remove image')],
   embed: [editEmbedLink, remove('Remove embed')],
   spacer: [spacerHeight, remove('Remove spacer')],
   button: [editButton, removeButton],

@@ -138,7 +138,7 @@ describe('Editor node toolbar', () => {
       within(toolbar)
         .getAllByRole('button')
         .map((button) => button.getAttribute('aria-label'))
-    ).toEqual(['Alt text', 'Remove image'])
+    ).toEqual(['Image settings', 'Remove image'])
   })
 
   it('shows an embed’s actions when the embed is clicked', async () => {
@@ -267,7 +267,7 @@ describe('Editor node toolbar', () => {
 
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
     expect(
-      within(toolbar).getByRole('button', { name: 'Alt text' })
+      within(toolbar).getByRole('button', { name: 'Image settings' })
     ).toHaveFocus()
     await userEvent.keyboard('{ArrowRight}')
     expect(
@@ -833,7 +833,7 @@ describe('Editor node selection ring', () => {
 })
 
 describe('Editor image actions', () => {
-  it('edits the alt text, which undo puts back', async () => {
+  it('edits the alt text from Image settings, which undo puts back', async () => {
     const onValueChange = vi.fn()
     render(
       <NodeEditor defaultValue={pictured('')} onValueChange={onValueChange} />
@@ -842,10 +842,9 @@ describe('Editor image actions', () => {
     expect(within(textbox).getByText('No alt text')).toBeVisible()
 
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Alt text' })
+      await screen.findByRole('button', { name: 'Image settings' })
     )
     const field = await screen.findByRole('textbox', { name: 'Alt text' })
-    await waitFor(() => expect(field).toHaveFocus())
     await userEvent.type(field, `${CROWD_ALT}{Enter}`)
 
     expect(

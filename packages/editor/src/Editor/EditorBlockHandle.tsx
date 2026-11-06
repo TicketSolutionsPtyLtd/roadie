@@ -662,14 +662,15 @@ export function EditorBlockHandle({
   const close = () => setMenuAt(null)
 
   const settings: BlockAction[] =
-    onSettings && hasSettings?.(doc.nodeAt(shown)!.type.name)
+    !blocks && onSettings && hasSettings?.(doc.nodeAt(shown)!.type.name)
       ? [
           {
             label: 'Settings',
             icon: SlidersHorizontalIcon,
-            // Once the menu's handed focus back, or the drawer would lose it.
+            // Once the menu's handed focus back, or it would close them.
             run: () => {
-              afterClose.current = () => onSettings(shown)
+              const at = shown
+              afterClose.current = () => onSettings(at)
             }
           }
         ]

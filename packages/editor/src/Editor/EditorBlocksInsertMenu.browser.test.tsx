@@ -118,13 +118,21 @@ describe('Editor insert menu in the blocks preset', () => {
     )
   })
 
-  it('leaves Image out without onUploadImage', async () => {
-    renderBlocks()
+  it('adds an Image from a link without onUploadImage', async () => {
+    const onValueChange = renderBlocks()
     await focusedTextbox()
 
-    await userEvent.keyboard('/')
+    await userEvent.keyboard('/image{Enter}')
+    const field = await screen.findByRole('textbox', { name: 'Image address' })
+    await waitFor(() => expect(field).toHaveFocus())
+    await userEvent.keyboard('/images/crowd.webp{Enter}')
 
-    expect(optionNames(await insertMenu())).not.toContain('Image')
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)[0]).toMatchObject({
+        type: 'image',
+        attrs: { src: '/images/crowd.webp' }
+      })
+    )
   })
 
   it.each([
@@ -550,6 +558,9 @@ describe('Editor insert menu in the blocks preset', () => {
     })
 
     await userEvent.keyboard('/image{Enter}')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Upload an image' })
+    )
     await waitFor(() => expect(onPick).toHaveBeenCalled())
     await userEvent.upload(
       fileInput,

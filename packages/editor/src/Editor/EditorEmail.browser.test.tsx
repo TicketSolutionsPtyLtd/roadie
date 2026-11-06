@@ -327,7 +327,7 @@ describe('Editor with the email preset', () => {
     await userEvent.click(textbox.querySelector('img')!)
 
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Replace image' })
+      await screen.findByRole('button', { name: 'Upload a new image' })
     )
     await userEvent.upload(
       screen.getByLabelText('Replacement image file'),
@@ -341,6 +341,7 @@ describe('Editor with the email preset', () => {
         width: 280
       })
     )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
 
   it('shows a merge tag as a chip with its label, not as text to edit', async () => {
@@ -521,9 +522,22 @@ describe('Editor with the email preset', () => {
 
     expect(view).not.toHaveAttribute('data-selected')
     expect(container.querySelector('.ProseMirror-selectednode')).toBeNull()
+    // A loaded WebKit lays the failed image out late, with no size till then.
+    await expect
+      .poll(() => image.getBoundingClientRect().height, { timeout: 5000 })
+      .toBeGreaterThan(0)
 
     await userEvent.click(image)
     await waitFor(() => expect(view).toHaveAttribute('data-selected'))
+    const settings = await screen.findByRole('dialog', {
+      name: 'Image settings'
+    })
+    // Once it has focus, or Escape goes to the editor instead.
+    await waitFor(() =>
+      expect(settings.contains(document.activeElement)).toBe(true)
+    )
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
 })
 

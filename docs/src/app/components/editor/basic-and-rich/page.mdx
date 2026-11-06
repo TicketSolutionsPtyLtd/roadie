@@ -70,14 +70,16 @@ web address such as `oztix.com.au` and the editor adds `https://`. With
 nothing selected, saving inserts the address as linked text. Typing or pasting
 a web address links it as you go.
 
-The Link, Embed, Edit link, and Alt text popovers are one row: an input, a
+The Link, Embed, Edit link, and Image popovers are one row: an input, a
 check button that saves, and Close. Editing a link adds Remove link between
-the two. The popovers that change what's there show each change as it's
-typed: a selection's link while it's a whole address, an embed's player while a
-provider reads its link, and an image's alt text at once. Enter, the check, or
-a click away keeps the changes as one step to undo, and so does Escape; Undo
-takes them back, and Close puts things back as they were. A link at a caret with nothing selected, and a new
-embed from the Embed control, are added on save.
+the two. An embed's Edit link opens as Embed settings, under its title, a
+hint, and Done. The popovers that change what's there show each change as
+it's typed: a selection's link while it's a whole address, an embed's player
+while a provider reads its link. Enter, the check, or a click away keeps the
+changes as one step to undo, and so does Escape; Undo takes them back, and
+Close puts things back as they were. A link at a caret with nothing selected,
+a new embed from the Embed control, and a new image from the Image control
+are added on save.
 
 ```tsx-live-prose
 <Editor
@@ -163,11 +165,11 @@ The page owns its `h1`, so pasted `h1` becomes a heading 2, and `h5` and
 
 ### Images
 
-The rich preset holds images. Pass `onUploadImage` to add the Image control:
-it uploads a file the person picks, pastes, or drops, and resolves to where
-the image is served. A placeholder shows while it uploads, and a rejection's
-message shows in `Field.ErrorText`. Without `onUploadImage` there's no Image
-control, and image files are ignored.
+The rich preset holds images. The Image control adds one from its link.
+Pass `onUploadImage` to upload one too: it uploads a file the person picks
+from Upload an image, pastes, or drops, and resolves to where the image is
+served. A placeholder shows while it uploads, and a rejection's message shows
+in `Field.ErrorText`. Without `onUploadImage`, image files are ignored.
 
 ```tsx-live-prose-noinline
 function uploadImage(file) {
@@ -211,10 +213,28 @@ on the same site, such as `/images/poster.webp`; any other address is refused
 when it's inserted, pasted, or loaded.
 
 Click an image, or move onto it with the arrow keys, to edit it in place. A
-toolbar by the image has Alt text, Replace image (with `onUploadImage`, which
-uploads the new file the same way and keeps the alt text), and Remove image.
-An image with no alt text shows a No alt text badge until it has some; Enter
-on a selected image opens Alt text too.
+toolbar by the image has Image settings, Replace image (with `onUploadImage`,
+which uploads the new file the same way and keeps the alt text), and Remove
+image. In the blocks and email presets, a click on an image opens Image
+settings first, the toolbar showing once it closes, and the image's block
+menu leads with Settings. A tap opens them on an image already selected. Image
+settings edits the image's address and its alt text, each applied as it's
+made: Done, Escape, or a click away keeps the changes as one step, which undo
+puts back. It also sets the image's width, Fit or Full width, and its
+alignment when it fits, Left, Centre, or Right, as Button settings names
+them (in right-to-left text, a page image's start is its right, so it has
+no Left), and, in the rich and blocks presets, its caption, or, in an email,
+where it links. It opens with focus on its first style choice. On a phone it
+opens over the lower half of the screen, with the image kept in view above
+it. A selected image with no alt text shows a No alt text chip until it has
+some; Enter on a selected image opens Image settings too.
+
+An image in the rich and blocks presets saves its look only where it
+differs from the default, its own width from the start of the text:
+`fullWidth: true` across the text, `align: 'center' | 'right'` for a
+narrower one, and an optional `caption`. `renderEditorValue` and
+`renderEditorHtml` draw an image with any of these as a `figure`, its
+caption in a `figcaption`. `migrate` drops any other value.
 
 An image in the rich and blocks presets saves its look only where it
 differs from the default, its own width from the start of the text:
@@ -275,7 +295,9 @@ Click an embed, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the embed has Edit link and Remove embed. Edit link starts from the
 embed's share link, from its provider's optional `shareUrl`, and swaps in the
 new link's player as soon as a provider reads it. It refuses a link no
-provider reads, as the Embed control does.
+provider reads, as the Embed control does. In the blocks preset, a click on
+an embed opens Embed settings straight away, and its block menu leads with
+Settings.
 
 ### Tables
 
@@ -342,9 +364,9 @@ phone.
   Embed actions, with the same keys as Formatting. It shows only while the
   node is selected and the editor has focus, and never while read-only or
   disabled. Each action is one step to undo.
-- An image's alt text is edited in a popover with a named input, opened by
-  Enter on a selected image or its Alt text action. Escape keeps the alt text
-  and returns focus to the image. An upload in progress is a `status`, and an upload error
+- An image's settings are a dialog named Image settings, with labelled
+  fields, opened by Enter on a selected image or its Image settings action.
+  Escape keeps the changes and returns focus to the image. An upload in progress is a `status`, and an upload error
   shows in `Field.ErrorText`, or under the editor outside a `Field`.
 - An embed's player is titled with its provider and id, and takes no Tab
   stop in the editor. Arrow keys select an embed or an image, and Backspace
@@ -369,7 +391,7 @@ phone.
 | `Mod+Alt+0` | Paragraph, in the rich preset |
 | `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
 | `Mod+Shift+B` | Quote, in the rich preset |
-| `Enter` | On a selected image, edit its alt text |
+| `Enter` | On a selected image, open its settings |
 | `Tab` | In a table, move to the next cell, adding a row after the last |
 | `Shift+Tab` | In a table, move to the cell before, or leave the editor from the first |
 

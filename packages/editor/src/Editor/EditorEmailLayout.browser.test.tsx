@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
@@ -266,5 +266,92 @@ describe('Editor page image', () => {
     const box = boxOf(img)
 
     expect((box.left + box.right) / 2).toBeCloseTo((start + end) / 2, 0)
+  })
+})
+
+describe('Editor gap cursor', () => {
+  it('draws the place between an image and a section as a line across the text', async () => {
+    const textbox = await renderEmail([
+      { type: 'image', attrs: { src: POSTER, alt: 'Crowd', width: null } },
+      { type: 'section', content: [p('Gates 11am')] }
+    ])
+    await userEvent.click(await screen.findByText('Gates 11am'))
+    await userEvent.keyboard('{Home}{ArrowUp}')
+
+    const gap = await waitFor(() => {
+      const found = textbox.querySelector('.ProseMirror-gapcursor')
+      expect(found).not.toBe(null)
+      return found!
+    })
+    const line = getComputedStyle(gap, '::after')
+    const style = getComputedStyle(textbox)
+    const text =
+      boxOf(textbox).width -
+      parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight)
+
+    expect(parseFloat(line.width)).toBeGreaterThan(text / 2)
+    expect(parseFloat(line.borderTopWidth)).toBe(2)
+  })
+})
+
+describe('Editor gap cursor after an image', () => {
+  it('draws its line in the gap below the image, not over it', async () => {
+    const textbox = await renderEmail([
+      { type: 'image', attrs: { src: POSTER, alt: 'Crowd', width: null } },
+      { type: 'section', content: [p('Gates 11am')] }
+    ])
+    await userEvent.click(await screen.findByText('Gates 11am'))
+    await userEvent.keyboard('{Home}{ArrowUp}')
+
+    const gap = await waitFor(() => {
+      const found = textbox.querySelector('.ProseMirror-gapcursor')
+      expect(found).not.toBe(null)
+      return found!
+    })
+    const image = boxOf(textbox.querySelector('img')!)
+    const section = boxOf(textbox.querySelector('[data-type="section"]')!)
+    // The line is the gap's ::after, placed from the gap's own box.
+    const top =
+      boxOf(gap).top + parseFloat(getComputedStyle(gap, '::after').top)
+
+    expect(top).toBeGreaterThanOrEqual(image.bottom)
+    expect(top + 2).toBeLessThanOrEqual(section.top)
+  })
+})
+
+describe('Editor gap cursor in a column', () => {
+  it('keeps the line within its column', async () => {
+    const textbox = await renderEmail([
+      {
+        type: 'columns',
+        content: [
+          {
+            type: 'column',
+            content: [
+              {
+                type: 'image',
+                attrs: { src: POSTER, alt: 'Crowd', width: null }
+              },
+              p('Gates 11am')
+            ]
+          },
+          { type: 'column', content: [p('Tickets')] }
+        ]
+      }
+    ])
+    await userEvent.click(await screen.findByText('Gates 11am'))
+    await userEvent.keyboard('{Home}{ArrowUp}{ArrowUp}')
+
+    const gap = await waitFor(() => {
+      const found = textbox.querySelector('.ProseMirror-gapcursor')
+      expect(found).not.toBe(null)
+      return found!
+    })
+    const column = boxOf(gap.closest('[data-type="column"]')!)
+    const line = boxOf(gap)
+
+    expect(line.left).toBeGreaterThanOrEqual(column.left - 1)
+    expect(line.right).toBeLessThanOrEqual(column.right + 1)
   })
 })

@@ -56,7 +56,6 @@ import {
   presetShapes
 } from '../schema/presetShapes'
 import { textVariables } from '../schema/variables'
-import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
 import { type BlockSettings, EditorBlockSettings } from './EditorBlockSettings'
 import { EditorBlocksDrawer } from './EditorBlocksDrawer'
@@ -67,6 +66,7 @@ import { EditorContext } from './EditorContext'
 import { EditorEmailStart } from './EditorEmailStart'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
+import { EditorImagePopover } from './EditorImagePopover'
 import { EditorImageView } from './EditorImageView'
 import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
@@ -110,6 +110,7 @@ import {
 import { sectionBlock, sectionInsertItems } from './sectionNodes'
 import { SectionToolbars } from './sectionToolbars'
 import { emailSections } from './sections'
+import { SettingsClick } from './settingsClick'
 import { SourcePaste } from './sourcePaste'
 import { presetHint, presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
@@ -226,6 +227,9 @@ const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
     }
   }
 })
+
+// The nodes whose settings a click or their block menu opens.
+const SETTINGS_TYPES: readonly string[] = ['image', 'embed']
 
 type SettingsShortcutOptions = {
   has: (name: string) => boolean
@@ -528,7 +532,8 @@ export function EditorEngine({
   const [toolbarExtras, setToolbarExtras] = useState<ReactNode>(null)
   const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
-  const [editingAlt, setEditingAlt] = useState(false)
+  const [editingImage, setEditingImage] = useState(false)
+  const [addingImage, setAddingImage] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
@@ -572,6 +577,7 @@ export function EditorEngine({
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
+  const editNodeSettingsRef = useRef<((name: string) => void) | null>(null)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -666,13 +672,27 @@ export function EditorEngine({
       HeadingBackspace,
       SmartPunctuation,
       EmDash,
-      AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
+      AltTextShortcut.configure({
+        onEditAlt: () => {
+          setAddingImage(false)
+          setEditingImage(true)
+        }
+      }),
       SettingsShortcut.configure({
         has: hasSettings,
         onEdit: () => editSettings(undefined, null, true)
       }),
       BlockClick.configure({ hasSettings, onEdit: editSettings }),
       ImageUpload.configure(uploads),
+      // Where a block menu holds what a node toolbar would.
+      ...(blockHandle
+        ? [
+            SettingsClick.configure({
+              types: SETTINGS_TYPES,
+              onEdit: (name) => editNodeSettingsRef.current?.(name)
+            })
+          ]
+        : []),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
         ? [
@@ -966,7 +986,9 @@ export function EditorEngine({
       }
     },
     editAlt: () => {
-      if (editor?.isEditable) setEditingAlt(true)
+      if (!editor?.isEditable) return
+      setAddingImage(false)
+      setEditingImage(true)
     },
     editEmbed: () => {
       if (editor?.isEditable && editor.schema.nodes.embed) {
@@ -981,15 +1003,28 @@ export function EditorEngine({
     editVariable: () => {
       if (editor?.isEditable) setEditingVariable(true)
     },
-    pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
+    // From a link, or an upload with onUploadImage.
+    pickImage: holdsImages
+      ? () => {
+          if (!editor?.isEditable) return
+          // Adds one, even with an image selected.
+          setAddingImage(true)
+          setEditingImage(true)
+        }
+      : undefined,
     replaceImage: canUpload
       ? () => replaceInputRef.current?.click()
       : undefined,
     importSource: preset === 'email' ? importSource : undefined,
     preview: openPreview
   }
+  const editNodeSettings = (name: string) => {
+    if (name === 'image') ui.editAlt()
+    if (name === 'embed') ui.editEmbed()
+  }
   useEffect(() => {
     uiRef.current = ui
+    editNodeSettingsRef.current = editNodeSettings
   })
   const openDrawer = (group?: string) => {
     setDrawerStart(group)
@@ -1082,8 +1117,19 @@ export function EditorEngine({
             containers={blockHandle.containers}
             canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
-            hasSettings={hasSettings}
-            onSettings={editSettingsAt}
+            hasSettings={(name) =>
+              hasSettings(name) || SETTINGS_TYPES.includes(name)
+            }
+            onSettings={(pos) => {
+              const name = editor.state.doc.nodeAt(pos)!.type.name
+              if (!SETTINGS_TYPES.includes(name)) return editSettingsAt(pos)
+              editor.view.dispatch(
+                editor.state.tr.setSelection(
+                  NodeSelection.create(editor.state.doc, pos)
+                )
+              )
+              editNodeSettings(name)
+            }}
           />
         ) : null}
         {editor && blockHandle && drawerItems.length > 0 ? (
@@ -1133,10 +1179,15 @@ export function EditorEngine({
           open={editingLink}
           onOpenChange={setEditingLink}
         />
-        <EditorAltTextPopover
+        <EditorImagePopover
           editor={editor}
-          open={editingAlt}
-          onOpenChange={setEditingAlt}
+          open={editingImage}
+          onOpenChange={setEditingImage}
+          adding={addingImage}
+          pickFile={canUpload ? () => fileInputRef.current?.click() : undefined}
+          replaceFile={
+            canUpload ? () => replaceInputRef.current?.click() : undefined
+          }
         />
         <EditorButtonPopover
           editor={editor}

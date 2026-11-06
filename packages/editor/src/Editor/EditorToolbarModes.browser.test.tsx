@@ -243,7 +243,13 @@ describe('Floating toolbar’s More menu', () => {
     await selectText()
     const menu = await moreMenu()
 
-    expect(menuItems(menu)).toEqual(['Divider', 'Embed', 'Table', 'Redo'])
+    expect(menuItems(menu)).toEqual([
+      'Divider',
+      'Image',
+      'Embed',
+      'Table',
+      'Redo'
+    ])
     await waitFor(() =>
       expect(
         within(menu).getByRole('button', { name: 'Add doors time' })

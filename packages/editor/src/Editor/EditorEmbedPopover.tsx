@@ -4,7 +4,7 @@ import { type RefObject, useEffect, useRef, useState } from 'react'
 
 import { posToDOMRect } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
-import type { Editor as TiptapEditor } from '@tiptap/react'
+import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Popover } from '@oztix/roadie-components/popover'
 
@@ -16,6 +16,8 @@ import {
 } from '../schema/embed'
 import { type EmbedAttrs, embedAttrs } from '../schema/embedAttrs'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
+import { EditorSettingsHeader } from './EditorSettingsHeader'
+import { focusEditor } from './focusEditor'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
 const REFUSED = 'That link can’t be embedded.'
@@ -147,33 +149,55 @@ export function EditorEmbedPopover({
 }: EditorEmbedPopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const live = useLiveEdit(editor, open, onOpenChange)
+  // From the editor's state as it changes: a read of the mutable editor in
+  // render would be cached by the editor alone.
+  const editing = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      current ? selectedEmbed(current) !== null : false
+  })
   if (!editor) return null
   const { from, to } = editor.state.selection
   const anchor = {
     getBoundingClientRect: () => posToDOMRect(editor.view, from, to)
   }
+  // At once, so an undo straight after lands in the editor.
+  const handBack = () => {
+    focusEditor(editor)
+    return false
+  }
+  const form = (
+    <EmbedForm
+      editor={editor}
+      providers={providers}
+      resolveUrl={resolveUrl}
+      inputRef={inputRef}
+      apply={live.apply}
+      revert={live.revert}
+      onDone={live.done}
+    />
+  )
   return (
     <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
+        data-editor-popup=''
         side='bottom'
         align='start'
-        className={EDITOR_POPOVER_CLASS}
+        className={
+          editing ? 'w-80 max-w-(--available-width)' : EDITOR_POPOVER_CLASS
+        }
         positionerProps={{ anchor }}
         initialFocus={inputRef}
-        finalFocus={() => {
-          editor.commands.focus()
-          return false
-        }}
+        finalFocus={handBack}
       >
-        <EmbedForm
-          editor={editor}
-          providers={providers}
-          resolveUrl={resolveUrl}
-          inputRef={inputRef}
-          apply={live.apply}
-          revert={live.revert}
-          onDone={live.done}
-        />
+        {editing ? (
+          <EditorSettingsHeader
+            title='Embed settings'
+            sheet={false}
+            onDone={live.done}
+          />
+        ) : null}
+        {form}
       </Popover.Content>
     </Popover>
   )

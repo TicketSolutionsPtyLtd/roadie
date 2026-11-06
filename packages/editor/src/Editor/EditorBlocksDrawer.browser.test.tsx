@@ -319,14 +319,21 @@ describe('Editor blocks drawer', () => {
     )
   })
 
-  it('offers no Image tile without onUploadImage', async () => {
+  it('offers an Image tile without onUploadImage, which adds one from a link', async () => {
     renderEmail()
     await clickInto('Doors 7pm')
-
     const drawer = await openFromDockedBar()
 
-    expect(within(drawer).queryByRole('button', { name: 'Image' })).toBe(null)
-    expect(within(drawer).queryByRole('group', { name: 'Media' })).toBe(null)
+    await userEvent.click(
+      within(within(drawer).getByRole('group', { name: 'Media' })).getByRole(
+        'button',
+        { name: 'Image' }
+      )
+    )
+
+    const field = await screen.findByRole('textbox', { name: 'Image address' })
+    await waitFor(() => expect(field).toHaveFocus())
+    expect(screen.queryByRole('button', { name: 'Upload an image' })).toBe(null)
   })
 
   it('keeps a button with no label when a text block is picked on it', async () => {
@@ -456,7 +463,8 @@ describe('Editor blocks drawer', () => {
         })
       ).toHaveFocus()
     )
-    await userEvent.keyboard('{ArrowRight}'.repeat(14))
+    // One more since Image is offered without uploads.
+    await userEvent.keyboard('{ArrowRight}'.repeat(15))
     expect(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
     ).toHaveFocus()

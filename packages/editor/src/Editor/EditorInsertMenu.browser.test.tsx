@@ -96,6 +96,7 @@ describe('Editor insert menu', () => {
       'Heading 4',
       'Bulleted list',
       'Numbered list',
+      'Image',
       'Section',
       '2 columns',
       '3 columns',
@@ -863,6 +864,9 @@ describe('Editor insert menu', () => {
     })
 
     await userEvent.keyboard('/ima{Enter}')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Upload an image' })
+    )
     await waitFor(() => expect(onPick).toHaveBeenCalled())
     await userEvent.upload(
       fileInput,

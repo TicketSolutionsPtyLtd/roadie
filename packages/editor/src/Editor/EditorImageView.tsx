@@ -57,9 +57,11 @@ export function EditorImageView({ node, selected }: ReactNodeViewProps) {
           {page.caption}
         </figcaption>
       ) : null}
-      {alt ? null : (
+      {/* Only while it's being edited, as the page around it isn't. */}
+      {alt || !selected ? null : (
         <div contentEditable={false} className='absolute start-2 top-2'>
-          <Badge intent='warning' emphasis='strong'>
+          {/* Opaque, as it sits over a photo. */}
+          <Badge intent='warning' size='sm' className='emphasis-floating'>
             <WarningIcon weight='bold' className='size-4' aria-hidden />
             No alt text
           </Badge>
