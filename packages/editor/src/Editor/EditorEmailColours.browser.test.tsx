@@ -262,8 +262,11 @@ describe('Editor email layout, as it sends', () => {
         </div>
       )
       const line = (await screen.findByText('Gates 11am,')).closest('p')!
-      const canvas = screen.getByRole('textbox', { name: LABEL })
-      const sent = Math.min(EMAIL_WIDTH, canvas.getBoundingClientRect().width)
+      const frame = screen
+        .getByRole('textbox', { name: LABEL })
+        .closest<HTMLElement>('[data-slot="editor"]')!
+      // A mail client as wide as the frame sends the email at most 600px wide.
+      const sent = Math.min(EMAIL_WIDTH, frame.clientWidth)
       expect(line.getBoundingClientRect().width).toBeCloseTo(
         sent - 2 * EMAIL_BLOCK_INSET,
         0

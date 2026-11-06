@@ -167,7 +167,10 @@ know, so pass `theme` for an exact match. Text outside columns sits 24
 pixels in from each side of the canvas, so it wraps where it sends, and
 columns reach 12 pixels further out, as they do in the email. The grip and
 add button sit in the gutter beside the canvas, which the editor keeps
-where the frame is too narrow for one. The outlines, the
+where the frame is too narrow for one. Below 480 pixels, as on a phone, the
+email sends at the screen's width, so the canvas takes the frame's whole
+width with no gutter: the grip sits in the email's own padding, and Blocks
+in the toolbar or `/` adds a block. The outlines, the
 caret's tint, selected text, and the placeholder mix from the theme's
 colours, so they show on any background. A colour that isn't hex throws, as
 it does in `renderEmail`.
