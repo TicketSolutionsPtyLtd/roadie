@@ -175,6 +175,8 @@ export function EditorRoot(props: EditorRootProps) {
     const size = props.size ?? 'md'
     const look = presetLook(resolvedPreset(props))
     const emphasis = props.emphasis ?? look.emphasis
+    const preset = resolvedPreset(props)
+    const email = preset === 'email'
     const floating =
       (props.toolbar ?? props.defaultToolbar ?? look.toolbar) === 'floating'
     const toolbarRoom = (
@@ -187,9 +189,10 @@ export function EditorRoot(props: EditorRootProps) {
         )}
       />
     )
-    const preheaderRoom =
-      resolvedPreset(props) === 'email' ? (
-        // Laid out as the field is, stacked on a phone, its text unseen.
+    const preheaderRoom = email ? (
+      // Laid out as the field is, in the email's gutter, stacked on a phone,
+      // its text unseen.
+      <div className='ps-(--email-gutter)'>
         <div className='@container invisible mx-auto w-full max-w-[600px] px-6 pt-3'>
           <div className='grid items-center gap-x-3 gap-y-1 @min-[30rem]:grid-cols-[auto_minmax(0,1fr)]'>
             <span className='text-sm'>Preview text</span>
@@ -199,7 +202,8 @@ export function EditorRoot(props: EditorRootProps) {
             </span>
           </div>
         </div>
-      ) : null
+      </div>
+    ) : null
     const frame = cn(
       'flex min-w-0 flex-col',
       EDITOR_MIN_HEIGHT[size],
@@ -212,13 +216,26 @@ export function EditorRoot(props: EditorRootProps) {
           <div
             aria-hidden='true'
             data-slot='editor-skeleton'
+            data-preset={preset}
             className={cn(frame, props.className)}
           >
             {toolbarRoom}
             {preheaderRoom}
-            <div className={editorContentClass(size, emphasis)}>
+            <div
+              className={cn(
+                editorContentClass(size, emphasis),
+                // An email keeps its gutter and its 24px inset, as editor.css
+                // gives the loaded canvas.
+                email && 'ps-(--email-gutter)'
+              )}
+            >
               {/* One block, so prose's flow spacing doesn't add to its height. */}
-              <div className='grid gap-2'>
+              <div
+                className={cn(
+                  'grid gap-2',
+                  email && 'mx-auto w-full max-w-[600px] px-6'
+                )}
+              >
                 <Skeleton />
                 <Skeleton />
                 <Skeleton className='w-2/3' />
@@ -228,6 +245,7 @@ export function EditorRoot(props: EditorRootProps) {
         ) : (
           <Skeleton
             shape='block'
+            data-preset={preset}
             className={cn(frame, 'h-auto rounded-lg', props.className)}
           >
             {toolbarRoom}
