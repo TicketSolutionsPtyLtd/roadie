@@ -1,5 +1,6 @@
-import { Extension, type Range } from '@tiptap/core'
+import { type Editor, Extension, type Range } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
+import type { Node as PMNode } from '@tiptap/pm/model'
 import { PluginKey } from '@tiptap/pm/state'
 import {
   Suggestion,
@@ -8,11 +9,47 @@ import {
 } from '@tiptap/suggestion'
 
 import type { EditorControlUi } from './controls'
-import { type EditorInsertItem, matchingInsertItems } from './insertItems'
+import { insertBlock } from './emailEditing'
+import {
+  type EditorInsertItem,
+  matchingInsertItems,
+  namedInsertItems
+} from './insertItems'
+
+const AFTER: Record<string, string> = {
+  section: 'after this section',
+  columns: 'after these columns',
+  bulletList: 'after this list',
+  orderedList: 'after this list'
+}
+
+// Worked out as the menu updates, not as it renders, since the caret's block
+// can change while the editor object stays the same.
+function placeNote(editor: Editor, item: EditorInsertItem) {
+  const { $from } = editor.state.selection
+  if (!item.topLevel || $from.depth <= 1) return undefined
+  const fitsHere =
+    item.topLevel === 'fallback' &&
+    item.block !== undefined &&
+    editor.can().command(insertBlock(item.block))
+  if (fitsHere) return undefined
+  return AFTER[$from.node(1).type.name] ?? 'after this block'
+}
+
+// The run of non-space text just before `pos` in its line.
+function wordBefore(doc: PMNode, pos: number) {
+  const $pos = doc.resolve(pos)
+  const before = $pos.parent.textBetween(0, $pos.parentOffset, undefined, ' ')
+  return /\S*$/.exec(before)?.[0] ?? ''
+}
 
 /** The open insert menu: its matching items, the active one, and how to place it. */
 export type InsertMenuState = {
   items: readonly EditorInsertItem[]
+  /** Shown in place of the items while none match. */
+  noMatches?: string
+  /** Beside each item, where it goes when not at the caret. */
+  notes: readonly (string | undefined)[]
   active: number
   choose: (index: number) => void
   highlight: (index: number) => void
@@ -29,6 +66,11 @@ export type InsertMenuOptions = {
   allowIn: (type: string) => boolean
   ui: () => EditorControlUi
   onChange: (state: InsertMenuState | null) => void
+  /**
+   * Shown while nothing matches, which keeps the menu open so Enter inserts
+   * nothing, until a space follows. Without it, the menu closes.
+   */
+  noMatches?: string
 }
 
 type Props = SuggestionProps<EditorInsertItem, EditorInsertItem>
@@ -61,7 +103,7 @@ export const InsertMenu = Extension.create<
   },
 
   addProseMirrorPlugins() {
-    const { char, items, allowIn, ui, onChange } = this.options
+    const { char, items, allowIn, ui, onChange, noMatches } = this.options
     const { key } = this.storage
     let open: {
       props: Props
@@ -71,12 +113,16 @@ export const InsertMenu = Extension.create<
 
     const publish = () => {
       const current = open
-      if (!current || current.props.items.length === 0) {
+      if (!current || (current.props.items.length === 0 && !noMatches)) {
         onChange(null)
         return
       }
       onChange({
         items: current.props.items,
+        notes: current.props.items.map((item) =>
+          placeNote(current.props.editor, item)
+        ),
+        noMatches,
         active: current.active,
         choose: (index) => {
           const item = current.props.items[index]
@@ -106,12 +152,31 @@ export const InsertMenu = Extension.create<
         pluginKey: key,
         char,
         // `{{` follows a word as often as a space, as in "Hi,{{".
-        allowedPrefixes: char === '/' ? [' '] : null,
+        allowedPrefixes: null,
         allowSpaces: true,
         floatingUi: { strategy: 'fixed' },
         allow: ({ state, range }) =>
           items().length > 0 &&
           allowIn(state.doc.resolve(range.from).parent.type.name),
+        // Past a space, a query that names nothing is the author's own text.
+        shouldShow: ({ query, range, transaction }) => {
+          const named = () => namedInsertItems(items(), query, ui()).length > 0
+          const word = wordBefore(transaction.doc, range.from)
+          // Straight after a word, as in "7pm/section", only the start of a
+          // block's own name opens it, so dates, links and pairs such as
+          // "Song/Title" stay text.
+          if (char === '/' && word) {
+            const typed = query.toLowerCase()
+            return (
+              /^\p{L}/u.test(query) &&
+              !/[.:/@]/.test(word) &&
+              namedInsertItems(items(), query, ui()).some(({ label }) =>
+                label.toLowerCase().startsWith(typed)
+              )
+            )
+          }
+          return !noMatches || !/\s/.test(query) || named()
+        },
         items: ({ query, editor }) => {
           const { range } = key.getState(editor.state)!
           return matchingInsertItems(items(), query, range, editor, ui())
@@ -137,23 +202,27 @@ export const InsertMenu = Extension.create<
           },
           onKeyDown: ({ event }) => {
             const count = open?.props.items.length ?? 0
-            if (!open || count === 0) return false
+            if (!open || (count === 0 && !noMatches)) return false
             // Suggestion closes the menu itself; this keeps a dialog around
             // the editor from closing too.
             if (event.key === 'Escape') {
               event.stopPropagation()
               return true
             }
+            const modified =
+              event.shiftKey || event.altKey || event.ctrlKey || event.metaKey
+            const enter =
+              event.key === 'Enter' && !event.isComposing && !modified
+            // Past a space, Enter is the author's own line break again.
+            if (count === 0) return enter && !/\s/.test(open.props.query)
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
               const step = event.key === 'ArrowDown' ? 1 : -1
               open.active = (open.active + step + count) % count
               publish()
               return true
             }
-            const modified =
-              event.shiftKey || event.altKey || event.ctrlKey || event.metaKey
             // Shift+Enter and Mod+Enter break the line, as they do outside it.
-            if (event.key === 'Enter' && !event.isComposing && !modified) {
+            if (enter) {
               const item = open.props.items[open.active]
               if (item) open.props.command(item)
               return true
