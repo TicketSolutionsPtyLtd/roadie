@@ -586,8 +586,7 @@ export function EditorEngine({
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
           preset === 'email' && EMAIL_CANVAS,
-          // Room for the block handle at each block's start, and on a phone,
-          // with no add button there, as much at the end.
+          // Room for the block handle at each block's start.
           blockHandle &&
             cn(
               emphasis !== 'subtler' &&
