@@ -44,10 +44,12 @@ async function shownToolbar() {
   return toolbar
 }
 
+// Named ones only: WebKit counts an open menu's unnamed focus guards too.
 const controls = (toolbar: HTMLElement) =>
   within(toolbar)
     .getAllByRole('button')
     .map((button) => button.ariaLabel ?? button.textContent)
+    .filter(Boolean)
 
 const rows = (toolbar: HTMLElement) =>
   new Set(
