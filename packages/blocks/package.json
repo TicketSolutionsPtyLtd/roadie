@@ -83,6 +83,10 @@
       "types": "./dist/catalogue/index.d.ts",
       "import": "./dist/catalogue/index.js"
     },
+    "./catalogue/sections": {
+      "types": "./dist/catalogue/sections.d.ts",
+      "import": "./dist/catalogue/sections.js"
+    },
     "./thumbnails/*": "./src/thumbnails/*",
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },

@@ -33,6 +33,12 @@ describe('catalogue', () => {
     expect(existsSync(join(SRC, 'thumbnails', thumbnail))).toBe(true)
   })
 
+  it('gives every block words a picker finds it by', () => {
+    for (const block of catalogue) {
+      expect(block.keywords?.length, block.name).toBeGreaterThan(0)
+    }
+  })
+
   it('puts every block in a group', () => {
     const names = groups.map((group) => group.name)
     for (const block of catalogue) {

@@ -10,6 +10,7 @@ export const mosaicDefinition = {
   description:
     'Use it to add visual interest with a grid of photo tiles, the large ones first, such as partners, venues, or event types.',
   group: 'prove',
+  keywords: ['tiles', 'partners', 'logos'],
   presets: [
     {
       name: 'tiles',
