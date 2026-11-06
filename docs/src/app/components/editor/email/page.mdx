@@ -424,8 +424,8 @@ Escape closes it, keeping what you typed, as does moving focus away. When
 nothing matches, a No blocks match row keeps it open, so Enter inserts nothing,
 until you type a space. With a mouse or trackpad, each block made by markdown
 shows its shortcut, such as `##` for Heading 2. One undo takes a block the menu inserts
-back to what you typed; an image, embed, or button, which arrives after its
-upload or link, takes a second. A paragraph, heading, or list turns the caret's line into
+back to the line as it was before the `/`, with no query left, as it does an
+image, embed, or button once its upload or link arrives. A paragraph, heading, or list turns the caret's line into
 one. Any other block takes an empty line's place, goes before a line the `/` starts, or after a line with text, and a
 section or columns puts the caret in its first line. Enter on the empty last
 line of a section takes that line out after the section, as Enter on an empty
@@ -443,7 +443,7 @@ a section. Image is offered with `onUploadImage`.
 With `variables`, type `{{` anywhere, even straight after a word, to list
 them under the caret. The list filters by label or key as you type, and Enter
 inserts the active one as a chip. Merge tag in the `/` menu opens the same
-list. A button's label takes merge tags too.
+list, and Escape there takes its `{{` back out. A button's label takes merge tags too.
 
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
 Remove merge tag. Edit merge tag opens a form to change which variable the

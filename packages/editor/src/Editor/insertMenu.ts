@@ -1,7 +1,7 @@
 import { type Editor, Extension, type Range } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
 import type { Node as PMNode } from '@tiptap/pm/model'
-import { PluginKey } from '@tiptap/pm/state'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 import {
   Suggestion,
   type SuggestionProps,
@@ -15,6 +15,12 @@ import {
   matchingInsertItems,
   namedInsertItems
 } from './insertItems'
+
+/**
+ * Meta for a transaction that types a menu's `char` for the author, as Merge
+ * tag in the `/` menu types `{{`, so Escape takes it back out.
+ */
+export const TYPED_FOR_AUTHOR = 'insertMenuTypedForAuthor'
 
 const AFTER: Record<string, string> = {
   section: 'after this section',
@@ -105,6 +111,7 @@ export const InsertMenu = Extension.create<
   addProseMirrorPlugins() {
     const { char, items, allowIn, ui, onChange, noMatches } = this.options
     const { key } = this.storage
+    const typedForAuthor = new PluginKey<boolean>(`${this.name}TypedForAuthor`)
     let open: {
       props: Props
       active: number
@@ -182,15 +189,18 @@ export const InsertMenu = Extension.create<
           return matchingInsertItems(items(), query, range, editor, ui())
         },
         command: ({ editor, range, props: item }) => {
-          // One undo step of its own, so undo returns to what was typed.
-          const chain = editor
+          // Out of history, so one undo takes the block back to the line as
+          // it was before the `/`, with no query left behind.
+          editor
             .chain()
             .focus()
-            .command(({ tr }) => {
-              closeHistory(tr)
-              return true
-            })
             .deleteRange(range)
+            .setMeta('addToHistory', false)
+            .run()
+          const chain = editor.chain().command(({ tr }) => {
+            closeHistory(tr)
+            return true
+          })
           item.insert(chain, ui()).run()
         },
         render: () => ({
@@ -200,7 +210,14 @@ export const InsertMenu = Extension.create<
             open = null
             publish()
           },
-          onKeyDown: ({ event }) => {
+          onKeyDown: ({ event, view, range }) => {
+            if (event.key === 'Escape' && typedForAuthor.getState(view.state)) {
+              view.dispatch(
+                view.state.tr
+                  .delete(range.from, range.from + char.length)
+                  .setMeta('addToHistory', false)
+              )
+            }
             const count = open?.props.items.length ?? 0
             if (!open || (count === 0 && !noMatches)) return false
             // Suggestion closes the menu itself; this keeps a dialog around
@@ -230,6 +247,16 @@ export const InsertMenu = Extension.create<
             return false
           }
         })
+      }),
+      // After Suggestion's, so it reads whether this transaction opened it.
+      new Plugin({
+        key: typedForAuthor,
+        state: {
+          init: () => false,
+          apply: (tr, typed, _old, state) =>
+            Boolean(key.getState(state)?.active) &&
+            (typed || tr.getMeta(TYPED_FOR_AUTHOR) === true)
+        }
       })
     ]
   },

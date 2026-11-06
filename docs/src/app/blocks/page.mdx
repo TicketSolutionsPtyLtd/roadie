@@ -115,6 +115,14 @@ static files: copy
 colour variables when they're inline, and fall back to light-mode colours as
 an image.
 
+## In the editor
+
+`catalogueSections()` from `@oztix/roadie-blocks/catalogue/sections` offers
+the blocks you pass as sections in the
+[blocks editor](/components/editor/blocks#sections), drawn as the page draws
+them, with a tile per preset from `thumbnailUrl` and their plain fields as
+settings.
+
 ## Tracking
 
 Wrap the site in `BlocksProvider` and pass `onBlockEvent`. Every block

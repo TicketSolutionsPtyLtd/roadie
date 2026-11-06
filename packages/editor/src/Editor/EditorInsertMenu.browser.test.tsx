@@ -544,21 +544,45 @@ describe('Editor insert menu', () => {
     ['/heading 2', 'heading'],
     ['/bullet', 'bulletList'],
     ['/numbered', 'orderedList']
-  ])('undoes %s back to what was typed', async (typed, type) => {
+  ])(
+    'undoes %s in one step, back to the line before the /',
+    async (typed, type) => {
+      const onValueChange = renderEmail()
+      await focusedTextbox()
+
+      await userEvent.keyboard(`${typed}{Enter}`)
+      await waitFor(() =>
+        expect(
+          (onValueChange.mock.lastCall?.[0] as EditorValue | undefined)?.doc
+            .content?.[0]?.type
+        ).toBe(type)
+      )
+      await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+      await waitFor(() =>
+        expect(onValueChange).toHaveBeenLastCalledWith(email(p()))
+      )
+    }
+  )
+
+  it('keeps the text before the / on undo, and redoes the block', async () => {
     const onValueChange = renderEmail()
     await focusedTextbox()
 
-    await userEvent.keyboard(`${typed}{Enter}`)
+    await userEvent.keyboard('Doors 7pm /div{Enter}')
+    const inserted = email(p('Doors 7pm '), { type: 'horizontalRule' }, p())
     await waitFor(() =>
-      expect(
-        (onValueChange.mock.lastCall?.[0] as EditorValue | undefined)?.doc
-          .content?.[0]?.type
-      ).toBe(type)
+      expect(onValueChange).toHaveBeenLastCalledWith(inserted)
     )
-    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
     await waitFor(() =>
-      expect(onValueChange).toHaveBeenLastCalledWith(email(p(typed)))
+      expect(onValueChange).toHaveBeenLastCalledWith(email(p('Doors 7pm ')))
+    )
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(inserted)
     )
   })
 

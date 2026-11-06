@@ -154,7 +154,7 @@ describe('Editor extensions', () => {
     ])
   })
 
-  it('undoes an app’s block back to what was typed', async () => {
+  it('undoes an app’s block in one step, back to the line before the /', async () => {
     const onValueChange = vi.fn()
     render(
       <Editor
@@ -170,11 +170,12 @@ describe('Editor extensions', () => {
     await screen.findByRole('textbox', { name: 'Event' })
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
-    await waitFor(() =>
-      expect(lastValue(onValueChange).doc.content).toMatchObject([
-        { type: 'paragraph', content: [{ type: 'text', text: '/gig' }] }
-      ])
-    )
+    await waitFor(() => {
+      const [line, ...rest] = lastValue(onValueChange).doc.content!
+      expect(line).toMatchObject({ type: 'paragraph' })
+      expect(line!.content).toBeUndefined()
+      expect(rest).toEqual([])
+    })
   })
 
   it('offers no app’s block in a table cell', async () => {
