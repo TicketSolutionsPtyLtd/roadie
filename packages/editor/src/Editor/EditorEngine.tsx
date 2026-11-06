@@ -44,7 +44,7 @@ import {
 } from '@oztix/roadie-components/field'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { EditorBlock } from '../extensions'
+import type { EditorBlock, EditorSection } from '../extensions'
 import {
   CURRENT_VERSION,
   type EditorValue,
@@ -110,6 +110,7 @@ import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
+import { sectionBlock, sectionInsertItems } from './sectionNodes'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
 import { presetHint, presetLook, resolvedPreset } from './startingValue'
@@ -319,8 +320,27 @@ function presetSchema(preset: Preset) {
 
 /** Whether a block's name is one the preset's own nodes or marks use. */
 function takenName(preset: Preset, { node }: EditorBlock) {
+  return presetTakes(preset, node.name)
+}
+
+function presetTakes(preset: Preset, name: string) {
   const { nodes, marks } = presetSchema(preset)
-  return Object.hasOwn(nodes, node.name) || Object.hasOwn(marks, node.name)
+  return Object.hasOwn(nodes, name) || Object.hasOwn(marks, name)
+}
+
+/** An app's sections, only in the preset that takes them, each name once. */
+function sectionsFor(
+  preset: Preset,
+  sections: readonly EditorSection[] = [],
+  blocks: readonly EditorBlock[] = []
+) {
+  if (preset !== 'blocks') return []
+  const taken = new Set(blocks.map(({ node }) => node.name))
+  return sections.filter(({ name }) => {
+    if (presetTakes(preset, name) || taken.has(name)) return false
+    taken.add(name)
+    return true
+  })
 }
 
 /** An app's blocks, only in the preset that takes them. */
@@ -490,6 +510,7 @@ export function EditorEngine({
   embedProviders = defaultEmbedProviders,
   resolveUrl,
   extensions: extensionsProp,
+  sections: sectionsProp,
   variables,
   theme,
   onRenderPreview,
@@ -582,7 +603,11 @@ export function EditorEngine({
   const preset = resolvedPreset({ preset: presetProp, value, defaultValue })
   const storedPreset = (value ?? defaultValue)?.preset
   // Tiptap fixes its schema when it creates the editor, so these are read once.
-  const [blocks] = useState(() => blocksFor(preset, extensionsProp))
+  const [appBlocks] = useState(() => blocksFor(preset, extensionsProp))
+  const [sections] = useState(() =>
+    sectionsFor(preset, sectionsProp, appBlocks)
+  )
+  const [blocks] = useState(() => [...appBlocks, ...sections.map(sectionBlock)])
   const [blockLabels] = useState(() =>
     Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
   )
@@ -618,7 +643,8 @@ export function EditorEngine({
   const holdsMergeTags = Boolean(schema.nodes.variable)
   const presetItems = [
     ...(presetInsertItems[preset] ?? []),
-    ...blocks.map(customInsertItem)
+    ...appBlocks.map(customInsertItem),
+    ...sections.flatMap(sectionInsertItems)
   ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
   const insertItems = () => [
@@ -810,7 +836,7 @@ export function EditorEngine({
   const blockNames = (list: readonly EditorBlock[]) =>
     list.map(({ node }) => node.name).join()
   const changed =
-    blockNames(blocksFor(preset, extensionsProp)) !== blockNames(blocks)
+    blockNames(blocksFor(preset, extensionsProp)) !== blockNames(appBlocks)
   useEffect(() => {
     if (!isDev()) return
     if (holding) {
@@ -854,6 +880,21 @@ export function EditorEngine({
   useEffect(() => {
     toolbarModeRef.current = toolbar
   }, [toolbar])
+
+  // Loaded ahead, so a template's tile isn't blank the first time `/` opens.
+  const thumbnails = sections
+    .flatMap(sectionInsertItems)
+    .flatMap(({ thumbnail }) => (thumbnail ? [thumbnail] : []))
+    .join('\n')
+  useEffect(() => {
+    for (const thumbnail of thumbnails.split('\n')) {
+      if (thumbnail) new Image().src = thumbnail
+    }
+  }, [thumbnails])
+
+  useEffect(() => {
+    editorRef.current = editor
+  }, [editor])
 
   useEffect(() => {
     editorRef.current = editor
@@ -952,12 +993,13 @@ export function EditorEngine({
     setAddingBlocks(true)
   }
   // Sections lead, as the quickest way to a whole email.
-  const drawerItems = blockHandle?.canAdd
-    ? [
-        ...(preset === 'email' ? emailSections(variables) : []),
-        ...presetItems.filter((item) => item.available?.(ui) ?? true)
-      ]
-    : []
+  const drawerItems =
+    blockHandle?.canAdd || sections.length > 0
+      ? [
+          ...(preset === 'email' ? emailSections(variables) : []),
+          ...presetItems.filter((item) => item.available?.(ui) ?? true)
+        ]
+      : []
 
   return (
     <EditorContext

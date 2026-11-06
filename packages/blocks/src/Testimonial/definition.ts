@@ -34,6 +34,7 @@ export const testimonialDefinition = {
   description:
     'Use it to let a client say, in their words, why they work with Oztix.',
   group: 'prove',
+  keywords: ['quote', 'review', 'social proof'],
   presets: [
     {
       name: 'quote',
