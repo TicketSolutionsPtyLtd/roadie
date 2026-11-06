@@ -238,7 +238,17 @@ export type MovePlace = {
   to: number
 }
 
-const placeLabel = (node: Node) => node.textContent.trim().slice(0, 48)
+// A section by its first line, as its whole text runs its lines together.
+function placeLabel(node: Node) {
+  let first = ''
+  node.descendants((child) => {
+    if (first) return false
+    if (child.isTextblock) first = child.textContent.trim()
+    return !child.isTextblock
+  })
+  const text = node.isTextblock ? node.textContent.trim() : first
+  return text.slice(0, 48)
+}
 
 /**
  * The page's headings and sections the block at `from` can move under, in
@@ -263,7 +273,8 @@ export function movePlaces(
     if (!parent || !containers.has(parent.type.name)) return true
     if (node.type.name === 'heading') {
       const to = pos + node.nodeSize
-      if (fits(to)) found.push({ kind: 'heading', label: placeLabel(node), to })
+      const label = placeLabel(node) || 'Heading'
+      if (fits(to)) found.push({ kind: 'heading', label, to })
     }
     if (node.type.name === 'section') {
       const to = pos + node.nodeSize - 1

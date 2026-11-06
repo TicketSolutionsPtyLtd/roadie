@@ -319,6 +319,25 @@ describe('Editor block menu', () => {
     )
   })
 
+  it('opens the menu beside the grip in right-to-left text, clear of it', async () => {
+    document.body.style.paddingInline = '320px'
+    onTestFinished(() => {
+      document.body.style.paddingInline = ''
+    })
+    render(
+      <div dir='rtl'>
+        <Editor aria-label={LABEL} defaultValue={lineup} />
+      </div>
+    )
+    const menu = await openMenuOn('Support')
+
+    await waitFor(async () =>
+      expect(menu.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+        (await handle()).getBoundingClientRect().right
+      )
+    )
+  })
+
   it('opens the menu below the grip where there’s no room beside it', async () => {
     renderLineup()
     const menu = await openMenuOn('Support')
