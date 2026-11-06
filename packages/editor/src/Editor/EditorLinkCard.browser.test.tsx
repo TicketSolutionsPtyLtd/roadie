@@ -283,4 +283,59 @@ describe('Editor link card', () => {
       expect(box.bottom).toBeLessThanOrEqual(bar.getBoundingClientRect().top)
     })
   })
+  it('keeps a tapped link in view above a phone’s docked bar', async () => {
+    await page.viewport(390, 844)
+    onTestFinished(() => page.viewport(1280, 800))
+    const matchMedia = window.matchMedia.bind(window)
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
+      matchMedia(query.replaceAll('(pointer: coarse)', 'all'))
+    )
+    onTestFinished(() => {
+      vi.restoreAllMocks()
+      window.scrollTo(0, 0)
+    })
+    const filler = Array.from({ length: 30 }, (_, index) => ({
+      type: 'paragraph',
+      content: [{ type: 'text', text: `Set time ${index + 1}` }]
+    }))
+    render(
+      <>
+        <Editor
+          aria-label={LABEL}
+          preset='email'
+          variables={VARIABLES}
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: [
+                ...filler,
+                linked('Unsubscribe', { variable: 'unsubscribe_url' }),
+                ...filler
+              ]
+            }
+          }}
+        />
+        <div style={{ blockSize: 800 }} />
+      </>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const link = within(textbox).getByText('Unsubscribe')
+    link.scrollIntoView({ block: 'center' })
+
+    await clickIntoEditor(link)
+
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    const shown = await card()
+    await waitFor(() => {
+      const barTop = bar.getBoundingClientRect().top
+      const box = link.getBoundingClientRect()
+      expect(box.top).toBeGreaterThanOrEqual(0)
+      expect(box.bottom).toBeLessThanOrEqual(barTop)
+      const cardBox = shown.getBoundingClientRect()
+      expect(cardBox.top).toBeGreaterThanOrEqual(0)
+      expect(cardBox.bottom).toBeLessThanOrEqual(barTop)
+    })
+  })
 })
