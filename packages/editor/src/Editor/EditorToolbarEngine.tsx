@@ -280,7 +280,6 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
   }
 }
 
-/** The items with no separator at either end or beside another. */
 function withoutStraySeparators(items: readonly EditorToolbarItem[]) {
   const kept: EditorToolbarItem[] = []
   for (const item of items) {
@@ -703,7 +702,6 @@ export function EditorToolbarEngine({
       ref={stickyRef}
       data-slot='editor-toolbar'
       style={{ top, blockSize: aboveKeyboard ? reserved : undefined }}
-      // Above the text that scrolls under it, below the editor's popups.
       className={cn(
         'shrink-0',
         EDITOR_DOCKED_BAR[editorEmphasis],
@@ -711,7 +709,8 @@ export function EditorToolbarEngine({
         // still, rather than a band stuck to the top.
         aboveKeyboard
           ? 'border-transparent bg-transparent bg-none'
-          : 'sticky top-0 z-sticky'
+          : // Above the text that scrolls under it, below the editor's popups.
+            'sticky top-0 z-sticky'
       )}
     >
       <div

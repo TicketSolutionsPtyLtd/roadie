@@ -96,7 +96,7 @@ const BAR_POPUPS = `[${EDITOR_POPUP}], [role="menu"], [role="listbox"], [role="d
 /**
  * On a touch screen, whether the docked bar sits above the keyboard, and how
  * far the keyboard pushes it up: it does while focus is in the editor, or in
- * a menu opened from the bar, so the controls stay in thumb reach.
+ * a popup it opened, so the controls stay in thumb reach.
  */
 export function useKeyboardDock(
   ref: RefObject<HTMLElement | null>,
