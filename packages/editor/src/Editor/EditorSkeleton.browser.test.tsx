@@ -114,30 +114,34 @@ describe('Preset skeleton', () => {
     }
   )
 
-  it('holds the loaded height for an email on a phone, its preview text stacked', async () => {
-    const host = document.createElement('div')
-    host.style.width = '390px'
-    host.innerHTML = renderToString(
-      <Editor aria-label={LABEL} preset='email' />
-    )
-    document.body.append(host)
-    onTestFinished(() => host.remove())
-    const skeleton = host.firstElementChild as HTMLElement
-    render(
-      <div style={{ width: 390 }}>
+  // At 545px, Preview text stacks only once the email's gutter is taken out.
+  it.each([390, 545])(
+    'holds the loaded height for an email in a %ipx frame, its preview text laid out alike',
+    async (width) => {
+      const host = document.createElement('div')
+      host.style.width = `${width}px`
+      host.innerHTML = renderToString(
         <Editor aria-label={LABEL} preset='email' />
-      </div>
-    )
-    const textbox = await screen.findByRole('textbox', { name: LABEL })
-    const loaded = textbox.closest<HTMLElement>('[data-slot="editor"]')!
-
-    expect(
-      Math.abs(
-        skeleton.getBoundingClientRect().height -
-          loaded.getBoundingClientRect().height
       )
-    ).toBeLessThanOrEqual(1)
-  })
+      document.body.append(host)
+      onTestFinished(() => host.remove())
+      const skeleton = host.firstElementChild as HTMLElement
+      render(
+        <div style={{ width }}>
+          <Editor aria-label={LABEL} preset='email' />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const loaded = textbox.closest<HTMLElement>('[data-slot="editor"]')!
+
+      expect(
+        Math.abs(
+          skeleton.getBoundingClientRect().height -
+            loaded.getBoundingClientRect().height
+        )
+      ).toBeLessThanOrEqual(1)
+    }
+  )
 
   it.each(['normal', 'subtler'] as const)(
     'holds a %s email’s height and text inset in a narrow frame',
