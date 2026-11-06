@@ -12,6 +12,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -19,7 +20,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { MOD } from './testUtils'
+import { LINE_END, MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Newsletter'
 const POSTER = 'https://example.test/poster.webp'
@@ -502,5 +503,69 @@ describe('Editor image settings', () => {
     } finally {
       await page.viewport(1280, 800)
     }
+  })
+
+  it.each([
+    [
+      'Done',
+      (dialog: HTMLElement) =>
+        userEvent.click(within(dialog).getByRole('button', { name: 'Done' }))
+    ],
+    ['Escape', () => userEvent.keyboard('{Escape}')],
+    [
+      'a click away',
+      async () => {
+        await userEvent.click(document.body, { position: { x: 4, y: 4 } })
+        // A click on the page leaves focus there in Firefox, so the author
+        // comes back to the text, as Tab would bring them.
+        screen.getByRole('textbox', { name: LABEL }).focus()
+      }
+    ]
+  ])(
+    'puts the caret back in the text after %s, so the next key never replaces the image',
+    async (_, close) => {
+      const onValueChange = renderImage(
+        valueOf('email', image(), p('Doors open at 7pm'))
+      )
+      await clickIntoEditor(await screen.findByText('Doors open at 7pm'))
+      await userEvent.keyboard(LINE_END)
+
+      const dialog = await openSettings()
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
+      await close(dialog)
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+      await userEvent.keyboard('!')
+
+      await waitFor(() =>
+        expect(
+          (onValueChange.mock.lastCall![0] as EditorValue).doc.content
+        ).toMatchObject([
+          { type: 'image', attrs: { src: POSTER, width: expect.any(Number) } },
+          p('Doors open at 7pm!')
+        ])
+      )
+    }
+  )
+
+  it('puts the caret back in the text after a tap above its phone sheet', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const onValueChange = renderImage(
+      valueOf('email', image(), p('Doors open at 7pm'))
+    )
+    await clickIntoEditor(await screen.findByText('Doors open at 7pm'))
+    await userEvent.keyboard(LINE_END)
+
+    await openSettings()
+    await userEvent.click(document.body, { position: { x: 4, y: 4 } })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    screen.getByRole('textbox', { name: LABEL }).focus()
+    await userEvent.keyboard('!')
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content
+      ).toMatchObject([{ type: 'image' }, p('Doors open at 7pm!')])
+    )
   })
 })

@@ -581,6 +581,16 @@ export function EditorEngine({
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
+  // Its settings close as the file picker opens, taking the selection with them.
+  const replacingRef = useRef<number | null>(null)
+  const pickReplacement = () => {
+    const current = editorRef.current
+    replacingRef.current =
+      current && selectedNodeType(current.state) === 'image'
+        ? current.state.selection.from
+        : null
+    replaceInputRef.current?.click()
+  }
   const field = useFieldContext()
   const fieldInput = useFieldInputProps()
   const generatedId = useId()
@@ -1012,9 +1022,7 @@ export function EditorEngine({
           setEditingImage(true)
         }
       : undefined,
-    replaceImage: canUpload
-      ? () => replaceInputRef.current?.click()
-      : undefined,
+    replaceImage: canUpload ? pickReplacement : undefined,
     importSource: preset === 'email' ? importSource : undefined,
     preview: openPreview
   }
@@ -1185,9 +1193,7 @@ export function EditorEngine({
           onOpenChange={setEditingImage}
           adding={addingImage}
           pickFile={canUpload ? () => fileInputRef.current?.click() : undefined}
-          replaceFile={
-            canUpload ? () => replaceInputRef.current?.click() : undefined
-          }
+          replaceFile={canUpload ? pickReplacement : undefined}
         />
         <EditorButtonPopover
           editor={editor}
@@ -1266,16 +1272,12 @@ export function EditorEngine({
               aria-label='Replacement image file'
               onChange={(event) => {
                 const [file] = imageFiles(event.currentTarget.files)
+                const at = replacingRef.current
                 const onImage =
-                  editor && selectedNodeType(editor.state) === 'image'
-                if (file && onImage) {
-                  replaceImage(
-                    editor.view,
-                    file,
-                    editor.state.selection.from,
-                    uploads
-                  )
-                }
+                  at !== null &&
+                  editor?.state.doc.nodeAt(at)?.type.name === 'image'
+                if (file && onImage)
+                  replaceImage(editor.view, file, at, uploads)
                 event.currentTarget.value = ''
               }}
             />

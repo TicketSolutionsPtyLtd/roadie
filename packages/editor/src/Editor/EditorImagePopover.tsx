@@ -324,9 +324,10 @@ function ImageSettingsForm({
             size='sm'
             emphasis='subtler'
             className='justify-self-start'
+            // Before it closes, while the image is still the one selected.
             onClick={() => {
-              onDone()
               upload()
+              onDone()
             }}
           >
             <UploadSimpleIcon weight='bold' className='size-4' aria-hidden />
