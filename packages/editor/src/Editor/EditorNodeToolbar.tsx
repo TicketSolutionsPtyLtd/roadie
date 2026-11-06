@@ -181,7 +181,15 @@ function columnsPlace(
     neighbours.every((rect) => !overlaps(rect, toolbarAt(line)))
   return (
     [beside, above].find((line) => onScreen(line) && clear(line)) ??
-    new DOMRect(box.left, Math.max(box.top, top) + INSET, box.width - INSET, 0)
+    new DOMRect(
+      box.left,
+      Math.max(
+        Math.min(Math.max(box.top, top) + INSET, box.bottom - height - INSET),
+        box.top
+      ),
+      box.width - INSET,
+      0
+    )
   )
 }
 

@@ -112,6 +112,9 @@ describe('Editor button settings', () => {
       .map((item) => item.textContent)
     expect(pressed).toEqual(['Subtle', 'Fit label', 'Centre'])
     expect(within(dialog).queryByRole('button', { name: 'Save' })).toBe(null)
+    expect(
+      getComputedStyle(within(dialog).getByText('Button settings')).textAlign
+    ).toBe('start')
   })
 
   it('focuses the link of a section’s button, which has none yet, then its emphasis once linked', async () => {
@@ -206,6 +209,24 @@ describe('Editor button settings', () => {
     })
     const backdrop = document.querySelector('[data-slot="drawer-backdrop"]')!
     expect(getComputedStyle(backdrop).backdropFilter).toBe('none')
+  })
+
+  it('leaves a button already above the sheet where it is', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const filler = Array.from({ length: 12 }, (_, index) => ({
+      type: 'paragraph',
+      content: [{ type: 'text', text: `Set time ${index + 1}` }]
+    }))
+    renderEmail(email(button(), ...filler))
+    await screen.findByRole('textbox', { name: LABEL })
+    const before = drawn().getBoundingClientRect().top
+
+    await openSettings()
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+
+    expect(drawn().getBoundingClientRect().top).toBeCloseTo(before, 0)
   })
 
   it('keeps a touch screen’s docked bar above the keyboard while the drawer is open', async () => {

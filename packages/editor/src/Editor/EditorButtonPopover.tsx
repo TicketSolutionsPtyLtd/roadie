@@ -445,11 +445,12 @@ export function EditorButtonPopover({
     if (!sheet || !editor) return
     const frame = requestAnimationFrame(() => {
       const found = selectedNode(editor.state)
-      const element = found && editor.view.nodeDOM(found.pos)
+      if (found?.type !== 'button') return
+      const element = editor.view.nodeDOM(found.pos)
       if (!(element instanceof HTMLElement)) return
       // Above the sheet, which takes the bottom half of the screen.
       element.style.scrollMarginBottom = 'calc(50dvh + 1rem)'
-      element.scrollIntoView({ block: 'end' })
+      element.scrollIntoView({ block: 'nearest' })
       element.style.scrollMarginBottom = ''
     })
     return () => cancelAnimationFrame(frame)
