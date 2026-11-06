@@ -154,7 +154,10 @@ export function dropEmptiedLine({ tr }: CommandProps) {
     holder.childCount > 1 &&
     (holder.type.name === 'section' || holder.type.name === 'column')
   ) {
-    tr.delete($from.before(), $from.after())
+    const before = $from.before()
+    tr.delete(before, $from.after())
+    // Back into the same block: the next one is nearer forwards from its end.
+    tr.setSelection(Selection.near(tr.doc.resolve(before), -1))
   }
   return true
 }

@@ -748,7 +748,10 @@ describe('Editor insert menu', () => {
 
   it('puts /section typed in a section after it, in place of the emptied line', async () => {
     const onValueChange = renderEmail({
-      defaultValue: email({ type: 'section', content: [p('Doors 7pm')] })
+      defaultValue: email(
+        { type: 'section', content: [p('Doors 7pm')] },
+        p('Gates 6pm')
+      )
     })
     await userEvent.click(await screen.findByText('Doors 7pm'))
 
@@ -763,7 +766,8 @@ describe('Editor insert menu', () => {
       expect(onValueChange).toHaveBeenLastCalledWith(
         email(
           { type: 'section', content: [p('Doors 7pm')] },
-          { type: 'section', content: [p('All ages')] }
+          { type: 'section', content: [p('All ages')] },
+          p('Gates 6pm')
         )
       )
     )
