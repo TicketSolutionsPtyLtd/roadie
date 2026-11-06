@@ -197,6 +197,23 @@ describe('Editor email block handle', () => {
     expect(block.getBoundingClientRect().left - canvas.left).toBeLessThan(40)
   })
 
+  it('keeps the grip and add button inside a frame with no room beside the email', async () => {
+    render(
+      <div style={{ width: 660 }}>
+        <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
+      </div>
+    )
+    const block = await hoverBlock('Closing')
+
+    const editor = block.closest<HTMLElement>('[data-slot="editor"]')!
+    expect(
+      (await addButton()).getBoundingClientRect().left
+    ).toBeGreaterThanOrEqual(editor.getBoundingClientRect().left)
+    expect((await grip()).getBoundingClientRect().right).toBeLessThanOrEqual(
+      block.getBoundingClientRect().left
+    )
+  })
+
   it('keeps the grip while the pointer crosses to it', async () => {
     renderNewsletter()
     await hoverBlock('Right one')

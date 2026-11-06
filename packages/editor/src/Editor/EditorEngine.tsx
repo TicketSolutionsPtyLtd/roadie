@@ -596,10 +596,14 @@ export function EditorEngine({
           blockHandle &&
             cn(
               // An email's grip and add button sit in the gutter outside it,
-              // so its text keeps the sent email's insets.
+              // so its text keeps the sent email's insets, unless the editor
+              // is too narrow to leave a gutter beside it.
               emphasis !== 'subtler' &&
-                preset !== 'email' &&
-                (blockHandle.canAdd ? 'ps-15' : 'ps-10'),
+                (preset === 'email'
+                  ? 'sm:pointer-fine:@max-[45rem]/editor:ps-15'
+                  : blockHandle.canAdd
+                    ? 'ps-15'
+                    : 'ps-10'),
               // On a phone, only the grip's room at the start, in a subtler
               // editor too, as the page may clip it; its target may overlap.
               'max-sm:ps-8 pointer-coarse:ps-8'
@@ -831,6 +835,8 @@ export function EditorEngine({
         className={cn(
           // A grid or flex parent would otherwise grow to the toolbar's full row on a phone.
           'flex w-full min-w-0 flex-col rounded-lg',
+          // Its email canvas asks whether there's a gutter beside it.
+          preset === 'email' && '@container/editor',
           EDITOR_FRAME[emphasis],
           EDITOR_MIN_HEIGHT[size],
           EDITOR_TOOLBAR_HEIGHT[size],
