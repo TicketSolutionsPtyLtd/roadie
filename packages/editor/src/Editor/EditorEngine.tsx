@@ -609,7 +609,8 @@ export function EditorEngine({
           // Room for the block handle at each block's start.
           blockHandle &&
             cn(
-              // A page's own, so neither its host nor a frame clips it.
+              // A page's grip hangs in the editor's own padding, so neither
+              // a host's overflow nor a docs frame clips it.
               (preset === 'blocks' || emphasis !== 'subtler') &&
                 (blockHandle.canAdd ? 'ps-15' : 'ps-10'),
               // On a phone, only the grip's room at the start, in a subtler
