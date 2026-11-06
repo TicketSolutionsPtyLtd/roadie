@@ -314,4 +314,38 @@ describe('Editor sections', () => {
     expect(screen.getByText('Doors 7pm')).toBeVisible()
     consoleError.mockRestore()
   })
+
+  it('names a section and rings it under the pointer', async () => {
+    renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const section = within(textbox).getByRole('group', { name: 'Promo' })
+    const name = within(section).getByText('Promo', {
+      selector: '[data-slot=editor-section-name]'
+    })
+    expect(name).not.toBeVisible()
+
+    await userEvent.hover(section)
+
+    await waitFor(() => expect(name).toBeVisible())
+    expect(getComputedStyle(section).outlineStyle).toBe('solid')
+  })
+
+  it('draws a section as it’s edited, telling it so', async () => {
+    const seen = vi.fn()
+    renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }), {
+      sections: [
+        {
+          ...promo,
+          render: (props: Parameters<typeof promo.render>[0]) => {
+            seen(props.editing)
+            return promo.render(props)
+          }
+        }
+      ]
+    })
+
+    await screen.findByRole('textbox', { name: LABEL })
+
+    await waitFor(() => expect(seen).toHaveBeenCalledWith(true))
+  })
 })

@@ -58,7 +58,7 @@ export type CatalogueSection = {
   label: string
   attrs: Readonly<Attrs>
   settings: readonly CatalogueSetting[]
-  render: (props: { attrs: Attrs }) => ReactNode
+  render: (props: { attrs: Attrs; editing?: boolean }) => ReactNode
   templates: readonly {
     label: string
     thumbnail?: string
@@ -195,6 +195,54 @@ const propsOf = (block: string, attrs: Attrs): Attrs =>
       propOf(block, name, value)
     ])
   )
+
+// A grey photo, for a part waiting on its image while it's edited.
+const PLACEHOLDER_IMAGE = {
+  src: `data:image/svg+xml,${encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><rect width="3" height="2" fill="#d7e2ed"/><path d="M0.9 1.4l0.45-0.5 0.35 0.35 0.4-0.45 0.5 0.6z" fill="#a9b8c7"/></svg>'
+  )}`,
+  alt: ''
+}
+
+const blankText = (value: unknown) =>
+  typeof value !== 'string' || value.trim() === ''
+
+const hasNoImage = (value: unknown) => !isAttrs(value) || blankText(value.src)
+
+/**
+ * What a section shows while it's edited: a blank item's text as its item's
+ * name, such as "Card", and a missing image as a placeholder, so nothing
+ * draws as an empty tile. The page never sees these.
+ */
+function hinted(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
+  const shown: Attrs = { ...attrs }
+  for (const setting of settings) {
+    if (setting.available && !setting.available(attrs)) continue
+    const value = attrs[setting.name]
+    if (setting.type === 'image' && hasNoImage(value)) {
+      shown[setting.name] = PLACEHOLDER_IMAGE
+    }
+    if (setting.type !== 'list' || !setting.fields || !Array.isArray(value)) {
+      continue
+    }
+    const { fields, itemLabel } = setting
+    const texts = fields.filter(({ type }) => type === 'text')
+    shown[setting.name] = value.map((item) => {
+      if (!isAttrs(item)) return item
+      const filled: Attrs = { ...item }
+      if (texts[0] && texts.every(({ name }) => blankText(item[name]))) {
+        filled[texts[0].name] = itemLabel
+      }
+      for (const { name, type } of fields) {
+        if (type === 'image' && hasNoImage(item[name])) {
+          filled[name] = PLACEHOLDER_IMAGE
+        }
+      }
+      return filled
+    })
+  }
+  return shown
+}
 
 const camel = (kebab: string) =>
   kebab.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())
@@ -387,10 +435,10 @@ export function catalogueSections({
         attrs: { ...fields, preset: first.name },
         settings,
         // Its attrs are its props by name, as saved, so lists are checked.
-        render: ({ attrs }) =>
+        render: ({ attrs, editing }) =>
           createElement(
             component as ComponentType<Attrs>,
-            propsOf(block.name, attrs)
+            propsOf(block.name, editing ? hinted(settings, attrs) : attrs)
           ),
         templates: block.presets.map((preset) => ({
           label:

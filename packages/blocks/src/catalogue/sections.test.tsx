@@ -229,6 +229,34 @@ describe('catalogueSections', () => {
     ).toBe(renderToStaticMarkup(stats.render({ attrs: stats.attrs })))
   })
 
+  it('hints at a blank item, and shows a placeholder photo, only while editing', () => {
+    const cards = everyBlock().find(({ label }) => label === 'Cards')!
+    const attrs = {
+      ...cards.attrs,
+      preset: 'photo',
+      cards: [{ title: '', subtitle: '' }]
+    }
+
+    const editing = renderToStaticMarkup(cards.render({ attrs, editing: true }))
+    const page = renderToStaticMarkup(cards.render({ attrs }))
+
+    expect(editing).toContain('>Card<')
+    expect(editing).toContain('data:image/svg+xml')
+    expect(page).not.toContain('>Card<')
+    expect(page).not.toContain('data:image/svg+xml')
+  })
+
+  it.each([
+    ['Hero', 'event'],
+    ['Call to action', 'tickets'],
+    ['Cards', 'lineup'],
+    ['Gallery', 'gallery']
+  ])('finds %s by %s too', (label, word) => {
+    const section = everyBlock().find((entry) => entry.label === label)!
+
+    expect(section.templates[0]!.keywords).toContain(word)
+  })
+
   it('saves no id, so a copy never repeats one', () => {
     expect(everyBlock().some(({ attrs }) => 'id' in attrs)).toBe(false)
   })

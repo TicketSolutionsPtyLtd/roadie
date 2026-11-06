@@ -6,6 +6,8 @@ import { SquaresFourIcon } from '@phosphor-icons/react'
 import { Node, mergeAttributes } from '@tiptap/core'
 import { NodeViewWrapper } from '@tiptap/react'
 
+import { Badge } from '@oztix/roadie-components/badge'
+
 import {
   type EditorBlock,
   type EditorNodeViewProps,
@@ -55,7 +57,7 @@ class SectionBoundary extends Component<
 }
 
 function Drawn({ render, attrs }: { render: Render; attrs: Attrs }) {
-  return render({ attrs })
+  return render({ attrs, editing: true })
 }
 
 const own = (attrs: Attrs, keys: readonly string[]) =>
@@ -89,8 +91,18 @@ export function sectionBlock(section: EditorSection): EditorBlock {
         role='group'
         aria-label={section.label}
         data-selected={selected ? '' : undefined}
-        className='not-prose rounded-md'
+        className='not-prose relative rounded-md'
       >
+        {/* Its name, shown with its ring while it's under the pointer. */}
+        <Badge
+          data-slot='editor-section-name'
+          size='sm'
+          emphasis='subtle'
+          className='absolute start-3 top-3 z-1'
+          aria-hidden
+        >
+          {section.label}
+        </Badge>
         <div inert>
           <SectionBoundary attrs={node.attrs}>
             <Drawn render={section.render} attrs={attrs} />

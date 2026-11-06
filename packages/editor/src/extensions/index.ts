@@ -148,7 +148,11 @@ export type EditorSection = {
    * Draws it from its attrs, as the page will, so it doubles as its
    * `nodeMapping` entry in `renderEditorValue`. Read each attr as untrusted.
    */
-  render: (props: { attrs: Record<string, unknown> }) => ReactNode
+  render: (props: {
+    attrs: Record<string, unknown>
+    /** Set in the editor, so a blank part can show a hint the page won't. */
+    editing?: boolean
+  }) => ReactNode
   /**
    * The ways it's offered, each with its own tile.
    * @default one, named by its label

@@ -10,7 +10,7 @@ export const heroDefinition = {
   description:
     "Use it first on every page. Its title is the page's main heading.",
   group: 'open',
-  keywords: ['header', 'banner', 'title', 'intro'],
+  keywords: ['header', 'banner', 'title', 'intro', 'event', 'tickets', 'gig'],
   presets: [
     {
       name: 'bento',

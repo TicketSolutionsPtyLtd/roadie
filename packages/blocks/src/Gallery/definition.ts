@@ -30,7 +30,7 @@ export const galleryDefinition = {
   description:
     'Use it to show events and people in photos, or partners’ logos.',
   group: 'prove',
-  keywords: ['images', 'photos', 'logos', 'carousel'],
+  keywords: ['images', 'photos', 'logos', 'carousel', 'gallery'],
   presets: [
     {
       name: 'carousel',
