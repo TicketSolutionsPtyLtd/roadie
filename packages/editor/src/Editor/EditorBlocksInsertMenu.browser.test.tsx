@@ -180,7 +180,9 @@ describe('Editor insert menu in the blocks preset', () => {
   it.each([
     ['a date', 'Sat 7/8'],
     ['a link', 'oztix.com.au/tickets'],
-    ['a fraction', 'Half 1/']
+    ['a fraction', 'Half 1/'],
+    ['a pair of words', 'Song/Title'],
+    ['a pair naming a keyword', 'Tickets/Link']
   ])('stays shut after a word for %s', async (_, typed) => {
     const onValueChange = renderBlocks()
     await focusedTextbox()

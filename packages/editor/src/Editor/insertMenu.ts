@@ -169,10 +169,18 @@ export const InsertMenu = Extension.create<
         shouldShow: ({ query, range, transaction }) => {
           const named = () => namedInsertItems(items(), query, ui()).length > 0
           const word = wordBefore(transaction.doc, range.from)
-          // Straight after a word, as in "7pm/section", only a letter that
-          // names a block opens it, so dates and links stay text.
+          // Straight after a word, as in "7pm/section", only the start of a
+          // block's own name opens it, so dates, links and pairs such as
+          // "Song/Title" stay text.
           if (char === '/' && word) {
-            return /^\p{L}/u.test(query) && !/[.:/@]/.test(word) && named()
+            const typed = query.toLowerCase()
+            return (
+              /^\p{L}/u.test(query) &&
+              !/[.:/@]/.test(word) &&
+              namedInsertItems(items(), query, ui()).some(({ label }) =>
+                label.toLowerCase().startsWith(typed)
+              )
+            )
           }
           return !noMatches || !/\s/.test(query) || named()
         },
