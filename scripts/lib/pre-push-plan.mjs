@@ -2,6 +2,7 @@
 // one-package push stays well under a minute. CI runs the full affected suites.
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { join } from 'node:path'
 
 import { projectsIn } from './ci-projects.mjs'
@@ -12,6 +13,11 @@ const GLOBAL_FILE =
 const SOURCE = /\.(?:[cm]?[jt]sx?|css|vue)$/
 const TEST = /\.test\.[cm]?[jt]sx?$/
 const NOT_JSDOM = /\.(?:browser|e2e|perf)\.test\./
+const BROWSER_TEST = /\.browser\.test\.[cm]?[jt]sx?$/
+const PERF_TEST = /\.perf\.browser\.test\./
+// Core has no browser tests: components' CSS suite tests its foundations.
+const CORE_CSS = /^packages\/core\/src\/css\/.*\.css$/
+const CSS_SUITE = { short: 'components', folder: 'src/css/' }
 // core's vitest config runs these folders' tests, and its parity guards read skills/.
 const TESTED_BY_CORE = /^(?:eslint|skills)\//
 const FORMATTED = /\.(?:[cm]?[jt]sx?|json|jsonc|css|ya?ml|md|mdx|vue|html)$/
@@ -23,8 +29,13 @@ export const BUDGET_S = {
   format: 30,
   build: null,
   typecheck: 90,
-  tests: 120
+  tests: 120,
+  browser: 180
 }
+
+// Chromium first, as the cheapest engine to fail in. One engine per run, since
+// three at once backlog Vitest's Playwright bridge (vitest-dev/vitest#9941).
+export const ENGINES = ['chromium', 'firefox', 'webkit']
 
 /** A guard reads source with node:fs instead of importing it, so vitest's related mode never picks it. */
 export const isGuardTest = (path, readSource) =>
@@ -54,6 +65,9 @@ const count = (n, noun) => `${n} ${noun}${n === 1 ? '' : 's'}`
 const folderOf = (path) => path.slice(0, path.lastIndexOf('/') + 1)
 
 const isIn = (file, { dir }) => file.startsWith(`${dir}/`)
+
+// Double quotes, since cmd.exe keeps single quotes as part of the argument.
+const shellQuoted = (arg) => (/^[\w./=:-]+$/.test(arg) ? arg : `"${arg}"`)
 
 /**
  * Each `tsc` or `vue-tsc` in a typecheck script, with a build-info file so the
@@ -100,6 +114,7 @@ function dependentsOf(names, workspaces) {
  * @param {Record<string, string[]>} input.testFiles package-relative test files, by short name
  * @param {Record<string, string[]>} input.guards the guard tests among them
  * @param {string} input.cacheDir where the typecheck build-info files go
+ * @param {string[]} [input.engines] the browser engines installed
  */
 export function planPrePush({
   files,
@@ -108,7 +123,8 @@ export function planPrePush({
   workspaces,
   testFiles,
   guards,
-  cacheDir
+  cacheDir,
+  engines = ENGINES
 }) {
   const changedOrDeleted = [...files, ...deleted]
   const global = changedOrDeleted.some((file) => GLOBAL_FILE.test(file))
@@ -127,7 +143,7 @@ export function planPrePush({
     commands: [
       ['node', 'scripts/check-component-docs.mjs'],
       ['node', 'scripts/check-docs-content.mjs'],
-      ['node', '--test', 'scripts/**/*.test.mjs']
+      ['node', '--test', 'scripts/**/*.test.mjs', '.claude/hooks/*.test.mjs']
     ]
   })
 
@@ -147,14 +163,51 @@ export function planPrePush({
       ])
     })
 
+  const changesIn = (workspace) => {
+    const inWorkspace = (paths) =>
+      paths
+        .filter((file) => isIn(file, workspace) && SOURCE.test(file))
+        .map((file) => file.slice(workspace.dir.length + 1))
+    const changed = inWorkspace(files)
+    const changedFolders = new Set(
+      [...changed, ...inWorkspace(deleted)].map(folderOf)
+    )
+    const isBeside = (test) =>
+      changed.includes(test) || changedFolders.has(folderOf(test))
+    return { changed, isBeside }
+  }
+
+  const coreCssChanged = changedOrDeleted.some((file) => CORE_CSS.test(file))
+  const browserRuns = workspaces.flatMap((workspace) => {
+    const script = workspace.scripts['test:browser']
+    if (!script) return []
+    const inCssSuite = (test) =>
+      coreCssChanged &&
+      workspace.short === CSS_SUITE.short &&
+      test.startsWith(CSS_SUITE.folder)
+    const { isBeside } = changesIn(workspace)
+    const tests = (testFiles[workspace.short] ?? []).filter(
+      (test) =>
+        BROWSER_TEST.test(test) &&
+        !PERF_TEST.test(test) &&
+        (isBeside(test) || inCssSuite(test))
+    )
+    return tests.length ? [{ workspace, script, tests }] : []
+  })
+
   const typechecked = touched.filter(({ scripts }) => scripts.typecheck)
-  const built = typechecked.filter(({ deps }) =>
+  const built = [
+    ...new Set([
+      ...typechecked,
+      ...browserRuns.map(({ workspace }) => workspace)
+    ])
+  ].filter(({ deps }) =>
     deps.some((dep) => workspaces.some(({ name }) => name === dep))
   )
   if (built.length)
     steps.push({
       kind: 'build',
-      label: 'build what the typecheck reads',
+      label: 'build what the typecheck and browser tests read',
       commands: [
         [
           'pnpm',
@@ -193,18 +246,9 @@ export function planPrePush({
 
   for (const workspace of tested) {
     if (!workspace.scripts.test) continue
-    const inWorkspace = (paths) =>
-      paths
-        .filter((file) => isIn(file, workspace) && SOURCE.test(file))
-        .map((file) => file.slice(workspace.dir.length + 1))
-    const changed = inWorkspace(files)
-    const changedFolders = new Set(
-      [...changed, ...inWorkspace(deleted)].map(folderOf)
-    )
+    const { changed, isBeside } = changesIn(workspace)
     const own = (testFiles[workspace.short] ?? []).filter(
-      (test) =>
-        !NOT_JSDOM.test(test) &&
-        (changed.includes(test) || changedFolders.has(folderOf(test)))
+      (test) => !NOT_JSDOM.test(test) && isBeside(test)
     )
     const guardFiles = (guards[workspace.short] ?? []).filter(
       (test) => !own.includes(test)
@@ -216,7 +260,7 @@ export function planPrePush({
     steps.push({
       kind: 'tests',
       label: `tests ${workspace.short} (${own.length} beside the change, ${count(guardFiles.length, 'guard')})`,
-      rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs].join(' ')}`,
+      rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs].map(shellQuoted).join(' ')}`,
       commands: [
         [
           'node',
@@ -232,12 +276,41 @@ export function planPrePush({
     const changedSource = changed.filter((file) => !TEST.test(file))
     if (changedSource.length)
       skipped.push(
-        `tests elsewhere in ${workspace.short} that import the change, and its browser tests: pnpm test:gated ${workspace.short} ${changedSource.join(' ')}`
+        `tests elsewhere in ${workspace.short} that import the change: pnpm test:gated ${workspace.short} ${changedSource.map(shellQuoted).join(' ')}`
       )
     skipped.push(
       `the whole ${workspace.short} suite: pnpm test:gated ${workspace.short} --all`
     )
   }
+
+  for (const { workspace, script, tests } of browserRuns) {
+    const projectArgs = projectsIn(script).flatMap((project) => [
+      '--project',
+      project
+    ])
+    for (const engine of engines)
+      steps.push({
+        kind: 'browser',
+        label: `browser tests ${workspace.short} in ${engine} (${count(tests.length, 'file')})`,
+        rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs, `--browsers=${engine}`].map(shellQuoted).join(' ')}`,
+        commands: [
+          [
+            'node',
+            'scripts/test-gated.mjs',
+            workspace.short,
+            ...tests,
+            '--passWithNoTests',
+            ...projectArgs,
+            `--browsers=${engine}`
+          ]
+        ]
+      })
+  }
+  const missingEngines = ENGINES.filter((engine) => !engines.includes(engine))
+  if (browserRuns.length && missingEngines.length)
+    skipped.push(
+      `browser tests in ${missingEngines.join(' and ')}, which ${missingEngines.length === 1 ? "isn't" : "aren't"} installed: pnpm exec playwright install ${missingEngines.join(' ')}`
+    )
 
   const dependents = global ? [] : dependentsOf(touchedNames, workspaces)
   if (dependents.length) {
@@ -295,4 +368,21 @@ export function readWorkspaces(root) {
     )
   }
   return { workspaces, testFiles, guards }
+}
+
+/**
+ * The engines Playwright has installed. Chromium always counts: every
+ * gated run needs it, and its headless shell sits apart from executablePath().
+ */
+export function installedEngines(root) {
+  let playwright
+  try {
+    playwright = createRequire(join(root, 'package.json'))('playwright')
+  } catch {
+    return ENGINES
+  }
+  return ENGINES.filter(
+    (engine) =>
+      engine === 'chromium' || existsSync(playwright[engine].executablePath())
+  )
 }
