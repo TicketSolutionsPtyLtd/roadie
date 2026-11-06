@@ -189,7 +189,7 @@
   --email-base-button-text: var(--email-button-text);
 
   color-scheme: light;
-  /* A block outside columns sits 24px in on both sides, as the email pads
+  /* Every block sits 24px in on both sides, columns too, as the email pads
      it, so text wraps where it sends; the block handle sits outside. */
   padding-inline: calc(var(--spacing) * 6);
   border-radius: var(--radius-md);
