@@ -384,6 +384,90 @@ describe('renderEmail', () => {
     })
   })
 
+  describe('empty lines', () => {
+    const blank: JSONContent[] = [
+      { type: 'paragraph' },
+      p(text('   ')),
+      { type: 'paragraph', content: [{ type: 'hardBreak' }] }
+    ]
+
+    it('sends none of them as blank space', async () => {
+      const { html, text: plain } = await renderEmail(
+        email(...blank, p(text('Doors 7pm')), ...blank)
+      )
+      const { html: alone } = await renderEmail(email(p(text('Doors 7pm'))))
+      expect(html).toBe(alone)
+      expect(plain).toBe('Doors 7pm')
+    })
+
+    it('sends a section holding only empty lines as nothing', async () => {
+      const { html } = await renderEmail(
+        email(section(...blank), p(text('Doors 7pm')))
+      )
+      const { html: alone } = await renderEmail(email(p(text('Doors 7pm'))))
+      expect(html).toBe(alone)
+    })
+
+    const item = (...content: JSONContent[]) => ({
+      type: 'listItem',
+      content
+    })
+    const list = (...content: JSONContent[]) => ({
+      type: 'bulletList',
+      content
+    })
+
+    it('sends no empty list item, as no blank bullet', async () => {
+      const { html } = await renderEmail(
+        email(list(item(p(text('Marri Lane'))), item({ type: 'paragraph' })))
+      )
+      const { html: alone } = await renderEmail(
+        email(list(item(p(text('Marri Lane')))))
+      )
+      expect(html).toBe(alone)
+    })
+
+    it('sends no list left with no items', async () => {
+      const { html } = await renderEmail(
+        email(
+          list(item({ type: 'paragraph' }), item(p(text(' ')))),
+          p(text('Doors 7pm'))
+        )
+      )
+      const { html: alone } = await renderEmail(email(p(text('Doors 7pm'))))
+      expect(html).toBe(alone)
+    })
+
+    it('sends no item holding only an empty heading', async () => {
+      const { html } = await renderEmail(
+        email(
+          list(
+            item(p(text('Marri Lane'))),
+            item(
+              { type: 'paragraph' },
+              { type: 'heading', attrs: { level: 2 } }
+            )
+          )
+        )
+      )
+      const { html: alone } = await renderEmail(
+        email(list(item(p(text('Marri Lane')))))
+      )
+      expect(html).toBe(alone)
+    })
+
+    it('keeps an item with a nested list that has words', async () => {
+      const { html } = await renderEmail(
+        email(
+          list(
+            item({ type: 'paragraph' }, list(item(p(text('Dusty Banksia')))))
+          )
+        )
+      )
+      expect(body(html)).toContain('Dusty Banksia')
+    })
+  })
+
   it('links no web font, even for a font MJML knows', async () => {
     const { html } = await renderEmail(email(p(text('Hi'))), {
       theme: { fontFamily: 'Roboto, Arial, sans-serif' }

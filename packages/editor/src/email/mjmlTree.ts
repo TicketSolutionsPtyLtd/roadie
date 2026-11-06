@@ -123,10 +123,41 @@ function blockContent(node: JSONContent, context: Context) {
     case 'horizontalRule':
       return [mj('mj-divider', { padding })]
     default: {
-      const html = textBlockHtml(node, context)
+      // An empty line is room to type in, not space to send.
+      if (isBlankParagraph(node)) return []
+      const kept = withoutBlankItems(node)
+      if (!kept) return []
+      const html = textBlockHtml(kept, context)
       return html ? [leaf('mj-text', { padding }, html)] : []
     }
   }
+}
+
+const isBlankParagraph = (node: JSONContent) => isBlankText(node, 'paragraph')
+
+// A paragraph or heading with no words: empty, spaces, or breaks.
+const isBlankText = (node: JSONContent, ...types: string[]) =>
+  types.includes(node.type ?? '') &&
+  (node.content ?? []).every(
+    (child) =>
+      child.type === 'hardBreak' ||
+      (child.type === 'text' && !child.text?.trim())
+  )
+
+const LISTS = new Set(['bulletList', 'orderedList'])
+
+// A list item with no words, such as a hinted line left empty, would send as
+// a blank bullet, so it goes, and a list left with none goes too.
+function withoutBlankItems(node: JSONContent): JSONContent | null {
+  if (!LISTS.has(node.type ?? '')) return node
+  const items = (node.content ?? []).flatMap((listItem) => {
+    const content = (listItem.content ?? []).flatMap((child) => {
+      const kept = withoutBlankItems(child)
+      return kept && !isBlankText(kept, 'paragraph', 'heading') ? [kept] : []
+    })
+    return content.length > 0 ? [{ ...listItem, content }] : []
+  })
+  return items.length > 0 ? { ...node, content: items } : null
 }
 
 const column = (blocks: JSONContent[], context: Context) =>
@@ -162,9 +193,11 @@ function rows(nodes: JSONContent[], text: TreeContext): MjmlNode[] {
     } else if (node.type === 'section') {
       endRun()
       built.push(
-        ...shownNodes(node, text, () => [
-          mj('mj-wrapper', {}, rows(node.content ?? [], text))
-        ])
+        ...shownNodes(node, text, () => {
+          const inner = rows(node.content ?? [], text)
+          // An empty section's padding is space to send, too.
+          return inner.length > 0 ? [mj('mj-wrapper', {}, inner)] : []
+        })
       )
     } else {
       run.push(node)

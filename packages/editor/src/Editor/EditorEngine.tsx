@@ -12,10 +12,12 @@ import {
 import {
   Extension,
   type Extensions,
+  InputRule,
   type JSONContent,
   type Node,
   getSchema
 } from '@tiptap/core'
+import { Typography } from '@tiptap/extension-typography'
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
 import { closeHistory } from '@tiptap/pm/history'
@@ -75,6 +77,7 @@ import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
+import { EditorPreview } from './EditorPreview'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
@@ -183,6 +186,61 @@ const BLOCK_HANDLES: Partial<
   blocks: { containers: TOP_LEVEL, canAdd: true },
   email: { containers: new Set(['doc', 'section', 'column']), canAdd: true }
 }
+
+// As Notion does.
+const HeadingBackspace = Extension.create({
+  name: 'headingBackspace',
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        const { empty, $from } = editor.state.selection
+        if (!empty || $from.parentOffset > 0) return false
+        if ($from.parent.type.name !== 'heading') return false
+        return editor.commands.first(({ commands }) => [
+          () => commands.undoInputRule(),
+          () => commands.setParagraph()
+        ])
+      }
+    }
+  }
+})
+
+// Quotes, the ellipsis and dashes only: the rest turn text an author meant.
+const SmartPunctuation = Typography.configure({
+  emDash: false,
+  leftArrow: false,
+  rightArrow: false,
+  copyright: false,
+  trademark: false,
+  servicemark: false,
+  registeredTrademark: false,
+  oneHalf: false,
+  plusMinus: false,
+  notEqual: false,
+  laquo: false,
+  raquo: false,
+  multiplication: false,
+  superscriptTwo: false,
+  superscriptThree: false,
+  oneQuarter: false,
+  threeQuarters: false
+})
+
+// Not in a `/` query, where `--` names a block, such as `/---` for Divider.
+const EmDash = Extension.create({
+  name: 'emDash',
+  addInputRules: () => [
+    new InputRule({
+      find: /--$/,
+      handler: ({ state, range }) => {
+        const $from = state.doc.resolve(range.from)
+        const before = $from.parent.textBetween(0, $from.parentOffset)
+        if (/(^|\s)\/\S*$/.test(before)) return null
+        state.tr.insertText('—', range.from, range.to)
+      }
+    })
+  ]
+})
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
 
@@ -439,6 +497,11 @@ export function EditorEngine({
   extensions: extensionsProp,
   variables,
   theme,
+  onRenderPreview,
+  previewRecipients,
+  onSendTest,
+  sender,
+  subject,
   toolbar: toolbarProp,
   defaultToolbar,
   onToolbarChange,
@@ -506,6 +569,7 @@ export function EditorEngine({
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
   const [addingBlocks, setAddingBlocks] = useState(false)
   const [drawerStart, setDrawerStart] = useState<string>()
+  const [previewing, setPreviewing] = useState<EditorValue | null>(null)
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
@@ -592,6 +656,9 @@ export function EditorEngine({
           placeholderRef.current === undefined ? presetHint(preset) : undefined
       }),
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
+      HeadingBackspace,
+      SmartPunctuation,
+      EmDash,
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       SettingsShortcut.configure({
         has: hasSettings,
@@ -818,6 +885,34 @@ export function EditorEngine({
     if (!editor?.isEditable) return
     setImporting(({ count }) => ({ open: true, source, count: count + 1 }))
   }
+  const previewClosed = useRef(false)
+  // The canvas shows again only on the render after Preview closes.
+  useEffect(() => {
+    if (previewing || !previewClosed.current || !editor) return
+    previewClosed.current = false
+    focusEditor(editor)
+  }, [previewing, editor])
+  const openPreview =
+    preset === 'email' && onRenderPreview
+      ? () => {
+          if (!editor) return
+          setPreviewing(currentValue(editor, preset))
+        }
+      : undefined
+  const preview =
+    previewing && onRenderPreview ? (
+      <EditorPreview
+        value={previewing}
+        inbox={{ sender, subject }}
+        recipients={previewRecipients}
+        onRenderPreview={onRenderPreview}
+        onSendTest={onSendTest}
+        onClose={() => {
+          previewClosed.current = true
+          setPreviewing(null)
+        }}
+      />
+    ) : null
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
     editLink: () => {
@@ -845,7 +940,8 @@ export function EditorEngine({
     replaceImage: canUpload
       ? () => replaceInputRef.current?.click()
       : undefined,
-    importSource: preset === 'email' ? importSource : undefined
+    importSource: preset === 'email' ? importSource : undefined,
+    preview: openPreview
   }
   useEffect(() => {
     uiRef.current = ui
@@ -884,6 +980,8 @@ export function EditorEngine({
         bubbleMenuRef,
         ...ui,
         openBlocks: drawerItems.length > 0 ? () => openDrawer() : undefined,
+        openPreview,
+        preview,
         hasSettings,
         editSettingsAt,
         editingLink,
@@ -897,6 +995,7 @@ export function EditorEngine({
       <div
         data-slot='editor'
         data-preset={preset}
+        data-previewing={preview ? '' : undefined}
         data-emphasis={emphasis}
         style={preset === 'email' ? emailCanvasStyle(theme) : undefined}
         aria-invalid={field.invalid || undefined}
