@@ -1,3 +1,5 @@
+import { StrictMode } from 'react'
+
 import { TicketIcon } from '@phosphor-icons/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import {
@@ -615,7 +617,19 @@ describe('Editor block settings', () => {
       .fn()
       .mockRejectedValueOnce(new Error('Too big'))
       .mockResolvedValueOnce({ src: '/uploads/band.webp', alt: 'The band' })
-    const onValueChange = renderPage({ onUploadImage })
+    const onValueChange = vi.fn()
+    // StrictMode mounts twice, which an upload must outlive.
+    render(
+      <StrictMode>
+        <Editor
+          aria-label={LABEL}
+          extensions={[promo]}
+          defaultValue={page}
+          onValueChange={onValueChange}
+          onUploadImage={onUploadImage}
+        />
+      </StrictMode>
+    )
     await userEvent.click(await screen.findByText('Velvet Kookaburra'))
     const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
     const file = new File(['x'], 'band.webp', { type: 'image/webp' })
