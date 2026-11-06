@@ -164,9 +164,10 @@ buttons, dividers, and font show in the canvas as they send, and a tinted
 or accent section swaps its blocks' colours as the email does. Without one, the canvas takes `defaultEmailTheme`, as
 `renderEmail` does, except that its links and strong buttons take the
 accent of a `ThemeProvider` around the editor, which `renderEmail` doesn't
-know, so pass `theme` for an exact match. Text outside columns sits 24
-pixels in from each side of the canvas, so it wraps where it sends, and
-columns reach 12 pixels further out, as they do in the email. The grip and
+know, so pass `theme` for an exact match. Text sits 24
+pixels in from each side of the canvas, in columns and sections too, so it
+wraps where it sends. Columns sit side by side from a 480-pixel canvas, the
+width the email stops stacking them at. The grip and
 add button sit in the gutter beside the canvas, which the editor keeps
 where the frame is too narrow for one. In a frame narrower than 544
 pixels, as on a phone, the email sends at the screen's width, so the canvas
