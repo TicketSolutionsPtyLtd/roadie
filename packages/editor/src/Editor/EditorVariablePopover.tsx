@@ -121,7 +121,7 @@ type EditorVariablePopoverProps = {
 
 /**
  * Edits the selected merge tag: the variable it shows, and its fallback.
- * Escape puts it back as it was.
+ * Escape keeps the changes, which undo puts back in one step.
  */
 export function EditorVariablePopover({
   editor,

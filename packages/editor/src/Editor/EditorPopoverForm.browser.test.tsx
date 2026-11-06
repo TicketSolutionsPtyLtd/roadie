@@ -364,17 +364,38 @@ describe.each(POPOVERS)('Editor $name popover row', (popover) => {
     expect(popover.shown(textbox)).toBe(null)
   })
 
-  it('closes with Escape, putting back what was there', async () => {
-    const textbox = await renderEditor(popover.value)
-    const field = await popover.open(textbox)
-    await userEvent.type(field, popover.typed)
+  it.runIf(!popover.live)(
+    'closes with Escape, putting back what was there',
+    async () => {
+      const textbox = await renderEditor(popover.value)
+      const field = await popover.open(textbox)
+      await userEvent.type(field, popover.typed)
 
-    await userEvent.keyboard('{Escape}')
+      await userEvent.keyboard('{Escape}')
 
-    await waitFor(() => expect(field).not.toBeInTheDocument())
-    await waitFor(() => expect(textbox).toHaveFocus())
-    expect(popover.shown(textbox)).toBe(null)
-  })
+      await waitFor(() => expect(field).not.toBeInTheDocument())
+      await waitFor(() => expect(textbox).toHaveFocus())
+      expect(popover.shown(textbox)).toBe(null)
+    }
+  )
+
+  it.runIf(popover.live)(
+    'closes with Escape, keeping what’s typed, which undo puts back',
+    async () => {
+      const textbox = await renderEditor(popover.value)
+      const field = await popover.open(textbox)
+      await userEvent.type(field, popover.typed)
+
+      await userEvent.keyboard('{Escape}')
+
+      await waitFor(() => expect(field).not.toBeInTheDocument())
+      await waitFor(() => expect(textbox).toHaveFocus())
+      expect(popover.shown(textbox)).toBeVisible()
+
+      await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+      await waitFor(() => expect(popover.shown(textbox)).toBe(null))
+    }
+  )
 
   it.runIf(popover.live)('applies what’s typed as it’s typed', async () => {
     const textbox = await renderEditor(popover.value)
@@ -423,7 +444,7 @@ describe('Editor link popover', () => {
     expect(document.getSelection()?.toString()).toBe('Sold out')
   })
 
-  it('puts the link and the caret back on Escape', async () => {
+  it('keeps the link on Escape, with focus back in the text', async () => {
     const textbox = await renderEditor(linked)
     await userEvent.click(within(textbox).getByText('tickets'))
     await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
@@ -440,8 +461,10 @@ describe('Editor link popover', () => {
 
     await waitFor(() => expect(field).not.toBeInTheDocument())
     await waitFor(() => expect(textbox).toHaveFocus())
-    expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
-    expect(document.getSelection()?.isCollapsed).toBe(true)
+    expect(within(textbox).getByRole('link')).toHaveAttribute(
+      'href',
+      'https://oztix.com.au'
+    )
   })
 
   it('puts the link back once what’s typed stops being an address', async () => {

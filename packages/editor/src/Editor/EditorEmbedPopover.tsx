@@ -136,7 +136,7 @@ type EditorEmbedPopoverProps = {
 
 /**
  * Embeds a video or track from a pasted share link at the selection, or
- * changes the selected embed's as it's typed, which Escape puts back.
+ * changes the selected embed's as it's typed, which undo puts back.
  */
 export function EditorEmbedPopover({
   editor,

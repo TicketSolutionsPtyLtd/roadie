@@ -149,7 +149,7 @@ describe('Editor email links to link variables', () => {
     )
   })
 
-  it('puts the variable back on Escape after an address is typed', async () => {
+  it('keeps an address typed over a variable on Escape, which undo puts back', async () => {
     const onValueChange = renderEmail(
       email(linked('Unsubscribe', { variable: 'unsubscribe_url' }))
     )
@@ -168,7 +168,14 @@ describe('Editor email links to link variables', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     expect(firstBlock(onValueChange)).toEqual(
-      linked('Unsubscribe', { variable: 'unsubscribe_url' })
+      linked('Unsubscribe', { href: TICKETS })
+    )
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(firstBlock(onValueChange)).toEqual(
+        linked('Unsubscribe', { variable: 'unsubscribe_url' })
+      )
     )
   })
 
