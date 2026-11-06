@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
@@ -14,6 +14,8 @@ type EditorChoiceProps<Value extends string> = {
   onValueChange: (value: Value) => void
   disabled?: boolean
   helperText?: ReactNode
+  /** Given to the chosen item, for a form to open with focus there. */
+  chosenRef?: RefObject<HTMLButtonElement | null>
 }
 
 /** One of a few choices, as a row of buttons under a label. */
@@ -23,7 +25,8 @@ export function EditorChoice<Value extends string>({
   value,
   onValueChange,
   disabled,
-  helperText
+  helperText,
+  chosenRef
 }: EditorChoiceProps<Value>) {
   return (
     <Fieldset className='grid gap-1.5 [&>*+*]:mt-0' disabled={disabled}>
@@ -43,6 +46,7 @@ export function EditorChoice<Value extends string>({
         {choices.map((choice) => (
           <ToggleGroup.Item
             key={choice.value}
+            ref={choice.value === value ? chosenRef : undefined}
             value={choice.value}
             className='flex-1'
           >

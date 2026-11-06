@@ -8,7 +8,7 @@ import {
   onTestFinished,
   vi
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Field } from '@oztix/roadie-components/field'
 
@@ -373,7 +373,7 @@ describe('Editor node toolbar placement', () => {
     }
   )
 
-  it('stays in view inside the image when its top scrolls off', async () => {
+  it('stays in view inside the image, under the docked toolbar, when its top scrolls under it', async () => {
     render(
       <>
         <NodeEditor defaultValue={afterText(picture)} />
@@ -385,15 +385,19 @@ describe('Editor node toolbar placement', () => {
     const menu = await placedToolbar('Image actions')
     const image = textbox.querySelector('img')!
 
+    const bar = screen
+      .getByRole('toolbar', { name: 'Formatting' })
+      .closest<HTMLElement>('[data-slot="editor-toolbar"]')!
     window.scrollBy(0, image.getBoundingClientRect().top + 60)
 
     try {
       await waitFor(() => {
         const media = image.getBoundingClientRect()
         const box = menu.getBoundingClientRect()
-        expect(media.top).toBeLessThan(0)
-        expect(box.top).toBeGreaterThanOrEqual(INSET)
-        expect(box.top).toBeLessThan(16)
+        const docked = bar.getBoundingClientRect().bottom
+        expect(media.top).toBeLessThan(docked)
+        expect(box.top - docked).toBeGreaterThanOrEqual(INSET)
+        expect(box.top - docked).toBeLessThan(16)
         expect(media.right - box.right).toBeGreaterThanOrEqual(INSET)
         expect(box.bottom).toBeLessThanOrEqual(media.bottom - INSET)
       })
@@ -499,6 +503,306 @@ describe('Editor node toolbar placement', () => {
 
     await expectInsetInMedia(textbox, 'img', 'Image actions')
   })
+})
+
+describe('Editor email block toolbar placement', () => {
+  const p = (text: string) => ({
+    type: 'paragraph',
+    content: [{ type: 'text', text }]
+  })
+  const email = (...content: Record<string, unknown>[]): EditorValue => ({
+    version: 1,
+    preset: 'email',
+    doc: { type: 'doc', content }
+  })
+  const intersects = (a: DOMRect, b: DOMRect) =>
+    a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+
+  const columns = {
+    type: 'columns',
+    content: [
+      { type: 'column', content: [p('Ochre Kite')] },
+      { type: 'column', content: [p('Kazoo Hollow')] }
+    ]
+  }
+  const ticketButton = {
+    type: 'button',
+    attrs: { href: 'https://oztix.com.au' },
+    content: [{ type: 'text', text: 'Buy tickets' }]
+  }
+
+  const lines = (textbox: HTMLElement, ...texts: string[]) =>
+    texts.map((text) => within(textbox).getByText(text).getBoundingClientRect())
+
+  it.each([1280, 390])(
+    'sits outside columns at %ipx, clear of their text and the button above, and clickable',
+    async (width) => {
+      await page.viewport(width, 800)
+      onTestFinished(() => page.viewport(1280, 800))
+      render(
+        <div style={{ paddingTop: 96 }}>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={email(ticketButton, columns, p('Doors 7pm'))}
+          />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(within(textbox).getByText('Kazoo Hollow'))
+
+      const toolbar = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+      const node = textbox.querySelector('[data-type="columns"]')!
+      const above = textbox.querySelector('[data-type="button"]')!
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        const box = node.getBoundingClientRect()
+        expect(intersects(bar, box)).toBe(false)
+        for (const covered of [
+          above.getBoundingClientRect(),
+          ...lines(textbox, 'Ochre Kite', 'Kazoo Hollow')
+        ]) {
+          expect(intersects(bar, covered)).toBe(false)
+        }
+        for (const button of within(toolbar).getAllByRole('button')) {
+          const { left, top, width: w, height } = button.getBoundingClientRect()
+          const hit = document.elementFromPoint(left + w / 2, top + height / 2)
+          expect(button.contains(hit)).toBe(true)
+        }
+      })
+    }
+  )
+
+  it('keeps off a long line before columns, in their top-end corner on a phone', async () => {
+    await page.viewport(390, 800)
+    onTestFinished(() => page.viewport(1280, 800))
+    const fees = 'Ticket prices include booking fees and are final at checkout'
+    render(
+      <div style={{ paddingTop: 96 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={email(p(fees), columns, p('Doors'))}
+        />
+      </div>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Kazoo Hollow'))
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    const node = textbox.querySelector('[data-type="columns"]')!
+    await waitFor(() => {
+      const bar = toolbar.getBoundingClientRect()
+      const box = node.getBoundingClientRect()
+      expect(bar.top).toBeGreaterThanOrEqual(box.top)
+      expect(bar.right).toBeLessThanOrEqual(box.right)
+      for (const text of [fees, 'Doors']) {
+        const range = document.createRange()
+        range.selectNodeContents(within(textbox).getByText(text))
+        for (const covered of range.getClientRects()) {
+          expect(intersects(bar, covered)).toBe(false)
+        }
+      }
+    })
+  })
+
+  it('stays in reach in tall columns whose edges scroll off, on a phone', async () => {
+    await page.viewport(390, 600)
+    onTestFinished(() => page.viewport(1280, 800))
+    const sets = Array.from({ length: 30 }, (_, index) => p(`Set ${index + 1}`))
+    render(
+      <>
+        <Editor
+          aria-label={LABEL}
+          toolbar='docked'
+          defaultValue={email(
+            p('Doors'),
+            {
+              type: 'columns',
+              content: [
+                { type: 'column', content: sets },
+                { type: 'column', content: [p('Kazoo Hollow')] }
+              ]
+            },
+            p('Gates')
+          )}
+        />
+        <div style={{ blockSize: '200vh' }} />
+      </>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const target = within(textbox).getByText('Set 15')
+    target.scrollIntoView({ block: 'center' })
+    await clickIntoEditor(target)
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    try {
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        expect(bar.top).toBeGreaterThanOrEqual(0)
+        expect(bar.bottom).toBeLessThanOrEqual(window.innerHeight)
+        const hit = document.elementFromPoint(
+          bar.left + bar.width / 2,
+          bar.top + bar.height / 2
+        )
+        expect(toolbar.contains(hit)).toBe(true)
+      })
+    } finally {
+      window.scrollTo(0, 0)
+    }
+  })
+
+  it.each([390, 1280])(
+    'covers no text under a long heading in a section, at %ipx',
+    async (width) => {
+      await page.viewport(width, 800)
+      onTestFinished(() => page.viewport(1280, 800))
+      const heading = 'The full lineup for the Ochre Kite Weekender this March'
+      render(
+        <div style={{ paddingTop: 96 }}>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={email(
+              p('Doors'),
+              {
+                type: 'section',
+                content: [
+                  {
+                    type: 'heading',
+                    attrs: { level: 2 },
+                    content: [{ type: 'text', text: heading }]
+                  },
+                  {
+                    type: 'columns',
+                    content: [
+                      { type: 'column', content: [p('Velvet Kookaburra')] },
+                      {
+                        type: 'column',
+                        content: [p('The Saltbush Echoes with Dusty Banksia')]
+                      }
+                    ]
+                  }
+                ]
+              },
+              p('Gates')
+            )}
+          />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(within(textbox).getByText('Velvet Kookaburra'))
+
+      const toolbar = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        expect(bar.width).toBeGreaterThan(0)
+        for (const text of [
+          heading,
+          'Velvet Kookaburra',
+          'The Saltbush Echoes with Dusty Banksia'
+        ]) {
+          const range = document.createRange()
+          range.selectNodeContents(within(textbox).getByText(text))
+          for (const covered of range.getClientRects()) {
+            expect(intersects(bar, covered)).toBe(false)
+          }
+        }
+      })
+    }
+  )
+
+  it('stays below the fields above the text when columns start it', async () => {
+    await page.viewport(390, 800)
+    onTestFinished(() => page.viewport(1280, 800))
+    render(
+      <div style={{ paddingTop: 96 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={email(columns, p('Doors 7pm'))}
+        >
+          <input aria-label='Subject' style={{ blockSize: 40 }} />
+          <Editor.Content />
+        </Editor>
+      </div>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Ochre Kite'))
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    const field = screen.getByRole('textbox', { name: 'Subject' })
+    await waitFor(() => {
+      const bar = toolbar.getBoundingClientRect()
+      expect(bar.width).toBeGreaterThan(0)
+      expect(bar.top).toBeGreaterThanOrEqual(
+        field.getBoundingClientRect().bottom
+      )
+    })
+  })
+
+  it('docks in the top-end corner of columns that start the content, on a phone', async () => {
+    await page.viewport(390, 800)
+    onTestFinished(() => page.viewport(1280, 800))
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={email(columns, p('Doors 7pm'))}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Ochre Kite'))
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    const node = textbox.querySelector('[data-type="columns"]')!
+    await waitFor(() => {
+      const bar = toolbar.getBoundingClientRect()
+      const box = node.getBoundingClientRect()
+      expect(bar.top).toBeGreaterThanOrEqual(box.top)
+      expect(bar.right).toBeLessThanOrEqual(box.right)
+      expect(box.right - bar.right).toBeLessThan(16)
+    })
+  })
+
+  it.each([16, undefined, 64])(
+    'sits beside a spacer %spx high, clear of the text either side',
+    async (height) => {
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={email(
+            p('Doors 7pm'),
+            { type: 'spacer', attrs: height ? { height } : {} },
+            p('Gates 11am')
+          )}
+        />
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const spacer = textbox.querySelector('[data-type="spacer"]')!
+      await userEvent.click(spacer)
+
+      const toolbar = await screen.findByRole('toolbar', {
+        name: 'Spacer actions'
+      })
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        expect(bar.left).toBeGreaterThanOrEqual(
+          spacer.getBoundingClientRect().right
+        )
+        for (const line of lines(textbox, 'Doors 7pm', 'Gates 11am')) {
+          expect(intersects(bar, line)).toBe(false)
+        }
+      })
+    }
+  )
 })
 
 describe('Editor node selection ring', () => {
