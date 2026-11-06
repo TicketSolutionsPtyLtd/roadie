@@ -10,6 +10,7 @@ import {
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
+  sectionLook,
   spacerHeight,
   textAlign
 } from './emailAttrs'
@@ -54,6 +55,13 @@ const showWhen = {
 const shownWhen = ({ 'data-show-when': rule }: Record<string, unknown>) =>
   rule ? { 'data-show-when': String(rule) } : {}
 
+const looked = (attrs: Record<string, unknown>) =>
+  Object.fromEntries(
+    ['data-look', 'data-spacing'].flatMap((name) =>
+      attrs[name] ? [[name, String(attrs[name])]] : []
+    )
+  )
+
 // The preheader is the email's, not a block's, so it's the doc's attr.
 const EmailDoc = Node.create({
   name: 'doc',
@@ -62,15 +70,32 @@ const EmailDoc = Node.create({
   addAttributes: () => ({ preheader: { default: undefined } })
 })
 
+// Undefined, as a rule is, so a plain section saves no attrs.
+const lookAttr = (name: 'look' | 'spacing') => ({
+  default: undefined,
+  parseHTML: (element: HTMLElement) =>
+    sectionLook({ [name]: element.getAttribute(`data-${name}`) })[name],
+  renderHTML: (attrs: Record<string, unknown>) =>
+    attrs[name] ? { [`data-${name}`]: String(attrs[name]) } : {}
+})
+
 export const Section = layoutNode(
   'section',
   LAYOUT,
   `(block | ${EMAIL_BLOCK} | columns)+`
 ).extend({
-  addAttributes: () => showWhen,
+  addAttributes: () => ({
+    ...showWhen,
+    look: lookAttr('look'),
+    spacing: lookAttr('spacing')
+  }),
   renderHTML: ({ HTMLAttributes }) => [
     'div',
-    { 'data-type': 'section', ...shownWhen(HTMLAttributes) },
+    {
+      'data-type': 'section',
+      ...shownWhen(HTMLAttributes),
+      ...looked(HTMLAttributes)
+    },
     0
   ]
 })

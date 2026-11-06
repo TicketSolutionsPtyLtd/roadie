@@ -90,13 +90,16 @@ function SettingsForm({
  * scroller from it out takes what it can of the move, as one may be at its
  * end.
  */
+const EDGE = 16
+
 function scrollNearTop(element: Element) {
   const document = element.ownerDocument
   const view = document.defaultView ?? window
   const target = view.innerHeight * 0.2
   let left = element.getBoundingClientRect().top - target
-  // Below the sheet's top is out of sight; above the target is fine.
-  if (left < 0 && element.getBoundingClientRect().top >= 0) return
+  // Below the sheet's top is out of sight; above the target is fine, short of
+  // the edge, where the block sheet's scroll leaves it.
+  if (left < 0 && element.getBoundingClientRect().top >= EDGE) return
   const scrollers: Element[] = []
   for (let at = element.parentElement; at; at = at.parentElement) {
     const { overflowY } = view.getComputedStyle(at)

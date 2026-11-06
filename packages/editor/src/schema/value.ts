@@ -10,6 +10,7 @@ import {
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
+  sectionLook,
   spacerHeight,
   textAlign
 } from './emailAttrs'
@@ -131,6 +132,7 @@ function cleanedAttrs({ type, attrs }: JSONContent, email: boolean) {
   }
   if (type === 'columns') return columnsLook(attrs)
   if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
+  if (type === 'section') return sectionLook(attrs)
   if (type === 'button') {
     const variable: unknown = attrs?.variable
     return {

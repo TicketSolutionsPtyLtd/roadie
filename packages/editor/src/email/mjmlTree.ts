@@ -2,10 +2,12 @@ import type { JSONContent } from '@tiptap/core'
 
 import {
   EMAIL_WIDTH,
+  type SectionLook,
   buttonLook,
   columnWidths,
   columnsLook,
   imageLook,
+  sectionLook,
   textAlign
 } from '../schema/emailAttrs'
 import { preheaderOf } from '../schema/preheader'
@@ -30,7 +32,11 @@ export type MjmlNode = {
   content?: string
 }
 
-export type TreeContext = TextContext & { showsWhen: ShowsWhen }
+export type TreeContext = TextContext & {
+  showsWhen: ShowsWhen
+  /** Set inside a filled section, whose colours the head's defaults miss. */
+  filled?: boolean
+}
 
 type Context = TreeContext & {
   /** Each block's padding, narrower beside other columns. */
@@ -78,9 +84,17 @@ function shownNodes(
 
 // A normal or subtle button is neutral, so the accent stays for the one that
 // matters. Each sets the fill a strong button's head attributes give it.
-function buttonLayout(attrs: Record<string, unknown>, { theme }: Context) {
+function buttonLayout(
+  attrs: Record<string, unknown>,
+  { theme, filled }: Context
+) {
   const { align, emphasis, fullWidth } = buttonLook(attrs)
   return {
+    ...(filled &&
+      !emphasis && {
+        'background-color': theme.button,
+        color: theme.buttonText
+      }),
     ...(align && { align }),
     ...(fullWidth && { width: '100%' }),
     ...(emphasis === 'normal' && {
@@ -92,7 +106,12 @@ function buttonLayout(attrs: Record<string, unknown>, { theme }: Context) {
     }),
     ...(emphasis === 'subtle' && {
       'background-color': theme.tint,
-      color: theme.text
+      color: theme.text,
+      // On a fill its tint can match the section's, so it keeps an edge.
+      ...(filled && {
+        border: `1px solid ${theme.border}`,
+        'inner-padding': '11px 23px'
+      })
     })
   }
 }
@@ -135,7 +154,12 @@ function blockContent(node: JSONContent, context: Context) {
     case 'spacer':
       return [mj('mj-spacer', { height: `${attrs.height}px` })]
     case 'horizontalRule':
-      return [mj('mj-divider', { padding })]
+      return [
+        mj('mj-divider', {
+          padding,
+          ...(context.filled && { 'border-color': context.theme.divider })
+        })
+      ]
     default: {
       // An empty line is room to type in, not space to send.
       if (isBlankParagraph(node)) return []
@@ -144,7 +168,17 @@ function blockContent(node: JSONContent, context: Context) {
       const html = textBlockHtml(kept, context)
       const align = textAlign(attrs.align)
       return html
-        ? [leaf('mj-text', { padding, ...(align && { align }) }, html)]
+        ? [
+            leaf(
+              'mj-text',
+              {
+                padding,
+                ...(align && { align }),
+                ...(context.filled && { color: context.theme.text })
+              },
+              html
+            )
+          ]
         : []
     }
   }
@@ -209,6 +243,27 @@ function columns(node: JSONContent, text: TreeContext) {
     : mj('mj-section', {}, built)
 }
 
+const SECTION_PADDING = { tight: '8px 0', roomy: '32px 0' } as const
+
+// An accent fill takes the strong button's colours, and its strong button
+// swaps them, so text, links and buttons stay legible on it.
+function lookTheme(theme: EmailTheme, look: SectionLook): EmailTheme {
+  if (look === 'tint') {
+    return { ...theme, background: theme.tint, tint: theme.background }
+  }
+  return {
+    ...theme,
+    background: theme.button,
+    text: theme.buttonText,
+    link: theme.buttonText,
+    button: theme.buttonText,
+    buttonText: theme.button,
+    border: theme.buttonText,
+    tint: theme.button,
+    divider: theme.buttonText
+  }
+}
+
 // MJML stacks columns below 480px, and its conditional tables hold them in Outlook.
 function rows(nodes: JSONContent[], text: TreeContext): MjmlNode[] {
   const built: MjmlNode[] = []
@@ -225,11 +280,26 @@ function rows(nodes: JSONContent[], text: TreeContext): MjmlNode[] {
       built.push(columns(node, text))
     } else if (node.type === 'section') {
       endRun()
+      const { look, spacing } = sectionLook(node.attrs)
+      const inner = look
+        ? { ...text, theme: lookTheme(text.theme, look), filled: true }
+        : text
       built.push(
         ...shownNodes(node, text, () => {
-          const inner = rows(node.content ?? [], text)
+          const built = rows(node.content ?? [], inner)
           // An empty section's padding is space to send, too.
-          return inner.length > 0 ? [mj('mj-wrapper', {}, inner)] : []
+          return built.length > 0
+            ? [
+                mj(
+                  'mj-wrapper',
+                  {
+                    ...(spacing && { padding: SECTION_PADDING[spacing] }),
+                    ...(look && { 'background-color': inner.theme.background })
+                  },
+                  built
+                )
+              ]
+            : []
         })
       )
     } else {
