@@ -825,7 +825,12 @@ describe('Editor block settings', () => {
     ['Escape', async () => userEvent.keyboard('{Escape}')],
     [
       'a click away',
-      async () => userEvent.click(document.body, { position: { x: 4, y: 4 } })
+      async () => {
+        await userEvent.click(document.body, { position: { x: 4, y: 4 } })
+        // A click on the page leaves focus there in Firefox, so the author
+        // comes back to the text, as Tab would bring them.
+        screen.getByRole('textbox', { name: LABEL }).focus()
+      }
     ]
   ])(
     'keeps the caret where it was after %s, and the next key types there',
