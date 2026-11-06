@@ -13,19 +13,33 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   `pnpm install --frozen-lockfile`. Never edit, check out, or build in the main
   checkout; it stays on `main`.
 - **Clean up when the work is done.** Finished worktrees fill the disk fast.
-  As soon as a PR merges or its task is abandoned:
-  1. Stop any dev server or preview started from the worktree.
-  2. Check `git status` shows no uncommitted tracked changes, and that the
-     work is merged or pushed.
-  3. Run `git worktree remove -f -f <path>` (a finished agent leaves a lock),
-     delete the local branch, then `git worktree prune`. A branch with
-     unmerged commits stays; remove only the folder.
+  As soon as a PR merges, stop any dev server or preview started from its
+  worktree, then run `pnpm cleanup --delete --branch <branch>` from the main
+  checkout. It removes the worktree and the local branch only when the merged
+  PR holds every commit and nothing uncommitted would be lost, and says why it
+  kept anything. A session can't remove its own worktree, since it runs there
+  and holds its lock. Claude Code never releases that lock, so `pnpm cleanup`
+  treats one as stale once the process it names has exited, and the next
+  `pnpm cleanup --delete` that covers the branch removes the worktree. A lock
+  that names no process, or one whose process still runs, keeps it; if no
+  session is using it, `git worktree unlock <path>` and run cleanup again.
+
+  For a task you abandon, check `git status` is clean and the branch is
+  pushed, unlock the worktree if no session is using it, then
+  `git worktree remove <path>`; the branch stays.
+
+  Delete every helper branch you make (a rebase, review or screenshots
+  branch) once it has done its job: `git branch -D <branch>`. A pushed
+  screenshots branch stays on GitHub, where the PR's images point.
 
   Every subagent brief says to remove its own scratch files and never leave
   a background server running. Delete only files you created, by exact path.
   Never delete or empty the scratchpad directory, since subagents share it
-  with the parent session. Check `df -h` now and then, and tell the
-  maintainer when free space drops under about 20 GB.
+  with the parent session. `pnpm cleanup` with no flags lists everything that
+  can go, each worktree it kept and why, and, oldest first, each branch it
+  kept that no worktree holds; run it when
+  `pnpm test:gated` or `pnpm preview` warns about low disk, and tell the
+  maintainer when free space stays under about 20 GB.
 
 - **Agree the intent before any code** for new components and system-level
   APIs. Don't commit plan or spec files: they bloat the diff and go stale.
@@ -190,7 +204,11 @@ Every PR is checked against these before review. Fix every real hit.
   pre-push hook waits up to 15 seconds for the load, then checks only what
   the diff touches: the repo guards, formatting, an incremental typecheck of
   the changed packages, and their tests beside the change plus their guard
-  tests. It builds what the typecheck reads with no time budget, since a
+  tests. It runs the browser tests beside the change, or components' CSS
+  suite for a change to core's CSS, in Chromium, Firefox, and WebKit, one
+  engine at a time, and names each engine it ran. An engine Playwright
+  hasn't installed is left out, with the command to install it. It builds
+  what the typecheck and browser tests read with no time budget, since a
   build stopped midway empties `dist`, and gives every other step one. It
   prints what it left to CI with the command to run each, so never push with
   `--no-verify`. Give browser tests explicit timeouts and never wait on an
