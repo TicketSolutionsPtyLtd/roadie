@@ -639,6 +639,8 @@ describe('Editor blocks drawer finding and moving', () => {
     renderEmail()
     await clickInto('Doors 7pm')
     const drawer = await openFromDockedBar()
+    // Tiles are found by where they sit, so not while the drawer slides in.
+    await Promise.all(drawer.getAnimations().map((slide) => slide.finished))
     const tile = (name: string) => within(drawer).getByRole('button', { name })
     const [first, second] = tileNames(drawer)
     await waitFor(() => expect(tile(first!)).toHaveFocus())
