@@ -72,6 +72,29 @@ const useWide = () =>
     () => false
   )
 
+/**
+ * Pads `root`'s end by as much of it as `popup`, pinned to the page's end,
+ * covers, until the returned cleanup. The section settings drawer does the
+ * same, and the two could share this.
+ */
+function makeRoomBeside(root: HTMLElement, popup: HTMLElement) {
+  const previous = root.style.paddingInlineEnd
+  // offsetWidth ignores the slide in, which a rect would catch midway.
+  const fit = () => {
+    root.style.paddingInlineEnd = previous
+    const covered =
+      root.getBoundingClientRect().right -
+      (document.documentElement.clientWidth - popup.offsetWidth)
+    if (covered > 0) root.style.paddingInlineEnd = `${covered}px`
+  }
+  fit()
+  window.addEventListener('resize', fit)
+  return () => {
+    window.removeEventListener('resize', fit)
+    root.style.paddingInlineEnd = previous
+  }
+}
+
 const centre = (rect: DOMRect) => rect.left + rect.width / 2
 
 /**
@@ -129,6 +152,8 @@ export function EditorBlocksDrawer({
   const pickedRef = useRef(false)
   const gridRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLInputElement>(null)
+  // State, not a ref: the popup mounts after `open` turns true.
+  const [popup, setPopup] = useState<HTMLDivElement | null>(null)
 
   const shown = rankedInsertItems(namedInsertItems(items, query, ui), query)
   const usable = (item: EditorInsertItem) =>
@@ -140,6 +165,12 @@ export function EditorBlocksDrawer({
   const current = Math.min(active, Math.max(enabled.length - 1, 0))
 
   // Closed by a pick, Escape or the toolbar alike, it opens unfiltered.
+  useEffect(() => {
+    if (!open || !beside || !popup) return
+    const root = editor.view.dom.closest<HTMLElement>('[data-slot="editor"]')
+    return root ? makeRoomBeside(root, popup) : undefined
+  }, [editor, open, beside, popup])
+
   useEffect(() => {
     if (open) return
     setQuery('')
@@ -200,6 +231,7 @@ export function EditorBlocksDrawer({
         {/* Wide, the viewport lets the page under it take the pointer. */}
         <Drawer.Viewport className={beside ? 'pointer-events-none' : undefined}>
           <Drawer.Popup
+            ref={setPopup}
             data-editor-popup=''
             size={phone ? 'fit' : 'sm'}
             className={beside ? 'pointer-events-auto' : undefined}
