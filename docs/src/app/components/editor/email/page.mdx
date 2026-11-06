@@ -197,6 +197,110 @@ it does in `renderEmail`.
 />
 ```
 
+### Previewing and sending a test
+
+With `onRenderPreview`, Preview, at the end of the docked toolbar's editing
+controls and in the floating toolbar's … menu, shows the email as it sends
+in place of the canvas. The host renders it: call `renderEmail` with the
+values it's given, on your server, since MJML needs Node, and resolve to its
+`html`. This page has no server, so it renders in the browser.
+
+- **Desktop** and **Phone** lay it out 600 and 375 pixels wide, as
+  [`EmailHtmlField`](#html-emails) does, scaled down to fit a narrower
+  screen.
+- **Dark** simulates the forced dark mode some mail apps apply, inverting
+  the email's colours but not its images, and says it's simulated, as other
+  apps keep an email light. The frame stays light, so an email's own dark
+  styles don't apply under the inversion.
+- **Preview as**, with `previewRecipients`, fills the merge tags with a
+  recipient's values and shows only the sections their conditions allow. It
+  starts on the first. Without recipients, merge tags show their fallbacks.
+  On a phone, the bar keeps to one row: its labels give way to icons, and
+  Preview as becomes an icon that opens a menu of the recipients.
+- **Send test**, with `onSendTest`, asks for an address and calls it with
+  the value, the address, and the recipient's values. Until the address is
+  whole, it says what Send needs. A rejection's message shows under the
+  address.
+- **The inbox row**, above the frame, shows the email as an inbox lists it,
+  with `sender` and `subject` when you pass them.
+
+This example's footer links to the unsubscribe page, a link variable, so
+Footer is in the Blocks drawer's Sections, and each recipient's
+`unsubscribe_url` is the link Preview shows. Preview shows the email as it
+was when Preview opened. Back to editing, or
+Escape, puts the canvas back and focuses it. The frame is sandboxed, so it
+runs none of the email's scripts.
+
+```tsx-live-noinline
+const variables = [
+  { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+  { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } },
+  { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { liquid: '{{ unsubscribe_url }}' } }
+]
+
+const unsubscribe = 'https://www.oztix.com.au/unsubscribe'
+
+function PreviewedEmail() {
+  return (
+    <Editor
+      aria-label='Newsletter'
+      preset='email'
+      toolbar='docked'
+      variables={variables}
+      previewRecipients={[
+        { label: 'Alex, 12 tickets left', values: { first_name: 'Alex', tickets_left: '12', unsubscribe_url: unsubscribe } },
+        { label: 'No name, 300 tickets left', values: { tickets_left: '300', unsubscribe_url: unsubscribe } }
+      ]}
+      onRenderPreview={async (value, { values }) =>
+        (await renderEmail({ kind: 'design', value }, { variables, values })).html
+      }
+      // A real app sends from its server; this one only waits.
+      onSendTest={() => new Promise((resolve) => setTimeout(resolve, 600))}
+      sender='Ochre Kite Weekender'
+      subject='Two weeks until the gates open'
+      defaultValue={{
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+            {
+              type: 'paragraph',
+              content: [
+                { type: 'text', text: 'Hi ' },
+                { type: 'variable', attrs: { key: 'first_name', fallback: 'there' } },
+                { type: 'text', text: ', the gates open at Jumbuck Orchard Park on Saturday 14 March.' }
+              ]
+            },
+            {
+              type: 'section',
+              attrs: { showWhen: { key: 'tickets_left', op: 'lessThan', value: 50 } },
+              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Fewer than 50 tickets are left, so grab yours soon.' }] }]
+            },
+            { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' }, content: [{ type: 'text', text: 'Get tickets' }] },
+            {
+              type: 'section',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [
+                    { type: 'text', text: 'You’re getting this email because you bought tickets on Oztix. ' },
+                    { type: 'text', text: 'Unsubscribe', marks: [{ type: 'link', attrs: { variable: 'unsubscribe_url' } }] }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }}
+    />
+  )
+}
+
+render(<PreviewedEmail />)
+```
+
 ### Adding blocks
 
 There are two ways to add a block. Both list the blocks under the same
@@ -475,6 +579,10 @@ const nextConfig = { serverExternalPackages: ['mjml'] }
   stay side by side in Outlook on Windows.
 - `text` writes each link as its text then its href in brackets, unless the
   two match, and leaves out images, spacers, and dividers.
+- An empty line, a paragraph with no text, is left out, as it's room to type
+  in the editor, not space to send, and so is a section holding only empty
+  lines, a list item with no words, which would send as a blank bullet, and
+  a list left with no items. A spacer sends space.
 
 It reads the value into the email preset first, as `migrate` does, so a value
 from another preset renders too, keeping its text. A link or button needs an

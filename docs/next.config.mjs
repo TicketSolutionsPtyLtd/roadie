@@ -22,6 +22,12 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
+  // The email examples render their preview in the browser, as the docs have
+  // no server. An app renders on its server, with MJML kept out of the bundle.
+  serverExternalPackages: ['mjml'],
+  turbopack: {
+    resolveAlias: { mjml: { browser: 'mjml-browser' } }
+  },
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   transpilePackages: [
     '@oztix/roadie-charts',
