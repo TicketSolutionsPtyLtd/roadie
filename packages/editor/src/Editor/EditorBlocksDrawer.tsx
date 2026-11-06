@@ -313,7 +313,13 @@ export function EditorBlocksDrawer({
                       >
                         {group}
                       </h3>
-                      <div className='grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2'>
+                      <div
+                        className={
+                          groupTiles.some(({ thumbnail }) => thumbnail)
+                            ? 'grid grid-cols-2 gap-2'
+                            : 'grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2'
+                        }
+                      >
                         {groupTiles.map((item) => {
                           const Icon = item.icon
                           const disabled = !usable(item)
@@ -332,9 +338,20 @@ export function EditorBlocksDrawer({
                               onClick={() => pick(item)}
                               className='is-interactive grid justify-items-center gap-2 rounded-xl emphasis-subtler p-3 text-center text-sm text-normal'
                             >
-                              <IconTile size='md' aria-hidden>
-                                <Icon weight='bold' />
-                              </IconTile>
+                              {item.thumbnail ? (
+                                <img
+                                  src={item.thumbnail}
+                                  alt=''
+                                  width={240}
+                                  height={160}
+                                  // Its room is kept, and tinted, while it loads.
+                                  className='aspect-3/2 h-auto w-full rounded-lg bg-subtle'
+                                />
+                              ) : (
+                                <IconTile size='md' aria-hidden>
+                                  <Icon weight='bold' />
+                                </IconTile>
+                              )}
                               {item.label}
                             </button>
                           )

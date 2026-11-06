@@ -444,6 +444,24 @@
   }
 }
 
+/* A section under the pointer takes a ring a step quieter than a selected
+   one, and shows its name. */
+[data-slot='editor-section-name'] {
+  visibility: hidden;
+}
+
+[data-slot='editor-content']
+  [data-slot='editor-section']:hover:not([data-selected]) {
+  outline: 1px solid var(--intent-border-subtle);
+  outline-offset: 2px;
+}
+
+[data-slot='editor-content']
+  [data-slot='editor-section']:hover
+  > [data-slot='editor-section-name'] {
+  visibility: visible;
+}
+
 /* Preview takes the canvas's place, and the formatting it can't apply goes
    with it. */
 [data-slot='editor'][data-previewing] > [data-slot='editor-toolbar'] {
