@@ -20,7 +20,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
-import { MOD } from './testUtils'
+import { LINE_END, MOD } from './testUtils'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
@@ -110,7 +110,7 @@ describe('Editor button settings', () => {
     const pressed = within(dialog)
       .getAllByRole('button', { pressed: true })
       .map((item) => item.textContent)
-    expect(pressed).toEqual(['Subtle', 'Fit label', 'Centre'])
+    expect(pressed).toEqual(['Subtle', 'Fit', 'Centre'])
     expect(within(dialog).queryByRole('button', { name: 'Save' })).toBe(null)
     expect(
       getComputedStyle(within(dialog).getByText('Button settings')).textAlign
@@ -354,7 +354,7 @@ describe('Editor button settings', () => {
     const dialog = await openSettings()
 
     await choose(dialog, 'Strong')
-    await choose(dialog, 'Fit label')
+    await choose(dialog, 'Fit')
 
     await waitFor(() => expect(savedButton(onValueChange)).toEqual(button()))
   })
@@ -467,5 +467,54 @@ describe('Editor button settings', () => {
 
     await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
     await waitFor(() => expect(savedButton(onValueChange)).toEqual(restyled))
+  })
+
+  it('opens led by its title, a hint, and Done, as image settings do', async () => {
+    const onValueChange = renderEmail(email(button()))
+    const dialog = await openSettings()
+
+    expect(dialog).toHaveAccessibleDescription(
+      'Changes apply as you go. Undo puts them back.'
+    )
+    await choose(dialog, 'Normal')
+    await choose(dialog, 'Done')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedButton(onValueChange)).toEqual(button({ emphasis: 'normal' }))
+  })
+
+  it('types on in the label after Done', async () => {
+    const onValueChange = renderEmail(email(button()))
+    const dialog = await openSettings()
+    await choose(dialog, 'Done')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+
+    await userEvent.keyboard(`${LINE_END}!`)
+
+    await waitFor(() =>
+      expect(savedButton(onValueChange)).toEqual({
+        ...button(),
+        content: [{ type: 'text', text: 'Get tickets!' }]
+      })
+    )
+  })
+
+  it('leads the button’s block menu with Settings, which hands back to the text', async () => {
+    renderEmail(email(button(), { type: 'paragraph' }))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.hover(await screen.findByText('Get tickets'))
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Block actions' })
+    )
+    const menu = await screen.findByRole('menu')
+    const first = within(menu).getAllByRole('menuitem')[0]!
+    expect(first).toHaveTextContent('Settings')
+    await userEvent.click(first)
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Button settings'
+    })
+    await choose(dialog, 'Done')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(textbox).toHaveFocus()
   })
 })

@@ -2,13 +2,7 @@
 
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 
-import {
-  NodeSelection,
-  Selection,
-  type SelectionBookmark,
-  TextSelection,
-  type Transaction
-} from '@tiptap/pm/state'
+import { NodeSelection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Button } from '@oztix/roadie-components/button'
@@ -158,24 +152,6 @@ function makeRoomBelow(editor: TiptapEditor, sheet: HTMLElement | null) {
   if (root && sheet) root.style.paddingBottom = `${sheet.offsetHeight}px`
 }
 
-/**
- * Puts the caret after the block, so the next key types rather than
- * replacing the block a tap can't deselect on a phone.
- */
-function leaveBlock(editor: TiptapEditor) {
-  const { state, view } = editor
-  const { selection } = state
-  if (!(selection instanceof NodeSelection)) return
-  // After it, never in it: text typed in a section would take its rule.
-  const from = state.doc.resolve(selection.to)
-  // Text only: a block selected next, such as a second section or an image
-  // first in this one, would be replaced by the next key all the same.
-  const caret =
-    Selection.findFrom(from, 1, true) ?? Selection.findFrom(from, -1, true)
-  if (!caret) return
-  view.dispatch(state.tr.setSelection(caret).setMeta('addToHistory', false))
-}
-
 const selectedNode = ({ editor }: { editor: TiptapEditor | null }) => {
   const selection = editor?.state.selection
   return selection instanceof NodeSelection ? selection : null
@@ -215,36 +191,8 @@ export function EditorBlockSettings({
   uploadImage
 }: EditorBlockSettingsProps) {
   const phone = useOnPhone()
-  // Where the caret was before a block was selected, kept in step with edits.
-  const caretRef = useRef<SelectionBookmark | null>(null)
-  useEffect(() => {
-    if (!editor) return
-    const follow = ({ transaction }: { transaction: Transaction }) => {
-      const { selection } = editor.state
-      caretRef.current =
-        selection instanceof TextSelection
-          ? selection.getBookmark()
-          : (caretRef.current?.map(transaction.mapping) ?? null)
-    }
-    editor.on('transaction', follow)
-    return () => {
-      editor.off('transaction', follow)
-    }
-  }, [editor])
-  const returnFrom = (current: TiptapEditor) => {
-    if (keepSelected && !phone) return
-    const { state, view } = current
-    if (!(state.selection instanceof NodeSelection)) return
-    const caret = caretRef.current?.resolve(state.doc)
-    if (caret instanceof TextSelection) {
-      view.dispatch(state.tr.setSelection(caret).setMeta('addToHistory', false))
-    } else {
-      leaveBlock(current)
-    }
-  }
-  const live = useLiveEdit(editor, open, (next) => {
-    if (!next && editor) returnFrom(editor)
-    onOpenChange(next)
+  const live = useLiveEdit(editor, open, onOpenChange, {
+    keepSelected: keepSelected && !phone
   })
   const bodyRef = useRef<HTMLDivElement>(null)
   const selection = useEditorState({ editor, selector: selectedNode })

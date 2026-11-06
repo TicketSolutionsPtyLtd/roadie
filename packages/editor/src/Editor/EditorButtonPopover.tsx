@@ -1,17 +1,10 @@
 'use client'
 
-import {
-  type RefObject,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore
-} from 'react'
+import { type RefObject, useEffect, useRef, useState } from 'react'
 
 import { posToDOMRect } from '@tiptap/core'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
-import { Drawer } from '@oztix/roadie-components/drawer'
 import { Field } from '@oztix/roadie-components/field'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Select } from '@oztix/roadie-components/select'
@@ -27,9 +20,10 @@ import { type Choice, EditorChoice } from './EditorChoice'
 import { toHref, useLinkVariables } from './EditorLinkPopover'
 import { selectedNode, selectedNodeType } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
+import { EditorSettingsPopup } from './EditorSettingsPopup'
 import { buttonBlock, insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
-import { EDITOR_POPUP } from './toolbarMode'
+import { EDITOR_POPUP, useOnPhone } from './toolbarMode'
 import { type LiveEdit, useLiveEdit } from './useLiveEdit'
 
 type ButtonFormProps = {
@@ -97,7 +91,7 @@ const EMPHASES = [
 ] as const
 
 const WIDTHS = [
-  { value: 'fit', label: 'Fit label' },
+  { value: 'fit', label: 'Fit' },
   { value: 'full', label: 'Full width' }
 ] as const
 
@@ -336,23 +330,9 @@ type EditorButtonPopoverProps = {
   editor: TiptapEditor | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Leaves the button selected as it closes, as when opened from the keyboard. */
+  keepSelected?: boolean
 }
-
-// A phone's width, where a popover would crowd the button it edits.
-const NARROW_QUERY = '(width < 30rem)'
-
-function subscribeToNarrow(onChange: () => void) {
-  const query = window.matchMedia(NARROW_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-const useNarrow = () =>
-  useSyncExternalStore(
-    subscribeToNarrow,
-    () => window.matchMedia(NARROW_QUERY).matches,
-    () => false
-  )
 
 /** The selected button's own box, so the settings open clear of it. */
 function buttonBox(editor: TiptapEditor) {
@@ -370,20 +350,23 @@ function hasLink(editor: TiptapEditor) {
 
 /**
  * Adds a button from its link, or edits the selected button's link, style,
- * width and alignment, opening on its emphasis once it has a link. Below a
- * narrow width the settings open as a drawer from the bottom. Escape keeps
- * the changes, as a click away does, for Undo to take back in one step.
+ * width and alignment, opening on its emphasis once it has a link. On a
+ * phone the settings open as a sheet from the bottom. Escape keeps the
+ * changes, as a click away does, for Undo to take back in one step.
  */
 export function EditorButtonPopover({
   editor,
   open,
-  onOpenChange
+  onOpenChange,
+  keepSelected = false
 }: EditorButtonPopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const emphasisRef = useRef<HTMLButtonElement>(null)
-  const live = useLiveEdit(editor, open, onOpenChange)
-  const narrow = useNarrow()
-  const sheet = open && narrow
+  const phone = useOnPhone()
+  const live = useLiveEdit(editor, open, onOpenChange, {
+    keepSelected: keepSelected && !phone
+  })
+  const sheet = open && phone
   useEffect(() => {
     if (!sheet || !editor) return
     const frame = requestAnimationFrame(() => {
@@ -427,27 +410,18 @@ export function EditorButtonPopover({
       onDone={live.done}
     />
   )
-  if (editing && narrow) {
+  if (editing) {
     return (
-      // No blur, so the button shows its changes above the half-height sheet.
-      <Drawer
+      <EditorSettingsPopup
+        title='Button settings'
         open={open}
-        onOpenChange={live.onOpenChange}
-        side='bottom'
-        emphasis='subtler'
+        live={live}
+        anchor={anchor}
+        initialFocus={initialFocus}
+        finalFocus={finalFocus}
       >
-        <Drawer.Content
-          {...{ [EDITOR_POPUP]: '' }}
-          size='sm'
-          initialFocus={initialFocus}
-          finalFocus={finalFocus}
-        >
-          <Drawer.Header>
-            <Drawer.Title>Button settings</Drawer.Title>
-          </Drawer.Header>
-          <Drawer.Body className='pb-6'>{form}</Drawer.Body>
-        </Drawer.Content>
-      </Drawer>
+        {form}
+      </EditorSettingsPopup>
     )
   }
   return (
@@ -457,23 +431,12 @@ export function EditorButtonPopover({
         side='bottom'
         align='start'
         sideOffset={8}
-        className={
-          editing ? 'w-80 max-w-(--available-width)' : EDITOR_POPOVER_CLASS
-        }
+        className={EDITOR_POPOVER_CLASS}
         positionerProps={{ anchor }}
         initialFocus={initialFocus}
         finalFocus={finalFocus}
       >
-        {editing ? (
-          <>
-            <Popover.Header className='text-start'>
-              <Popover.Title>Button settings</Popover.Title>
-            </Popover.Header>
-            {form}
-          </>
-        ) : (
-          form
-        )}
+        {form}
       </Popover.Content>
     </Popover>
   )

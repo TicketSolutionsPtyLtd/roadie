@@ -48,10 +48,6 @@ const withDoc = (...content: unknown[]): EditorValue =>
   }) as EditorValue
 
 const soldOut = withDoc(SOLD_OUT)
-const youtube = withDoc(
-  { type: 'embed', attrs: { provider: 'youtube', id: 'exampleVid1' } },
-  SOLD_OUT
-)
 const linked = withDoc({
   type: 'paragraph',
   content: [
@@ -102,8 +98,6 @@ type Popover = {
   shown: (textbox: HTMLElement) => HTMLElement | null
   /** Whether it edits what's there as you type, rather than adding on save. */
   live: boolean
-  /** Whether it's led by a settings header, with Done, above the row. */
-  settings?: boolean
 }
 
 const POPOVERS: Popover[] = [
@@ -143,29 +137,6 @@ const POPOVERS: Popover[] = [
     live: false
   },
   {
-    name: 'Edit link',
-    placeholder: 'Paste a video or audio link',
-    value: youtube,
-    async open(textbox) {
-      const player = await within(textbox).findByTitle(/embed/)
-      await userEvent.click(player, { force: true })
-      await userEvent.click(
-        await screen.findByRole('button', { name: 'Edit link' })
-      )
-      const field = await openField('Video or audio link')
-      await userEvent.clear(field)
-      return field
-    },
-    typed: SPOTIFY,
-    submitLabel: 'Save link',
-    saved: (textbox) =>
-      within(textbox).findByTitle('Spotify embed exampleTrack0000000001'),
-    shown: (textbox) =>
-      within(textbox).queryByTitle('Spotify embed exampleTrack0000000001'),
-    live: true,
-    settings: true
-  },
-  {
     name: 'Image',
     placeholder: 'Paste an image address',
     value: soldOut,
@@ -188,7 +159,6 @@ const POPOVERS: Popover[] = [
   }
 ]
 
-// The form's row, below a settings header where there is one.
 const rowOf = (field: HTMLElement) => field.closest<HTMLElement>('form')!
 
 function enterWhileComposing(
@@ -297,7 +267,6 @@ describe.each(POPOVERS)('Editor $name popover row', (popover) => {
     expect(close.getBoundingClientRect().left).toBeGreaterThan(
       check.getBoundingClientRect().right - 1
     )
-    if (popover.settings) return
     const style = getComputedStyle(popup)
     const chrome =
       px(style.paddingTop) +
@@ -597,24 +566,6 @@ describe('Editor link popover', () => {
   })
 })
 
-describe('Editor Edit link popover', () => {
-  it('puts the player back once what’s typed stops embedding', async () => {
-    const textbox = await renderEditor(youtube)
-    const field = await POPOVERS[2]!.open(textbox)
-    await userEvent.type(field, SPOTIFY)
-    await POPOVERS[2]!.saved(textbox)
-    await userEvent.keyboard('{Backspace}')
-
-    await userEvent.click(screen.getByText('Outside'))
-
-    await waitFor(() => expect(field).not.toBeInTheDocument())
-    expect(within(textbox).getByTitle(/embed/)).toHaveAttribute(
-      'title',
-      'YouTube embed exampleVid1'
-    )
-  })
-})
-
 describe.each([
   ['Link', 0, 'not a web address', /web address/],
   ['Embed', 1, 'https://www.instagram.com/p/C1a2b3c4d5e/', /can’t be embedded/]
@@ -636,22 +587,7 @@ describe.each([
   })
 })
 
-const YOUTUBE = 'https://www.youtube.com/watch?v=exampleVid1'
-
 const PREFILLED = [
-  {
-    name: 'Edit link on an embed',
-    value: youtube,
-    saved: YOUTUBE,
-    async open(textbox: HTMLElement) {
-      const player = await within(textbox).findByTitle(/embed/)
-      await userEvent.click(player, { force: true })
-      await userEvent.click(
-        await screen.findByRole('button', { name: 'Edit link' })
-      )
-      return openField('Video or audio link')
-    }
-  },
   {
     name: `${MOD}+K on a link`,
     value: linked,

@@ -355,9 +355,9 @@ const replaceImage: EditorControl = {
   available: ({ replaceImage: replace }) => Boolean(replace)
 }
 
-const editEmbedLink: EditorControl = {
-  label: 'Edit link',
-  icon: PencilSimpleIcon,
+const embedSettings: EditorControl = {
+  label: 'Embed settings',
+  icon: SlidersHorizontalIcon,
   run: (_editor, { editEmbed }) => editEmbed()
 }
 
@@ -492,7 +492,7 @@ export type EditorNodeItem = EditorControl | EditorBlockMenu
 /** The actions in the toolbar of the node the selection is on or in. */
 export const nodeControls: Record<EditorNodeType, readonly EditorNodeItem[]> = {
   image: [imageSettings, replaceImage, remove('Remove image')],
-  embed: [editEmbedLink, remove('Remove embed')],
+  embed: [embedSettings, remove('Remove embed')],
   spacer: [spacerHeight, remove('Remove spacer')],
   button: [editButton, removeButton],
   columns: [columnCount, columnLayout, columnStack],

@@ -102,7 +102,8 @@ const FIELDS: Readonly<Record<string, Field>> = {
     type: 'choice',
     defaultValue: 'start',
     options: [
-      { value: 'start', label: 'Start' },
+      // The plain word, as an image's and a button's alignment say it.
+      { value: 'start', label: 'Left' },
       { value: 'center', label: 'Centre' }
     ]
   },

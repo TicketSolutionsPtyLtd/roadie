@@ -8,7 +8,7 @@ type SettingsClickOptions = {
   onEdit: (name: string) => void
 }
 
-type Press = { x: number; y: number; selected: boolean; mouse: boolean }
+type Press = { x: number; y: number; selected: boolean }
 
 function atomAt(view: EditorView, target: Node, types: readonly string[]) {
   let at: number | null = null
@@ -23,9 +23,9 @@ function atomAt(view: EditorView, target: Node, types: readonly string[]) {
 }
 
 /**
- * A click on an image or an embed opens its settings, as a click on a
- * block's does. A touch opens them only on one already selected, so a
- * scroll's tap just selects it.
+ * A click or a tap on an image or an embed already selected opens its
+ * settings. The first only selects it, as a click on a button puts the
+ * caret in its label, and its toolbar leads with Settings.
  */
 export const SettingsClick = Extension.create<SettingsClickOptions>({
   name: 'settingsClick',
@@ -56,8 +56,7 @@ export const SettingsClick = Extension.create<SettingsClickOptions>({
                     y: event.clientY,
                     selected:
                       selection instanceof NodeSelection &&
-                      selection.from === at,
-                    mouse: event.pointerType === 'mouse'
+                      selection.from === at
                   }
           }
           const release = (event: MouseEvent) => {
@@ -67,9 +66,9 @@ export const SettingsClick = Extension.create<SettingsClickOptions>({
             if (!begun || !target || !view.editable) return
             const moved =
               Math.hypot(event.clientX - begun.x, event.clientY - begun.y) > 4
-            // A double click's second would reopen what its first closed.
+            // A double click selects, as its first press does, and no more.
             const again = event.detail > 1
-            if (moved || again || !(begun.mouse || begun.selected)) return
+            if (moved || again || !begun.selected) return
             const at = atomAt(view, target, types)
             if (at === null) return
             view.dispatch(

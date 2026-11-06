@@ -330,12 +330,17 @@ describe('Editor blocks preset ids on drag', () => {
         onValueChange={onValueChange}
       />
     )
-    // On the text, as a click on the image would open its settings.
     const doors = await screen.findByText('Doors 7pm')
+    const crowd = await screen.findByRole('img', { name: 'Crowd' })
+    // A loaded WebKit lays the failed image out late, with no size to drop
+    // on till then.
+    await expect
+      .poll(() => crowd.getBoundingClientRect().height, { timeout: 5000 })
+      .toBeGreaterThan(0)
     await userEvent.click(doors)
     await userEvent.keyboard(`${LINE_START}{Shift>}{ArrowRight>6/}{/Shift}`)
 
-    dragBlock(doors, await screen.findByRole('img', { name: 'Crowd' }), {})
+    dragBlock(doors, crowd, {})
 
     // WebKit drops it before the image, the others after it.
     const draggedOf = (doc: JSONContent) =>
