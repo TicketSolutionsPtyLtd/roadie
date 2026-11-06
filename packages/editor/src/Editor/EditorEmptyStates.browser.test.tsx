@@ -84,7 +84,7 @@ describe('Editor empty line hint', () => {
   })
 
   it.each([
-    ['blocks', 'Tap Blocks to add one'],
+    ['blocks', 'Tap Blocks to add a block'],
     ['email', 'Tap Blocks to add a block or section']
   ] as const)(
     'points a touch screen in the %s preset at Blocks, as / is a keyboard away',
@@ -293,6 +293,46 @@ describe('Editor empty email', () => {
     await waitFor(() => expect(shownBefore(headline!)).toBe('none'))
     expect(shownBefore(intro!)).toBe(
       '"A line or two on what this email is about."'
+    )
+  })
+
+  it('moves Enter into the next hinted line, as a form moves to its next field', async () => {
+    const onValueChange = renderEmail()
+    await clickIntoEditor(await textbox())
+
+    await userEvent.keyboard('/lineup{Enter}')
+    await userEvent.keyboard(
+      'Saturday{Enter}Velvet Kookaburra{Enter}Marri Lane'
+    )
+
+    const item = (text: string) => ({
+      type: 'listItem',
+      content: [{ type: 'paragraph', content: [{ type: 'text', text }] }]
+    })
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'section',
+              content: [
+                {
+                  type: 'heading',
+                  attrs: { level: 3 },
+                  content: [{ type: 'text', text: 'Saturday' }]
+                },
+                {
+                  type: 'bulletList',
+                  content: [item('Velvet Kookaburra'), item('Marri Lane')]
+                }
+              ]
+            }
+          ]
+        }
+      })
     )
   })
 
