@@ -27,6 +27,7 @@ import {
   presetControls
 } from './controls'
 import { focusEditor } from './focusEditor'
+import { useShowsShortcuts } from './menuGroups'
 import { useStickyTop } from './toolbarMode'
 import { EDITOR_DOCKED_BAR, EDITOR_TOOLBAR_SIZE } from './variants'
 
@@ -91,6 +92,7 @@ export function BlockMenuRadioGroup({
   label
 }: BlockMenuRadioGroupProps) {
   const current = state?.current ?? menu.types[0]?.label
+  const showsShortcuts = useShowsShortcuts()
   return (
     <Menu.RadioGroup
       value={current}
@@ -104,7 +106,7 @@ export function BlockMenuRadioGroup({
         <Menu.RadioItem
           key={type.label}
           value={type.label}
-          shortcut={type.shortcut}
+          shortcut={showsShortcuts ? type.shortcut : undefined}
           disabled={state ? !state.enabled : false}
           closeOnClick
         >
@@ -268,7 +270,8 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource
+    importSource,
+    openPreview
   } = context
   return {
     editLink,
@@ -278,7 +281,8 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource
+    importSource,
+    preview: openPreview
   }
 }
 

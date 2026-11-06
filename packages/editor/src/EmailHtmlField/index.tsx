@@ -7,9 +7,13 @@ import {
   useFieldContext,
   useFieldControlError
 } from '@oztix/roadie-components/field'
-import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { cn } from '@oztix/roadie-core/utils'
 
+import {
+  EmailPreviewFrame,
+  type PreviewWidth,
+  PreviewWidthToggle
+} from './EmailPreviewFrame'
 import { htmlWarning } from './htmlWarning'
 
 export type EmailHtmlFieldProps = {
@@ -27,14 +31,6 @@ export type EmailHtmlFieldProps = {
   disabled?: boolean
   'aria-label'?: string
   className?: string
-}
-
-type PreviewWidth = 'desktop' | 'phone'
-
-// Pixels, not rem: mail clients lay an email out in CSS pixels.
-const PREVIEW_WIDTH: Record<PreviewWidth, string> = {
-  desktop: 'w-[600px]',
-  phone: 'w-[375px]'
 }
 
 const noSubscription = () => () => {}
@@ -85,28 +81,12 @@ export function EmailHtmlField({
           {warning}
         </p>
       ) : null}
-      <ToggleGroup
-        aria-label='Preview width'
-        size='sm'
+      <PreviewWidthToggle
         className='justify-self-start'
-        value={[width]}
-        onValueChange={([next]) => next && setWidth(next as PreviewWidth)}
-      >
-        <ToggleGroup.Item value='desktop'>Desktop</ToggleGroup.Item>
-        <ToggleGroup.Item value='phone'>Phone</ToggleGroup.Item>
-      </ToggleGroup>
-      <div className='grid overflow-x-auto rounded-xl emphasis-sunken p-3'>
-        <iframe
-          title='Email preview'
-          // No tokens: no scripts, forms, popups, navigation or same origin.
-          sandbox=''
-          srcDoc={html}
-          className={cn(
-            'h-160 justify-self-center-safe rounded-sm bg-(--color-neutral-light-0)',
-            PREVIEW_WIDTH[width]
-          )}
-        />
-      </div>
+        value={width}
+        onValueChange={setWidth}
+      />
+      <EmailPreviewFrame html={html} width={width} />
     </div>
   )
 }

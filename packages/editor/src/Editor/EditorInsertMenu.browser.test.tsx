@@ -52,12 +52,14 @@ function renderEmail(props: Partial<React.ComponentProps<typeof Editor>> = {}) {
   return onValueChange
 }
 
+const OPTION_LABEL = '[data-slot="editor-insert-label"]'
+
 const insertMenu = () => screen.findByRole('listbox', { name: 'Insert' })
 
 const optionNames = (listbox: HTMLElement) =>
   within(listbox)
     .getAllByRole('option')
-    .map((option) => option.textContent)
+    .map((option) => option.querySelector(OPTION_LABEL)?.textContent)
 
 const groupNames = (listbox: HTMLElement) =>
   within(listbox)
@@ -101,7 +103,11 @@ describe('Editor insert menu', () => {
       '4 columns',
       'Spacer',
       'Divider',
-      'Button'
+      'Button',
+      'Header',
+      'Event',
+      'Two events',
+      'Lineup'
     ])
   })
 
@@ -138,7 +144,8 @@ describe('Editor insert menu', () => {
         'Layout',
         ['Section', '2 columns', '3 columns', '4 columns', 'Spacer', 'Divider']
       ],
-      ['Email', ['Button', 'Merge tag']]
+      ['Email', ['Button', 'Merge tag']],
+      ['Sections', ['Header', 'Event', 'Two events', 'Lineup']]
     ])
     const layout = within(listbox).getByRole('group', { name: 'Layout' })
     await userEvent.keyboard('{ArrowDown}'.repeat(7))
@@ -152,7 +159,7 @@ describe('Editor insert menu', () => {
     await waitFor(() =>
       expect(textbox).toHaveAttribute(
         'aria-activedescendant',
-        within(listbox).getByRole('option', { name: 'Merge tag' }).id
+        within(listbox).getByRole('option', { name: 'Lineup' }).id
       )
     )
   })
@@ -167,11 +174,11 @@ describe('Editor insert menu', () => {
   })
 
   it.each([
-    ['section', 'Section', [{ type: 'section', content: [p()] }, p()]],
+    ['section', 'Section', [{ type: 'section', content: [p()] }]],
     [
       'two columns',
       '2 columns',
-      [{ type: 'columns', content: [column(p()), column(p())] }, p()]
+      [{ type: 'columns', content: [column(p()), column(p())] }]
     ],
     [
       'four columns',
@@ -180,8 +187,7 @@ describe('Editor insert menu', () => {
         {
           type: 'columns',
           content: [column(p()), column(p()), column(p()), column(p())]
-        },
-        p()
+        }
       ]
     ],
     ['a spacer', 'Spacer', [{ type: 'spacer', attrs: { height: 32 } }, p()]],
@@ -221,10 +227,10 @@ describe('Editor insert menu', () => {
 
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(
-        email(
-          { type: 'columns', content: [column(p('Doors 7pm')), column(p())] },
-          p()
-        )
+        email({
+          type: 'columns',
+          content: [column(p('Doors 7pm')), column(p())]
+        })
       )
     )
   })
@@ -257,7 +263,56 @@ describe('Editor insert menu', () => {
     )
   })
 
-  it('keeps the caret in an emptied line after a block goes before it', async () => {
+  it('puts a block with lines in place of the emptied line, leaving no empty line', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/section{Enter}Doors 7pm')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'section', content: [p('Doors 7pm')] })
+      )
+    )
+  })
+
+  it('leaves a section on Enter in its empty last line, as a list does', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({ type: 'section', content: [p('Doors 7pm')] })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End}{Enter}{Enter}All ages')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'section', content: [p('Doors 7pm')] }, p('All ages'))
+      )
+    )
+  })
+
+  it('keeps an empty line between a section’s lines on Enter', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({
+        type: 'section',
+        content: [p('Doors 7pm'), p('All ages')]
+      })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End}{Enter}{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({
+          type: 'section',
+          content: [p('Doors 7pm'), p(), p(), p('All ages')]
+        })
+      )
+    )
+  })
+
+  it('puts a block with no lines in place of the emptied line, with a line after to type on', async () => {
     const onValueChange = renderEmail()
     await focusedTextbox()
 
@@ -291,7 +346,7 @@ describe('Editor insert menu', () => {
     )
   })
 
-  it('filters as you type, and closes when nothing matches', async () => {
+  it('filters as you type, down to a No blocks match row', async () => {
     renderEmail()
     await focusedTextbox()
 
@@ -303,7 +358,80 @@ describe('Editor insert menu', () => {
     ])
 
     await userEvent.keyboard('z')
+    await waitFor(async () =>
+      expect(within(await insertMenu()).getByRole('option')).toHaveTextContent(
+        'No blocks match'
+      )
+    )
+  })
+
+  it('ranks a match at the start of a name first, as /2 finds 2 columns before Heading 2', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/2')
+
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual([
+        '2 columns',
+        'Heading 2'
+      ])
+    )
+  })
+
+  it.each([
+    ['btn', ['Button']],
+    ['cta', ['Button', 'Event']],
+    ['h1', ['Heading 2']],
+    ['img', ['Image']],
+    ['hr', ['Divider']]
+  ])('finds /%s', async (query, names) => {
+    renderEmail({
+      onUploadImage: async () => ({ src: 'https://example.com/crowd.png' })
+    })
+    await focusedTextbox()
+
+    await userEvent.keyboard(`/${query}`)
+
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual(names)
+    )
+  })
+
+  // The email's divider has no markdown rule to show.
+  it('shows the heading shortcut, and none for the divider', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const listbox = await insertMenu()
+    const shortcut = (name: string) =>
+      within(listbox)
+        .getByRole('option', { name })
+        .querySelector('[data-slot="editor-insert-shortcut"]')
+
+    expect(shortcut('Heading 2')).toHaveTextContent('##')
+    expect(shortcut('Divider')).toBe(null)
+  })
+
+  it('closes on Escape with nothing matching, without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor aria-label={LABEL} preset='email' />
+        </Dialog.Content>
+      </Dialog>
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/hero')
+    await insertMenu()
+    await userEvent.keyboard('{Escape}')
+
     await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(onOpenChange).not.toHaveBeenCalled()
   })
 
   it('moves the active option with the arrow keys, wrapping at the ends', async () => {
@@ -500,7 +628,88 @@ describe('Editor insert menu', () => {
     expect(onBlur).not.toHaveBeenCalled()
   })
 
-  it('offers no section or columns inside a column', async () => {
+  it.each([
+    ['header', ['Header']],
+    ['banner', ['Header']],
+    ['event', ['Event', 'Two events']],
+    ['tickets', ['Event']],
+    ['lineup', ['Lineup']],
+    ['footer', ['Footer']],
+    ['unsubscribe', ['Footer']]
+  ])('finds the ready-made section /%s', async (query, names) => {
+    renderEmail({
+      variables: [
+        {
+          key: 'unsubscribe_url',
+          label: 'Unsubscribe page',
+          kind: 'url',
+          tokens: { ae: '#OptOut#' }
+        }
+      ]
+    })
+    await focusedTextbox()
+
+    await userEvent.keyboard(`/${query}`)
+
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual(names)
+    )
+  })
+
+  it('puts a ready-made section after the section with the caret, its first placeholder selected', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({ type: 'section', content: [p('Doors 7pm')] })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End} /header{Enter}Ochre Kite Weekender')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          { type: 'section', content: [p('Doors 7pm ')] },
+          {
+            type: 'section',
+            content: [
+              {
+                type: 'heading',
+                attrs: { level: 2 },
+                content: [{ type: 'text', text: 'Ochre Kite Weekender' }]
+              },
+              p('A line or two on what this email is about.')
+            ]
+          }
+        )
+      )
+    )
+  })
+
+  it('takes the emptied line out of the section it was typed in', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({ type: 'section', content: [p('Doors 7pm'), p()] })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{ArrowDown}/event{Enter}')
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
+          ({ type, content }) => [type, content?.length]
+        )
+      ).toEqual([
+        ['section', 1],
+        ['section', 3]
+      ])
+    )
+  })
+
+  const note = (listbox: HTMLElement, name: string) =>
+    within(listbox)
+      .getByRole('option', { name: new RegExp(`^${name}`) })
+      .querySelector('[data-slot="editor-insert-note"]')?.textContent
+
+  it('offers a section or columns in a column, to go after the row', async () => {
     renderEmail({
       defaultValue: email({
         type: 'columns',
@@ -511,10 +720,83 @@ describe('Editor insert menu', () => {
 
     await userEvent.keyboard('{End} /')
 
-    const names = optionNames(await insertMenu())
-    expect(names).toContain('Spacer')
-    expect(names).not.toContain('Section')
-    expect(names).not.toContain('2 columns')
+    const listbox = await insertMenu()
+    expect(note(listbox, 'Section')).toBe('after these columns')
+    expect(note(listbox, '2 columns')).toBe('after these columns')
+    expect(note(listbox, 'Spacer')).toBeUndefined()
+  })
+
+  it('keeps /section typed on a section’s empty first line after that section', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(p('Intro'), {
+        type: 'section',
+        content: [p(), p('Doors 7pm')]
+      })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{ArrowUp}/section')
+    await insertMenu()
+    await userEvent.keyboard('{Enter}All ages')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          p('Intro'),
+          { type: 'section', content: [p('Doors 7pm')] },
+          { type: 'section', content: [p('All ages')] }
+        )
+      )
+    )
+  })
+
+  it('drops the placement note once the caret leaves the section', async () => {
+    renderEmail({
+      defaultValue: email(
+        { type: 'section', content: [p('Doors 7pm')] },
+        p('Gates 6pm')
+      )
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+    await userEvent.keyboard('{End} /sec')
+    await waitFor(async () =>
+      expect(note(await insertMenu(), 'Section')).toBe('after this section')
+    )
+    await userEvent.keyboard('{Escape}')
+
+    await userEvent.click(await screen.findByText('Gates 6pm'))
+    await userEvent.keyboard('{End} /sec')
+
+    await waitFor(async () =>
+      expect(note(await insertMenu(), 'Section')).toBeUndefined()
+    )
+  })
+
+  it('puts /section typed in a section after it, in place of the emptied line', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(
+        { type: 'section', content: [p('Doors 7pm')] },
+        p('Gates 6pm')
+      )
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End}{Enter}/section')
+    const listbox = await insertMenu()
+    await waitFor(() =>
+      expect(note(listbox, 'Section')).toBe('after this section')
+    )
+    await userEvent.keyboard('{Enter}All ages')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          { type: 'section', content: [p('Doors 7pm')] },
+          { type: 'section', content: [p('All ages')] },
+          p('Gates 6pm')
+        )
+      )
+    )
   })
 
   it('offers only the other list type in a list', async () => {
@@ -528,7 +810,20 @@ describe('Editor insert menu', () => {
 
     await userEvent.keyboard('{End} /')
 
-    expect(optionNames(await insertMenu())).toEqual(['Numbered list'])
+    // A section or columns goes after the list, as it goes after any block.
+    const listbox = await insertMenu()
+    expect(optionNames(listbox)).toEqual([
+      'Numbered list',
+      'Section',
+      '2 columns',
+      '3 columns',
+      '4 columns',
+      'Header',
+      'Event',
+      'Two events',
+      'Lineup'
+    ])
+    expect(note(listbox, 'Section')).toBe('after this list')
   })
 
   it('uploads the image chosen, before the emptied line', async () => {

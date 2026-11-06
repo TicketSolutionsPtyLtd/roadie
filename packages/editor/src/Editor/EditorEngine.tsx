@@ -56,6 +56,7 @@ import {
 } from '../schema/presetShapes'
 import { textVariables } from '../schema/variables'
 import { EditorBlockHandle } from './EditorBlockHandle'
+import { type BlockSettings, EditorBlockSettings } from './EditorBlockSettings'
 import { EditorBlocksDrawer } from './EditorBlocksDrawer'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
@@ -69,15 +70,18 @@ import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
+import { EditorPreview } from './EditorPreview'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
 import { EditorVariablePopover } from './EditorVariablePopover'
 import { EditorVariableView } from './EditorVariableView'
 import { type BlockContainers, TOP_LEVEL } from './blockActions'
+import { BlockClick } from './blockClick'
 import { BlockDrag } from './blockDrag'
 import { BlockKeys } from './blockSelection'
 import type { EditorControlUi } from './controls'
+import { emailCanvasStyle } from './emailCanvas'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import { focusEditor } from './focusEditor'
@@ -134,7 +138,7 @@ const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
 const BLOCK_HANDLES: Partial<
   Record<Preset, { containers: BlockContainers; canAdd: boolean }>
 > = {
-  blocks: { containers: TOP_LEVEL, canAdd: false },
+  blocks: { containers: TOP_LEVEL, canAdd: true },
   email: { containers: new Set(['doc', 'section', 'column']), canAdd: true }
 }
 
@@ -214,6 +218,29 @@ const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
 
 // The nodes whose settings a click or their block menu opens.
 const SETTINGS_TYPES: readonly string[] = ['image', 'embed']
+
+type SettingsShortcutOptions = {
+  has: (name: string) => boolean
+  onEdit: () => void
+}
+
+// Enter on a selected block with settings opens them, as on an image's alt.
+const SettingsShortcut = Extension.create<SettingsShortcutOptions>({
+  name: 'settingsShortcut',
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { selection } = editor.state
+        const onBlock =
+          selection instanceof NodeSelection &&
+          this.options.has(selection.node.type.name)
+        if (!onBlock || !editor.isEditable) return false
+        this.options.onEdit()
+        return true
+      }
+    }
+  }
+})
 
 const NODE_VIEWS: Record<string, ComponentType<ReactNodeViewProps>> = {
   image: EditorImageView,
@@ -417,6 +444,12 @@ export function EditorEngine({
   resolveUrl,
   extensions: extensionsProp,
   variables,
+  theme,
+  onRenderPreview,
+  previewRecipients,
+  onSendTest,
+  sender,
+  subject,
   toolbar: toolbarProp,
   defaultToolbar,
   onToolbarChange,
@@ -449,6 +482,32 @@ export function EditorEngine({
   const [editingEmbed, setEditingEmbed] = useState(false)
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
+  const [editingSettings, setEditingSettings] = useState(false)
+  const [focusSetting, setFocusSetting] = useState<string | undefined>()
+  const [focusElement, setFocusElement] = useState<Element | null>(null)
+  const [keepSelected, setKeepSelected] = useState(false)
+  const editSettings = (
+    path?: string,
+    element: Element | null = null,
+    fromKeyboard = false
+  ) => {
+    setFocusSetting(path)
+    setFocusElement(element)
+    setKeepSelected(fromKeyboard)
+    setEditingSettings(true)
+  }
+  // Read by the editor's plugins and toolbars, made before the editor.
+  const editorRef = useRef<TiptapEditor | null>(null)
+  const editSettingsAt = (pos: number) => {
+    const current = editorRef.current
+    if (!current?.isEditable) return
+    current.view.dispatch(
+      current.state.tr.setSelection(
+        NodeSelection.create(current.state.doc, pos)
+      )
+    )
+    editSettings()
+  }
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
     source: '',
@@ -458,10 +517,11 @@ export function EditorEngine({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
   const [addingBlocks, setAddingBlocks] = useState(false)
+  const [previewing, setPreviewing] = useState<EditorValue | null>(null)
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
-  const editSettingsRef = useRef<((name: string) => void) | null>(null)
+  const editNodeSettingsRef = useRef<((name: string) => void) | null>(null)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -480,6 +540,14 @@ export function EditorEngine({
   const [blockLabels] = useState(() =>
     Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
   )
+  const [blockSettings] = useState(() =>
+    Object.fromEntries(
+      blocks.flatMap(({ node, label, settings }): [string, BlockSettings][] =>
+        settings?.length ? [[node.name, { label, settings }]] : []
+      )
+    )
+  )
+  const hasSettings = (name: string) => Object.hasOwn(blockSettings, name)
   const [schema] = useState(() =>
     blocks.length > 0
       ? getSchema(withBlocks(presets[preset], blocks))
@@ -507,10 +575,13 @@ export function EditorEngine({
     ...blocks.map(customInsertItem)
   ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
-  const insertItems = () =>
-    holdsMergeTags && textVariables(variablesRef.current).length
-      ? [...presetItems, mergeTagItem]
-      : presetItems
+  const insertItems = () => [
+    ...presetItems,
+    ...(holdsMergeTags && textVariables(variablesRef.current).length
+      ? [mergeTagItem]
+      : []),
+    ...(preset === 'email' ? emailSections(variablesRef.current) : [])
+  ]
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -534,13 +605,18 @@ export function EditorEngine({
           setEditingImage(true)
         }
       }),
+      SettingsShortcut.configure({
+        has: hasSettings,
+        onEdit: () => editSettings(undefined, null, true)
+      }),
+      BlockClick.configure({ hasSettings, onEdit: editSettings }),
       ImageUpload.configure(uploads),
       // Where a block menu holds what a node toolbar would.
       ...(blockHandle
         ? [
             SettingsClick.configure({
               types: SETTINGS_TYPES,
-              onEdit: (name) => editSettingsRef.current?.(name)
+              onEdit: (name) => editNodeSettingsRef.current?.(name)
             })
           ]
         : []),
@@ -555,7 +631,8 @@ export function EditorEngine({
       InsertMenu.configure({
         items: insertItems,
         ui: () => uiRef.current!,
-        onChange: setInsertMenu
+        onChange: setInsertMenu,
+        noMatches: 'No blocks match'
       }),
       BlockMenuShortcut.configure({
         open: () => {
@@ -606,8 +683,10 @@ export function EditorEngine({
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
           preset === 'email' && EMAIL_CANVAS,
-          // Room for the block handle at each block's start.
+          // Room for the block handle at each block's start. An email's sits
+          // in the gutter beside it, which editor.css keeps.
           blockHandle &&
+            preset !== 'email' &&
             cn(
               // A page's grip hangs in the editor's own padding, so neither
               // a host's overflow nor a docs frame clips it.
@@ -730,6 +809,10 @@ export function EditorEngine({
   }, [toolbar])
 
   useEffect(() => {
+    editorRef.current = editor
+  }, [editor])
+
+  useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
     variablesRef.current = variables
@@ -756,6 +839,34 @@ export function EditorEngine({
     if (!editor?.isEditable) return
     setImporting(({ count }) => ({ open: true, source, count: count + 1 }))
   }
+  const previewClosed = useRef(false)
+  // The canvas shows again only on the render after Preview closes.
+  useEffect(() => {
+    if (previewing || !previewClosed.current || !editor) return
+    previewClosed.current = false
+    focusEditor(editor)
+  }, [previewing, editor])
+  const openPreview =
+    preset === 'email' && onRenderPreview
+      ? () => {
+          if (!editor) return
+          setPreviewing(currentValue(editor, preset))
+        }
+      : undefined
+  const preview =
+    previewing && onRenderPreview ? (
+      <EditorPreview
+        value={previewing}
+        inbox={{ sender, subject }}
+        recipients={previewRecipients}
+        onRenderPreview={onRenderPreview}
+        onSendTest={onSendTest}
+        onClose={() => {
+          previewClosed.current = true
+          setPreviewing(null)
+        }}
+      />
+    ) : null
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
     editLink: () => {
@@ -793,20 +904,22 @@ export function EditorEngine({
     replaceImage: canUpload
       ? () => replaceInputRef.current?.click()
       : undefined,
-    importSource: preset === 'email' ? importSource : undefined
+    importSource: preset === 'email' ? importSource : undefined,
+    preview: openPreview
   }
-  const editSettings = (name: string) => {
+  const editNodeSettings = (name: string) => {
     if (name === 'image') ui.editAlt()
     if (name === 'embed') ui.editEmbed()
   }
   useEffect(() => {
     uiRef.current = ui
-    editSettingsRef.current = editSettings
+    editNodeSettingsRef.current = editNodeSettings
   })
+  // Sections lead, as the quickest way to a whole email.
   const drawerItems = blockHandle?.canAdd
     ? [
-        ...presetItems.filter((item) => item.available?.(ui) ?? true),
-        ...(preset === 'email' ? emailSections(variables) : [])
+        ...(preset === 'email' ? emailSections(variables) : []),
+        ...presetItems.filter((item) => item.available?.(ui) ?? true)
       ]
     : []
 
@@ -833,6 +946,10 @@ export function EditorEngine({
         ...ui,
         openBlocks:
           drawerItems.length > 0 ? () => setAddingBlocks(true) : undefined,
+        openPreview,
+        preview,
+        hasSettings,
+        editSettingsAt,
         editingLink,
         embedProviders,
         variables,
@@ -843,7 +960,10 @@ export function EditorEngine({
     >
       <div
         data-slot='editor'
+        data-preset={preset}
+        data-previewing={preview ? '' : undefined}
         data-emphasis={emphasis}
+        style={preset === 'email' ? emailCanvasStyle(theme) : undefined}
         aria-invalid={field.invalid || undefined}
         data-disabled={disabled ? '' : undefined}
         className={cn(
@@ -877,14 +997,18 @@ export function EditorEngine({
             containers={blockHandle.containers}
             canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
-            hasSettings={(name) => SETTINGS_TYPES.includes(name)}
+            hasSettings={(name) =>
+              hasSettings(name) || SETTINGS_TYPES.includes(name)
+            }
             onSettings={(pos) => {
+              const name = editor.state.doc.nodeAt(pos)!.type.name
+              if (!SETTINGS_TYPES.includes(name)) return editSettingsAt(pos)
               editor.view.dispatch(
                 editor.state.tr.setSelection(
                   NodeSelection.create(editor.state.doc, pos)
                 )
               )
-              editSettings(editor.state.doc.nodeAt(pos)!.type.name)
+              editNodeSettings(name)
             }}
           />
         ) : null}
@@ -941,6 +1065,16 @@ export function EditorEngine({
           editor={editor}
           open={editingButton}
           onOpenChange={setEditingButton}
+        />
+        <EditorBlockSettings
+          editor={editor}
+          open={editingSettings}
+          onOpenChange={setEditingSettings}
+          blocks={blockSettings}
+          focusSetting={focusSetting}
+          focusElement={focusElement}
+          keepSelected={keepSelected}
+          uploadImage={canUpload ? onUploadImage : undefined}
         />
         <EditorVariablePopover
           editor={editor}
