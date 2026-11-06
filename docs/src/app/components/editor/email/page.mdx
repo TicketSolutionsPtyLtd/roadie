@@ -43,7 +43,7 @@ variables, the unsubscribe page and the email in a browser.
   aria-label='Newsletter'
   preset='email'
   variables={[
-    { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+    { key: 'first_name', label: 'First name', fallback: 'there', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
     { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } },
     { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } },
     { key: 'view_url', label: 'View in browser', kind: 'url', tokens: { ae: '[ViewInBrowserLink]', liquid: '{{ view_url }}' } }
@@ -164,9 +164,10 @@ buttons, dividers, and font show in the canvas as they send, and a tinted
 or accent section swaps its blocks' colours as the email does. Without one, the canvas takes `defaultEmailTheme`, as
 `renderEmail` does, except that its links and strong buttons take the
 accent of a `ThemeProvider` around the editor, which `renderEmail` doesn't
-know, so pass `theme` for an exact match. Text outside columns sits 24
-pixels in from each side of the canvas, so it wraps where it sends, and
-columns reach 12 pixels further out, as they do in the email. The grip and
+know, so pass `theme` for an exact match. Text sits 24
+pixels in from each side of the canvas, in columns and sections too, so it
+wraps where it sends. Columns sit side by side from a 480-pixel canvas, the
+width the email stops stacking them at. The grip and
 add button sit in the gutter beside the canvas, which the editor keeps
 where the frame is too narrow for one. In a frame narrower than 544
 pixels, as on a phone, the email sends at the screen's width, so the canvas
@@ -447,8 +448,15 @@ them under the caret. The list filters by label or key as you type, and Enter
 inserts the active one as a chip. Merge tag in the `/` menu opens the same
 list, and Escape there takes its `{{` back out. A button's label takes merge tags too.
 
+A variable's `fallback`, such as `'there'` for a first name, goes on each tag
+as it's inserted. A variable with none opens the merge tag form as its tag is
+inserted, with focus in Fallback, as Edit merge tag does on any tag without
+one, and Enter there goes back to the text after the chip. Each chip shows
+its fallback after its label, as "First name · there", or a warning dot when
+it has none.
+
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
-Remove merge tag. Edit merge tag opens a form to change which variable the
+Remove merge tag. Edit merge tag, or Enter on the selected chip, opens a form to change which variable the
 tag shows and its fallback, the text anyone without a value sees. Each change
 shows in the email as you make it. Enter in Fallback or a click away keeps
 them, as does Escape, as one step to undo, and Undo puts the tag back. An empty
@@ -578,7 +586,8 @@ differs from the defaults: `look: 'tint' | 'accent'` and
 ### Importing HTML or MJML
 
 Import HTML or MJML, in the toolbar, or in the floating toolbar's … menu,
-brings an existing email across. Paste its source, whole or in part, and the
+brings an existing email across. Paste its source, whole or in part, or
+pick an `.html` or `.mjml` file with Choose a file, and the
 dialog says whether it's reading MJML, which starts with `<mjml>`, or HTML.
 Before anything changes, it lists what won't come across: styles, a table's
 layout, images not on https, links an email can't open, hidden text past the
@@ -600,7 +609,16 @@ same dialog with it filled in, in place of pasting the tags.
   `mj-divider` become a button, image, spacer, and divider. A button keeps
   its centre or right alignment and a 100% width. A navbar or social row
   becomes a line of links. Any other element keeps its text.
-- **HTML:** a table layout gives way to its text and images, in order.
+- **HTML:** a link alone on its line, or beside only blocks and breaks,
+  becomes a button when it has its own fill or border and is padded or
+  `inline-block`, or when it fills a padded one-cell table, as a bulletproof
+  button does. A class's style from the source's style sheet counts, though
+  not one inside a media query. It keeps its centre or right
+  alignment. A row of two to four cells of blocks, whose widths add up to
+  100%, becomes columns, leaving out an empty gutter cell. A table with a
+  header row, or several such rows with no image or heading, as a receipt
+  has, is data, not a layout. It and any other table give way to their text
+  and images, in order.
 - **Merge tags:** a token from `variables`, such as `#FirstName#` or
   `{{ customer.first_name }}`, becomes its merge tag, and a Liquid
   `default` becomes its fallback. A link or button whose whole href is a link
@@ -963,6 +981,8 @@ const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
 | `{{` | Open the merge tag list, with `variables` |
 | `Mod+/` | Open the menu for the block with the caret |
 | `Enter` | In a button, start a new paragraph after it |
+| `Enter` | On a selected merge tag, open its form |
+| `Tab`, `Shift+Tab` | In columns, move to the next column's start or the previous one's end, then out of the row, with Tab opening a line after a row that ends the email; a list item that can indent or outdent does that instead |
 
 Every preset's other keys are on the [Editor](/components/editor#accessibility)
 page.

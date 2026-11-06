@@ -338,6 +338,15 @@ describe('renderEmail', () => {
       expect(body(html)).toMatchSnapshot()
     })
 
+    it('insets columns’ text 24px, as it does a block outside them', async () => {
+      const { html } = await renderEmail(
+        email(columns(column(p(text('Friday'))), column(p(text('Saturday')))))
+      )
+      // The row's 12px, then each column's 12px around its blocks.
+      expect(html).toContain('padding:0 12px;')
+      expect(html.match(/padding:8px 12px;/g)).toHaveLength(2)
+    })
+
     it('renders a section around its blocks and columns', async () => {
       const { html, text: plain } = await renderEmail(
         email(

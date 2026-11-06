@@ -274,7 +274,7 @@ describe('Editor email layout, as it sends', () => {
     }
   )
 
-  it('sets columns’ text 12px further out than a line outside them', async () => {
+  it('sets columns’ text in line with a line outside them', async () => {
     render(
       <div style={{ width: 900 }}>
         <Editor
@@ -310,14 +310,15 @@ describe('Editor email layout, as it sends', () => {
     const right = (text: string) =>
       screen.getByText(text).closest('p')!.getBoundingClientRect().right
 
-    expect(left('Intro') - left('Left')).toBeCloseTo(12, 0)
+    expect(left('Left')).toBeCloseTo(left('Intro'), 0)
     const canvas = screen
       .getByRole('textbox', { name: LABEL })
       .getBoundingClientRect()
-    expect(canvas.right - right('Right')).toBeCloseTo(12, 0)
-    expect(
-      right('Right') - intro.closest('p')!.getBoundingClientRect().right
-    ).toBeCloseTo(12, 0)
+    expect(canvas.right - right('Right')).toBeCloseTo(EMAIL_BLOCK_INSET, 0)
+    expect(right('Right')).toBeCloseTo(
+      intro.closest('p')!.getBoundingClientRect().right,
+      0
+    )
   })
 
   it('keeps columns inside an invalid boxless email’s edge', async () => {
@@ -353,7 +354,7 @@ describe('Editor email layout, as it sends', () => {
     const edge =
       canvas.getBoundingClientRect().left +
       parseFloat(getComputedStyle(canvas).borderInlineStartWidth)
-    // The column's 12px, past the edge's own 10px gap.
-    expect(left.getBoundingClientRect().left - edge).toBeCloseTo(22, 0)
+    // The email's 24px, past the edge's own 10px gap.
+    expect(left.getBoundingClientRect().left - edge).toBeCloseTo(34, 0)
   })
 })
