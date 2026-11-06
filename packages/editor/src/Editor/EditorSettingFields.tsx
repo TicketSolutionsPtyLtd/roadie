@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { PlusIcon, TrashIcon, UploadSimpleIcon } from '@phosphor-icons/react'
 
@@ -114,7 +114,20 @@ function ImageFields({
   const image = recordOf(value)
   const [src, setSrc] = useState(textOf(image.src))
   const [uploading, setUploading] = useState(false)
+  const [failed, setFailed] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  // An upload ends after other edits, so it applies to the latest value.
+  const latest = useRef({ image, onValueChange })
+  useEffect(() => {
+    latest.current = { image, onValueChange }
+  })
+  const mounted = useRef(true)
+  useEffect(
+    () => () => {
+      mounted.current = false
+    },
+    []
+  )
   const refused = src !== '' && !isSafeImageSrc(src)
   const change = (next: Attrs) => onValueChange({ ...image, ...next })
   return (
@@ -145,7 +158,7 @@ function ImageFields({
         error='Use an https link, or a path on this site.'
       />
       {uploadImage ? (
-        <div className='flex'>
+        <div className='flex flex-wrap items-center gap-2'>
           <Button
             size='sm'
             disabled={uploading}
@@ -154,6 +167,11 @@ function ImageFields({
             <UploadSimpleIcon weight='bold' className='size-4' aria-hidden />
             {uploading ? 'Uploading…' : 'Upload an image'}
           </Button>
+          {failed ? (
+            <p role='alert' className='text-sm text-subtle intent-danger'>
+              That image couldn’t be uploaded. Try again, or paste a link.
+            </p>
+          ) : null}
           <input
             ref={fileRef}
             type='file'
@@ -165,17 +183,27 @@ function ImageFields({
               event.currentTarget.value = ''
               if (!file) return
               setUploading(true)
+              setFailed(false)
               uploadImage(file)
                 .then((uploaded) => {
+                  // The drawer closed, or moved to another block, meanwhile.
+                  if (!mounted.current) return
+                  const { image: now, onValueChange: apply } = latest.current
                   setSrc(uploaded.src)
-                  change({
+                  apply({
+                    ...now,
                     src: uploaded.src,
-                    alt: uploaded.alt ?? textOf(image.alt),
+                    alt: uploaded.alt ?? textOf(now.alt),
                     width: undefined,
                     height: undefined
                   })
                 })
-                .finally(() => setUploading(false))
+                .catch(() => {
+                  if (mounted.current) setFailed(true)
+                })
+                .finally(() => {
+                  if (mounted.current) setUploading(false)
+                })
             }}
           />
         </div>
@@ -237,7 +265,7 @@ let nextKey = 0
 const newKey = () => `item-${(nextKey += 1)}`
 
 // An item's name in its fold: its first text, or its place in the list.
-function itemTitle(setting: ListSetting, item: unknown, index: number) {
+function itemText(setting: ListSetting, item: unknown, index: number) {
   const fields = setting.fields ?? []
   const record = recordOf(item)
   const named =
@@ -251,6 +279,15 @@ function itemTitle(setting: ListSetting, item: unknown, index: number) {
             .find((text) => textOf(text).trim() !== '')
   const text = textOf(named).trim()
   return text || `${setting.itemLabel} ${index + 1}`
+}
+
+// Two items can share text, so a repeat takes its place to tell them apart.
+function itemTitle(setting: ListSetting, items: unknown[], index: number) {
+  const text = itemText(setting, items[index], index)
+  const repeated = items.some(
+    (other, at) => at !== index && itemText(setting, other, at) === text
+  )
+  return repeated ? `${text} (${index + 1})` : text
 }
 
 function blankItem(setting: ListSetting): unknown {
@@ -284,7 +321,9 @@ function ListField({
   const [open, setOpen] = useState<ReadonlySet<string>>(
     () => new Set(opened === null ? [] : [keys[opened] ?? ''])
   )
-  const shown = keys.length === items.length ? keys : items.map(newKey)
+  // Changed from outside, so its keys start again, once.
+  if (keys.length !== items.length) setKeys(items.map(newKey))
+  const shown = keys.length === items.length ? keys : items.map(() => '')
   const full = setting.max !== undefined && items.length >= setting.max
 
   const update = (next: unknown[], nextKeys: string[]) => {
@@ -322,7 +361,7 @@ function ListField({
         <div className='grid gap-2'>
           {items.map((item, index) => {
             const key = shown[index]!
-            const title = itemTitle(setting, item, index)
+            const title = itemTitle(setting, items, index)
             const itemPath = `${path}.${index}`
             return (
               <Sortable.Item

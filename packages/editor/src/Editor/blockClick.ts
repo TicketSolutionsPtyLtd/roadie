@@ -37,11 +37,21 @@ export function clickedSetting(
     const box = element.getBoundingClientRect()
     return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom
   })
+  const all = [...block.querySelectorAll('*')]
   // Later in document order is deeper, so the innermost match wins.
   for (const element of under.reverse()) {
     const text = element.textContent?.trim()
-    const match = text && texts.find(([, value]) => value === text)
-    if (match) return match[0]
+    const matches = texts.filter(([, value]) => value === text)
+    if (!text || matches.length === 0) continue
+    // Two items can share text, so the one clicked is told by its place
+    // among the elements showing that text, in document order.
+    const twins = all.filter(
+      (other) =>
+        other.textContent?.trim() === text &&
+        ![...other.children].some((child) => child.textContent?.trim() === text)
+    )
+    const nth = Math.max(0, twins.indexOf(element))
+    return (matches[nth] ?? matches[0])![0]
   }
   return undefined
 }
@@ -63,8 +73,10 @@ export const BlockClick = Extension.create<BlockClickOptions>({
   name: 'blockClick',
   addProseMirrorPlugins() {
     const { hasSettings, onEdit } = this.options
-    // The press's own pointer, as a touch laptop's primary one is a mouse.
-    let byMouse = false
+    // The press, by mouse, that a release must end where it began; a touch
+    // laptop's primary pointer is a mouse, so it's the press's own pointer.
+    let press: { x: number; y: number } | null = null
+    let pending: ReturnType<typeof setTimeout> | undefined
     // A block's own view takes its presses, so the click is read from the
     // DOM: the block with settings holding the target, if any.
     const open = (view: EditorView, event: MouseEvent) => {
@@ -72,7 +84,13 @@ export const BlockClick = Extension.create<BlockClickOptions>({
       // The editor is contenteditable itself, so only a field inside counts.
       const field = target?.closest(FIELD)
       const inField = field && field !== view.dom
-      if (!target || !byMouse || !view.editable || inField) return false
+      const begun = press
+      press = null
+      // Moved, so it's a drag that selects text, not a click.
+      const moved =
+        !begun ||
+        Math.hypot(event.clientX - begun.x, event.clientY - begun.y) > 4
+      if (!target || moved || !view.editable || inField) return false
       let at: number | undefined
       view.state.doc.descendants((node, pos) => {
         if (at !== undefined) return false
@@ -90,7 +108,7 @@ export const BlockClick = Extension.create<BlockClickOptions>({
       const path = clickedSetting(dom, event.clientX, event.clientY, node.attrs)
       // After the click this release makes, which a drawer with a backdrop
       // would otherwise hear as a press outside it.
-      setTimeout(() => onEdit(path))
+      pending = setTimeout(() => onEdit(path))
       return true
     }
     return [
@@ -99,7 +117,12 @@ export const BlockClick = Extension.create<BlockClickOptions>({
       new Plugin({
         view: (view) => {
           const pointerdown = (event: PointerEvent) => {
-            byMouse = event.pointerType === 'mouse'
+            const plain =
+              event.pointerType === 'mouse' &&
+              event.button === 0 &&
+              !event.ctrlKey &&
+              !event.metaKey
+            press = plain ? { x: event.clientX, y: event.clientY } : null
           }
           // On release, as ProseMirror's own clicks are. A double click's
           // second release opens it again after its first press closed it.
@@ -110,6 +133,7 @@ export const BlockClick = Extension.create<BlockClickOptions>({
           view.dom.addEventListener('mouseup', release)
           return {
             destroy: () => {
+              clearTimeout(pending)
               view.dom.removeEventListener('pointerdown', pointerdown)
               view.dom.removeEventListener('mouseup', release)
             }
