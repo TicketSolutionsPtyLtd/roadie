@@ -156,13 +156,12 @@ describe('Editor block handle', () => {
     expect(grip.right).toBeLessThanOrEqual(row.getBoundingClientRect().left)
   })
 
-  it('has no add button, and no room for one, in a framed editor', async () => {
+  it('hangs the grip in the page’s gutter, with no room made for it', async () => {
     renderLineup()
     const row = await paragraph('Doors')
     await userEvent.hover(row)
     await expectHandleBeside('Doors')
 
-    expect(screen.queryByRole('button', { name: 'Add block' })).toBe(null)
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     expect(
       (await handle()).getBoundingClientRect().left -

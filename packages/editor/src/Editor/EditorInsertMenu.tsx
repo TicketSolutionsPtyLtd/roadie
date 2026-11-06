@@ -75,6 +75,7 @@ export function EditorInsertMenu({
       ref={listRef}
       id={id}
       role='listbox'
+      data-editor-popup=''
       aria-label={label}
       data-slot='editor-insert-menu'
       className='z-popover grid max-h-80 min-w-56 gap-0.5 overflow-y-auto rounded-xl emphasis-floating is-translucent p-1'
