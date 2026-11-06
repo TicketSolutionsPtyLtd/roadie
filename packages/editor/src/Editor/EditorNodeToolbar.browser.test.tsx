@@ -726,7 +726,7 @@ describe('Editor email block toolbar placement', () => {
           aria-label={LABEL}
           defaultValue={email(columns, p('Doors 7pm'))}
         >
-          <input aria-label='Preview text' style={{ blockSize: 40 }} />
+          <input aria-label='Subject' style={{ blockSize: 40 }} />
           <Editor.Content />
         </Editor>
       </div>
@@ -737,7 +737,7 @@ describe('Editor email block toolbar placement', () => {
     const toolbar = await screen.findByRole('toolbar', {
       name: 'Columns actions'
     })
-    const field = screen.getByRole('textbox', { name: 'Preview text' })
+    const field = screen.getByRole('textbox', { name: 'Subject' })
     await waitFor(() => {
       const bar = toolbar.getBoundingClientRect()
       expect(bar.width).toBeGreaterThan(0)
