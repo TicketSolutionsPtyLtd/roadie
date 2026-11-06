@@ -175,15 +175,97 @@ describe('Editor email block handle', () => {
     )
   })
 
-  it('makes room for the grip and add button inside a framed editor', async () => {
+  it('puts the grip and add button in the gutter beside the email, inside the frame', async () => {
     renderNewsletter()
 
     await hoverBlock('Closing')
 
     const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const frame = textbox.closest('[data-slot="editor"]')!
+    const add = (await addButton()).getBoundingClientRect()
+    expect(add.left).toBeGreaterThanOrEqual(frame.getBoundingClientRect().left)
+    expect(add.right).toBeLessThanOrEqual(textbox.getBoundingClientRect().left)
+  })
+
+  it('keeps room for the grip and add button in a 642px frame', async () => {
+    render(
+      <div style={{ width: 642 }}>
+        <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
+      </div>
+    )
+
+    await hoverBlock('Closing')
+
+    const frame = (await screen.findByRole('textbox', { name: LABEL }))
+      .closest('[data-slot="editor"]')!
+      .getBoundingClientRect()
+    const add = (await addButton()).getBoundingClientRect()
+    expect(add.left).toBeGreaterThanOrEqual(frame.left)
+  })
+
+  it('keeps a boxless email’s grip and add button in its gutter on a phone', async () => {
+    render(
+      <div style={{ width: 360 }}>
+        <Editor
+          aria-label={LABEL}
+          preset='email'
+          emphasis='subtler'
+          defaultValue={layout}
+        />
+      </div>
+    )
+
+    await hoverBlock('Closing')
+
+    const frame = (await screen.findByRole('textbox', { name: LABEL }))
+      .closest('[data-slot="editor"]')!
+      .getBoundingClientRect()
     expect(
       (await addButton()).getBoundingClientRect().left
-    ).toBeGreaterThanOrEqual(textbox.getBoundingClientRect().left)
+    ).toBeGreaterThanOrEqual(frame.left)
+  })
+
+  it('puts the grip in the email’s own padding on a right-to-left phone', async () => {
+    render(
+      <div style={{ width: 360 }} dir='rtl'>
+        <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
+      </div>
+    )
+
+    // hoverBlock waits for a left-to-right grip.
+    await userEvent.hover(await line('Closing'))
+
+    const canvas = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).getBoundingClientRect()
+    await waitFor(async () => {
+      const handle = (await grip()).getBoundingClientRect()
+      expect(handle.right).toBeLessThanOrEqual(canvas.right)
+      expect(handle.left).toBeGreaterThanOrEqual(
+        (await line('Closing')).getBoundingClientRect().right
+      )
+    })
+  })
+
+  it('puts the grip in the email’s own padding on a phone, with no gutter', async () => {
+    render(
+      <div style={{ width: 360 }}>
+        <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
+      </div>
+    )
+
+    await hoverBlock('Closing')
+
+    const canvas = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).getBoundingClientRect()
+    const handle = (await grip()).getBoundingClientRect()
+    expect(handle.left).toBeGreaterThanOrEqual(canvas.left)
+    expect(handle.right).toBeLessThanOrEqual(
+      (await line('Closing')).getBoundingClientRect().left
+    )
+    // A phone adds blocks from the docked toolbar's Blocks and from `/`.
+    expect(screen.queryByRole('button', { name: 'Add block' })).toBeNull()
   })
 
   it('keeps the grip while the pointer crosses to it', async () => {
