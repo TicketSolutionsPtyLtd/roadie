@@ -16,7 +16,12 @@ import {
   TextHTwoIcon,
   TextTIcon
 } from '@phosphor-icons/react'
-import type { ChainedCommands, JSONContent, Range } from '@tiptap/core'
+import type {
+  ChainedCommands,
+  CommandProps,
+  JSONContent,
+  Range
+} from '@tiptap/core'
 import type { Editor } from '@tiptap/react'
 
 import type { EditorBlock } from '../extensions'
@@ -62,6 +67,8 @@ export type EditorInsertItem = {
    * they can't hold it, which the menu says beside it.
    */
   topLevel?: 'always' | 'fallback'
+  /** Runs once the drawer has put `block` in, with the caret in it. */
+  placed?: (props: CommandProps) => boolean
 }
 
 const paragraph: EditorInsertItem = {

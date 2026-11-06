@@ -10,6 +10,24 @@
   pointer-events: none;
 }
 
+/* The caret's empty line in a preset with the `/` menu, from emptyLineHint. */
+[data-slot='editor-content'] .ProseMirror-focused [data-hint]::before {
+  content: attr(data-hint);
+  float: inline-start;
+  block-size: 0;
+  color: var(--intent-text-subtler);
+  pointer-events: none;
+}
+
+/* A ready-made section's placeholder copy, from hintLines, shown until typed over. */
+[data-slot='editor-content'] [data-copy-hint]::before {
+  content: attr(data-copy-hint);
+  float: inline-start;
+  block-size: 0;
+  color: var(--intent-text-subtler);
+  pointer-events: none;
+}
+
 /* Every selection of whole blocks takes one ring. A node view rings its own
    wrapper, which can be narrower than the row. */
 [data-slot='editor-content'] .ProseMirror-selectednode:not(.react-renderer),

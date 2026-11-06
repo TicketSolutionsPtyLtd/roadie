@@ -23,6 +23,26 @@ export function presetLook(preset: Preset): {
   return { emphasis: 'normal', toolbar: 'docked' }
 }
 
+const PRESET_HINTS: Partial<Record<Preset, string>> = {
+  blocks: 'Type / to add a block',
+  email: 'Type / for blocks, or pick a section'
+}
+
+// A touch keyboard keeps `/` a layer away, so a touch screen points at Blocks.
+const TOUCH_HINTS: Partial<Record<Preset, string>> = {
+  blocks: 'Tap Blocks to add a block',
+  email: 'Tap Blocks to add a block or section'
+}
+
+const onTouchScreen = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(pointer: coarse)').matches
+
+/** What an empty line says to do, in a preset with the `/` menu. */
+export function presetHint(preset: Preset) {
+  return (onTouchScreen() ? TOUCH_HINTS : PRESET_HINTS)[preset]
+}
+
 /** The `preset` prop, else the value's own preset, else `basic`. */
 export function resolvedPreset({
   preset,

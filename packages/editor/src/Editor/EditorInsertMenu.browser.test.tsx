@@ -675,7 +675,7 @@ describe('Editor insert menu', () => {
                 attrs: { level: 2 },
                 content: [{ type: 'text', text: 'Ochre Kite Weekender' }]
               },
-              p('A line or two on what this email is about.')
+              p()
             ]
           }
         )
