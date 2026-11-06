@@ -14,6 +14,12 @@ import type {
   EmbedProvider,
   Preset
 } from '../schema'
+import { EditorEmailStart, isBlankDoc } from './EditorEmailStart'
+import type {
+  EditorPreviewRecipient,
+  EditorRenderPreview,
+  EditorSendTest
+} from './EditorPreview'
 import { loadedEngine, preloadEditor, subscribeToEngine } from './load'
 import { presetLook, resolvedPreset, startingValue } from './startingValue'
 import {
@@ -117,6 +123,28 @@ export type EditorRootProps = {
    * colour that isn't hex.
    */
   theme?: Partial<EmailTheme>
+  /**
+   * Renders the email for Preview, for the `email` preset, and resolves to
+   * its HTML. Run `renderEmail` with these `values` and the editor's
+   * `variables` and `theme`, on your server, as MJML needs Node. Adds
+   * Preview to the toolbar, which shows the email in place of the canvas.
+   */
+  onRenderPreview?: EditorRenderPreview
+  /**
+   * Sample recipients for Preview as, each with the values its merge tags
+   * and conditions take. Preview shows the first. Without them, merge tags
+   * show their fallbacks.
+   */
+  previewRecipients?: readonly EditorPreviewRecipient[]
+  /**
+   * Sends the email, as previewed, to an address. Adds Send test to
+   * Preview. A rejection's message shows under the address.
+   */
+  onSendTest?: EditorSendTest
+  /** Who the email is from, for the inbox row above Preview's frame. */
+  sender?: string
+  /** The email's subject, for the inbox row above Preview's frame. */
+  subject?: string
   'aria-label'?: string
   'aria-labelledby'?: string
   /**
@@ -162,6 +190,17 @@ export function EditorRoot(props: EditorRootProps) {
         )}
       />
     )
+    const blankEmail =
+      resolvedPreset(props) === 'email' &&
+      !props.readOnly &&
+      !props.disabled &&
+      !field.disabled &&
+      isBlankDoc(startingValue(props))
+    const emailStart = blankEmail ? (
+      <div inert className='invisible'>
+        <EditorEmailStart />
+      </div>
+    ) : null
     const frame = cn(
       'flex min-w-0 flex-col',
       EDITOR_MIN_HEIGHT[size],
@@ -199,6 +238,7 @@ export function EditorRoot(props: EditorRootProps) {
                 <Skeleton className='w-2/3' />
               </div>
             </div>
+            {emailStart}
           </div>
         ) : (
           <Skeleton
@@ -208,6 +248,7 @@ export function EditorRoot(props: EditorRootProps) {
           >
             {toolbarRoom}
             <div className={editorContentClass(size, emphasis)} />
+            {emailStart}
           </Skeleton>
         )}
         {props.name ? (

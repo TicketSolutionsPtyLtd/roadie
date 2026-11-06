@@ -58,6 +58,10 @@ export type EditorContextValue = {
   editSettingsAt: (pos: number) => void
   /** Opens the import of an email's HTML or MJML, or undefined outside the email preset. */
   importSource: ((source?: string) => void) | undefined
+  /** Shows Preview in place of the canvas, or undefined without `onRenderPreview`. */
+  openPreview: (() => void) | undefined
+  /** Preview, while it shows, which `Editor.Content` puts in the canvas's place. */
+  preview: ReactNode
   TiptapContent: typeof EditorContent
   ToolbarEngine: ComponentType<EditorToolbarProps>
   BubbleMenuEngine: ComponentType<EditorBubbleMenuProps>

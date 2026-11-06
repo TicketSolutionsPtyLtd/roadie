@@ -35,11 +35,13 @@ type EditorBlocksDrawerProps = {
   ui: EditorControlUi
   /** Where blocks can go, as the block handle counts them. */
   containers: ReadonlySet<string>
+  /** The group whose first tile takes focus, else the first group's. */
+  startAt?: string
 }
 
 const insertion = (item: EditorInsertItem, containers: ReadonlySet<string>) =>
   item.block
-    ? insertBlockAfter(item.block, containers)
+    ? insertBlockAfter(item.block, item.containers ?? containers)
     : openLineAfter(containers)
 
 function groupsOf(items: readonly EditorInsertItem[]) {
@@ -145,7 +147,8 @@ export function EditorBlocksDrawer({
   onOpenChange,
   items,
   ui,
-  containers
+  containers,
+  startAt
 }: EditorBlocksDrawerProps) {
   const phone = useOnPhone()
   // A wide touch screen still gets the bottom sheet, which takes the page.
@@ -187,7 +190,11 @@ export function EditorBlocksDrawer({
     // Closed first, so the drawer lets go of focus before the block takes it.
     flushSync(() => onOpenChange(false))
     focusEditor(editor)
-    editor.chain().command(insertion(item, containers)).run()
+    editor
+      .chain()
+      .command(insertion(item, containers))
+      .command((props) => item.placed?.(props) ?? true)
+      .run()
     if (!item.block) item.insert(editor.chain(), ui).run()
   }
 
@@ -240,7 +247,13 @@ export function EditorBlocksDrawer({
             data-editor-popup=''
             size={phone ? 'fit' : 'sm'}
             className={beside ? 'pointer-events-auto' : undefined}
-            initialFocus={() => tiles()[0] ?? filterRef.current}
+            initialFocus={() => {
+              const all = tiles()
+              const start =
+                all.find((tile) => tile.dataset.group === startAt) ?? all[0]
+              if (start) setActive(all.indexOf(start))
+              return start ?? filterRef.current
+            }}
             finalFocus={() => {
               if (!pickedRef.current) focusEditor(editor)
               // The toolbar opens it without onOpenChange, so reset here.
@@ -309,6 +322,7 @@ export function EditorBlocksDrawer({
                               key={item.label}
                               type='button'
                               data-slot='editor-blocks-tile'
+                              data-group={group}
                               disabled={disabled}
                               // One tab stop for the tiles; the arrow keys move.
                               tabIndex={
