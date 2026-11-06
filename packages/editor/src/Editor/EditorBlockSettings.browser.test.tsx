@@ -869,4 +869,26 @@ describe('Editor block settings', () => {
       screen.getByText('Velvet Kookaburra').closest('.ProseMirror-selectednode')
     ).not.toBe(null)
   })
+
+  it('leaves the page where the author scrolled it while they type in the sheet', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    render(
+      <div style={{ paddingTop: 900, paddingBottom: 900 }}>
+        <Editor aria-label={LABEL} extensions={[promo]} defaultValue={page} />
+      </div>
+    )
+    const drawer = await openFromMenu()
+    const scroller = document.scrollingElement!
+    await waitFor(() => expect(scroller.scrollTop).toBeGreaterThan(0))
+
+    scroller.scrollTop -= 60
+    const scrolled = scroller.scrollTop
+    await userEvent.type(
+      within(drawer).getByRole('textbox', { name: 'Title' }),
+      'ab'
+    )
+
+    expect(scroller.scrollTop).toBe(scrolled)
+  })
 })
