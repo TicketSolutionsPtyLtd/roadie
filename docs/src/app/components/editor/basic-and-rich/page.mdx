@@ -75,8 +75,8 @@ check button that saves, and Close. Editing a link adds Remove link between
 the two. The popovers that change what's there show each change as it's
 typed: a selection's link while it's a whole address, an embed's player while a
 provider reads its link, and an image's alt text at once. Enter, the check, or
-a click away keeps the changes as one step to undo, and Escape or Close puts
-things back as they were. A link at a caret with nothing selected, and a new
+a click away keeps the changes as one step to undo, and so does Escape; Undo
+takes them back, and Close puts things back as they were. A link at a caret with nothing selected, and a new
 embed from the Embed control, are added on save.
 
 ```tsx-live-prose
@@ -333,8 +333,8 @@ phone.
   node is selected and the editor has focus, and never while read-only or
   disabled. Each action is one step to undo.
 - An image's alt text is edited in a popover with a named input, opened by
-  Enter on a selected image or its Alt text action. Escape puts the alt text
-  back and returns focus to the image. An upload in progress is a `status`, and an upload error
+  Enter on a selected image or its Alt text action. Escape keeps the alt text
+  and returns focus to the image. An upload in progress is a `status`, and an upload error
   shows in `Field.ErrorText`, or under the editor outside a `Field`.
 - An embed's player is titled with its provider and id, and takes no Tab
   stop in the editor. Arrow keys select an embed or an image, and Backspace
