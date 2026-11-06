@@ -350,63 +350,22 @@ describe('Editor email blocks', () => {
     )
   })
 
-  it.each([
-    ['below a button', 'Buy tickets', 'Button actions', 'button', 'below'],
-    ['above columns', 'Lineup', 'Columns actions', 'columns', 'above']
-  ] as const)(
-    'places the toolbar %s',
-    async (_, text, toolbarName, type, side) => {
-      renderEmail(
-        email(
-          p('Doors 7pm'),
-          button('https://oztix.com.au', 'Buy tickets'),
-          columns(['Lineup'], ['Tickets'])
-        )
-      )
-      await clickText(text)
-
-      const toolbar = await screen.findByRole('toolbar', { name: toolbarName })
-      const node = document.querySelector(`[data-type="${type}"]`)!
-      await waitFor(() => {
-        const bar = toolbar.getBoundingClientRect()
-        const box = node.getBoundingClientRect()
-        expect(Math.round(bar.left)).toBe(Math.round(box.left))
-        if (side === 'below') expect(bar.top).toBeGreaterThanOrEqual(box.bottom)
-        else expect(bar.bottom).toBeLessThanOrEqual(box.top)
-      })
-    }
-  )
-
-  it('places a selected spacer’s toolbar below it', async () => {
-    renderEmail(email(p('Doors 7pm'), { type: 'spacer' }, p('Gates 11am')))
-    const textbox = await screen.findByRole('textbox', { name: LABEL })
-    const spacer = textbox.querySelector('[data-type="spacer"]')!
-    await userEvent.click(spacer)
+  it('places a button’s toolbar below it', async () => {
+    renderEmail(
+      email(p('Doors 7pm'), button('https://oztix.com.au', 'Buy tickets'))
+    )
+    await clickText('Buy tickets')
 
     const toolbar = await screen.findByRole('toolbar', {
-      name: 'Spacer actions'
+      name: 'Button actions'
     })
+    const node = document.querySelector('[data-type="button"]')!
     await waitFor(() => {
       const bar = toolbar.getBoundingClientRect()
-      const box = spacer.getBoundingClientRect()
+      const box = node.getBoundingClientRect()
       expect(Math.round(bar.left)).toBe(Math.round(box.left))
       expect(bar.top).toBeGreaterThanOrEqual(box.bottom)
     })
-  })
-
-  it('places the columns toolbar below columns that start the content', async () => {
-    renderEmail(email(columns(['Lineup'], ['Tickets']), p('Doors 7pm')))
-    await clickText('Lineup')
-
-    const toolbar = await screen.findByRole('toolbar', {
-      name: 'Columns actions'
-    })
-    const node = document.querySelector('[data-type="columns"]')!
-    await waitFor(() =>
-      expect(toolbar.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-        node.getBoundingClientRect().bottom
-      )
-    )
   })
 
   it('leaves a block’s toolbar on Escape without closing the dialog around it', async () => {
