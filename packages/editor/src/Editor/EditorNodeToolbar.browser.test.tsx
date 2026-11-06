@@ -656,6 +656,67 @@ describe('Editor email block toolbar placement', () => {
     }
   })
 
+  it.each([390, 1280])(
+    'covers no text under a long heading in a section, at %ipx',
+    async (width) => {
+      await page.viewport(width, 800)
+      onTestFinished(() => page.viewport(1280, 800))
+      const heading = 'The full lineup for the Ochre Kite Weekender this March'
+      render(
+        <div style={{ paddingTop: 96 }}>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={email(
+              p('Doors'),
+              {
+                type: 'section',
+                content: [
+                  {
+                    type: 'heading',
+                    attrs: { level: 2 },
+                    content: [{ type: 'text', text: heading }]
+                  },
+                  {
+                    type: 'columns',
+                    content: [
+                      { type: 'column', content: [p('Velvet Kookaburra')] },
+                      {
+                        type: 'column',
+                        content: [p('The Saltbush Echoes with Dusty Banksia')]
+                      }
+                    ]
+                  }
+                ]
+              },
+              p('Gates')
+            )}
+          />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(within(textbox).getByText('Velvet Kookaburra'))
+
+      const toolbar = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        expect(bar.width).toBeGreaterThan(0)
+        for (const text of [
+          heading,
+          'Velvet Kookaburra',
+          'The Saltbush Echoes with Dusty Banksia'
+        ]) {
+          const range = document.createRange()
+          range.selectNodeContents(within(textbox).getByText(text))
+          for (const covered of range.getClientRects()) {
+            expect(intersects(bar, covered)).toBe(false)
+          }
+        }
+      })
+    }
+  )
+
   it('stays below the fields above the text when columns start it', async () => {
     await page.viewport(390, 800)
     onTestFinished(() => page.viewport(1280, 800))

@@ -28,7 +28,11 @@ import {
 import { isText } from '../schema/isText'
 import { toHref, useLinkVariables } from './EditorLinkPopover'
 import { selectedNode, selectedNodeType } from './EditorNodeToolbar'
-import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
+import {
+  EDITOR_POPOVER_CLASS,
+  EditorPopoverForm,
+  keepingOnEscape
+} from './EditorPopoverForm'
 import { buttonBlock, insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
 import { EDITOR_POPUP } from './toolbarMode'
@@ -489,7 +493,7 @@ export function EditorButtonPopover({
       // No blur, so the button shows its changes above the half-height sheet.
       <Drawer
         open={open}
-        onOpenChange={live.onOpenChange}
+        onOpenChange={keepingOnEscape(live)}
         side='bottom'
         emphasis='subtler'
       >
@@ -508,7 +512,7 @@ export function EditorButtonPopover({
     )
   }
   return (
-    <Popover open={open} onOpenChange={live.onOpenChange}>
+    <Popover open={open} onOpenChange={keepingOnEscape(live)}>
       <Popover.Content
         {...{ [EDITOR_POPUP]: '' }}
         side='bottom'

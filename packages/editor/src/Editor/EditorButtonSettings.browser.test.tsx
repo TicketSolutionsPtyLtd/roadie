@@ -164,7 +164,7 @@ describe('Editor button settings', () => {
     )
   })
 
-  it('opens as a drawer from the bottom on a narrow screen, still putting the button back on Escape', async () => {
+  it('opens as a drawer from the bottom on a narrow screen, keeping the changes on Escape', async () => {
     await page.viewport(390, 700)
     onTestFinished(() => page.viewport(1280, 800))
     const onValueChange = renderEmail(email(button()))
@@ -181,7 +181,9 @@ describe('Editor button settings', () => {
       expect(savedButton(onValueChange)).toEqual(button({ emphasis: 'normal' }))
     )
     await userEvent.keyboard('{Escape}')
-    await waitFor(() => expect(savedButton(onValueChange)).toEqual(button()))
+    await waitFor(() =>
+      expect(savedButton(onValueChange)).toEqual(button({ emphasis: 'normal' }))
+    )
     await waitFor(() =>
       expect(screen.queryByRole('dialog', { name: 'Button settings' })).toBe(
         null
@@ -426,7 +428,8 @@ describe('Editor button settings', () => {
     fullWidth: true
   })
 
-  it('puts the button back as it opened on Escape', async () => {
+  // The maintainer's call: Escape keeps a live edit, and Undo takes it back.
+  it('keeps the changes on Escape, and undo puts the button back in one step', async () => {
     const onValueChange = renderEmail(email(button()))
     await restyle()
     await waitFor(() => expect(savedButton(onValueChange)).toEqual(restyled))
@@ -434,8 +437,10 @@ describe('Editor button settings', () => {
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedButton(onValueChange)).toEqual(button())
+    expect(savedButton(onValueChange)).toEqual(restyled)
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() => expect(savedButton(onValueChange)).toEqual(button()))
   })
 
   it('keeps the changes on a click outside', async () => {

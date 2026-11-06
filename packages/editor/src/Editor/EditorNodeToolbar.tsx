@@ -152,10 +152,11 @@ const overlaps = (a: DOMRect, b: DOMRect) =>
   a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
 
 /**
- * The first place for the columns toolbar that's on screen and clear of the
- * text before the columns: past their end at the top, then above their end.
- * Otherwise it docks inside their top-end corner, or the top of what shows,
- * rather than below, where the next block's own controls and badges sit.
+ * The first place for the columns toolbar that's on screen and covers no
+ * text: past their end at the top, above their end or start, inside their
+ * top-end or top-start corner, then in the top padding of the block holding
+ * them. It never goes below them, where the next block's own controls and
+ * badges sit. With none clear, it docks in their top-end corner.
  */
 function columnsPlace(
   editor: TiptapEditor,
@@ -172,30 +173,38 @@ function columnsPlace(
   )
   const frame = editor.view.dom.closest('[data-slot="editor"]')
   const frameRight = frame?.getBoundingClientRect().right ?? box.right
-  const neighbours = textRects(element.previousElementSibling)
-  // Each as the line the toolbar's end meets, and the toolbar it places.
-  const beside = new DOMRect(box.right + GAP, Math.max(box.top, top), width, 0)
-  const above = new DOMRect(box.left, box.top - GAP - height, box.width, 0)
-  const toolbarAt = (line: DOMRect) =>
-    new DOMRect(line.right - width, line.top, width, height)
-  const onScreen = (line: DOMRect) =>
-    line.top >= top &&
-    line.top + height <= window.innerHeight &&
-    toolbarAt(line).right <= frameRight - INSET
-  const clear = (line: DOMRect) =>
-    neighbours.every((rect) => !overlaps(rect, toolbarAt(line)))
-  return (
-    [beside, above].find((line) => onScreen(line) && clear(line)) ??
-    new DOMRect(
-      box.left,
-      Math.max(
-        Math.min(Math.max(box.top, top) + INSET, box.bottom - height - INSET),
-        box.top
-      ),
-      box.width - INSET,
-      0
-    )
+  const text = [
+    ...textRects(element.previousElementSibling),
+    ...textRects(element)
+  ]
+  const corner = Math.max(
+    Math.min(Math.max(box.top, top) + INSET, box.bottom - height - INSET),
+    box.top
   )
+  const holder = element.parentElement?.closest('[data-type]')
+  const padding = holder ? holder.getBoundingClientRect().top + INSET : -1
+  // Each as the toolbar's top and where its end sits.
+  const places = [
+    [Math.max(box.top, top), box.right + GAP + width],
+    [box.top - GAP - height, box.right],
+    [box.top - GAP - height, box.left + width],
+    [corner, box.right - INSET],
+    [corner, box.left + INSET + width],
+    [padding, box.right]
+  ] as const
+  const toolbarAt = ([y, end]: readonly [number, number]) =>
+    new DOMRect(end - width, y, width, height)
+  const fits = (place: readonly [number, number]) => {
+    const toolbar = toolbarAt(place)
+    return (
+      toolbar.top >= top &&
+      toolbar.bottom <= window.innerHeight &&
+      toolbar.right <= frameRight - INSET &&
+      text.every((rect) => !overlaps(rect, toolbar))
+    )
+  }
+  const [y, end] = places.find(fits) ?? places[3]
+  return new DOMRect(end - width, y, width, 0)
 }
 
 const PLUGIN_KEY = 'editorNodeToolbar'
