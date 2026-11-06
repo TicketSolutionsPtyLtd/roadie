@@ -1,3 +1,4 @@
+import { NewspaperIcon } from '@phosphor-icons/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import {
   afterAll,
@@ -8,10 +9,11 @@ import {
   it,
   vi
 } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { page as browserPage, page, userEvent } from 'vitest/browser'
 
 import { Editor, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
+import { type EditorBlock, Node } from '../extensions'
 import type { EditorValue, JSONContent } from '../schema'
 import { MOD, clickIntoEditor, selectParagraph } from './testUtils'
 
@@ -94,6 +96,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await openFromDockedBar()
 
     expect(tileGroups(drawer)).toEqual([
+      ['Sections', ['Header', 'Event', 'Two events']],
       [
         'Text',
         [
@@ -110,8 +113,7 @@ describe('Editor blocks drawer', () => {
         'Layout',
         ['Section', '2 columns', '3 columns', '4 columns', 'Spacer', 'Divider']
       ],
-      ['Email', ['Button']],
-      ['Sections', ['Header', 'Event', 'Two events']]
+      ['Email', ['Button']]
     ])
     for (const tile of within(drawer).getAllByRole('button')) {
       expect(tile.querySelector('svg')).not.toBe(null)
@@ -436,7 +438,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await screen.findByRole('dialog', { name: 'Blocks' })
     await waitFor(() =>
       expect(
-        within(drawer).getByRole('button', { name: 'Paragraph' })
+        within(drawer).getByRole('button', { name: 'Header' })
       ).toHaveFocus()
     )
     await userEvent.keyboard('{Escape}')
@@ -452,11 +454,11 @@ describe('Editor blocks drawer', () => {
     await waitFor(() =>
       expect(
         within(screen.getByRole('dialog')).getByRole('button', {
-          name: 'Paragraph'
+          name: 'Header'
         })
       ).toHaveFocus()
     )
-    await userEvent.keyboard('{Tab}'.repeat(10))
+    await userEvent.keyboard('{ArrowRight}'.repeat(13))
     expect(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
     ).toHaveFocus()
@@ -534,7 +536,7 @@ describe('Editor blocks drawer', () => {
     })
   })
 
-  it.each(['basic', 'rich', 'blocks'] as const)(
+  it.each(['basic', 'rich'] as const)(
     'offers no Blocks button in the %s preset',
     async (preset) => {
       render(<Editor aria-label={LABEL} preset={preset} toolbar='docked' />)
@@ -543,6 +545,344 @@ describe('Editor blocks drawer', () => {
       expect(within(bar).queryByRole('button', { name: 'Blocks' })).toBe(null)
     }
   )
+})
+
+describe('Editor blocks drawer finding and moving', () => {
+  const tileNames = (drawer: HTMLElement) =>
+    within(drawer)
+      .queryAllByRole('button')
+      .filter((tile) => tile.dataset.slot === 'editor-blocks-tile')
+      .map((tile) => tile.textContent)
+
+  it('filters the tiles with the / menu’s matcher, and Enter picks the first', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      'hr'
+    )
+    expect(tileNames(drawer)).toEqual(['Divider'])
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), { type: 'horizontalRule' }, p('Gates 6pm'))
+      )
+    )
+  })
+
+  // The phone toolbar stays docked above the keyboard while a popup is open.
+  it('marks itself as one of the editor’s popups', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+
+    expect(await openFromDockedBar()).toHaveAttribute('data-editor-popup')
+  })
+
+  it('opens with an empty filter after a pick', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      'hr{Enter}'
+    )
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Blocks' })).toBe(null)
+    )
+
+    const reopened = await openFromDockedBar()
+
+    expect(
+      within(reopened).getByRole('searchbox', { name: 'Find a block' })
+    ).toHaveValue('')
+    expect(tileNames(reopened).length).toBeGreaterThan(1)
+  })
+
+  it('ranks a name that starts with the filter first', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      '2'
+    )
+
+    expect(tileNames(drawer)).toEqual(['2 columns', 'Heading 2'])
+  })
+
+  it('types into the filter from a tile', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+    await waitFor(() =>
+      expect(document.activeElement).toHaveAttribute(
+        'data-slot',
+        'editor-blocks-tile'
+      )
+    )
+
+    await userEvent.keyboard('spa')
+
+    const filter = within(drawer).getByRole('searchbox', {
+      name: 'Find a block'
+    })
+    expect(filter).toHaveFocus()
+    expect(filter).toHaveValue('spa')
+    expect(tileNames(drawer)).toEqual(['Spacer'])
+  })
+
+  it('moves between tiles with the arrow keys, with one tab stop', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+    // Tiles are found by where they sit, so not while the drawer slides in.
+    await Promise.all(drawer.getAnimations().map((slide) => slide.finished))
+    const tile = (name: string) => within(drawer).getByRole('button', { name })
+    const [first, second] = tileNames(drawer)
+    await waitFor(() => expect(tile(first!)).toHaveFocus())
+
+    await userEvent.keyboard('{ArrowRight}')
+    expect(tile(second!)).toHaveFocus()
+    await userEvent.keyboard('{ArrowDown}')
+    const moved = (
+      document.activeElement as HTMLElement
+    ).getBoundingClientRect()
+    const above = tile(second!).getBoundingClientRect()
+    expect(moved.top).toBeGreaterThan(above.top)
+    expect(Math.abs(moved.left - above.left)).toBeLessThan(2)
+    await userEvent.keyboard('{End}')
+    const last = document.activeElement
+    expect(last?.textContent).toBe(tileNames(drawer).at(-1))
+
+    const stops = within(drawer)
+      .getAllByRole('button')
+      .filter(
+        (button) =>
+          button.dataset.slot === 'editor-blocks-tile' && button.tabIndex === 0
+      )
+    expect(stops).toEqual([last])
+  })
+
+  it('leaves the email usable beside it from 1280px wide', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    expect(document.querySelector('[data-slot="drawer-backdrop"]')).toBe(null)
+    await clickInto('Gates 6pm')
+
+    expect(await textbox()).toHaveFocus()
+    expect(drawer).toBeVisible()
+  })
+
+  it('makes room beside it from 1280px wide, so it covers none of the email', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const root = (await textbox()).closest<HTMLElement>('[data-slot="editor"]')!
+
+    const drawer = await openFromDockedBar()
+    // Measured once it has slid in, as it starts past the page's edge.
+    await Promise.all(drawer.getAnimations().map((slide) => slide.finished))
+
+    await waitFor(() => {
+      const canvas = root.getBoundingClientRect()
+      const end = canvas.right - parseFloat(getComputedStyle(root).paddingRight)
+      expect(end).toBeLessThanOrEqual(drawer.getBoundingClientRect().left + 1)
+    })
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(root.style.paddingRight).toBe(''))
+  })
+
+  it('keeps the editor’s own end padding as well as the room it makes', async () => {
+    renderEmail({ className: 'pe-8' })
+    await clickInto('Doors 7pm')
+    const root = (await textbox()).closest<HTMLElement>('[data-slot="editor"]')!
+
+    const drawer = await openFromDockedBar()
+    await Promise.all(drawer.getAnimations().map((slide) => slide.finished))
+
+    await waitFor(() => {
+      const end =
+        root.getBoundingClientRect().right -
+        parseFloat(getComputedStyle(root).paddingRight)
+      expect(end).toBeLessThanOrEqual(drawer.getBoundingClientRect().left - 31)
+    })
+  })
+
+  it('takes over the page below 1280px wide', async () => {
+    await page.viewport(1024, 800)
+    renderEmail()
+    await clickInto('Doors 7pm')
+
+    await openFromDockedBar()
+
+    expect(
+      document.querySelector('[data-slot="drawer-backdrop"]')
+    ).toBeInTheDocument()
+  })
+})
+
+describe('Editor blocks drawer in the blocks preset', () => {
+  const page = (...content: JSONContent[]): EditorValue => ({
+    version: 1,
+    preset: 'blocks',
+    doc: { type: 'doc', content }
+  })
+  const block = (blockId: string, text: string): JSONContent => ({
+    type: 'paragraph',
+    attrs: { blockId },
+    content: [{ type: 'text', text }]
+  })
+
+  function renderPage(props: Partial<EditorProps> = {}) {
+    const onValueChange = vi.fn()
+    render(
+      <div style={{ paddingTop: 96, paddingInline: 64 }}>
+        <Editor
+          aria-label={LABEL}
+          preset='blocks'
+          defaultValue={page(
+            block('doors', 'Doors 7pm'),
+            block('gates', 'Gates 6pm')
+          )}
+          onValueChange={onValueChange}
+          {...props}
+        />
+      </div>
+    )
+    return onValueChange
+  }
+
+  const types = (onValueChange: ReturnType<typeof vi.fn>) =>
+    (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
+      ({ type, content }) => [type, content?.[0]?.text]
+    )
+
+  const hero: EditorBlock = {
+    node: Node.create({
+      name: 'hero',
+      group: 'block',
+      atom: true,
+      parseHTML: () => [{ tag: 'div[data-hero]' }],
+      renderHTML: () => ['div', { 'data-hero': '' }]
+    }),
+    label: 'Hero',
+    icon: NewspaperIcon,
+    group: 'Sections'
+  }
+  const groupNames = (drawer: HTMLElement) =>
+    tileGroups(drawer).map(([group]) => group)
+
+  it('lists Sections first on a phone, where the sheet is short of room', async () => {
+    await browserPage.viewport(390, 844)
+    renderPage({ extensions: [hero] })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(groupNames(drawer)).toEqual(['Sections', 'Text', 'Media', 'Layout'])
+  })
+
+  it('lists Sections first on a desktop too, above the fold', async () => {
+    renderPage({ toolbar: 'docked', extensions: [hero] })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(groupNames(drawer)).toEqual(['Sections', 'Text', 'Media', 'Layout'])
+  })
+
+  it('opens from the docked toolbar with the preset’s blocks as tiles', async () => {
+    renderPage({
+      toolbar: 'docked',
+      onUploadImage: async () => ({ src: '/images/crowd.webp' })
+    })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(tileGroups(drawer)).toEqual([
+      [
+        'Text',
+        [
+          'Paragraph',
+          'Heading 2',
+          'Heading 3',
+          'Heading 4',
+          'Bulleted list',
+          'Numbered list',
+          'Quote'
+        ]
+      ],
+      ['Media', ['Image', 'Embed']],
+      ['Layout', ['Divider', 'Table']]
+    ])
+  })
+
+  it('adds a block after the caret’s block', async () => {
+    const onValueChange = renderPage({ toolbar: 'docked' })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Divider' })
+    )
+
+    await waitFor(() =>
+      expect(types(onValueChange)).toEqual([
+        ['paragraph', 'Doors 7pm'],
+        ['horizontalRule', undefined],
+        ['paragraph', 'Gates 6pm']
+      ])
+    )
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+  })
+
+  it('opens the Embed popover on a new line after the caret’s block', async () => {
+    const onValueChange = renderPage({ toolbar: 'docked' })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Embed' }))
+
+    const field = await screen.findByRole('textbox', {
+      name: 'Video or audio link'
+    })
+    await waitFor(() => expect(field).toHaveFocus())
+    expect(types(onValueChange)).toEqual([
+      ['paragraph', 'Doors 7pm'],
+      ['paragraph', undefined],
+      ['paragraph', 'Gates 6pm']
+    ])
+  })
+
+  it('shows an add button before the grip, which opens the insert menu after the block', async () => {
+    const onValueChange = renderPage()
+    const row = await screen.findByText('Doors 7pm')
+    await userEvent.hover(row)
+
+    const add = await screen.findByRole('button', { name: 'Add block' })
+    const grip = await screen.findByRole('button', { name: 'Block actions' })
+    await waitFor(() =>
+      expect(add.getBoundingClientRect().right).toBeLessThanOrEqual(
+        grip.getBoundingClientRect().left
+      )
+    )
+    await userEvent.click(add)
+
+    expect(await screen.findByRole('listbox', { name: 'Insert' })).toBeVisible()
+    await waitFor(() =>
+      expect(types(onValueChange)).toEqual([
+        ['paragraph', 'Doors 7pm'],
+        ['paragraph', '/'],
+        ['paragraph', 'Gates 6pm']
+      ])
+    )
+  })
 })
 
 describe('Editor blocks drawer sections', () => {
