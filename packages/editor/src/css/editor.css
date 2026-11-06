@@ -111,6 +111,227 @@
   margin-block-start: calc(var(--spacing) * 2);
 }
 
+/* An email sends in its own colours, so the canvas keeps them in a dark app.
+   The editor sets --email-theme-* from its theme; a colour it leaves out
+   takes Roadie's light scales. Declared on the frame, as the block handle
+   sits over the canvas but outside it. */
+[data-slot='editor'][data-preset='email'] {
+  --email-background: var(
+    --email-theme-background,
+    var(--color-neutral-light-0)
+  );
+  --email-text: var(--email-theme-text, var(--color-neutral-light-12));
+  --email-accent: var(--email-theme-accent, var(--color-accent-light-9));
+  --email-link: var(--email-theme-link, var(--email-accent));
+  --email-button: var(--email-theme-button, var(--email-accent));
+  --email-button-text: var(
+    --email-theme-button-text,
+    var(--color-neutral-light-0)
+  );
+  --email-border: var(
+    --email-theme-border,
+    color-mix(
+      in oklch,
+      var(--color-neutral-light-9) 30%,
+      var(--color-neutral-light-5)
+    )
+  );
+  --email-tint: var(
+    --email-theme-tint,
+    color-mix(
+      in oklch,
+      var(--color-neutral-light-5) 50%,
+      var(--color-neutral-light-0)
+    )
+  );
+  --email-divider: var(--email-theme-divider, var(--color-neutral-light-5));
+}
+
+/* The editor's own marks on the email (outlines, the caret's halo, the
+   placeholder, the handle) mix from its text and background, so they show
+   on any background the theme gives it. */
+[data-email],
+[data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong),
+[data-preset='email']
+  :is([data-slot='editor-block-handle'], [data-slot='editor-block-add']) {
+  --intent-text-normal: var(--email-text);
+  --intent-text-strong: var(--email-text);
+  --intent-text-subtle: color-mix(
+    in oklch,
+    var(--email-text) 70%,
+    var(--email-background)
+  );
+  --intent-text-subtler: color-mix(
+    in oklch,
+    var(--email-text) 55%,
+    var(--email-background)
+  );
+  --intent-border-subtle: color-mix(
+    in oklch,
+    var(--email-text) 22%,
+    var(--email-background)
+  );
+  --intent-border-normal: color-mix(
+    in oklch,
+    var(--email-text) 32%,
+    var(--email-background)
+  );
+  --intent-bg-subtler: color-mix(in oklch, var(--email-text) 6%, transparent);
+  --intent-bg-subtle: color-mix(in oklch, var(--email-text) 11%, transparent);
+  --intent-5: color-mix(
+    in oklch,
+    var(--email-text) 14%,
+    var(--email-background)
+  );
+}
+
+[data-email] {
+  /* The email's own colours, which a section's look swaps beneath it. */
+  --email-base-background: var(--email-background);
+  --email-base-tint: var(--email-tint);
+  --email-base-button: var(--email-button);
+  --email-base-button-text: var(--email-button-text);
+
+  color-scheme: light;
+  /* A block outside columns sits 24px in on both sides, as the email pads
+     it, so text wraps where it sends; the block handle sits outside. */
+  padding-inline: calc(var(--spacing) * 6);
+  border-radius: var(--radius-md);
+  background-color: var(--email-background);
+  color: var(--email-text);
+  font-family: var(--email-theme-font-family, Helvetica, Arial, sans-serif);
+}
+
+[data-email] a:not([data-type]) {
+  --intent-link-own: var(--email-link);
+
+  color: var(--email-link);
+}
+
+[data-email] hr {
+  border-color: var(--email-divider);
+}
+
+/* The app's selection colour is for the app's own surface, and on the email
+   it can be a dark fill under dark text. */
+[data-email] ::selection {
+  background-color: color-mix(
+    in oklch,
+    var(--email-link) 22%,
+    var(--email-background)
+  );
+  color: var(--email-text);
+}
+
+/* The grip and add button sit in a 32px gutter beside the email. Where the
+   frame has less room either side of the 600px email, the content keeps the
+   gutter at its start; the percentage is the frame's width, wherever it's
+   used. */
+[data-preset='email'] {
+  --email-gutter: max(
+    0px,
+    min(calc(var(--spacing) * 8), calc(600px + var(--spacing) * 16 - 100%))
+  );
+}
+
+[data-preset='email'] [data-slot='editor-content'] {
+  padding-inline-start: var(--email-gutter);
+}
+
+/* Narrower than 600px, the email sends at the screen's width, 24px in from
+   each side, and a gutter would also stack columns the email, from 480px,
+   sends side by side. So below 544px a framed canvas takes the frame's whole
+   width: the grip sits in the email's own padding, and blocks are added from
+   the toolbar's Blocks or `/`, as the add button would have no room. A
+   boxless editor keeps its gutter for its handles. */
+[data-preset='email'] {
+  container: email-frame / inline-size;
+}
+
+@container email-frame (max-width: 543px) {
+  [data-preset='email']:not([data-emphasis='subtler']) > * {
+    --email-gutter: 0px;
+  }
+
+  [data-preset='email']:not([data-emphasis='subtler'])
+    [data-slot='editor-block-handle'] {
+    translate: calc(var(--spacing) * 1) 0;
+  }
+
+  [data-preset='email']:not([data-emphasis='subtler'])
+    [data-slot='editor-block-handle']:dir(rtl) {
+    translate: calc(var(--spacing) * -1) 0;
+  }
+
+  [data-preset='email']:not([data-emphasis='subtler'])
+    [data-slot='editor-block-add'] {
+    display: none;
+  }
+}
+
+/* A column pads its blocks 12px a side and a block outside columns 24px, so
+   in the email columns reach 12px further out than the text around them. */
+[data-email] [data-type='columns'] {
+  margin-inline: calc(var(--spacing) * -3);
+}
+
+/* Drawn as renderEmail draws each emphasis, in the theme's colours: a
+   button's, and a section's look of tint or accent. */
+[data-email] [data-type='button'].emphasis-strong {
+  background-color: var(--email-button);
+  color: var(--email-button-text);
+}
+
+[data-email] [data-type='button'].emphasis-normal {
+  background-color: var(--email-background);
+  border-color: var(--email-border);
+  color: var(--email-text);
+}
+
+/* A section's look swaps the colours its blocks take, as renderEmail's
+   does: a tint swaps the background and tint, and an accent takes the strong
+   button's, so text, links, and buttons stay legible on it. */
+[data-email] [data-type='section'].emphasis-subtle {
+  --email-background: var(--email-base-tint);
+  --email-tint: var(--email-base-background);
+}
+
+[data-email] [data-type='section'].emphasis-strong {
+  --email-background: var(--email-base-button);
+  --email-text: var(--email-base-button-text);
+  --email-link: var(--email-base-button-text);
+  --email-button: var(--email-base-button-text);
+  --email-button-text: var(--email-base-button);
+  --email-border: var(--email-base-button-text);
+  --email-tint: var(--email-base-button);
+  --email-divider: var(--email-base-button-text);
+}
+
+[data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong) {
+  background-color: var(--email-background);
+  color: var(--email-text);
+}
+
+[data-email] [data-type='button'].emphasis-subtle {
+  background-color: var(--email-tint);
+  color: var(--email-text);
+}
+
+/* A merge tag's chip takes the light accent, or danger when it's unknown. */
+[data-email] [data-slot='editor-variable'] [data-slot='badge'] {
+  --chip-tone: var(--color-accent-light-9);
+  --chip-ink: var(--color-accent-light-12);
+
+  --intent-bg-subtle: color-mix(in oklch, var(--chip-tone) 14%, transparent);
+  --intent-bg-raised: var(--color-neutral-light-0);
+  --intent-text-subtle: var(--chip-ink);
+}
+
+[data-email] [data-slot='editor-variable'][data-invalid] [data-slot='badge'] {
+  --chip-tone: var(--color-danger-light-9);
+  --chip-ink: var(--color-danger-light-12);
+}
+
 [data-email] h2 {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -181,6 +402,14 @@
   margin-inline-start: calc(-1 * var(--editor-invalid-gap));
   padding-inline-start: calc(
     var(--editor-invalid-gap) - var(--editor-invalid-edge)
+  );
+}
+
+/* An email's text sits 24px in, so its edge keeps that room too. */
+[data-slot='editor'][data-emphasis='subtler']
+  [data-email].ProseMirror[aria-invalid='true'] {
+  padding-inline-start: calc(
+    var(--spacing) * 6 + var(--editor-invalid-gap) - var(--editor-invalid-edge)
   );
 }
 

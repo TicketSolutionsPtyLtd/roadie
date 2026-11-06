@@ -154,4 +154,8 @@ to merge.
 After the Release workflow's Publish job passes, npm can take up to about 10
 minutes to show a large package's new version (components 2.16.0 took about
 7). Changesets reports success whenever `npm publish` exits 0, so wait before
-treating a missing version as a failed publish.
+treating a missing version as a failed publish. Wait in the background, never
+in the foreground (a Roadie hook denies `sleep` over 10 seconds): end your
+turn and check again later, or run
+`until npm view <pkg>@<version> version; do sleep 30; done` with
+`run_in_background`, which wakes you when it exits.

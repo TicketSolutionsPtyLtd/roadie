@@ -52,12 +52,14 @@ function renderEmail(props: Partial<React.ComponentProps<typeof Editor>> = {}) {
   return onValueChange
 }
 
+const OPTION_LABEL = '[data-slot="editor-insert-label"]'
+
 const insertMenu = () => screen.findByRole('listbox', { name: 'Insert' })
 
 const optionNames = (listbox: HTMLElement) =>
   within(listbox)
     .getAllByRole('option')
-    .map((option) => option.textContent)
+    .map((option) => option.querySelector(OPTION_LABEL)?.textContent)
 
 const groupNames = (listbox: HTMLElement) =>
   within(listbox)
@@ -290,7 +292,7 @@ describe('Editor insert menu', () => {
     )
   })
 
-  it('filters as you type, and closes when nothing matches', async () => {
+  it('filters as you type, down to a No blocks match row', async () => {
     renderEmail()
     await focusedTextbox()
 
@@ -302,7 +304,80 @@ describe('Editor insert menu', () => {
     ])
 
     await userEvent.keyboard('z')
+    await waitFor(async () =>
+      expect(within(await insertMenu()).getByRole('option')).toHaveTextContent(
+        'No blocks match'
+      )
+    )
+  })
+
+  it('ranks a match at the start of a name first, as /2 finds 2 columns before Heading 2', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/2')
+
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual([
+        '2 columns',
+        'Heading 2'
+      ])
+    )
+  })
+
+  it.each([
+    ['btn', ['Button']],
+    ['cta', ['Button']],
+    ['h1', ['Heading 2']],
+    ['img', ['Image']],
+    ['hr', ['Divider']]
+  ])('finds /%s', async (query, names) => {
+    renderEmail({
+      onUploadImage: async () => ({ src: 'https://example.com/crowd.png' })
+    })
+    await focusedTextbox()
+
+    await userEvent.keyboard(`/${query}`)
+
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual(names)
+    )
+  })
+
+  // The email's divider has no markdown rule to show.
+  it('shows the heading shortcut, and none for the divider', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const listbox = await insertMenu()
+    const shortcut = (name: string) =>
+      within(listbox)
+        .getByRole('option', { name })
+        .querySelector('[data-slot="editor-insert-shortcut"]')
+
+    expect(shortcut('Heading 2')).toHaveTextContent('##')
+    expect(shortcut('Divider')).toBe(null)
+  })
+
+  it('closes on Escape with nothing matching, without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor aria-label={LABEL} preset='email' />
+        </Dialog.Content>
+      </Dialog>
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/hero')
+    await insertMenu()
+    await userEvent.keyboard('{Escape}')
+
     await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(onOpenChange).not.toHaveBeenCalled()
   })
 
   it('moves the active option with the arrow keys, wrapping at the ends', async () => {
