@@ -217,23 +217,29 @@
   padding-inline-start: var(--email-gutter);
 }
 
-/* Below 480px the email sends at the phone's width, 24px in from each side,
-   so the canvas takes the frame's whole width and keeps no gutter. In a
-   frame, the grip sits in the email's own padding, and blocks are added
-   from the toolbar's Blocks or `/`, as the add button would have no room. A
-   boxless editor's handles stay in the page's margin. */
+/* Narrower than 600px, the email sends at the screen's width, 24px in from
+   each side, and a gutter would also stack columns the email, from 480px,
+   sends side by side. So below 544px a framed canvas takes the frame's whole
+   width: the grip sits in the email's own padding, and blocks are added from
+   the toolbar's Blocks or `/`, as the add button would have no room. A
+   boxless editor keeps its gutter for its handles. */
 [data-preset='email'] {
   container: email-frame / inline-size;
 }
 
-@container email-frame (max-width: 479px) {
-  [data-preset='email'] > * {
+@container email-frame (max-width: 543px) {
+  [data-preset='email']:not([data-emphasis='subtler']) > * {
     --email-gutter: 0px;
   }
 
   [data-preset='email']:not([data-emphasis='subtler'])
     [data-slot='editor-block-handle'] {
     translate: calc(var(--spacing) * 1) 0;
+  }
+
+  [data-preset='email']:not([data-emphasis='subtler'])
+    [data-slot='editor-block-handle']:dir(rtl) {
+    translate: calc(var(--spacing) * -1) 0;
   }
 
   [data-preset='email']:not([data-emphasis='subtler'])

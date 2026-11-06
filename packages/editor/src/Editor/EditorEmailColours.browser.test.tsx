@@ -253,7 +253,7 @@ describe('Editor email section looks', () => {
 })
 
 describe('Editor email layout, as it sends', () => {
-  it.each([390, 900])(
+  it.each([390, 500, 900])(
     'wraps text in the column the sent email does, at %ipx',
     async (width) => {
       render(
