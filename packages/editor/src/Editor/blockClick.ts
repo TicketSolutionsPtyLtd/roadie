@@ -50,7 +50,10 @@ export function clickedSetting(
         other.textContent?.trim() === text &&
         ![...other.children].some((child) => child.textContent?.trim() === text)
     )
-    const nth = Math.max(0, twins.indexOf(element))
+    // Only items of one list are told apart by place; text shared with
+    // another attr can't be, so the first match stands.
+    const lists = new Set(matches.map(([path]) => path.split('.')[0]))
+    const nth = lists.size === 1 ? twins.indexOf(element) : -1
     return (matches[nth] ?? matches[0])![0]
   }
   return undefined

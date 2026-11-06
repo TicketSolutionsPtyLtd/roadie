@@ -122,12 +122,13 @@ function ImageFields({
     latest.current = { image, onValueChange }
   })
   const mounted = useRef(true)
-  useEffect(
-    () => () => {
+  // Set again on each mount, as StrictMode mounts twice.
+  useEffect(() => {
+    mounted.current = true
+    return () => {
       mounted.current = false
-    },
-    []
-  )
+    }
+  }, [])
   const refused = src !== '' && !isSafeImageSrc(src)
   const change = (next: Attrs) => onValueChange({ ...image, ...next })
   return (
