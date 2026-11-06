@@ -80,20 +80,25 @@ const useWide = () =>
  * same, and the two could share this.
  */
 function makeRoomBeside(root: HTMLElement, popup: HTMLElement) {
-  const previous = root.style.paddingInlineEnd
+  // The drawer is on the right whatever the direction, so physical padding.
+  const previous = root.style.paddingRight
   // offsetWidth ignores the slide in, which a rect would catch midway.
   const fit = () => {
-    root.style.paddingInlineEnd = previous
+    root.style.paddingRight = previous
+    const own = parseFloat(getComputedStyle(root).paddingRight)
     const covered =
       root.getBoundingClientRect().right -
       (document.documentElement.clientWidth - popup.offsetWidth)
-    if (covered > 0) root.style.paddingInlineEnd = `${covered}px`
+    if (covered > 0) root.style.paddingRight = `${own + covered}px`
   }
   fit()
+  const resizes = new ResizeObserver(fit)
+  resizes.observe(root.parentElement ?? document.documentElement)
   window.addEventListener('resize', fit)
   return () => {
+    resizes.disconnect()
     window.removeEventListener('resize', fit)
-    root.style.paddingInlineEnd = previous
+    root.style.paddingRight = previous
   }
 }
 
@@ -167,13 +172,13 @@ export function EditorBlocksDrawer({
   const enabled = ordered.filter(usable)
   const current = Math.min(active, Math.max(enabled.length - 1, 0))
 
-  // Closed by a pick, Escape or the toolbar alike, it opens unfiltered.
   useEffect(() => {
     if (!open || !beside || !popup) return
     const root = editor.view.dom.closest<HTMLElement>('[data-slot="editor"]')
     return root ? makeRoomBeside(root, popup) : undefined
   }, [editor, open, beside, popup])
 
+  // Closed by a pick, Escape or the toolbar alike, it opens unfiltered.
   useEffect(() => {
     if (open) return
     setQuery('')
