@@ -589,7 +589,8 @@ export function EditorEngine({
           // Room for the block handle at each block's start.
           blockHandle &&
             cn(
-              emphasis !== 'subtler' &&
+              // A page's own, so neither its host nor a frame clips it.
+              (preset === 'blocks' || emphasis !== 'subtler') &&
                 (blockHandle.canAdd ? 'ps-15' : 'ps-10'),
               // On a phone, only the grip's room at the start, in a subtler
               // editor too, as the page may clip it; its target may overlap.
