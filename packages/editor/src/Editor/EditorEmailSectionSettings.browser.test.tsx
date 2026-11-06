@@ -244,6 +244,10 @@ describe('Editor email section settings', () => {
         textbox.querySelector('[aria-label="Section settings"]')
       ).not.toBeVisible()
     )
+    // Nor its floating surface, which would show as an empty pill.
+    expect(
+      textbox.querySelector('[data-slot="editor-section-toolbar"] > *')
+    ).not.toBeVisible()
   })
 
   it('reads its toolbar in the dark', async () => {

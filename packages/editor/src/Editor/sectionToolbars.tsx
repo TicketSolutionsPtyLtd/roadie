@@ -39,7 +39,11 @@ function SectionToolbar({ rule, label, open }: Shown) {
   return (
     // Its own floating surface, so it reads on a canvas pinned to the email's
     // light colours as well as on the app's dark one.
-    <div className='flex items-center gap-1 rounded-full emphasis-floating p-0.5'>
+    // With no badge it's Settings alone, so the whole pill hides with it.
+    <div
+      data-slot={rule ? undefined : 'editor-section-settings'}
+      className='flex items-center gap-1 rounded-full emphasis-floating p-0.5'
+    >
       {rule ? (
         <Badge
           intent={unknown ? 'warning' : 'info'}
@@ -66,7 +70,7 @@ function SectionToolbar({ rule, label, open }: Shown) {
         emphasis='subtler'
         aria-label='Section settings'
         tabIndex={-1}
-        data-slot='editor-section-settings'
+        data-slot={rule ? 'editor-section-settings' : undefined}
         // A press would otherwise move the caret before the click.
         onMouseDown={(event) => event.preventDefault()}
         onClick={open}
