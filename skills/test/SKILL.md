@@ -61,12 +61,14 @@ never `vitest` or the whole suite directly. In Roadie that's
 as `components`, not the npm name) and the path, relative to the package or
 the repo, is a file or folder; a missing path exits 2, and one no test covers
 exits 1. It waits for load and runs Chromium only; add `--all-browsers` for
-WebKit and Firefox too. A repo without a runner follows its own load rule and
+WebKit and Firefox too, or `--browsers=firefox` for one engine. A repo without a runner follows its own load rule and
 runs `vitest run <file>`. Before pushing, follow
-the host workflow and let the hooks and CI run the rest. In Roadie, the run
-`gh pr ready` starts is Chromium only, and WebKit and Firefox run on `main`
-and nightly, so a browser test that covers CSS or an engine difference wants
-the `full-browsers` label on the PR (PR workflow sections 5 and 7).
+the host workflow and let the hooks and CI run the rest. In Roadie, the
+pre-push hook runs the browser tests beside the change in Chromium, Firefox,
+and WebKit. The run `gh pr ready` starts is Chromium only, and WebKit and
+Firefox run on `main` and nightly, so a browser test that covers CSS or an
+engine difference wants the `full-browsers` label on the PR (PR workflow
+sections 5 and 7).
 
 ## 4. Tests that lie
 
