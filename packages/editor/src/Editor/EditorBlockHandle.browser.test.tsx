@@ -905,6 +905,37 @@ describe('Editor block handle', () => {
     await expectHandleBeside('Support')
   })
 
+  it('follows an email’s block as a drawer moves the canvas, with the pointer still', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{ ...lineup, preset: 'email' }}
+      />
+    )
+    const support = await paragraph('Support')
+    await userEvent.hover(support)
+    await expectHandleBeside('Support')
+    const grip = await handle()
+    const add = screen.getByRole('button', { name: 'Add block' })
+    const before = support.getBoundingClientRect().left
+
+    // As a drawer opening beside the editor pads it.
+    support.closest<HTMLElement>('[data-slot="editor"]')!.style.paddingRight =
+      '320px'
+
+    await waitFor(() =>
+      expect(support.getBoundingClientRect().left).toBeLessThan(before - 100)
+    )
+    await waitFor(() => {
+      const text = support.getBoundingClientRect().left
+      for (const control of [grip, add]) {
+        const { right } = control.getBoundingClientRect()
+        expect(right).toBeLessThanOrEqual(text)
+        expect(right).toBeGreaterThan(text - 80)
+      }
+    })
+  })
+
   describe('on a phone', () => {
     it('moves to a new line the caret makes, from the block tapped', async () => {
       await page.viewport(390, 700)

@@ -3,8 +3,10 @@
 import { useLayoutEffect, useState } from 'react'
 
 import {
+  ArrowDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  ArrowUpIcon,
   CopySimpleIcon,
   DotsSixIcon,
   TrashIcon
@@ -28,6 +30,35 @@ import { focusEditor } from './focusEditor'
 
 const HANDLE_SIZE = 24
 
+type Flow = 'row' | 'stacked' | 'stacked-reversed'
+
+// How the row lays its columns out on screen: side by side, or stacked on a
+// phone, from the last column up when it stacks right first.
+function flowOf(column: HTMLElement): Flow {
+  const [first, second] = Array.from(
+    column.parentElement?.children ?? [],
+    (child) => child.getBoundingClientRect()
+  )
+  if (!first || !second) return 'row'
+  if (second.top >= first.bottom - 1) return 'stacked'
+  return first.top >= second.bottom - 1 ? 'stacked-reversed' : 'row'
+}
+
+const MOVES = {
+  row: [
+    { label: 'Move left', icon: ArrowLeftIcon, step: -1 },
+    { label: 'Move right', icon: ArrowRightIcon, step: 1 }
+  ],
+  stacked: [
+    { label: 'Move up', icon: ArrowUpIcon, step: -1 },
+    { label: 'Move down', icon: ArrowDownIcon, step: 1 }
+  ],
+  'stacked-reversed': [
+    { label: 'Move up', icon: ArrowUpIcon, step: 1 },
+    { label: 'Move down', icon: ArrowDownIcon, step: -1 }
+  ]
+} as const
+
 type EditorColumnHandleProps = {
   editor: TiptapEditor
   wrapper: HTMLElement
@@ -49,7 +80,11 @@ export function EditorColumnHandle({
   menuAt,
   onMenuAtChange: setMenuAt
 }: EditorColumnHandleProps) {
-  const [place, setPlace] = useState<{ top: number; left: number } | null>(null)
+  const [place, setPlace] = useState<{
+    top: number
+    left: number
+    flow: Flow
+  } | null>(null)
   const shown = menuAt ?? column
 
   useLayoutEffect(() => {
@@ -62,9 +97,12 @@ export function EditorColumnHandle({
     const frame = wrapper.getBoundingClientRect()
     const top = box.top - frame.top - HANDLE_SIZE
     const left = box.left - frame.left + (box.width - HANDLE_SIZE) / 2
+    const flow = flowOf(dom)
     // After every render, as an edit anywhere above can move the column.
     setPlace((last) =>
-      last?.top === top && last.left === left ? last : { top, left }
+      last?.top === top && last.left === left && last.flow === flow
+        ? last
+        : { top, left, flow }
     )
   })
 
@@ -105,7 +143,7 @@ export function EditorColumnHandle({
             tabIndex={-1}
             data-slot='editor-column-handle'
             className='absolute text-subtle'
-            style={place}
+            style={{ top: place.top, left: place.left }}
             onClick={() => setMenuAt(shown)}
           >
             <DotsSixIcon weight='bold' className='size-4' aria-hidden />
@@ -122,22 +160,17 @@ export function EditorColumnHandle({
       >
         <Menu.Group>
           <Menu.GroupLabel>Column</Menu.GroupLabel>
-          <Menu.Item
-            icon={<ArrowLeftIcon weight='bold' />}
-            disabled={!canMoveColumn(doc, shown, -1)}
-            closeOnClick={false}
-            onClick={() => move(-1)}
-          >
-            Move left
-          </Menu.Item>
-          <Menu.Item
-            icon={<ArrowRightIcon weight='bold' />}
-            disabled={!canMoveColumn(doc, shown, 1)}
-            closeOnClick={false}
-            onClick={() => move(1)}
-          >
-            Move right
-          </Menu.Item>
+          {MOVES[place.flow].map(({ label, icon: Icon, step }) => (
+            <Menu.Item
+              key={label}
+              icon={<Icon weight='bold' />}
+              disabled={!canMoveColumn(doc, shown, step)}
+              closeOnClick={false}
+              onClick={() => move(step)}
+            >
+              {label}
+            </Menu.Item>
+          ))}
           <Menu.Item
             icon={<CopySimpleIcon weight='bold' />}
             disabled={!canAddColumn(doc, shown)}

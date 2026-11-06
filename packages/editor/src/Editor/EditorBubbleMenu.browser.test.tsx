@@ -247,6 +247,68 @@ describe('Editor.BubbleMenu', () => {
     )
   })
 
+  it('keeps clear of a section’s settings over its first line', async () => {
+    render(
+      <BubbleEditor
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              paragraph('Doors 7pm'),
+              {
+                type: 'section',
+                content: [
+                  {
+                    type: 'heading',
+                    attrs: { level: 2 },
+                    content: [
+                      {
+                        type: 'text',
+                        text: 'Two weeks until the Ochre Kite Weekender at Jumbuck Orchard Park'
+                      }
+                    ]
+                  },
+                  paragraph('Gates open at 4pm')
+                ]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(
+      within(textbox).getByText(
+        'Two weeks until the Ochre Kite Weekender at Jumbuck Orchard Park'
+      )
+    )
+    await userEvent.keyboard(
+      `${LINE_END}{Shift>}${'{ArrowLeft}'.repeat(5)}{/Shift}`
+    )
+
+    const toolbar = await menu()
+    const settings = within(textbox).getByRole('button', {
+      name: 'Section settings',
+      hidden: true
+    })
+    await waitFor(() => {
+      expect(getComputedStyle(settings).visibility).toBe('visible')
+      const bar = toolbar.getBoundingClientRect()
+      const button = settings.getBoundingClientRect()
+      expect(bar.width).toBeGreaterThan(0)
+      expect(
+        bar.left < button.right &&
+          button.left < bar.right &&
+          bar.top < button.bottom &&
+          button.top < bar.bottom
+      ).toBe(false)
+      // On the selection's side of them, not pushed past.
+      expect(bar.right).toBeLessThanOrEqual(button.left)
+    })
+  })
+
   it('shows when everything is selected', async () => {
     render(<BubbleEditor />)
     const textbox = await screen.findByRole('textbox', { name: LABEL })

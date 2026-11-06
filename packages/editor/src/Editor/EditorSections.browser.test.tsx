@@ -330,6 +330,52 @@ describe('Editor sections', () => {
     expect(getComputedStyle(section).outlineStyle).toBe('solid')
   })
 
+  it('names a section above its box, on an opaque fill, covering none of it', async () => {
+    renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const section = within(textbox).getByRole('group', { name: 'Promo' })
+    const name = within(section).getByText('Promo', {
+      selector: '[data-slot=editor-section-name]'
+    })
+
+    await userEvent.hover(section)
+
+    await waitFor(() => expect(name).toBeVisible())
+    expect(name.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      section.getBoundingClientRect().top
+    )
+    const fill = getComputedStyle(name).backgroundColor
+    expect(fill).not.toMatch(/rgba?\(.*,\s*0(\.\d+)?\)$|\/\s*0?\.\d+\)$/)
+  })
+
+  it('names a section only where the pointer can hover, so a tap leaves no name', () => {
+    const showing = Array.from(document.styleSheets)
+      .flatMap((sheet) => Array.from(sheet.cssRules))
+      // A style rule holds its nested rules, too, in Firefox.
+      .flatMap(function rules(rule): CSSRule[] {
+        return [
+          rule,
+          ...(rule instanceof CSSGroupingRule
+            ? Array.from(rule.cssRules).flatMap(rules)
+            : [])
+        ]
+      })
+      .filter(
+        (rule): rule is CSSStyleRule =>
+          rule instanceof CSSStyleRule &&
+          rule.selectorText.includes('editor-section-name') &&
+          rule.style.visibility === 'visible'
+      )
+
+    expect(showing).not.toHaveLength(0)
+    for (const rule of showing) {
+      expect(rule.parentRule).toBeInstanceOf(CSSMediaRule)
+      expect((rule.parentRule as CSSMediaRule).conditionText).toMatch(
+        /hover:\s*hover/
+      )
+    }
+  })
+
   it('keeps a selected section’s ring under the pointer', async () => {
     renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
     const textbox = await screen.findByRole('textbox', { name: LABEL })

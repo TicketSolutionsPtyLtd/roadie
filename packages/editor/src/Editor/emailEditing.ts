@@ -374,7 +374,11 @@ function outlined(
 }
 
 // The email's wrapper pads a section 16px above and below, or 8px or 32px.
-const SECTION_SPACING = { tight: 'py-2', roomy: 'py-8' } as const
+const SECTION_SPACING = { tight: 'py-2', roomy: 'py-8', normal: 'py-4' }
+
+// A fill also holds its first and last block's own 8px, and runs to the
+// email's edges with its blocks 24px in, as the email's wrapper does.
+const FILLED_SECTION_SPACING = { tight: 'py-4', roomy: 'py-10', normal: 'py-6' }
 
 // Matches how renderEmail fills each look from the theme.
 const SECTION_LOOK = {
@@ -383,11 +387,12 @@ const SECTION_LOOK = {
 } as const
 
 function sectionClass(attrs: Attrs) {
-  const { look, spacing } = sectionLook(attrs)
+  const { look, spacing = 'normal' } = sectionLook(attrs)
   return cn(
-    'prose-bleed relative rounded-lg',
-    spacing ? SECTION_SPACING[spacing] : 'py-4',
-    look && SECTION_LOOK[look]
+    'prose-bleed relative',
+    look
+      ? ['-mx-6 px-6', FILLED_SECTION_SPACING[spacing], SECTION_LOOK[look]]
+      : ['rounded-lg', SECTION_SPACING[spacing]]
   )
 }
 
@@ -445,9 +450,10 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
       Enter: ({ editor }) => editor.commands.command(leaveButton)
     })
   }),
-  section: outlined(Section, sectionClass, (attrs) =>
-    attrs.showWhen ? { 'data-conditional': '' } : {}
-  ).extend({
+  section: outlined(Section, sectionClass, (attrs) => ({
+    ...(attrs.showWhen ? { 'data-conditional': '' } : {}),
+    ...(sectionLook(attrs).look ? { 'data-filled': '' } : {})
+  })).extend({
     addKeyboardShortcuts: () => ({
       Enter: ({ editor }) => editor.commands.command(leaveSection)
     })
