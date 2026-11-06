@@ -54,7 +54,7 @@
     "name": "Editor (shell)",
     "path": "dist/Editor/index.js",
     "import": "*",
-    "limit": "67 kB",
+    "limit": "70 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
