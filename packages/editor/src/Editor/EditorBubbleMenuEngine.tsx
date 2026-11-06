@@ -153,15 +153,19 @@ function clearOfActions(
 
 /**
  * Shifts the menu clear of a section's Settings and badge level with it, to
- * the side away from them. Runs before the offset, so it allows for that.
+ * the side away from them. Runs before the offset, so it allows for that,
+ * and reads the selection in the viewport, where the controls are measured.
  */
 function clearOfSectionControls(
   editor: TiptapEditor,
-  { y, placement, rects: { reference, floating } }: MiddlewareState
+  { placement, elements, rects: { floating } }: MiddlewareState
 ) {
-  const top = y + (placement.startsWith('top') ? -OFFSET : OFFSET)
+  const reference = elements.reference.getBoundingClientRect()
+  const top = placement.startsWith('top')
+    ? reference.top - OFFSET - floating.height
+    : reference.bottom + OFFSET
   const bottom = top + floating.height
-  const middle = reference.x + reference.width / 2
+  const middle = reference.left + reference.width / 2
   let left = 0
   let right = document.documentElement.clientWidth
   const frame = editor.view.dom.closest('[data-slot="editor"]')

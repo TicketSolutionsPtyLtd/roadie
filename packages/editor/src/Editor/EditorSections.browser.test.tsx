@@ -351,10 +351,14 @@ describe('Editor sections', () => {
   it('names a section only where the pointer can hover, so a tap leaves no name', () => {
     const showing = Array.from(document.styleSheets)
       .flatMap((sheet) => Array.from(sheet.cssRules))
+      // A style rule holds its nested rules, too, in Firefox.
       .flatMap(function rules(rule): CSSRule[] {
-        return rule instanceof CSSGroupingRule
-          ? Array.from(rule.cssRules).flatMap(rules)
-          : [rule]
+        return [
+          rule,
+          ...(rule instanceof CSSGroupingRule
+            ? Array.from(rule.cssRules).flatMap(rules)
+            : [])
+        ]
       })
       .filter(
         (rule): rule is CSSStyleRule =>
