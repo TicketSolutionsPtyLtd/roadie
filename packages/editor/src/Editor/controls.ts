@@ -151,7 +151,7 @@ const lists: EditorChoiceGroup = {
   controls: [bulletList, orderedList]
 }
 
-const undo: EditorControl = {
+export const undo: EditorControl = {
   label: 'Undo',
   icon: ArrowCounterClockwiseIcon,
   shortcut: ['mod', 'z'],
@@ -265,12 +265,15 @@ export const floatingControls: Record<Preset, readonly EditorToolbarItem[]> = {
   email: [emailBlockType, SEPARATOR, ...basicControls]
 }
 
-/** The docked bar's controls the floating toolbar puts in its … menu. */
+/**
+ * The docked bar's controls the floating toolbar puts in its … menu. Undo
+ * shows on the toolbar itself, whenever there's something to undo.
+ */
 export const overflowControls: Record<Preset, readonly EditorControl[]> = {
-  basic: history,
-  rich: [...inserts, ...history],
-  blocks: [...inserts, ...history],
-  email: [preview, importSource, ...history]
+  basic: [redo],
+  rich: [...inserts, redo],
+  blocks: [...inserts, redo],
+  email: [preview, importSource, redo]
 }
 
 // Each preset lists only controls for extensions it holds.

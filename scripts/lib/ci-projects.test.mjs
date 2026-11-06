@@ -6,6 +6,7 @@ import { describe, test } from 'node:test'
 import {
   CI_SCRIPTS,
   ciProjects,
+  gatedArgs,
   gatedProjects,
   projectsIn
 } from './ci-projects.mjs'
@@ -93,6 +94,71 @@ describe('test:gated stays in step with CI', () => {
         `vitest run --project 'browser (*)' --project="a b" --project=jsdom`
       ),
       ['browser (*)', 'a b', 'jsdom']
+    )
+  })
+})
+
+describe('test:gated arguments', () => {
+  const browsersOf = (args, env = {}) => gatedArgs(args, env).browsers
+
+  test('run Chromium unless asked otherwise', () => {
+    assert.equal(browsersOf([]), 'chromium')
+  })
+
+  test('read ROADIE_BROWSERS as the browser config does', () => {
+    assert.equal(browsersOf([], { ROADIE_BROWSERS: 'webkit' }), 'webkit')
+    assert.equal(
+      browsersOf([], { ROADIE_BROWSERS: 'chromium, webkit,' }),
+      'chromium,webkit'
+    )
+  })
+
+  test('take the last --browsers over ROADIE_BROWSERS', () => {
+    assert.equal(
+      browsersOf(['--browsers=webkit', '--browsers=firefox'], {
+        ROADIE_BROWSERS: 'chromium'
+      }),
+      'firefox'
+    )
+  })
+
+  test('run every engine with --all-browsers', () => {
+    assert.equal(
+      browsersOf(['--all-browsers', '--browsers=firefox']),
+      'chromium,webkit,firefox'
+    )
+  })
+
+  test('reject an engine Playwright has no project for', () => {
+    assert.equal(browsersOf(['--browsers=safari']), null)
+    assert.equal(browsersOf(['--browsers=firefox,safari']), null)
+    assert.equal(browsersOf(['--browsers=']), null)
+  })
+
+  test('read files up to the first flag that is not its own', () => {
+    assert.deepEqual(
+      gatedArgs(
+        [
+          '--browsers=webkit',
+          'src/a.tsx',
+          '--all',
+          'src/b.tsx',
+          '--perf',
+          '--all-browsers',
+          '-t',
+          'Escape',
+          '--project',
+          'browser*'
+        ],
+        {}
+      ),
+      {
+        all: true,
+        perf: true,
+        browsers: 'chromium,webkit,firefox',
+        fileArgs: ['src/a.tsx', 'src/b.tsx'],
+        vitestArgs: ['-t', 'Escape', '--project', 'browser*']
+      }
     )
   })
 })

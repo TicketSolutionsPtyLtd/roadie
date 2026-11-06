@@ -1,15 +1,13 @@
 'use client'
 
-import { type ReactNode, type RefObject, useRef, useState } from 'react'
+import { type RefObject, useRef, useState } from 'react'
 
 import { posToDOMRect } from '@tiptap/core'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
 import { Field } from '@oztix/roadie-components/field'
-import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Select } from '@oztix/roadie-components/select'
-import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 import {
   type ButtonAlign,
@@ -17,6 +15,7 @@ import {
   buttonLook,
   isEmailHref
 } from '../schema/emailAttrs'
+import { type Choice, EditorChoice } from './EditorChoice'
 import { toHref, useLinkVariables } from './EditorLinkPopover'
 import { selectedNodeType } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
@@ -75,57 +74,6 @@ function AddButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
       invalid={refused}
       error={REFUSED}
     />
-  )
-}
-
-type Choice<Value extends string> = { value: Value; label: string }
-
-type ChoiceProps<Value extends string> = {
-  legend: string
-  choices: readonly Choice<Value>[]
-  value: Value
-  onValueChange: (value: Value) => void
-  disabled?: boolean
-  helperText?: ReactNode
-}
-
-function ButtonChoice<Value extends string>({
-  legend,
-  choices,
-  value,
-  onValueChange,
-  disabled,
-  helperText
-}: ChoiceProps<Value>) {
-  return (
-    <Fieldset className='grid gap-1.5 [&>*+*]:mt-0' disabled={disabled}>
-      {/* A label's size, as the Link field's, not a section's. */}
-      <Fieldset.Legend className='text-sm font-medium text-normal'>
-        {legend}
-      </Fieldset.Legend>
-      <ToggleGroup
-        value={[value]}
-        // Pressing the chosen item again would leave none, so it's ignored.
-        onValueChange={([chosen]) => {
-          if (chosen) onValueChange(chosen as Value)
-        }}
-        disabled={disabled}
-        className='w-full'
-      >
-        {choices.map((choice) => (
-          <ToggleGroup.Item
-            key={choice.value}
-            value={choice.value}
-            className='flex-1'
-          >
-            {choice.label}
-          </ToggleGroup.Item>
-        ))}
-      </ToggleGroup>
-      {helperText ? (
-        <Fieldset.HelperText>{helperText}</Fieldset.HelperText>
-      ) : null}
-    </Fieldset>
   )
 }
 
@@ -299,7 +247,7 @@ function ButtonSettingsForm({
           <Field.ErrorText>{REFUSED}</Field.ErrorText>
         </Field>
       )}
-      <ButtonChoice
+      <EditorChoice
         legend='Emphasis'
         choices={EMPHASES}
         value={look.emphasis ?? 'strong'}
@@ -307,7 +255,7 @@ function ButtonSettingsForm({
           changeLook({ emphasis: emphasis === 'strong' ? undefined : emphasis })
         }
       />
-      <ButtonChoice
+      <EditorChoice
         legend='Width'
         choices={WIDTHS}
         value={look.fullWidth ? 'full' : 'fit'}
@@ -315,7 +263,7 @@ function ButtonSettingsForm({
           changeLook({ fullWidth: width === 'full' || undefined })
         }
       />
-      <ButtonChoice
+      <EditorChoice
         legend='Align'
         choices={ALIGNS}
         value={look.align ?? 'left'}

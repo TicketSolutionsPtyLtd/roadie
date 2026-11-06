@@ -62,6 +62,7 @@ import {
 import { textVariables } from '../schema/variables'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
+import { type BlockSettings, EditorBlockSettings } from './EditorBlockSettings'
 import { EditorBlocksDrawer } from './EditorBlocksDrawer'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
@@ -88,6 +89,7 @@ import {
   duplicateBlock,
   moveBlock
 } from './blockActions'
+import { BlockClick } from './blockClick'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { emailCanvasStyle } from './emailCanvas'
@@ -191,6 +193,29 @@ const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
           selection.node.type.name === 'image'
         if (!onImage || !editor.isEditable) return false
         this.options.onEditAlt()
+        return true
+      }
+    }
+  }
+})
+
+type SettingsShortcutOptions = {
+  has: (name: string) => boolean
+  onEdit: () => void
+}
+
+// Enter on a selected block with settings opens them, as on an image's alt.
+const SettingsShortcut = Extension.create<SettingsShortcutOptions>({
+  name: 'settingsShortcut',
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { selection } = editor.state
+        const onBlock =
+          selection instanceof NodeSelection &&
+          this.options.has(selection.node.type.name)
+        if (!onBlock || !editor.isEditable) return false
+        this.options.onEdit()
         return true
       }
     }
@@ -449,6 +474,32 @@ export function EditorEngine({
   const [editingEmbed, setEditingEmbed] = useState(false)
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
+  const [editingSettings, setEditingSettings] = useState(false)
+  const [focusSetting, setFocusSetting] = useState<string | undefined>()
+  const [focusElement, setFocusElement] = useState<Element | null>(null)
+  const [keepSelected, setKeepSelected] = useState(false)
+  const editSettings = (
+    path?: string,
+    element: Element | null = null,
+    fromKeyboard = false
+  ) => {
+    setFocusSetting(path)
+    setFocusElement(element)
+    setKeepSelected(fromKeyboard)
+    setEditingSettings(true)
+  }
+  // Read by the editor's plugins and toolbars, made before the editor.
+  const editorRef = useRef<TiptapEditor | null>(null)
+  const editSettingsAt = (pos: number) => {
+    const current = editorRef.current
+    if (!current?.isEditable) return
+    current.view.dispatch(
+      current.state.tr.setSelection(
+        NodeSelection.create(current.state.doc, pos)
+      )
+    )
+    editSettings()
+  }
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
     source: '',
@@ -480,6 +531,14 @@ export function EditorEngine({
   const [blockLabels] = useState(() =>
     Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
   )
+  const [blockSettings] = useState(() =>
+    Object.fromEntries(
+      blocks.flatMap(({ node, label, settings }): [string, BlockSettings][] =>
+        settings?.length ? [[node.name, { label, settings }]] : []
+      )
+    )
+  )
+  const hasSettings = (name: string) => Object.hasOwn(blockSettings, name)
   const [schema] = useState(() =>
     blocks.length > 0
       ? getSchema(withBlocks(presets[preset], blocks))
@@ -526,6 +585,11 @@ export function EditorEngine({
       }),
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
+      SettingsShortcut.configure({
+        has: hasSettings,
+        onEdit: () => editSettings(undefined, null, true)
+      }),
+      BlockClick.configure({ hasSettings, onEdit: editSettings }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
@@ -538,7 +602,8 @@ export function EditorEngine({
       InsertMenu.configure({
         items: insertItems,
         ui: () => uiRef.current!,
-        onChange: setInsertMenu
+        onChange: setInsertMenu,
+        noMatches: 'No blocks match'
       }),
       BlockMenuShortcut.configure({
         open: () => {
@@ -708,6 +773,10 @@ export function EditorEngine({
   }, [toolbar])
 
   useEffect(() => {
+    editorRef.current = editor
+  }, [editor])
+
+  useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
     variablesRef.current = variables
@@ -844,6 +913,8 @@ export function EditorEngine({
             // Inset as the canvas's text is, so the two start together.
             <EditorPreheader editor={editor} className='px-6 pt-3' />
           ) : null,
+        hasSettings,
+        editSettingsAt,
         editingLink,
         embedProviders,
         variables,
@@ -891,6 +962,8 @@ export function EditorEngine({
             containers={blockHandle.containers}
             canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
+            hasSettings={hasSettings}
+            onSettings={editSettingsAt}
           />
         ) : null}
         {editor && blockHandle && drawerItems.length > 0 ? (
@@ -941,6 +1014,16 @@ export function EditorEngine({
           editor={editor}
           open={editingButton}
           onOpenChange={setEditingButton}
+        />
+        <EditorBlockSettings
+          editor={editor}
+          open={editingSettings}
+          onOpenChange={setEditingSettings}
+          blocks={blockSettings}
+          focusSetting={focusSetting}
+          focusElement={focusElement}
+          keepSelected={keepSelected}
+          uploadImage={canUpload ? onUploadImage : undefined}
         />
         <EditorVariablePopover
           editor={editor}
