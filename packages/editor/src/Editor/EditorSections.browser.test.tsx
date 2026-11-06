@@ -330,6 +330,21 @@ describe('Editor sections', () => {
     expect(getComputedStyle(section).outlineStyle).toBe('solid')
   })
 
+  it('keeps a selected section’s ring under the pointer', async () => {
+    renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const section = within(textbox).getByRole('group', { name: 'Promo' })
+    await userEvent.hover(section)
+    const hovered = getComputedStyle(section).outlineWidth
+
+    await clickInto('Doors 7pm')
+    await userEvent.keyboard('{End}{ArrowDown}')
+    await waitFor(() => expect(section).toHaveAttribute('data-selected'))
+    await userEvent.hover(section)
+
+    expect(getComputedStyle(section).outlineWidth).not.toBe(hovered)
+  })
+
   it('draws a section as it’s edited, telling it so', async () => {
     const seen = vi.fn()
     renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }), {

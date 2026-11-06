@@ -181,7 +181,8 @@
   visibility: hidden;
 }
 
-[data-slot='editor-content'] [data-slot='editor-section']:hover {
+[data-slot='editor-content']
+  [data-slot='editor-section']:hover:not([data-selected]) {
   outline: 1px solid var(--intent-border-subtle);
   outline-offset: 2px;
 }
