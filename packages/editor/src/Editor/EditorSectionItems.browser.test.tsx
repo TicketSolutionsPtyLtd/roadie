@@ -295,6 +295,34 @@ describe('Editor section items', () => {
     await waitFor(() => expect(link).toHaveValue('/tickets'))
   })
 
+  it('leaves Mod+Z to an IME while it composes', async () => {
+    const onValueChange = renderPage()
+    await clickAct('Marri Lane')
+    const drawer = await screen.findByRole('dialog', {
+      name: 'Lineup settings'
+    })
+    const title = within(drawer).getByRole('textbox', { name: 'Title' })
+    await userEvent.type(title, '!')
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Remove Marri Lane' })
+    )
+    await waitFor(() => expect(namesOf(onValueChange)).toHaveLength(2))
+
+    title.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'z',
+        metaKey: MOD === 'Meta',
+        ctrlKey: MOD === 'Control',
+        isComposing: true,
+        bubbles: true
+      })
+    )
+    await userEvent.type(title, '?')
+
+    expect(namesOf(onValueChange)).toHaveLength(2)
+    expect(lastSection(onValueChange)?.attrs?.title).toBe('Lineup!?')
+  })
+
   it('tells only the selected section which item is open', async () => {
     renderPage(page(intro, savedLineup, { ...savedLineup, attrs: {} }))
     const [, other] = await screen.findAllByText('Marri Lane', {
