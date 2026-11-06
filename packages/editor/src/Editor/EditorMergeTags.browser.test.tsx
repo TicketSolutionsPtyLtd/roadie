@@ -398,7 +398,7 @@ describe('Editor merge tag editing', () => {
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
   })
 
-  it('starts its title at the form’s edge, as the other settings do', async () => {
+  it('starts its title at the form’s edge rather than centring it', async () => {
     renderEmail({ defaultValue: greeting })
 
     const dialog = await editTag()

@@ -212,6 +212,41 @@ describe('Editor email canvas', () => {
       expect(centre()).toBeLessThan(heading.bottom)
     })
 
+    it('lines a grip up with the top of a section that starts with an image', async () => {
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: [
+                {
+                  type: 'section',
+                  content: [
+                    {
+                      type: 'image',
+                      attrs: { src: 'https://example.test/a.webp', alt: 'A' }
+                    },
+                    p('Gates 11am')
+                  ]
+                }
+              ]
+            }
+          }}
+        />
+      )
+      const text = await screen.findByText('Gates 11am')
+      const section = text.closest<HTMLElement>('[data-type="section"]')!
+      await userEvent.hover(section, { position: { x: 4, y: 4 } })
+      const grip = await screen.findByRole('button', { name: 'Block actions' })
+
+      await expect
+        .poll(() => grip.getBoundingClientRect().bottom)
+        .toBeLessThanOrEqual(text.getBoundingClientRect().top)
+    })
+
     it('keeps the chosen halo on a spacer while its menu is open', async () => {
       render(
         <Editor
