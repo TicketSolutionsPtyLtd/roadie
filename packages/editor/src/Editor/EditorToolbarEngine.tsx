@@ -356,6 +356,9 @@ export function ToolbarItems({
   )
 }
 
+// Room under the caret for the bar docked over the keyboard.
+const KEYBOARD_SCROLL_MARGIN = { top: 5, right: 5, bottom: 96, left: 5 }
+
 const slotOf = (item: EditorToolbarItem, index: number): ToolbarSlot => {
   if (item === SEPARATOR) return 'separator'
   if (item === undo) return 'undo'
@@ -698,6 +701,18 @@ export function EditorToolbarEngine({
   useLayoutEffect(() => {
     if (!aboveKeyboard) setReserved(stickyRef.current?.offsetHeight)
   }, [aboveKeyboard])
+
+  // The caret scrolls clear of the bar over the keyboard, not just the screen.
+  useEffect(() => {
+    if (!editor || editor.isDestroyed || !aboveKeyboard) return
+    const before = editor.options.editorProps
+    editor.setOptions({
+      editorProps: { ...before, scrollMargin: KEYBOARD_SCROLL_MARGIN }
+    })
+    return () => {
+      if (!editor.isDestroyed) editor.setOptions({ editorProps: before })
+    }
+  }, [editor, aboveKeyboard])
 
   useEffect(() => {
     if (!floating) return

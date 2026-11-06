@@ -458,6 +458,59 @@ describe('Editor toolbar on a touch screen', () => {
     }
   })
 
+  it('scrolls the caret clear of the bar above the keyboard as you type', async () => {
+    onTouchScreen()
+    await page.viewport(390, 700)
+    onTestFinished(() => window.scrollTo(0, 0))
+    render(
+      <>
+        <Editor
+          aria-label={LABEL}
+          toolbar='docked'
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: Array.from({ length: 30 }, (_, index) => ({
+                type: 'paragraph',
+                content: [{ type: 'text', text: `${TEXT} ${index}` }]
+              }))
+            }
+          }}
+        />
+        <div style={{ blockSize: 1600 }} />
+      </>
+    )
+    const toolbar = await shownToolbar()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(within(textbox).getByText(`${TEXT} 0`))
+    const viewport = window.visualViewport!
+    await waitFor(() =>
+      expect(toolbar.getBoundingClientRect().bottom).toBeCloseTo(
+        viewport.offsetTop + viewport.height,
+        0
+      )
+    )
+    const line = within(textbox).getByText(`${TEXT} 20`)
+    // Under the bar, though still on screen.
+    window.scrollBy(
+      0,
+      line.getBoundingClientRect().bottom - window.innerHeight + 8
+    )
+
+    expect(line.getBoundingClientRect().bottom).toBeGreaterThan(
+      toolbar.getBoundingClientRect().top
+    )
+    await userEvent.keyboard('{ArrowDown}'.repeat(20) + '{End}')
+
+    await waitFor(() =>
+      expect(line.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        toolbar.getBoundingClientRect().top
+      )
+    )
+  })
+
   it('stays at the top with a mouse', async () => {
     await page.viewport(390, 700)
     render(
