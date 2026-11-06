@@ -78,7 +78,7 @@ describe('Editor empty line hint', () => {
     await userEvent.keyboard('{ArrowDown}')
 
     const line = (await textbox()).querySelector(
-      '[data-type="section"] p:last-child'
+      '[data-type="section"] p:last-of-type'
     )!
     await waitFor(() => expect(shownBefore(line)).toBe(`"${EMAIL_HINT}"`))
   })
