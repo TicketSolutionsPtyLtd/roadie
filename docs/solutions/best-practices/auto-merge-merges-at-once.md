@@ -17,7 +17,9 @@ full run it just started has finished.
 
 ## Fix
 
-Don't use auto-merge to wait for CI. Wait for the specific run, then merge:
+Don't use auto-merge to wait for CI. Wait for the specific run, then merge,
+as a background command (`run_in_background`), since
+`.claude/hooks/block-ci-polling.mjs` denies it in the foreground:
 
 ```bash
 gh run watch <run-id> --exit-status && gh pr merge <n> --squash --delete-branch
