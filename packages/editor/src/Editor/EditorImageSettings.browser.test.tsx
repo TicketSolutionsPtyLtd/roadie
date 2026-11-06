@@ -103,7 +103,10 @@ describe('Editor image settings', () => {
     const title = within(dialog).getByRole('heading', {
       name: 'Image settings'
     })
-    expect(getComputedStyle(title).textAlign).toMatch(/^(start|left)$/)
+    // By class, as the test sheet compiles no text alignment to measure.
+    expect(title.closest('[data-slot="popover-header"]')).toHaveClass(
+      'text-start'
+    )
     expect(dialog).toHaveTextContent(
       'Changes apply as you go. Undo puts them back.'
     )
