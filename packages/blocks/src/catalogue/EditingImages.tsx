@@ -9,11 +9,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { BlocksProvider, type RenderImageProps } from '../Provider'
 import { useBlocks } from '../_shared/context'
-
-const PLACEHOLDER_SRC = 'roadie-blocks:placeholder'
-
-/** A part waiting on its image while it's edited, which `EditingImages` draws. */
-export const PLACEHOLDER_IMAGE = { src: PLACEHOLDER_SRC, alt: '' }
+import { PLACEHOLDER_SRC } from './placeholder'
 
 // A box rather than an image, so it takes the page's surface and text
 // colours in either mode, and centres its glyph wherever the block crops.

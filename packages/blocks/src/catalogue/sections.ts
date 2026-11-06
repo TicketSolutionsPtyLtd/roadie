@@ -12,7 +12,8 @@ import type { RichTextProps } from '../RichText'
 import type { SideBySideProps } from '../SideBySide'
 import type { StatsProps } from '../Stats'
 import type { TestimonialProps } from '../Testimonial'
-import { EditingImages, PLACEHOLDER_IMAGE } from './EditingImages'
+import { EditingImages } from './EditingImages'
+import { PLACEHOLDER_IMAGE } from './placeholder'
 
 type Attrs = Record<string, unknown>
 
