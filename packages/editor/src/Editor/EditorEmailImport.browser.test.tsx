@@ -117,9 +117,8 @@ describe('Editor email import', () => {
       within(dialog).getByRole('button', { name: 'Import' })
     ).toBeDisabled()
     await userEvent.fill(source, MJML)
-    await expect
-      .element(within(dialog).getByText('Reading it as MJML.'))
-      .toBeVisible()
+    // Found once its deferred read lands, not looked for at once.
+    expect(await within(dialog).findByText('Reading it as MJML.')).toBeVisible()
     expect(within(dialog).queryByRole('radiogroup')).toBeNull()
     await userEvent.click(
       within(dialog).getByRole('button', { name: 'Import' })
