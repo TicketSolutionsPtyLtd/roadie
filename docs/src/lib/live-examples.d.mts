@@ -16,6 +16,8 @@ export type LiveExample = {
   language: string
   code: string
   eager: boolean
+  /** Runs to the screen's edges on its own page on a phone, as an app's editor would. */
+  bleed: boolean
   /** Classes the preview lays the example out with, from `layout=`, `gap=`, and `width=`. */
   previewLayout: string | undefined
   node: CodeNode
@@ -24,6 +26,7 @@ export type LiveExample = {
 export declare function parseExampleMeta(meta: string | null | undefined): {
   id: string | undefined
   eager: boolean
+  bleed: boolean
   previewLayout: string | undefined
 }
 

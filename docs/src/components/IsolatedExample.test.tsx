@@ -23,7 +23,8 @@ const BADGE: ManifestExample = {
   heading: 'Default',
   language: 'tsx-live',
   code: '<Badge>Badge</Badge>',
-  previewLayout: undefined
+  previewLayout: undefined,
+  bleed: false
 }
 
 beforeAll(() => vi.stubEnv('NEXT_PUBLIC_BASE_PATH', '/roadie'))

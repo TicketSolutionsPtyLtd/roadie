@@ -18,7 +18,7 @@ export function parseExampleMeta(meta) {
     const key = word.split('=')[0]
     if (word.includes('=') && !OPTION_KEYS.has(key)) {
       throw new Error(
-        `Unknown live example option "${word}". Options are ${[...OPTION_KEYS].map((option) => `${option}=`).join(', ')}, and eager.`
+        `Unknown live example option "${word}". Options are ${[...OPTION_KEYS].map((option) => `${option}=`).join(', ')}, eager, and bleed.`
       )
     }
   }
@@ -30,6 +30,7 @@ export function parseExampleMeta(meta) {
   return {
     id,
     eager: words.includes('eager'),
+    bleed: words.includes('bleed'),
     previewLayout: previewLayoutOf(words)
   }
 }
@@ -100,6 +101,7 @@ export function collectLiveExamples(tree) {
       language: node.lang,
       code: node.value,
       eager: meta.eager,
+      bleed: meta.bleed,
       previewLayout: meta.previewLayout,
       node
     })

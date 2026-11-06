@@ -57,6 +57,18 @@ describe('collectLiveExamples', () => {
     expect(second).toMatchObject({ id: 'example', eager: false })
   })
 
+  it('takes the bleed flag from the fence meta', () => {
+    const source = [
+      '```tsx-live bleed\n<A />\n```',
+      '```tsx-live\n<B />\n```'
+    ].join('\n\n')
+
+    expect(collectLiveExamples(parse(source))).toMatchObject([
+      { bleed: true },
+      { bleed: false }
+    ])
+  })
+
   it('rejects a duplicate or malformed explicit id', () => {
     const twice = '```tsx-live id=a\n<A />\n```\n\n```tsx-live id=a\n<B />\n```'
     expect(() => ids(twice)).toThrow(/used twice/)
@@ -77,7 +89,7 @@ describe('collectLiveExamples', () => {
 
   it('rejects an unknown option, so a typo fails the build', () => {
     expect(() => ids('```tsx-live widht=md\n<A />\n```')).toThrow(
-      /Unknown live example option "widht=md". Options are id=, layout=, gap=, width=, and eager/
+      /Unknown live example option "widht=md". Options are id=, layout=, gap=, width=, eager, and bleed/
     )
   })
 
