@@ -109,7 +109,7 @@ describe('presets.email', () => {
     ['spacer', ['height', 'showWhen']],
     ['horizontalRule', ['showWhen']],
     ['variable', ['key', 'fallback']],
-    ['section', ['showWhen']],
+    ['section', ['showWhen', 'look', 'spacing']],
     ['columns', ['layout', 'stack']],
     ['column', []]
   ])('saves only these attrs of a %s', (name, attrs) => {
@@ -869,6 +869,39 @@ const ruled = (node: JSONContent, showWhen: unknown): JSONContent => ({
 })
 const spacer: JSONContent = { type: 'spacer', attrs: { height: 32 } }
 const divider: JSONContent = { type: 'horizontalRule' }
+
+describe('a section’s look and spacing in the email preset', () => {
+  const looked = (attrs: Record<string, unknown>) => ({
+    type: 'section',
+    attrs,
+    content: [p('Gates 6pm')]
+  })
+
+  it('keeps a tint or accent look and tight or roomy spacing', () => {
+    const value = doc(
+      looked({ look: 'tint', spacing: 'tight' }),
+      looked({ look: 'accent', spacing: 'roomy' })
+    )
+    expect(() => parse(value)).not.toThrow()
+    expect(readEmail(value)).toEqual(value)
+  })
+
+  it('drops a look or spacing it doesn’t know, and the defaults', () => {
+    expect(
+      readEmail(
+        doc(
+          looked({ look: '#ff0000', spacing: 'normal' }),
+          looked({ look: 'plain', spacing: 4 })
+        )
+      )
+    ).toEqual(
+      doc(
+        { type: 'section', content: [p('Gates 6pm')] },
+        { type: 'section', content: [p('Gates 6pm')] }
+      )
+    )
+  })
+})
 
 describe('a rule for showing a block in the email preset', () => {
   it.each([

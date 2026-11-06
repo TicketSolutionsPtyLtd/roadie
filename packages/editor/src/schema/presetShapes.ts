@@ -128,7 +128,7 @@ export const presetShapes = {
       heading: { content: 'inline', attrs: ['align', 'level'] },
       section: {
         content: 'blocks',
-        attrs: ['showWhen'],
+        attrs: ['showWhen', 'look', 'spacing'],
         holds: [...emailBlocks, 'columns']
       },
       columns: { content: 'columns', attrs: ['layout', 'stack'] },
