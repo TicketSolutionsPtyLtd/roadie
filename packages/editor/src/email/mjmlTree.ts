@@ -133,8 +133,11 @@ function blockContent(node: JSONContent, context: Context) {
   }
 }
 
-const isBlankParagraph = (node: JSONContent) =>
-  node.type === 'paragraph' &&
+const isBlankParagraph = (node: JSONContent) => isBlankText(node, 'paragraph')
+
+// A paragraph or heading with no words: empty, spaces, or breaks.
+const isBlankText = (node: JSONContent, ...types: string[]) =>
+  types.includes(node.type ?? '') &&
   (node.content ?? []).every(
     (child) =>
       child.type === 'hardBreak' ||
@@ -150,7 +153,7 @@ function withoutBlankItems(node: JSONContent): JSONContent | null {
   const items = (node.content ?? []).flatMap((listItem) => {
     const content = (listItem.content ?? []).flatMap((child) => {
       const kept = withoutBlankItems(child)
-      return kept && !isBlankParagraph(kept) ? [kept] : []
+      return kept && !isBlankText(kept, 'paragraph', 'heading') ? [kept] : []
     })
     return content.length > 0 ? [{ ...listItem, content }] : []
   })

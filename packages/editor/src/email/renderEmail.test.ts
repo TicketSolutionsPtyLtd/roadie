@@ -438,6 +438,24 @@ describe('renderEmail', () => {
       expect(html).toBe(alone)
     })
 
+    it('sends no item holding only an empty heading', async () => {
+      const { html } = await renderEmail(
+        email(
+          list(
+            item(p(text('Marri Lane'))),
+            item(
+              { type: 'paragraph' },
+              { type: 'heading', attrs: { level: 2 } }
+            )
+          )
+        )
+      )
+      const { html: alone } = await renderEmail(
+        email(list(item(p(text('Marri Lane')))))
+      )
+      expect(html).toBe(alone)
+    })
+
     it('keeps an item with a nested list that has words', async () => {
       const { html } = await renderEmail(
         email(

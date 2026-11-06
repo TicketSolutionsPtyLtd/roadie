@@ -272,9 +272,12 @@ export function EditorPreview({
 // Hidden visually, still named, so a phone's bar fits on one row.
 const NARROW_HIDDEN = '@max-[34rem]:sr-only'
 
-// An inbox in a mail app's dark mode, whatever the app's own theme.
-const DARK_INBOX =
-  'bg-(--color-neutral-light-13) text-(--color-neutral-light-0) [--intent-text-strong:var(--color-neutral-light-0)] [--intent-text-subtle:var(--color-neutral-light-5)]'
+// An inbox in a mail app's light or dark mode, whatever the app's own theme.
+const INBOX_SCHEME: Record<ColorScheme, string> = {
+  light:
+    'bg-(--color-neutral-light-0) text-(--color-neutral-light-12) [--intent-text-strong:var(--color-neutral-light-13)] [--intent-text-subtle:var(--color-neutral-light-9)]',
+  dark: 'bg-(--color-neutral-light-13) text-(--color-neutral-light-0) [--intent-text-strong:var(--color-neutral-light-0)] [--intent-text-subtle:var(--color-neutral-light-5)]'
+}
 
 function InboxRow({
   sender,
@@ -287,10 +290,9 @@ function InboxRow({
     <div
       role='group'
       aria-label='In the inbox'
-      data-scheme={scheme}
       className={cn(
         'grid min-w-0 emphasis-raised gap-0.5 rounded-lg px-3 py-2 text-sm',
-        scheme === 'dark' && DARK_INBOX
+        INBOX_SCHEME[scheme]
       )}
     >
       {sender ? (

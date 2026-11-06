@@ -190,7 +190,29 @@ describe('Editor preview', () => {
     await waitFor(() =>
       expect(getComputedStyle(inbox).backgroundColor).not.toBe(light)
     )
-    expect(inbox).toHaveAttribute('data-scheme', 'dark')
+  })
+
+  it('keeps the inbox row light for Light, in a dark app', async () => {
+    render(
+      <div className='dark'>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={VALUE}
+          toolbar='docked'
+          subject='Two weeks to go'
+          onRenderPreview={async () => '<p>Hi</p>'}
+        />
+      </div>
+    )
+    await openPreview()
+    const inbox = screen.getByRole('group', { name: 'In the inbox' })
+    const probe = document.createElement('span')
+    probe.style.color = 'var(--color-neutral-light-0)'
+    document.body.append(probe)
+    const white = getComputedStyle(probe).color
+    probe.remove()
+
+    expect(getComputedStyle(inbox).backgroundColor).toBe(white)
   })
 
   it('shows no inbox row with nothing to put in it', async () => {
@@ -486,12 +508,15 @@ describe('Editor preview', () => {
 
       const trigger = screen.getByRole('button', { name: 'Send test' })
       // A tap, which Base UI would answer by focusing the popup itself.
-      for (const type of ['pointerdown', 'pointerup'] as const) {
+      for (const type of ['pointerdown', 'pointerup', 'click'] as const) {
         trigger.dispatchEvent(
-          new PointerEvent(type, { bubbles: true, pointerType: 'touch' })
+          new PointerEvent(type, {
+            bubbles: true,
+            detail: 1,
+            pointerType: 'touch'
+          })
         )
       }
-      trigger.click()
 
       await waitFor(() =>
         expect(screen.getByRole('textbox', { name: 'Send to' })).toHaveFocus()
