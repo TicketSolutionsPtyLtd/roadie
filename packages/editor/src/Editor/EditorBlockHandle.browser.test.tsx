@@ -156,17 +156,20 @@ describe('Editor block handle', () => {
     expect(grip.right).toBeLessThanOrEqual(row.getBoundingClientRect().left)
   })
 
-  it('hangs the grip in the page’s gutter, with no room made for it', async () => {
+  it('makes room for the add button and grip inside the editor, before the text', async () => {
     renderLineup()
     const row = await paragraph('Doors')
     await userEvent.hover(row)
     await expectHandleBeside('Doors')
 
     const textbox = await screen.findByRole('textbox', { name: LABEL })
-    expect(
-      (await handle()).getBoundingClientRect().left -
-        textbox.getBoundingClientRect().left
-    ).toBeLessThan(24)
+    const add = screen.getByRole('button', { name: 'Add block' })
+    expect(add.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+      textbox.getBoundingClientRect().left
+    )
+    expect((await handle()).getBoundingClientRect().right).toBeLessThanOrEqual(
+      row.getBoundingClientRect().left
+    )
   })
 
   it('takes a click below the blocks of a tall editor into the text', async () => {
@@ -521,7 +524,7 @@ describe('Editor block handle', () => {
         x:
           row.getBoundingClientRect().left -
           page.getBoundingClientRect().left -
-          100,
+          150,
         y: middle(row) - page.getBoundingClientRect().top
       }
     })
