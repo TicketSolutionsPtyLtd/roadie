@@ -428,6 +428,22 @@ describe('Editor block menu', () => {
       ).toBeDisabled()
     })
 
+    it('leaves the page undimmed behind the sheet, as Settings does, with a strong Done', async () => {
+      await page.viewport(390, 700)
+      renderLineup()
+      await userEvent.click(await row('Support'))
+      await userEvent.click(await handle())
+      const sheet = await screen.findByRole('dialog', { name: 'Paragraph' })
+
+      const backdrop = document.querySelector('[data-slot="drawer-backdrop"]')!
+      expect(getComputedStyle(backdrop).backgroundColor).toBe(
+        'rgba(0, 0, 0, 0)'
+      )
+      expect(within(sheet).getByRole('button', { name: 'Done' })).toHaveClass(
+        'emphasis-strong'
+      )
+    })
+
     it('turns a block into a heading from the sheet', async () => {
       await page.viewport(390, 700)
       const onValueChange = renderLineup()
