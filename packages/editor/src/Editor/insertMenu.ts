@@ -1,5 +1,6 @@
 import { type Editor, Extension, type Range } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
+import type { Node as PMNode } from '@tiptap/pm/model'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import {
   Suggestion,
@@ -39,6 +40,13 @@ function placeNote(editor: Editor, item: EditorInsertItem) {
     editor.can().command(insertBlock(item.block))
   if (fitsHere) return undefined
   return AFTER[$from.node(1).type.name] ?? 'after this block'
+}
+
+// The run of non-space text just before `pos` in its line.
+function wordBefore(doc: PMNode, pos: number) {
+  const $pos = doc.resolve(pos)
+  const before = $pos.parent.textBetween(0, $pos.parentOffset, undefined, ' ')
+  return /\S*$/.exec(before)?.[0] ?? ''
 }
 
 /** The open insert menu: its matching items, the active one, and how to place it. */
@@ -151,17 +159,23 @@ export const InsertMenu = Extension.create<
         pluginKey: key,
         char,
         // `{{` follows a word as often as a space, as in "Hi,{{".
-        allowedPrefixes: char === '/' ? [' '] : null,
+        allowedPrefixes: null,
         allowSpaces: true,
         floatingUi: { strategy: 'fixed' },
         allow: ({ state, range }) =>
           items().length > 0 &&
           allowIn(state.doc.resolve(range.from).parent.type.name),
         // Past a space, a query that names nothing is the author's own text.
-        shouldShow: ({ query }) =>
-          !noMatches ||
-          !/\s/.test(query) ||
-          namedInsertItems(items(), query, ui()).length > 0,
+        shouldShow: ({ query, range, transaction }) => {
+          const named = () => namedInsertItems(items(), query, ui()).length > 0
+          const word = wordBefore(transaction.doc, range.from)
+          // Straight after a word, as in "7pm/section", only a letter that
+          // names a block opens it, so dates and links stay text.
+          if (char === '/' && word) {
+            return /^\p{L}/u.test(query) && !/[.:/@]/.test(word) && named()
+          }
+          return !noMatches || !/\s/.test(query) || named()
+        },
         items: ({ query, editor }) => {
           const { range } = key.getState(editor.state)!
           return matchingInsertItems(items(), query, range, editor, ui())

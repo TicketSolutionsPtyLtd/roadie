@@ -676,6 +676,24 @@ describe('Editor blocks drawer finding and moving', () => {
     expect(drawer).toBeVisible()
   })
 
+  it('makes room beside it from 1280px wide, so it covers none of the email', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const root = (await textbox()).closest<HTMLElement>('[data-slot="editor"]')!
+
+    const drawer = await openFromDockedBar()
+    // Measured once it has slid in, as it starts past the page's edge.
+    await Promise.all(drawer.getAnimations().map((slide) => slide.finished))
+
+    await waitFor(() => {
+      const canvas = root.getBoundingClientRect()
+      const end = canvas.right - parseFloat(getComputedStyle(root).paddingRight)
+      expect(end).toBeLessThanOrEqual(drawer.getBoundingClientRect().left + 1)
+    })
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(root.style.paddingInlineEnd).toBe(''))
+  })
+
   it('takes over the page below 1280px wide', async () => {
     await page.viewport(1024, 800)
     renderEmail()
