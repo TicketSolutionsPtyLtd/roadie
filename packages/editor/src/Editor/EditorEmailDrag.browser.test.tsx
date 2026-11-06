@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import {
   afterAll,
   afterEach,
@@ -420,6 +426,42 @@ describe('Editor email block handle', () => {
       )
     })
 
+    it('drops a block at the end of a short column, from the space below its last block', async () => {
+      const onValueChange = renderNewsletter(
+        newsletter(
+          section(
+            columns(
+              [p('Left one'), p('Left two'), p('Left three')],
+              [p('Right one')]
+            )
+          ),
+          p('Closing')
+        )
+      )
+      await hoverBlock('Closing')
+      const right = (await line('Right one')).closest('[data-type="column"]')!
+      const below = (await line('Left three')).getBoundingClientRect()
+      const box = right.getBoundingClientRect()
+
+      await userEvent.dragAndDrop(await grip(), right, {
+        targetPosition: {
+          x: box.width / 2,
+          y: (below.top + below.bottom) / 2 - box.top
+        }
+      })
+
+      await expectOutline(onValueChange, {
+        section: [
+          {
+            columns: [
+              { column: ['Left one', 'Left two', 'Left three'] },
+              { column: ['Right one', 'Closing'] }
+            ]
+          }
+        ]
+      })
+    })
+
     it('moves a block between columns, leaving an empty line behind', async () => {
       const onValueChange = renderNewsletter()
       await hoverBlock('Left one')
@@ -744,6 +786,37 @@ describe('Editor email block handle', () => {
       },
       'Closing'
     )
+  })
+
+  it('keeps the menu on a section through two moves', async () => {
+    const onValueChange = renderNewsletter(
+      newsletter(
+        section(p('Alpha one')),
+        section(p('Bravo one')),
+        section(p('Charlie one'))
+      )
+    )
+    await openMenuOn('Charlie one')
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Select section' })
+    )
+
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Move up' })
+    )
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Move up' })
+    )
+
+    await expectOutline(
+      onValueChange,
+      { section: ['Charlie one'] },
+      { section: ['Alpha one'] },
+      { section: ['Bravo one'] }
+    )
+    expect(
+      within(screen.getByRole('menu')).getByRole('group', { name: 'Section' })
+    ).toBeVisible()
   })
 
   it('offers no parent to select for a top-level block', async () => {

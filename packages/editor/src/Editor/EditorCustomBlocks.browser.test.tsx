@@ -317,6 +317,37 @@ describe('Editor extensions', () => {
     expect(savedIds.filter((id) => id !== 'okw')).toEqual([])
   })
 
+  it('rings a selected app’s block as the preset’s own are', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        extensions={[eventCard]}
+        defaultValue={{
+          version: 1,
+          preset: 'blocks',
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'paragraph', content: [{ type: 'text', text: 'Doors' }] },
+              { type: 'eventCard', attrs: { eventId: 'okw' } }
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(within(textbox).getByText('Doors'))
+
+    await userEvent.keyboard('{ArrowDown}')
+
+    const card = document.querySelector<HTMLElement>(
+      '[data-slot="event-card"]'
+    )!
+    await waitFor(() =>
+      expect(getComputedStyle(card).outlineStyle).toBe('solid')
+    )
+  })
+
   it('heads an app’s block menu with its label', async () => {
     render(
       <Editor
@@ -643,7 +674,8 @@ describe('Editor extensions', () => {
       await userEvent.dragAndDrop(handle, target, {
         targetPosition: {
           x: target.offsetWidth - 2,
-          y: target.offsetHeight / 2
+          // In its lower half, so it lands after it.
+          y: target.offsetHeight - 2
         }
       })
 

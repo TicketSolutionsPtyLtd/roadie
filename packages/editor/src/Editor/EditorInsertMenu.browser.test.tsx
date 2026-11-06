@@ -517,6 +517,9 @@ describe('Editor insert menu', () => {
     expect(screen.getByRole('dialog')).toBeVisible()
     expect(onOpenChange).not.toHaveBeenCalled()
 
+    // The next selects the caret's block, and the one after closes the dialog.
+    await userEvent.keyboard('{Escape}')
+    expect(onOpenChange).not.toHaveBeenCalled()
     await userEvent.keyboard('{Escape}')
     await waitFor(() =>
       expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
