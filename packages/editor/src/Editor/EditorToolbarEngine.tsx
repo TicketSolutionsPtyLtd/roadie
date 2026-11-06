@@ -247,7 +247,8 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource
+    importSource,
+    openPreview
   } = context
   return {
     editLink,
@@ -257,7 +258,8 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource
+    importSource,
+    preview: openPreview
   }
 }
 
