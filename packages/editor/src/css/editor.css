@@ -201,14 +201,23 @@
   color: var(--email-text);
 }
 
-/* A column pads its blocks 12px a side and a block outside columns 24px, so
-   in the email columns reach 12px further out than the text around them. */
-/* The grip and add button sit in the gutter beside the email, so where the
-   frame is too narrow for one, the content keeps it. */
-[data-preset='email'] [data-slot='editor-content'] {
-  padding-inline-start: max(0px, calc(var(--spacing) * 8 - (100% - 600px) / 2));
+/* The grip and add button sit in a 32px gutter beside the email. Where the
+   frame has less room either side of the 600px email, the content keeps the
+   gutter at its start; the percentage is the frame's width, wherever it's
+   used. */
+[data-preset='email'] {
+  --email-gutter: max(
+    0px,
+    min(calc(var(--spacing) * 8), calc(600px + var(--spacing) * 16 - 100%))
+  );
 }
 
+[data-preset='email'] [data-slot='editor-content'] {
+  padding-inline-start: var(--email-gutter);
+}
+
+/* A column pads its blocks 12px a side and a block outside columns 24px, so
+   in the email columns reach 12px further out than the text around them. */
 [data-email] [data-type='columns'] {
   margin-inline: calc(var(--spacing) * -3);
 }
