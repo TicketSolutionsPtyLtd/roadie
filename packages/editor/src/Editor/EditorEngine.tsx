@@ -88,6 +88,7 @@ import {
 } from './blockActions'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
+import { emailCanvasStyle } from './emailCanvas'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import { EmptyLineHint } from './emptyLineHint'
@@ -407,6 +408,7 @@ export function EditorEngine({
   resolveUrl,
   extensions: extensionsProp,
   variables,
+  theme,
   toolbar: toolbarProp,
   defaultToolbar,
   onToolbarChange,
@@ -591,8 +593,10 @@ export function EditorEngine({
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
           preset === 'email' && EMAIL_CANVAS,
-          // Room for the block handle at each block's start.
+          // Room for the block handle at each block's start. An email's sits
+          // in the gutter beside it, which editor.css keeps.
           blockHandle &&
+            preset !== 'email' &&
             emphasis !== 'subtler' &&
             (blockHandle.canAdd ? 'ps-15' : 'ps-10')
         )
@@ -816,7 +820,9 @@ export function EditorEngine({
     >
       <div
         data-slot='editor'
+        data-preset={preset}
         data-emphasis={emphasis}
+        style={preset === 'email' ? emailCanvasStyle(theme) : undefined}
         aria-invalid={field.invalid || undefined}
         data-disabled={disabled ? '' : undefined}
         className={cn(

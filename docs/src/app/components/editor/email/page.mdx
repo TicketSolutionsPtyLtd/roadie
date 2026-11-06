@@ -155,6 +155,48 @@ toolbars: select text to format it. It keeps its box, unlike a `blocks`
 page, as an email isn't read on the page it's written on, and the box shows
 where it ends. Pass `toolbar='docked'` for a bar across the top.
 
+### The email's colours
+
+The canvas stays light in a dark app, as the email it sends does. Pass the
+same `theme` that `renderEmail` takes, and its background, text, links,
+buttons, dividers, and font show in the canvas as they send, and a tinted
+or accent section swaps its blocks' colours as the email does. Without one, the canvas takes `defaultEmailTheme`, as
+`renderEmail` does, except that its links and strong buttons take the
+accent of a `ThemeProvider` around the editor, which `renderEmail` doesn't
+know, so pass `theme` for an exact match. Text outside columns sits 24
+pixels in from each side of the canvas, so it wraps where it sends, and
+columns reach 12 pixels further out, as they do in the email. The grip and
+add button sit in the gutter beside the canvas, which the editor keeps
+where the frame is too narrow for one. In a frame narrower than 544
+pixels, as on a phone, the email sends at the screen's width, so the canvas
+takes the frame's whole width with no gutter: the grip sits in the email's
+own padding, and Blocks in the toolbar or `/` adds a block. A boxless
+editor keeps its gutter for its handles. The outlines, the
+caret's tint, selected text, and the placeholder mix from the theme's
+colours, so they show on any background. A colour that isn't hex throws, as
+it does in `renderEmail`.
+
+```tsx-live-prose
+<Editor
+  aria-label='Newsletter'
+  preset='email'
+  theme={{ background: '#fdf6e3', text: '#2b2b2b', accent: '#5f270f', tint: '#f3e6cf' }}
+  defaultValue={{
+    version: 1,
+    preset: 'email',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Gates 11am at Jumbuck Orchard Park. ' }, { type: 'text', text: 'See the lineup', marks: [{ type: 'link', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' } }] }, { type: 'text', text: '.' }] },
+        { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' }, content: [{ type: 'text', text: 'Get tickets' }] },
+        { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender', emphasis: 'subtle' }, content: [{ type: 'text', text: 'Set times' }] }
+      ]
+    }
+  }}
+/>
+```
+
 ### Adding blocks
 
 There are two ways to add a block. Both list the blocks under the same
@@ -325,9 +367,8 @@ its last one until then.
 
 A button saves only what differs from a strong, left-aligned button at its
 label's width: `align`, `emphasis: 'normal' | 'subtle'`, and
-`fullWidth: true`. On the page, a strong button takes the accent the editor
-sits in, so wrap the editor in a `ThemeProvider` with the email's accent to
-match it.
+`fullWidth: true`. On the page, a button takes the colours of
+[`theme`](#the-emails-colours), as the email does.
 
 Each of these blocks has its own toolbar:
 
