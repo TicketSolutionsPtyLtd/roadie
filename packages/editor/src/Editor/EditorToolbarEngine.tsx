@@ -268,8 +268,7 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource,
-    editSettings
+    importSource
   } = context
   return {
     editLink,
@@ -279,8 +278,7 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource,
-    editSettings
+    importSource
   }
 }
 
@@ -664,13 +662,28 @@ export function EditorToolbarEngine({
   const { aboveKeyboard, shift } = useKeyboardDock(stickyRef, barRef, !floating)
   // Held while the bar sits above the keyboard, so the text doesn't move.
   const [reserved, setReserved] = useState<number>()
-  const ui = controlUi(context)
   const phone = useOnPhone()
   const blockSelected = useEditorState({
     editor,
     selector: ({ editor: current }) =>
       current?.state.selection instanceof NodeSelection
   })
+  // Where the selected block starts, while it's one with Settings.
+  const settingsAt = useEditorState({
+    editor,
+    selector: ({ editor: current }) => {
+      const selection = current?.state.selection
+      return selection instanceof NodeSelection &&
+        context.hasSettings(selection.node.type.name)
+        ? selection.from
+        : null
+    }
+  })
+  const ui: EditorControlUi = {
+    ...controlUi(context),
+    editSettings:
+      settingsAt === null ? undefined : () => context.editSettingsAt(settingsAt)
+  }
   // Its settings take the place of the text controls, a tap away.
   const settingsShown =
     phone && blockSelected && (blockSettings.available?.(ui) ?? false)
