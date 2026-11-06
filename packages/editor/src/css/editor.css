@@ -342,6 +342,11 @@
   --email-divider: var(--email-base-button-text);
 }
 
+/* Its outline sits on the band's edge, not past the email's. */
+[data-email] :where([data-filled]) {
+  outline-offset: 0;
+}
+
 /* The email's band has no edge, so its blocks sit 24px in. */
 [data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong) {
   border-width: 0;
