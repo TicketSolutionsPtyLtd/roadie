@@ -561,6 +561,21 @@ describe('Editor image settings', () => {
     }
   )
 
+  it('leaves the image selected as settings Enter opened close', async () => {
+    renderImage(valueOf('email', image(), p('Doors open at 7pm')))
+    await clickIntoEditor(await screen.findByText('Doors open at 7pm'))
+    await userEvent.keyboard('{ArrowUp}{Enter}')
+    const dialog = await screen.findByRole('dialog', { name: 'Image settings' })
+    await waitFor(() => expect(dialog).toBeVisible())
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(
+      await screen.findByRole('toolbar', { name: 'Image actions' })
+    ).toBeVisible()
+  })
+
   it('puts the caret back in the text after a tap above its phone sheet', async () => {
     await page.viewport(390, 700)
     onTestFinished(() => page.viewport(1280, 800))
