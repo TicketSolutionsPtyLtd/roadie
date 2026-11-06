@@ -115,7 +115,10 @@ and `migrate` drops it from a stored value.
 preset, for an event page. The Block type menu leads the toolbar and names
 the block at the caret, then come the basic controls, from Bold, Italic, and
 Underline to the lists. Markdown works as you type: `## `, `### `, and
-`#### ` start a heading, `> ` a quote, and `---` a divider.
+`#### ` start a heading, `> ` a quote, and `---` a divider. `Backspace` at
+the start of a heading turns it back into a paragraph. In every preset,
+straight quotes turn curly as you type, `...` becomes an ellipsis, and `--`
+an em dash, except in a `/` query, where it names a block; `Backspace` straight after puts back what you typed.
 
 ```tsx-live-prose
 <Editor
