@@ -290,6 +290,7 @@ function SelectionMenu({
         },
         onHide: () => {
           forcedAtRef.current = null
+          focusOnShowRef.current = false
           setShown(false)
         }
       }}
@@ -308,7 +309,8 @@ function SelectionMenu({
             onKeyDownCapture?.(event)
             // Tab leaves the one Tab stop for the text it formats, not the
             // page past the menu, which sits outside the reading order.
-            if (event.key === 'Tab') {
+            const inToolbar = event.currentTarget.contains(event.target as Node)
+            if (event.key === 'Tab' && inToolbar) {
               event.preventDefault()
               forcedAtRef.current = null
               focusEditor(editor)
