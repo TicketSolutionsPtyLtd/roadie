@@ -203,6 +203,11 @@
   inset-inline: 0;
 }
 
+/* Its line spans the section or column it's in, not the whole email. */
+[data-email] :where([data-type='section'], [data-type='column']) {
+  position: relative;
+}
+
 [data-slot='editor-content'] .ProseMirror-gapcursor:after {
   inset-inline: 0;
   inline-size: auto;
