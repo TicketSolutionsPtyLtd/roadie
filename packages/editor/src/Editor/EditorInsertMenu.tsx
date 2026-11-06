@@ -37,7 +37,8 @@ const goesAfter = (editor: TiptapEditor, item: EditorInsertItem) =>
 // Where a top-level item goes from the caret, when it can't go here.
 function outerBlock(editor: TiptapEditor) {
   const { $from } = editor.state.selection
-  return $from.depth > 1 ? AFTER[$from.node(1).type.name] : undefined
+  if ($from.depth <= 1) return undefined
+  return AFTER[$from.node(1).type.name] ?? 'after this block'
 }
 
 // A touch screen types no markdown, and Kbd's hover check misses one that
