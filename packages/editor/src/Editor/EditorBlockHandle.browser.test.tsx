@@ -1,8 +1,16 @@
 import { StrictMode } from 'react'
 
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { server, userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
+import { page, server, userEvent } from 'vitest/browser'
 
 import { Dialog } from '@oztix/roadie-components/dialog'
 
@@ -21,6 +29,7 @@ beforeAll(() => {
   document.head.append(style)
 })
 afterAll(() => style.remove())
+afterEach(() => page.viewport(1280, 800))
 
 const block = (blockId: string, text: string) => ({
   type: 'paragraph',
@@ -147,17 +156,20 @@ describe('Editor block handle', () => {
     expect(grip.right).toBeLessThanOrEqual(row.getBoundingClientRect().left)
   })
 
-  it('hangs the grip in the page’s gutter, with no room made for it', async () => {
+  it('makes room for the add button and grip inside the editor, before the text', async () => {
     renderLineup()
     const row = await paragraph('Doors')
     await userEvent.hover(row)
     await expectHandleBeside('Doors')
 
     const textbox = await screen.findByRole('textbox', { name: LABEL })
-    expect(
-      (await handle()).getBoundingClientRect().left -
-        textbox.getBoundingClientRect().left
-    ).toBeLessThan(24)
+    const add = screen.getByRole('button', { name: 'Add block' })
+    expect(add.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+      textbox.getBoundingClientRect().left
+    )
+    expect((await handle()).getBoundingClientRect().right).toBeLessThanOrEqual(
+      row.getBoundingClientRect().left
+    )
   })
 
   it('takes a click below the blocks of a tall editor into the text', async () => {
@@ -358,7 +370,7 @@ describe('Editor block handle', () => {
     await userEvent.keyboard(`{${MOD}>}/{/${MOD}}`)
     const menu = await screen.findByRole('menu')
     await waitFor(() => expect(menu).toBeVisible())
-    await userEvent.keyboard('{ArrowDown}')
+    // Mod+/ has the first action ready.
     await waitFor(() =>
       expect(screen.getByRole('menuitem', { name: 'Move up' })).toHaveFocus()
     )
@@ -371,13 +383,23 @@ describe('Editor block handle', () => {
         'support'
       ])
     )
+    // The menu stays open on the moved block, for another move.
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(order(onValueChange).map(([id]) => id)).toEqual([
+        'headliner',
+        'doors',
+        'support'
+      ])
+    )
+    await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(textbox).toHaveFocus())
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
     await waitFor(() =>
       expect(order(onValueChange).map(([id]) => id)).toEqual([
         'doors',
-        'support',
-        'headliner'
+        'headliner',
+        'support'
       ])
     )
   })
@@ -388,8 +410,10 @@ describe('Editor block handle', () => {
 
     await openMenuOn('Doors')
     await userEvent.click(screen.getByRole('menuitem', { name: 'Move down' }))
+    await userEvent.keyboard('{Escape}')
     await openMenuOn('Headliner')
     await userEvent.click(screen.getByRole('menuitem', { name: 'Move up' }))
+    await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(textbox).toHaveFocus())
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
@@ -468,7 +492,7 @@ describe('Editor block handle', () => {
     ).rejects.toThrow()
   })
 
-  it('stays while the pointer crosses the gap to a grip outside a subtler editor', async () => {
+  it('stays while the pointer crosses the gap to the grip in a subtler editor’s gutter', async () => {
     render(
       <div className='ps-12'>
         <Editor aria-label={LABEL} defaultValue={lineup} emphasis='subtler' />
@@ -500,7 +524,7 @@ describe('Editor block handle', () => {
         x:
           row.getBoundingClientRect().left -
           page.getBoundingClientRect().left -
-          100,
+          150,
         y: middle(row) - page.getBoundingClientRect().top
       }
     })
@@ -760,7 +784,7 @@ describe('Editor block handle', () => {
     }
   )
 
-  it('stays on the grip outside a subtler editor', async () => {
+  it('stays on the grip in a subtler editor’s gutter', async () => {
     render(
       <div className='ps-12'>
         <Editor aria-label={LABEL} defaultValue={lineup} emphasis='subtler' />
@@ -844,6 +868,72 @@ describe('Editor block handle', () => {
     await expect(
       waitFor(() => expectHandleBeside('Doors'), { timeout: 300 })
     ).rejects.toThrow()
+  })
+
+  it('keeps the grip inside a subtler editor, where a page can’t clip it', async () => {
+    renderLineup({ emphasis: 'subtler' })
+    const row = await paragraph('Doors')
+    await userEvent.hover(row)
+    await expectHandleBeside('Doors')
+
+    const grip = (await handle()).getBoundingClientRect()
+    const frame = row.closest('[data-slot="editor"]')!.getBoundingClientRect()
+    expect(grip.left).toBeGreaterThanOrEqual(frame.left)
+    expect(grip.right).toBeLessThanOrEqual(row.getBoundingClientRect().left)
+  })
+
+  it('follows its block when the editor resizes, with the pointer still', async () => {
+    render(
+      <div data-testid='canvas' style={{ width: 600 }}>
+        <Editor aria-label={LABEL} defaultValue={lineup} />
+      </div>
+    )
+    await userEvent.click(await paragraph('Support'))
+    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+    await expectHandleBeside('Support')
+    const before = (await paragraph('Support')).getBoundingClientRect().top
+
+    screen.getByTestId('canvas').style.width = '110px'
+
+    await waitFor(async () =>
+      expect((await paragraph('Support')).getBoundingClientRect().top).not.toBe(
+        before
+      )
+    )
+    await expectHandleBeside('Support')
+  })
+
+  describe('on a phone', () => {
+    it('moves to a new line the caret makes, from the block tapped', async () => {
+      await page.viewport(390, 700)
+      renderLineup()
+      const doors = await paragraph('Doors')
+      await userEvent.click(doors)
+      // A tap's own press, which leaves the hover on the block tapped.
+      doors.dispatchEvent(
+        new PointerEvent('pointerdown', { pointerType: 'touch', bubbles: true })
+      )
+      await userEvent.keyboard(`${LINE_END}{Enter}`)
+
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const blank = textbox.querySelector('p:nth-child(2)')!
+      await waitFor(async () => {
+        const { top, bottom } = blank.getBoundingClientRect()
+        const centre = middle(await handle())
+        expect(centre).toBeGreaterThan(top)
+        expect(centre).toBeLessThan(bottom)
+      })
+    })
+  })
+
+  it('stays beside the hovered block in a narrow window with a mouse', async () => {
+    await page.viewport(390, 700)
+    renderLineup()
+    await userEvent.click(await paragraph('Doors'))
+
+    await userEvent.hover(await paragraph('Headliner'))
+
+    await expectHandleBeside('Headliner')
   })
 
   describe('right to left', () => {

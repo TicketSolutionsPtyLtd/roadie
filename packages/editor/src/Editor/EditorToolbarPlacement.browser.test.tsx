@@ -351,30 +351,19 @@ describe('Editor toolbar on a phone', () => {
     }
   )
 
-  it('scrolls its controls sideways on one row, bringing a focused one into view', async () => {
+  it('fits its controls on one row, reaching More at its end with the arrow keys', async () => {
     await page.viewport(PHONE.width, PHONE.height)
     render(<Editor aria-label={LABEL} defaultValue={shortRead} />)
     const textbox = await focusedTextbox()
     const toolbar = await shownToolbar()
     const scroller = scrollerOf(toolbar)
-    const controls = Array.from(toolbar.querySelectorAll('button'))
 
-    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
-    expect(
-      new Set(controls.map((control) => control.getBoundingClientRect().top))
-        .size
-    ).toBe(1)
-
+    await waitFor(() =>
+      expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth)
+    )
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
     await userEvent.keyboard('{ArrowLeft}')
-    const redo = screen.getByRole('button', { name: 'Redo' })
-    expect(redo).toHaveFocus()
-    await waitFor(() =>
-      expect(redo.getBoundingClientRect().right).toBeLessThanOrEqual(
-        scroller.getBoundingClientRect().right + 1
-      )
-    )
-    expect(scroller.scrollLeft).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'More' })).toHaveFocus()
 
     await userEvent.keyboard('{Escape}')
     expect(textbox).toHaveFocus()

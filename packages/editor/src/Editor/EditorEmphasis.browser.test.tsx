@@ -16,6 +16,7 @@ import { Field } from '@oztix/roadie-components/field'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
+import { clickIntoEditor } from './testUtils'
 import type { EditorEmphasis, EditorSize } from './variants'
 
 const LABEL = 'Event description'
@@ -160,7 +161,8 @@ describe('Editor emphasis', () => {
     )
     const textbox = await loadedTextbox()
     const [first, second] = [...textbox.children] as HTMLElement[]
-    await userEvent.click(screen.getByText('All ages'))
+    // Once ProseMirror has synced its selection, which would undo the arrow.
+    await clickIntoEditor(screen.getByText('All ages'))
     await waitFor(() => expect(second).toHaveAttribute('data-focused-block'))
 
     second!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
