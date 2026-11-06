@@ -525,7 +525,13 @@ describe('Editor with the email preset', () => {
 
     await userEvent.click(image)
     await waitFor(() => expect(view).toHaveAttribute('data-selected'))
-    await screen.findByRole('dialog', { name: 'Image settings' })
+    const settings = await screen.findByRole('dialog', {
+      name: 'Image settings'
+    })
+    // Once it has focus, or Escape goes to the editor instead.
+    await waitFor(() =>
+      expect(settings.contains(document.activeElement)).toBe(true)
+    )
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
