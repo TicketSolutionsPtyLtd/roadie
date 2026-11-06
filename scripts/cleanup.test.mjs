@@ -314,6 +314,24 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     assert.match(output, /\(folder gone since the check\)/)
   })
 
+  test('keeps the branch a worktree switches to while it is sized', () => {
+    const f = fixture()
+    const path = f.worktree('claude/switched')
+    f.merge('claude/switched')
+    execFileSync('git', ['-C', f.repo, 'branch', 'claude/other'], {
+      env: gitFreeEnv()
+    })
+    f.merge('claude/other')
+    f.whileSizing(path, `git -C "${path}" switch -q claude/other`)
+
+    const { status, output } = f.cleanup(['--delete'])
+
+    assert.equal(status, 0, output)
+    assert.match(output, /\(moved since the check\)/)
+    assert.equal(existsSync(path), true)
+    assert.deepEqual(f.branches(), ['claude/other', 'main'])
+  })
+
   test('keeps a worktree a process starts in while it is sized', () => {
     const f = fixture()
     const path = f.worktree('claude/reopened')

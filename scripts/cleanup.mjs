@@ -284,8 +284,9 @@ for (const tree of prunable) {
 }
 
 const released = new Set([...removable, ...prunable.map((tree) => tree.path)])
+// Read again, since a worktree kept at the recheck may be on another branch.
 const checkedOut = new Set(
-  [mainCheckout, ...registered]
+  worktrees()
     .filter((tree) => tree.branch && !released.has(tree.path))
     .map((tree) => tree.branch)
 )
