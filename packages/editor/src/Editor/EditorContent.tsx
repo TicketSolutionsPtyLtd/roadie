@@ -12,16 +12,21 @@ export type EditorContentProps = Omit<ComponentProps<'div'>, 'children' | 'ref'>
 export function EditorContent({ className, ...props }: EditorContentProps) {
   const context = use(EditorContext)
   if (!context) throw new Error('Editor.Content must be inside an Editor.')
-  const { editor, TiptapContent } = context
+  const { editor, TiptapContent, preview } = context
   return (
-    <TiptapContent
-      data-slot='editor-content'
-      editor={editor}
-      // The menus' plugins append them here, so they scroll with the text,
-      // and the block handle sits beside each block, placed against this.
-      className={cn('relative grid grow', className)}
-      {...props}
-    />
+    <>
+      {preview}
+      <TiptapContent
+        data-slot='editor-content'
+        editor={editor}
+        // The menus' plugins append them here, so they scroll with the text,
+        // and the block handle sits beside each block, placed against this.
+        className={cn('relative grid grow', className)}
+        {...props}
+        // Kept, so the caret, undo, and open menus are there to come back to.
+        hidden={preview ? true : props.hidden}
+      />
+    </>
   )
 }
 
