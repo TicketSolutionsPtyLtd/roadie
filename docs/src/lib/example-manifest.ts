@@ -21,6 +21,8 @@ export type ManifestExample = {
   language: string
   code: string
   previewLayout: string | undefined
+  /** Runs to the screen's edges on a phone, from a `bleed` fence. */
+  bleed: boolean
 }
 
 const APP_DIR = join(dirname(fileURLToPath(import.meta.url)), '../app')
@@ -34,7 +36,7 @@ async function readPageExamples(path: string): Promise<ManifestExample[]> {
   ])
   const tree = createProcessor().parse(source)
   return collectLiveExamples(tree).map(
-    ({ id, anchor, heading, language, code, previewLayout }) => ({
+    ({ id, anchor, heading, language, code, previewLayout, bleed }) => ({
       page,
       pageTitle: metadata?.title ?? page,
       id,
@@ -43,7 +45,8 @@ async function readPageExamples(path: string): Promise<ManifestExample[]> {
       heading,
       language,
       code,
-      previewLayout
+      previewLayout,
+      bleed
     })
   )
 }

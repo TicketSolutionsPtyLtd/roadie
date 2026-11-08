@@ -6,7 +6,7 @@ import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
-import { LINE_START } from './testUtils'
+import { LINE_START, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -20,8 +20,7 @@ const valueOf = (...content: object[]): EditorValue => ({
 
 async function focusedTextbox() {
   const textbox = await screen.findByRole('textbox', { name: LABEL })
-  await userEvent.click(textbox)
-  await waitFor(() => expect(textbox).toHaveFocus())
+  await clickIntoEditor(textbox)
   return textbox
 }
 
@@ -337,7 +336,7 @@ describe('Editor blocks preset ids on drag', () => {
     await expect
       .poll(() => crowd.getBoundingClientRect().height, { timeout: 5000 })
       .toBeGreaterThan(0)
-    await userEvent.click(doors)
+    await clickIntoEditor(doors)
     await userEvent.keyboard(`${LINE_START}{Shift>}{ArrowRight>6/}{/Shift}`)
 
     dragBlock(doors, crowd, {})

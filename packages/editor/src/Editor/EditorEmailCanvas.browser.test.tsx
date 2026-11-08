@@ -439,6 +439,11 @@ describe('Editor email canvas', () => {
     )
     await screen.findByText('Doors 7pm')
     const image = await screen.findByAltText('A crowd', {}, { timeout: 5000 })
+    // A loaded WebKit lays the failed image out late, with no size till then,
+    // so a click before it does waits on an element that never settles.
+    await expect
+      .poll(() => image.getBoundingClientRect().height, { timeout: 5000 })
+      .toBeGreaterThan(0)
     const block = image.closest<HTMLElement>('[data-slot="editor-image"]')!
     const spacer = document.querySelector<HTMLElement>('[data-type="spacer"]')!
 

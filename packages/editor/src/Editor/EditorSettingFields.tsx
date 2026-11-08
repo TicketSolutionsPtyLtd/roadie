@@ -1,6 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import {
+  type ReactNode,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState
+} from 'react'
 
 import { PlusIcon, TrashIcon, UploadSimpleIcon } from '@phosphor-icons/react'
 
@@ -37,12 +43,15 @@ const recordOf = (value: unknown): Attrs =>
 type FieldProps = {
   setting: EditorSetting
   value: unknown
-  onValueChange: (value: unknown) => void
+  /** `ownStep` makes the change a step of its own, which Undo takes back alone. */
+  onValueChange: (value: unknown, ownStep?: boolean) => void
   onDone: () => void
   /** Its place in the block's attrs, such as `cards.1.title`. */
   path: string
   /** The setting to open the way to, such as a card's title clicked on. */
   focusPath?: string
+  /** The list item being edited, by its path, as it opens or takes focus. */
+  onEditItem?: (path: string, editing: boolean) => void
   uploadImage?: UploadSettingImage
 }
 
@@ -100,11 +109,57 @@ function TextInput({
   )
 }
 
-type PartProps = Omit<FieldProps, 'setting'> & { label: string }
+/**
+ * A field's text as typed, which can hold what isn't applied yet, such as a
+ * half-pasted link, and follows the value when it changes from outside, such
+ * as on Undo.
+ */
+function useDraft(value: string) {
+  const [draft, setDraft] = useState(value)
+  const [seen, setSeen] = useState(value)
+  if (value !== seen) {
+    setSeen(value)
+    setDraft(value)
+  }
+  return [draft, setDraft] as const
+}
+
+type PartProps = Omit<FieldProps, 'setting'> & {
+  label: string
+  /** In a list item, whose fold already names it. */
+  inItem?: boolean
+}
+
+/** A part's fields, named by its legend, or by its item's fold. */
+function PartFieldset({
+  label,
+  inItem,
+  children
+}: {
+  label: string
+  inItem?: boolean
+  children: ReactNode
+}) {
+  return (
+    <Fieldset
+      className='grid gap-3 [&>*+*]:mt-0'
+      aria-label={inItem ? label : undefined}
+    >
+      {inItem ? null : (
+        // A legend sits outside the fieldset's grid, so gap misses it.
+        <Fieldset.Legend className='mb-1.5 text-sm font-medium text-normal'>
+          {label}
+        </Fieldset.Legend>
+      )}
+      {children}
+    </Fieldset>
+  )
+}
 
 /** An image: a link or an upload, and its alt text. */
 function ImageFields({
   label,
+  inItem,
   value,
   onValueChange,
   onDone,
@@ -112,7 +167,7 @@ function ImageFields({
   uploadImage
 }: PartProps) {
   const image = recordOf(value)
-  const [src, setSrc] = useState(textOf(image.src))
+  const [src, setSrc] = useDraft(textOf(image.src))
   const [uploading, setUploading] = useState(false)
   const [failed, setFailed] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -132,11 +187,7 @@ function ImageFields({
   const refused = src !== '' && !isSafeImageSrc(src)
   const change = (next: Attrs) => onValueChange({ ...image, ...next })
   return (
-    <Fieldset className='grid gap-3 [&>*+*]:mt-0'>
-      {/* A legend sits outside the fieldset's grid, so gap misses it. */}
-      <Fieldset.Legend className='mb-1.5 text-sm font-medium text-normal'>
-        {label}
-      </Fieldset.Legend>
+    <PartFieldset label={label} inItem={inItem}>
       {isSafeImageSrc(image.src) ? (
         <img
           src={image.src}
@@ -218,27 +269,24 @@ function ImageFields({
         onDone={onDone}
         helperText='What a screen reader says, and what shows if it doesn’t load.'
       />
-    </Fieldset>
+    </PartFieldset>
   )
 }
 
 /** A link with its label, such as a button. */
 function ActionFields({
   label,
+  inItem,
   value,
   onValueChange,
   onDone,
   path
 }: PartProps) {
   const action = recordOf(value)
-  const [href, setHref] = useState(textOf(action.href))
+  const [href, setHref] = useDraft(textOf(action.href))
   const change = (next: Attrs) => onValueChange({ ...action, ...next })
   return (
-    <Fieldset className='grid gap-3 [&>*+*]:mt-0'>
-      {/* A legend sits outside the fieldset's grid, so gap misses it. */}
-      <Fieldset.Legend className='mb-1.5 text-sm font-medium text-normal'>
-        {label}
-      </Fieldset.Legend>
+    <PartFieldset label={label} inItem={inItem}>
       <TextInput
         label='Label'
         path={`${path}.label`}
@@ -258,7 +306,7 @@ function ActionFields({
         invalid={isUnsafeHref(href)}
         error='This link can’t be used.'
       />
-    </Fieldset>
+    </PartFieldset>
   )
 }
 
@@ -266,6 +314,30 @@ type ListSetting = Extract<EditorSetting, { type: 'list' }>
 
 let nextKey = 0
 const newKey = () => `item-${(nextKey += 1)}`
+
+// Items have no ids, so each keeps a key by its object. An edit hands its key
+// on to the item it makes, and Undo brings the same object back, so an item
+// keeps its fold open and its focus through both.
+const itemKeys = new WeakMap<object, string>()
+
+function keysOf(items: readonly unknown[]) {
+  const taken = new Set<string>()
+  return items.map((item, index) => {
+    if (typeof item !== 'object' || item === null) return `at-${index}`
+    let key = itemKeys.get(item)
+    // One object listed twice still needs two keys.
+    if (!key || taken.has(key)) {
+      key = newKey()
+      itemKeys.set(item, key)
+    }
+    taken.add(key)
+    return key
+  })
+}
+
+const keepKey = (item: unknown, key: string) => {
+  if (typeof item === 'object' && item !== null) itemKeys.set(item, key)
+}
 
 // An item's name in its fold: its first text, or its place in the list.
 function itemText(setting: ListSetting, item: unknown, index: number) {
@@ -305,6 +377,10 @@ function blankItem(setting: ListSetting): unknown {
 
 type ListFieldProps = Omit<FieldProps, 'setting'> & { setting: ListSetting }
 
+// What takes focus once the list redraws: a new item's first field, the item
+// after one removed, or Add once none are left.
+type Focus = { key: string; at: 'field' | 'fold' } | 'add' | null
+
 /** Items to add, remove, reorder by drag or menu, and edit in their folds. */
 function ListField({
   setting,
@@ -313,52 +389,65 @@ function ListField({
   onDone,
   path,
   focusPath,
+  onEditItem,
   uploadImage
 }: ListFieldProps) {
   const items = Array.isArray(value) ? value : []
-  // Items have no ids, so the drawer keeps its own, in step with their order.
-  const [keys, setKeys] = useState(() => items.map(newKey))
+  const keys = keysOf(items)
   const opened = focusPath?.startsWith(`${path}.`)
     ? Number(focusPath.slice(path.length + 1).split('.')[0])
     : null
-  // A new item takes focus at its first field, so typing fills it in rather
-  // than pressing Add again.
-  const [focusKey, setFocusKey] = useState<string | null>(null)
+  const [focus, setFocus] = useState<Focus>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const addRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
-    if (!focusKey) return
-    listRef.current
-      ?.querySelector<HTMLElement>(
-        `[data-item="${CSS.escape(focusKey)}"] :is(input:not([type=hidden]), textarea)`
-      )
-      ?.focus()
-    setFocusKey(null)
-  }, [focusKey])
+    if (!focus) return
+    const target =
+      focus === 'add'
+        ? addRef.current
+        : listRef.current?.querySelector<HTMLElement>(
+            `[data-item="${CSS.escape(focus.key)}"] ${
+              focus.at === 'field'
+                ? ':is(input:not([type=hidden]), textarea)'
+                : '[data-slot=collapsible-trigger]'
+            }`
+          )
+    target?.focus()
+    setFocus(null)
+  }, [focus])
   const [open, setOpen] = useState<ReadonlySet<string>>(
     () => new Set(opened === null ? [] : [keys[opened] ?? ''])
   )
-  // Changed from outside, so its keys start again, once.
-  if (keys.length !== items.length) setKeys(items.map(newKey))
-  const shown = keys.length === items.length ? keys : items.map(() => '')
+  // The item clicked or tapped to open the drawer is the one being edited.
+  const report = useEffectEvent(() => {
+    if (opened !== null && opened < items.length) {
+      onEditItem?.(`${path}.${opened}`, true)
+    }
+  })
+  useEffect(() => report(), [])
   const full = setting.max !== undefined && items.length >= setting.max
 
-  const update = (next: unknown[], nextKeys: string[]) => {
-    setKeys(nextKeys)
-    onValueChange(next)
-  }
   const add = () => {
     const key = newKey()
-    setFocusKey(key)
+    const item = blankItem(setting)
+    keepKey(item, key)
+    setFocus({ key, at: 'field' })
     setOpen((current) => new Set([...current, key]))
-    update([...items, blankItem(setting)], [...shown, key])
+    onValueChange([...items, item])
+    onEditItem?.(`${path}.${items.length}`, true)
   }
-  const remove = (index: number) =>
-    update(
+  const remove = (index: number) => {
+    const next = keys[index + 1] ?? keys[index - 1]
+    setFocus(next ? { key: next, at: 'fold' } : 'add')
+    onValueChange(
       items.filter((_, at) => at !== index),
-      shown.filter((_, at) => at !== index)
+      true
     )
-  const changeItem = (index: number, item: unknown) =>
+  }
+  const changeItem = (index: number, item: unknown) => {
+    keepKey(item, keys[index]!)
     onValueChange(items.map((current, at) => (at === index ? item : current)))
+  }
 
   return (
     <Fieldset className='grid gap-2 [&>*+*]:mt-0'>
@@ -367,18 +456,15 @@ function ListField({
         {setting.label}
       </Fieldset.Legend>
       <Sortable
-        items={shown}
+        items={keys}
         label={setting.label.toLowerCase()}
         onReorder={(nextKeys) =>
-          update(
-            nextKeys.map((key) => items[shown.indexOf(key)]),
-            nextKeys
-          )
+          onValueChange(nextKeys.map((key) => items[keys.indexOf(key)]))
         }
       >
         <div ref={listRef} className='grid gap-2'>
           {items.map((item, index) => {
-            const key = shown[index]!
+            const key = keys[index]!
             const title = itemTitle(setting, items, index)
             const itemPath = `${path}.${index}`
             return (
@@ -388,17 +474,19 @@ function ListField({
                 label={title}
                 data-item={key}
                 className='grid emphasis-normal rounded-lg'
+                onFocus={() => onEditItem?.(itemPath, true)}
               >
                 <Collapsible
                   open={open.has(key)}
-                  onOpenChange={(next) =>
+                  onOpenChange={(next) => {
+                    onEditItem?.(itemPath, next)
                     setOpen((current) => {
                       const changed = new Set(current)
                       if (next) changed.add(key)
                       else changed.delete(key)
                       return changed
                     })
-                  }
+                  }}
                 >
                   <div className='flex items-center gap-1 p-1'>
                     <Sortable.Handle size='xs' />
@@ -423,6 +511,7 @@ function ListField({
                             label: title,
                             type: setting.item
                           }}
+                          inItem
                           value={item}
                           onValueChange={(next) => changeItem(index, next)}
                           onDone={onDone}
@@ -457,7 +546,13 @@ function ListField({
         </div>
       </Sortable>
       <div className='flex'>
-        <Button size='sm' emphasis='subtle' disabled={full} onClick={add}>
+        <Button
+          ref={addRef}
+          size='sm'
+          emphasis='subtle'
+          disabled={full}
+          onClick={add}
+        >
           <PlusIcon weight='bold' className='size-4' aria-hidden />
           Add {setting.itemLabel.toLowerCase()}
         </Button>
@@ -467,7 +562,7 @@ function ListField({
 }
 
 /** One setting as the drawer edits it: a field, or a group of them. */
-export function SettingField(props: FieldProps) {
+export function SettingField(props: FieldProps & { inItem?: boolean }) {
   const { setting, value, onValueChange, onDone, path } = props
   switch (setting.type) {
     case 'list':

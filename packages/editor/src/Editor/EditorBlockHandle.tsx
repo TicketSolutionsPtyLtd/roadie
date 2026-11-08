@@ -576,13 +576,15 @@ export function EditorBlockHandle({
   }, [editor, marked])
 
   // After every change, as text above or in the block moves it, and as the
-  // editor resizes, as a drawer opening beside it reflows its text.
+  // editor or its frame resizes, as a drawer opening beside it reflows its
+  // text or moves a centred email that keeps its width.
   const [resized, setResized] = useState(0)
   useEffect(() => {
     const observer = new ResizeObserver(() => setResized((count) => count + 1))
     observer.observe(editor.view.dom)
+    if (wrapper) observer.observe(wrapper)
     return () => observer.disconnect()
-  }, [editor])
+  }, [editor, wrapper])
   useLayoutEffect(() => {
     // In a column after another, side by side, the grip fills the gap
     // before it, clear of the column to its left. A first column's text, and

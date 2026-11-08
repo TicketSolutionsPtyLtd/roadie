@@ -11,6 +11,7 @@ import type { ManifestExample } from '@/lib/example-manifest'
 import { getAssetPath } from '@/utils/getAssetPath'
 
 import { Button } from '@oztix/roadie-components/button'
+import { cn } from '@oztix/roadie-core/utils'
 
 import { LazyLiveRunner } from './LazyLiveRunner'
 
@@ -22,7 +23,8 @@ export function IsolatedExample({
   backHref,
   pageTitle,
   heading,
-  previewLayout
+  previewLayout,
+  bleed
 }: ManifestExample) {
   return (
     <div className='grid min-h-dvh grid-rows-[auto_1fr]'>
@@ -35,15 +37,23 @@ export function IsolatedExample({
           <p className='min-w-0 truncate text-sm text-subtle'>{heading}</p>
         )}
       </header>
-      <main className='min-w-0 p-4 sm:p-6'>
-        <LazyLiveRunner
-          loading={null}
-          code={code.trim()}
-          language={language}
-          heightKey={href}
-          previewLayout={previewLayout}
-          isolated
-        />
+      <main
+        className={cn(
+          'min-w-0 p-4 sm:p-6',
+          // Its frame's sides sit just off screen, so what it holds spans it.
+          bleed && 'max-sm:overflow-x-clip max-sm:px-0'
+        )}
+      >
+        <div className={cn(bleed && 'max-sm:-mx-px')}>
+          <LazyLiveRunner
+            loading={null}
+            code={code.trim()}
+            language={language}
+            heightKey={href}
+            previewLayout={previewLayout}
+            isolated
+          />
+        </div>
       </main>
     </div>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { Component, type ReactNode } from 'react'
+import { Component, type ReactNode, use } from 'react'
 
 import { SquaresFourIcon } from '@phosphor-icons/react'
 import { Node, mergeAttributes } from '@tiptap/core'
@@ -14,6 +14,7 @@ import {
   type EditorSection,
   reactNodeView
 } from '../extensions'
+import { EditorContext } from './EditorContext'
 import { insertBlock } from './emailEditing'
 import type { EditorInsertItem } from './insertItems'
 
@@ -56,8 +57,10 @@ class SectionBoundary extends Component<
   }
 }
 
-function Drawn({ render, attrs }: { render: Render; attrs: Attrs }) {
-  return render({ attrs, editing: true })
+type DrawnProps = { render: Render; attrs: Attrs; editingItem?: string }
+
+function Drawn({ render, attrs, editingItem }: DrawnProps) {
+  return render({ attrs, editing: true, editingItem })
 }
 
 const own = (attrs: Attrs, keys: readonly string[]) =>
@@ -84,6 +87,7 @@ export function sectionBlock(section: EditorSection): EditorBlock {
 
   function SectionView({ node, selected }: EditorNodeViewProps) {
     const attrs = own(node.attrs, keys)
+    const editingItem = use(EditorContext)?.editingItem ?? undefined
     return (
       <NodeViewWrapper
         data-slot='editor-section'
@@ -93,19 +97,24 @@ export function sectionBlock(section: EditorSection): EditorBlock {
         data-selected={selected ? '' : undefined}
         className='not-prose relative rounded-md'
       >
-        {/* Its name, shown with its ring while it's under the pointer. */}
+        {/* Its name, on its ring above it, clear of what it draws, while
+            it's under the pointer. Opaque, so the block above can't show
+            through. */}
         <Badge
           data-slot='editor-section-name'
           size='sm'
-          emphasis='subtle'
-          className='absolute start-3 top-3 z-1'
+          className='absolute start-0 -top-0.5 z-1 -translate-y-full emphasis-raised'
           aria-hidden
         >
           {section.label}
         </Badge>
         <div inert>
           <SectionBoundary attrs={node.attrs}>
-            <Drawn render={section.render} attrs={attrs} />
+            <Drawn
+              render={section.render}
+              attrs={attrs}
+              editingItem={selected ? editingItem : undefined}
+            />
           </SectionBoundary>
         </div>
       </NodeViewWrapper>

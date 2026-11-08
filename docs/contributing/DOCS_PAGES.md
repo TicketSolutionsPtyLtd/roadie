@@ -105,7 +105,7 @@ component the status of the page that documents it.
 - A plain `tsx` fence is for code that doesn't run, such as imports and setup.
 - Fences get every component without imports. Top-level JSX, such as a
   `Guideline` example, imports what it uses from a per-component subpath.
-- Fence options (`id=`, `eager`, `-noinline`, `-expand`, and the layout
+- Fence options (`id=`, `eager`, `bleed`, `-noinline`, `-expand`, and the layout
   options `layout=`, `gap=`, and `width=`) are in
   [`COMPONENT_DOC_TEMPLATE.md`](COMPONENT_DOC_TEMPLATE.md#live-examples).
 

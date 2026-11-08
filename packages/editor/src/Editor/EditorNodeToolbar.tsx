@@ -10,6 +10,7 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 import { EditorBlockMenuGroup } from './EditorBlockMenuGroup'
 import { BlockMenu, Control, stateOf } from './EditorToolbarEngine'
+import { GRIPS, SECTION_CONTROLS, controlRects } from './canvasControls'
 import {
   type EditorBlockMenu,
   type EditorControlUi,
@@ -164,7 +165,7 @@ const overlaps = (a: DOMRect, b: DOMRect) =>
 
 /**
  * The first place for the columns toolbar that's on screen and covers no
- * text: past their end at the top, above their end or start, inside their
+ * text or canvas control: past their end at the top, above their end or start, inside their
  * top-end or top-start corner, then in the top padding of the block holding
  * them. It never goes below them, where the next block's own controls and
  * badges sit. With none clear, it docks in their top-end corner.
@@ -190,6 +191,7 @@ function columnsPlace(
   const text = textRects(inside ?? element.previousElementSibling).concat(
     inside ? [] : textRects(element)
   )
+  const controls = controlRects(frame, `${GRIPS}, ${SECTION_CONTROLS}`)
   const corner = Math.max(
     Math.min(Math.max(box.top, top) + INSET, box.bottom - height - INSET),
     box.top
@@ -212,7 +214,8 @@ function columnsPlace(
       toolbar.top >= top &&
       toolbar.bottom <= window.innerHeight &&
       toolbar.right <= frameRight - INSET &&
-      text.every((rect) => !overlaps(rect, toolbar))
+      text.every((rect) => !overlaps(rect, toolbar)) &&
+      controls.every((rect) => !overlaps(rect, toolbar))
     )
   }
   // Then down the row's end, then its start, for a gap between its lines.
@@ -354,6 +357,7 @@ export function EditorNodeToolbar({
                 menu={item}
                 state={states[index]}
                 editor={editor}
+                headed
               />
             ) : (item.available?.(ui) ?? true) ? (
               <Control
