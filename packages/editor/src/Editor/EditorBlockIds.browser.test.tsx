@@ -6,7 +6,7 @@ import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
-import { LINE_START } from './testUtils'
+import { LINE_START, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -20,8 +20,7 @@ const valueOf = (...content: object[]): EditorValue => ({
 
 async function focusedTextbox() {
   const textbox = await screen.findByRole('textbox', { name: LABEL })
-  await userEvent.click(textbox)
-  await waitFor(() => expect(textbox).toHaveFocus())
+  await clickIntoEditor(textbox)
   return textbox
 }
 
@@ -330,12 +329,17 @@ describe('Editor blocks preset ids on drag', () => {
         onValueChange={onValueChange}
       />
     )
-    // On the text, as a click on the image would open its settings.
     const doors = await screen.findByText('Doors 7pm')
-    await userEvent.click(doors)
+    const crowd = await screen.findByRole('img', { name: 'Crowd' })
+    // A loaded WebKit lays the failed image out late, with no size to drop
+    // on till then.
+    await expect
+      .poll(() => crowd.getBoundingClientRect().height, { timeout: 5000 })
+      .toBeGreaterThan(0)
+    await clickIntoEditor(doors)
     await userEvent.keyboard(`${LINE_START}{Shift>}{ArrowRight>6/}{/Shift}`)
 
-    dragBlock(doors, await screen.findByRole('img', { name: 'Crowd' }), {})
+    dragBlock(doors, crowd, {})
 
     // WebKit drops it before the image, the others after it.
     const draggedOf = (doc: JSONContent) =>

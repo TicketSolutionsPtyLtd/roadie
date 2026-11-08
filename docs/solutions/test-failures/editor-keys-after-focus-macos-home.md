@@ -34,6 +34,15 @@ form around the editor" on all three attempts in one run, with
 Linux WebKit also retried these tests often, along with others that click
 and then press native caret keys.
 
+Later, `EditorBlockIds.browser.test.tsx` failed "gives text dragged out of
+its block a block id of its own" in Firefox on all three attempts, on
+unrelated PRs, with `expected undefined to be defined`. The drag moved
+"Doors" instead of "Doors ": one of six Shift+ArrowRight presses was undone,
+so the test found no block holding "Doors ". The block that was dragged out
+had an id of its own, so the code was right. The test used a bare
+`userEvent.click` before the keys. The `ResizeObserver loop` error logged
+near it was unrelated.
+
 ## Cause
 
 Two causes, each with the same test step: click into the editor, then
@@ -92,8 +101,14 @@ not this race; INNO-1491 tracks it.
 A new editor test that presses caret keys after a click uses
 `clickIntoEditor` or `selectParagraph`, never a bare `userEvent.click`.
 
+Nothing enforces this yet, so a test copied from an older one can still
+use a bare click. When a selection test flakes in Firefox, look for one
+first.
+
 Run the editor browser tests on macOS with
 `pnpm test:gated editor --all --all-browsers`. A Mac run catches the Home
 and End bindings, which Linux CI can't. To see the race, click into the
 editor, spin until about 10ms after its `focus` event, then press the Shift+Arrow
-keys. In Firefox, one in a few dozen tries drops a move.
+keys. In Firefox, one in a few dozen tries drops a move. With every core
+busy, the drag test above failed 9 runs in 40 with a bare click and none
+in 200 with `clickIntoEditor`.
