@@ -4,8 +4,8 @@ import type { MapEngineInstance } from './engine'
 import { testPalette } from './mapTestUtils'
 import { type MaplibreEngineOptions, maplibreEngine } from './maplibreEngine'
 
-// MapLibre keeps one pool of workers per page, made by the first map, so each
-// file that uses this mounts one map only.
+// MapLibre's worker URL is one setting for the whole page, and stays once
+// set, so each file that uses this mounts one map only.
 
 const venue = { lat: -27.4575, lng: 153.0355 }
 
