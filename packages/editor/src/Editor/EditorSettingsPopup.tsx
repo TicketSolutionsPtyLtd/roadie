@@ -49,6 +49,7 @@ export function EditorSettingsPopup({
         <Drawer.Content
           {...{ [EDITOR_POPUP]: '' }}
           size='sm'
+          onKeyDown={live.onKeyDown}
           initialFocus={initialFocus}
           finalFocus={finalFocus}
         >
@@ -67,6 +68,7 @@ export function EditorSettingsPopup({
         sideOffset={8}
         className='max-h-(--available-height) w-80 max-w-(--available-width) overflow-y-auto'
         positionerProps={{ anchor }}
+        onKeyDown={live.onKeyDown}
         initialFocus={initialFocus}
         finalFocus={finalFocus}
       >

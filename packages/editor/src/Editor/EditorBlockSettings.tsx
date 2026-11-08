@@ -1,8 +1,7 @@
 'use client'
 
-import { type KeyboardEvent, type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 
-import { isMacOS } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
@@ -102,17 +101,6 @@ function aboveSheet(element: Element, sheet: Element) {
 function scrollToTop(scroller: Element, element: Element) {
   scroller.scrollTop +=
     element.getBoundingClientRect().top - scroller.getBoundingClientRect().top
-}
-
-// In a field, Mod+Z would undo the browser's own typing there, which the
-// block already shows, or a keystroke in another field, so it goes to the
-// editor's history instead.
-const historyKey = (event: KeyboardEvent) => {
-  if (event.altKey || event.nativeEvent.isComposing) return null
-  if (!(isMacOS() ? event.metaKey : event.ctrlKey)) return null
-  const key = event.key.toLowerCase()
-  if (key === 'z') return event.shiftKey ? 'redo' : 'undo'
-  return key === 'y' && !isMacOS() ? 'redo' : null
 }
 
 function scrollNearTop(element: Element) {
@@ -310,12 +298,6 @@ export function EditorBlockSettings({
     focusEditor(editor)
     return false
   }
-  const onKeyDown = (event: KeyboardEvent) => {
-    const direction = historyKey(event)
-    if (!direction) return
-    event.preventDefault()
-    live.history(direction)
-  }
   const onEditItem = (path: string, editing: boolean) => {
     if (editing) onEditingItemChange?.(path)
     else if (editingItem === path) onEditingItemChange?.(null)
@@ -381,7 +363,7 @@ export function EditorBlockSettings({
           }}
           size='fit'
           className='max-h-[50dvh]'
-          onKeyDown={onKeyDown}
+          onKeyDown={live.onKeyDown}
           // The sheet itself, so the keyboard doesn't cover the block.
           initialFocus={() =>
             bodyRef.current?.closest<HTMLElement>('[role=dialog]')
@@ -410,7 +392,7 @@ export function EditorBlockSettings({
               }}
               size='sm'
               className='pointer-events-auto'
-              onKeyDown={onKeyDown}
+              onKeyDown={live.onKeyDown}
               // The first setting, as its title takes none.
               initialFocus={() =>
                 bodyRef.current?.querySelector<HTMLElement>(

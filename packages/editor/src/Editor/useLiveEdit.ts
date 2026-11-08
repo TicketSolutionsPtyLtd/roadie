@@ -1,8 +1,12 @@
 'use client'
 
-import { useEffect, useEffectEvent, useRef } from 'react'
+import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from 'react'
 
-import type { ChainedCommands, Editor as TiptapEditor } from '@tiptap/core'
+import {
+  type ChainedCommands,
+  type Editor as TiptapEditor,
+  isMacOS
+} from '@tiptap/core'
 import { closeHistory, redo, undo } from '@tiptap/pm/history'
 import {
   NodeSelection,
@@ -28,6 +32,17 @@ type Applied = {
 }
 
 const none = (): Applied => ({ inverses: [] })
+
+// In a field, Mod+Z would undo the browser's own typing there, which the
+// block already shows, or a keystroke in another field, so it goes to the
+// editor's history instead.
+const historyKey = (event: KeyboardEvent) => {
+  if (event.altKey || event.nativeEvent.isComposing) return null
+  if (!(isMacOS() ? event.metaKey : event.ctrlKey)) return null
+  const key = event.key.toLowerCase()
+  if (key === 'z') return event.shiftKey ? 'redo' : 'undo'
+  return key === 'y' && !isMacOS() ? 'redo' : null
+}
 
 /**
  * Sets the selected node's attrs in place. updateAttributes replaces a leaf
@@ -241,6 +256,14 @@ export function useLiveEdit(
     }
   }
 
+  /** For the settings' own surface, so Undo there stays within the visit. */
+  const onKeyDown = (event: KeyboardEvent) => {
+    const direction = historyKey(event)
+    if (!direction) return
+    event.preventDefault()
+    history(direction)
+  }
+
   // Closed by the editor rather than the popover.
   const keepOnClose = useEffectEvent(() => finish(true))
   useEffect(() => {
@@ -263,6 +286,7 @@ export function useLiveEdit(
     apply,
     step,
     history,
+    onKeyDown,
     revert,
     done,
     onOpenChange: handleOpenChange

@@ -297,6 +297,41 @@ describe('Editor image settings', () => {
     await waitFor(() => expect(savedImage(onValueChange)).toMatchObject(edited))
   })
 
+  it('undoes and redoes its own changes on Mod+Z while open, never an edit from before', async () => {
+    const onValueChange = renderImage(
+      valueOf('email', image(), p('Doors at 7pm'))
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(textbox.querySelector('p')!)
+    await userEvent.keyboard(`${LINE_END} sharp`)
+    const dialog = await openSettings()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({
+        width: expect.any(Number)
+      })
+    )
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({ width: null })
+    )
+    expect(dialog).toBeVisible()
+    expect(textbox).toHaveTextContent('Doors at 7pm sharp')
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    expect(textbox).toHaveTextContent('Doors at 7pm sharp')
+    expect(textbox.querySelector('img')).not.toBe(null)
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({
+        width: expect.any(Number)
+      })
+    )
+  })
+
   it('focuses the first style choice, where no keyboard comes up', async () => {
     renderImage(valueOf('email', image({ alt: '' }), { type: 'paragraph' }))
 
