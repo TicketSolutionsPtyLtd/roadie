@@ -16,7 +16,8 @@ const tagOf = (key: string, fallback?: string) => ({
 
 /**
  * The merge tag menu's items, one per variable. A tag takes its variable's
- * fallback, or opens for one when it has none, so no customer sees a gap.
+ * fallback; one without leaves the caret in the text all the same, so the
+ * sentence carries on, and its chip asks for one.
  */
 export function variableInsertItems(
   variables: readonly EditorVariable[]
@@ -25,17 +26,7 @@ export function variableInsertItems(
     label,
     icon: BracketsCurlyIcon,
     keywords: [key],
-    insert: (chain, ui) => {
-      const inserted = chain.insertContent(tagOf(key, fallback))
-      if (fallback?.trim()) return inserted
-      return inserted.command(({ tr }) => {
-        const at = tr.selection.from - 1
-        if (tr.doc.nodeAt(at)?.type.name !== 'variable') return true
-        tr.setSelection(NodeSelection.create(tr.doc, at))
-        ui.editVariable()
-        return true
-      })
-    },
+    insert: (chain) => chain.insertContent(tagOf(key, fallback)),
     enabled: (editor) => editor.can().insertContent(tagOf(key))
   }))
 }

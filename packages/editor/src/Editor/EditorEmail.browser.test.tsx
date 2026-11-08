@@ -327,6 +327,9 @@ describe('Editor with the email preset', () => {
     )
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     await userEvent.click(textbox.querySelector('img')!)
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Image settings' })
+    )
 
     await userEvent.click(
       await screen.findByRole('button', { name: 'Upload a new image' })
@@ -531,15 +534,6 @@ describe('Editor with the email preset', () => {
 
     await userEvent.click(image)
     await waitFor(() => expect(view).toHaveAttribute('data-selected'))
-    const settings = await screen.findByRole('dialog', {
-      name: 'Image settings'
-    })
-    // Once it has focus, or Escape goes to the editor instead.
-    await waitFor(() =>
-      expect(settings.contains(document.activeElement)).toBe(true)
-    )
-    await userEvent.keyboard('{Escape}')
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
 })
 

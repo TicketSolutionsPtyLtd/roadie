@@ -128,7 +128,8 @@ export function EditorVariablePopover({
   open,
   onOpenChange
 }: EditorVariablePopoverProps) {
-  const live = useLiveEdit(editor, open, onOpenChange)
+  // Its final focus puts the caret after the tag rather than back.
+  const live = useLiveEdit(editor, open, onOpenChange, { keepSelected: true })
   const fallbackRef = useRef<HTMLInputElement>(null)
   if (!editor) return null
   const tag = open ? selectedTag(editor) : undefined

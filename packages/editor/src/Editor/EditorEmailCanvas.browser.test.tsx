@@ -5,6 +5,7 @@ import { userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
+import { clickIntoEditor } from './testUtils'
 
 const LABEL = 'Newsletter'
 
@@ -398,18 +399,9 @@ describe('Editor email canvas', () => {
     const block = image.closest<HTMLElement>('[data-slot="editor-image"]')!
     const top = block.getBoundingClientRect().top
 
-    await userEvent.click(image)
+    await clickIntoEditor(screen.getByText('Doors 7pm'))
+    await userEvent.keyboard('{ArrowUp}')
     await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
-    // Out of the settings the click opens, back to the selected image.
-    const settings = await screen.findByRole('dialog', {
-      name: 'Image settings'
-    })
-    // Once it has focus, or Escape goes to the editor instead.
-    await waitFor(() =>
-      expect(settings.contains(document.activeElement)).toBe(true)
-    )
-    await userEvent.keyboard('{Escape}')
-    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
     await userEvent.keyboard('{ArrowLeft}')
 
     await expect
@@ -455,18 +447,9 @@ describe('Editor email canvas', () => {
     const block = image.closest<HTMLElement>('[data-slot="editor-image"]')!
     const spacer = document.querySelector<HTMLElement>('[data-type="spacer"]')!
 
-    await userEvent.click(image)
+    await clickIntoEditor(screen.getByText('Doors 7pm'))
+    await userEvent.keyboard('{ArrowUp}')
     await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
-    // Out of the settings the click opens, back to the selected image.
-    const settings = await screen.findByRole('dialog', {
-      name: 'Image settings'
-    })
-    // Once it has focus, or Escape goes to the editor instead.
-    await waitFor(() =>
-      expect(settings.contains(document.activeElement)).toBe(true)
-    )
-    await userEvent.keyboard('{Escape}')
-    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
     await userEvent.keyboard('{ArrowLeft}')
 
     await expect

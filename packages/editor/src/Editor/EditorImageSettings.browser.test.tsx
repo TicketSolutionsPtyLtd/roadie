@@ -12,6 +12,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -19,7 +20,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { MOD } from './testUtils'
+import { LINE_END, MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Newsletter'
 const POSTER = 'https://example.test/poster.webp'
@@ -79,16 +80,14 @@ function renderImage(value = valueOf('email', image(), { type: 'paragraph' })) {
 const savedImage = (onValueChange: ReturnType<typeof vi.fn>) =>
   (onValueChange.mock.lastCall![0] as EditorValue).doc.content![0]!.attrs
 
-// A click opens them where the editor has a block menu; elsewhere, the
-// image's toolbar does.
-async function openSettings({ fromToolbar = false } = {}) {
+// A click selects the image, as one does a button, and its toolbar leads
+// with its settings.
+async function openSettings() {
   const textbox = await screen.findByRole('textbox', { name: LABEL })
   await userEvent.click(textbox.querySelector('img')!)
-  if (fromToolbar) {
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Image settings' })
-    )
-  }
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Image settings' })
+  )
   const dialog = await screen.findByRole('dialog', { name: 'Image settings' })
   await waitFor(() => expect(dialog).toBeVisible())
   return dialog
@@ -103,7 +102,26 @@ const expectNoSettings = () =>
   ).rejects.toThrow()
 
 describe('Editor image settings', () => {
-  it('opens on a click, led by its title, a hint, and Done, which keeps the changes', async () => {
+  it('selects on a click, as a button does, and opens on a second', async () => {
+    renderImage()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const img = textbox.querySelector('img')!
+
+    await userEvent.click(img)
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Image actions'
+    })
+    expect(within(toolbar).getAllByRole('button')[0]).toHaveAccessibleName(
+      'Image settings'
+    )
+    await expectNoSettings()
+    await userEvent.click(img)
+    const dialog = await screen.findByRole('dialog', { name: 'Image settings' })
+    await waitFor(() => expect(dialog).toBeVisible())
+  })
+
+  it('opens led by its title, a hint, and Done, which keeps the changes', async () => {
     const onValueChange = renderImage()
 
     const dialog = await openSettings()
@@ -279,6 +297,41 @@ describe('Editor image settings', () => {
     await waitFor(() => expect(savedImage(onValueChange)).toMatchObject(edited))
   })
 
+  it('undoes and redoes its own changes on Mod+Z while open, never an edit from before', async () => {
+    const onValueChange = renderImage(
+      valueOf('email', image(), p('Doors at 7pm'))
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(textbox.querySelector('p')!)
+    await userEvent.keyboard(`${LINE_END} sharp`)
+    const dialog = await openSettings()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({
+        width: expect.any(Number)
+      })
+    )
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({ width: null })
+    )
+    expect(dialog).toBeVisible()
+    expect(textbox).toHaveTextContent('Doors at 7pm sharp')
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    expect(textbox).toHaveTextContent('Doors at 7pm sharp')
+    expect(textbox.querySelector('img')).not.toBe(null)
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({
+        width: expect.any(Number)
+      })
+    )
+  })
+
   it('focuses the first style choice, where no keyboard comes up', async () => {
     renderImage(valueOf('email', image({ alt: '' }), { type: 'paragraph' }))
 
@@ -319,7 +372,7 @@ describe('Editor image settings', () => {
         type: 'paragraph'
       })
     )
-    const dialog = await openSettings({ fromToolbar: true })
+    const dialog = await openSettings()
     expect(within(dialog).queryByRole('textbox', { name: 'Link' })).toBe(null)
 
     const align = within(dialog).getByRole('group', { name: 'Align' })
@@ -368,7 +421,7 @@ describe('Editor image settings', () => {
       />
     )
 
-    const dialog = await openSettings({ fromToolbar: true })
+    const dialog = await openSettings()
 
     expect(within(dialog).getByRole('group', { name: 'Align' })).toBeVisible()
   })
@@ -423,7 +476,7 @@ describe('Editor image settings', () => {
       </div>
     )
 
-    const dialog = await openSettings({ fromToolbar: true })
+    const dialog = await openSettings()
 
     const align = within(dialog).getByRole('group', { name: 'Align' })
     expect(
@@ -467,11 +520,8 @@ describe('Editor image settings', () => {
     try {
       renderImage()
       const textbox = await screen.findByRole('textbox', { name: LABEL })
-      await userEvent.click(textbox.querySelector('img')!)
 
-      const sheet = await screen.findByRole('dialog', {
-        name: 'Image settings'
-      })
+      const sheet = await openSettings()
       await waitFor(() =>
         expect(sheet.getBoundingClientRect().bottom).toBeCloseTo(
           window.innerHeight,
@@ -502,5 +552,108 @@ describe('Editor image settings', () => {
     } finally {
       await page.viewport(1280, 800)
     }
+  })
+
+  it.each([
+    [
+      'Done',
+      (dialog: HTMLElement) =>
+        userEvent.click(within(dialog).getByRole('button', { name: 'Done' }))
+    ],
+    ['Escape', () => userEvent.keyboard('{Escape}')],
+    [
+      'a click away',
+      async () => {
+        await userEvent.click(document.body, { position: { x: 4, y: 4 } })
+        // A click on the page leaves focus there in Firefox, so the author
+        // comes back to the text, as Tab would bring them.
+        screen.getByRole('textbox', { name: LABEL }).focus()
+      }
+    ]
+  ])(
+    'puts the caret back in the text after %s, so the next key never replaces the image',
+    async (_, close) => {
+      const onValueChange = renderImage(
+        valueOf('email', image(), p('Doors open at 7pm'))
+      )
+      await clickIntoEditor(await screen.findByText('Doors open at 7pm'))
+      await userEvent.keyboard(LINE_END)
+
+      const dialog = await openSettings()
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
+      await close(dialog)
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+      await userEvent.keyboard('!')
+
+      await waitFor(() =>
+        expect(
+          (onValueChange.mock.lastCall![0] as EditorValue).doc.content
+        ).toMatchObject([
+          { type: 'image', attrs: { src: POSTER, width: expect.any(Number) } },
+          p('Doors open at 7pm!')
+        ])
+      )
+    }
+  )
+
+  it('leaves the image selected as settings Enter opened close', async () => {
+    renderImage(valueOf('email', image(), p('Doors open at 7pm')))
+    await clickIntoEditor(await screen.findByText('Doors open at 7pm'))
+    await userEvent.keyboard('{ArrowUp}{Enter}')
+    const dialog = await screen.findByRole('dialog', { name: 'Image settings' })
+    await waitFor(() => expect(dialog).toBeVisible())
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(
+      await screen.findByRole('toolbar', { name: 'Image actions' })
+    ).toBeVisible()
+  })
+
+  it('puts the caret back in the text after a tap above its phone sheet', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const onValueChange = renderImage(
+      valueOf('email', image(), p('Doors open at 7pm'))
+    )
+    await clickIntoEditor(await screen.findByText('Doors open at 7pm'))
+    await userEvent.keyboard(LINE_END)
+
+    await openSettings()
+    await userEvent.click(document.body, { position: { x: 4, y: 4 } })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    screen.getByRole('textbox', { name: LABEL }).focus()
+    await userEvent.keyboard('!')
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content
+      ).toMatchObject([{ type: 'image' }, p('Doors open at 7pm!')])
+    )
+  })
+
+  it('opens from Settings on a phone’s docked bar while the image is selected', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    render(
+      <Editor
+        aria-label={LABEL}
+        toolbar='docked'
+        defaultValue={valueOf('email', image(), p('Doors open at 7pm'))}
+      />
+    )
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    await clickIntoEditor(await screen.findByText('Doors open at 7pm'))
+    expect(within(bar).queryByRole('button', { name: 'Settings' })).toBe(null)
+
+    await userEvent.keyboard('{ArrowUp}')
+    await userEvent.click(
+      await within(bar).findByRole('button', { name: 'Settings' })
+    )
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Image settings' })
+    ).toBeVisible()
   })
 })

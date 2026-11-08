@@ -146,6 +146,14 @@ describe('catalogueSections', () => {
     })
   })
 
+  it('names a section’s alignment as an image’s and a button’s are', () => {
+    const align = hero().settings.find((setting) => setting.name === 'align')
+
+    expect(
+      align?.type === 'choice' && align.options.map(({ label }) => label)
+    ).toEqual(['Left', 'Centre'])
+  })
+
   const settingOf = (label: string, name: string) =>
     everyBlock()
       .find((section) => section.label === label)!

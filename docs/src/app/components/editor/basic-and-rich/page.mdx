@@ -70,12 +70,10 @@ web address such as `oztix.com.au` and the editor adds `https://`. With
 nothing selected, saving inserts the address as linked text. Typing or pasting
 a web address links it as you go.
 
-The Link, Embed, Edit link, and Image popovers are one row: an input, a
+The Link, Embed, and Image popovers are one row: an input, a
 check button that saves, and Close. Editing a link adds Remove link between
-the two. An embed's Edit link opens as Embed settings, under its title, a
-hint, and Done. The popovers that change what's there show each change as
-it's typed: a selection's link while it's a whole address, an embed's player
-while a provider reads its link. Enter, the check, or a click away keeps the
+the two. The link popover shows each change as it's typed, a selection's
+link while it's a whole address. Enter, the check, or a click away keeps the
 changes as one step to undo, and so does Escape; Undo takes them back, and
 Close puts things back as they were. A link at a caret with nothing selected,
 a new embed from the Embed control, and a new image from the Image control
@@ -212,22 +210,26 @@ An image saves its `src` and `alt`, and its look as below. The `src` must be `ht
 on the same site, such as `/images/poster.webp`; any other address is refused
 when it's inserted, pasted, or loaded.
 
-Click an image, or move onto it with the arrow keys, to edit it in place. A
+Click an image, or move onto it with the arrow keys, to select it. A
 toolbar by the image has Image settings, Replace image (with `onUploadImage`,
 which uploads the new file the same way and keeps the alt text), and Remove
-image. In the blocks and email presets, a click on an image opens Image
-settings first, the toolbar showing once it closes, and the image's block
-menu leads with Settings. A tap opens them on an image already selected. Image
+image. Enter on a selected image opens Image settings too. In the blocks and
+email presets, so does a second click or tap on it, its block menu, which
+leads with Settings, and, on a phone, Settings on the docked bar. Image,
+button, and embed settings open the same way, under a title, a line saying
+changes apply as you go, and Done. Image
 settings edits the image's address and its alt text, each applied as it's
 made: Done, Escape, or a click away keeps the changes as one step, which undo
-puts back. It also sets the image's width, Fit or Full width, and its
+puts back, and puts the caret back in the text, so the next key never
+replaces the image. Opened with Enter, the image stays selected instead. It
+also sets the image's width, Fit or Full width, and its
 alignment when it fits, Left, Centre, or Right, as Button settings names
 them (in right-to-left text, a page image's start is its right, so it has
 no Left), and, in the rich and blocks presets, its caption, or, in an email,
 where it links. It opens with focus on its first style choice. On a phone it
 opens over the lower half of the screen, with the image kept in view above
 it. A selected image with no alt text shows a No alt text chip until it has
-some; Enter on a selected image opens Image settings too.
+some.
 
 An image in the rich and blocks presets saves its look only where it
 differs from the default, its own width from the start of the text:
@@ -291,13 +293,16 @@ migration. Players run in a sandboxed `iframe`, and a look-alike host such as
   or Deezer short link, into one it can, when it's entered in the Embed control.
   Resolve it on your server.
 
-Click an embed, or move onto it with the arrow keys, to edit it in place. A
-toolbar by the embed has Edit link and Remove embed. Edit link starts from the
-embed's share link, from its provider's optional `shareUrl`, and swaps in the
-new link's player as soon as a provider reads it. It refuses a link no
-provider reads, as the Embed control does. In the blocks preset, a click on
-an embed opens Embed settings straight away, and its block menu leads with
-Settings.
+Click an embed, or move onto it with the arrow keys, to select it. A
+toolbar by the embed has Embed settings and Remove embed, and Enter on a
+selected embed opens them too. In the blocks preset, so does a second click
+or tap on it, its block menu, which leads with Settings, and, on a phone,
+Settings on the docked bar. Embed settings has one field, its link, which
+starts from the embed's share link, from its provider's optional `shareUrl`.
+It swaps in the new link's player as soon as a provider reads it, and puts
+the last one back while what's typed doesn't embed. Enter keeps it, and
+refuses a link no provider reads, as the Embed control does. Done, Escape, or
+a click away keeps it too, as one step to undo.
 
 ### Tables
 
@@ -364,9 +369,11 @@ phone.
   Embed actions, with the same keys as Formatting. It shows only while the
   node is selected and the editor has focus, and never while read-only or
   disabled. Each action is one step to undo.
-- An image's settings are a dialog named Image settings, with labelled
-  fields, opened by Enter on a selected image or its Image settings action.
-  Escape keeps the changes and returns focus to the image. An upload in progress is a `status`, and an upload error
+- An image's or an embed's settings are a dialog named Image settings or
+  Embed settings, with labelled fields, opened by Enter on a selected image
+  or embed, or its settings action. Escape keeps the changes and returns
+  focus to the text, with the image or embed still selected when Enter
+  opened them. An upload in progress is a `status`, and an upload error
   shows in `Field.ErrorText`, or under the editor outside a `Field`.
 - An embed's player is titled with its provider and id, and takes no Tab
   stop in the editor. Arrow keys select an embed or an image, and Backspace

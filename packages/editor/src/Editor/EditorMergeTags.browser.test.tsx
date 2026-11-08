@@ -259,10 +259,6 @@ describe('Editor merge tags', () => {
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(hi(tag('first_name')))
     )
-    // Out of the fallback form a tag with none opens, back to the text.
-    await screen.findByRole('dialog', { name: 'Merge tag' })
-    await userEvent.keyboard('{Escape}')
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(hi()))
@@ -344,16 +340,11 @@ describe('Editor merge tag fallbacks', () => {
     expect(screen.queryByRole('dialog')).toBe(null)
   })
 
-  it('asks for a fallback as a tag without one is inserted, then goes on after it', async () => {
+  it('goes on in the text after a tag without a fallback, which its chip asks for', async () => {
     const onValueChange = renderEmail({ variables: withFallback })
     const textbox = await focusedTextbox()
 
-    await userEvent.keyboard(`Hi ${OPEN}last{Enter}`)
-    const fallback = await screen.findByRole('textbox', { name: 'Fallback' })
-    await waitFor(() => expect(fallback).toHaveFocus())
-    await userEvent.keyboard('friend{Enter}')
-    await waitFor(() => expect(textbox).toHaveFocus())
-    await userEvent.keyboard('!')
+    await userEvent.keyboard(`Hi ${OPEN}last{Enter}, welcome`)
 
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(
@@ -361,12 +352,23 @@ describe('Editor merge tag fallbacks', () => {
           type: 'paragraph',
           content: [
             { type: 'text', text: 'Hi ' },
-            tag('last_name', 'friend'),
-            { type: 'text', text: '!' }
+            tag('last_name'),
+            { type: 'text', text: ', welcome' }
           ]
         })
       )
     )
+    expect(screen.queryByRole('dialog')).toBe(null)
+    expect(textbox).toHaveFocus()
+
+    const chip = textbox.querySelector<HTMLElement>(
+      '[data-slot="editor-variable"]'
+    )!
+    expect(within(chip).getByTitle('No fallback')).toBeVisible()
+    await userEvent.click(within(chip).getByText('Last name'))
+    await userEvent.keyboard('{Enter}')
+    const fallback = await screen.findByRole('textbox', { name: 'Fallback' })
+    await waitFor(() => expect(fallback).toHaveFocus())
   })
 
   it('shows the fallback beside the label, and marks a tag without one', async () => {

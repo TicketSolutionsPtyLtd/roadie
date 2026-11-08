@@ -1,12 +1,18 @@
 'use client'
 
-import { useEffect, useEffectEvent, useRef } from 'react'
+import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from 'react'
 
-import type { ChainedCommands, Editor as TiptapEditor } from '@tiptap/core'
+import {
+  type ChainedCommands,
+  type Editor as TiptapEditor,
+  isMacOS
+} from '@tiptap/core'
 import { closeHistory, redo, undo } from '@tiptap/pm/history'
 import {
   NodeSelection,
+  Selection,
   type SelectionBookmark,
+  TextSelection,
   type Transaction
 } from '@tiptap/pm/state'
 import type { Step } from '@tiptap/pm/transform'
@@ -27,6 +33,17 @@ type Applied = {
 
 const none = (): Applied => ({ inverses: [] })
 
+// In a field, Mod+Z would undo the browser's own typing there, which the
+// block already shows, or a keystroke in another field, so it goes to the
+// editor's history instead.
+const historyKey = (event: KeyboardEvent) => {
+  if (event.altKey || event.nativeEvent.isComposing) return null
+  if (!(isMacOS() ? event.metaKey : event.ctrlKey)) return null
+  const key = event.key.toLowerCase()
+  if (key === 'z') return event.shiftKey ? 'redo' : 'undo'
+  return key === 'y' && !isMacOS() ? 'redo' : null
+}
+
 /**
  * Sets the selected node's attrs in place. updateAttributes replaces a leaf
  * node, which drops the selection the next change needs.
@@ -42,6 +59,66 @@ export const setSelectedAttrs =
     })
 
 /**
+ * Puts the caret after the block, so the next key types rather than
+ * replacing the block a tap can't deselect on a phone.
+ */
+function leaveBlock(editor: TiptapEditor) {
+  const { state, view } = editor
+  const { selection } = state
+  if (!(selection instanceof NodeSelection)) return
+  // After it, never in it: text typed in a section would take its rule.
+  const from = state.doc.resolve(selection.to)
+  // Text only: a block selected next, such as a second section or an image
+  // first in this one, would be replaced by the next key all the same.
+  const caret =
+    Selection.findFrom(from, 1, true) ?? Selection.findFrom(from, -1, true)
+  if (!caret) return
+  view.dispatch(state.tr.setSelection(caret).setMeta('addToHistory', false))
+}
+
+/**
+ * Where the caret was before a block was selected, kept in step with edits,
+ * and a way back there, or past the block, once its settings close.
+ */
+function useCaretReturn(editor: TiptapEditor | null) {
+  const caretRef = useRef<SelectionBookmark | null>(null)
+  useEffect(() => {
+    if (!editor) return
+    const follow = ({ transaction }: { transaction: Transaction }) => {
+      const { selection } = editor.state
+      caretRef.current =
+        selection instanceof TextSelection
+          ? selection.getBookmark()
+          : (caretRef.current?.map(transaction.mapping) ?? null)
+    }
+    editor.on('transaction', follow)
+    return () => {
+      editor.off('transaction', follow)
+    }
+  }, [editor])
+  return () => {
+    if (!editor || editor.isDestroyed) return
+    const { state, view } = editor
+    if (!(state.selection instanceof NodeSelection)) return
+    const caret = caretRef.current?.resolve(state.doc)
+    if (caret instanceof TextSelection) {
+      view.dispatch(state.tr.setSelection(caret).setMeta('addToHistory', false))
+    } else {
+      leaveBlock(editor)
+    }
+  }
+}
+
+type LiveEditOptions = {
+  /**
+   * Leaves a selected block selected as it closes, as when its settings
+   * opened from the keyboard. Otherwise the caret goes back to the text, so
+   * the next key never replaces the block.
+   */
+  keepSelected?: boolean
+}
+
+/**
  * A popover's or drawer's edits, shown in the document as they're made.
  * Escape, a click away or Enter keeps them as one undo step; its close button
  * puts the document back as it opened.
@@ -49,9 +126,15 @@ export const setSelectedAttrs =
 export function useLiveEdit(
   editor: TiptapEditor | null,
   open: boolean,
-  onOpenChange: (open: boolean) => void
+  onOpenChange: (open: boolean) => void,
+  { keepSelected = false }: LiveEditOptions = {}
 ) {
   const applied = useRef(none())
+  const returnCaret = useCaretReturn(editor)
+  const close = () => {
+    if (!keepSelected) returnCaret()
+    onOpenChange(false)
+  }
 
   // Live edits change marks and attrs, which move no positions, so each
   // inverse maps on its own through a change made elsewhere.
@@ -173,6 +256,14 @@ export function useLiveEdit(
     }
   }
 
+  /** For the settings' own surface, so Undo there stays within the visit. */
+  const onKeyDown = (event: KeyboardEvent) => {
+    const direction = historyKey(event)
+    if (!direction) return
+    event.preventDefault()
+    history(direction)
+  }
+
   // Closed by the editor rather than the popover.
   const keepOnClose = useEffectEvent(() => finish(true))
   useEffect(() => {
@@ -180,20 +271,22 @@ export function useLiveEdit(
   }, [open])
 
   const handleOpenChange: OpenChange = (next, details) => {
-    if (!next) finish(!REVERTING.has(details.reason))
-    onOpenChange(next)
+    if (next) return onOpenChange(true)
+    finish(!REVERTING.has(details.reason))
+    close()
   }
 
   /** Keeps the edits and closes, for a form's Enter or its check. */
   const done = () => {
     finish(true)
-    onOpenChange(false)
+    close()
   }
 
   return {
     apply,
     step,
     history,
+    onKeyDown,
     revert,
     done,
     onOpenChange: handleOpenChange

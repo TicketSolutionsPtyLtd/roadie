@@ -209,34 +209,20 @@ const EmDash = Extension.create({
   ]
 })
 
-type AltTextShortcutOptions = { onEditAlt: () => void }
-
-const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
-  name: 'altTextShortcut',
-  addKeyboardShortcuts() {
-    return {
-      Enter: ({ editor }) => {
-        const { selection } = editor.state
-        const onImage =
-          selection instanceof NodeSelection &&
-          selection.node.type.name === 'image'
-        if (!onImage || !editor.isEditable) return false
-        this.options.onEditAlt()
-        return true
-      }
-    }
-  }
-})
-
 // The nodes whose settings a click or their block menu opens.
 const SETTINGS_TYPES: readonly string[] = ['image', 'embed']
 
+// Those with settings of their own beside them, rather than a block's drawer.
+const NODE_SETTINGS: readonly string[] = [...SETTINGS_TYPES, 'button']
+
+const hasNodeSettings = (name: string) => NODE_SETTINGS.includes(name)
+
 type SettingsShortcutOptions = {
   has: (name: string) => boolean
-  onEdit: () => void
+  onEdit: (name: string) => void
 }
 
-// Enter on a selected block with settings opens them, as on an image's alt.
+// Enter on any selected block with settings opens them.
 const SettingsShortcut = Extension.create<SettingsShortcutOptions>({
   name: 'settingsShortcut',
   addKeyboardShortcuts() {
@@ -247,7 +233,7 @@ const SettingsShortcut = Extension.create<SettingsShortcutOptions>({
           selection instanceof NodeSelection &&
           this.options.has(selection.node.type.name)
         if (!onBlock || !editor.isEditable) return false
-        this.options.onEdit()
+        this.options.onEdit(selection.node.type.name)
         return true
       }
     }
@@ -563,7 +549,9 @@ export function EditorEngine({
         NodeSelection.create(current.state.doc, pos)
       )
     )
-    editSettings()
+    const name = current.state.doc.nodeAt(pos)!.type.name
+    if (hasNodeSettings(name)) editNodeSettingsRef.current?.(name)
+    else editSettings()
   }
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
@@ -579,10 +567,23 @@ export function EditorEngine({
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
-  const editNodeSettingsRef = useRef<((name: string) => void) | null>(null)
+  const editNodeSettingsRef = useRef<
+    ((name: string, fromKeyboard?: boolean) => void) | null
+  >(null)
+  const [keepNodeSelected, setKeepNodeSelected] = useState(false)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
+  // Its settings close as the file picker opens, taking the selection with them.
+  const replacingRef = useRef<number | null>(null)
+  const pickReplacement = () => {
+    const current = editorRef.current
+    replacingRef.current =
+      current && selectedNodeType(current.state) === 'image'
+        ? current.state.selection.from
+        : null
+    replaceInputRef.current?.click()
+  }
   const field = useFieldContext()
   const fieldInput = useFieldInputProps()
   const generatedId = useId()
@@ -613,6 +614,8 @@ export function EditorEngine({
     })
   }))
   const hasSettings = (name: string) => Object.hasOwn(blockSettings, name)
+  const hasAnySettings = (name: string) =>
+    hasSettings(name) || hasNodeSettings(name)
   const [schema] = useState(() =>
     blocks.length > 0
       ? getSchema(withBlocks(presets[preset], blocks))
@@ -674,15 +677,12 @@ export function EditorEngine({
       HeadingBackspace,
       SmartPunctuation,
       EmDash,
-      AltTextShortcut.configure({
-        onEditAlt: () => {
-          setAddingImage(false)
-          setEditingImage(true)
-        }
-      }),
       SettingsShortcut.configure({
-        has: hasSettings,
-        onEdit: () => editSettings(undefined, null, true)
+        has: hasAnySettings,
+        onEdit: (name) =>
+          hasNodeSettings(name)
+            ? editNodeSettingsRef.current?.(name, true)
+            : editSettings(undefined, null, true)
       }),
       BlockClick.configure({ hasSettings, onEdit: editSettings }),
       ImageUpload.configure(uploads),
@@ -981,27 +981,26 @@ export function EditorEngine({
       />
     ) : null
   const canUpload = Boolean(onUploadImage) && holdsImages
+  // From the keyboard, the node stays selected as they close, as a block does.
+  const editNodeSettings = (name: string, fromKeyboard = false) => {
+    if (!editor?.isEditable || !editor.schema.nodes[name]) return
+    setKeepNodeSelected(fromKeyboard)
+    if (name === 'image') {
+      setAddingImage(false)
+      setEditingImage(true)
+    }
+    if (name === 'embed') setEditingEmbed(true)
+    if (name === 'button') setEditingButton(true)
+  }
   const ui = {
     editLink: () => {
       if (editor?.isEditable && editor.schema.marks.link) {
         setEditingLink(true)
       }
     },
-    editAlt: () => {
-      if (!editor?.isEditable) return
-      setAddingImage(false)
-      setEditingImage(true)
-    },
-    editEmbed: () => {
-      if (editor?.isEditable && editor.schema.nodes.embed) {
-        setEditingEmbed(true)
-      }
-    },
-    editButton: () => {
-      if (editor?.isEditable && editor.schema.nodes.button) {
-        setEditingButton(true)
-      }
-    },
+    editAlt: () => editNodeSettings('image'),
+    editEmbed: () => editNodeSettings('embed'),
+    editButton: () => editNodeSettings('button'),
     editVariable: () => {
       if (editor?.isEditable) setEditingVariable(true)
     },
@@ -1010,19 +1009,14 @@ export function EditorEngine({
       ? () => {
           if (!editor?.isEditable) return
           // Adds one, even with an image selected.
+          setKeepNodeSelected(false)
           setAddingImage(true)
           setEditingImage(true)
         }
       : undefined,
-    replaceImage: canUpload
-      ? () => replaceInputRef.current?.click()
-      : undefined,
+    replaceImage: canUpload ? pickReplacement : undefined,
     importSource: preset === 'email' ? importSource : undefined,
     preview: openPreview
-  }
-  const editNodeSettings = (name: string) => {
-    if (name === 'image') ui.editAlt()
-    if (name === 'embed') ui.editEmbed()
   }
   useEffect(() => {
     uiRef.current = ui
@@ -1070,7 +1064,7 @@ export function EditorEngine({
             // Inset as the canvas's text is, so the two start together.
             <EditorPreheader editor={editor} className='px-6 pt-3' />
           ) : null,
-        hasSettings,
+        hasSettings: hasAnySettings,
         editSettingsAt,
         editingItem: editingSettings ? editingItem : null,
         editingLink,
@@ -1120,19 +1114,8 @@ export function EditorEngine({
             containers={blockHandle.containers}
             canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
-            hasSettings={(name) =>
-              hasSettings(name) || SETTINGS_TYPES.includes(name)
-            }
-            onSettings={(pos) => {
-              const name = editor.state.doc.nodeAt(pos)!.type.name
-              if (!SETTINGS_TYPES.includes(name)) return editSettingsAt(pos)
-              editor.view.dispatch(
-                editor.state.tr.setSelection(
-                  NodeSelection.create(editor.state.doc, pos)
-                )
-              )
-              editNodeSettings(name)
-            }}
+            hasSettings={hasAnySettings}
+            onSettings={editSettingsAt}
           />
         ) : null}
         {editor && blockHandle && drawerItems.length > 0 ? (
@@ -1188,14 +1171,14 @@ export function EditorEngine({
           onOpenChange={setEditingImage}
           adding={addingImage}
           pickFile={canUpload ? () => fileInputRef.current?.click() : undefined}
-          replaceFile={
-            canUpload ? () => replaceInputRef.current?.click() : undefined
-          }
+          replaceFile={canUpload ? pickReplacement : undefined}
+          keepSelected={keepNodeSelected}
         />
         <EditorButtonPopover
           editor={editor}
           open={editingButton}
           onOpenChange={setEditingButton}
+          keepSelected={keepNodeSelected}
         />
         <EditorBlockSettings
           editor={editor}
@@ -1220,6 +1203,7 @@ export function EditorEngine({
           resolveUrl={resolveUrl}
           open={editingEmbed}
           onOpenChange={setEditingEmbed}
+          keepSelected={keepNodeSelected}
         />
         {preset === 'email' ? (
           <EditorImportDialog
@@ -1271,16 +1255,12 @@ export function EditorEngine({
               aria-label='Replacement image file'
               onChange={(event) => {
                 const [file] = imageFiles(event.currentTarget.files)
+                const at = replacingRef.current
                 const onImage =
-                  editor && selectedNodeType(editor.state) === 'image'
-                if (file && onImage) {
-                  replaceImage(
-                    editor.view,
-                    file,
-                    editor.state.selection.from,
-                    uploads
-                  )
-                }
+                  at !== null &&
+                  editor?.state.doc.nodeAt(at)?.type.name === 'image'
+                if (file && onImage)
+                  replaceImage(editor.view, file, at, uploads)
                 event.currentTarget.value = ''
               }}
             />

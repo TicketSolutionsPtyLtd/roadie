@@ -153,7 +153,7 @@ describe('Editor node toolbar', () => {
       within(toolbar)
         .getAllByRole('button')
         .map((button) => button.getAttribute('aria-label'))
-    ).toEqual(['Edit link', 'Remove embed'])
+    ).toEqual(['Embed settings', 'Remove embed'])
   })
 
   it('puts the caret in text clicked past the image, showing no actions', async () => {
@@ -1068,7 +1068,7 @@ describe('Editor image actions', () => {
 describe('Editor embed actions', () => {
   async function editLink() {
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Edit link' })
+      await screen.findByRole('button', { name: 'Embed settings' })
     )
     return screen.findByRole('textbox', { name: 'Video or audio link' })
   }
@@ -1089,15 +1089,18 @@ describe('Editor embed actions', () => {
       { provider: 'tiktok', id: '7000000000000000001', params: null },
       'https://www.tiktok.com/@_/video/7000000000000000001'
     ]
-  ])('fills Edit link with the share URL for %s', async (_, attrs, url) => {
-    render(<NodeEditor defaultValue={embedded(attrs)} />)
-    await clickEmbed()
+  ])(
+    'fills Embed settings with the share URL for %s',
+    async (_, attrs, url) => {
+      render(<NodeEditor defaultValue={embedded(attrs)} />)
+      await clickEmbed()
 
-    const field = await editLink()
+      const field = await editLink()
 
-    await waitFor(() => expect(field).toHaveFocus())
-    expect(field).toHaveValue(url)
-  })
+      await waitFor(() => expect(field).toHaveFocus())
+      expect(field).toHaveValue(url)
+    }
+  )
 
   // Text first, so the editor starts with no embed selected.
   const lineup: EditorValue = {
@@ -1132,7 +1135,7 @@ describe('Editor embed actions', () => {
     ],
     ['Vimeo embed 76979871', 'https://vimeo.com/76979871']
   ])(
-    'fills Edit link for the clicked %s, after the text',
+    'fills Embed settings for the clicked %s, after the text',
     async (title, url) => {
       render(<NodeEditor defaultValue={lineup} />)
       const textbox = await screen.findByRole('textbox', { name: LABEL })

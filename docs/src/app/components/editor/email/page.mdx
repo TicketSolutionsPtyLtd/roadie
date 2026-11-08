@@ -449,11 +449,10 @@ inserts the active one as a chip. Merge tag in the `/` menu opens the same
 list, and Escape there takes its `{{` back out. A button's label takes merge tags too.
 
 A variable's `fallback`, such as `'there'` for a first name, goes on each tag
-as it's inserted. A variable with none opens the merge tag form as its tag is
-inserted, with focus in Fallback, as Edit merge tag does on any tag without
-one, and Enter there goes back to the text after the chip. Each chip shows
-its fallback after its label, as "First name · there", or a warning dot when
-it has none.
+as it's inserted. A tag without one goes in all the same, with the caret after
+it, so the sentence carries on. Each chip shows its fallback after its label,
+as "First name · there", or a warning dot when it has none, and Edit merge
+tag on a tag without one opens with focus in Fallback.
 
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
 Remove merge tag. Edit merge tag, or Enter on the selected chip, opens a form to change which variable the
@@ -485,19 +484,22 @@ Button asks for its link first, which must be a full web address, or a
 such as oztix.com.au, gets `https://`. The button's label is selected, so
 typing replaces it, and Enter in a button starts a new paragraph after it.
 
-Button settings, in the button's toolbar, edits its link and its look. It
-opens under the button, clear of it, or on a narrow screen as a half-height
-sheet from the bottom, over an unblurred page with the button scrolled above
-it. It opens with focus on Emphasis, or on Link while the button has no link
-yet. Each change shows on the button as it's made, so there's no Save. Enter in
-Link, Escape or a click away keeps the changes, as one step to undo, and Undo
-puts the button back. A link applies once it's a full address, and the button keeps
-its last one until then.
+A click on a button puts the caret in its label, and its toolbar shows below
+it. Button settings, first in that toolbar, edits its link and its look, as
+does Settings in its block menu or, on a phone with the button selected, the
+docked bar. It opens as image settings do: under the button, clear of it, or
+on a phone as a half-height sheet from the bottom, over an unblurred page with
+the button scrolled above it, led by its title, a line saying changes apply as
+you go, and Done. It opens with focus on Emphasis, or on Link while the button
+has no link yet. Each change shows on the button as it's made, so there's no
+Save. Done, Enter in Link, Escape, or a click away keeps the changes, as one
+step to undo, and Undo puts the button back. A link applies once it's a full
+address, and the button keeps its last one until then.
 
 - **Emphasis:** Strong, a fill in the theme's accent, for the action that
   matters. Normal, a neutral border, or Subtle, a neutral tint, for one beside
   it.
-- **Width:** Fit label, or Full width across its column.
+- **Width:** Fit, at its label's width, or Full width across its column.
 - **Align:** Left, Centre, or Right in its column. A full-width button has
   none.
 
