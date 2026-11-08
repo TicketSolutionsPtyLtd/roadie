@@ -684,7 +684,15 @@ render(<VenueForm />)
 
 `MapProvider` picks the engine and tiles for every map inside it, once for an app. `maplibreEngine` takes other tiles: a style address and the credits its licence asks for.
 
-MapLibre draws the map in a worker, loaded from a file of its own. Next.js, webpack and Vite serve that file with the app, with no setup. With another bundler, copy `maplibre-gl/dist/maplibre-gl-worker.mjs` into the app and pass its address as `maplibreEngine({ workerUrl })`. A content security policy needs `worker-src 'self'`.
+MapLibre draws the map in a worker, loaded from a file of its own. Next.js, webpack and Vite builds serve that file with the app, with no setup.
+
+```tsx
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
+
+const engine = maplibreEngine({ workerUrl })
+```
+
+Vite's dev server bundles Roadie ahead of time and loses the file, so a Vite app imports its address, as above, with `maplibre-gl` at Roadie's version in its own dependencies. With another bundler, copy `maplibre-gl/dist/maplibre-gl-worker.mjs` into the app and pass its address as `workerUrl`. A content security policy needs `worker-src 'self'`, and `blob:` too when the app's files come from another origin, such as a CDN.
 
 ```tsx-live
 <MapProvider

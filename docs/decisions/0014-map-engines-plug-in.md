@@ -21,10 +21,12 @@ Roadie HTML over the map, so they look and behave the same on every engine.
 MapLibre is 6.x, which draws in a worker loaded from a file of its own.
 `maplibreEngine` points MapLibre at it with
 `new URL('maplibre-gl/dist/maplibre-gl-worker.mjs', import.meta.url)`, which
-webpack, Turbopack and Vite serve as part of the app. An app on another
-bundler passes `workerUrl`, and one that calls MapLibre's `setWorkerUrl`
-itself keeps its own. MapLibre 5 inlined its worker, but no 5.x release has
-the fix for GHSA-jrc7-96c5-q579, an XSS in MapLibre's credits control.
+webpack, Turbopack and Vite builds serve as part of the app. Vite's dev
+server pre-bundles Roadie and loses the file, so a Vite app passes
+`workerUrl`, as does one on another bundler. An app that calls MapLibre's
+`setWorkerUrl` itself keeps its own. MapLibre 5 inlined its worker, but no
+5.x release has the fix for GHSA-jrc7-96c5-q579, an XSS in MapLibre's
+credits control.
 
 ## Consequences
 

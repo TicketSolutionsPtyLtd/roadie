@@ -23,16 +23,19 @@ export type MaplibreEngineOptions = {
    */
   tiles?: MaplibreEngineTiles
   /**
-   * Where MapLibre's worker file is served. Next.js, webpack and Vite serve
-   * it with the app without this. With another bundler, copy
-   * `maplibre-gl/dist/maplibre-gl-worker.mjs` into the app and pass its URL.
+   * Where MapLibre's worker file is served. Next.js, webpack and Vite builds
+   * serve it with the app without this. Vite's dev server needs it, from
+   * `import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'`.
+   * With another bundler, copy `maplibre-gl/dist/maplibre-gl-worker.mjs` into
+   * the app and pass its URL.
    */
   workerUrl?: string
 }
 
-// Webpack, Turbopack (which Next.js uses) and Vite read this pattern and
-// serve the worker file as part of the app. An app that set its own worker URL
-// with MapLibre's `setWorkerUrl` keeps it.
+// Webpack, Turbopack (which Next.js uses) and Vite builds read this pattern
+// and serve the worker file with the app; Vite's dev server pre-bundles Roadie
+// and loses it. An app that set its own worker URL with MapLibre's
+// `setWorkerUrl` keeps it.
 const defaultWorkerUrl = () =>
   new URL('maplibre-gl/dist/maplibre-gl-worker.mjs', import.meta.url).href
 
