@@ -188,6 +188,14 @@
       "types": "./dist/components/Logo/index.d.ts",
       "import": "./dist/components/Logo/index.js"
     },
+    "./map": {
+      "types": "./dist/components/Map/index.d.ts",
+      "import": "./dist/components/Map/index.js"
+    },
+    "./map-google": {
+      "types": "./dist/components/MapGoogle/index.d.ts",
+      "import": "./dist/components/MapGoogle/index.js"
+    },
     "./mark": {
       "types": "./dist/components/Mark/index.d.ts",
       "import": "./dist/components/Mark/index.js"
@@ -402,6 +410,7 @@
     "embla-carousel": "9.0.0-rc04",
     "embla-carousel-autoplay": "9.0.0-rc04",
     "embla-carousel-react": "9.0.0-rc04",
+    "maplibre-gl": "5.24.0",
     "uqr": "0.1.3"
   },
   "devDependencies": {

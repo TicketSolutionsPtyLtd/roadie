@@ -170,6 +170,36 @@ export {
 } from './components/Carousel'
 
 export {
+  Map,
+  MapProvider,
+  maplibreEngine,
+  type MapProps,
+  type MapAreaProps,
+  type MapMarkerProps,
+  type MapPickerProps,
+  type MapSearchProps,
+  type MapToolbarProps,
+  type MapPinLook,
+  type Place,
+  type MapProviderProps,
+  type MaplibreEngineOptions,
+  type MaplibreEngineTiles,
+  type LatLng,
+  type MapAreaGeometry,
+  type MapAreaLayer,
+  type MapAttribution,
+  type MapEngine,
+  type MapEngineInstance,
+  type MapMountOptions,
+  type MapPalette,
+  type MapPixel,
+  type MapView,
+  type MapViewOptions
+} from './components/Map'
+
+export { googleEngine, type GoogleEngineOptions } from './components/MapGoogle'
+
+export {
   Separator,
   separatorVariants,
   type SeparatorProps

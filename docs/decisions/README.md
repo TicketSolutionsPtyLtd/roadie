@@ -58,3 +58,4 @@ the rule and keep only the why here.
 | [0011](0011-fence-layout-options.md)                | Live examples take preview layout from fence options     |
 | [0012](0012-base-ui-focus-guards.md)                | Base UI focus guards stay nameless buttons in WebKit     |
 | [0013](0013-one-dropdown-for-search-and-filters.md) | One dropdown for search and filters                      |
+| [0014](0014-map-engines-plug-in.md)                 | Map engines plug in behind one contract                  |

@@ -3,7 +3,8 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "289 kB"
+    "limit": "289 kB",
+    "ignore": ["maplibre-gl"]
   },
   {
     "name": "Single component (Button)",
@@ -46,6 +47,25 @@
       "embla-carousel-react",
       "embla-carousel-autoplay"
     ]
+  },
+  {
+    "name": "Map",
+    "path": "dist/components/Map/index.js",
+    "import": "*",
+    "limit": "24 kB",
+    "ignore": [
+      "react",
+      "react-dom",
+      "@oztix/roadie-core",
+      "@phosphor-icons/react",
+      "maplibre-gl"
+    ]
+  },
+  {
+    "name": "MapGoogle",
+    "path": "dist/components/MapGoogle/index.js",
+    "import": "*",
+    "limit": "2 kB"
   },
   {
     "name": "SpotIllustrations",

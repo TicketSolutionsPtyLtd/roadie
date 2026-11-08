@@ -1,0 +1,801 @@
+export const metadata = {
+  title: 'Map',
+  description: 'A map of a place, such as where a venue is',
+  status: 'alpha',
+  category: 'Media & brand',
+}
+
+import { Map } from '@oztix/roadie-components/map'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A map of a place, such as where a venue is.
+
+## Import
+
+```tsx
+import { Map, MapProvider } from '@oztix/roadie-components/map'
+```
+
+## Examples
+
+### Default
+
+The map starts where `defaultCenter` says, at suburb level. It works with no setup: tiles come from OpenFreeMap, and the map credits them in the corner. On a narrow map the credits fold behind an info button once the map moves.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  aria-label='Where Kazoo Hollow Room is'
+/>
+```
+
+### Zoom
+
+`defaultZoom` sets how far in the map starts: 0 shows the world, 13 a suburb, and 16 a street.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  defaultZoom={16}
+  aria-label='The streets around Kazoo Hollow Room'
+/>
+```
+
+### Size
+
+The map fills its container's width in a 16:9 frame. Set another ratio or height with `className`.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -33.8628, lng: 151.2157 }}
+  defaultZoom={14}
+  aria-label='Where Lighthouse Fig Lawn is'
+  className='aspect-2/1'
+/>
+```
+
+### Colours
+
+`tone` sets how the basemap is coloured, and both tones follow light and dark mode with the rest of the page.
+
+- `intent`, the default, draws the map in the intent around it, so it sits quietly in the page and pins and areas stand out. Set an intent on the map, or on anything around it, to tint it.
+- `natural` draws green parks, blue water and yellow main roads, as people know maps. Use it where people find their way, such as getting to a venue. It ignores the intent around it.
+
+Pins and areas keep their own intents on top of either.
+
+```tsx-live-noinline layout=stack
+function MapColours() {
+  const [colours, setColours] = useState('neutral')
+  return (
+    <>
+      <ToggleGroup
+        aria-label='Map colours'
+        value={[colours]}
+        onValueChange={([next]) => next && setColours(next)}
+      >
+        <ToggleGroup.Item value='neutral'>Neutral</ToggleGroup.Item>
+        <ToggleGroup.Item value='brand'>Brand</ToggleGroup.Item>
+        <ToggleGroup.Item value='accent'>Accent</ToggleGroup.Item>
+        <ToggleGroup.Item value='natural'>Natural</ToggleGroup.Item>
+      </ToggleGroup>
+      <Map
+        defaultCenter={{ lat: -27.4693, lng: 153.0514 }}
+        defaultZoom={14}
+        aria-label='Where Jumbuck Orchard Park is'
+        tone={colours === 'natural' ? 'natural' : 'intent'}
+        className={colours === 'natural' ? undefined : `intent-${colours}`}
+      >
+        <Map.Marker
+          position={{ lat: -27.4693, lng: 153.0514 }}
+          label='Jumbuck Orchard Park'
+          intent='brand'
+        />
+      </Map>
+    </>
+  )
+}
+
+render(<MapColours />)
+```
+
+### Areas
+
+`Map.Area` highlights a GeoJSON polygon or multipolygon, such as a venue's site or a precinct, in a light wash of its `intent`. Its coordinates are `[lng, lat]`, longitude first, as GeoJSON's are.
+
+Children show in a preview where the area is clicked or tapped, and the area strengthens while the pointer is over it. Keyboard users reach it by Tab, where a label shows at its middle, and Enter opens the preview there.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4572, lng: 153.0352 }}
+  defaultZoom={15}
+  aria-label='Kazoo Hollow Room and its precinct'
+>
+  <Map.Area
+    label='Fortitude Valley entertainment precinct'
+    intent='accent'
+    area={{
+      type: 'Polygon',
+      coordinates: [
+        [
+          [153.0315, -27.4545],
+          [153.0390, -27.4545],
+          [153.0390, -27.4600],
+          [153.0315, -27.4600],
+          [153.0315, -27.4545]
+        ]
+      ]
+    }}
+  >
+    <Popover.Header>
+      <Popover.Title>Entertainment precinct</Popover.Title>
+      <Popover.Description>
+        Venues here can trade later. Plan your trip home before the last train.
+      </Popover.Description>
+    </Popover.Header>
+  </Map.Area>
+  <Map.Marker
+    position={{ lat: -27.4587, lng: 153.0338 }}
+    label='Kazoo Hollow Room'
+    intent='brand'
+    icon={<TicketIcon weight='bold' />}
+  >
+    <Popover.Header>
+      <Popover.Title>Kazoo Hollow Room</Popover.Title>
+      <Popover.Description>
+        Fortitude Valley
+      </Popover.Description>
+    </Popover.Header>
+  </Map.Marker>
+</Map>
+```
+
+### Controls
+
+`Map.Toolbar` adds zoom in and zoom out, joined, in the top corner. `Toolbar.Button`s you put inside it join them, in the same group. Show my location and full screen each sit on their own below.
+
+`locate` adds Show my location. Pressed, it asks the browser for the reader's location, which asks their permission the first time, then centres the map on them. A dot marks where they are, with a ring pulsing out from it, and it follows them as they move while the map stays where they pan it. Pressing it again stops following and removes the dot. Browsers share a location only with secure pages, served over HTTPS or from localhost.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  aria-label='Where Kazoo Hollow Room is'
+>
+  <Map.Toolbar locate />
+</Map>
+```
+
+### Full screen
+
+`expand` adds a Full screen button below the zoom buttons. The map fills the window, and the button, or Escape, puts it back. Pins, areas, previews and your location move with it, and the map redraws to fit.
+
+Full screen fills the window, not the device: the browser's own bars stay visible. While it fills the window, the page behind doesn't scroll, and one finger pans the map and a plain scroll zooms it.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  aria-label='Venues near Fortitude Valley'
+>
+  <Map.Toolbar expand />
+  <Map.Marker position={{ lat: -27.4587, lng: 153.0338 }} label='Kazoo Hollow Room'>
+    <Popover.Title>Kazoo Hollow Room</Popover.Title>
+  </Map.Marker>
+</Map>
+```
+
+To open it from a button of your own, such as View larger map, control it with `expanded` and `onExpandedChange`. Exit full screen and Escape call `onExpandedChange(false)`, and focus returns to your button. While the map fills the window, its toolbar always shows Exit full screen, and a map with no toolbar shows the button on its own, so people on a touch screen can always get back.
+
+```tsx-live-noinline layout=stack
+function LargerMap() {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <>
+      <Map
+        defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+        aria-label='Venues near Fortitude Valley'
+        expanded={expanded}
+        onExpandedChange={setExpanded}
+      >
+        <Map.Toolbar expand />
+        <Map.Marker
+          position={{ lat: -27.4587, lng: 153.0338 }}
+          label='Kazoo Hollow Room'
+          intent='brand'
+        />
+      </Map>
+      <Button emphasis='subtle' onClick={() => setExpanded(true)}>
+        View larger map
+      </Button>
+    </>
+  )
+}
+
+render(<LargerMap />)
+```
+
+A dialog opened from a preview shows over the full screen map, but its backdrop doesn't dim the map behind it.
+
+### Pins
+
+`Map.Marker` puts a pin on a place. `label` names it for screen readers and keyboard users, and `intent` colours it. Give each pin an `href` to link to the place, or an `onClick`.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.463, lng: 153.0275 }}
+  defaultZoom={11.75}
+  aria-label='Venues in Brisbane'
+>
+  <Map.Marker
+    position={{ lat: -27.4587, lng: 153.0338 }}
+    label='Kazoo Hollow Room'
+    intent='brand'
+    href='#pins'
+  />
+  <Map.Marker
+    position={{ lat: -27.4527, lng: 153.0211 }}
+    label='Foxglove Tin Pavilion'
+    intent='brand'
+    href='#pins'
+  />
+  <Map.Marker
+    position={{ lat: -27.4776, lng: 153.0224 }}
+    label='Barnacle Bowl Amphitheatre'
+    intent='brand'
+    href='#pins'
+  />
+</Map>
+```
+
+### Custom pin
+
+`icon` puts an icon in the pin, at `size-4` and `bold` weight, such as the kind of place it marks.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  aria-label='Where Kazoo Hollow Room is'
+>
+  <Map.Marker
+    position={{ lat: -27.4587, lng: 153.0338 }}
+    label='Kazoo Hollow Room'
+    intent='accent'
+    icon={<TicketIcon weight='bold' />}
+  />
+</Map>
+```
+
+`pin` replaces the drop with a graphic of your own, such as a spot illustration. Its bottom centre sits on the place, so use a graphic whose point is at the bottom, and size it with its `className`. With `pin`, `intent` and `icon` don't apply. `Map.Picker` takes `pin` too.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  aria-label='Where Kazoo Hollow Room is'
+>
+  <Map.Marker
+    position={{ lat: -27.4587, lng: 153.0338 }}
+    label='Kazoo Hollow Room'
+    pin={<MapPin className='size-10' />}
+  />
+</Map>
+```
+
+### Preview
+
+Children of `Map.Marker` show above the pin on hover, keyboard focus or tap, in a `Popover`. Moving the map closes it. For more than a preview holds, open a `Dialog` from a button in it.
+
+```tsx-live-noinline
+function VenuePreview() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Map
+        defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+        aria-label='Where Kazoo Hollow Room is'
+      >
+        <Map.Marker
+          position={{ lat: -27.4587, lng: 153.0338 }}
+          label='Kazoo Hollow Room'
+          intent='brand'
+          icon={<TicketIcon weight='bold' />}
+        >
+          <Popover.Header>
+            <Popover.Title>Kazoo Hollow Room</Popover.Title>
+            <Popover.Description>
+              Fortitude Valley
+            </Popover.Description>
+          </Popover.Header>
+          <Popover.Footer>
+            <Button size='sm' onClick={() => setOpen(true)}>
+              Venue details
+            </Button>
+          </Popover.Footer>
+        </Map.Marker>
+      </Map>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog.Content size='sm'>
+          <Dialog.Header>
+            <Dialog.Title>Kazoo Hollow Room</Dialog.Title>
+            <Dialog.Description>
+              Doors open an hour before the first act. The venue is all ages
+              unless the event says otherwise.
+            </Dialog.Description>
+          </Dialog.Header>
+          <Dialog.Footer>
+            <Dialog.Close render={<Button>Close</Button>} />
+          </Dialog.Footer>
+        </Dialog.Content>
+      </Dialog>
+    </>
+  )
+}
+
+render(<VenuePreview />)
+```
+
+### Pin drop
+
+`Map.Picker` chooses a place. A click or tap on the map drops the pin there, and the pin drags, or moves with the arrow keys, to refine it, such as onto a venue's entrance. It takes `value` and `onValueChange`, and the same `intent`, `icon` and `pin` as a marker.
+
+```tsx-live-noinline layout=stack
+function PinDrop() {
+  const [entrance, setEntrance] = useState(null)
+  return (
+    <>
+      <Map
+        defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+        defaultZoom={17}
+        aria-label='Choose Kazoo Hollow Room’s entrance'
+      >
+        <Map.Picker
+          value={entrance}
+          onValueChange={setEntrance}
+          label='Entrance'
+          intent='accent'
+          icon={<TicketIcon weight='bold' />}
+        />
+      </Map>
+      <p className='text-sm text-subtle'>
+        {entrance
+          ? `Entrance: ${entrance.lat.toFixed(5)}, ${entrance.lng.toFixed(5)}`
+          : 'Click the map to place the entrance.'}
+      </p>
+    </>
+  )
+}
+
+render(<PinDrop />)
+```
+
+### Search
+
+`Map.Search` finds a place from what people type, in the map's top left corner, beside `Map.Toolbar`. Give it `suggest`, which returns places for the text, best first. It waits for typing to pause before asking, and aborts the last request when the text changes, so an old answer never replaces a newer one. Pass its `signal` to `fetch`.
+
+Choosing a place flies the map there, at the place's `zoom` or 16, and calls `onPlaceSelect`. It doesn't drop a pin, so pair it with a controlled `Map.Picker` to let people choose the place and then drag the pin onto its entrance. A tap on the map that closes the list only closes it, so the pin stays where it was. This one searches a few venues, with a short pause to stand in for a request.
+
+```tsx-live-noinline layout=stack
+function VenueSearch() {
+  const venues = [
+    {
+      label: 'Kazoo Hollow Room',
+      address: 'Fortitude Valley QLD 4006',
+      position: { lat: -27.4587, lng: 153.0338 }
+    },
+    {
+      label: 'Foxglove Tin Pavilion',
+      address: 'Herston QLD 4006',
+      position: { lat: -27.4527, lng: 153.0211 }
+    },
+    {
+      label: 'Barnacle Bowl Amphitheatre',
+      address: 'South Brisbane QLD 4101',
+      position: { lat: -27.4776, lng: 153.0224 }
+    },
+    {
+      label: 'Jumbuck Orchard Park',
+      address: 'New Farm QLD 4005',
+      position: { lat: -27.4693, lng: 153.0514 }
+    },
+    {
+      label: 'Lighthouse Fig Lawn',
+      address: 'Sydney NSW 2000',
+      position: { lat: -33.8628, lng: 151.2157 }
+    }
+  ]
+
+  async function suggest(text) {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    const typed = text.toLowerCase()
+    return venues.filter((venue) =>
+      `${venue.label} ${venue.address}`.toLowerCase().includes(typed)
+    )
+  }
+
+  const [venue, setVenue] = useState(null)
+  const [entrance, setEntrance] = useState(null)
+  return (
+    <>
+      <Map
+        defaultCenter={{ lat: -27.4605, lng: 153.0374 }}
+        defaultZoom={12}
+        aria-label='Choose a venue’s entrance'
+      >
+        <Map.Search
+          suggest={suggest}
+          placeholder='Search for a venue'
+          onPlaceSelect={(place) => {
+            setVenue(place)
+            setEntrance(place.position)
+          }}
+        />
+        <Map.Toolbar expand />
+        <Map.Picker
+          value={entrance}
+          onValueChange={setEntrance}
+          label='Entrance'
+          intent='accent'
+        />
+      </Map>
+      <p className='text-sm text-subtle'>
+        {venue
+          ? `${venue.label}, ${venue.address}. Entrance: ${entrance.lat.toFixed(5)}, ${entrance.lng.toFixed(5)}`
+          : 'Search for a venue, then drag the pin onto its entrance.'}
+      </p>
+    </>
+  )
+}
+
+render(<VenueSearch />)
+```
+
+#### Search with AddressFinder
+
+[AddressFinder](https://addressfinder.com.au/) finds Australian addresses from G-NAF, so its places can go on this map. Its autocomplete returns addresses without coordinates, so this asks its metadata, with `gps`, for each of the first five. That's up to six requests each time typing pauses, so lower the count if your plan charges per lookup. Check [AddressFinder's API docs](https://addressfinder.com.au/docs/) for the exact parameters, and use the key restricted to your domains.
+
+```tsx
+import type { Place } from '@oztix/roadie-components/map'
+
+const ADDRESSFINDER = 'https://api.addressfinder.io/api/au/address'
+const key = process.env.NEXT_PUBLIC_ADDRESSFINDER_KEY ?? ''
+
+type Completions = { completions: { id: string; full_address: string }[] }
+type Metadata = { latitude: string; longitude: string }
+
+async function suggest(
+  text: string,
+  { signal }: { signal: AbortSignal }
+): Promise<Place[]> {
+  const query = new URLSearchParams({ key, q: text, format: 'json' })
+  const { completions }: Completions = await fetch(
+    `${ADDRESSFINDER}/autocomplete/?${query}`,
+    { signal }
+  ).then((response) => response.json())
+
+  return Promise.all(
+    completions.slice(0, 5).map(async ({ id, full_address }) => {
+      const query = new URLSearchParams({ key, id, gps: '1', format: 'json' })
+      const address: Metadata = await fetch(
+        `${ADDRESSFINDER}/metadata/?${query}`,
+        { signal }
+      ).then((response) => response.json())
+      return {
+        label: full_address,
+        position: {
+          lat: Number(address.latitude),
+          lng: Number(address.longitude)
+        },
+        source: { provider: 'addressfinder', id }
+      }
+    })
+  )
+}
+
+<Map.Search suggest={suggest} placeholder='Search for an address' />
+```
+
+#### Search with Google Places
+
+Google's terms say Places results go on a Google map, so draw the map with `googleEngine`, as [Engines and tiles](#engines-and-tiles) shows. It needs a Google Maps Platform key with the Places API (New) turned on and billing set up, restricted to your app's domains.
+
+Autocomplete returns place IDs, and Place Details returns each one's location. Each time typing pauses, this sends one Autocomplete request and a Place Details request for each of the first five suggestions, and Google bills every Place Details request, so it costs up to six requests per pause. Lower the count to cut the cost. Session tokens group Autocomplete requests with one Place Details request, for the place someone chooses, so they don't cover a lookup for every suggestion. Check [Google's Places API docs](https://developers.google.com/maps/documentation/places/web-service) for field masks and pricing.
+
+```tsx
+import { MapProvider, type Place } from '@oztix/roadie-components/map'
+import { googleEngine } from '@oztix/roadie-components/map-google'
+
+const PLACES = 'https://places.googleapis.com/v1'
+const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? ''
+const google = googleEngine({ apiKey, mapId: 'your-map-id' })
+const brisbane = { lat: -27.4698, lng: 153.0251 }
+
+type Suggestions = { suggestions?: { placePrediction: { placeId: string } }[] }
+type Details = {
+  displayName: { text: string }
+  formattedAddress: string
+  location: { latitude: number; longitude: number }
+}
+
+async function suggest(
+  text: string,
+  { signal }: { signal: AbortSignal }
+): Promise<Place[]> {
+  const { suggestions = [] }: Suggestions = await fetch(
+    `${PLACES}/places:autocomplete`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey },
+      body: JSON.stringify({ input: text, includedRegionCodes: ['au'] }),
+      signal
+    }
+  ).then((response) => response.json())
+
+  return Promise.all(
+    suggestions.slice(0, 5).map(async ({ placePrediction: { placeId } }) => {
+      const place: Details = await fetch(`${PLACES}/places/${placeId}`, {
+        headers: {
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': 'displayName,formattedAddress,location'
+        },
+        signal
+      }).then((response) => response.json())
+      return {
+        label: place.displayName.text,
+        address: place.formattedAddress,
+        position: {
+          lat: place.location.latitude,
+          lng: place.location.longitude
+        },
+        source: { provider: 'google', id: placeId }
+      }
+    })
+  )
+}
+
+<MapProvider engine={google}>
+  <Map defaultCenter={brisbane} aria-label='Find a venue'>
+    <Map.Search suggest={suggest} />
+  </Map>
+</MapProvider>
+```
+
+### In a form
+
+A map beside a form takes its place from the form and gives one back. Pass a place in through `Map.Picker`'s `value`: when it changes from outside the map, such as from a venue chosen in a `Combobox`, the map flies to it at street level. Take one out through `onValueChange`, which runs as the pin is dropped, dragged or moved with the arrow keys, and doesn't move the map.
+
+Here, choosing a venue fills in its entrance and flies the map there. Dragging the pin updates the entrance's coordinates, which the form submits.
+
+```tsx-live-noinline
+function VenueForm() {
+  const venues = [
+    {
+      label: 'Kazoo Hollow Room',
+      address: 'Fortitude Valley QLD 4006',
+      position: { lat: -27.4587, lng: 153.0338 }
+    },
+    {
+      label: 'Foxglove Tin Pavilion',
+      address: 'Herston QLD 4006',
+      position: { lat: -27.4527, lng: 153.0211 }
+    },
+    {
+      label: 'Barnacle Bowl Amphitheatre',
+      address: 'South Brisbane QLD 4101',
+      position: { lat: -27.4776, lng: 153.0224 }
+    },
+    {
+      label: 'Jumbuck Orchard Park',
+      address: 'New Farm QLD 4005',
+      position: { lat: -27.4693, lng: 153.0514 }
+    }
+  ]
+  const [venue, setVenue] = useState(null)
+  const [entrance, setEntrance] = useState(null)
+
+  return (
+    <form
+      className='@container'
+      onSubmit={(event) => event.preventDefault()}
+    >
+      <div className='grid gap-4 @2xl:grid-cols-2'>
+        <div className='grid content-start gap-4'>
+          <Field>
+            <Field.Label>Venue</Field.Label>
+            <Combobox
+              items={venues}
+              itemToStringLabel={(venue) => venue.label}
+              value={venue}
+              onValueChange={(next) => {
+                setVenue(next)
+                setEntrance(next?.position ?? null)
+              }}
+            >
+              <Combobox.InputGroup>
+                <Combobox.Input placeholder='Search venues' />
+                <Combobox.Clear />
+                <Combobox.Trigger />
+              </Combobox.InputGroup>
+              <Combobox.Portal>
+                <Combobox.Positioner>
+                  <Combobox.Popup>
+                    <Combobox.List>
+                      {(venue) => (
+                        <Combobox.Item key={venue.label} value={venue}>
+                          <span className='grid min-w-0'>
+                            <span className='truncate'>{venue.label}</span>
+                            <span className='truncate text-xs text-subtle'>
+                              {venue.address}
+                            </span>
+                          </span>
+                          <Combobox.ItemIndicator />
+                        </Combobox.Item>
+                      )}
+                    </Combobox.List>
+                    <Combobox.Empty>No venues found</Combobox.Empty>
+                  </Combobox.Popup>
+                </Combobox.Positioner>
+              </Combobox.Portal>
+            </Combobox>
+            <Field.HelperText>
+              Then drag the pin onto the venue’s entrance.
+            </Field.HelperText>
+          </Field>
+          <div className='grid grid-cols-2 gap-4'>
+            <Field>
+              <Field.Label>Entrance latitude</Field.Label>
+              <Input
+                name='latitude'
+                readOnly
+                value={entrance ? entrance.lat.toFixed(5) : ''}
+              />
+            </Field>
+            <Field>
+              <Field.Label>Entrance longitude</Field.Label>
+              <Input
+                name='longitude'
+                readOnly
+                value={entrance ? entrance.lng.toFixed(5) : ''}
+              />
+            </Field>
+          </div>
+        </div>
+        <Map
+          defaultCenter={{ lat: -27.4633, lng: 153.0322 }}
+          defaultZoom={12}
+          aria-label='Venue entrance'
+          className='@2xl:aspect-auto @2xl:min-h-72'
+        >
+          <Map.Toolbar />
+          <Map.Picker
+            value={entrance}
+            onValueChange={setEntrance}
+            label='Entrance'
+            intent='accent'
+          />
+        </Map>
+      </div>
+    </form>
+  )
+}
+
+render(<VenueForm />)
+```
+
+### Engines and tiles
+
+`MapProvider` picks the engine and tiles for every map inside it, once for an app. `maplibreEngine` takes other tiles: a style address and the credits its licence asks for.
+
+```tsx-live
+<MapProvider
+  engine={maplibreEngine({
+    tiles: {
+      light: 'https://tiles.openfreemap.org/styles/liberty',
+      attribution: [
+        { label: 'OpenFreeMap', href: 'https://openfreemap.org' },
+        { label: '© OpenMapTiles', href: 'https://www.openmaptiles.org/' },
+        {
+          label: '© OpenStreetMap contributors',
+          href: 'https://www.openstreetmap.org/copyright'
+        }
+      ]
+    }
+  })}
+>
+  <Map
+    defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+    aria-label='Where Kazoo Hollow Room is'
+  />
+</MapProvider>
+```
+
+An app that shows Google Places or Geocoding results on a map draws it with Google, from `@oztix/roadie-components/map-google`. Pins, previews, the toolbar and the picker work the same on it. Google draws its own logo and terms, so the map shows no credits of its own. Each map load counts against the app's Google Maps Platform billing, so use a key restricted to the app's domains.
+
+```tsx
+import { MapProvider } from '@oztix/roadie-components/map'
+import { googleEngine } from '@oztix/roadie-components/map-google'
+
+const google = googleEngine({
+  apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? '',
+  mapId: 'your-map-id'
+})
+
+<MapProvider engine={google}>
+  <Map defaultCenter={venue.position} aria-label='Where Kazoo Hollow Room is'>
+    <Map.Marker position={venue.position} label='Kazoo Hollow Room' />
+  </Map>
+</MapProvider>
+```
+
+#### Supported engines and tiles
+
+| Engine or tiles | How | Status |
+| --- | --- | --- |
+| MapLibre with OpenFreeMap tiles | Built in, in Roadie's colours. No key | Ready |
+| MapLibre with a style of your own | `maplibreEngine({ tiles })` with any MapLibre style address, such as MapTiler or Stadia Maps with their key, or tiles you host | Ready |
+| MapLibre with Mapbox tiles | `maplibreEngine({ tiles })` with Mapbox's tile addresses and token, as Mapbox documents. `mapbox://` addresses don't work | Ready, not tried |
+| Google Maps | `googleEngine` from `@oztix/roadie-components/map-google`, with a key. In Roadie's colours without a map ID | Built, not run yet |
+| Mapbox GL JS, Esri ArcGIS, Apple MapKit JS, HERE, Azure Maps | A new engine subpath that implements `MapEngine` and passes Roadie's engine tests | Not built |
+
+A style of your own keeps its own colours, so it doesn't follow dark mode or intent.
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Keep the address in text'>
+  <Guideline.Do code={`<p>Kazoo Hollow Room, Fortitude Valley</p>\n<Map defaultCenter={venue.position} aria-label='Where Kazoo Hollow Room is' />`}>
+    Write the address beside the map. A map shows where a place is, but people copy, read aloud and search the address.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Map defaultCenter={venue.position} />`}>
+    Don't let the map be the only place the address appears.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Map places, not numbers'>
+  <Guideline.Do code={`<RankedBars data={ticketsByPostcode} />`}>
+    Answer "where do buyers live?" with ranked bars, as [Data visualisation](/charts/data-visualisation) says. A list of places with numbers is easier to compare than shades on a map.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Map defaultCenter={australia} defaultZoom={4} />`}>
+    Don't zoom out to a whole country to show where something is. Pick the view that answers the question.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Offer full screen on maps people explore'>
+  <Guideline.Do code={`<Map defaultCenter={valley} aria-label='Venues near Fortitude Valley'>\n  <Map.Toolbar expand />\n  {venues.map((venue) => <Map.Marker key={venue.id} {...venue} />)}\n</Map>`}>
+    Add `expand` where people pan and compare, such as several venues, areas or a picker.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Map defaultCenter={venue.position} aria-label='Where Kazoo Hollow Room is'>\n  <Map.Toolbar expand />\n</Map>`}>
+    Don't offer it on a map that only shows where one venue is. The address beside it says more.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="Show a provider's data on its own map">
+  <Guideline.Do code={`<Map defaultCenter={addressFinderResult.position} />`}>
+    Use coordinates from open data, such as AddressFinder, which is built on G-NAF.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Map defaultCenter={googlePlacesResult.position} />`}>
+    Don't show Google Places or Mapbox search results on this map. Their terms say their results go on their own maps.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- The map is a region named by `aria-label`, "Map" by default. Say what it shows, such as "Where Kazoo Hollow Room is".
+- Scrolling the page never zooms the map. Zoom with Ctrl or ⌘ and scroll, or pinch with two fingers.
+- With the map focused, arrow keys pan and `+` and `-` zoom.
+- The map is a picture to a screen reader, so keep the place's name and address in text.
+- While it loads, the region is marked busy. If it can't load, the frame says so.
+- An area with a preview is a button named by `label`, at the area's middle. It shows only while it has keyboard focus, and Enter opens the preview there.
+- Pins are buttons or links named by `label`, in the order you write them, so Tab reaches each place. A pin that does nothing is a named picture.
+- A pin's preview opens on keyboard focus as well as hover, and on tap, since phones can't hover. Escape closes it.
+- The picker's pin is a button named by `label`, "Chosen place" by default. Arrow keys move it, and Shift moves it further. In a form, keep the chosen place in fields too, such as its coordinates, so it can be read and checked without the map.
+- A custom `pin` is still named by `label`, so screen readers read the place, not the graphic.
+- The search is a combobox named by `aria-label`, "Search the map" by default. A status message says while it searches, how many places it found, when it found none, and when places couldn't load. Arrow keys move through the places and Enter chooses one. Escape closes the list, then clears the text, then exits full screen.
+- The zoom buttons are a toolbar named Zoom, so Tab reaches it once and the arrow keys move between Zoom in and Zoom out. Show my location and Full screen are buttons of their own.
+- Show my location is a toggle button: pressed while it follows the reader's location. The dot is a picture named Your location. Its pulse doesn't run when the reader asks for reduced motion. If the location isn't available, a status message says so.
+- The full screen button is named Full screen, and Exit full screen while the map fills the window. The full screen map is a modal dialog named by `aria-label`, so Tab stays in the map while it's full screen. Escape closes the top layer first: an open preview, then the full screen map, then a drawer or dialog the map sits in. Focus returns to the button, or to your own button that opened it.
+- Inline, one finger scrolls the page, so the map never traps a scroll. Full screen is the way to pan with one finger and zoom with a plain scroll, and the arrow keys and `+` and `-` work in both.
+- The credits show when the map loads. On a narrow map, they fold behind an info button, Map credits, once the map moves or after five seconds, as OpenStreetMap's attribution guidelines allow. The button opens them again.
+
+<PropsDefinitions component='Map' />
