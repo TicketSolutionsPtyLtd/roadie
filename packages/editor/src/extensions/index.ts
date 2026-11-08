@@ -200,6 +200,11 @@ export type EditorSection = {
     attrs: Record<string, unknown>
     /** Set in the editor, so a blank part can show a hint the page won't. */
     editing?: boolean
+    /**
+     * The list item open in its Settings drawer, by its path, such as
+     * `questions.2`, so it can show it, as an FAQ opens its answer.
+     */
+    editingItem?: string
   }) => ReactNode
   /**
    * The ways it's offered, each with its own tile.

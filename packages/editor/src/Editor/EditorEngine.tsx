@@ -541,11 +541,13 @@ export function EditorEngine({
   const [focusSetting, setFocusSetting] = useState<string | undefined>()
   const [focusElement, setFocusElement] = useState<Element | null>(null)
   const [keepSelected, setKeepSelected] = useState(false)
+  const [editingItem, setEditingItem] = useState<string | null>(null)
   const editSettings = (
     path?: string,
     element: Element | null = null,
     fromKeyboard = false
   ) => {
+    setEditingItem(null)
     setFocusSetting(path)
     setFocusElement(element)
     setKeepSelected(fromKeyboard)
@@ -1070,6 +1072,7 @@ export function EditorEngine({
           ) : null,
         hasSettings,
         editSettingsAt,
+        editingItem: editingSettings ? editingItem : null,
         editingLink,
         embedProviders,
         variables,
@@ -1202,6 +1205,8 @@ export function EditorEngine({
           focusSetting={focusSetting}
           focusElement={focusElement}
           keepSelected={keepSelected}
+          editingItem={editingItem}
+          onEditingItemChange={setEditingItem}
           uploadImage={canUpload ? onUploadImage : undefined}
         />
         <EditorVariablePopover

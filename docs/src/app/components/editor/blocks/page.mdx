@@ -197,8 +197,13 @@ import { catalogueSections } from '@oztix/roadie-blocks/catalogue/sections'
   every part of it: its layout, text, alignment, size, surface, and colour,
   its images and buttons, and its items, such as cards or questions, which
   you add, remove, and drag to reorder. A click on a card or question opens
-  its fold. Only the settings its layout reads show. Its links and buttons
-  can't be followed or focused while you edit.
+  its fold, and on a phone a tap on one in a selected section opens the
+  sheet scrolled to it, with the keyboard down. The section shows the item
+  you're editing, so a question opens to its answer, and on a phone stays
+  above the sheet as you type. A new button shows its label, or Button,
+  before it has a link, and an image waiting on its link shows a
+  placeholder. Only the settings its layout reads show. Its links and
+  buttons can't be followed or focused while you edit.
 - Each block has keywords too, so `/cta` finds Call to action and
   `/questions` finds FAQ.
 - `content` gives each template its starting attrs, such as an app's
@@ -206,6 +211,8 @@ import { catalogueSections } from '@oztix/roadie-blocks/catalogue/sections'
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
   section from its `render`:
   `Object.fromEntries(sections.map(({ name, render }) => [name, render]))`.
+  In the editor, `render` also gets `editing`, and `editingItem`, the path
+  of the list item open in Settings, such as `questions.2`.
 - Each saves its fields as attrs, under its node name, such as
   `heroSection`, so that name stays put once pages hold it. A section reads
   its saved lists as lists, and in the editor one that still can't be drawn
@@ -289,8 +296,12 @@ import {
     own fold, of `fields`, or of an `item` that's an `image` or an `action`.
 
   Each change shows as it's made. Done, Escape, Enter in a text setting, or
-  a click or tap away keeps the changes, and Undo takes the whole visit back
-  in one step. The caret goes back where it was before the block was
+  a click or tap away keeps the changes, and Undo takes the visit back in
+  one step. Removing an item is a step of its own, and focus moves to the
+  next item, the one before, or Add. While they're open, `Mod+Z` and
+  `Mod+Shift+Z` step the editor's history, never a field's own, and only
+  through the visit's steps, so Undo brings an item back without taking the
+  block away. The caret goes back where it was before the block was
   selected, or after the block, so the next key types rather than replacing
   it. Opened from the keyboard with Enter, the block stays selected.
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
