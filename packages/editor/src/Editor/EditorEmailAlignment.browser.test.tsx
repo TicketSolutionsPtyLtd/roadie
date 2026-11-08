@@ -12,6 +12,7 @@ import { userEvent, page as viewport } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
+import { EMAIL_BLOCK_INSET } from '../email/mjmlTree'
 import type { EditorValue, JSONContent } from '../schema'
 
 const LABEL = 'Newsletter'
@@ -179,4 +180,125 @@ describe('Editor email alignment', () => {
       }
     }
   )
+})
+
+// The sent email pads a section's wrapper 16px, or 8px or 32px, and each
+// block in it 8px more, and the wrapper's fill runs to the email's edges.
+const SENT_BLOCK_PADDING = 8
+const SENT_SECTION_PADDING = { tight: 8, roomy: 32, default: 16 } as const
+
+describe('Editor email filled section', () => {
+  const filled = (look: string, spacing?: string): EditorValue => ({
+    version: 1,
+    preset: 'email',
+    doc: {
+      type: 'doc',
+      content: [
+        p('Hi there'),
+        {
+          type: 'section',
+          attrs: { look, ...(spacing && { spacing }) },
+          content: [p('Bringing a friend?')]
+        },
+        p('See you there')
+      ]
+    }
+  })
+
+  it.each([
+    [375, 'tint', undefined],
+    [1280, 'tint', undefined],
+    [1280, 'accent', undefined],
+    [1280, 'tint', 'tight'],
+    [375, 'accent', 'roomy']
+  ] as const)(
+    'at %ipx, draws a %s section (%s) as it sends, a band to the email’s edges',
+    async (width, look, spacing) => {
+      await viewport.viewport(width, 800)
+      onTestFinished(() => viewport.viewport(1280, 800))
+      render(<Editor aria-label={LABEL} defaultValue={filled(look, spacing)} />)
+      const canvas = (
+        await screen.findByRole('textbox', { name: LABEL })
+      ).getBoundingClientRect()
+      const line = (text: string) => screen.getByText(text).closest('p')!
+      const band = line('Bringing a friend?')
+        .closest('[data-type="section"]')!
+        .getBoundingClientRect()
+      const inside = SENT_SECTION_PADDING[spacing ?? 'default']
+
+      expect(band.left).toBeCloseTo(canvas.left, 0)
+      expect(band.right).toBeCloseTo(canvas.right, 0)
+      expect(textLeft(line('Bringing a friend?')) - band.left).toBeCloseTo(
+        EMAIL_BLOCK_INSET,
+        0
+      )
+      expect(
+        line('Bringing a friend?').getBoundingClientRect().top - band.top
+      ).toBeCloseTo(inside + SENT_BLOCK_PADDING, 0)
+      expect(
+        band.top - line('Hi there').getBoundingClientRect().bottom
+      ).toBeCloseTo(SENT_BLOCK_PADDING, 0)
+      expect(
+        line('See you there').getBoundingClientRect().top - band.bottom
+      ).toBeCloseTo(SENT_BLOCK_PADDING, 0)
+      expect(document.scrollingElement!.scrollWidth).toBeLessThanOrEqual(width)
+    }
+  )
+
+  it('outlines the band on its edge, not past the email’s', async () => {
+    render(<Editor aria-label={LABEL} defaultValue={filled('tint')} />)
+    const canvas = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).getBoundingClientRect()
+    const section = screen
+      .getByText('Bringing a friend?')
+      .closest<HTMLElement>('[data-type="section"]')!
+    const offset = parseFloat(getComputedStyle(section).outlineOffset)
+
+    expect(section.getBoundingClientRect().left - offset).toBeGreaterThan(
+      canvas.left - 0.5
+    )
+    expect(section.getBoundingClientRect().right + offset).toBeLessThan(
+      canvas.right + 0.5
+    )
+  })
+
+  it('sets the band against a spacer beside it, as the email does', async () => {
+    const spacer = { type: 'spacer', attrs: { height: 32 } }
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              p('Hi there'),
+              spacer,
+              {
+                type: 'section',
+                attrs: { look: 'tint' },
+                content: [p('Bringing a friend?')]
+              },
+              spacer,
+              p('See you there')
+            ]
+          }
+        }}
+      />
+    )
+    await screen.findByRole('textbox', { name: LABEL })
+    const band = screen
+      .getByText('Bringing a friend?')
+      .closest('[data-type="section"]')!
+      .getBoundingClientRect()
+    const [above, below] = Array.from(
+      document.querySelectorAll('[data-type="spacer"]'),
+      (element) => element.getBoundingClientRect()
+    )
+
+    expect(band.top - above!.bottom).toBeCloseTo(0, 0)
+    expect(below!.top - band.bottom).toBeCloseTo(0, 0)
+  })
 })

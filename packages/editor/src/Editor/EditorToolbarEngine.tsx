@@ -95,6 +95,8 @@ type BlockMenuProps = {
   state: ControlState | undefined
   editor: TiptapEditor | null
   onOpenChange?: (open: boolean) => void
+  /** Heads its choices with its label, where the trigger shows only the choice. */
+  headed?: boolean
 }
 
 type BlockMenuRadioGroupProps = {
@@ -142,7 +144,8 @@ export function BlockMenu({
   menu,
   state,
   editor,
-  onOpenChange
+  onOpenChange,
+  headed = false
 }: BlockMenuProps) {
   const current = state?.current ?? menu.types[0]?.label
   return (
@@ -166,7 +169,12 @@ export function BlockMenu({
           return false
         }}
       >
-        <BlockMenuRadioGroup menu={menu} state={state} editor={editor} />
+        <BlockMenuRadioGroup
+          menu={menu}
+          state={state}
+          editor={editor}
+          label={headed ? menu.label : undefined}
+        />
       </Menu.Content>
     </Menu>
   )

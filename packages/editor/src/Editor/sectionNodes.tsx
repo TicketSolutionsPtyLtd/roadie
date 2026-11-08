@@ -97,12 +97,13 @@ export function sectionBlock(section: EditorSection): EditorBlock {
         data-selected={selected ? '' : undefined}
         className='not-prose relative rounded-md'
       >
-        {/* Its name, shown with its ring while it's under the pointer. */}
+        {/* Its name, on its ring above it, clear of what it draws, while
+            it's under the pointer. Opaque, so the block above can't show
+            through. */}
         <Badge
           data-slot='editor-section-name'
           size='sm'
-          emphasis='subtle'
-          className='absolute start-3 top-3 z-1'
+          className='absolute start-0 -top-0.5 z-1 -translate-y-full emphasis-raised'
           aria-hidden
         >
           {section.label}

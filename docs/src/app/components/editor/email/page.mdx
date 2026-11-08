@@ -38,7 +38,7 @@ footer. Its greeting and button hold a merge tag, `first_name`, which shows
 as a chip with the label from `variables`. Its footer links to two link
 variables, the unsubscribe page and the email in a browser.
 
-```tsx-live-prose
+```tsx-live-prose bleed
 <Editor
   aria-label='Newsletter'
   preset='email'
@@ -178,7 +178,7 @@ caret's tint, selected text, and the placeholder mix from the theme's
 colours, so they show on any background. A colour that isn't hex throws, as
 it does in `renderEmail`.
 
-```tsx-live-prose
+```tsx-live-prose bleed
 <Editor
   aria-label='Newsletter'
   preset='email'
@@ -234,7 +234,7 @@ was when Preview opened. Back to editing, or
 Escape, puts the canvas back and focuses it. The frame is sandboxed, so it
 runs none of the email's scripts.
 
-```tsx-live-noinline
+```tsx-live-noinline bleed
 const variables = [
   { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
   { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } },
@@ -368,7 +368,7 @@ only, with `variables`.
   heading with no matches hides, and the arrow keys step through the
   matches in the order shown, across the headings.
 
-```tsx-live-prose
+```tsx-live-prose bleed
 <Editor
   aria-label='Newsletter'
   preset='email'
@@ -634,7 +634,7 @@ Try it with this source:
 </mj-column></mj-section></mj-body></mjml>
 ```
 
-```tsx-live-prose
+```tsx-live-prose bleed
 <Editor
   aria-label='Imported email'
   preset='email'

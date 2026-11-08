@@ -129,6 +129,28 @@
   margin-block-start: calc(var(--spacing) * 2);
 }
 
+/* A filled section's band holds 8px of each gap beside it, as the email pads
+   its first and last block inside the fill, so it sits that much closer to
+   its neighbours, and touches a spacer. */
+[data-email]
+  > :where(
+    :not(.ProseMirror-gapcursor) ~ [data-filled],
+    [data-filled] + :not(.ProseMirror-gapcursor),
+    [data-filled] + .ProseMirror-gapcursor + *
+  ) {
+  margin-block-start: calc(var(--spacing) * 2);
+}
+
+[data-email]
+  > :where(
+    [data-type='spacer'] + [data-filled],
+    [data-type='spacer'] + .ProseMirror-gapcursor + [data-filled],
+    [data-filled] + [data-type='spacer'],
+    [data-filled] + .ProseMirror-gapcursor + [data-type='spacer']
+  ) {
+  margin-block-start: 0;
+}
+
 /* An email sends in its own colours, so the canvas keeps them in a dark app.
    The editor sets --email-theme-* from its theme; a colour it leaves out
    takes Roadie's light scales. Declared on the frame, as the block handle
@@ -320,7 +342,15 @@
   --email-divider: var(--email-base-button-text);
 }
 
+/* Its outline sits on the band's edge, not past the email's. */
+[data-email] :where([data-filled]) {
+  outline-offset: 0;
+}
+
+/* The email's band has no edge, so its blocks sit 24px in. */
 [data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong) {
+  border-width: 0;
+  box-shadow: none;
   background-color: var(--email-background);
   color: var(--email-text);
 }
@@ -515,10 +545,13 @@
   outline-offset: 2px;
 }
 
-[data-slot='editor-content']
-  [data-slot='editor-section']:hover
-  > [data-slot='editor-section-name'] {
-  visibility: visible;
+/* Only where the pointer hovers, as a tap's hover outstays it. */
+@media (hover: hover) {
+  [data-slot='editor-content']
+    [data-slot='editor-section']:hover
+    > [data-slot='editor-section-name'] {
+    visibility: visible;
+  }
 }
 
 /* Preview takes the canvas's place, and the formatting it can't apply goes
