@@ -193,6 +193,7 @@ export {
   type MapMountOptions,
   type MapPalette,
   type MapPixel,
+  type MapTone,
   type MapView,
   type MapViewOptions
 } from './components/Map'
