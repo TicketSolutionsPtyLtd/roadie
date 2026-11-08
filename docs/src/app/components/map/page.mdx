@@ -684,6 +684,8 @@ render(<VenueForm />)
 
 `MapProvider` picks the engine and tiles for every map inside it, once for an app. `maplibreEngine` takes other tiles: a style address and the credits its licence asks for.
 
+MapLibre draws the map in a worker, loaded from a file of its own. Next.js, webpack and Vite serve that file with the app, with no setup. With another bundler, copy `maplibre-gl/dist/maplibre-gl-worker.mjs` into the app and pass its address as `maplibreEngine({ workerUrl })`. A content security policy needs `worker-src 'self'`.
+
 ```tsx-live
 <MapProvider
   engine={maplibreEngine({

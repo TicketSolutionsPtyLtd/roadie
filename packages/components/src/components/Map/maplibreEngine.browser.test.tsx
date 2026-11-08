@@ -40,8 +40,7 @@ describe('maplibreEngine', () => {
     'is ready once its style loads, before any tile arrives',
     { timeout: 5_000 },
     async () => {
-      const loaded = await import('maplibre-gl')
-      const { addProtocol, removeProtocol } = loaded.default ?? loaded
+      const { addProtocol, removeProtocol } = await import('maplibre-gl')
       // Tiles from this protocol never answer.
       addProtocol('never', () => new Promise(() => {}))
       try {

@@ -18,8 +18,13 @@ so an engine and tiles that can't work together can't be paired. Every engine
 passes `engine.contract.browser.test.tsx`. Markers, previews and controls are
 Roadie HTML over the map, so they look and behave the same on every engine.
 
-MapLibre is pinned at 5.x: 6.x loads its worker from beside its own file,
-which bundlers don't copy, while 5.x inlines it.
+MapLibre is 6.x, which draws in a worker loaded from a file of its own.
+`maplibreEngine` points MapLibre at it with
+`new URL('maplibre-gl/dist/maplibre-gl-worker.mjs', import.meta.url)`, which
+webpack, Turbopack and Vite serve as part of the app. An app on another
+bundler passes `workerUrl`, and one that calls MapLibre's `setWorkerUrl`
+itself keeps its own. MapLibre 5 inlined its worker, but no 5.x release has
+the fix for GHSA-jrc7-96c5-q579, an XSS in MapLibre's credits control.
 
 ## Consequences
 
@@ -28,8 +33,7 @@ tiles, and `googleEngine` (`@oztix/roadie-components/map-google`) draws with
 Google Maps, loading Google's script itself so Roadie needs no Google
 package. A new engine is a subpath that implements `MapEngine` and must pass
 the contract suite unchanged; `googleEngine` hasn't run it yet, since that
-needs a key and spends Google Maps calls. Moving to MapLibre 6 means solving
-its worker URL in every bundler first.
+needs a key and spends Google Maps calls.
 
 ## Links
 
