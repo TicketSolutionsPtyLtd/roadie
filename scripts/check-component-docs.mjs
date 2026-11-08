@@ -20,6 +20,8 @@ const root = join(import.meta.dirname, '..')
 const ALLOW_LIST = {
   CheckboxGroup: 'Documented on the Checkbox page.',
   DashboardView: 'Documented on the Dashboard design guide, charts/dashboards.',
+  MapGoogle:
+    'Holds googleEngine, documented on the Map page under Engines and tiles.',
   Records:
     'The engine behind RecordTable and RecordGrid, documented on foundations/records.',
   ScrollRegion: 'Holds useScrollRegion, documented on the Prose page.'
