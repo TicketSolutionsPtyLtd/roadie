@@ -30,6 +30,7 @@ import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { EditorSettingsPopup } from './EditorSettingsPopup'
 import { insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
+import { isImeEnter } from './imeEnter'
 import { useOnPhone } from './toolbarMode'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
@@ -311,10 +312,8 @@ function ImageSettingsForm({
             if (event.key === 'Escape') applySrc()
             if (event.key !== 'Enter') return
             event.preventDefault()
-            // The Enter that picks an IME candidate only ends the composition.
-            const composing =
-              event.nativeEvent.isComposing || event.keyCode === 229
-            if (!composing) event.currentTarget.form?.requestSubmit()
+            if (!isImeEnter(event.nativeEvent))
+              event.currentTarget.form?.requestSubmit()
           }}
           // Says so only once they've moved on, not while they type.
           onBlur={applySrc}
@@ -416,9 +415,8 @@ function ImageSettingsForm({
               onKeyDown={(event) => {
                 if (event.key !== 'Enter') return
                 event.preventDefault()
-                const composing =
-                  event.nativeEvent.isComposing || event.keyCode === 229
-                if (!composing) event.currentTarget.form?.requestSubmit()
+                if (!isImeEnter(event.nativeEvent))
+                  event.currentTarget.form?.requestSubmit()
               }}
             />
           </Field>
@@ -436,9 +434,8 @@ function ImageSettingsForm({
           onKeyDown={(event) => {
             if (event.key !== 'Enter') return
             event.preventDefault()
-            const composing =
-              event.nativeEvent.isComposing || event.keyCode === 229
-            if (!composing) event.currentTarget.form?.requestSubmit()
+            if (!isImeEnter(event.nativeEvent))
+              event.currentTarget.form?.requestSubmit()
           }}
         />
         <Field.HelperText>

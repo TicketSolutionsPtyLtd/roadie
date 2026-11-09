@@ -9,6 +9,7 @@ import { Select } from '@oztix/roadie-components/select'
 
 import { isEmailHref } from '../schema/emailAttrs'
 import { toHref, useLinkVariables } from './EditorLinkPopover'
+import { isImeEnter } from './imeEnter'
 
 /** Where a block links: a web address, or a link variable's key. */
 export type LinkTarget = { href?: string; variable?: string }
@@ -125,10 +126,8 @@ export function EditorLinkTargetFields({
             onKeyDown={(event) => {
               if (event.key !== 'Enter') return
               event.preventDefault()
-              // The Enter that picks an IME candidate only ends the composition.
-              const composing =
-                event.nativeEvent.isComposing || event.keyCode === 229
-              if (!composing) event.currentTarget.form?.requestSubmit()
+              if (!isImeEnter(event.nativeEvent))
+                event.currentTarget.form?.requestSubmit()
             }}
             // Says so only once they've moved on, not while they type.
             onBlur={() => setRefused(!whole(typed))}

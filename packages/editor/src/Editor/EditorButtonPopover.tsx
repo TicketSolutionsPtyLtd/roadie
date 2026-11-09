@@ -23,6 +23,7 @@ import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { EditorSettingsPopup } from './EditorSettingsPopup'
 import { buttonBlock, insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
+import { isImeEnter } from './imeEnter'
 import { EDITOR_POPUP, useOnPhone } from './toolbarMode'
 import { type LiveEdit, useLiveEdit } from './useLiveEdit'
 
@@ -239,10 +240,8 @@ function ButtonSettingsForm({
             onKeyDown={(event) => {
               if (event.key !== 'Enter') return
               event.preventDefault()
-              // The Enter that picks an IME candidate only ends the composition.
-              const composing =
-                event.nativeEvent.isComposing || event.keyCode === 229
-              if (!composing) event.currentTarget.form?.requestSubmit()
+              if (!isImeEnter(event.nativeEvent))
+                event.currentTarget.form?.requestSubmit()
             }}
             // Says so only once they've moved on, not while they type.
             onBlur={() => setRefused(!isEmailHref(toHref(typed)))}
