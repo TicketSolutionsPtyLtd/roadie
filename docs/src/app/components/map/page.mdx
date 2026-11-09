@@ -409,39 +409,43 @@ render(<VenuePreview />)
 
 Clicking a band zooms in until it splits. A single place opens a preview with its `label` instead. `Map.Toolbar lock` adds a lock: locked, zooming in spreads the bands apart without splitting them, so the groups stay as they were, and clicking a band opens its preview, with the places in it and how far they spread. Control it with `locked` and `onLockedChange`.
 
-`highlight` lights the bands holding places by their `label`, as hover does, such as while a row is hovered in a table of the same data beside the map. A place inside a group lights its group's band.
+Give places a `region`, such as their state, and they only group with places in the same region, so two cities never merge however far out the map is.
+
+`onGroupsChange` gives you the bands on the map whenever they change, each with its value, share and places, such as to list only what the map shows in a table beside it. `highlight` lights the bands holding places by their `label`, as hover does, such as while a row is hovered in a table of the same data beside the map. A place inside a group lights its group's band.
 
 Send totals per postcode or suburb, not a place per person, so no one's location reaches the browser, and leave out totals small enough to point to someone.
 
 ```tsx-live-noinline
 const sales = [
-  { position: { lat: -27.4575, lng: 153.0355 }, value: 182, label: 'Fortitude Valley' },
-  { position: { lat: -27.4679, lng: 153.0514 }, value: 96, label: 'New Farm' },
-  { position: { lat: -27.4604, lng: 153.0001 }, value: 121, label: 'Paddington' },
-  { position: { lat: -27.4995, lng: 153.0130 }, value: 57, label: 'West End' },
-  { position: { lat: -28.0023, lng: 153.4145 }, value: 143, label: 'Surfers Paradise' },
-  { position: { lat: -26.6500, lng: 153.0667 }, value: 92, label: 'Maroochydore' },
-  { position: { lat: -33.8688, lng: 151.2093 }, value: 264, label: 'Sydney' },
-  { position: { lat: -33.8970, lng: 151.1790 }, value: 138, label: 'Newtown' },
-  { position: { lat: -33.8915, lng: 151.2767 }, value: 87, label: 'Bondi' },
-  { position: { lat: -33.8150, lng: 151.0011 }, value: 74, label: 'Parramatta' },
-  { position: { lat: -37.8136, lng: 144.9631 }, value: 231, label: 'Melbourne' },
-  { position: { lat: -37.7980, lng: 144.9780 }, value: 149, label: 'Fitzroy' },
-  { position: { lat: -37.8676, lng: 144.9809 }, value: 96, label: 'St Kilda' },
-  { position: { lat: -37.8000, lng: 144.9000 }, value: 61, label: 'Footscray' },
-  { position: { lat: -35.2809, lng: 149.1300 }, value: 72, label: 'Canberra' },
-  { position: { lat: -34.9285, lng: 138.6007 }, value: 118, label: 'Adelaide' },
-  { position: { lat: -34.9800, lng: 138.5160 }, value: 43, label: 'Glenelg' },
-  { position: { lat: -31.9505, lng: 115.8605 }, value: 104, label: 'Perth' },
-  { position: { lat: -32.0569, lng: 115.7439 }, value: 52, label: 'Fremantle' },
-  { position: { lat: -42.8821, lng: 147.3272 }, value: 48, label: 'Hobart' },
-  { position: { lat: -12.4634, lng: 130.8456 }, value: 26, label: 'Darwin' }
+  { position: { lat: -27.4575, lng: 153.0355 }, value: 182, label: 'Fortitude Valley', region: 'QLD' },
+  { position: { lat: -27.4679, lng: 153.0514 }, value: 96, label: 'New Farm', region: 'QLD' },
+  { position: { lat: -27.4604, lng: 153.0001 }, value: 121, label: 'Paddington', region: 'QLD' },
+  { position: { lat: -27.4995, lng: 153.0130 }, value: 57, label: 'West End', region: 'QLD' },
+  { position: { lat: -28.0023, lng: 153.4145 }, value: 143, label: 'Surfers Paradise', region: 'QLD' },
+  { position: { lat: -26.6500, lng: 153.0667 }, value: 92, label: 'Maroochydore', region: 'QLD' },
+  { position: { lat: -33.8688, lng: 151.2093 }, value: 264, label: 'Sydney', region: 'NSW' },
+  { position: { lat: -33.8970, lng: 151.1790 }, value: 138, label: 'Newtown', region: 'NSW' },
+  { position: { lat: -33.8915, lng: 151.2767 }, value: 87, label: 'Bondi', region: 'NSW' },
+  { position: { lat: -33.8150, lng: 151.0011 }, value: 74, label: 'Parramatta', region: 'NSW' },
+  { position: { lat: -37.8136, lng: 144.9631 }, value: 231, label: 'Melbourne', region: 'VIC' },
+  { position: { lat: -37.7980, lng: 144.9780 }, value: 149, label: 'Fitzroy', region: 'VIC' },
+  { position: { lat: -37.8676, lng: 144.9809 }, value: 96, label: 'St Kilda', region: 'VIC' },
+  { position: { lat: -37.8000, lng: 144.9000 }, value: 61, label: 'Footscray', region: 'VIC' },
+  { position: { lat: -35.2809, lng: 149.1300 }, value: 72, label: 'Canberra', region: 'ACT' },
+  { position: { lat: -34.9285, lng: 138.6007 }, value: 118, label: 'Adelaide', region: 'SA' },
+  { position: { lat: -34.9800, lng: 138.5160 }, value: 43, label: 'Glenelg', region: 'SA' },
+  { position: { lat: -31.9505, lng: 115.8605 }, value: 104, label: 'Perth', region: 'WA' },
+  { position: { lat: -32.0569, lng: 115.7439 }, value: 52, label: 'Fremantle', region: 'WA' },
+  { position: { lat: -42.8821, lng: 147.3272 }, value: 48, label: 'Hobart', region: 'TAS' },
+  { position: { lat: -12.4634, lng: 130.8456 }, value: 26, label: 'Darwin', region: 'NT' }
 ]
 
 function TicketSales() {
   const [hovered, setHovered] = useState()
+  const [onMap, setOnMap] = useState([])
+  const [all, setAll] = useState(false)
   const total = sales.reduce((sum, { value }) => sum + value, 0)
-  const rows = [...sales].sort((a, b) => b.value - a.value)
+  const rows = (all ? [...sales] : onMap).sort((a, b) => b.value - a.value)
   return (
     <div className='grid gap-4'>
       <Map
@@ -451,8 +455,25 @@ function TicketSales() {
         className='aspect-4/3'
       >
         <Map.Toolbar fit lock />
-        <Map.Clusters data={sales} label='Ticket sales' highlight={hovered} />
+        <Map.Clusters
+          data={sales}
+          label='Ticket sales'
+          highlight={hovered}
+          onGroupsChange={(bands) =>
+            setOnMap(bands.flatMap(({ places }) => places))
+          }
+        />
       </Map>
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <p className='text-sm text-subtle'>
+          {all
+            ? `All ${sales.length} places`
+            : `${rows.length} of ${sales.length} places on the map`}
+        </p>
+        <Button size='sm' emphasis='subtle' onClick={() => setAll(!all)}>
+          {all ? 'View what’s on the map' : 'View all'}
+        </Button>
+      </div>
       <ScrollArea className='h-72 rounded-xl border border-subtle'>
         <ScrollArea.Viewport>
           <Table>

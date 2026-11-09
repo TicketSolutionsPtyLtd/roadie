@@ -13,6 +13,12 @@ export type MapClusterPoint = {
   value?: number
   /** Names the place in a group's preview, such as a postcode or suburb. */
   label?: string
+  /**
+   * Places only group with places in the same region, such as a city or
+   * state, so two cities never merge into one band however far out the map
+   * is. Without one, places group by distance alone.
+   */
+  region?: string
 }
 
 /** Places near each other at a zoom, drawn as one band. */
@@ -43,20 +49,30 @@ const RADIUS = 56
 // zoom both engines reach: MapLibre's 22, and Google's 21, which is 20 here.
 const MAX_ZOOM = 19
 
+// A group's key names its region's index and its cluster in it.
+const clusterKey = (region: number, id: number) => `c${region}-${id}`
+const parseClusterKey = (key: string) => {
+  const match = /^c(\d+)-(\d+)$/.exec(key)
+  return match ? { region: Number(match[1]), id: Number(match[2]) } : null
+}
+
 /**
  * Groups places by distance at each zoom, as one hierarchy, so a group
- * splits into the groups inside it as the map zooms in.
+ * splits into the groups inside it as the map zooms in. Places in
+ * different regions never share a group.
  */
 export function clusterIndex(points: readonly MapClusterPoint[]) {
-  // Places at the same spot never split, so they're one place from the start.
-  const merged = new Map<string, { position: LatLng } & Place>()
-  for (const { position, value = 1, label } of points) {
+  // Places at the same spot in a region never split, so they're one place
+  // from the start.
+  const merged = new Map<string, { position: LatLng; region: string } & Place>()
+  for (const { position, value = 1, label, region = '' } of points) {
     // A negative or missing number adds nothing.
     const amount = Number.isFinite(value) && value > 0 ? value : 0
-    const spot = `${position.lat},${position.lng}`
+    const spot = `${region}\u0000${position.lat},${position.lng}`
     const place = merged.get(spot) ?? {
       key: `p${merged.size}`,
       position,
+      region,
       value: 0,
       names: []
     }
@@ -68,41 +84,58 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
     if (place.names.length > 0) place.label = listOf(place.names)
   const places = [...merged.values()]
   const total = places.reduce((sum, { value }) => sum + value, 0)
-  const index = new Supercluster<Place, Sum>({
-    radius: RADIUS,
-    maxZoom: MAX_ZOOM,
-    map: ({ value }) => ({ value }),
-    reduce: (sum, { value }) => {
-      sum.value += value
-    }
+
+  const regions = [...new Set(places.map(({ region }) => region))]
+  const indexes = regions.map((region) => {
+    const index = new Supercluster<Place, Sum>({
+      radius: RADIUS,
+      maxZoom: MAX_ZOOM,
+      map: ({ value }) => ({ value }),
+      reduce: (sum, { value }) => {
+        sum.value += value
+      }
+    })
+    return index.load(
+      places
+        .filter((place) => place.region === region)
+        .map(({ position, region: _region, ...place }) => ({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [position.lng, position.lat]
+          },
+          properties: place
+        }))
+    )
   })
-  index.load(
-    places.map(({ position, ...place }) => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [position.lng, position.lat] },
-      properties: place
-    }))
-  )
+
+  const keyOf = (
+    region: number,
+    properties: Place | (Sum & { cluster: true; cluster_id: number })
+  ) =>
+    'cluster' in properties
+      ? clusterKey(region, properties.cluster_id)
+      : properties.key
 
   const largest = new Map<number, number>()
   const groupsAt = (
     bbox: readonly [number, number, number, number],
     zoom: number
   ): MapClusterGroup[] =>
-    places.length === 0
-      ? []
-      : index.getClusters([...bbox], zoom).map(({ geometry, properties }) => {
-          const [lng, lat] = geometry.coordinates as [number, number]
-          const position = { lat, lng }
-          if ('cluster' in properties)
-            return {
-              key: `c${properties.cluster_id}`,
-              position,
-              value: properties.value,
-              splitsAt: index.getClusterExpansionZoom(properties.cluster_id)
-            }
-          return { key: properties.key, position, value: properties.value }
-        })
+    indexes.flatMap((index, region) =>
+      index.getClusters([...bbox], zoom).map(({ geometry, properties }) => {
+        const [lng, lat] = geometry.coordinates as [number, number]
+        const position = { lat, lng }
+        if ('cluster' in properties)
+          return {
+            key: clusterKey(region, properties.cluster_id),
+            position,
+            value: properties.value,
+            splitsAt: index.getClusterExpansionZoom(properties.cluster_id)
+          }
+        return { key: properties.key, position, value: properties.value }
+      })
+    )
 
   return {
     /** Every place's value, added up. */
@@ -124,19 +157,20 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
     },
     /** The keys of the groups a group splits into. */
     partsOf(group: MapClusterGroup): string[] {
-      if (!group.key.startsWith('c')) return []
-      return index
-        .getChildren(Number(group.key.slice(1)))
-        .map(({ properties }) =>
-          'cluster' in properties ? `c${properties.cluster_id}` : properties.key
-        )
+      const cluster = parseClusterKey(group.key)
+      if (!cluster) return []
+      return indexes[cluster.region]!.getChildren(cluster.id).map(
+        ({ properties }) => keyOf(cluster.region, properties)
+      )
     },
     /** The places in a group, largest first. */
     placesIn(group: MapClusterGroup): ({ position: LatLng } & Place)[] {
-      if (!group.key.startsWith('c'))
-        return places.filter(({ key }) => key === group.key)
-      return index
-        .getLeaves(Number(group.key.slice(1)), Infinity)
+      const cluster = parseClusterKey(group.key)
+      if (!cluster)
+        return places
+          .filter(({ key }) => key === group.key)
+          .map(({ region: _region, ...place }) => place)
+      return indexes[cluster.region]!.getLeaves(cluster.id, Infinity)
         .map(({ geometry, properties }) => {
           const [lng, lat] = geometry.coordinates as [number, number]
           return { ...properties, position: { lat, lng } }

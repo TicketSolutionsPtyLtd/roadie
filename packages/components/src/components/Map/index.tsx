@@ -33,7 +33,11 @@ Map.Toolbar = MapToolbar
 export { Map }
 export type { MapActions, MapRootProps as MapProps } from './MapRoot'
 export type { MapAreaProps } from './MapArea'
-export type { MapClusterPoint, MapClustersProps } from './MapClusters'
+export type {
+  MapClusterBand,
+  MapClusterPoint,
+  MapClustersProps
+} from './MapClusters'
 export type { MapMarkerProps } from './MapMarker'
 export type { MapPickerProps } from './MapPicker'
 export type { MapSearchProps } from './MapSearch'

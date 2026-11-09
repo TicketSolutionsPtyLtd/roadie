@@ -4,6 +4,7 @@ import {
   type CSSProperties,
   useCallback,
   useEffect,
+  useEffectEvent,
   useId,
   useMemo,
   useRef,
@@ -28,6 +29,18 @@ import type { LatLng, MapEngineInstance } from './engine'
 
 export type { MapClusterPoint } from './clusters'
 
+/** A band on the map, as `onGroupsChange` gives it. */
+export type MapClusterBand = {
+  /** Where the band sits: the middle of its places. */
+  position: LatLng
+  /** The sum of its places' values. */
+  value: number
+  /** Its share of every value in `data`, from 0 to 1. */
+  share: number
+  /** Its places, largest first. */
+  places: { position: LatLng; value: number; label?: string }[]
+}
+
 export type MapClustersProps = {
   /**
    * The places and their values. Send totals per postcode or suburb rather
@@ -42,6 +55,12 @@ export type MapClustersProps = {
    * group lights its group's band.
    */
   highlight?: string | readonly string[]
+  /**
+   * Called with the bands on the map, largest first, whenever they change
+   * as the map moves, such as to list what the map shows in a table beside
+   * it.
+   */
+  onGroupsChange?: (bands: MapClusterBand[]) => void
   /**
    * Writes a value, such as a currency.
    * @default the reader's number format
@@ -78,6 +97,7 @@ export function MapClusters({
   data,
   label,
   highlight,
+  onGroupsChange,
   formatValue = formatNumber,
   locked: lockedProp,
   defaultLocked = false,
@@ -172,6 +192,26 @@ export function MapClusters({
 
   const groups = layout?.groups ?? []
   const largest = layout?.largest ?? 0
+
+  // Tells the app the bands on the map when they change, not on every
+  // frame of a move.
+  const shownKeys = layout?.groups.map(({ key }) => key).join(' ') ?? null
+  const reportGroups = useEffectEvent(() => {
+    if (!layout || !onGroupsChange) return
+    onGroupsChange(
+      layout.groups.map((group) => ({
+        position: group.position,
+        value: group.value,
+        share: index.total > 0 ? group.value / index.total : 0,
+        places: index
+          .placesIn(group)
+          .map(({ position, value, label }) => ({ position, value, label }))
+      }))
+    )
+  })
+  useEffect(() => {
+    if (shownKeys !== null) reportGroups()
+  }, [shownKeys, index])
 
   // The bands holding a highlighted place.
   const highlighted = useMemo(() => {

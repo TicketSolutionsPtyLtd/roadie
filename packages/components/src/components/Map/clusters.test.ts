@@ -72,6 +72,46 @@ describe('clusterIndex', () => {
     expect(values(index, 4)).toEqual([5])
   })
 
+  it('never groups places in different regions', () => {
+    const index = clusterIndex(
+      sales.map((sale) => ({
+        ...sale,
+        region: sale.label === 'Ipswich' ? 'Ipswich' : 'Brisbane'
+      }))
+    )
+    expect(values(index, 0)).toEqual([120, 60])
+    expect(index.total).toBe(180)
+  })
+
+  it('keeps places at the same spot apart when their regions differ', () => {
+    const index = clusterIndex([
+      { position: newFarm, value: 3, region: 'Brisbane' },
+      { position: newFarm, value: 4, region: 'Elsewhere' }
+    ])
+    expect(values(index, 0)).toEqual([4, 3])
+  })
+
+  it('splits and lists a region’s group within its region', () => {
+    const index = clusterIndex([
+      ...sales.map((sale) => ({ ...sale, region: 'Brisbane' })),
+      { position: ipswich, value: 5, label: 'Booval', region: 'Ipswich' }
+    ])
+    const [brisbane] = index
+      .groupsAt(world, 4)
+      .filter(({ value }) => value === 180)
+    expect(index.placesIn(brisbane!).map(({ label }) => label)).toEqual([
+      'Ipswich',
+      'Paddington',
+      'New Farm',
+      'Teneriffe'
+    ])
+    const parts = index.partsOf(brisbane!)
+    const next = index.groupsAt(world, brisbane!.splitsAt!)
+    expect(
+      next.filter(({ key }) => parts.includes(key)).map(({ value }) => value)
+    ).toEqual(expect.arrayContaining([60]))
+  })
+
   it('names the zoom where a group splits', () => {
     const index = clusterIndex(sales)
     const [brisbane] = index

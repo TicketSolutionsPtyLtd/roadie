@@ -2,7 +2,7 @@ import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Map } from './index'
+import { Map, type MapClusterBand } from './index'
 import { fakeEngine, renderMap } from './mapTestUtils'
 
 // Two suburbs a kilometre apart, one 4 km away, and a town 35 km out. The
@@ -86,6 +86,39 @@ describe('Map.Clusters', () => {
     expect(lit()).toEqual([
       'Ticket sales: 60, 33% of all',
       'Ticket sales: 40, 22% of all'
+    ])
+  })
+
+  it('tells the app the bands on the map when they change', async () => {
+    const onGroupsChange = vi.fn()
+    const { fake, zoomTo } = await renderClusters({ onGroupsChange })
+    const last = () =>
+      onGroupsChange.mock.lastCall![0].map(
+        ({ value, share, places }: MapClusterBand) => ({
+          value,
+          share: Math.round(share * 100),
+          places: places.map(({ label }) => label)
+        })
+      )
+    expect(last()).toEqual([
+      {
+        value: 120,
+        share: 67,
+        places: ['Paddington', 'New Farm', 'Teneriffe']
+      },
+      { value: 60, share: 33, places: ['Ipswich'] }
+    ])
+
+    // A pan that keeps the same bands says nothing.
+    const calls = onGroupsChange.mock.calls.length
+    await act(() => {
+      fake.instance.setView({ center: { lat: -27.46, lng: 153.0 } })
+    })
+    expect(onGroupsChange).toHaveBeenCalledTimes(calls)
+
+    await zoomTo(21)
+    expect(last().map(({ value }: { value: number }) => value)).toEqual([
+      60, 50, 40, 30
     ])
   })
 
