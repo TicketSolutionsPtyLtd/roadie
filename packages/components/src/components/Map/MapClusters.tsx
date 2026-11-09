@@ -238,7 +238,8 @@ export function MapClusters({
                 className='is-interactive relative grid aspect-square min-w-11 -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums'
                 style={
                   {
-                    '--map-cluster-color': `var(--chart-heat-${stepOf(group.value, largest)})`,
+                    '--map-cluster-rest': `var(--chart-heat-${stepOf(group.value, largest)})`,
+                    '--map-cluster-hover': `var(--chart-heat-${hoverStepOf(stepOf(group.value, largest))})`,
                     '--map-cluster-spread': `${spreadOf(group.value, largest)}px`
                   } as CSSProperties
                 }
@@ -322,6 +323,12 @@ function shareOf(value: number, total: number) {
 // Bands step from the fifth heat colour to the last, the strongest against
 // the basemap in light and dark, as their value nears the largest group's.
 // Below the fifth, light mode's fills are too pale for white text.
+// On hover, a band takes the next heat colour, as Roadie's strong fills
+// take the next step of their scale; the strongest takes the one before.
+function hoverStepOf(step: number) {
+  return step === 8 ? 7 : step + 1
+}
+
 function stepOf(value: number, largest: number) {
   if (largest <= 0) return 4
   return 4 + Math.round((4 * value) / largest)

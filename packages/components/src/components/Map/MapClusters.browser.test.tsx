@@ -90,6 +90,37 @@ describe('Map.Clusters in the browser', () => {
   )
 
   it(
+    'shifts a band to the next heat colour on hover and keyboard focus',
+    { timeout: 15_000 },
+    async () => {
+      await renderSales()
+      await waitFor(() => expect(bands()).toHaveLength(2))
+      const band = screen.getByRole('button', {
+        name: 'Ticket sales: 60, 33% of all'
+      })
+      // Colours read at once, without the fill's transition.
+      const instant = document.createElement('style')
+      instant.textContent = '* { transition: none !important }'
+      document.head.append(instant)
+      const fill = () => getComputedStyle(band).backgroundColor
+      const rest = fill()
+
+      await userEvent.hover(band)
+      const hovered = fill()
+      expect(hovered).not.toBe(rest)
+
+      await userEvent.unhover(band)
+      expect(fill()).toBe(rest)
+
+      band.focus()
+      await userEvent.keyboard('{Shift>}{Tab}{/Shift}{Tab}')
+      expect(document.activeElement).toBe(band)
+      expect(fill()).toBe(hovered)
+      instant.remove()
+    }
+  )
+
+  it(
     'eases in until a group splits, and moves focus to its largest part',
     { timeout: 20_000 },
     async () => {

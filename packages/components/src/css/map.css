@@ -105,9 +105,12 @@
   /* Map.Clusters' bands: filled with the group's heat colour, with rings
      of it radiating out and fading, as far as its value spreads them. The
      rings sit outside the band, so they never cover its text or focus
-     ring, and strengthen on hover. Text stays white on the fills, but
-     dark mode's heat scale ends in pale fills, which take dark text. */
+     ring. On hover or keyboard focus, the fill and rings shift to the
+     neighbouring heat colour, as Roadie's strong fills move a step along
+     their scale. Text stays white on the fills, but dark mode's heat scale
+     ends in pale fills, which take dark text. */
   [data-slot='map-cluster-band'] {
+    --map-cluster-color: var(--map-cluster-rest);
     --map-cluster-ring: color-mix(
       in oklab,
       var(--map-cluster-color) 45%,
@@ -133,21 +136,30 @@
       transition: box-shadow var(--duration-moderate) var(--ease-standard);
     }
 
-    &:hover::before {
-      --map-cluster-ring: color-mix(
-        in oklab,
-        var(--map-cluster-color) 65%,
-        transparent
-      );
-      --map-cluster-haze: color-mix(
-        in oklab,
-        var(--map-cluster-color) 30%,
-        transparent
-      );
+    &:focus-visible {
+      --map-cluster-color: var(--map-cluster-hover);
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        --map-cluster-color: var(--map-cluster-hover);
+      }
     }
   }
 
+  /* Dark mode's pale fills, from the sixth heat colour, take dark text, as
+     does the fifth's band when hover shifts it to the sixth. */
   .dark [data-slot='map-cluster-band']:not([data-step='4']) {
+    color: var(--color-neutral-light-12);
+  }
+
+  @media (hover: hover) {
+    .dark [data-slot='map-cluster-band'][data-step='4']:hover {
+      color: var(--color-neutral-light-12);
+    }
+  }
+
+  .dark [data-slot='map-cluster-band'][data-step='4']:focus-visible {
     color: var(--color-neutral-light-12);
   }
 }
