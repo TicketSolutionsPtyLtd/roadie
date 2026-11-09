@@ -375,6 +375,43 @@ describe('catalogueSections', () => {
         }
       )
 
+      const photos = [{ src: '/photo.webp', alt: 'A crowd' }]
+      it.each([
+        [
+          'Mosaic',
+          'tile size',
+          { tiles: [{ title: 'Camping', size: 'NAME' }] },
+          { tiles: [{ title: 'Camping' }] }
+        ],
+        [
+          'Gallery',
+          'ratio',
+          { images: photos, ratio: 'NAME' },
+          { images: photos }
+        ],
+        [
+          'Call to action',
+          'ratio',
+          { preset: 'photo', image: photos[0], ratio: 'NAME' },
+          { preset: 'photo', image: photos[0] }
+        ]
+      ] as const)(
+        'draws %s with an unknown %s as its default',
+        (label, _part, named, plain) => {
+          const section = everyBlock().find((entry) => entry.label === label)!
+          const draw = (attrs: object) =>
+            renderToStaticMarkup(
+              section.render({ attrs: { ...section.attrs, ...attrs }, editing })
+            )
+          const withName = (name: string) =>
+            JSON.parse(JSON.stringify(named).replaceAll('NAME', name))
+
+          for (const name of ['constructor', 'huge']) {
+            expect(draw(withName(name)), name).toBe(draw(plain))
+          }
+        }
+      )
+
       it('draws a section whose choices name prototype keys', () => {
         expect(() =>
           draw({
