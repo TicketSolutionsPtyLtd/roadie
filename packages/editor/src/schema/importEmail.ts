@@ -645,6 +645,21 @@ function readTokens(
   return [...unknown]
 }
 
+// An image can't hold the link mark, so the link around it becomes its own,
+// as an MJML image's `href` does.
+function linkedImages(container: HTMLElement, dropped: DroppedContent[]) {
+  for (const image of container.querySelectorAll('a img')) {
+    const link = image.closest('a')!
+    const variable = link.getAttribute('data-variable')
+    const href = link.getAttribute('href')
+    if (!variable && href === null) continue
+    if (!isEmailImageSrc(absoluteSrc(image))) continue
+    if (variable) image.setAttribute('data-variable', variable)
+    else if (isEmailHref(href)) image.setAttribute('data-href', href)
+    else dropped.push(report('link', href))
+  }
+}
+
 /**
  * Reads an email's source, MJML or HTML, as a whole page or part of one, into
  * an email preset value, through `migrate`. MJML sections, columns, buttons,
@@ -652,7 +667,8 @@ function readTokens(
  * as HTML. In HTML, a filled or bordered link alone on its line, padded or
  * inline-block, or in a padded one-cell table, is a button; a row of two to
  * four cells of blocks whose widths share 100% is columns; and any other
- * layout table gives way to its text and images.
+ * layout table gives way to its text and images. A link around an image
+ * becomes the image's link.
  * Hidden text before any the email shows, or `mj-preview`, becomes the
  * preheader, and any other hidden text is dropped. Each token of a `variables`
  * entry becomes a merge tag, or a link variable as a link's or button's
@@ -689,12 +705,6 @@ export function importEmail(
     else if (text) dropped.push({ kind: 'hidden' })
     hidden.remove()
   }
-  // An HTML image block takes no link from around it, so that one is lost.
-  for (const image of container.querySelectorAll('a[href] img')) {
-    if (!isEmailImageSrc(absoluteSrc(image))) continue
-    const href = image.closest('a')!.getAttribute('href')
-    dropped.push(report('link', href))
-  }
   if (format === 'html') layoutColumns(container)
   const styled = container.matches(STYLED) ? 1 : 0
   const styles =
@@ -702,6 +712,7 @@ export function importEmail(
   const tables = outermost(container, 'table').length
   withoutOwnLook(container)
   const unknownMergeTags = readTokens(container, variables)
+  linkedImages(container, dropped)
   if (format === 'html') htmlButtons(container)
   // A button holds only an address a mail client opens, so any other is a
   // link on a line of its own, not run into the text beside it.
