@@ -9,9 +9,7 @@ import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Button } from '@oztix/roadie-components/button'
 import { Field } from '@oztix/roadie-components/field'
-import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
-import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 import {
   EMAIL_WIDTH,
@@ -22,6 +20,7 @@ import {
 } from '../schema/emailAttrs'
 import { type PageImageLook, pageImageLook } from '../schema/imageAttrs'
 import { isSafeImageSrc } from '../schema/imageSrc'
+import { EditorChoice } from './EditorChoice'
 import {
   EditorLinkTargetFields,
   type LinkTarget
@@ -136,57 +135,6 @@ function AddImageForm({ editor, inputRef, upload, onDone }: AddImageFormProps) {
         error={REFUSED}
       />
     </div>
-  )
-}
-
-type Choice<Value extends string> = { value: Value; label: string }
-
-type ChoiceProps<Value extends string> = {
-  legend: string
-  choices: readonly Choice<Value>[]
-  value: Value
-  onValueChange: (value: Value) => void
-  disabled?: boolean
-  helperText?: string | null
-}
-
-function ImageChoice<Value extends string>({
-  legend,
-  choices,
-  value,
-  onValueChange,
-  disabled,
-  helperText
-}: ChoiceProps<Value>) {
-  return (
-    <Fieldset className='grid gap-1.5 [&>*+*]:mt-0' disabled={disabled}>
-      {/* A label's size, as the fields', not a section's. */}
-      <Fieldset.Legend className='text-sm font-medium text-normal'>
-        {legend}
-      </Fieldset.Legend>
-      <ToggleGroup
-        value={[value]}
-        // Pressing the chosen item again would leave none, so it's ignored.
-        onValueChange={([chosen]) => {
-          if (chosen) onValueChange(chosen as Value)
-        }}
-        disabled={disabled}
-        className='w-full'
-      >
-        {choices.map((choice) => (
-          <ToggleGroup.Item
-            key={choice.value}
-            value={choice.value}
-            className='flex-1'
-          >
-            {choice.label}
-          </ToggleGroup.Item>
-        ))}
-      </ToggleGroup>
-      {helperText ? (
-        <Fieldset.HelperText>{helperText}</Fieldset.HelperText>
-      ) : null}
-    </Fieldset>
   )
 }
 
@@ -347,7 +295,7 @@ function ImageSettingsForm({
       ) : null}
       {email ? (
         <>
-          <ImageChoice
+          <EditorChoice
             legend='Width'
             choices={WIDTHS}
             value={width === null ? 'full' : 'fit'}
@@ -357,7 +305,7 @@ function ImageSettingsForm({
               apply({ width: next })
             }}
           />
-          <ImageChoice
+          <EditorChoice
             legend='Align'
             choices={ALIGNS}
             value={align ?? 'center'}
@@ -374,7 +322,7 @@ function ImageSettingsForm({
         </>
       ) : (
         <>
-          <ImageChoice
+          <EditorChoice
             legend='Width'
             choices={WIDTHS}
             value={page.fullWidth ? 'full' : 'fit'}
@@ -382,7 +330,7 @@ function ImageSettingsForm({
               changePage({ fullWidth: choice === 'full' || undefined })
             }
           />
-          <ImageChoice
+          <EditorChoice
             legend='Align'
             // A page image saves only centre or right, so in right-to-left
             // text, where its start is the right, it can't sit left.
