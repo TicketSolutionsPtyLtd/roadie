@@ -41,7 +41,7 @@ import {
   redo,
   undo
 } from './controls'
-import { focusEditor } from './focusEditor'
+import { focusEditor, useEditorFinalFocus } from './focusEditor'
 import { useShowsShortcuts } from './menuGroups'
 import { type ToolbarSlot, fitToolbar } from './toolbarFit'
 import {
@@ -148,9 +148,11 @@ export function BlockMenu({
   headed = false
 }: BlockMenuProps) {
   const current = state?.current ?? menu.types[0]?.label
+  const { triggerRef, popupRef, finalFocus } = useEditorFinalFocus(editor)
   return (
     <Menu onOpenChange={onOpenChange}>
       <Menu.Trigger
+        ref={triggerRef}
         render={
           <Toolbar.Button
             disabled={!state?.enabled}
@@ -162,12 +164,9 @@ export function BlockMenu({
         }
       />
       <Menu.Content
+        ref={popupRef}
         {...{ [EDITOR_POPUP]: '' }}
-        finalFocus={() => {
-          // At once, as Firefox drops a caret move made before a deferred focus lands.
-          if (editor) focusEditor(editor)
-          return false
-        }}
+        finalFocus={finalFocus}
       >
         <BlockMenuRadioGroup
           menu={menu}
@@ -584,6 +583,7 @@ function MoreMenu({
   ui
 }: MoreMenuProps) {
   const showsShortcuts = useShowsShortcuts()
+  const { triggerRef, popupRef, finalFocus } = useEditorFinalFocus(editor)
   // Closed by unmounting, the menu never says so.
   useEffect(() => () => onOpenChange(false), [onOpenChange])
   const run = (control: EditorControl) => {
@@ -620,6 +620,7 @@ function MoreMenu({
   return (
     <Menu onOpenChange={onOpenChange}>
       <Menu.Trigger
+        ref={triggerRef}
         render={
           <Toolbar.Button ref={buttonRef} aria-label='More'>
             <DotsThreeIcon weight='bold' className='size-4' aria-hidden />
@@ -627,12 +628,9 @@ function MoreMenu({
         }
       />
       <Menu.Content
+        ref={popupRef}
         {...{ [EDITOR_POPUP]: '' }}
-        finalFocus={() => {
-          // At once, as Firefox drops a caret move made before a deferred focus lands.
-          if (editor) focusEditor(editor)
-          return false
-        }}
+        finalFocus={finalFocus}
       >
         {items.map((item, index) => {
           if (item === SEPARATOR) {
