@@ -156,7 +156,7 @@
     "@phosphor-icons/react": "2.1.10",
     "@rolldown/plugin-babel": "0.3.0",
     "@size-limit/preset-small-lib": "14.3.0",
-    "@tailwindcss/vite": "4.3.4",
+    "@tailwindcss/vite": "4.3.3",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
     "@types/node": "24.19.2",

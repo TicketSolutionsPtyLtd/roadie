@@ -129,7 +129,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@size-limit/preset-small-lib": "14.3.0",
-    "@tailwindcss/cli": "4.3.4",
+    "@tailwindcss/cli": "4.3.3",
     "@types/node": "24.19.2",
     "@vitejs/plugin-react": "6.2.1",
     "@vitest/coverage-v8": "5.1.0",
@@ -139,7 +139,7 @@
     "jscodeshift": "17.4.0",
     "react-docgen-typescript": "2.4.0",
     "size-limit": "14.3.0",
-    "tailwindcss": "4.3.4",
+    "tailwindcss": "4.3.3",
     "tsdown": "0.23.5",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.6",
