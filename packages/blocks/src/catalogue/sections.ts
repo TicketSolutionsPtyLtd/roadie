@@ -436,7 +436,8 @@ function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
 /**
  * The catalogue's blocks as the editor's `sections`, for
  * `<Editor sections={…}>`: a section per block, a template per preset with
- * its thumbnail, and its plain fields as settings.
+ * its thumbnail, and every part of it as settings: its plain fields, images,
+ * buttons, and items.
  */
 export function catalogueSections({
   components,
