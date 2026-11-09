@@ -203,7 +203,7 @@ describe('Editor email columns', () => {
     })
     await userEvent.click(stackTrigger)
     await screen.findByRole('menuitemradio', { name: 'Right first' })
-    // The Layout menu leaves once its exit ends, with the Stack menu open.
+    // Its focus hand-back runs on unmount, after the exit, not on close.
     await waitFor(() => expect(layoutMenu).not.toBeInTheDocument())
     expect(stackTrigger).toBeInTheDocument()
     await userEvent.click(

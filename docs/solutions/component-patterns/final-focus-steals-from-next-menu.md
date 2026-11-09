@@ -37,12 +37,12 @@ Base UI calls a popup's `finalFocus` when the popup unmounts, so after its
 exit animation, not when it closes. Each toolbar menu's `finalFocus` focused
 the editor, unconditionally. About 150ms after Layout closed, by which time
 Stack on phone was open, Layout's `finalFocus` moved focus into the editor.
-The Stack menu, modal, took it back. That blurred the editor with focus
-outside the toolbar, so Tiptap's `BubbleMenu` hid the node toolbar and took it
-out of the DOM, Stack's trigger with it. The open menu, with no anchor, moved
-to the corner.
+A focus log showed focus go straight back into the Stack menu. That blurred
+the editor with focus outside the toolbar, so Tiptap's `BubbleMenu` hid the
+node toolbar and took it out of the DOM, Stack's trigger with it. The open
+menu, with no anchor, moved to the corner.
 
-A focus log showed it on every run in all three engines. Only when the test's
+This happened on every run in all three engines. Only when the test's
 click landed on Right first did it depend on timing. On a fast machine the
 click won. Under CI's load, Playwright checked the item's position, the menu
 moved, and the click landed on whatever was there, an outside press that
@@ -57,7 +57,11 @@ check.
 `useEditorFinalFocus` in `packages/editor/src/Editor/focusEditor.ts` gives a
 toolbar menu its `finalFocus` and refs for its trigger and popup. It focuses
 the editor only when focus is on the menu, in the editor, or nowhere
-(`document.body`). `BlockMenu`, `MoreMenu`, and `EditorBlockMenuGroup` use it.
+(`document.body`). `BlockMenu`, `MoreMenu`, `EditorBlockMenuGroup`, and the
+bubble toolbar's `OverflowMenu` use it.
+
+Tab out of one of these menus now leaves focus on the next control, as Base
+UI does by default, where it used to send focus to the editor.
 
 The test now waits for the Layout menu to leave the DOM with Stack open,
 then checks Stack's trigger is still there. Without the fix, that fails every
@@ -66,5 +70,7 @@ run in Chromium, Firefox, and WebKit.
 ## Check
 
 A popup that hands focus back from `finalFocus` should first check focus
-hasn't moved on, as Base UI does. To test a hand-back, wait for the first
-popup to unmount, not just close, before checking the next.
+hasn't moved on, as Base UI does. The editor's other popovers and drawers
+still hand it back unconditionally; they don't open from a toolbar beside
+another menu, so they haven't hit this. To test a hand-back, wait for the
+first popup to unmount, not just close, before checking the next.

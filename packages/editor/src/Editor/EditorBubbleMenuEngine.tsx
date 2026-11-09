@@ -33,7 +33,7 @@ import {
   overflowControls,
   undo
 } from './controls'
-import { focusEditor } from './focusEditor'
+import { focusEditor, useEditorFinalFocus } from './focusEditor'
 import { useShowsShortcuts } from './menuGroups'
 import {
   EDITOR_TOOLBAR_SIZE,
@@ -425,6 +425,7 @@ function OverflowMenu({
   onOpenChange
 }: OverflowMenuProps) {
   const showsShortcuts = useShowsShortcuts()
+  const { triggerRef, popupRef, finalFocus } = useEditorFinalFocus(editor)
   const run = (control: EditorControl) => {
     // An insert goes after the selected text rather than over it.
     const { to } = editor.state.selection
@@ -437,19 +438,14 @@ function OverflowMenu({
   return (
     <Menu onOpenChange={onOpenChange}>
       <Menu.Trigger
+        ref={triggerRef}
         render={
           <Toolbar.Button aria-label='More'>
             <DotsThreeIcon weight='bold' className='size-4' aria-hidden />
           </Toolbar.Button>
         }
       />
-      <Menu.Content
-        finalFocus={() => {
-          // At once, as Firefox drops a caret move made before a deferred focus lands.
-          focusEditor(editor)
-          return false
-        }}
-      >
+      <Menu.Content ref={popupRef} finalFocus={finalFocus}>
         {controls.map((control, index) => (
           <Menu.Item
             key={control.label}
