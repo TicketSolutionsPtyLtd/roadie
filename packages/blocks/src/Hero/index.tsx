@@ -14,8 +14,8 @@ import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { cleanHighlight } from '../_shared/highlight'
 import {
-  SPOT_ILLUSTRATIONS,
-  type SpotIllustrationName
+  type SpotIllustrationName,
+  spotIllustration
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
 import {
@@ -336,7 +336,7 @@ function Bento({
   size
 }: PresetProps) {
   const { align } = block
-  const Illustration = SPOT_ILLUSTRATIONS[illustration]
+  const Illustration = spotIllustration(illustration, 'HighFive')
   const [primaryImages, secondaryImages] = bentoPanels(images)
   const hasPrimary = primaryImages.length > 0
   const hasSecondary = secondaryImages.length > 0

@@ -10,8 +10,8 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  SPOT_ILLUSTRATIONS,
-  type SpotIllustrationName
+  type SpotIllustrationName,
+  spotIllustration
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
 import {
@@ -132,7 +132,7 @@ export function CallToAction(props: CallToActionProps) {
     ('ratio' in preset.defaults ? preset.defaults.ratio : 'portrait')
   const { emphasis } = block
   const centred = block.align === 'center'
-  const Illustration = SPOT_ILLUSTRATIONS[illustration]
+  const Illustration = spotIllustration(illustration, 'HighFive')
 
   return (
     <BlockRoot {...block.root}>

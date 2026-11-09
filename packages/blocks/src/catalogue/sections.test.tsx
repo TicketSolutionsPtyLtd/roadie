@@ -337,6 +337,44 @@ describe('catalogueSections', () => {
         expect(html).toContain('/photo.webp')
       })
 
+      const photo = { src: '/photo.webp', alt: 'A crowd' }
+      it.each([
+        ['Hero', { preset: 'bento' }],
+        ['Call to action', { preset: 'photo', image: photo }],
+        ['Rich text', { preset: 'statement' }],
+        ['Cards', { preset: 'plain', cards: [{ title: 'Camping' }] }],
+        ['Stats', { stats: [{ value: '40', label: 'Stalls' }] }]
+      ])(
+        'draws %s with an illustration named after a prototype key',
+        (label, attrs: Record<string, unknown>) => {
+          const section = everyBlock().find((entry) => entry.label === label)!
+          const named = (list: string) =>
+            Array.isArray(attrs[list])
+              ? {
+                  [list]: (attrs[list] as object[]).map((item) => ({
+                    ...item,
+                    illustration: 'constructor'
+                  }))
+                }
+              : {}
+
+          expect(() =>
+            renderToStaticMarkup(
+              section.render({
+                attrs: {
+                  ...section.attrs,
+                  ...attrs,
+                  illustration: 'constructor',
+                  ...named('cards'),
+                  ...named('stats')
+                },
+                editing
+              })
+            )
+          ).not.toThrow()
+        }
+      )
+
       it('draws a section whose choices name prototype keys', () => {
         expect(() =>
           draw({
