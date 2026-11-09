@@ -853,9 +853,10 @@ const preview = await renderEmail({ kind: 'design', value: welcome }, {
 
 - `syntax` is `ae` for `#Token#` or `liquid` for `{{ }}`. Each variable is
   written as its token, unescaped, in the HTML and the plain text alike.
-  Liquid writes a value as it is, so a text variable's Liquid token takes
-  `| escape`, as in `{{ customer.first_name | escape }}`, or a value with
-  `<` or `&` reaches the HTML as markup.
+  Liquid writes a value as it is, so a value with `<` or `&` reaches the
+  HTML as markup. A token with `| escape`, as in
+  `{{ customer.first_name | escape }}`, keeps it text in the HTML, but the
+  plain text then shows it escaped too, as `&amp;`.
 - A Liquid token of one `{{ }}` output gets the fallback as its `default`.
   An AE token has no default, so its fallback isn't written.
 - With `values`, each variable is filled with its value, escaped, or its
