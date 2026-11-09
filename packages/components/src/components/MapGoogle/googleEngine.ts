@@ -27,7 +27,6 @@ type GoogleMap = {
   getCenter(): GoogleLatLng | undefined
   getZoom(): number | undefined
   moveCamera(camera: { center?: LatLng; zoom?: number }): void
-  panTo(center: LatLng): void
   setZoom(zoom: number): void
   fitBounds(
     bounds: { south: number; west: number; north: number; east: number },
@@ -74,6 +73,10 @@ const prefersReducedMotion = () =>
   typeof matchMedia === 'function' &&
   matchMedia('(prefers-reduced-motion: reduce)').matches
 
+// An animated move takes Roadie's --duration-slower, easing out.
+const EASE_MS = 400
+const easeOut = (t: number) => 1 - (1 - t) ** 3
+
 let loading: Promise<GoogleMaps> | undefined
 
 function loadGoogleMaps(apiKey: string): Promise<GoogleMaps> {
@@ -101,44 +104,59 @@ function loadGoogleMaps(apiKey: string): Promise<GoogleMaps> {
   return loading
 }
 
+// Google's styles read only `#rrggbb`, and the palette's colours are `rgb()`.
+// Google ignores a colour it can't read, so the map would keep its own.
+function hex(color: string) {
+  if (color.startsWith('#')) return color
+  const [r = 0, g = 0, b = 0] = (color.match(/[\d.]+/g) ?? []).map(Number)
+  return `#${[r, g, b]
+    .map((channel) => Math.round(channel).toString(16).padStart(2, '0'))
+    .join('')}`
+}
+
 // Google's style rules for a map without a cloud map ID, from the palette.
-const googleStyles = (palette: MapPalette) => [
-  { elementType: 'geometry', stylers: [{ color: palette.land }] },
-  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  {
-    featureType: 'poi.park',
-    elementType: 'geometry',
-    stylers: [{ visibility: 'on' }, { color: palette.park }]
-  },
-  { featureType: 'water', stylers: [{ color: palette.water }] },
-  {
-    featureType: 'road',
-    elementType: 'geometry.fill',
-    stylers: [{ color: palette.road }]
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: palette.roadCasing }]
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry.fill',
-    stylers: [{ color: palette.roadMajor }]
-  },
-  { featureType: 'transit.line', stylers: [{ color: palette.rail }] },
-  {
-    featureType: 'administrative',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: palette.border }]
-  },
-  { elementType: 'labels.text.fill', stylers: [{ color: palette.label }] },
-  {
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: palette.labelHalo }]
-  },
-  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] }
-]
+const googleStyles = (colors: MapPalette) => {
+  const palette = Object.fromEntries(
+    Object.entries(colors).map(([name, color]) => [name, hex(color)])
+  ) as MapPalette
+  return [
+    { elementType: 'geometry', stylers: [{ color: palette.land }] },
+    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+    {
+      featureType: 'poi.park',
+      elementType: 'geometry',
+      stylers: [{ visibility: 'on' }, { color: palette.park }]
+    },
+    { featureType: 'water', stylers: [{ color: palette.water }] },
+    {
+      featureType: 'road',
+      elementType: 'geometry.fill',
+      stylers: [{ color: palette.road }]
+    },
+    {
+      featureType: 'road',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: palette.roadCasing }]
+    },
+    {
+      featureType: 'road.highway',
+      elementType: 'geometry.fill',
+      stylers: [{ color: palette.roadMajor }]
+    },
+    { featureType: 'transit.line', stylers: [{ color: palette.rail }] },
+    {
+      featureType: 'administrative',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: palette.border }]
+    },
+    { elementType: 'labels.text.fill', stylers: [{ color: palette.label }] },
+    {
+      elementType: 'labels.text.stroke',
+      stylers: [{ color: palette.labelHalo }]
+    },
+    { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] }
+  ]
+}
 
 const areaCollection = (areas: readonly MapAreaLayer[]) => ({
   type: 'FeatureCollection',
@@ -174,7 +192,6 @@ export function googleEngine({
 
       const surface = document.createElement('div')
       surface.style.cssText = 'position:absolute;inset:0'
-      surface.setAttribute('aria-label', init.label)
       container.append(surface)
       const map = new maps.Map(surface, {
         center: init.center,
@@ -184,6 +201,8 @@ export function googleEngine({
         ...(!mapId && { styles: googleStyles(init.palette) }),
         // Roadie draws its own controls.
         disableDefaultUI: true,
+        // Fits fill the frame, and eased moves pass between zoom levels.
+        isFractionalZoomEnabled: true,
         // Scrolling the page never zooms the map; Ctrl or ⌘ does.
         gestureHandling: 'cooperative',
         clickableIcons: false
@@ -223,7 +242,64 @@ export function googleEngine({
         signal?.addEventListener('abort', abort, { once: true })
       })
 
+      // Google's focusable map is a region named "Map". Roadie's frame is the
+      // landmark, so it becomes a named picture of the map, as MapLibre's
+      // canvas is.
+      const focusable = surface.querySelector<HTMLElement>('[tabindex="0"]')
+      focusable?.setAttribute('role', 'img')
+      focusable?.setAttribute('aria-label', init.label)
+
       const projection = () => overlay.getProjection()
+      const view = () => ({
+        center: toLatLng(map.getCenter()),
+        zoom: map.getZoom() ?? init.zoom
+      })
+      // Google's own animations report where they end straight away, so pins
+      // would jump ahead of the map. Eased moves step the camera each frame
+      // instead, and a move ends only once they arrive.
+      let easing: number | undefined
+      const stopEasing = () => {
+        if (easing !== undefined) cancelAnimationFrame(easing)
+        easing = undefined
+      }
+      const ease = (to: { center?: LatLng; zoom?: number }) => {
+        const from = toLatLng(map.getCenter())
+        const fromZoom = map.getZoom() ?? init.zoom
+        const center = to.center ?? from
+        const zoom = to.zoom ?? fromZoom
+        // The short way round, across the date line if it's nearer.
+        const lngDelta = ((center.lng - from.lng + 540) % 360) - 180
+        let start: number | undefined
+        const step = (now: number) => {
+          start ??= now
+          const t = Math.min(1, (now - start) / EASE_MS)
+          const k = easeOut(t)
+          easing = t < 1 ? requestAnimationFrame(step) : undefined
+          map.moveCamera({
+            center: {
+              lat: from.lat + (center.lat - from.lat) * k,
+              lng: from.lng + lngDelta * k
+            },
+            zoom: fromZoom + (zoom - fromZoom) * k
+          })
+        }
+        easing = requestAnimationFrame(step)
+      }
+      // Google's idle comes once a move has settled, but also between the
+      // frames of an eased move, and late from one after it arrives. A move
+      // ends once, where it arrived.
+      const endsOfMoves = (listener: () => void) => {
+        let ended: string | undefined
+        return map.addListener('idle', () => {
+          if (easing !== undefined) return
+          const where = JSON.stringify(view())
+          if (where === ended) return
+          ended = where
+          listener()
+        })
+      }
+      // Someone moving the map takes over from an eased move.
+      const dragging = map.addListener('dragstart', stopEasing)
       // A fit's zoom cap, waiting for the fit to settle. A newer move drops
       // it, so it can't pull a later zoom back.
       let capping: Listener | undefined
@@ -244,18 +320,12 @@ export function googleEngine({
           map.setOptions({
             gestureHandling: cooperative ? 'cooperative' : 'greedy'
           }),
-        getView: () => ({
-          center: toLatLng(map.getCenter()),
-          zoom: map.getZoom() ?? init.zoom
-        }),
+        getView: view,
         setView: ({ center, zoom }, { animate = false } = {}) => {
           stopCapping()
-          if (animate && !prefersReducedMotion()) {
-            if (center) map.panTo(center)
-            if (zoom !== undefined) map.setZoom(zoom)
-          } else {
-            map.moveCamera({ center, zoom })
-          }
+          stopEasing()
+          if (animate && !prefersReducedMotion()) ease({ center, zoom })
+          else map.moveCamera({ center, zoom })
         },
         // Google eases a fit as it sees fit, so `animate` doesn't change it.
         fitBounds: (
@@ -263,6 +333,7 @@ export function googleEngine({
           { padding = 0, maxZoom } = {}
         ) => {
           stopCapping()
+          stopEasing()
           map.fitBounds(
             {
               south: southWest.lat,
@@ -298,15 +369,15 @@ export function googleEngine({
                     toLatLng((clicked as { latLng?: GoogleLatLng }).latLng)
                   )
                 )
-              : map.addListener(
-                  // Google's idle comes once a move has settled.
-                  event === 'moveend' ? 'idle' : 'bounds_changed',
-                  () => listener()
-                )
+              : event === 'moveend'
+                ? endsOfMoves(listener)
+                : map.addListener('bounds_changed', () => listener())
           return () => handle.remove()
         }) as MapEngineInstance['on'],
         destroy: () => {
           stopCapping()
+          stopEasing()
+          dragging.remove()
           remove()
         }
       }
