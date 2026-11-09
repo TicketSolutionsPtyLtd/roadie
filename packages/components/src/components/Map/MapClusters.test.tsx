@@ -99,6 +99,19 @@ describe('Map.Clusters', () => {
     expect(document.activeElement).toBe(band('70, 39% of all'))
   })
 
+  it('leaves focus where it is when the zoom stops short of the split', async () => {
+    const { fake, zoomTo } = await renderClusters({}, {})
+    // The ease stops where it started, as when the reader zooms away.
+    vi.mocked(fake.instance.setView).mockImplementationOnce(() => {})
+    await userEvent.click(band('120, 67% of all'))
+    fake.pan(fake.instance.getView().center)
+
+    const zoomIn = screen.getByRole('button', { name: 'Zoom in' })
+    act(() => zoomIn.focus())
+    await zoomTo(21)
+    expect(document.activeElement).toBe(zoomIn)
+  })
+
   it('shows a single place’s name in its preview', async () => {
     const { zoomTo } = await renderClusters()
     await zoomTo(21)

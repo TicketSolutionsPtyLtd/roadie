@@ -31,8 +31,9 @@ type Sum = { value: number }
 // Places closer than this on screen, in px, share a band: about a band's
 // width, so bands never sit on top of each other.
 const RADIUS = 56
-// Past street level, every place is its own band.
-const MAX_ZOOM = 22
+// Past this zoom every place is its own band, so a group always splits at a
+// zoom both engines reach: MapLibre's 22, and Google's 21, which is 20 here.
+const MAX_ZOOM = 19
 
 /**
  * Groups places by distance at each zoom, as one hierarchy, so a group

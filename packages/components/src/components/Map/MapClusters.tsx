@@ -101,7 +101,6 @@ export function MapClusters({
     return () => setClusterLock(null)
   }, [locked, setLocked, setClusterLock])
 
-  // Locked, the groups stay as they were made at the zoom of the lock.
   // Locked, the groups stay as they were made at the zoom of the lock,
   // read the first time the bands are laid out once locked.
   const lockedAt = useRef<number | null>(null)
@@ -150,23 +149,36 @@ export function MapClusters({
     return instance.on('move', () => setOpen(null))
   }, [instance, open])
 
-  // Focus moves to the largest of a group's parts once it splits.
+  // Focus moves to the largest of a group's parts once it splits, at the
+  // zoom `at`.
   const bands = useRef(new Map<string, HTMLButtonElement>())
-  const focusAfterSplit = useRef<readonly string[] | null>(null)
+  const focusAfterSplit = useRef<{
+    parts: readonly string[]
+    at: number
+  } | null>(null)
   const hintId = useId()
+
+  // A zoom that stops short of the split, as when the reader zooms away,
+  // drops the move, so focus can't jump to a band later.
+  useEffect(() => {
+    if (!instance) return
+    return instance.on('moveend', () => {
+      const target = focusAfterSplit.current
+      const level = lockedAt.current ?? Math.floor(gridZoom(instance))
+      if (target && level < target.at) focusAfterSplit.current = null
+    })
+  }, [instance])
 
   const groups = layout?.groups ?? []
   const largest = layout?.largest ?? 0
 
   useEffect(() => {
-    const parts = focusAfterSplit.current
-    if (!parts) return
-    // Groups are largest first, so this is the largest part on screen.
-    const part = groups.find(({ key }) => parts.includes(key))
-    const band = part && bands.current.get(part.key)
-    if (!band) return
+    const target = focusAfterSplit.current
+    if (!target || !layout || layout.level < target.at) return
     focusAfterSplit.current = null
-    band.focus()
+    // Groups are largest first, so this is the largest part on screen.
+    const part = groups.find(({ key }) => target.parts.includes(key))
+    if (part) bands.current.get(part.key)?.focus()
   })
 
   if (!instance || !layout) return null
@@ -174,7 +186,10 @@ export function MapClusters({
   const split = (group: MapClusterGroup) => {
     if (group.splitsAt === undefined) return
     const { zoom: engineZoom } = instance.getView()
-    focusAfterSplit.current = index.partsOf(group)
+    focusAfterSplit.current = {
+      parts: index.partsOf(group),
+      at: group.splitsAt
+    }
     instance.setView(
       {
         center: group.position,
@@ -306,8 +321,9 @@ function shareOf(value: number, total: number) {
   return `${Math.round(percent)}%`
 }
 
-// Bands step from the third heat colour to the darkest, as their value
-// nears the largest group's, so the lightest stay clear of the basemap.
+// Bands step from the third heat colour to the last, the strongest against
+// the basemap in light and dark, as their value nears the largest group's,
+// so the faintest stay clear of the basemap.
 function stepOf(value: number, largest: number) {
   if (largest <= 0) return 2
   return 2 + Math.round((6 * value) / largest)
@@ -320,6 +336,8 @@ function spreadOf(value: number, largest: number) {
 }
 
 type Layout = {
+  /** The zoom the groups are made at. */
+  level: number
   /** The largest group's value at this zoom, anywhere on the map. */
   largest: number
   /** The groups in view, largest first, at whole pixels in the frame. */
@@ -335,6 +353,7 @@ function layoutOf(
 ): Layout {
   const level = lockedAt ?? Math.floor(gridZoom(instance))
   return {
+    level,
     largest: index.largestAt(level),
     groups: index
       .groupsAt(boundsOf(instance, frame), level)

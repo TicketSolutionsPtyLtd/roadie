@@ -80,9 +80,28 @@ describe('clusterIndex', () => {
 
   it('keeps each group’s key as the map moves, so focus can follow it', () => {
     const index = clusterIndex(sales)
-    const keys = () => index.groupsAt(world, 9).map(({ key }) => key)
-    expect(keys()).toEqual(keys())
-    expect(new Set(keys()).size).toBe(2)
+    const keyOf = (
+      bbox: readonly [number, number, number, number],
+      value: number
+    ) => index.groupsAt(bbox, 9).find((group) => group.value === value)?.key
+    // Panned so only Brisbane, or only Ipswich, is in view.
+    const brisbaneOnly = [152.9, -27.55, 153.2, -27.4] as const
+    const ipswichOnly = [152.7, -27.7, 152.8, -27.55] as const
+
+    expect(keyOf(brisbaneOnly, 120)).toBe(keyOf(world, 120))
+    expect(keyOf(ipswichOnly, 60)).toBe(keyOf(world, 60))
+    expect(keyOf(world, 120)).not.toBe(keyOf(world, 60))
+  })
+
+  it('splits places even a few centimetres apart at a zoom every engine reaches', () => {
+    // MapLibre zooms to 22, and Google to about 21, its 20 here.
+    const index = clusterIndex([
+      { position: newFarm, value: 3 },
+      { position: { ...newFarm, lng: newFarm.lng + 0.000001 }, value: 4 }
+    ])
+    const [both] = index.groupsAt(world, 16)
+    expect(both!.splitsAt).toBeLessThanOrEqual(20)
+    expect(values(index, 20)).toEqual([4, 3])
   })
 
   it('scales each group against the largest at that zoom', () => {
