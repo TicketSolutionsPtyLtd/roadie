@@ -415,23 +415,32 @@ Send totals per postcode or suburb, not a place per person, so no one's location
 const sales = [
   { position: { lat: -27.4575, lng: 153.0355 }, value: 182, label: 'Fortitude Valley' },
   { position: { lat: -27.4679, lng: 153.0514 }, value: 96, label: 'New Farm' },
-  { position: { lat: -27.4571, lng: 153.0467 }, value: 64, label: 'Teneriffe' },
   { position: { lat: -27.4604, lng: 153.0001 }, value: 121, label: 'Paddington' },
-  { position: { lat: -27.4808, lng: 153.0353 }, value: 88, label: 'Kangaroo Point' },
   { position: { lat: -27.4995, lng: 153.0130 }, value: 57, label: 'West End' },
-  { position: { lat: -27.6145, lng: 152.7600 }, value: 74, label: 'Ipswich' },
   { position: { lat: -28.0023, lng: 153.4145 }, value: 143, label: 'Surfers Paradise' },
-  { position: { lat: -28.0820, lng: 153.4470 }, value: 69, label: 'Burleigh Heads' },
   { position: { lat: -26.6500, lng: 153.0667 }, value: 92, label: 'Maroochydore' },
-  { position: { lat: -26.3986, lng: 153.0911 }, value: 38, label: 'Noosa Heads' },
-  { position: { lat: -27.5598, lng: 151.9507 }, value: 45, label: 'Toowoomba' }
+  { position: { lat: -33.8688, lng: 151.2093 }, value: 264, label: 'Sydney' },
+  { position: { lat: -33.8970, lng: 151.1790 }, value: 138, label: 'Newtown' },
+  { position: { lat: -33.8915, lng: 151.2767 }, value: 87, label: 'Bondi' },
+  { position: { lat: -33.8150, lng: 151.0011 }, value: 74, label: 'Parramatta' },
+  { position: { lat: -37.8136, lng: 144.9631 }, value: 231, label: 'Melbourne' },
+  { position: { lat: -37.7980, lng: 144.9780 }, value: 149, label: 'Fitzroy' },
+  { position: { lat: -37.8676, lng: 144.9809 }, value: 96, label: 'St Kilda' },
+  { position: { lat: -37.8000, lng: 144.9000 }, value: 61, label: 'Footscray' },
+  { position: { lat: -35.2809, lng: 149.1300 }, value: 72, label: 'Canberra' },
+  { position: { lat: -34.9285, lng: 138.6007 }, value: 118, label: 'Adelaide' },
+  { position: { lat: -34.9800, lng: 138.5160 }, value: 43, label: 'Glenelg' },
+  { position: { lat: -31.9505, lng: 115.8605 }, value: 104, label: 'Perth' },
+  { position: { lat: -32.0569, lng: 115.7439 }, value: 52, label: 'Fremantle' },
+  { position: { lat: -42.8821, lng: 147.3272 }, value: 48, label: 'Hobart' },
+  { position: { lat: -12.4634, lng: 130.8456 }, value: 26, label: 'Darwin' }
 ]
 
 function TicketSales() {
   return (
     <Map
-      defaultCenter={{ lat: -27.25, lng: 152.85 }}
-      defaultZoom={6.5}
+      defaultCenter={{ lat: -26.5, lng: 137.5 }}
+      defaultZoom={2.3}
       aria-label='Where ticket buyers live'
       className='aspect-4/3'
     >

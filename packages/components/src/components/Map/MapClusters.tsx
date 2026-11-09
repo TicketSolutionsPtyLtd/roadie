@@ -235,7 +235,7 @@ export function MapClusters({
                 aria-describedby={zooms ? hintId : undefined}
                 data-slot='map-cluster-band'
                 data-step={stepOf(group.value, largest)}
-                className='is-interactive relative grid aspect-square min-w-10 -translate-1/2 place-content-center rounded-full px-1 text-center leading-none tabular-nums motion-safe:transition-[scale] motion-safe:duration-fast motion-safe:ease-enter motion-safe:hover:scale-110'
+                className='is-interactive relative grid aspect-square min-w-11 -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums'
                 style={
                   {
                     '--map-cluster-color': `var(--chart-heat-${stepOf(group.value, largest)})`,
@@ -243,10 +243,10 @@ export function MapClusters({
                   } as CSSProperties
                 }
               >
-                <span className='text-sm font-semibold'>
+                <span className='text-sm font-medium'>
                   {formatValue(group.value)}
                 </span>
-                <span className='text-xs'>{share}</span>
+                <span className='text-xs opacity-75'>{share}</span>
               </Popover.Trigger>
               <MapPreview sideOffset={8} onClose={() => setOpen(null)}>
                 {open === group.key && (
