@@ -297,6 +297,17 @@ describe('catalogueSections', () => {
     expect(page).not.toContain('block-image-placeholder')
   })
 
+  it('shows a placeholder for a section’s own photo only while editing', () => {
+    const hero = everyBlock().find(({ label }) => label === 'Hero')!
+    const attrs = { ...hero.attrs, preset: 'image', title: 'Kazoo Hollow' }
+
+    const editing = renderToStaticMarkup(hero.render({ attrs, editing: true }))
+    const page = renderToStaticMarkup(hero.render({ attrs }))
+
+    expect(editing).toContain('data-slot="block-image-placeholder"')
+    expect(page).not.toContain('block-image-placeholder')
+  })
+
   it.each([
     ['Hero', 'event'],
     ['Call to action', 'tickets'],
