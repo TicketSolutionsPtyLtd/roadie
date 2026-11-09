@@ -191,15 +191,21 @@ describe('Editor email columns', () => {
     await userEvent.click(
       await screen.findByRole('button', { name: 'Layout: Equal' })
     )
+    const layoutMenu = await screen.findByRole('menu')
     await userEvent.click(
       await screen.findByRole('menuitemradio', { name: 'Wide left (2:1)' })
     )
     await waitFor(() =>
       expect(lastDoc(onValueChange)[0]!.attrs).toEqual({ layout: 'wide-left' })
     )
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Stack on phone: Left first' })
-    )
+    const stackTrigger = await screen.findByRole('button', {
+      name: 'Stack on phone: Left first'
+    })
+    await userEvent.click(stackTrigger)
+    await screen.findByRole('menuitemradio', { name: 'Right first' })
+    // The Layout menu leaves once its exit ends, with the Stack menu open.
+    await waitFor(() => expect(layoutMenu).not.toBeInTheDocument())
+    expect(stackTrigger).toBeInTheDocument()
     await userEvent.click(
       await screen.findByRole('menuitemradio', { name: 'Right first' })
     )
