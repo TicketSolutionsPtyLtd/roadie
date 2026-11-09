@@ -209,6 +209,46 @@ describe('importEmail from MJML', () => {
     ])
   })
 
+  it('reads an image’s link to a link variable’s token as that variable', () => {
+    const imported = importEmail(
+      mjml(
+        '<mj-section><mj-column><mj-image src="https://cdn.oztix.com.au/a.jpg" href="{{ unsubscribe_url }}" /></mj-column></mj-section>'
+      ),
+      { variables }
+    )
+
+    expect(imported.dropped).toEqual([])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/a.jpg',
+          alt: '',
+          width: null,
+          variable: 'unsubscribe_url'
+        }
+      }
+    ])
+  })
+
+  it('reports an image’s link an email can’t open once, keeping the image', () => {
+    const imported = importEmail(
+      mjml(
+        '<mj-section><mj-column><mj-image src="https://cdn.oztix.com.au/a.jpg" href="javascript:alert(1)" /></mj-column></mj-section>'
+      )
+    )
+
+    expect(imported.dropped).toEqual([
+      { kind: 'link', src: 'javascript:alert(1)' }
+    ])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: { src: 'https://cdn.oztix.com.au/a.jpg', alt: '', width: null }
+      }
+    ])
+  })
+
   it('reads a protocol-relative image as https, as HTML does', () => {
     const imported = importEmail(
       mjml(

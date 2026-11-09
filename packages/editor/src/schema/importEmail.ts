@@ -130,20 +130,17 @@ function image(reading: Reading, element: Element): Node[] {
     reading.dropped.push(report('image', src))
     return []
   }
-  const href = element.getAttribute('href')
-  const linked = isEmailHref(href)
-  if (href && !linked) reading.dropped.push(report('link', href))
   const align = element.getAttribute('align')
   const width = /^(\d+)(?:px)?$/.exec(element.getAttribute('width') ?? '')?.[1]
-  return [
-    created(reading, 'img', {
-      src,
-      alt: element.getAttribute('alt') ?? '',
-      width,
-      'data-href': linked ? href : undefined,
-      'data-align': align === 'left' || align === 'right' ? align : undefined
-    })
-  ]
+  const img = created(reading, 'img', {
+    src,
+    alt: element.getAttribute('alt') ?? '',
+    width,
+    'data-align': align === 'left' || align === 'right' ? align : undefined
+  })
+  // Linked as HTML links an image, so a link variable's token reads alike.
+  const href = element.getAttribute('href')
+  return [href ? created(reading, 'a', { href }, [img]) : img]
 }
 
 function button(reading: Reading, element: Element) {
