@@ -311,6 +311,10 @@ describe('Editor sections', () => {
     await waitFor(() =>
       expect(screen.getByText('This section can’t be shown.')).toBeVisible()
     )
+    const message = screen.getByText('This section can’t be shown.')
+    expect(message.closest('.intent-danger')).not.toBe(null)
+    // Out of what the section draws inert, so a screen reader reads it.
+    expect(message.closest('[inert]')).toBe(null)
     expect(screen.getByText('Doors 7pm')).toBeVisible()
     consoleError.mockRestore()
   })

@@ -4,6 +4,8 @@ import { type CSSProperties, use } from 'react'
 
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
 
+import { EmptyState } from '@oztix/roadie-components/empty-state'
+
 import { EMBED_ALLOW, EMBED_SANDBOX, embedFrame } from '../render/embedFrame'
 import { EditorContext } from './EditorContext'
 
@@ -31,9 +33,15 @@ export function EditorEmbedView({ node, selected }: ReactNodeViewProps) {
           style={frame.style as CSSProperties}
         />
       ) : (
-        <p className='m-0 w-full rounded-lg bg-subtle p-4 text-sm text-subtle'>
-          This embed can’t be shown.
-        </p>
+        <EmptyState
+          size='sm'
+          intent='danger'
+          className='not-prose w-full rounded-lg bg-subtle'
+        >
+          <EmptyState.Title render={<p />}>
+            This embed can’t be shown.
+          </EmptyState.Title>
+        </EmptyState>
       )}
       <div aria-hidden data-slot='editor-embed-cover' />
     </NodeViewWrapper>
