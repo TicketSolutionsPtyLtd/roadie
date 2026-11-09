@@ -249,7 +249,7 @@ const IMAGE_SHARE: Record<BlockSize, { text: string; photo: string }> = {
 }
 
 function ImageHero({ block, image, ratio, size = 'lg' }: PresetProps) {
-  const share = IMAGE_SHARE[size]
+  const share = bySize(size, IMAGE_SHARE)
   const preset = presetOf(heroDefinition, block.name)
   const shape =
     ratio ?? ('ratio' in preset.defaults ? preset.defaults.ratio : 'banner')

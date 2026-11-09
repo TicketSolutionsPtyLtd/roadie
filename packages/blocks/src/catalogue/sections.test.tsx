@@ -455,6 +455,12 @@ describe('catalogueSections', () => {
           'ratio',
           { preset: 'photo', image: photos[0], ratio: 'NAME' },
           { preset: 'photo', image: photos[0] }
+        ],
+        [
+          'Hero',
+          'size',
+          { preset: 'image', image: photos[0], size: 'NAME' },
+          { preset: 'image', image: photos[0] }
         ]
       ] as const)(
         'draws %s with an unknown %s as its default',
