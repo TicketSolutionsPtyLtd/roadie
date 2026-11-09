@@ -84,12 +84,6 @@ function SettingsForm({
   )
 }
 
-/**
- * Brings an element a fifth of the screen down, clear of a sticky bar above
- * it and of the sheet below, moving only if it isn't there already. Each
- * scroller from it out takes what it can of the move, as one may be at its
- * end.
- */
 const EDGE = 16
 
 /** Whether an element shows whole between the top of the screen and the sheet. */
@@ -103,6 +97,12 @@ function scrollToTop(scroller: Element, element: Element) {
     element.getBoundingClientRect().top - scroller.getBoundingClientRect().top
 }
 
+/**
+ * Brings an element a fifth of the screen down, clear of a sticky bar above
+ * it and of the sheet below, moving only if it isn't there already. Each
+ * scroller from it out takes what it can of the move, as one may be at its
+ * end.
+ */
 function scrollNearTop(element: Element) {
   const document = element.ownerDocument
   const view = document.defaultView ?? window
