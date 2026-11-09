@@ -47,7 +47,7 @@ export type MapClustersProps = {
    * than a point per person, so no one's location reaches the browser.
    */
   data: readonly MapClusterPoint[]
-  /** Says what the values count, such as "Ticket sales". */
+  /** Says what the values count, such as "Total". */
   label: string
   /**
    * Places, by `label`, whose bands take their hover look, such as while a
@@ -67,17 +67,12 @@ export type MapClustersProps = {
    */
   formatValue?: (value: number) => string
   /**
-   * Whether the groups are locked, when controlled. Locked, zooming in
-   * spreads the bands apart without splitting them.
-   */
-  locked?: boolean
-  /**
-   * Whether the groups start locked, when uncontrolled.
+   * Keeps the groups as they are: zooming in spreads the bands apart
+   * without splitting them, and clicking a band opens its preview. Put the
+   * control that sets it beside what lists the groups, such as a table.
    * @default false
    */
-  defaultLocked?: boolean
-  /** Called when `Map.Toolbar`'s lock button asks to lock or unlock. */
-  onLockedChange?: (locked: boolean) => void
+  locked?: boolean
   className?: string
 }
 
@@ -89,7 +84,7 @@ const PAST_SPLIT = 0.05
 const formatNumber = (value: number) => value.toLocaleString()
 
 /**
- * Places and their values, such as ticket sales by postcode, grouped by
+ * Places and their values, such as totals by postcode, grouped by
  * distance into bands that add up the places near each other. Zooming in
  * splits a group into the groups inside it, down to single places.
  */
@@ -99,28 +94,11 @@ export function MapClusters({
   highlight,
   onGroupsChange,
   formatValue = formatNumber,
-  locked: lockedProp,
-  defaultLocked = false,
-  onLockedChange,
+  locked = false,
   className
 }: MapClustersProps) {
-  const { instance, frame, setPlace, addClusterLock } =
-    useMapContext('Map.Clusters')
+  const { instance, frame, setPlace } = useMapContext('Map.Clusters')
   const index = useMemo(() => clusterIndex(data), [data])
-
-  const [uncontrolledLocked, setUncontrolledLocked] = useState(defaultLocked)
-  const locked = lockedProp ?? uncontrolledLocked
-  const setLocked = useCallback(
-    (next: boolean) => {
-      if (lockedProp === undefined) setUncontrolledLocked(next)
-      onLockedChange?.(next)
-    },
-    [lockedProp, onLockedChange]
-  )
-  useEffect(
-    () => addClusterLock({ locked, setLocked }),
-    [locked, setLocked, addClusterLock]
-  )
 
   // Locked, the groups stay as they were made at the zoom of the lock,
   // read the first time the bands are laid out once locked.

@@ -33,7 +33,7 @@ afterEach(() => cleanup())
 async function renderSales(locked = false, highlight?: string) {
   const actions = createRef<MapActions>()
   const views: number[] = []
-  render(
+  const sample = (isLocked: boolean) => (
     <div style={{ width: 480 }}>
       <MapEngineContext value={engine}>
         <Map
@@ -42,17 +42,17 @@ async function renderSales(locked = false, highlight?: string) {
           actionsRef={actions}
           onViewChange={({ zoom }) => views.push(zoom)}
         >
-          <Map.Toolbar lock />
           <Map.Clusters
             data={sales}
             label='Ticket sales'
-            defaultLocked={locked}
+            locked={isLocked}
             highlight={highlight}
           />
         </Map>
       </MapEngineContext>
     </div>
   )
+  const { rerender } = render(sample(locked))
   const frame = screen.getByRole('region', { name: 'Map' })
   await waitFor(() => expect(frame).toHaveAttribute('data-status', 'ready'), {
     timeout: 10_000
@@ -64,7 +64,8 @@ async function renderSales(locked = false, highlight?: string) {
       timeout: 10_000
     })
   }
-  return { frame, zoomTo }
+  const setLocked = (isLocked: boolean) => rerender(sample(isLocked))
+  return { frame, zoomTo, setLocked }
 }
 
 const bands = () => screen.queryAllByRole('button', { name: /^Ticket sales/ })
@@ -177,7 +178,7 @@ describe('Map.Clusters in the browser', () => {
     'keeps its groups while locked and zooming in',
     { timeout: 20_000 },
     async () => {
-      const { zoomTo } = await renderSales(true)
+      const { zoomTo, setLocked } = await renderSales(true)
       await waitFor(() => expect(bands()).toHaveLength(2))
 
       // Unlocked, New Farm, Teneriffe and Paddington are apart at 12.
@@ -192,7 +193,7 @@ describe('Map.Clusters in the browser', () => {
       // Ipswich is out of view, so it has no band.
       expect(bands()).toHaveLength(1)
 
-      await userEvent.click(screen.getByRole('button', { name: 'Lock groups' }))
+      setLocked(false)
       await waitFor(() =>
         expect(
           screen.getByRole('button', { name: 'Ticket sales: 50, 28% of all' })

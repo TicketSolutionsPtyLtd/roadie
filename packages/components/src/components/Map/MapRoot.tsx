@@ -26,11 +26,7 @@ import { useAccentScopeProps } from '../../providers/AccentScopeContext'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { EmptyState } from '../EmptyState'
 import { FieldContext, useFieldContext } from '../Field/FieldContext'
-import {
-  type MapClusterLock,
-  MapContext,
-  type MapContextValue
-} from './MapContext'
+import { MapContext, type MapContextValue } from './MapContext'
 import { MapCredits } from './MapCredits'
 import { MapEngineContext } from './MapEngineContext'
 import { MapExpandButton } from './MapToolbar'
@@ -315,22 +311,6 @@ export function MapRoot({
         : () => {},
     [instance]
   )
-  const [clusterLocks, setClusterLocks] = useState<MapClusterLock[]>([])
-  const addClusterLock = useCallback((lock: MapClusterLock) => {
-    setClusterLocks((locks) => [...locks, lock])
-    return () => setClusterLocks((locks) => locks.filter((l) => l !== lock))
-  }, [])
-  const clusterLock = useMemo<MapClusterLock | null>(
-    () =>
-      clusterLocks.length === 0
-        ? null
-        : {
-            locked: clusterLocks.every(({ locked }) => locked),
-            setLocked: (locked) =>
-              clusterLocks.forEach((lock) => lock.setLocked(locked))
-          },
-    [clusterLocks]
-  )
   const context = useMemo<MapContextValue>(
     () => ({
       instance,
@@ -346,9 +326,7 @@ export function MapRoot({
       portalContainer: expanded ? layer : null,
       addToolbar,
       onMapClick,
-      ignoreClickFrom,
-      clusterLock,
-      addClusterLock
+      ignoreClickFrom
     }),
     [
       instance,
@@ -363,9 +341,7 @@ export function MapRoot({
       layer,
       addToolbar,
       onMapClick,
-      ignoreClickFrom,
-      clusterLock,
-      addClusterLock
+      ignoreClickFrom
     ]
   )
 

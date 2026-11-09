@@ -192,7 +192,7 @@ describe('Map.Clusters', () => {
   })
 
   it('keeps its groups while locked, and previews them instead of zooming', async () => {
-    const { fake, zoomTo } = await renderClusters({ defaultLocked: true })
+    const { fake, zoomTo } = await renderClusters({ locked: true })
     await zoomTo(21)
 
     expect(bandNames()).toEqual([
@@ -210,58 +210,15 @@ describe('Map.Clusters', () => {
     ).toBeVisible()
   })
 
-  it('locks and unlocks from Map.Toolbar', async () => {
-    const { zoomTo } = await renderClusters({}, { lock: true })
-    const lock = screen.getByRole('button', { name: 'Lock groups' })
-    expect(lock).toHaveAttribute('aria-pressed', 'false')
-
-    await userEvent.click(lock)
-    expect(lock).toHaveAttribute('aria-pressed', 'true')
+  it('splits the groups again once unlocked', async () => {
+    const { rerenderMap, zoomTo } = await renderClusters({ locked: true })
     await zoomTo(21)
     expect(bandNames()).toHaveLength(2)
 
-    await userEvent.click(lock)
-    expect(lock).toHaveAttribute('aria-pressed', 'false')
+    await rerenderMap(
+      <Map.Clusters data={sales} label='Ticket sales' locked={false} />
+    )
     expect(bandNames()).toHaveLength(4)
-  })
-
-  it('asks before locking when controlled', async () => {
-    const onLockedChange = vi.fn()
-    const { zoomTo } = await renderClusters(
-      { locked: false, onLockedChange },
-      { lock: true }
-    )
-    await userEvent.click(screen.getByRole('button', { name: 'Lock groups' }))
-
-    expect(onLockedChange).toHaveBeenCalledWith(true)
-    await zoomTo(21)
-    expect(bandNames()).toHaveLength(4)
-  })
-
-  it('keeps the lock of the clusters still on the map', async () => {
-    const fake = fakeEngine(undefined, { zoomScales: true })
-    const map = await renderMap(
-      fake.engine,
-      <>
-        <Map.Toolbar lock />
-        <Map.Clusters data={sales} label='Ticket sales' />
-        <Map.Clusters data={sales.slice(0, 1)} label='Refunds' />
-      </>
-    )
-    await map.rerenderMap(
-      <>
-        <Map.Toolbar lock />
-        <Map.Clusters data={sales} label='Ticket sales' />
-      </>
-    )
-    expect(
-      screen.getByRole('button', { name: 'Lock groups' })
-    ).not.toBeDisabled()
-  })
-
-  it('turns the lock button off with no clusters on the map', async () => {
-    await renderMap(fakeEngine().engine, <Map.Toolbar lock />)
-    expect(screen.getByRole('button', { name: 'Lock groups' })).toBeDisabled()
   })
 
   it('takes Show all to every place in the data', async () => {

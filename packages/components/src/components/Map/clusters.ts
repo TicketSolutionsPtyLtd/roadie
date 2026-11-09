@@ -2,11 +2,11 @@ import Supercluster from 'supercluster'
 
 import type { LatLng, MapEngineInstance } from './engine'
 
-/** A place with a value, such as a postcode and the tickets sold there. */
+/** A place with a value, such as a postcode and its total. */
 export type MapClusterPoint = {
   position: LatLng
   /**
-   * What the place adds to its group, such as tickets sold. A negative or
+   * What the place adds to its group, such as its total. A negative or
    * missing number adds nothing.
    * @default 1
    */

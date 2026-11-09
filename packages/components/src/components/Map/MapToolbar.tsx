@@ -7,8 +7,6 @@ import {
   CornersInIcon,
   CornersOutIcon,
   CrosshairSimpleIcon,
-  LockSimpleIcon,
-  LockSimpleOpenIcon,
   MinusIcon,
   PlusIcon
 } from '@phosphor-icons/react'
@@ -44,13 +42,6 @@ export type MapToolbarProps = {
    */
   fit?: boolean
   /**
-   * Adds a button that locks `Map.Clusters`' groups, so zooming in spreads
-   * them apart without splitting them. It's turned off while the map has no
-   * clusters.
-   * @default false
-   */
-  lock?: boolean
-  /**
    * More `Toolbar.Button`s, such as for layers, joined in their own toolbar
    * below the zoom buttons.
    */
@@ -71,13 +62,11 @@ export function MapToolbar({
   locate = false,
   expand = false,
   fit = false,
-  lock = false,
   children,
   className
 }: MapToolbarProps) {
-  const { instance, expanded, addToolbar, fitTo, canFit, clusterLock } =
+  const { instance, expanded, addToolbar, fitTo, canFit } =
     useMapContext('Map.Toolbar')
-  const groupsLocked = clusterLock?.locked ?? false
   useEffect(addToolbar, [addToolbar])
   const [here, setHere] = useState<LatLng | null>(null)
   const [locating, setLocating] = useState<Locating>('off')
@@ -173,24 +162,6 @@ export function MapToolbar({
             >
               <BoundingBoxIcon weight='bold' className='size-4' />
             </IconButton>
-          </MapControl>
-        )}
-        {lock && (
-          <MapControl>
-            <Toggle
-              size='sm'
-              emphasis='subtler'
-              aria-label='Lock groups'
-              disabled={!clusterLock}
-              pressed={groupsLocked}
-              onPressedChange={(pressed) => clusterLock?.setLocked(pressed)}
-            >
-              {groupsLocked ? (
-                <LockSimpleIcon weight='fill' className='size-4' />
-              ) : (
-                <LockSimpleOpenIcon weight='bold' className='size-4' />
-              )}
-            </Toggle>
           </MapControl>
         )}
         {locate && (
