@@ -1,11 +1,19 @@
 import { type CSSProperties, useState } from 'react'
 
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { AccentScopeContext } from '../../providers/AccentScopeContext'
 import { MapProvider } from './MapProvider'
+import type { MapAreaGeometry } from './engine'
 import { Map } from './index'
 import { fakeEngine, renderMap, venue } from './mapTestUtils'
 
@@ -162,6 +170,97 @@ describe('Map.Marker', () => {
       expect(marker.querySelector('[data-slot=map-pin-graphic]')).toBeNull()
     }
   )
+})
+
+// A square around the venue, in [lng, lat].
+const valley: MapAreaGeometry = {
+  type: 'Polygon',
+  coordinates: [
+    [
+      [venue.lng - 0.01, venue.lat - 0.01],
+      [venue.lng + 0.01, venue.lat - 0.01],
+      [venue.lng + 0.01, venue.lat + 0.01],
+      [venue.lng - 0.01, venue.lat + 0.01],
+      [venue.lng - 0.01, venue.lat - 0.01]
+    ]
+  ]
+}
+const inValley = { lat: venue.lat + 0.005, lng: venue.lng - 0.005 }
+const lastAreas = (fake: ReturnType<typeof fakeEngine>) =>
+  vi.mocked(fake.instance.setAreas).mock.lastCall![0]
+
+describe('Map.Area', () => {
+  it('draws its area, and stops when it unmounts', async () => {
+    const fake = fakeEngine()
+    const { rerenderMap } = await renderMap(
+      fake.engine,
+      <Map.Area area={valley} label='Fortitude Valley' />
+    )
+    expect(lastAreas(fake)).toEqual([
+      expect.objectContaining({ geometry: valley, fillOpacity: 0.18 })
+    ])
+
+    await rerenderMap(null)
+    expect(lastAreas(fake)).toEqual([])
+  })
+
+  it('previews the area where it is clicked', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <Map.Area area={valley} label='Fortitude Valley'>
+        <p>Twelve venues</p>
+      </Map.Area>
+    )
+    await fake.click({ lat: venue.lat + 0.05, lng: venue.lng })
+    expect(screen.queryByText('Twelve venues')).not.toBeInTheDocument()
+
+    await fake.click(inValley)
+    expect(await screen.findByText('Twelve venues')).toBeVisible()
+    // The preview anchors to the click: 5px west and 5px north of centre.
+    expect(
+      screen
+        .getByText('Fortitude Valley')
+        .closest('[data-slot=map-area-trigger]')
+    ).toHaveStyle({ transform: 'translate(195px, 145px)' })
+    expect(lastAreas(fake)[0]!.fillOpacity).toBe(0.32)
+  })
+
+  it('opens its preview from the keyboard, at its middle', async () => {
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Area area={valley} label='Fortitude Valley'>
+        <p>Twelve venues</p>
+      </Map.Area>
+    )
+    screen.getByRole('button', { name: 'Fortitude Valley' }).focus()
+    await userEvent.keyboard('{Enter}')
+
+    expect(await screen.findByText('Twelve venues')).toBeVisible()
+    expect(
+      screen.getByRole('button', { name: 'Fortitude Valley' })
+    ).toHaveStyle({ transform: 'translate(200px, 150px)' })
+  })
+
+  it.each([
+    ['inline', false],
+    ['full screen', true]
+  ])('marks the map while the pointer is over it, %s', async (_name, full) => {
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Area area={valley} label='Fortitude Valley'>
+        <p>Twelve venues</p>
+      </Map.Area>,
+      { defaultExpanded: full }
+    )
+    const viewport = document.querySelector('[data-slot=map-viewport]')!
+
+    // jsdom lays the map out at 0,0, so this is 5px west and north of centre.
+    fireEvent.pointerMove(viewport, { clientX: 195, clientY: 145 })
+    expect(viewport).toHaveAttribute('data-area-hover')
+    fireEvent.pointerMove(viewport, { clientX: 195, clientY: 10 })
+    expect(viewport).not.toHaveAttribute('data-area-hover')
+  })
 })
 
 describe('Map.Toolbar', () => {
