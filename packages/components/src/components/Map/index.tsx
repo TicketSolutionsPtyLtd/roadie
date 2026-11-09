@@ -2,6 +2,7 @@
 //
 // NO `'use client'`: server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md.
+import { MapArea } from './MapArea'
 import { MapMarker } from './MapMarker'
 import { MapRoot } from './MapRoot'
 import { MapToolbar } from './MapToolbar'
@@ -10,16 +11,19 @@ import { MapToolbar } from './MapToolbar'
 // import it as another name.
 const Map = MapRoot as typeof MapRoot & {
   Root: typeof MapRoot
+  Area: typeof MapArea
   Marker: typeof MapMarker
   Toolbar: typeof MapToolbar
 }
 
 Map.Root = MapRoot
+Map.Area = MapArea
 Map.Marker = MapMarker
 Map.Toolbar = MapToolbar
 
 export { Map }
 export type { MapActions, MapRootProps as MapProps } from './MapRoot'
+export type { MapAreaProps } from './MapArea'
 export type { MapMarkerProps } from './MapMarker'
 export type { MapToolbarProps } from './MapToolbar'
 export type { MapPinLook } from './MapPin'
