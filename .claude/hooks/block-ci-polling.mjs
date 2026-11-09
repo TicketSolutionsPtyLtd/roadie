@@ -26,8 +26,10 @@ const pollingLoop = /^(?:while|until)\s(?!\s*read\b)/
 
 const shellScript =
   /\b(?:ba|z)?sh\s+(?:-\w+\s+)*-\w*c\w*\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g
-const inlineScript = new RegExp(
-  `${atCommandStart}(perl|ruby|python[\\d.]*|node)\\s+(?:-\\S+\\s+)*?-[ec]\\s+(?:'([^']*)'|"((?:\\\\.|[^"\\\\])*)")`,
+// A quoted string is matched too, and skipped, so a script named inside a
+// commit message or PR body never counts.
+const inlineScriptOrQuoted = new RegExp(
+  `${atCommandStart}(perl|ruby|python[\\d.]*|node)\\s+(?:-\\S+\\s+)*?-[ec]\\s+(?:'([^']*)'|"((?:\\\\.|[^"\\\\])*)")|'[^']*'|"(?:\\\\.|[^"\\\\])*"`,
   'g'
 )
 
@@ -67,7 +69,10 @@ function stripLiterals(command) {
 
 function inlineSleepSeconds(command) {
   let total = 0
-  for (const [, bin, single, double] of command.matchAll(inlineScript)) {
+  for (const [, bin, single, double] of command.matchAll(
+    inlineScriptOrQuoted
+  )) {
+    if (!bin) continue
     const script = single ?? double
     if (bin === 'node') {
       for (const [, ms] of script.matchAll(

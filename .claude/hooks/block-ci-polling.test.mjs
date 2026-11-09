@@ -105,7 +105,9 @@ describe('block-ci-polling', () => {
     'perl -e "sleep 2"',
     'python3 -c "print(1)"',
     "node -e 'setTimeout(() => {}, 500)'",
-    'git commit -m "Block watch -n 30 and perl sleeps"'
+    'git commit -m "Block watch -n 30 and perl sleeps"',
+    `git commit -m "Deny inline sleeps\n\nperl -e 'sleep 60' now fails"`,
+    `git commit -m "Fix\nnode -e 'setTimeout(() => {}, 60000)'"`
   ]) {
     it(`allows ${JSON.stringify(command)}`, () => {
       assert.equal(runHook({ command }).status, 0)
