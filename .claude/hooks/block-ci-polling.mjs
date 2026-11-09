@@ -18,26 +18,74 @@ const runWatch = /\bgh\s[^\n;&|]*?\brun\s+watch\b/
 const checksWatch =
   /\bgh\s(?=([^\n;&|]*?\bpr\s+checks\b))\1[^\n;&|]*?\s--watch\b/
 
+// `watch` reruns its command until it's stopped.
+const watchCommand = new RegExp(`${atCommandStart}watch\\s`)
+const ghCall = /\bgh\s/
+// A `while read` loop works through a list, so only a polling loop counts.
+const pollingLoop = /^(?:while|until)\s(?!\s*read\b)/
+
 const shellScript =
   /\b(?:ba|z)?sh\s+(?:-\w+\s+)*-\w*c\w*\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g
+const inlineScript = new RegExp(
+  `${atCommandStart}(perl|ruby|python[\\d.]*|node)\\s+(?:-\\S+\\s+)*?-[ec]\\s+(?:'([^']*)'|"((?:\\\\.|[^"\\\\])*)")`,
+  'g'
+)
 
-// Quoted text and heredoc bodies are data (commit messages, PR bodies), not
-// commands, so a message that mentions `gh run watch` isn't blocked. A script
-// passed to `sh -c` and a quoted number, as in `sleep "60"`, stay. A line
-// ending in a backslash carries on, so `gh pr checks 1 \` then `--watch` is
-// one command.
-function stripLiterals(command) {
+const paramDefault = /(["']?)\$\{\w+:?[-=]([\d.]+[smhd]?)\}\1/g
+const arithmetic = /\$\(\(([\d\s+*]+)\)\)/g
+
+function arithmeticValue(expression) {
+  return expression
+    .split('+')
+    .reduce(
+      (sum, term) =>
+        sum + term.split('*').reduce((product, n) => product * Number(n), 1),
+      0
+    )
+}
+
+// A line ending in a backslash carries on, so `gh pr checks 1 \` then
+// `--watch` is one command. A default or sum the shell works out, as in
+// `sleep "${DELAY:-60}"` or `sleep $((5 * 60))`, counts as its number.
+function expand(command) {
   return command
     .replace(/<<-?\s*(['"]?)(\w+)\1[^\n]*\n[\s\S]*?\n\s*\2(?=\n|$)/g, '\n')
     .replace(/\\\r?\n/g, ' ')
+    .replace(paramDefault, '$2')
+    .replace(arithmetic, (_, expression) => String(arithmeticValue(expression)))
+}
+
+// Quoted text and heredoc bodies are data (commit messages, PR bodies), not
+// commands, so a message that mentions `gh run watch` isn't blocked. A script
+// passed to `sh -c` and a quoted number, as in `sleep "60"`, stay.
+function stripLiterals(command) {
+  return command
     .replace(shellScript, (_, single, double) => single ?? double)
     .replace(/(['"])([\d.]+[smhd]?)\1/g, '$2')
     .replace(/'[^']*'|"(?:\\.|[^"\\])*"/g, "''")
 }
 
+function inlineSleepSeconds(command) {
+  let total = 0
+  for (const [, bin, single, double] of command.matchAll(inlineScript)) {
+    const script = single ?? double
+    if (bin === 'node') {
+      for (const [, ms] of script.matchAll(
+        /\bsetTimeout\([\s\S]*?,\s*([\d_]+)\s*\)/g
+      ))
+        total += Number(ms.replaceAll('_', '')) / 1000
+    } else {
+      for (const [, seconds] of script.matchAll(/\bsleep\s*\(?\s*([\d.]+)/g))
+        total += Number(seconds)
+    }
+  }
+  return total
+}
+
 function sleepSeconds(args) {
   let total = 0
   for (const arg of args.trim().split(/\s+/)) {
+    if (/^inf(?:inity)?$/i.test(arg)) return Infinity
     const match = /^(\d+(?:\.\d*)?|\.\d+)([smhd]?)$/.exec(arg)
     if (!match) return 0
     total += Number(match[1]) * UNIT_SECONDS[match[2]]
@@ -69,14 +117,20 @@ function outermostLoops(code) {
 }
 
 function ciPollingFound(command) {
-  const code = stripLiterals(command)
+  const expanded = expand(command)
+  const code = stripLiterals(expanded)
   return (
     runWatch.test(code) ||
     checksWatch.test(code) ||
+    watchCommand.test(code) ||
     outermostLoops(code).some(
-      (loop) => commandSleep.test(loop) || totalSleepSeconds(loop) > 0
+      (loop) =>
+        commandSleep.test(loop) ||
+        totalSleepSeconds(loop) > 0 ||
+        (pollingLoop.test(loop) && ghCall.test(loop))
     ) ||
-    totalSleepSeconds(code) > MAX_SLEEP_SECONDS
+    totalSleepSeconds(code) > MAX_SLEEP_SECONDS ||
+    inlineSleepSeconds(expanded) > MAX_SLEEP_SECONDS
   )
 }
 
