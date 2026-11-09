@@ -552,18 +552,18 @@ function isButtonTable(table: Element | null) {
 
 // A filled, padded shape: the link's own, or a bulletproof button's cell.
 // Padding alone is a nav link or a footer's.
-function looksLikeButton(link: Element, line: Element) {
+function buttonShape(link: Element, line: Element): Element | null {
   const style = styleOf(link)
   if ((PADDED.test(style) || INLINE_BLOCK.test(style)) && isFilled(link)) {
-    return true
+    return link
   }
   const isCell = ['td', 'th'].includes(tagOf(line))
-  return (
-    isCell &&
+  return isCell &&
     isFilled(line) &&
     PADDED.test(styleOf(line)) &&
     isButtonTable(line.closest('table'))
-  )
+    ? line
+    : null
 }
 
 function alignmentOf(line: Element) {
@@ -589,12 +589,14 @@ function htmlButtons(container: HTMLElement) {
     const variable = link.getAttribute('data-variable')
     if (!variable && !isEmailHref(href)) continue
     const line = lineHolding(link)
-    if (!line || !looksLikeButton(link, line)) continue
+    const shape = line && buttonShape(link, line)
+    if (!line || !shape) continue
     const button = link.ownerDocument.createElement('a')
     button.dataset.type = 'button'
     if (variable) button.dataset.variable = variable
     else button.setAttribute('href', href!)
-    const align = alignmentOf(line)
+    // A bulletproof cell's own alignment centres its label, not the button.
+    const align = alignmentOf(shape === link ? line : line.closest('table')!)
     if (align) button.dataset.align = align
     button.append(...link.childNodes)
     // A cell or column keeps its place in the layout.

@@ -662,6 +662,20 @@ describe('importEmail reads an HTML email’s buttons', () => {
   })
 
   it.each([
+    ['align', 'align="center" style="padding:12px 24px"'],
+    ['text-align', 'style="padding:12px 24px;text-align:center"']
+  ])(
+    'places a bulletproof button by its table, not by its label’s %s',
+    (_, cellAttrs) => {
+      expect(
+        blocks(
+          `<table width="100%"><tr><td align="left"><table><tr><td ${cellAttrs} bgcolor="#5f270f"><a href="${TICKETS}">Get tickets</a></td></tr></table></td></tr></table>`
+        )
+      ).toEqual([buttonOf()])
+    }
+  )
+
+  it.each([
     ['after a paragraph', ''],
     ['after a paragraph and a break', '<br>']
   ])('reads a filled link alone %s in its cell as a button', (_, between) => {
