@@ -144,6 +144,7 @@ export function EditorPreview({
   return (
     <div
       data-slot='editor-preview'
+      data-not-prose=''
       className='@container grid content-start gap-3 p-3'
       onKeyDown={closeOnEscape}
     >

@@ -181,6 +181,30 @@ describe('Editor preview', () => {
     expect(inbox).toHaveTextContent('Two weeks to go')
   })
 
+  it('keeps the inbox row’s lines together inside a page’s prose', async () => {
+    render(
+      <div className='prose' style={{ width: 900 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={VALUE}
+          toolbar='docked'
+          onRenderPreview={async (_value, { values }) => rendered(values)}
+          sender='Ochre Kite Weekender'
+          subject='Two weeks to go'
+        />
+      </div>
+    )
+    await openPreview()
+
+    const sender = screen.getByText('Ochre Kite Weekender')
+    const subject = screen.getByText('Two weeks to go').closest('p')!
+    const gap =
+      subject.getBoundingClientRect().top -
+      sender.getBoundingClientRect().bottom
+    expect(gap).toBeGreaterThanOrEqual(0)
+    expect(gap).toBeLessThanOrEqual(4)
+  })
+
   it('darkens the inbox row with the simulated dark mode', async () => {
     renderEditor({ subject: 'Two weeks to go' })
     await openPreview()

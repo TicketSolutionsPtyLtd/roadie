@@ -181,9 +181,10 @@ describe('Editor preheader', () => {
     )
     const input = await previewText()
     const hint = screen.getByText('About 40 to 90 characters show.')
-    expect(
+    const gap =
       hint.getBoundingClientRect().top - input.getBoundingClientRect().bottom
-    ).toBeLessThanOrEqual(4)
+    expect(gap).toBeGreaterThanOrEqual(0)
+    expect(gap).toBeLessThanOrEqual(4)
   })
 
   it('saves none once it’s cleared', async () => {
