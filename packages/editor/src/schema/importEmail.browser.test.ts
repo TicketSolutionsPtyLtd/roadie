@@ -554,6 +554,25 @@ describe('importEmail from HTML', () => {
     ])
   })
 
+  it('keeps a link around an image with spaces around its address', () => {
+    const imported = importEmail(
+      '<a href=" https://www.oztix.com.au "><img src="https://cdn.oztix.com.au/hero.jpg" alt=""></a>'
+    )
+
+    expect(imported.dropped).toEqual([])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/hero.jpg',
+          alt: '',
+          width: null,
+          href: 'https://www.oztix.com.au'
+        }
+      }
+    ])
+  })
+
   it('keeps a link variable around an image as its link', () => {
     const imported = importEmail(
       '<a href="{{ unsubscribe_url }}"><img src="https://cdn.oztix.com.au/hero.jpg" alt=""></a>',

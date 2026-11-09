@@ -648,7 +648,8 @@ function linkedImages(container: HTMLElement, dropped: DroppedContent[]) {
   for (const image of container.querySelectorAll('a img')) {
     const link = image.closest('a')!
     const variable = link.getAttribute('data-variable')
-    const href = link.getAttribute('href')
+    // Trimmed, as a browser reads an href.
+    const href = link.getAttribute('href')?.trim() ?? null
     if (!variable && href === null) continue
     if (!isEmailImageSrc(absoluteSrc(image))) continue
     if (variable) image.setAttribute('data-variable', variable)
