@@ -376,6 +376,21 @@ describe('Editor button settings', () => {
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
   })
 
+  it('selects the saved link as its field takes focus, from its start', async () => {
+    renderEmail(email(button()))
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole<HTMLInputElement>('textbox', {
+      name: 'Link'
+    })
+
+    link.focus()
+
+    expect(link).toHaveFocus()
+    expect(link.selectionStart).toBe(0)
+    expect(link.selectionEnd).toBe(TICKETS.length)
+    expect(link.selectionDirection).toBe('backward')
+  })
+
   it('keeps the last whole link, and says so, for one an email can’t open', async () => {
     const onValueChange = renderEmail(email(button()))
     const dialog = await openSettings()

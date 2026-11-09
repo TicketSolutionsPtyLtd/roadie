@@ -258,6 +258,40 @@ describe('Editor image settings', () => {
     )
   })
 
+  it('says a part-typed link can’t open on Enter, and stays open to finish it', async () => {
+    const onValueChange = renderImage()
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole('textbox', { name: 'Link' })
+    await userEvent.type(link, 'oztix')
+
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() => expect(link).toHaveAttribute('aria-invalid', 'true'))
+    await userEvent.type(link, '.com.au')
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({
+        href: 'https://oztix.com.au'
+      })
+    )
+  })
+
+  it('selects the saved link as its field takes focus, from its start', async () => {
+    renderImage(
+      valueOf('email', image({ href: TICKETS }), { type: 'paragraph' })
+    )
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole<HTMLInputElement>('textbox', {
+      name: 'Link'
+    })
+
+    link.focus()
+
+    expect(link).toHaveFocus()
+    expect(link.selectionStart).toBe(0)
+    expect(link.selectionEnd).toBe(TICKETS.length)
+    expect(link.selectionDirection).toBe('backward')
+  })
+
   it('keeps the changes on Escape, which undo puts back in one step and redo restores', async () => {
     const onValueChange = renderImage(
       valueOf('email', image({ href: TICKETS }), { type: 'paragraph' })
