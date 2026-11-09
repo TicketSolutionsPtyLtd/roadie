@@ -30,11 +30,12 @@ export type RenderedEmail = {
  *
  * In a design, each variable is written as its token in `syntax`, from
  * `variables`, for the sending system to fill, or with `values` as its value
- * for a preview, or its fallback without one. A preview leaves out a button
- * whose label fills to nothing, which would be a link with no name. Throws
- * on a variable `variables` doesn't list, or one with
- * no token in `syntax`. HTML's merge tags are already tokens, so it ignores
- * these options.
+ * for a preview, or its fallback without one. A Liquid token of one output
+ * takes the fallback as its `default`; the `ae` syntax has none, so an AE
+ * token drops its fallback. A preview leaves out a button whose label fills
+ * to nothing, which would be a link with no name. Throws on a variable
+ * `variables` doesn't list, or one with no token in `syntax`. HTML's merge
+ * tags are already tokens, so it ignores these options.
  *
  * A block with a `showWhen` rule is wrapped in a Liquid `if` with
  * `syntax: 'liquid'`, or shown only when its rule holds with `values`.

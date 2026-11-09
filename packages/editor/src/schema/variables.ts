@@ -6,7 +6,10 @@ export type EditorVariable = {
   /**
    * How each sending system writes it, such as `#FirstName#` or
    * `{{ customer.first_name }}`. A filter, such as a date format, goes here,
-   * never in the template.
+   * never in the template. Liquid writes a value unescaped, so a text
+   * variable's Liquid token takes `| escape`, as in
+   * `{{ customer.first_name | escape }}`, or a value with `<` or `&` reaches
+   * the HTML as markup.
    */
   tokens: { ae?: string; liquid?: string }
   /**
