@@ -472,6 +472,29 @@ describe('Editor email section settings', () => {
     })
   })
 
+  it('gives up the room beside it below 1280px wide, and makes it again above', async () => {
+    await page.viewport(1280, 800)
+    onTestFinished(() => page.viewport(1280, 800))
+    renderEmail(email(section()))
+    const root = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).closest<HTMLElement>('[data-slot="editor"]')!
+    const drawer = await openSettings()
+    await waitFor(() => expect(root.style.paddingRight).not.toBe(''))
+
+    // As it opens there, with no room made.
+    await page.viewport(1100, 800)
+    await waitFor(() => expect(root.style.paddingRight).toBe(''))
+
+    await page.viewport(1280, 800)
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-type="section"]')!.getBoundingClientRect()
+          .right
+      ).toBeLessThanOrEqual(drawer.getBoundingClientRect().left)
+    )
+  })
+
   it('brings the section above its phone sheet', async () => {
     await page.viewport(390, 700)
     onTestFinished(() => page.viewport(1280, 800))

@@ -209,10 +209,17 @@ export function EditorBlockSettings({
       focusElement && dom.contains(focusElement) ? focusElement : dom
     )
   }, [editor, from, phone, focusElement])
-  const wide = useRoomBeside()
+  const beside = useRoomBeside() && !phone
   // The block the room below the sheet was last made for.
   const roomRef = useRef<number | null>(null)
   const unmakeRoomRef = useRef<(() => void) | null>(null)
+  // Narrowed while open, it covers the page as it would have opened there.
+  // Widened again, the popup's next ref makes the room anew.
+  useEffect(() => {
+    if (beside) return
+    unmakeRoomRef.current?.()
+    unmakeRoomRef.current = null
+  }, [beside])
   useEffect(() => {
     if (!open || !editor) return
     return () => {
@@ -353,7 +360,7 @@ export function EditorBlockSettings({
               // room doesn't depend on the block, so it's made once per visit.
               ref={(popup) => {
                 const root = editorRoot(editor)
-                if (!popup || !root || !wide || unmakeRoomRef.current) return
+                if (!popup || !root || !beside || unmakeRoomRef.current) return
                 unmakeRoomRef.current = makeRoomBeside(root, popup, {
                   gap: DRAWER_GAP,
                   kept:
