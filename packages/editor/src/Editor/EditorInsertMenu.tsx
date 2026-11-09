@@ -20,6 +20,16 @@ type EditorInsertMenuProps = {
 
 const optionId = (listboxId: string, index: number) => `${listboxId}-${index}`
 
+// By what it is, not where it is, so an option the query moves into a place
+// gets an element of its own; the count tells same-named items apart.
+function optionKey(items: InsertMenuState['items'], index: number) {
+  const { group, label } = items[index]!
+  const before = items
+    .slice(0, index)
+    .filter((item) => item.group === group && item.label === label).length
+  return JSON.stringify([group ?? null, label, before])
+}
+
 /**
  * What `/` or `{{` can insert, under the caret. Focus stays in the editor,
  * which points `aria-activedescendant` at the active option.
@@ -86,7 +96,7 @@ export function EditorInsertMenu({
           const Icon = item.icon
           return (
             <div
-              key={optionId(id, index)}
+              key={optionKey(state.items, index)}
               id={optionId(id, index)}
               role='option'
               aria-selected={index === state.active}

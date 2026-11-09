@@ -365,6 +365,26 @@ describe('Editor insert menu', () => {
     )
   })
 
+  // A new element, so a screen reader reads the new active option, and a
+  // thumbnail never shows the last one's picture.
+  it('gives the active option a new element when typing changes the first match', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const first = within(await insertMenu()).getAllByRole('option')[0]!
+    expect(first).toHaveTextContent('Paragraph')
+    await userEvent.keyboard('h')
+
+    const active = await waitFor(async () => {
+      const option = within(await insertMenu()).getAllByRole('option')[0]!
+      expect(option).toHaveTextContent('Heading 2')
+      return option
+    })
+    expect(active).toHaveAttribute('aria-selected', 'true')
+    expect(active).not.toBe(first)
+  })
+
   it('keeps its matches on screen while a query that matches is typed', async () => {
     renderEmail()
     await focusedTextbox()
