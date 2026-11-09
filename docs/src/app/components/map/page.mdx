@@ -405,7 +405,7 @@ render(<VenuePreview />)
 
 ### Clusters
 
-`Map.Clusters` shows places with values, such as ticket sales by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, or with `show='percent'`, its share of every value in `data`, which stays the same as the map pans. Its rings spread further and darken as its value nears the largest band's.
+`Map.Clusters` shows places with values, such as ticket sales by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, or with `show='percent'`, its share of every value in `data`, which stays the same as the map pans. Its rings spread further, in a stronger heat colour, as its value nears the largest band's.
 
 Clicking a band zooms in until it splits. A single place opens a preview with its `label` instead. `Map.Toolbar lock` adds a lock: locked, zooming in spreads the bands apart without splitting them, so the groups stay as they were, and clicking a band opens its preview, with the places in it and how far they spread. Control it with `locked` and `onLockedChange`.
 
