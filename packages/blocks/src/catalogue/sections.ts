@@ -251,6 +251,11 @@ function hinted(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
           : item
       )
     }
+    if (setting.item === 'image') {
+      shown[setting.name] = value.map((item) =>
+        hasNoImage(item) ? PLACEHOLDER_IMAGE : item
+      )
+    }
     if (!setting.fields) continue
     const { fields, itemLabel } = setting
     const texts = fields.filter(({ type }) => type === 'text')

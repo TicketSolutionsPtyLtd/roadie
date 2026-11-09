@@ -445,6 +445,30 @@ describe('catalogueSections', () => {
     }
   )
 
+  it.each(['carousel', 'logos'])(
+    'shows a placeholder for a %s image added without a link, only while editing',
+    (preset) => {
+      const gallery = everyBlock().find(({ label }) => label === 'Gallery')!
+      const attrs = {
+        ...gallery.attrs,
+        preset,
+        images: [
+          { src: '/photo.webp', alt: 'A crowd' },
+          { src: '', alt: '' }
+        ]
+      }
+
+      const editing = renderToStaticMarkup(
+        gallery.render({ attrs, editing: true })
+      )
+      const page = renderToStaticMarkup(gallery.render({ attrs }))
+
+      expect(editing).toContain('/photo.webp')
+      expect(editing).toContain('data-slot="block-image-placeholder"')
+      expect(page).not.toContain('block-image-placeholder')
+    }
+  )
+
   it('shows a placeholder for a section’s own photo only while editing', () => {
     const hero = everyBlock().find(({ label }) => label === 'Hero')!
     const attrs = { ...hero.attrs, preset: 'image', title: 'Kazoo Hollow' }
