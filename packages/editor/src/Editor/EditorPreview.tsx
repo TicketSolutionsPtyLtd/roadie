@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  type FormEvent,
   type KeyboardEvent,
+  type SubmitEvent,
   useEffect,
   useEffectEvent,
   useId,
@@ -334,7 +334,7 @@ function SendTest({ onSend, className, labelClassName }: SendTestProps) {
   const address = to.trim()
   const canSend = ADDRESS.test(address) && sending.state !== 'sending'
 
-  const send = (event: FormEvent) => {
+  const send = (event: SubmitEvent) => {
     event.preventDefault()
     // React bubbles a portalled submit to the form around the editor.
     event.stopPropagation()
