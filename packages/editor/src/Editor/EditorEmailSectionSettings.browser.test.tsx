@@ -162,6 +162,29 @@ describe('Editor email section settings', () => {
     expect(await screen.findByText('Only when Tickets left < 50')).toBeVisible()
   })
 
+  it('shows who a section is for again after Undo in its settings', async () => {
+    const onValueChange = renderEmail(email(section()))
+    const drawer = await openSettings()
+    const showTo = within(drawer).getByRole('combobox', { name: 'Show to' })
+    await userEvent.click(showTo)
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Tickets left' })
+    )
+    await waitFor(() =>
+      expect(savedSection(onValueChange).attrs).toEqual({
+        showWhen: { key: 'tickets_left', op: 'exists' }
+      })
+    )
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(savedSection(onValueChange).attrs).toBeUndefined()
+    )
+    expect(showTo).toHaveTextContent('Everyone')
+    expect(within(drawer).queryByRole('combobox', { name: 'When' })).toBe(null)
+  })
+
   it('badges a section that loads with a rule, and takes it off for everyone', async () => {
     const onValueChange = renderEmail(
       email(section({ showWhen: { key: 'tickets_left', op: 'exists' } }))
