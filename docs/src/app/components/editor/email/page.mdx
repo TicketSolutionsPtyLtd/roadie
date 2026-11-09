@@ -592,8 +592,9 @@ brings an existing email across. Paste its source, whole or in part, or
 pick an `.html` or `.mjml` file with Choose a file, and the
 dialog says whether it's reading MJML, which starts with `<mjml>`, or HTML.
 Before anything changes, it lists what won't come across: styles, a table's
-layout, images not on https, links an email can't open, hidden text past the
-preheader, and merge tags the editor doesn't know. Text is always kept, and
+layout, images not on https, unsafe links such as `javascript:`, a link
+around an image that an email can't open, hidden text past the preheader,
+and merge tags the editor doesn't know. Text is always kept, and
 a link around an image becomes the image's link. An
 `mj-preview`, or hidden text before any the email shows, becomes the
 [preview text](#preview-text). In place of the whole email, the email keeps
@@ -662,8 +663,11 @@ const { value, format, dropped, restyled, unknownMergeTags } = importEmail(
 ```
 
 `dropped` lists images, embeds, hidden text past the preheader, which
-`value.doc.attrs.preheader` holds, links an email can't open, on text or
-around an image, such as `javascript:`, and MJML elements with no block of their own, in order. `restyled` counts style sheets
+`value.doc.attrs.preheader` holds, unsafe links on text, such as
+`javascript:`, whose text it keeps, links around an image that an email
+can't open, such as a path on the site, and MJML elements with no block of
+their own, in order. A text link to a path on the site isn't listed: it's
+kept, and `renderEmail` sends it as its text. `restyled` counts style sheets
 and styled elements, and tables, outermost only. `unknownMergeTags` lists
 each token no variable matches, kept as text.
 
