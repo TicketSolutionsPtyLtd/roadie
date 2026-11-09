@@ -579,6 +579,20 @@ describe('Editor blocks drawer finding and moving', () => {
     )
   })
 
+  it('says when no block matches the filter', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      'zzz'
+    )
+
+    expect(tileNames(drawer)).toEqual([])
+    expect(within(drawer).getByText('No blocks match')).toBeVisible()
+  })
+
   // The phone toolbar stays docked above the keyboard while a popup is open.
   it('marks itself as one of the editor’s popups', async () => {
     renderEmail()

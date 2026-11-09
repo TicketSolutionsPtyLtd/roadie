@@ -13,6 +13,7 @@ import type { Editor as TiptapEditor } from '@tiptap/react'
 import { flushSync } from 'react-dom'
 
 import { Drawer } from '@oztix/roadie-components/drawer'
+import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { Input } from '@oztix/roadie-components/input'
 
@@ -296,7 +297,11 @@ export function EditorBlocksDrawer({
                 onKeyDown={onGridKeyDown}
               >
                 {groups.length === 0 ? (
-                  <p className='text-sm text-subtle'>No blocks match</p>
+                  <EmptyState size='sm'>
+                    <EmptyState.Title render={<p />}>
+                      No blocks match
+                    </EmptyState.Title>
+                  </EmptyState>
                 ) : null}
                 {groups.map(([group, groupTiles], groupIndex) => {
                   const headingId = `${id}-group-${groupIndex}`
