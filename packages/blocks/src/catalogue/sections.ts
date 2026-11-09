@@ -474,11 +474,39 @@ function partsOf(block: CatalogueBlock, fields: Set<string>) {
   return parts
 }
 
+// A choice shows what the block draws while it's unset, which can differ by
+// preset, such as Cards' centred plain cards and left-aligned text blocks. So
+// it's one setting for each set of presets that agree, shown only for those.
+function byOwnDefault(
+  block: CatalogueBlock,
+  name: string,
+  field: Field
+): CatalogueSetting[] {
+  const groups = new Map<string | undefined, string[]>()
+  for (const preset of block.presets) {
+    if (!preset.fields.includes(name)) continue
+    const own = (preset.defaults as Readonly<Attrs> | undefined)?.[name]
+    const shown =
+      field.type !== 'choice'
+        ? undefined
+        : isString(own)
+          ? own
+          : field.defaultValue
+    groups.set(shown, [...(groups.get(shown) ?? []), preset.name])
+  }
+  return [...groups].map(
+    ([defaultValue, presets]) =>
+      ({
+        ...field,
+        ...(defaultValue !== undefined && { defaultValue }),
+        name,
+        available: (attrs: Readonly<Attrs>) =>
+          presets.includes(String(attrs.preset))
+      }) as CatalogueSetting
+  )
+}
+
 function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
-  const reads = (name: string) => (attrs: Readonly<Attrs>) =>
-    block.presets
-      .find((preset) => preset.name === attrs.preset)
-      ?.fields.includes(name) ?? false
   const layout: CatalogueSetting[] =
     block.presets.length > 1
       ? [
@@ -498,7 +526,7 @@ function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
     ...layout,
     ...Object.entries(FIELDS)
       .filter(([name]) => fields.has(name))
-      .map(([name, field]) => ({ ...field, name, available: reads(name) })),
+      .flatMap(([name, field]) => byOwnDefault(block, name, field)),
     ...partsOf(block, fields).map(
       ([name, part, presets]) =>
         ({

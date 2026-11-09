@@ -146,6 +146,30 @@ describe('catalogueSections', () => {
     })
   })
 
+  it.each([
+    ['Cards', 'plain', 'align', 'center'],
+    ['Cards', 'photo', 'align', 'start'],
+    ['Cards', 'photo', 'emphasis', 'raised'],
+    ['Gallery', 'carousel', 'align', 'center'],
+    ['Testimonial', 'quote', 'align', 'center'],
+    ['Rich text', 'statement', 'align', 'center'],
+    ['Rich text', 'long-form', 'align', 'start'],
+    ['Call to action', 'centred', 'align', 'center'],
+    ['Call to action', 'photo', 'emphasis', 'raised'],
+    ['Stats', 'figures', 'emphasis', 'none']
+  ])(
+    'shows %s %s’s own %s, %s, while it’s unset',
+    (label, preset, name, shown) => {
+      const setting = everyBlock()
+        .find((section) => section.label === label)!
+        .settings.find(
+          (each) => each.name === name && (each.available?.({ preset }) ?? true)
+        )
+
+      expect(setting).toMatchObject({ type: 'choice', defaultValue: shown })
+    }
+  )
+
   it('names a section’s alignment as an image’s and a button’s are', () => {
     const align = hero().settings.find((setting) => setting.name === 'align')
 
