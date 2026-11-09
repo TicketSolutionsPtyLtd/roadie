@@ -105,7 +105,7 @@
   /* Map.Clusters' bands: filled with the group's heat colour, with rings
      of it radiating out and fading, as far as its value spreads them. The
      rings sit outside the band, so they never cover its text or focus
-     ring. On hover or keyboard focus, the fill and rings shift to the
+     ring. On hover, keyboard focus or `highlight`, the fill and rings shift to the
      neighbouring heat colour, as Roadie's strong fills move a step along
      their scale. Text stays white on the fills, but dark mode's heat scale
      ends in pale fills, which take dark text. */
@@ -136,7 +136,8 @@
       transition: box-shadow var(--duration-moderate) var(--ease-standard);
     }
 
-    &:focus-visible {
+    &:focus-visible,
+    &[data-highlighted] {
       --map-cluster-color: var(--map-cluster-hover);
     }
 
@@ -159,7 +160,11 @@
     }
   }
 
-  .dark [data-slot='map-cluster-band'][data-step='4']:focus-visible {
+  .dark
+    [data-slot='map-cluster-band'][data-step='4']:is(
+      :focus-visible,
+      [data-highlighted]
+    ) {
     color: var(--color-neutral-light-12);
   }
 }

@@ -30,7 +30,7 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-async function renderSales(locked = false) {
+async function renderSales(locked = false, highlight?: string) {
   const actions = createRef<MapActions>()
   const views: number[] = []
   render(
@@ -47,6 +47,7 @@ async function renderSales(locked = false) {
             data={sales}
             label='Ticket sales'
             defaultLocked={locked}
+            highlight={highlight}
           />
         </Map>
       </MapEngineContext>
@@ -116,6 +117,30 @@ describe('Map.Clusters in the browser', () => {
       await userEvent.keyboard('{Shift>}{Tab}{/Shift}{Tab}')
       expect(document.activeElement).toBe(band)
       expect(fill()).toBe(hovered)
+      instant.remove()
+    }
+  )
+
+  it(
+    'gives a highlighted band its hover colour',
+    { timeout: 15_000 },
+    async () => {
+      await renderSales(false, 'Ipswich')
+      await waitFor(() => expect(bands()).toHaveLength(2))
+      const instant = document.createElement('style')
+      instant.textContent = '* { transition: none !important }'
+      document.head.append(instant)
+      const lit = screen.getByRole('button', {
+        name: 'Ticket sales: 60, 33% of all'
+      })
+      const fill = () => getComputedStyle(lit).backgroundColor
+      const highlighted = fill()
+
+      lit.removeAttribute('data-highlighted')
+      const rest = fill()
+      await userEvent.hover(lit)
+      expect(highlighted).not.toBe(rest)
+      expect(fill()).toBe(highlighted)
       instant.remove()
     }
   )

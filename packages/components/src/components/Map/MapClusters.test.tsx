@@ -57,6 +57,38 @@ describe('Map.Clusters', () => {
     expect(band('120, 67% of all').textContent).toBe('12067%')
   })
 
+  it('highlights the bands holding the places named in highlight', async () => {
+    const { rerenderMap, fake } = await renderClusters({
+      highlight: 'Teneriffe'
+    })
+    const lit = () =>
+      screen
+        .getAllByRole('button', { name: /^Ticket sales/ })
+        .filter((band) => band.hasAttribute('data-highlighted'))
+        .map((band) => band.getAttribute('aria-label'))
+    expect(lit()).toEqual(['Ticket sales: 120, 67% of all'])
+
+    await rerenderMap(
+      <Map.Clusters
+        data={sales}
+        label='Ticket sales'
+        highlight={['Ipswich', 'New Farm']}
+      />
+    )
+    expect(lit()).toEqual([
+      'Ticket sales: 120, 67% of all',
+      'Ticket sales: 60, 33% of all'
+    ])
+
+    await act(() => {
+      fake.instance.setView({ zoom: 21 })
+    })
+    expect(lit()).toEqual([
+      'Ticket sales: 60, 33% of all',
+      'Ticket sales: 40, 22% of all'
+    ])
+  })
+
   it('marks a share under half a percent as under 1%', async () => {
     await renderClusters({
       data: [

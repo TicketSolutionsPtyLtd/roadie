@@ -37,6 +37,12 @@ export type MapClustersProps = {
   /** Says what the values count, such as "Ticket sales". */
   label: string
   /**
+   * Places, by `label`, whose bands take their hover look, such as while a
+   * row for that place is hovered in a table beside the map. A place in a
+   * group lights its group's band.
+   */
+  highlight?: string | readonly string[]
+  /**
    * Writes a value, such as a currency.
    * @default the reader's number format
    */
@@ -71,6 +77,7 @@ const formatNumber = (value: number) => value.toLocaleString()
 export function MapClusters({
   data,
   label,
+  highlight,
   formatValue = formatNumber,
   locked: lockedProp,
   defaultLocked = false,
@@ -166,6 +173,21 @@ export function MapClusters({
   const groups = layout?.groups ?? []
   const largest = layout?.largest ?? 0
 
+  // The bands holding a highlighted place.
+  const highlighted = useMemo(() => {
+    const wanted = typeof highlight === 'string' ? [highlight] : highlight
+    if (!wanted?.length || !layout) return new Set<string>()
+    return new Set(
+      layout.groups
+        .filter((group) =>
+          index
+            .placesIn(group)
+            .some(({ names }) => names.some((name) => wanted.includes(name)))
+        )
+        .map(({ key }) => key)
+    )
+  }, [highlight, layout, index])
+
   useEffect(() => {
     const target = focusAfterSplit.current
     if (!target || !layout || layout.level < target.at) return
@@ -235,6 +257,7 @@ export function MapClusters({
                 aria-describedby={zooms ? hintId : undefined}
                 data-slot='map-cluster-band'
                 data-step={stepOf(group.value, largest)}
+                data-highlighted={highlighted.has(group.key) || undefined}
                 className='is-interactive relative grid aspect-square min-w-11 -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums'
                 style={
                   {

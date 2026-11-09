@@ -26,7 +26,14 @@ export type MapClusterGroup = {
   splitsAt?: number
 }
 
-type Place = { key: string; value: number; label?: string }
+type Place = {
+  key: string
+  value: number
+  /** Every name given at this spot, as a list. */
+  label?: string
+  /** Every name given at this spot. */
+  names: string[]
+}
 type Sum = { value: number }
 
 // Places closer than this on screen, in px, share a band: about a band's
@@ -43,22 +50,22 @@ const MAX_ZOOM = 19
 export function clusterIndex(points: readonly MapClusterPoint[]) {
   // Places at the same spot never split, so they're one place from the start.
   const merged = new Map<string, { position: LatLng } & Place>()
-  const names = new Map<string, string[]>()
   for (const { position, value = 1, label } of points) {
     // A negative or missing number adds nothing.
     const amount = Number.isFinite(value) && value > 0 ? value : 0
     const spot = `${position.lat},${position.lng}`
-    const same = merged.get(spot)
-    if (same) same.value += amount
-    else merged.set(spot, { key: `p${merged.size}`, position, value: amount })
-    const spotNames = names.get(spot) ?? []
-    if (label && !spotNames.includes(label)) spotNames.push(label)
-    names.set(spot, spotNames)
+    const place = merged.get(spot) ?? {
+      key: `p${merged.size}`,
+      position,
+      value: 0,
+      names: []
+    }
+    place.value += amount
+    if (label && !place.names.includes(label)) place.names.push(label)
+    merged.set(spot, place)
   }
-  for (const [spot, place] of merged) {
-    const spotNames = names.get(spot)!
-    if (spotNames.length > 0) place.label = listOf(spotNames)
-  }
+  for (const place of merged.values())
+    if (place.names.length > 0) place.label = listOf(place.names)
   const places = [...merged.values()]
   const total = places.reduce((sum, { value }) => sum + value, 0)
   const index = new Supercluster<Place, Sum>({

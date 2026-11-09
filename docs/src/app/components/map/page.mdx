@@ -409,6 +409,8 @@ render(<VenuePreview />)
 
 Clicking a band zooms in until it splits. A single place opens a preview with its `label` instead. `Map.Toolbar lock` adds a lock: locked, zooming in spreads the bands apart without splitting them, so the groups stay as they were, and clicking a band opens its preview, with the places in it and how far they spread. Control it with `locked` and `onLockedChange`.
 
+`highlight` lights the bands holding places by their `label`, as hover does, such as while a row is hovered in a table of the same data beside the map. A place inside a group lights its group's band.
+
 Send totals per postcode or suburb, not a place per person, so no one's location reaches the browser, and leave out totals small enough to point to someone.
 
 ```tsx-live-noinline
@@ -437,16 +439,52 @@ const sales = [
 ]
 
 function TicketSales() {
+  const [hovered, setHovered] = useState()
+  const total = sales.reduce((sum, { value }) => sum + value, 0)
+  const rows = [...sales].sort((a, b) => b.value - a.value)
   return (
-    <Map
-      defaultCenter={{ lat: -26.5, lng: 137.5 }}
-      defaultZoom={2.3}
-      aria-label='Where ticket buyers live'
-      className='aspect-4/3'
-    >
-      <Map.Toolbar fit lock />
-      <Map.Clusters data={sales} label='Ticket sales' />
-    </Map>
+    <div className='grid gap-4'>
+      <Map
+        defaultCenter={{ lat: -26.5, lng: 137.5 }}
+        defaultZoom={2.3}
+        aria-label='Where ticket buyers live'
+        className='aspect-4/3'
+      >
+        <Map.Toolbar fit lock />
+        <Map.Clusters data={sales} label='Ticket sales' highlight={hovered} />
+      </Map>
+      <ScrollArea className='h-72 rounded-xl border border-subtle'>
+        <ScrollArea.Viewport>
+          <Table>
+            <Table.Head>
+              <Table.Row>
+                <Table.HeaderCell>Place</Table.HeaderCell>
+                <Table.HeaderCell align='end'>Ticket sales</Table.HeaderCell>
+                <Table.HeaderCell align='end'>Share</Table.HeaderCell>
+              </Table.Row>
+            </Table.Head>
+            <Table.Body>
+              {rows.map(({ label, value }) => (
+                <Table.Row
+                  key={label}
+                  onMouseEnter={() => setHovered(label)}
+                  onMouseLeave={() => setHovered(undefined)}
+                >
+                  <Table.Cell>{label}</Table.Cell>
+                  <Table.Cell align='end'>{value.toLocaleString()}</Table.Cell>
+                  <Table.Cell align='end'>
+                    {Math.round((value / total) * 100)}%
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </ScrollArea.Viewport>
+        <ScrollArea.Scrollbar>
+          <ScrollArea.Thumb />
+        </ScrollArea.Scrollbar>
+      </ScrollArea>
+    </div>
   )
 }
 
