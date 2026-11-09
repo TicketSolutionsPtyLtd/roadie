@@ -153,7 +153,7 @@ Children show in a preview where the area is clicked or tapped, and the area str
 
 ### Controls
 
-`Map.Toolbar` adds zoom in and zoom out, joined, in the top corner. `fit` adds Show all, which fits the map to its pins and areas, and is turned off while there are none. Show all, Show my location and full screen each sit on their own below. `Toolbar.Button`s you put inside it, such as for layers, sit together at the bottom, in a toolbar of their own.
+`Map.Toolbar` adds zoom in and zoom out, joined, in the top corner. `fit` adds Show all, which fits the map to its pins, areas and clusters, and is turned off while there are none. `lock` adds Lock groups, for [clusters](#clusters). Show all, Lock groups, Show my location and full screen each sit on their own below. `Toolbar.Button`s you put inside it, such as for layers, sit together at the bottom, in a toolbar of their own.
 
 `locate` adds Show my location. Pressed, it asks the browser for the reader's location, which asks their permission the first time, then centres the map on them. A dot marks where they are, with a ring pulsing out from it, and it follows them as they move while the map stays where they pan it. Pressing it again stops following and removes the dot. Browsers share a location only with secure pages, served over HTTPS or from localhost.
 
@@ -401,6 +401,46 @@ function VenuePreview() {
 }
 
 render(<VenuePreview />)
+```
+
+### Clusters
+
+`Map.Clusters` shows places with values, such as ticket sales by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, or with `show='percent'`, its share of every value in `data`, which stays the same as the map pans. Its rings spread further and darken as its value nears the largest band's.
+
+Clicking a band zooms in until it splits. A single place opens a preview with its `label` instead. `Map.Toolbar lock` adds a lock: locked, zooming in spreads the bands apart without splitting them, so the groups stay as they were, and clicking a band opens its preview, with the places in it and how far they spread. Control it with `locked` and `onLockedChange`.
+
+Send totals per postcode or suburb, not a place per person, so no one's location reaches the browser, and leave out totals small enough to point to someone.
+
+```tsx-live-noinline
+const sales = [
+  { position: { lat: -27.4575, lng: 153.0355 }, value: 182, label: 'Fortitude Valley' },
+  { position: { lat: -27.4679, lng: 153.0514 }, value: 96, label: 'New Farm' },
+  { position: { lat: -27.4571, lng: 153.0467 }, value: 64, label: 'Teneriffe' },
+  { position: { lat: -27.4604, lng: 153.0001 }, value: 121, label: 'Paddington' },
+  { position: { lat: -27.4808, lng: 153.0353 }, value: 88, label: 'Kangaroo Point' },
+  { position: { lat: -27.4995, lng: 153.0130 }, value: 57, label: 'West End' },
+  { position: { lat: -27.6145, lng: 152.7600 }, value: 74, label: 'Ipswich' },
+  { position: { lat: -28.0023, lng: 153.4145 }, value: 143, label: 'Surfers Paradise' },
+  { position: { lat: -28.0820, lng: 153.4470 }, value: 69, label: 'Burleigh Heads' },
+  { position: { lat: -26.6500, lng: 153.0667 }, value: 92, label: 'Maroochydore' },
+  { position: { lat: -26.3986, lng: 153.0911 }, value: 38, label: 'Noosa Heads' },
+  { position: { lat: -27.5598, lng: 151.9507 }, value: 45, label: 'Toowoomba' }
+]
+
+function TicketSales() {
+  return (
+    <Map
+      defaultCenter={{ lat: -27.25, lng: 152.85 }}
+      defaultZoom={6.5}
+      aria-label='Where ticket buyers live'
+    >
+      <Map.Toolbar fit lock />
+      <Map.Clusters data={sales} label='Ticket sales' />
+    </Map>
+  )
+}
+
+render(<TicketSales />)
 ```
 
 ### Pin drop
@@ -842,6 +882,15 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
   </Guideline.Dont>
 </Guideline>
 
+<Guideline title='Put numbers on a map beside a list'>
+  <Guideline.Do code={`<Map aria-label='Where ticket buyers live'>\n  <Map.Clusters data={salesByPostcode} label='Ticket sales' />\n</Map>\n<RankedBars data={salesByPostcode} />`}>
+    Show where sales are with `Map.Clusters`, and the same numbers in ranked bars or a table beside it, to compare.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Map.Clusters data={buyers.map((buyer) => ({ position: buyer.home }))} label='Ticket buyers' />`}>
+    Don't send a place for each person. Total them by postcode or suburb on the server, so no one's location reaches the browser.
+  </Guideline.Dont>
+</Guideline>
+
 <Guideline title='Offer full screen on maps people explore'>
   <Guideline.Do code={`<Map defaultCenter={valley} aria-label='Venues near Fortitude Valley'>\n  <Map.Toolbar expand />\n  {venues.map((venue) => <Map.Marker key={venue.id} {...venue} />)}\n</Map>`}>
     Add `expand` where people pan and compare, such as several venues, areas or a picker.
@@ -877,7 +926,8 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 - The picker's pin is a button named by `label`, or in a `Field` by the field's label, and "Chosen place" otherwise. Arrow keys move it, and Shift moves it further. In a `Field`, the pin is described by the field's help or error text, and marked invalid with it. Show that it's required with `Field.Label showIndicator`. A required picker with no place stops the form, and focus moves to Drop the pin here. Keep the chosen place in text too, such as its address or coordinates, so it can be read and checked without the map.
 - A custom `pin` is still named by `label`, so screen readers read the place, not the graphic.
 - The search is a combobox named by `aria-label`, "Search the map" by default. A status message says while it searches, how many places it found, when it found none, and when places couldn't load. Arrow keys move through the places and Enter chooses one. Escape closes the list, then clears the text, then exits full screen.
-- The zoom buttons are a toolbar named Zoom, so Tab reaches it once and the arrow keys move between Zoom in and Zoom out. Show all, Show my location and Full screen are buttons of their own. Your own buttons are a toolbar named Map controls.
+- Each cluster band is a button named with what it counts, its value and its share, such as "Ticket sales: 120, 6% of all", largest first in Tab order. One that zooms in to split is described as such, and focus moves to the largest band it splits into. Locked, or for a single place, Enter opens its preview. Lock groups is a toggle button: pressed while locked. Put the numbers in a list or table beside the map too, so they can be compared and read without it.
+- The zoom buttons are a toolbar named Zoom, so Tab reaches it once and the arrow keys move between Zoom in and Zoom out. Show all, Lock groups, Show my location and Full screen are buttons of their own. Your own buttons are a toolbar named Map controls.
 - Show my location is a toggle button: pressed while it follows the reader's location. The dot is a picture named Your location. Its pulse doesn't run when the reader asks for reduced motion. If the location isn't available, a message below the button says so, and screen readers hear it.
 - The full screen button is named Full screen, and Exit full screen while the map fills the window. The full screen map is a modal dialog named by `aria-label`, so Tab stays in the map while it's full screen. Escape closes the top layer first: an open preview, then the full screen map, then a drawer or dialog the map sits in. Focus returns to the button, or to your own button that opened it.
 - Inline, one finger scrolls the page, so the map never traps a scroll. Full screen is the way to pan with one finger and zoom with a plain scroll, and the arrow keys and `+` and `-` work in both.

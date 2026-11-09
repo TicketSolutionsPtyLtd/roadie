@@ -3,8 +3,8 @@
    hint MapLibre shows when the page scrolls across a map. The engine gives the
    hint Roadie's overlay emphasis and text style; this places and fades it.
    It also holds the insets that keep the toolbar, search and credits clear
-   of a notch and the home indicator while the map fills the window, and the
-   pulse around the reader's location. */
+   of a notch and the home indicator while the map fills the window, the
+   pulse around the reader's location, and the rings of Map.Clusters' bands. */
 
 @layer components {
   [data-slot='map-viewport'] {
@@ -100,6 +100,33 @@
       .maplibregl-mobile-message {
         display: block;
       }
+    }
+  }
+  /* Map.Clusters' bands: rings of the group's heat colour radiate from its
+     total, fading outwards, as far as its value spreads them. The rings sit
+     outside the band, so they never cover its text or focus ring. */
+  [data-slot='map-cluster-band'] {
+    --map-cluster-ring: color-mix(
+      in oklab,
+      var(--map-cluster-color) 55%,
+      transparent
+    );
+    --map-cluster-haze: color-mix(
+      in oklab,
+      var(--map-cluster-color) 20%,
+      transparent
+    );
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      box-shadow:
+        0 0 0 calc(var(--map-cluster-spread) / 3) var(--map-cluster-color),
+        0 0 0 calc(var(--map-cluster-spread) * 2 / 3) var(--map-cluster-ring),
+        0 0 0 var(--map-cluster-spread) var(--map-cluster-haze);
     }
   }
 }

@@ -5,6 +5,12 @@ import { type RefObject, createContext, use } from 'react'
 import type { FieldContextValue } from '../Field/FieldContext'
 import type { LatLng, MapAreaLayer, MapEngineInstance } from './engine'
 
+/** Whether a map's clusters are locked, for Map.Toolbar's lock button. */
+export type MapClusterLock = {
+  locked: boolean
+  setLocked: (locked: boolean) => void
+}
+
 export type MapContextValue = {
   /** The drawn map, once its engine is ready. */
   instance: MapEngineInstance | null
@@ -62,6 +68,10 @@ export type MapContextValue = {
    * click on the map only closes the list.
    */
   ignoreClickFrom: (press: Event) => void
+  /** The lock of the map's clusters, or `null` with none on the map. */
+  clusterLock: MapClusterLock | null
+  /** Map.Clusters offers its lock here, or withdraws it with `null`. */
+  setClusterLock: (lock: MapClusterLock | null) => void
 }
 
 export const MapContext = createContext<MapContextValue | null>(null)

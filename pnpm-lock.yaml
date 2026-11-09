@@ -573,6 +573,9 @@ importers:
       maplibre-gl:
         specifier: 6.16.0
         version: 6.16.0
+      supercluster:
+        specifier: 9.1.0
+        version: 9.1.0
       uqr:
         specifier: 0.1.3
         version: 0.1.3
@@ -7662,6 +7665,9 @@ packages:
     resolution: {integrity: sha512-DhuTmvZWux4H1UOnWMB3sk0sbaCVOoQZjv8u1rDoTV0HTdGem9hkAZtl4JZy8P2z4Bg0nT+YMeOFyVr4zcG5Tw==}
     engines: {node: '>=16 || 14 >=14.17'}
     hasBin: true
+
+  supercluster@9.1.0:
+    resolution: {integrity: sha512-WMhsJPm8Tf9f5mKxJ1D0mB5tbCMOFi8wTrm/LGnsJHGg8xkeNT/TWDZuFauOGRISnclbYgnxD7g3xJAfQO3FLg==}
 
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
@@ -16487,6 +16493,11 @@ snapshots:
       pirates: 4.0.7
       tinyglobby: 0.2.17
       ts-interface-checker: 0.1.13
+
+  supercluster@9.1.0:
+    dependencies:
+      '@types/geojson': 7946.0.16
+      kdbush: 4.1.0
 
   supports-color@7.2.0:
     dependencies:

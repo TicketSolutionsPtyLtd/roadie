@@ -26,7 +26,11 @@ import { useAccentScopeProps } from '../../providers/AccentScopeContext'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { EmptyState } from '../EmptyState'
 import { FieldContext, useFieldContext } from '../Field/FieldContext'
-import { MapContext, type MapContextValue } from './MapContext'
+import {
+  type MapClusterLock,
+  MapContext,
+  type MapContextValue
+} from './MapContext'
 import { MapCredits } from './MapCredits'
 import { MapEngineContext } from './MapEngineContext'
 import { MapExpandButton } from './MapToolbar'
@@ -311,6 +315,7 @@ export function MapRoot({
         : () => {},
     [instance]
   )
+  const [clusterLock, setClusterLock] = useState<MapClusterLock | null>(null)
   const context = useMemo<MapContextValue>(
     () => ({
       instance,
@@ -326,7 +331,9 @@ export function MapRoot({
       portalContainer: expanded ? layer : null,
       addToolbar,
       onMapClick,
-      ignoreClickFrom
+      ignoreClickFrom,
+      clusterLock,
+      setClusterLock
     }),
     [
       instance,
@@ -341,7 +348,8 @@ export function MapRoot({
       layer,
       addToolbar,
       onMapClick,
-      ignoreClickFrom
+      ignoreClickFrom,
+      clusterLock
     ]
   )
 
