@@ -173,6 +173,19 @@ describe('Editor preheader', () => {
     expect((await place(900)).stacked).toBe(false)
   })
 
+  it('keeps its hint under the field inside a page’s prose', async () => {
+    render(
+      <div className='prose' style={{ width: 900 }}>
+        <Editor aria-label={LABEL} defaultValue={email()} />
+      </div>
+    )
+    const input = await previewText()
+    const hint = screen.getByText('About 40 to 90 characters show.')
+    expect(
+      hint.getBoundingClientRect().top - input.getBoundingClientRect().bottom
+    ).toBeLessThanOrEqual(4)
+  })
+
   it('saves none once it’s cleared', async () => {
     const onValueChange = renderEmail({ defaultValue: email('Two weeks') })
     const input = await previewText()
