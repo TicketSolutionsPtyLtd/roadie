@@ -363,6 +363,26 @@ describe.each(renderers)('%s', (_, render) => {
     ).toBe('<p>Hi <strong>there</strong>!</p><p>Hi !</p>')
   })
 
+  it('renders nothing for an email button whose label is only a merge tag with no fallback', () => {
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            paragraph(text('Doors 7pm')),
+            {
+              type: 'button',
+              attrs: { href: 'https://www.oztix.com.au' },
+              content: [{ type: 'variable', attrs: { key: 'first_name' } }]
+            }
+          ]
+        }
+      })
+    ).toBe('<p>Doors 7pm</p>')
+  })
+
   it('drops attributes the mapping doesn’t read', () => {
     const injected = {
       onclick: 'alert(1)',
