@@ -200,6 +200,8 @@ export {
   type MapViewOptions
 } from './components/Map'
 
+export { googleEngine, type GoogleEngineOptions } from './components/MapGoogle'
+
 export {
   Separator,
   separatorVariants,
