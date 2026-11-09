@@ -307,6 +307,8 @@ function ImageSettingsForm({
             setRefused(false)
           }}
           onKeyDown={(event) => {
+            // Escape closes it before the field blurs, so it's left here.
+            if (event.key === 'Escape') applySrc()
             if (event.key !== 'Enter') return
             event.preventDefault()
             // The Enter that picks an IME candidate only ends the composition.

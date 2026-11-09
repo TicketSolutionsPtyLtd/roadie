@@ -297,6 +297,25 @@ describe('Editor image settings', () => {
     await waitFor(() => expect(savedImage(onValueChange)).toMatchObject(edited))
   })
 
+  it('keeps an address typed and left with Escape, which undo puts back', async () => {
+    const onValueChange = renderImage()
+    const dialog = await openSettings()
+    const field = within(dialog).getByRole('textbox', { name: 'Image address' })
+    await userEvent.clear(field)
+    await userEvent.type(field, STAGE)
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({ src: STAGE })
+    )
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({ src: POSTER })
+    )
+  })
+
   it('undoes and redoes its own changes on Mod+Z while open, never an edit from before', async () => {
     const onValueChange = renderImage(
       valueOf('email', image(), p('Doors at 7pm'))
