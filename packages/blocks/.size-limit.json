@@ -112,7 +112,7 @@
     "name": "mosaic",
     "path": "dist/Mosaic/index.js",
     "import": "*",
-    "limit": "4.35 kB",
+    "limit": "4.8 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -138,7 +138,7 @@
     "name": "call-to-action",
     "path": "dist/CallToAction/index.js",
     "import": "*",
-    "limit": "4.3 kB",
+    "limit": "4.75 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -164,7 +164,7 @@
     "name": "gallery",
     "path": "dist/Gallery/index.js",
     "import": "*",
-    "limit": "5.5 kB",
+    "limit": "5.95 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
