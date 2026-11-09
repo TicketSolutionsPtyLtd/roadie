@@ -189,21 +189,6 @@ export function presetElementsFor(preset: Preset): Elements {
   return elements
 }
 
-/**
- * Saved marks list the outermost first, as ProseMirror writes them, but the
- * static renderer wraps the first innermost, so this flips them to match the
- * editor's nesting.
- */
-export function outermostMarksLast(node: JSONContent): JSONContent {
-  return {
-    ...node,
-    ...(Array.isArray(node.marks) && { marks: [...node.marks].reverse() }),
-    ...(Array.isArray(node.content) && {
-      content: node.content.map(outermostMarksLast)
-    })
-  }
-}
-
 // A thead clips a rowspan at its end, so a row that spans down stays in the
 // tbody.
 const isHeaderRow = (row: JSONContent | undefined) =>
