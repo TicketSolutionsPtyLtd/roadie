@@ -68,10 +68,16 @@ export type MapContextValue = {
    * click on the map only closes the list.
    */
   ignoreClickFrom: (press: Event) => void
-  /** The lock of the map's clusters, or `null` with none on the map. */
+  /**
+   * The lock of the map's clusters, locked while every one is, or `null`
+   * with none on the map.
+   */
   clusterLock: MapClusterLock | null
-  /** Map.Clusters offers its lock here, or withdraws it with `null`. */
-  setClusterLock: (lock: MapClusterLock | null) => void
+  /**
+   * Map.Clusters offers its lock, and the toolbar's button locks every
+   * one on the map. Returns its removal.
+   */
+  addClusterLock: (lock: MapClusterLock) => () => void
 }
 
 export const MapContext = createContext<MapContextValue | null>(null)

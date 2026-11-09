@@ -50,6 +50,28 @@ describe('clusterIndex', () => {
     expect(values(index, 22)).toEqual([7])
   })
 
+  it('keeps every name of places at the same spot', () => {
+    const index = clusterIndex([
+      { position: newFarm, value: 3, label: 'Kazoo Hollow Room' },
+      { position: newFarm, value: 4, label: 'Jumbuck Orchard Park' },
+      { position: newFarm, value: 1, label: 'Kazoo Hollow Room' }
+    ])
+    const [spot] = index.groupsAt(world, 22)
+    expect(index.placesIn(spot!).map(({ label }) => label)).toEqual([
+      'Kazoo Hollow Room and Jumbuck Orchard Park'
+    ])
+  })
+
+  it('counts a negative or missing number as nothing', () => {
+    const index = clusterIndex([
+      { position: newFarm, value: 5 },
+      { position: teneriffe, value: -3 },
+      { position: paddington, value: Number.NaN }
+    ])
+    expect(index.total).toBe(5)
+    expect(values(index, 4)).toEqual([5])
+  })
+
   it('names the zoom where a group splits', () => {
     const index = clusterIndex(sales)
     const [brisbane] = index

@@ -6,7 +6,8 @@ import type { LatLng, MapEngineInstance } from './engine'
 export type MapClusterPoint = {
   position: LatLng
   /**
-   * What the place adds to its group, such as tickets sold.
+   * What the place adds to its group, such as tickets sold. A negative or
+   * missing number adds nothing.
    * @default 1
    */
   value?: number
@@ -42,11 +43,21 @@ const MAX_ZOOM = 19
 export function clusterIndex(points: readonly MapClusterPoint[]) {
   // Places at the same spot never split, so they're one place from the start.
   const merged = new Map<string, { position: LatLng } & Place>()
+  const names = new Map<string, string[]>()
   for (const { position, value = 1, label } of points) {
+    // A negative or missing number adds nothing.
+    const amount = Number.isFinite(value) && value > 0 ? value : 0
     const spot = `${position.lat},${position.lng}`
     const same = merged.get(spot)
-    if (same) same.value += value
-    else merged.set(spot, { key: `p${merged.size}`, position, value, label })
+    if (same) same.value += amount
+    else merged.set(spot, { key: `p${merged.size}`, position, value: amount })
+    const spotNames = names.get(spot) ?? []
+    if (label && !spotNames.includes(label)) spotNames.push(label)
+    names.set(spot, spotNames)
+  }
+  for (const [spot, place] of merged) {
+    const spotNames = names.get(spot)!
+    if (spotNames.length > 0) place.label = listOf(spotNames)
   }
   const places = [...merged.values()]
   const total = places.reduce((sum, { value }) => sum + value, 0)
@@ -129,6 +140,12 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
 }
 
 export type ClusterIndex = ReturnType<typeof clusterIndex>
+
+/** Names as a list a person reads: "A, B and C". */
+export function listOf(items: readonly string[]) {
+  if (items.length < 2) return items.join('')
+  return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
+}
 
 /**
  * The zoom groups are made at, from how far apart the engine draws two

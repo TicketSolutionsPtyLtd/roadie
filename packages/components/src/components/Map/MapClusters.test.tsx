@@ -52,9 +52,9 @@ describe('Map.Clusters', () => {
     expect(band('120, 67% of all')).toHaveTextContent('120')
   })
 
-  it('shows each band’s share of all the data', async () => {
-    await renderClusters({ show: 'percent' })
-    expect(band('120, 67% of all')).toHaveTextContent('67%')
+  it('shows each band’s value and its share of all the data', async () => {
+    await renderClusters()
+    expect(band('120, 67% of all').textContent).toBe('12067%')
   })
 
   it('marks a share under half a percent as under 1%', async () => {
@@ -171,6 +171,27 @@ describe('Map.Clusters', () => {
     expect(onLockedChange).toHaveBeenCalledWith(true)
     await zoomTo(21)
     expect(bandNames()).toHaveLength(4)
+  })
+
+  it('keeps the lock of the clusters still on the map', async () => {
+    const fake = fakeEngine(undefined, { zoomScales: true })
+    const map = await renderMap(
+      fake.engine,
+      <>
+        <Map.Toolbar lock />
+        <Map.Clusters data={sales} label='Ticket sales' />
+        <Map.Clusters data={sales.slice(0, 1)} label='Refunds' />
+      </>
+    )
+    await map.rerenderMap(
+      <>
+        <Map.Toolbar lock />
+        <Map.Clusters data={sales} label='Ticket sales' />
+      </>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Lock groups' })
+    ).not.toBeDisabled()
   })
 
   it('turns the lock button off with no clusters on the map', async () => {

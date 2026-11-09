@@ -102,20 +102,24 @@
       }
     }
   }
-  /* Map.Clusters' bands: rings of the group's heat colour radiate from its
-     total, fading outwards, as far as its value spreads them. The rings sit
-     outside the band, so they never cover its text or focus ring. */
+  /* Map.Clusters' bands: filled with the group's heat colour, with rings
+     of it radiating out and fading, as far as its value spreads them. The
+     rings sit outside the band, so they never cover its text or focus
+     ring, and spread further on hover. Text stays white on the fills, but
+     dark mode's heat scale ends in pale fills, which take dark text. */
   [data-slot='map-cluster-band'] {
     --map-cluster-ring: color-mix(
       in oklab,
-      var(--map-cluster-color) 55%,
+      var(--map-cluster-color) 45%,
       transparent
     );
     --map-cluster-haze: color-mix(
       in oklab,
-      var(--map-cluster-color) 20%,
+      var(--map-cluster-color) 18%,
       transparent
     );
+    background-color: var(--map-cluster-color);
+    color: var(--color-neutral-light-0);
 
     &::before {
       content: '';
@@ -124,10 +128,26 @@
       border-radius: inherit;
       pointer-events: none;
       box-shadow:
-        0 0 0 calc(var(--map-cluster-spread) / 3) var(--map-cluster-color),
-        0 0 0 calc(var(--map-cluster-spread) * 2 / 3) var(--map-cluster-ring),
+        0 0 0 calc(var(--map-cluster-spread) / 2) var(--map-cluster-ring),
         0 0 0 var(--map-cluster-spread) var(--map-cluster-haze);
     }
+
+    &:hover::before {
+      --map-cluster-ring: color-mix(
+        in oklab,
+        var(--map-cluster-color) 65%,
+        transparent
+      );
+      --map-cluster-haze: color-mix(
+        in oklab,
+        var(--map-cluster-color) 30%,
+        transparent
+      );
+    }
+  }
+
+  .dark [data-slot='map-cluster-band']:not([data-step='4']) {
+    color: var(--color-neutral-light-12);
   }
 }
 

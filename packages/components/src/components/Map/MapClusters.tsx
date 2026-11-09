@@ -21,7 +21,8 @@ import {
   type MapClusterGroup,
   type MapClusterPoint,
   clusterIndex,
-  gridZoom
+  gridZoom,
+  listOf
 } from './clusters'
 import type { LatLng, MapEngineInstance } from './engine'
 
@@ -35,12 +36,6 @@ export type MapClustersProps = {
   data: readonly MapClusterPoint[]
   /** Says what the values count, such as "Ticket sales". */
   label: string
-  /**
-   * What each band shows: its value, or its share of every value on the
-   * map.
-   * @default 'value'
-   */
-  show?: 'value' | 'percent'
   /**
    * Writes a value, such as a currency.
    * @default the reader's number format
@@ -76,14 +71,13 @@ const formatNumber = (value: number) => value.toLocaleString()
 export function MapClusters({
   data,
   label,
-  show = 'value',
   formatValue = formatNumber,
   locked: lockedProp,
   defaultLocked = false,
   onLockedChange,
   className
 }: MapClustersProps) {
-  const { instance, frame, setPlace, setClusterLock } =
+  const { instance, frame, setPlace, addClusterLock } =
     useMapContext('Map.Clusters')
   const index = useMemo(() => clusterIndex(data), [data])
 
@@ -96,10 +90,10 @@ export function MapClusters({
     },
     [lockedProp, onLockedChange]
   )
-  useEffect(() => {
-    setClusterLock({ locked, setLocked })
-    return () => setClusterLock(null)
-  }, [locked, setLocked, setClusterLock])
+  useEffect(
+    () => addClusterLock({ locked, setLocked }),
+    [locked, setLocked, addClusterLock]
+  )
 
   // Locked, the groups stay as they were made at the zoom of the lock,
   // read the first time the bands are laid out once locked.
@@ -240,7 +234,8 @@ export function MapClusters({
                 aria-label={name}
                 aria-describedby={zooms ? hintId : undefined}
                 data-slot='map-cluster-band'
-                className='is-interactive relative grid h-8 min-w-8 -translate-1/2 emphasis-raised place-items-center rounded-full px-1.5 text-sm font-semibold tabular-nums'
+                data-step={stepOf(group.value, largest)}
+                className='is-interactive relative grid aspect-square min-w-10 -translate-1/2 place-content-center rounded-full px-1 text-center leading-none tabular-nums motion-safe:transition-[scale] motion-safe:duration-fast motion-safe:ease-enter motion-safe:hover:scale-110'
                 style={
                   {
                     '--map-cluster-color': `var(--chart-heat-${stepOf(group.value, largest)})`,
@@ -248,7 +243,10 @@ export function MapClusters({
                   } as CSSProperties
                 }
               >
-                {show === 'percent' ? share : formatValue(group.value)}
+                <span className='text-sm font-semibold'>
+                  {formatValue(group.value)}
+                </span>
+                <span className='text-xs'>{share}</span>
               </Popover.Trigger>
               <MapPreview sideOffset={8} onClose={() => setOpen(null)}>
                 {open === group.key && (
@@ -321,12 +319,12 @@ function shareOf(value: number, total: number) {
   return `${Math.round(percent)}%`
 }
 
-// Bands step from the third heat colour to the last, the strongest against
-// the basemap in light and dark, as their value nears the largest group's,
-// so the faintest stay clear of the basemap.
+// Bands step from the fifth heat colour to the last, the strongest against
+// the basemap in light and dark, as their value nears the largest group's.
+// Below the fifth, light mode's fills are too pale for white text.
 function stepOf(value: number, largest: number) {
-  if (largest <= 0) return 2
-  return 2 + Math.round((6 * value) / largest)
+  if (largest <= 0) return 4
+  return 4 + Math.round((4 * value) / largest)
 }
 
 // The rings spread from 6px to 18px with a group's value, by area.
@@ -413,9 +411,4 @@ function kilometres(from: LatLng, to: LatLng) {
       Math.cos(radians(to.lat)) *
       Math.sin(dLng / 2) ** 2
   return 6371 * 2 * Math.asin(Math.sqrt(a))
-}
-
-function listOf(items: readonly string[]) {
-  if (items.length < 2) return items.join('')
-  return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
 }
