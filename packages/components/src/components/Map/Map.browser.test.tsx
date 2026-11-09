@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import {
@@ -13,9 +13,11 @@ import {
 import { commands, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Button } from '../Button'
 import { Dialog } from '../Dialog'
 import { Drawer } from '../Drawer'
 import { useStylesheet } from '../Pane/testUtils'
+import { Popover } from '../Popover'
 import { MapEngineContext } from './MapEngineContext'
 import type { MapEngine, MapEngineInstance, MapPalette } from './engine'
 import blankStyle from './fixtures/blank-style.json?url'
@@ -197,6 +199,23 @@ describe('Map in the browser', () => {
       expect(screen.getByText('Fixture')).toBeVisible()
       expect(creditsButton(frame)).not.toBeVisible()
     })
+  })
+
+  it("hangs each pin's point on its place", { timeout: 15_000 }, async () => {
+    const frame = await renderReadyMap(
+      <Map defaultCenter={venue}>
+        <Map.Marker position={venue} label='Kazoo Hollow Room' />
+      </Map>
+    )
+    const pin = await screen.findByRole('img', { name: 'Kazoo Hollow Room' })
+    const shape = pin.querySelector('[data-slot=map-pin]')!
+    const box = frame.getBoundingClientRect()
+    // The centre of the map is the venue, so the point sits there.
+    const point = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+    const drawn = shape.getBoundingClientRect()
+
+    expect(drawn.left + drawn.width / 2).toBeCloseTo(point.x, 0)
+    expect(Math.abs(drawn.bottom - point.y)).toBeLessThanOrEqual(1.5)
   })
 
   it(
@@ -503,12 +522,26 @@ describe('Map in the browser', () => {
 })
 
 describe('Map full screen in the browser', () => {
+  // Wraps the engine to hand the test the map it draws.
+  function recordingEngine() {
+    let made: MapEngineInstance | undefined
+    const recording: MapEngine = {
+      attribution: engine.attribution,
+      mount: async (...args) => (made = await engine.mount(...args))
+    }
+    return { engine: recording, instance: () => made! }
+  }
+
   const ready = (frame: HTMLElement) =>
     waitFor(() => expect(frame).toHaveAttribute('data-status', 'ready'), {
       timeout: 10_000
     })
   const layer = () => screen.getByRole('dialog', { name: 'Map' })
   const hitAt = (x: number, y: number) => document.elementFromPoint(x, y)!
+  const middle = (element: Element) => {
+    const box = element.getBoundingClientRect()
+    return hitAt(box.left + box.width / 2, box.top + box.height / 2)
+  }
   const pageLocked = () =>
     [document.documentElement, document.body].some((element) =>
       /hidden|clip/.test(getComputedStyle(element).overflowY)
@@ -584,6 +617,121 @@ describe('Map full screen in the browser', () => {
     }
   )
 
+  it(
+    'redraws to fit, and keeps each pin on its place',
+    { timeout: 15_000 },
+    async () => {
+      const east = { lat: venue.lat, lng: venue.lng + 0.004 }
+      const recording = recordingEngine()
+      render(
+        <div style={{ width: 480 }}>
+          <MapEngineContext value={recording.engine}>
+            <Map defaultCenter={venue}>
+              <Map.Toolbar expand />
+              <Map.Marker position={east} label='Kazoo Hollow Room' />
+            </Map>
+          </MapEngineContext>
+        </div>
+      )
+      const frame = screen.getByRole('region', { name: 'Map' })
+      await ready(frame)
+      const viewport = frame.querySelector<HTMLElement>(
+        '[data-slot=map-viewport]'
+      )!
+      // The pin's point, against where the map says the place is.
+      const pinOnPlace = async () => {
+        const pin = (
+          await screen.findByRole('img', { name: 'Kazoo Hollow Room' })
+        ).querySelector('[data-slot=map-pin]')!
+        await waitFor(() => {
+          const origin = viewport.getBoundingClientRect()
+          const place = recording.instance().project(east)
+          const drawn = pin.getBoundingClientRect()
+          expect(drawn.left + drawn.width / 2 - origin.left).toBeCloseTo(
+            place.x,
+            0
+          )
+          expect(Math.abs(drawn.bottom - origin.top - place.y)).toBeLessThan(
+            1.5
+          )
+        })
+      }
+      await pinOnPlace()
+      const { center } = recording.instance().getView()
+
+      await userEvent.click(screen.getByRole('button', { name: 'Full screen' }))
+      const canvas = viewport.querySelector('canvas')!
+      await waitFor(() => {
+        expect(canvas.clientWidth).toBe(innerWidth)
+        expect(canvas.clientHeight).toBe(innerHeight)
+      })
+      expect(getComputedStyle(canvas).touchAction).toBe('none')
+      const kept = recording.instance().getView().center
+      expect(kept.lat).toBeCloseTo(center.lat, 6)
+      expect(kept.lng).toBeCloseTo(center.lng, 6)
+      await pinOnPlace()
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Exit full screen' })
+      )
+      await waitFor(() => expect(canvas.clientWidth).toBe(480))
+      expect(getComputedStyle(canvas).touchAction).toBe('pan-x pan-y')
+      await pinOnPlace()
+    }
+  )
+
+  it(
+    'shows a preview, and a dialog from it, over the map',
+    { timeout: 15_000 },
+    async () => {
+      function VenueMap() {
+        const [open, setOpen] = useState(false)
+        return (
+          <>
+            <MapEngineContext value={engine}>
+              <Map defaultCenter={venue} defaultExpanded>
+                <Map.Marker position={venue} label='Kazoo Hollow Room'>
+                  <Popover.Title>Kazoo Hollow Room</Popover.Title>
+                  <Button onClick={() => setOpen(true)}>Venue details</Button>
+                </Map.Marker>
+              </Map>
+            </MapEngineContext>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <Dialog.Content size='sm'>
+                <Dialog.Title>Doors at 7pm</Dialog.Title>
+                <Dialog.Close render={<Button>Close</Button>} />
+              </Dialog.Content>
+            </Dialog>
+          </>
+        )
+      }
+      render(<VenueMap />)
+      await ready(screen.getByRole('region', { name: 'Map', hidden: true }))
+      await waitFor(() => expect(pageLocked()).toBe(true))
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Kazoo Hollow Room' })
+      )
+
+      const details = await screen.findByRole('button', {
+        name: 'Venue details'
+      })
+      expect(layer()).toContainElement(details)
+      await waitFor(() => expect(middle(details)).toBe(details))
+      await userEvent.click(details)
+
+      const title = await screen.findByText('Doors at 7pm')
+      await waitFor(() => expect(middle(title)).toBe(title))
+      await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+      await waitFor(() =>
+        expect(screen.queryByText('Doors at 7pm')).not.toBeInTheDocument()
+      )
+      // Base UI lets go of a lock on a timer it queues as the dialog closes,
+      // so a timer queued now runs after it.
+      await new Promise((resolve) => setTimeout(resolve))
+      expect(pageLocked()).toBe(true)
+    }
+  )
+
   it.each([
     [
       'drawer',
@@ -640,6 +788,62 @@ describe('Map full screen in the browser', () => {
       await waitFor(() =>
         expect(screen.queryByText('Venues')).not.toBeInTheDocument()
       )
+    }
+  )
+
+  it(
+    'keeps Tab in the map after a dialog from a preview closes',
+    { timeout: 15_000 },
+    async () => {
+      function VenueMap() {
+        const [open, setOpen] = useState(false)
+        return (
+          <>
+            <a href='#behind'>Behind</a>
+            <MapEngineContext value={engine}>
+              <Map defaultCenter={venue}>
+                <Map.Toolbar expand />
+                <Map.Marker position={venue} label='Kazoo Hollow Room'>
+                  <Button onClick={() => setOpen(true)}>Venue details</Button>
+                </Map.Marker>
+              </Map>
+            </MapEngineContext>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <Dialog.Content size='sm'>
+                <Dialog.Title>Doors at 7pm</Dialog.Title>
+              </Dialog.Content>
+            </Dialog>
+          </>
+        )
+      }
+      render(<VenueMap />)
+      await ready(screen.getByRole('region', { name: 'Map' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Full screen' }))
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Kazoo Hollow Room' })
+      )
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Venue details' })
+      )
+      await screen.findByText('Doors at 7pm')
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() =>
+        expect(screen.queryByText('Doors at 7pm')).not.toBeInTheDocument()
+      )
+
+      // Round the map's controls and back, past each end.
+      for (const key of [
+        ...Array(8).fill('{Tab}'),
+        ...Array(8).fill('{Shift>}{Tab}{/Shift}')
+      ]) {
+        await userEvent.keyboard(key)
+        // A focus guard at the map's edge hands focus back in.
+        await waitFor(() =>
+          expect(layer()).toContainElement(
+            document.activeElement as HTMLElement
+          )
+        )
+      }
     }
   )
 

@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 
 import { act, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Toolbar } from '../Toolbar'
@@ -114,6 +115,27 @@ describe('Map view', () => {
 })
 
 describe('Map.Toolbar extras', () => {
+  it('shows every pin from Show all', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <>
+        <Map.Toolbar fit />
+        <Map.Marker position={east} label='Kazoo Hollow Room' />
+        <Map.Marker position={north} label='Foxglove Tin Pavilion' />
+      </>
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(fake.instance.fitBounds).toHaveBeenLastCalledWith(
+      {
+        southWest: { lat: venue.lat, lng: venue.lng },
+        northEast: { lat: north.lat, lng: east.lng }
+      },
+      expect.anything()
+    )
+  })
+
   it('turns Show all off while there is nothing to show', async () => {
     const fake = fakeEngine()
     await renderMap(fake.engine, <Map.Toolbar fit />)
