@@ -18,7 +18,8 @@ export type RenderedEmail = {
   html: string
   /**
    * The plain-text part, from the same content. A linked image is its alt
-   * text and link; any other image is left out.
+   * text and link, or its link alone with no alt text; any other image is
+   * left out.
    */
   text: string
 }
@@ -88,12 +89,11 @@ const HEADINGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map((selector) => ({
 const isInLink = (node: DomNode | null | undefined): boolean =>
   node != null && (node.name === 'a' || isInLink(node.parent))
 
-// A linked image's alt text names its link; any other image is left out.
+// A linked image's alt text names its link, and with none or a blank one
+// the link stands alone, so it stays reachable; any other image is left out.
 const altInLink: FormatCallback = (elem, _walk, builder) => {
   const alt: unknown = elem.attribs?.alt
-  if (typeof alt === 'string' && alt.trim() && isInLink(elem.parent)) {
-    builder.addInline(alt.trim())
-  }
+  if (typeof alt === 'string' && isInLink(elem.parent)) builder.addInline(alt)
 }
 
 // A spacer's hair space would otherwise leave lines of whitespace.

@@ -242,6 +242,23 @@ describe('renderEmail', () => {
       expect(plain).toBe(`Ochre Kite poster [${tickets}]\n\nDoors 7pm`)
     })
 
+    it.each([
+      ['no', ''],
+      ['blank', '  ']
+    ])(
+      'writes a linked image with %s alt text as its link alone in the plain text, so it stays reachable',
+      async (_, alt) => {
+        const { text: plain } = await renderEmail(
+          email(
+            p(text('Doors 7pm')),
+            { type: 'image', attrs: { src: poster, alt, href: tickets } },
+            p(text('All ages'))
+          )
+        )
+        expect(plain).toBe(`Doors 7pm\n\n${tickets}\n\nAll ages`)
+      }
+    )
+
     it('links an image to a link variable’s token', async () => {
       const { html } = await renderEmail(
         email({
