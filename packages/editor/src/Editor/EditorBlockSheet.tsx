@@ -25,12 +25,16 @@ export type SheetAction = {
   run: () => void
 }
 
-export type SheetChoice = {
+/** A place Move to puts the block, an action rather than a toggle. */
+export type SheetPlace = {
   label: string
   icon: Icon
-  /** Whether it's the current one, for a choice that toggles; none for an action. */
-  chosen?: boolean
   run: () => void
+}
+
+export type SheetChoice = SheetPlace & {
+  /** Whether it's the kind the block is now. */
+  chosen: boolean
 }
 
 type EditorBlockSheetProps = {
@@ -47,7 +51,7 @@ type EditorBlockSheetProps = {
   /** Turn into's kinds, or none for a block that isn't text. */
   kinds: readonly SheetChoice[]
   /** Move to's places: the page's headings and sections, which it goes under. */
-  places: readonly SheetChoice[]
+  places: readonly SheetPlace[]
 }
 
 type RowProps = {
@@ -108,7 +112,8 @@ export function EditorBlockSheet({
   places
 }: EditorBlockSheetProps) {
   const [step, setStep] = useState<'turn' | 'move' | null>(null)
-  const choices = step === 'turn' ? kinds : step === 'move' ? places : []
+  const choices: readonly (SheetPlace & { chosen?: boolean })[] =
+    step === 'turn' ? kinds : step === 'move' ? places : []
 
   useEffect(() => {
     if (!open) setStep(null)
