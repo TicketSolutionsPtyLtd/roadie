@@ -831,6 +831,34 @@ describe('renderEmail', () => {
       expect(html).toMatch(/>\s*Tickets for #FirstName#\s*</)
     })
 
+    it('previews no button whose label fills to nothing, never a link with no name', async () => {
+      const { html, text: plain } = await renderEmail(
+        email(
+          {
+            type: 'button',
+            attrs: { href: tickets },
+            content: [tag('first_name')]
+          },
+          p(text('Doors 7pm'))
+        ),
+        { variables, values: {} }
+      )
+      expect(html).not.toContain(`href="${tickets}"`)
+      expect(plain).toBe('Doors 7pm')
+    })
+
+    it('previews a button whose label fills from its fallback', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'button',
+          attrs: { href: tickets },
+          content: [tag('first_name', 'Get tickets')]
+        }),
+        { variables, values: {} }
+      )
+      expect(html).toMatch(/>\s*Get tickets\s*</)
+    })
+
     it('writes a link variable’s token as a link’s href', async () => {
       const unsubscribe = email(
         p(

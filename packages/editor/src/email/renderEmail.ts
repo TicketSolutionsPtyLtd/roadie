@@ -27,7 +27,9 @@ export type RenderedEmail = {
  *
  * In a design, each variable is written as its token in `syntax`, from
  * `variables`, for the sending system to fill, or with `values` as its value
- * for a preview. Throws on a variable `variables` doesn't list, or one with
+ * for a preview, or its fallback without one. A preview leaves out a button
+ * whose label fills to nothing, which would be a link with no name. Throws
+ * on a variable `variables` doesn't list, or one with
  * no token in `syntax`. HTML's merge tags are already tokens, so it ignores
  * these options.
  *
