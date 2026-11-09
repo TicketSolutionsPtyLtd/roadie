@@ -573,6 +573,16 @@ describe('importEmail from HTML', () => {
     ])
   })
 
+  it('reports only the image when it drops a linked image', () => {
+    const imported = importEmail(
+      '<p>Doors</p><a href="/tickets"><img src="http://cdn.oztix.com.au/old.jpg" alt=""></a>'
+    )
+
+    expect(imported.dropped).toEqual([
+      { kind: 'image', src: 'http://cdn.oztix.com.au/old.jpg' }
+    ])
+  })
+
   it('keeps a link variable around an image as its link', () => {
     const imported = importEmail(
       '<a href="{{ unsubscribe_url }}"><img src="https://cdn.oztix.com.au/hero.jpg" alt=""></a>',
