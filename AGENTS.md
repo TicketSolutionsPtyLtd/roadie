@@ -79,6 +79,8 @@ pnpm --filter docs dev
 - Drag and drop goes through `Sortable`. The editor's document blocks are
   the exception: they move with the editor's own block handle, as ProseMirror
   transactions.
+- Maps go through `Map`. Never import a map engine directly; engines plug
+  in behind `MapEngine` ([0014](docs/decisions/0014-map-engines-plug-in.md)).
 
 ## Styling
 
