@@ -499,6 +499,12 @@ function byOwnDefault(
       ({
         ...field,
         ...(defaultValue !== undefined && { defaultValue }),
+        // `propOf` reads `none` as unset, so a raised preset can't draw it.
+        ...(field.type === 'choice' &&
+          name === 'emphasis' &&
+          defaultValue !== 'none' && {
+            options: field.options.filter(({ value }) => value !== 'none')
+          }),
         name,
         available: (attrs: Readonly<Attrs>) =>
           presets.includes(String(attrs.preset))

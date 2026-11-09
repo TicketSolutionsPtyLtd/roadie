@@ -170,6 +170,43 @@ describe('catalogueSections', () => {
     }
   )
 
+  it.each(
+    everyBlock().flatMap((section) =>
+      section.templates.map((template) => [template.label, section, template])
+    )
+  )(
+    'offers only Align and Surface choices that change what %s draws',
+    (_, section, template) => {
+      const { render, attrs, settings } = section as ReturnType<
+        typeof everyBlock
+      >[number]
+      const unset = Object.fromEntries(
+        Object.entries({
+          ...attrs,
+          ...(template as { attrs: object }).attrs
+        }).filter(([name]) => name !== 'align' && name !== 'emphasis')
+      )
+      const draw = (chosen: object) =>
+        renderToStaticMarkup(render({ attrs: { ...unset, ...chosen } }))
+
+      for (const setting of settings) {
+        if (
+          setting.type !== 'choice' ||
+          !['align', 'emphasis'].includes(setting.name) ||
+          !(setting.available?.(unset) ?? true)
+        ) {
+          continue
+        }
+        for (const { value } of setting.options) {
+          expect(
+            draw({ [setting.name]: value }) === draw({}),
+            `${setting.name}: ${value}`
+          ).toBe(value === setting.defaultValue)
+        }
+      }
+    }
+  )
+
   it('names a section’s alignment as an image’s and a button’s are', () => {
     const align = hero().settings.find((setting) => setting.name === 'align')
 
