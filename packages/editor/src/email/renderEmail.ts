@@ -1,4 +1,4 @@
-import { convert } from 'html-to-text'
+import { type DomNode, type FormatCallback, convert } from 'html-to-text'
 import mjml2html from 'mjml'
 
 import type { StoredEmailContent } from '../schema/emailContent'
@@ -16,7 +16,10 @@ export type RenderEmailOptions = MergeTagOptions & {
 export type RenderedEmail = {
   /** A whole HTML page, table-based and inline-styled for mail clients. */
   html: string
-  /** The plain-text part, from the same content. */
+  /**
+   * The plain-text part, from the same content. A linked image is its alt
+   * text and link; any other image is left out.
+   */
   text: string
 }
 
@@ -80,13 +83,26 @@ const HEADINGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map((selector) => ({
   options: { uppercase: false }
 }))
 
+// The root's parent is null, though the types say undefined.
+const isInLink = (node: DomNode | null | undefined): boolean =>
+  node != null && (node.name === 'a' || isInLink(node.parent))
+
+// A linked image's alt text names its link; any other image is left out.
+const altInLink: FormatCallback = (elem, _walk, builder) => {
+  const alt: unknown = elem.attribs?.alt
+  if (typeof alt === 'string' && alt.trim() && isInLink(elem.parent)) {
+    builder.addInline(alt.trim())
+  }
+}
+
 // A spacer's hair space would otherwise leave lines of whitespace.
 function plainText(html: string) {
   return convert(html, {
     wordwrap: 78,
+    formatters: { altInLink },
     selectors: [
       ...HEADINGS,
-      { selector: 'img', format: 'skip' },
+      { selector: 'img', format: 'altInLink' },
       // The preheader, which inboxes read from the HTML only.
       { selector: 'div[style*="display:none"]', format: 'skip' },
       // A layout table's cells are columns, not words of one line.

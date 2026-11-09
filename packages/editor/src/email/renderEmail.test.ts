@@ -228,6 +228,20 @@ describe('renderEmail', () => {
       ).toHaveLength(3)
     })
 
+    it('writes a linked image as its alt text and link in the plain text, and an unlinked one as nothing', async () => {
+      const { text: plain } = await renderEmail(
+        email(
+          {
+            type: 'image',
+            attrs: { src: poster, alt: 'Ochre Kite poster', href: tickets }
+          },
+          image(poster),
+          p(text('Doors 7pm'))
+        )
+      )
+      expect(plain).toBe(`Ochre Kite poster [${tickets}]\n\nDoors 7pm`)
+    })
+
     it('links an image to a link variable’s token', async () => {
       const { html } = await renderEmail(
         email({
