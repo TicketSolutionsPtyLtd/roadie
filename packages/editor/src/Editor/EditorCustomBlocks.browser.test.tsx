@@ -3,7 +3,15 @@ import { useState } from 'react'
 import { TicketIcon } from '@phosphor-icons/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi
+} from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
@@ -106,6 +114,31 @@ describe('Editor extensions', () => {
         .getAllByRole('option')
         .map((option) => option.textContent)
     ).toEqual(['Image', 'Embed', 'Event card'])
+  })
+
+  it('lists an app’s block named as one of the preset’s beside it', async () => {
+    const errors = vi.spyOn(console, 'error')
+    onTestFinished(() => errors.mockRestore())
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[{ ...eventCard, label: 'Embed', group: 'Media' }]}
+      />
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+
+    const media = await screen.findByRole('group', { name: 'Media' })
+    expect(
+      within(media)
+        .getAllByRole('option')
+        .map((option) => option.textContent)
+    ).toEqual(['Image', 'Embed', 'Embed'])
+    expect(errors.mock.calls.flat().map(String).join('\n')).not.toContain(
+      'same key'
+    )
   })
 
   it('inserts an app’s block from the insert menu, found by a keyword', async () => {

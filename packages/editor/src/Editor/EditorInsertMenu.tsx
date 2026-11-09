@@ -100,7 +100,7 @@ export function EditorInsertMenu({
           const Icon = item.icon
           return (
             <div
-              key={item.label}
+              key={optionId(id, index)}
               id={optionId(id, index)}
               role='option'
               aria-selected={index === state.active}

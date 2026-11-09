@@ -325,12 +325,12 @@ export function EditorBlocksDrawer({
                             : 'grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2'
                         }
                       >
-                        {groupTiles.map((item) => {
+                        {groupTiles.map((item, at) => {
                           const Icon = item.icon
                           const disabled = !usable(item)
                           return (
                             <button
-                              key={item.label}
+                              key={`${at}-${item.label}`}
                               type='button'
                               data-slot='editor-blocks-tile'
                               data-group={group}
