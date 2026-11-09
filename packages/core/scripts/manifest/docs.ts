@@ -46,8 +46,9 @@ export function parseDocsPage(mdx: string, route: string): DocsPage {
         : Array.from(list.matchAll(QUOTED), ([, a, b]) => (a ?? b)!)
   )
   // A page with no live example, such as a widget's, shows its usage code.
-  const example = (mdx.match(LIVE_FENCE) ??
-    mdx.match(USAGE)?.[1]?.match(TSX_FENCE))?.[1]?.trimEnd()
+  const example = (
+    mdx.match(LIVE_FENCE) ?? mdx.match(USAGE)?.[1]?.match(TSX_FENCE)
+  )?.[1]?.trimEnd()
   return {
     route,
     components,
