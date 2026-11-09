@@ -264,3 +264,28 @@ export function withButtonsAsLinks(node: JSONContent): JSONContent {
     content: content?.map((label) => ({ ...label, marks }))
   }
 }
+
+/**
+ * Renders an email's merge tag on a page as its fallback, which a recipient
+ * with no value reads, or as nothing without one. A page has no recipient,
+ * and its key or label would show a reader the template's insides.
+ */
+export function withVariablesAsText(node: JSONContent): JSONContent {
+  if (!node.content) return node
+  return {
+    ...node,
+    content: node.content.flatMap((child): JSONContent[] => {
+      if (child.type !== 'variable') return [withVariablesAsText(child)]
+      const fallback: unknown = child.attrs?.fallback
+      return typeof fallback === 'string' && fallback !== ''
+        ? [
+            {
+              type: 'text',
+              text: fallback,
+              ...(child.marks && { marks: child.marks })
+            }
+          ]
+        : []
+    })
+  }
+}

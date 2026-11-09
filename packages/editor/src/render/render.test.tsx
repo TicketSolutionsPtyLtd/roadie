@@ -341,6 +341,28 @@ describe.each(renderers)('%s', (_, render) => {
     }
   )
 
+  it('renders an email’s merge tag as its fallback, with its marks, or as nothing without one', () => {
+    const tag = (fallback?: string, ...marks: Mark[]): JSONContent => ({
+      type: 'variable',
+      attrs: { key: 'first_name', ...(fallback && { fallback }) },
+      ...(marks.length > 0 && { marks })
+    })
+
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            paragraph(text('Hi '), tag('there', { type: 'bold' }), text('!')),
+            paragraph(text('Hi '), tag(), text('!'))
+          ]
+        }
+      })
+    ).toBe('<p>Hi <strong>there</strong>!</p><p>Hi !</p>')
+  })
+
   it('drops attributes the mapping doesn’t read', () => {
     const injected = {
       onclick: 'alert(1)',
