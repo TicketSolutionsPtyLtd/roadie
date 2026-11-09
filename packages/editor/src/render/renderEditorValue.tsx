@@ -22,7 +22,6 @@ import {
   type RenderContext,
   type SavedAttrs,
   VOID_TAGS,
-  outermostMarksLast,
   presetElementsFor,
   withButtonsAsLinks,
   withImageFigures,
@@ -110,7 +109,7 @@ function renderDoc(
   }
   nodeMapping.text = ({ node }) =>
     typeof node.text === 'string' ? node.text : null
-  const content = withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+  const content = withTableSections(withButtonsAsLinks(doc))
   return renderJSONContentToReactElement({
     nodeMapping,
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
