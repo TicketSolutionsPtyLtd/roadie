@@ -990,8 +990,10 @@ function busiestPages(items: ReleaseItem[]) {
 }
 
 // A production bump needs a changeset, written as "Update `pkg` to 3.14.22" or "Update React Aria to 1.2".
-// A name runs to three words, so a longer sentence that reaches a number isn't one.
-const DEPENDENCY_BUMP = /^(?:Update|Bump|Upgrade) (?:\S+ ){1,3}to v?\d+\.\d+/
+// A name runs to three words and never starts with "the", and the version has no unit after it, so
+// "Update the badge gap to 2.5px." stays a change.
+const DEPENDENCY_BUMP =
+  /^(?:Update|Bump|Upgrade) (?!(?:the|a|an) )(?:\S+ ){1,3}to (?:v\d+(?:\.\d+){0,2}|\d+(?:\.\d+){1,2})(?!\.?[\w%])/
 
 const isDependencyBump = (item: ReleaseItem) =>
   DEPENDENCY_BUMP.test(plainText(item.text))
