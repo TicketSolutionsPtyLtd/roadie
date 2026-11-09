@@ -569,5 +569,31 @@ describe('Editor preview', () => {
 
       expect(await screen.findByText(/Mailbox full/)).toBeInTheDocument()
     })
+
+    it('sends without submitting a form around the editor', async () => {
+      const onSendTest = vi.fn(async () => {})
+      const onSubmit = vi.fn((event: SubmitEvent) => event.preventDefault())
+      render(
+        <form onSubmit={(event) => onSubmit(event.nativeEvent as SubmitEvent)}>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={VALUE}
+            toolbar='docked'
+            onRenderPreview={async () => '<p>Hi</p>'}
+            onSendTest={onSendTest}
+          />
+        </form>
+      )
+      await openPreview()
+
+      await userEvent.click(screen.getByRole('button', { name: 'Send test' }))
+      await userEvent.type(
+        await screen.findByRole('textbox', { name: 'Send to' }),
+        'promoter@example.com{Enter}'
+      )
+
+      await waitFor(() => expect(onSendTest).toHaveBeenCalled())
+      expect(onSubmit).not.toHaveBeenCalled()
+    })
   })
 })

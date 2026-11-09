@@ -336,6 +336,8 @@ function SendTest({ onSend, className, labelClassName }: SendTestProps) {
 
   const send = (event: FormEvent) => {
     event.preventDefault()
+    // React bubbles a portalled submit to the form around the editor.
+    event.stopPropagation()
     if (!canSend) return
     setSending({ state: 'sending' })
     const id = ++sendId.current
