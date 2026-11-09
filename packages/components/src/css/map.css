@@ -105,10 +105,74 @@
   /* Map.Clusters' bands: filled with the group's heat colour, with rings
      of it radiating out and fading, as far as its value spreads them. The
      rings sit outside the band, so they never cover its text or focus
-     ring. On hover, keyboard focus or `highlight`, the fill and rings shift to the
-     neighbouring heat colour, as Roadie's strong fills move a step along
-     their scale. Text stays white on the fills, but dark mode's heat scale
-     ends in pale fills, which take dark text. */
+     ring. On hover, keyboard focus or `highlight`, the fill and rings shift
+     to the neighbouring heat colour, as Roadie's strong fills move a step
+     along their scale.
+
+     A band's level runs from 0 for the smallest to 4 for the largest. Each
+     mode takes the five heat colours that end in its most vivid: orange to
+     violet in light mode, where the scale's last steps dull toward navy,
+     and pink to cream in dark mode. The legend's swatches take the same. */
+  :is([data-slot='map-cluster-band'], [data-slot='map-cluster-legend-swatch']) {
+    &[data-level='0'] {
+      --map-cluster-rest: var(--chart-heat-2);
+      --map-cluster-hover: var(--chart-heat-3);
+    }
+    &[data-level='1'] {
+      --map-cluster-rest: var(--chart-heat-3);
+      --map-cluster-hover: var(--chart-heat-4);
+    }
+    &[data-level='2'] {
+      --map-cluster-rest: var(--chart-heat-4);
+      --map-cluster-hover: var(--chart-heat-5);
+    }
+    &[data-level='3'] {
+      --map-cluster-rest: var(--chart-heat-5);
+      --map-cluster-hover: var(--chart-heat-6);
+    }
+    &[data-level='4'] {
+      --map-cluster-rest: var(--chart-heat-6);
+      --map-cluster-hover: var(--chart-heat-5);
+    }
+  }
+
+  .dark
+    :is(
+      [data-slot='map-cluster-band'],
+      [data-slot='map-cluster-legend-swatch']
+    ) {
+    &[data-level='0'] {
+      --map-cluster-rest: var(--chart-heat-4);
+      --map-cluster-hover: var(--chart-heat-5);
+    }
+    &[data-level='1'] {
+      --map-cluster-rest: var(--chart-heat-5);
+      --map-cluster-hover: var(--chart-heat-6);
+    }
+    &[data-level='2'] {
+      --map-cluster-rest: var(--chart-heat-6);
+      --map-cluster-hover: var(--chart-heat-7);
+    }
+    &[data-level='3'] {
+      --map-cluster-rest: var(--chart-heat-7);
+      --map-cluster-hover: var(--chart-heat-8);
+    }
+    &[data-level='4'] {
+      --map-cluster-rest: var(--chart-heat-8);
+      --map-cluster-hover: var(--chart-heat-7);
+    }
+  }
+
+  [data-slot='map-cluster-legend-swatch'] {
+    background-color: var(--map-cluster-rest);
+  }
+
+  /* Opposite the credits, clear of a safe area while filling the window. */
+  [data-slot='map-cluster-legend'] {
+    left: var(--map-inset-left);
+    bottom: calc(var(--map-credits-bottom) + --spacing(2));
+  }
+
   [data-slot='map-cluster-band'] {
     --map-cluster-color: var(--map-cluster-rest);
     --map-cluster-ring: color-mix(
@@ -146,26 +210,27 @@
         --map-cluster-color: var(--map-cluster-hover);
       }
     }
-  }
 
-  /* Dark mode's pale fills, from the sixth heat colour, take dark text, as
-     does the fifth's band when hover shifts it to the sixth. */
-  .dark [data-slot='map-cluster-band']:not([data-step='4']) {
-    color: var(--color-neutral-light-12);
-  }
-
-  @media (hover: hover) {
-    .dark [data-slot='map-cluster-band'][data-step='4']:hover {
+    /* Light mode's orange and coral, and their hover colours, take dark
+       text. */
+    &:is([data-level='0'], [data-level='1']) {
       color: var(--color-neutral-light-12);
     }
   }
 
-  .dark
-    [data-slot='map-cluster-band'][data-step='4']:is(
-      :focus-visible,
-      [data-highlighted]
-    ) {
+  /* Dark mode's fills take dark text, but for the pink of level 0 at rest. */
+  .dark [data-slot='map-cluster-band'] {
     color: var(--color-neutral-light-12);
+
+    &[data-level='0']:not(:focus-visible, [data-highlighted]) {
+      color: var(--color-neutral-light-0);
+    }
+  }
+
+  @media (hover: hover) {
+    .dark [data-slot='map-cluster-band'][data-level='0']:hover {
+      color: var(--color-neutral-light-12);
+    }
   }
 }
 

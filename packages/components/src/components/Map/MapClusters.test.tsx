@@ -57,6 +57,16 @@ describe('Map.Clusters', () => {
     expect(band('120, 67% of all').textContent).toBe('12067%')
   })
 
+  it('shows only the value or the share with show, and names both', async () => {
+    const { rerenderMap } = await renderClusters({ show: 'share' })
+    expect(band('120, 67% of all').textContent).toBe('67%')
+
+    await rerenderMap(
+      <Map.Clusters data={sales} label='Ticket sales' show='value' />
+    )
+    expect(band('120, 67% of all').textContent).toBe('120')
+  })
+
   it('highlights the bands holding the places named in highlight', async () => {
     const { rerenderMap, fake } = await renderClusters({
       highlight: 'Teneriffe'
@@ -120,6 +130,28 @@ describe('Map.Clusters', () => {
     expect(last().map(({ value }: { value: number }) => value)).toEqual([
       60, 50, 40, 30
     ])
+  })
+
+  it('keys the colours with legend, up to the largest band at this zoom', async () => {
+    const { zoomTo } = await renderClusters({
+      legend: true,
+      formatValue: (value) => `$${value}`
+    })
+    const legend = () =>
+      document.querySelector('[data-slot="map-cluster-legend"]')
+    expect(legend()).toHaveTextContent('Ticket sales')
+    expect(legend()).toHaveTextContent('$0')
+    expect(legend()).toHaveTextContent('$120')
+
+    await zoomTo(21)
+    expect(legend()).toHaveTextContent('$60')
+  })
+
+  it('has no legend unless asked', async () => {
+    await renderClusters()
+    expect(
+      document.querySelector('[data-slot="map-cluster-legend"]')
+    ).not.toBeInTheDocument()
   })
 
   it('marks a share under half a percent as under 1%', async () => {

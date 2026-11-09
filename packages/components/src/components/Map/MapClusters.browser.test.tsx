@@ -30,7 +30,7 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-async function renderSales(locked = false, highlight?: string) {
+async function renderSales(locked = false, highlight?: string, legend = false) {
   const actions = createRef<MapActions>()
   const views: number[] = []
   const sample = (isLocked: boolean) => (
@@ -47,6 +47,7 @@ async function renderSales(locked = false, highlight?: string) {
             label='Ticket sales'
             locked={isLocked}
             highlight={highlight}
+            legend={legend}
           />
         </Map>
       </MapEngineContext>
@@ -88,6 +89,26 @@ describe('Map.Clusters in the browser', () => {
         expect(anchor.left).toBeGreaterThan(box.left)
         expect(anchor.right).toBeLessThan(box.right)
       }
+    }
+  )
+
+  it(
+    'draws a larger band for a larger value, with text that can’t be selected',
+    { timeout: 15_000 },
+    async () => {
+      await renderSales()
+      await waitFor(() => expect(bands()).toHaveLength(2))
+      const size = (name: string) =>
+        screen.getByRole('button', { name }).getBoundingClientRect().width
+      const larger = size('Ticket sales: 120, 67% of all')
+      const smaller = size('Ticket sales: 60, 33% of all')
+
+      expect(larger).toBeGreaterThan(smaller + 4)
+      expect(smaller).toBeGreaterThanOrEqual(44)
+      const [band] = bands()
+      // A double-click to zoom never selects the band's text.
+      const style = getComputedStyle(band!)
+      expect(style.userSelect || style.webkitUserSelect).toBe('none')
     }
   )
 
@@ -142,6 +163,31 @@ describe('Map.Clusters in the browser', () => {
       await userEvent.hover(lit)
       expect(highlighted).not.toBe(rest)
       expect(fill()).toBe(highlighted)
+      instant.remove()
+    }
+  )
+
+  it(
+    'colours the legend in the bands’ colours, strongest for the largest',
+    { timeout: 15_000 },
+    async () => {
+      await renderSales(false, undefined, true)
+      await waitFor(() => expect(bands()).toHaveLength(2))
+      // Colours read at once, without the fill's transition.
+      const instant = document.createElement('style')
+      instant.textContent = '* { transition: none !important }'
+      document.head.append(instant)
+      const swatches = [
+        ...document.querySelectorAll<HTMLElement>(
+          '[data-slot="map-cluster-legend-swatch"]'
+        )
+      ].map((swatch) => getComputedStyle(swatch).backgroundColor)
+      const fill = (name: string) =>
+        getComputedStyle(screen.getByRole('button', { name })).backgroundColor
+
+      expect(new Set(swatches).size).toBe(5)
+      expect(swatches.at(-1)).toBe(fill('Ticket sales: 120, 67% of all'))
+      expect(swatches).toContain(fill('Ticket sales: 60, 33% of all'))
       instant.remove()
     }
   )

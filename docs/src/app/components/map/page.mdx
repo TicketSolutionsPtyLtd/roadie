@@ -405,13 +405,13 @@ render(<VenuePreview />)
 
 ### Clusters
 
-`Map.Clusters` shows places with values, such as totals by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, and below it its share of every value in `data`, which stays the same as the map pans. Bands are filled in the heat colours, stronger as their value nears the largest band's, and their rings spread further.
+`Map.Clusters` shows places with values, such as totals by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, and below it its share of every value in `data`, which stays the same as the map pans; `show='value'` or `show='share'` shows only one. As a band's value nears the largest band's at this zoom, it grows a little, its rings spread further, and its heat colour strengthens, to violet in light mode and pale cream in dark. `legend` keys the colours in the map's bottom corner, from nothing to the largest band's value, which changes as the map zooms.
 
-Clicking a band zooms in until it splits. A single place opens a preview with its `label` instead. `locked` keeps the groups as they are: zooming in spreads the bands apart without splitting them, and clicking a band opens its preview, with the places in it and how far they spread. Put the control that sets it beside what lists the groups, such as a Lock groups toggle above a table, rather than on the map.
+Clicking a band zooms in until it splits. A single place opens a preview with its `label` instead. `locked` keeps the groups as they are: zooming in spreads the bands apart without splitting them, and clicking a band opens its preview, with the places in it and how far they spread. Put the controls for these display settings beside what lists the groups, such as a Display menu above a table, rather than on the map.
 
 Give places a `region`, such as their state, and they only group with places in the same region, so two cities never merge however far out the map is.
 
-`onGroupsChange` gives you the bands on the map whenever they change, each with its value, share and places, largest first. Here each band is a group of rows in a [`DataTable`](/charts/data-table#grouped-rows), so the table lists only what the map shows, and View all lists every place by state. `highlight` lights the bands holding places by their `label`, as hover does, so hovering or focusing a row lights its band. A place inside a group lights its group's band.
+`onGroupsChange` gives you the bands on the map whenever they change, each with its value, share and places, largest first. Here each band is a group of rows in a [`DataTable`](/charts/data-table#grouped-rows), so the table lists only what the map shows, and View all lists every place by state. A share column with `total: true` adds up in each group and the totals. `highlight` lights the bands holding places by their `label`, as hover does, so hovering or focusing a row lights its band. A place inside a group lights its group's band. Opening a group fits the map to its places with `actionsRef`, which splits its band unless the groups are locked.
 
 Send totals per postcode or suburb, not a place per person, so no one's location reaches the browser, and leave out totals small enough to point to someone.
 
@@ -440,10 +440,14 @@ const places = [
   { position: { lat: -12.4634, lng: 130.8456 }, value: 26, label: 'Darwin', region: 'NT' }
 ]
 
+const total = places.reduce((sum, { value }) => sum + value, 0)
+
 const columns = [
   { key: 'group', header: 'Group', kind: 'text' },
   { key: 'place', header: 'Place', kind: 'text' },
-  { key: 'value', header: 'Total', kind: 'number' }
+  { key: 'value', header: 'Total', kind: 'number' },
+  // Shares of one whole add up, so groups and totals sum them.
+  { key: 'share', header: 'Share', kind: 'number', format: 'percent', total: true }
 ]
 
 // Each band is a group, named for its largest place. With all, each state is.
@@ -462,27 +466,41 @@ const stateGroups = () =>
   }))
 
 function PlaceTotals() {
+  const map = useRef(null)
   const [bands, setBands] = useState([])
   const [all, setAll] = useState(false)
   const [locked, setLocked] = useState(false)
+  const [show, setShow] = useState('both')
+  const [legend, setLegend] = useState(true)
   const [lit, setLit] = useState()
   const groups = all ? stateGroups() : bandGroups(bands)
   const rows = groups.flatMap(({ name, places }) =>
-    places.map(({ label, value }) => ({ group: name, place: label, value }))
+    places.map(({ label, value }) => ({
+      group: name,
+      place: label,
+      value,
+      share: value / total
+    }))
   )
   // A row's first cell names a group of places, or one place.
+  const groupNamed = (name) => groups.find((group) => group.name === name)
   const placesNamed = (name) =>
-    groups
-      .find((group) => group.name === name)
-      ?.places.map(({ label }) => label) ??
+    groupNamed(name)?.places.map(({ label }) => label) ??
     (rows.some(({ place }) => place === name) ? [name] : undefined)
-  const light = (event) =>
-    setLit(placesNamed(event.target.closest('tr')?.cells[0]?.textContent))
+  const labelOf = (event) => event.target.closest('tr')?.cells[0]?.textContent
+  const light = (event) => setLit(placesNamed(labelOf(event)))
+  // Opening a group shows its places on the map too.
+  const showGroup = (event) => {
+    if (!event.target.closest('[data-slot="data-table-group"]')) return
+    const group = groupNamed(labelOf(event))
+    if (group) map.current?.fitTo(group.places.map(({ position }) => position))
+  }
   return (
     <div className='grid gap-4'>
       <Map
         defaultCenter={{ lat: -26.5, lng: 137.5 }}
         defaultZoom={2.3}
+        actionsRef={map}
         aria-label='Where the totals are'
         className='aspect-4/3'
       >
@@ -491,6 +509,8 @@ function PlaceTotals() {
           data={places}
           label='Total'
           locked={locked}
+          show={show}
+          legend={legend}
           highlight={lit}
           onGroupsChange={setBands}
         />
@@ -502,19 +522,31 @@ function PlaceTotals() {
             : `${rows.length} of ${places.length} places on the map`}
         </p>
         <div className='flex flex-wrap gap-2'>
-          <Toggle
-            size='sm'
-            emphasis='subtle'
-            pressed={locked}
-            onPressedChange={setLocked}
-          >
-            {locked ? (
-              <LockSimpleIcon weight='fill' className='size-4' />
-            ) : (
-              <LockSimpleOpenIcon weight='bold' className='size-4' />
-            )}
-            Lock groups
-          </Toggle>
+          <Menu>
+            <Menu.Trigger
+              render={
+                <Button size='sm' emphasis='subtle'>
+                  <SlidersHorizontalIcon weight='bold' className='size-4' />
+                  Display
+                </Button>
+              }
+            />
+            <Menu.Content>
+              <Menu.RadioGroup value={show} onValueChange={setShow}>
+                <Menu.GroupLabel>Bands show</Menu.GroupLabel>
+                <Menu.RadioItem value='both'>Total and share</Menu.RadioItem>
+                <Menu.RadioItem value='value'>Total</Menu.RadioItem>
+                <Menu.RadioItem value='share'>Share</Menu.RadioItem>
+              </Menu.RadioGroup>
+              <Menu.Separator />
+              <Menu.CheckboxItem checked={locked} onCheckedChange={setLocked}>
+                Lock groups
+              </Menu.CheckboxItem>
+              <Menu.CheckboxItem checked={legend} onCheckedChange={setLegend}>
+                Show key
+              </Menu.CheckboxItem>
+            </Menu.Content>
+          </Menu>
           <Button size='sm' emphasis='subtle' onClick={() => setAll(!all)}>
             {all ? 'View what’s on the map' : 'View all'}
           </Button>
@@ -530,6 +562,7 @@ function PlaceTotals() {
         columns={columns}
         rows={rows}
         getRowKey={(row) => row.place}
+        onClick={showGroup}
         onPointerOver={light}
         onPointerLeave={() => setLit(undefined)}
         onFocus={light}
@@ -1025,7 +1058,7 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 - The picker's pin is a button named by `label`, or in a `Field` by the field's label, and "Chosen place" otherwise. Arrow keys move it, and Shift moves it further. In a `Field`, the pin is described by the field's help or error text, and marked invalid with it. Show that it's required with `Field.Label showIndicator`. A required picker with no place stops the form, and focus moves to Drop the pin here. Keep the chosen place in text too, such as its address or coordinates, so it can be read and checked without the map.
 - A custom `pin` is still named by `label`, so screen readers read the place, not the graphic.
 - The search is a combobox named by `aria-label`, "Search the map" by default. A status message says while it searches, how many places it found, when it found none, and when places couldn't load. Arrow keys move through the places and Enter chooses one. Escape closes the list, then clears the text, then exits full screen.
-- Each cluster band is a button named with what it counts, its value and its share, such as "Total: 120, 6% of all", largest first in Tab order. One that zooms in to split is described as such, and focus moves to the largest band it splits into. Locked, or for a single place, Enter opens its preview. Put the numbers in a list or table beside the map too, so they can be compared and read without it.
+- Each cluster band is a button named with what it counts, its value and its share, such as "Total: 120, 6% of all", largest first in Tab order. One that zooms in to split is described as such, and focus moves to the largest band it splits into. Locked, or for a single place, Enter opens its preview. The legend is hidden from screen readers, as the bands' names hold their values. Put the numbers in a list or table beside the map too, so they can be compared and read without it.
 - The zoom buttons are a toolbar named Zoom, so Tab reaches it once and the arrow keys move between Zoom in and Zoom out. Show all, Lock groups, Show my location and Full screen are buttons of their own. Your own buttons are a toolbar named Map controls.
 - Show my location is a toggle button: pressed while it follows the reader's location. The dot is a picture named Your location. Its pulse doesn't run when the reader asks for reduced motion. If the location isn't available, a message below the button says so, and screen readers hear it.
 - The full screen button is named Full screen, and Exit full screen while the map fills the window. The full screen map is a modal dialog named by `aria-label`, so Tab stays in the map while it's full screen. Escape closes the top layer first: an open preview, then the full screen map, then a drawer or dialog the map sits in. Focus returns to the button, or to your own button that opened it.

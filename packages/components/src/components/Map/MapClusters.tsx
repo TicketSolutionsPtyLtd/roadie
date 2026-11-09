@@ -73,6 +73,19 @@ export type MapClustersProps = {
    * @default false
    */
   locked?: boolean
+  /**
+   * What each band shows: its value and, below it, its share of every value
+   * in `data`, or only one. Its name always holds both.
+   * @default 'both'
+   */
+  show?: 'both' | 'value' | 'share'
+  /**
+   * Keys the colours in the map's bottom corner, from nothing to the largest
+   * band at this zoom. Colours compare bands at one zoom, so the top of the
+   * key changes as the map zooms.
+   * @default false
+   */
+  legend?: boolean
   className?: string
 }
 
@@ -95,6 +108,8 @@ export function MapClusters({
   onGroupsChange,
   formatValue = formatNumber,
   locked = false,
+  legend = false,
+  show = 'both',
   className
 }: MapClustersProps) {
   const { instance, frame, setPlace } = useMapContext('Map.Clusters')
@@ -274,21 +289,32 @@ export function MapClusters({
                 aria-label={name}
                 aria-describedby={zooms ? hintId : undefined}
                 data-slot='map-cluster-band'
-                data-step={stepOf(group.value, largest)}
+                data-level={levelOf(group.value, largest)}
                 data-highlighted={highlighted.has(group.key) || undefined}
-                className='is-interactive relative grid aspect-square min-w-11 -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums'
+                className='is-interactive relative grid aspect-square min-w-(--map-cluster-size) -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums select-none'
                 style={
                   {
-                    '--map-cluster-rest': `var(--chart-heat-${stepOf(group.value, largest)})`,
-                    '--map-cluster-hover': `var(--chart-heat-${hoverStepOf(stepOf(group.value, largest))})`,
+                    '--map-cluster-size': `${sizeOf(group.value, largest)}px`,
                     '--map-cluster-spread': `${spreadOf(group.value, largest)}px`
                   } as CSSProperties
                 }
               >
-                <span className='text-sm font-medium'>
-                  {formatValue(group.value)}
-                </span>
-                <span className='text-xs opacity-75'>{share}</span>
+                {show !== 'share' && (
+                  <span className='text-sm font-medium'>
+                    {formatValue(group.value)}
+                  </span>
+                )}
+                {show !== 'value' && (
+                  <span
+                    className={cn(
+                      show === 'both'
+                        ? 'text-xs opacity-75'
+                        : 'text-sm font-medium'
+                    )}
+                  >
+                    {share}
+                  </span>
+                )}
               </Popover.Trigger>
               <MapPreview sideOffset={8} onClose={() => setOpen(null)}>
                 {open === group.key && (
@@ -305,11 +331,58 @@ export function MapClusters({
           </div>
         )
       })}
+      {legend && (
+        <ClusterLegend
+          label={label}
+          largest={formatValue(largest)}
+          none={formatValue(0)}
+        />
+      )}
     </div>
   )
 }
 
 MapClusters.displayName = 'Map.Clusters'
+
+const LEGEND_LEVELS = [0, 1, 2, 3, 4]
+
+/**
+ * The heat colours from an empty band to the largest. The bands' names
+ * carry their values, so screen readers skip it.
+ */
+function ClusterLegend({
+  label,
+  largest,
+  none
+}: {
+  label: string
+  largest: string
+  none: string
+}) {
+  return (
+    <div
+      data-slot='map-cluster-legend'
+      aria-hidden
+      className='pointer-events-none absolute z-10 grid gap-1 rounded-lg is-translucent bg-raised px-2 py-1.5 text-xs text-subtle tabular-nums'
+    >
+      <p className='font-medium text-normal'>{label}</p>
+      <div className='flex'>
+        {LEGEND_LEVELS.map((level) => (
+          <span
+            key={level}
+            data-slot='map-cluster-legend-swatch'
+            data-level={level}
+            className='h-2 w-5 first:rounded-s-full last:rounded-e-full'
+          />
+        ))}
+      </div>
+      <div className='flex justify-between gap-2'>
+        <span>{none}</span>
+        <span>{largest}</span>
+      </div>
+    </div>
+  )
+}
 
 /** A group's total, share and places, as a band's preview. */
 function GroupPreview({
@@ -361,18 +434,17 @@ function shareOf(value: number, total: number) {
   return `${Math.round(percent)}%`
 }
 
-// Bands step from the fifth heat colour to the last, the strongest against
-// the basemap in light and dark, as their value nears the largest group's.
-// Below the fifth, light mode's fills are too pale for white text.
-// On hover, a band takes the next heat colour, as Roadie's strong fills
-// take the next step of their scale; the strongest takes the one before.
-function hoverStepOf(step: number) {
-  return step === 8 ? 7 : step + 1
+// A band's heat level, from 0 for nothing to 4 for the largest, which the
+// stylesheet colours in each mode.
+function levelOf(value: number, largest: number) {
+  if (largest <= 0) return 0
+  return Math.round((4 * value) / largest)
 }
 
-function stepOf(value: number, largest: number) {
-  if (largest <= 0) return 4
-  return 4 + Math.round((4 * value) / largest)
+// Bands grow a little with their value, by area, from a touch target.
+function sizeOf(value: number, largest: number) {
+  if (largest <= 0) return 44
+  return Math.round(44 + 20 * Math.sqrt(value / largest))
 }
 
 // The rings spread from 6px to 18px with a group's value, by area.
