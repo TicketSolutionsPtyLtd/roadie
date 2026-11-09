@@ -5,7 +5,7 @@ import {
   waitFor,
   within
 } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Dialog } from '@oztix/roadie-components/dialog'
@@ -363,6 +363,26 @@ describe('Editor insert menu', () => {
         'No blocks match'
       )
     )
+  })
+
+  it('keeps its matches on screen while a query that matches is typed', async () => {
+    renderEmail()
+    await focusedTextbox()
+    await userEvent.keyboard('/')
+    const menu = await insertMenu()
+    const shown: string[] = []
+    const watch = new MutationObserver(() =>
+      shown.push(menu.querySelector('[role=option]')?.textContent ?? '')
+    )
+    watch.observe(menu, { childList: true, subtree: true })
+    onTestFinished(() => watch.disconnect())
+
+    await userEvent.keyboard('h')
+
+    await waitFor(() =>
+      expect(shown.some((text) => text.startsWith('Heading 2'))).toBe(true)
+    )
+    expect(shown).not.toContain('No blocks match')
   })
 
   it('ranks a match at the start of a name first, as /2 finds 2 columns before Heading 2', async () => {
