@@ -133,14 +133,6 @@
       transition: box-shadow var(--duration-moderate) var(--ease-standard);
     }
 
-    /* Grows a little on hover, on the same spring as is-interactive's press,
-       which shrinks it. */
-    @media (prefers-reduced-motion: no-preference) {
-      &:hover:not(:active) {
-        transform: scale(1.04);
-      }
-    }
-
     &:hover::before {
       --map-cluster-ring: color-mix(
         in oklab,
