@@ -28,7 +28,8 @@ export type SheetAction = {
 export type SheetChoice = {
   label: string
   icon: Icon
-  chosen: boolean
+  /** Whether it's the current one, for a choice that toggles; none for an action. */
+  chosen?: boolean
   run: () => void
 }
 
