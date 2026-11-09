@@ -475,7 +475,7 @@ function partsOf(block: CatalogueBlock, fields: Set<string>) {
 }
 
 // A choice shows what the block draws while it's unset, which can differ by
-// preset, such as Cards' centred plain cards and left-aligned text blocks. So
+// preset, such as Cards' centred plain cards and left-aligned photo cards. So
 // it's one setting for each set of presets that agree, shown only for those.
 function byOwnDefault(
   block: CatalogueBlock,
