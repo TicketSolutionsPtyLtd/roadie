@@ -271,6 +271,79 @@ function hinted(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
   return shown
 }
 
+const isString = (value: unknown): value is string => typeof value === 'string'
+
+const isNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value)
+
+// Only an image's own fields, so a saved `style` or `ref` never reaches it.
+function imageOf(value: unknown): Attrs | undefined {
+  if (!isAttrs(value) || !isString(value.src)) return undefined
+  const { src, alt, width, height, blurDataURL } = value
+  return {
+    src,
+    alt: isString(alt) ? alt : '',
+    ...(isNumber(width) && { width }),
+    ...(isNumber(height) && { height }),
+    ...(isString(blurDataURL) && { blurDataURL })
+  }
+}
+
+function actionOf(value: unknown): Attrs | undefined {
+  if (!isAttrs(value)) return undefined
+  const { label, href, icon } = value
+  return {
+    label: isString(label) ? label : '',
+    href: isString(href) ? href : '',
+    ...(isString(icon) && { icon })
+  }
+}
+
+function settingValue(setting: CatalogueSetting, value: unknown): unknown {
+  switch (setting.type) {
+    case 'text':
+    case 'choice':
+      return isString(value) ? value : undefined
+    case 'image':
+      return imageOf(value)
+    case 'action':
+      return actionOf(value)
+    case 'list': {
+      if (!Array.isArray(value)) return undefined
+      const { item, fields } = setting
+      const itemOf = (entry: unknown) => {
+        if (item === 'image') return imageOf(entry)
+        if (item === 'action') return actionOf(entry)
+        return isAttrs(entry) && fields ? shaped(fields, entry) : entry
+      }
+      return value.map(itemOf).filter((entry) => entry !== undefined)
+    }
+  }
+}
+
+/**
+ * Saved attrs as their settings describe them, as a page renders whatever
+ * was saved: text and choices as strings, and images and buttons with only
+ * their own fields.
+ */
+function shaped(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
+  const shown: Attrs = { ...attrs }
+  const done = new Set<string>()
+  // A list's fields differ by preset, so the setting its preset reads wins.
+  const ordered = [
+    ...settings.filter((setting) => setting.available?.(attrs) ?? true),
+    ...settings
+  ]
+  for (const setting of ordered) {
+    if (done.has(setting.name)) continue
+    done.add(setting.name)
+    if (setting.name in attrs) {
+      shown[setting.name] = settingValue(setting, attrs[setting.name])
+    }
+  }
+  return shown
+}
+
 const camel = (kebab: string) =>
   kebab.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())
 
@@ -464,17 +537,18 @@ export function catalogueSections({
         settings,
         // Its attrs are its props by name, as saved, so lists are checked.
         render: ({ attrs, editing, editingItem }) => {
+          const saved = shaped(settings, attrs)
           if (!editing) {
             return createElement(
               component as ComponentType<Attrs>,
-              propsOf(block.name, attrs)
+              propsOf(block.name, saved)
             )
           }
           return createElement(
             EditingImages,
             null,
             createElement(component as ComponentType<Attrs>, {
-              ...propsOf(block.name, hinted(settings, attrs), true),
+              ...propsOf(block.name, hinted(settings, saved), true),
               ...openedBy(block.name, editingItem)
             })
           )

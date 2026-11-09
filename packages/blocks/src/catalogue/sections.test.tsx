@@ -297,6 +297,79 @@ describe('catalogueSections', () => {
     expect(page).not.toContain('block-image-placeholder')
   })
 
+  // Saved attrs are untrusted, and a public page renders them.
+  describe.each([false, true])(
+    'with editing %s, from saved JSON',
+    (editing) => {
+      const hero = () => everyBlock().find(({ label }) => label === 'Hero')!
+      const draw = (attrs: Record<string, unknown>) =>
+        renderToStaticMarkup(
+          hero().render({
+            attrs: { ...hero().attrs, title: 'Kazoo Hollow', ...attrs },
+            editing
+          })
+        )
+
+      it('draws a button whose icon names a prototype key', () => {
+        const html = draw({
+          preset: 'title',
+          actions: [{ label: 'Tickets', href: '/tickets', icon: 'constructor' }]
+        })
+
+        expect(html).toContain('>Tickets<')
+      })
+
+      it('draws a button with no object for its label', () => {
+        expect(() =>
+          draw({
+            preset: 'title',
+            actions: [{ label: { text: 'Tickets' }, href: '/tickets' }]
+          })
+        ).not.toThrow()
+      })
+
+      it('draws an image with a string style, without passing it on', () => {
+        const html = draw({
+          preset: 'image',
+          image: { src: '/photo.webp', alt: 'A crowd', style: 'color: red' }
+        })
+
+        expect(html).toContain('/photo.webp')
+      })
+
+      it('draws a section whose choices name prototype keys', () => {
+        expect(() =>
+          draw({
+            preset: 'constructor',
+            align: 'constructor',
+            size: '__proto__',
+            emphasis: 'toString',
+            intent: 'constructor'
+          })
+        ).not.toThrow()
+      })
+
+      it('draws a card whose title is an object', () => {
+        const cards = everyBlock().find(({ label }) => label === 'Cards')!
+
+        expect(() =>
+          renderToStaticMarkup(
+            cards.render({
+              attrs: {
+                ...cards.attrs,
+                preset: 'plain',
+                cards: [
+                  { title: { text: 'Camping' }, description: 'By the stage' }
+                ]
+              },
+              editing
+            })
+          )
+        ).not.toThrow()
+      })
+    }
+  )
+
   it('shows a placeholder for a section’s own photo only while editing', () => {
     const hero = everyBlock().find(({ label }) => label === 'Hero')!
     const attrs = { ...hero.attrs, preset: 'image', title: 'Kazoo Hollow' }
