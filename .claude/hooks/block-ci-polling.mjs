@@ -23,10 +23,13 @@ const shellScript =
 
 // Quoted text and heredoc bodies are data (commit messages, PR bodies), not
 // commands, so a message that mentions `gh run watch` isn't blocked. A script
-// passed to `sh -c` and a quoted number, as in `sleep "60"`, stay.
+// passed to `sh -c` and a quoted number, as in `sleep "60"`, stay. A line
+// ending in a backslash carries on, so `gh pr checks 1 \` then `--watch` is
+// one command.
 function stripLiterals(command) {
   return command
     .replace(/<<-?\s*(['"]?)(\w+)\1[^\n]*\n[\s\S]*?\n\s*\2(?=\n|$)/g, '\n')
+    .replace(/\\\r?\n/g, ' ')
     .replace(shellScript, (_, single, double) => single ?? double)
     .replace(/(['"])([\d.]+[smhd]?)\1/g, '$2')
     .replace(/'[^']*'|"(?:\\.|[^"\\])*"/g, "''")

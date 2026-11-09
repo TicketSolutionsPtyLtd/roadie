@@ -49,7 +49,10 @@ describe('block-ci-polling', () => {
     "zsh -l -c 'sleep 60'",
     'while true; do gh pr checks 1 && break; sleep $DELAY; done',
     'while sleep $DELAY; do gh pr checks 1 && break; done',
-    'until gh pr checks 1; do /bin/sleep 5; done'
+    'until gh pr checks 1; do /bin/sleep 5; done',
+    'gh pr checks 1 \\\n  --watch --fail-fast',
+    'gh run \\\n  watch 123',
+    'sleep \\\n  60'
   ]) {
     it(`denies ${JSON.stringify(command)}`, () => {
       const { status, stderr } = runHook({ command })
