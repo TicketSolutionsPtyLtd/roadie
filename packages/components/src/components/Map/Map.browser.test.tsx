@@ -16,10 +16,16 @@ import roadieCss from '../../../vitest.browser.css?inline'
 import { Button } from '../Button'
 import { Dialog } from '../Dialog'
 import { Drawer } from '../Drawer'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 import { Popover } from '../Popover'
 import { MapEngineContext } from './MapEngineContext'
-import type { MapEngine, MapEngineInstance, MapPalette } from './engine'
+import type {
+  MapAreaGeometry,
+  MapEngine,
+  MapEngineInstance,
+  MapPalette
+} from './engine'
 import blankStyle from './fixtures/blank-style.json?url'
 import { Map } from './index'
 import { maplibreEngine } from './maplibreEngine'
@@ -218,6 +224,46 @@ describe('Map in the browser', () => {
     expect(Math.abs(drawn.bottom - point.y)).toBeLessThanOrEqual(1.5)
   })
 
+  it.each([
+    ['marker', 'img'],
+    ['picker', 'button']
+  ] as const)(
+    "sits a custom pin's bottom centre on its place, on a %s",
+    { timeout: 15_000 },
+    async (part, role) => {
+      const graphic = (
+        <svg viewBox='0 0 10 10' className='size-10'>
+          <path d='M0 0h10L5 10z' />
+        </svg>
+      )
+      const frame = await renderReadyMap(
+        <Map defaultCenter={venue}>
+          {part === 'marker' ? (
+            <Map.Marker
+              position={venue}
+              label='Kazoo Hollow Room'
+              pin={graphic}
+            />
+          ) : (
+            <Map.Picker
+              defaultValue={{ label: 'Kazoo Hollow Room', position: venue }}
+              label='Kazoo Hollow Room'
+              pin={graphic}
+            />
+          )}
+        </Map>
+      )
+      const pin = await screen.findByRole(role, { name: 'Kazoo Hollow Room' })
+      const box = frame.getBoundingClientRect()
+      const point = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+      const drawn = pin.querySelector('svg')!.getBoundingClientRect()
+
+      expect(drawn.width).toBe(40)
+      expect(drawn.left + drawn.width / 2).toBeCloseTo(point.x, 0)
+      expect(Math.abs(drawn.bottom - point.y)).toBeLessThanOrEqual(0.5)
+    }
+  )
+
   it(
     'puts the toolbar in the top corner, inside the frame',
     { timeout: 15_000 },
@@ -236,6 +282,70 @@ describe('Map in the browser', () => {
       expect(inside(box, outer)).toBe(true)
       expect(outer.right - box.right).toBeLessThan(16)
       expect(box.top - outer.top).toBeLessThan(16)
+    }
+  )
+
+  it(
+    'puts the search in the other top corner, clear of the toolbar on a phone',
+    { timeout: 15_000 },
+    async () => {
+      const frame = await renderReadyMap(
+        <Map defaultCenter={venue}>
+          <Map.Toolbar />
+          <Map.Search suggest={() => []} />
+        </Map>,
+        320
+      )
+      const search = frame
+        .querySelector('[data-slot=map-viewport]')!
+        .querySelector('[data-slot=autocomplete-input-group]')!
+        .getBoundingClientRect()
+      const toolbar = screen
+        .getByRole('toolbar', { name: 'Zoom' })
+        .closest('[data-slot=toolbar-surface]')!
+        .getBoundingClientRect()
+      const outer = frame.getBoundingClientRect()
+
+      expect(inside(search, outer)).toBe(true)
+      expect(search.left - outer.left).toBeLessThan(16)
+      expect(search.top - outer.top).toBeLessThan(16)
+      expect(search.right).toBeLessThanOrEqual(toolbar.left - 4)
+      expect(search.width).toBeGreaterThan(200)
+    }
+  )
+
+  it(
+    'closes the search’s list on a press on the map, without moving the picker',
+    { timeout: 15_000 },
+    async () => {
+      const kazoo = { label: 'Kazoo Hollow Room', position: venue }
+      const moves: unknown[] = []
+      const frame = await renderReadyMap(
+        <Map defaultCenter={venue}>
+          <Map.Search suggest={() => [kazoo]} />
+          <Map.Picker
+            defaultValue={{ label: 'Entrance', position: venue }}
+            label='Entrance'
+            onValueChange={(place) => moves.push(place)}
+          />
+        </Map>
+      )
+      await userEvent.type(
+        screen.getByRole('combobox', { name: 'Search the map' }),
+        'Kaz'
+      )
+      await screen.findByRole('option', { name: 'Kazoo Hollow Room' })
+      const canvas = frame.querySelector('canvas')!
+
+      await userEvent.click(canvas, { position: { x: 240, y: 220 } })
+      await waitFor(() =>
+        expect(screen.queryByRole('option')).not.toBeInTheDocument()
+      )
+      expect(moves).toEqual([])
+
+      // The next press is a click on the map, which drops the pin.
+      await userEvent.click(canvas, { position: { x: 240, y: 220 } })
+      await waitFor(() => expect(moves).toHaveLength(1))
     }
   )
 
@@ -878,6 +988,221 @@ describe('Map full screen in the browser', () => {
 
       expect(scrollY).toBe(scrolled)
       expect(frame.getBoundingClientRect().toJSON()).toEqual(before.toJSON())
+    }
+  )
+
+  it(
+    'shows the search’s places over the map, and takes a click on one',
+    { timeout: 15_000 },
+    async () => {
+      const kazoo = { label: 'Kazoo Hollow Room', position: venue }
+      const chosen: unknown[] = []
+      render(
+        <MapEngineContext value={engine}>
+          <Map defaultCenter={venue} defaultExpanded>
+            <Map.Toolbar expand />
+            <Map.Search
+              suggest={() => [kazoo]}
+              onPlaceSelect={(place) => chosen.push(place)}
+            />
+          </Map>
+        </MapEngineContext>
+      )
+      await ready(screen.getByRole('region', { name: 'Map', hidden: true }))
+      await userEvent.type(
+        screen.getByRole('combobox', { name: 'Search the map' }),
+        'Tiv'
+      )
+
+      const option = await screen.findByRole('option', {
+        name: 'Kazoo Hollow Room'
+      })
+      expect(layer()).toContainElement(option)
+      await waitFor(() => expect(option.contains(middle(option))).toBe(true))
+      await userEvent.click(option)
+      expect(chosen).toEqual([kazoo])
+      expect(layer()).toBeInTheDocument()
+    }
+  )
+
+  it(
+    'exits on Escape from the search, once its list and text are gone',
+    { timeout: 15_000 },
+    async () => {
+      const kazoo = { label: 'Kazoo Hollow Room', position: venue }
+      render(
+        <MapEngineContext value={engine}>
+          <Map defaultCenter={venue}>
+            <Map.Toolbar expand />
+            <Map.Search suggest={() => [kazoo]} />
+          </Map>
+        </MapEngineContext>
+      )
+      await ready(screen.getByRole('region', { name: 'Map' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Full screen' }))
+      const search = screen.getByRole('combobox', { name: 'Search the map' })
+      await userEvent.type(search, 'Tiv')
+      await screen.findByRole('option', { name: 'Kazoo Hollow Room' })
+
+      // The list closes first, then the text clears, then the map exits.
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() =>
+        expect(screen.queryByRole('option')).not.toBeInTheDocument()
+      )
+      expect(layer()).toBeInTheDocument()
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() => expect(search).toHaveValue(''))
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: 'Map', hidden: true })
+        ).not.toBeInTheDocument()
+      )
+    }
+  )
+
+  it(
+    'exits on Escape from the search after a place is chosen',
+    { timeout: 15_000 },
+    async () => {
+      const kazoo = { label: 'Kazoo Hollow Room', position: venue }
+      render(
+        <MapEngineContext value={engine}>
+          <Map defaultCenter={venue}>
+            <Map.Toolbar expand />
+            <Map.Search suggest={() => [kazoo]} />
+          </Map>
+        </MapEngineContext>
+      )
+      await ready(screen.getByRole('region', { name: 'Map' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Full screen' }))
+      const search = screen.getByRole('combobox', { name: 'Search the map' })
+      await userEvent.type(search, 'Tiv')
+      await userEvent.click(
+        await screen.findByRole('option', { name: 'Kazoo Hollow Room' })
+      )
+      await waitFor(() => expect(search).toHaveValue('Kazoo Hollow Room'))
+      expect(search).toHaveFocus()
+      await waitFor(() =>
+        expect(screen.queryByRole('option')).not.toBeInTheDocument()
+      )
+
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() => expect(search).toHaveValue(''))
+      expect(layer()).toBeInTheDocument()
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: 'Map', hidden: true })
+        ).not.toBeInTheDocument()
+      )
+    }
+  )
+})
+
+describe('Map keyboard-only buttons in the browser', () => {
+  const valley: MapAreaGeometry = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [venue.lng - 0.01, venue.lat - 0.01],
+        [venue.lng + 0.01, venue.lat - 0.01],
+        [venue.lng + 0.01, venue.lat + 0.01],
+        [venue.lng - 0.01, venue.lat - 0.01]
+      ]
+    ]
+  }
+
+  it(
+    'shows the picker’s drop button only while it has keyboard focus, in the middle of the map',
+    { timeout: 15_000 },
+    async () => {
+      await renderReadyMap(
+        <Map defaultCenter={venue}>
+          <Map.Area area={valley} label='The valley'>
+            <p>The valley</p>
+          </Map.Area>
+          <Map.Picker />
+        </Map>
+      )
+      const area = await screen.findByRole('button', { name: 'The valley' })
+      const drop = screen.getByRole('button', { name: 'Drop the pin here' })
+      expect(getComputedStyle(area).opacity).toBe('0')
+      expect(getComputedStyle(drop).opacity).toBe('0')
+
+      // WebKit's Tab skips plain buttons, as Safari does until the reader
+      // turns on Tab to every control, so a key sets keyboard focus first.
+      await userEvent.keyboard('{Shift}')
+      drop.focus()
+      expect(drop).toHaveFocus()
+      await waitFor(() => expect(getComputedStyle(drop).opacity).toBe('1'))
+      expect(getComputedStyle(area).opacity).toBe('0')
+      // It sits in the middle of the map.
+      const map = screen
+        .getByRole('region', { name: 'Map' })
+        .getBoundingClientRect()
+      const box = drop.getBoundingClientRect()
+      expect(
+        Math.abs(box.x + box.width / 2 - (map.x + map.width / 2))
+      ).toBeLessThan(2)
+    }
+  )
+
+  it(
+    'lets a press where a hidden button sits reach the map',
+    { timeout: 15_000 },
+    async () => {
+      await renderReadyMap(
+        <Map defaultCenter={venue}>
+          <Map.Area area={valley} label='The valley'>
+            <p>The valley</p>
+          </Map.Area>
+          <Map.Picker />
+        </Map>
+      )
+      const area = await screen.findByRole('button', { name: 'The valley' })
+      const drop = screen.getByRole('button', { name: 'Drop the pin here' })
+
+      // A click there drops the pin where it lands, and a drag pans.
+      for (const button of [area, drop]) {
+        const box = button.getBoundingClientRect()
+        const pressed = document.elementFromPoint(
+          box.x + box.width / 2,
+          box.y + box.height / 2
+        )
+        expect(pressed).not.toBe(button)
+        expect(button.contains(pressed)).toBe(false)
+      }
+    }
+  )
+
+  it(
+    'shows Drop the pin here when a required picker stops the form',
+    { timeout: 15_000 },
+    async () => {
+      let submitted = false
+      await renderReadyMap(
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            submitted = true
+          }}
+        >
+          <Field required>
+            <Field.Label>Entrance</Field.Label>
+            <Map defaultCenter={venue}>
+              <Map.Picker name='entrance' />
+            </Map>
+          </Field>
+          <Button type='submit'>Save</Button>
+        </form>
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const drop = screen.getByRole('button', { name: 'Drop the pin here' })
+      await waitFor(() => expect(drop).toHaveFocus())
+      expect(getComputedStyle(drop).opacity).toBe('1')
+      expect(submitted).toBe(false)
     }
   )
 })
