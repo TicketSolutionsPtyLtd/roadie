@@ -472,6 +472,62 @@ describe('Editor email section settings', () => {
     })
   })
 
+  it('makes room for the wider of it and the Blocks drawer, not both', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        toolbar='docked'
+        variables={variables}
+        defaultValue={email(
+          { type: 'paragraph', content: [{ type: 'text', text: 'Doors 7pm' }] },
+          section()
+        )}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const root = textbox.closest<HTMLElement>('[data-slot="editor"]')!
+    const contentEnd = () =>
+      root.getBoundingClientRect().right -
+      parseFloat(getComputedStyle(root).paddingRight)
+    await clickIntoEditor(within(textbox).getByText('Doors 7pm'))
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    await userEvent.click(within(bar).getByRole('button', { name: 'Blocks' }))
+    const blocks = await screen.findByRole('dialog', { name: 'Blocks' })
+
+    await userEvent.hover(within(textbox).getByText('Gates 6pm'))
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Block actions' })
+    )
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Select section' })
+    )
+    await waitFor(() =>
+      expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Settings')
+    )
+    await userEvent.click(screen.getAllByRole('menuitem')[0]!)
+    const settings = await screen.findByRole('dialog', {
+      name: 'Section settings'
+    })
+
+    // Its 16px gap, and no more.
+    await waitFor(() =>
+      expect(contentEnd()).toBeCloseTo(
+        Math.min(
+          settings.getBoundingClientRect().left - 16,
+          blocks.getBoundingClientRect().left
+        ),
+        0
+      )
+    )
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryAllByRole('dialog')).toHaveLength(1))
+    await waitFor(() =>
+      expect(contentEnd()).toBeCloseTo(blocks.getBoundingClientRect().left, 0)
+    )
+  })
+
   it('gives up the room beside it below 1280px wide, and makes it again above', async () => {
     await page.viewport(1280, 800)
     onTestFinished(() => page.viewport(1280, 800))
