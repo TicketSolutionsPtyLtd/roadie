@@ -1,0 +1,312 @@
+export const metadata = {
+  title: 'Map',
+  description: 'A map of a place, such as where a venue is',
+  status: 'alpha',
+  category: 'Media & brand',
+}
+
+import { Map } from '@oztix/roadie-components/map'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A map of a place, such as where a venue is.
+
+## Import
+
+```tsx
+import { Map, MapProvider } from '@oztix/roadie-components/map'
+```
+
+## Examples
+
+### Default
+
+The map starts where `defaultCenter` says, at suburb level. It works with no setup: tiles come from OpenFreeMap, and the map credits them in the corner. On a narrow map the credits fold behind an info button once the map moves.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  aria-label='Where Kazoo Hollow Room is'
+/>
+```
+
+### Zoom
+
+`defaultZoom` sets how far in the map starts: 0 shows the world, 13 a suburb, and 16 a street.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  defaultZoom={16}
+  aria-label='The streets around Kazoo Hollow Room'
+/>
+```
+
+### Size
+
+The map fills its container's width in a 16:9 frame. Set another ratio or height with `className`.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -33.8628, lng: 151.2157 }}
+  defaultZoom={14}
+  aria-label='Where Lighthouse Fig Lawn is'
+  className='aspect-2/1'
+/>
+```
+
+### Colours
+
+`tone` sets how the basemap is coloured, and both tones follow light and dark mode with the rest of the page.
+
+- `intent`, the default, draws the map in the intent around it, so it sits quietly in the page. Set an intent on the map, or on anything around it, to tint it.
+- `natural` draws green parks, blue water and yellow main roads, as people know maps. Use it where people find their way, such as getting to a venue. It ignores the intent around it.
+
+```tsx-live-noinline layout=stack
+function MapColours() {
+  const [colours, setColours] = useState('neutral')
+  return (
+    <>
+      <ToggleGroup
+        aria-label='Map colours'
+        value={[colours]}
+        onValueChange={([next]) => next && setColours(next)}
+      >
+        <ToggleGroup.Item value='neutral'>Neutral</ToggleGroup.Item>
+        <ToggleGroup.Item value='brand'>Brand</ToggleGroup.Item>
+        <ToggleGroup.Item value='accent'>Accent</ToggleGroup.Item>
+        <ToggleGroup.Item value='natural'>Natural</ToggleGroup.Item>
+      </ToggleGroup>
+      <Map
+        defaultCenter={{ lat: -27.4693, lng: 153.0514 }}
+        defaultZoom={14}
+        aria-label='Where Jumbuck Orchard Park is'
+        tone={colours === 'natural' ? 'natural' : 'intent'}
+        className={colours === 'natural' ? undefined : `intent-${colours}`}
+      />
+    </>
+  )
+}
+
+render(<MapColours />)
+```
+
+### Controls
+
+`Map.Toolbar` adds zoom in and zoom out, joined, in the top corner. Show my location and full screen each sit on their own below. `Toolbar.Button`s you put inside it, such as for layers, sit together at the bottom, in a toolbar of their own.
+
+`locate` adds Show my location. Pressed, it asks the browser for the reader's location, which asks their permission the first time, then centres the map on them. A dot marks where they are, with a ring pulsing out from it, and it follows them as they move while the map stays where they pan it. Pressing it again stops following and removes the dot. Browsers share a location only with secure pages, served over HTTPS or from localhost.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  aria-label='Where Kazoo Hollow Room is'
+>
+  <Map.Toolbar locate />
+</Map>
+```
+
+### Full screen
+
+`expand` adds a Full screen button below the zoom buttons. The map fills the window, and the button, or Escape, puts it back. Your location moves with it, and the map redraws to fit.
+
+Full screen fills the window, not the device: the browser's own bars stay visible. While it fills the window, the page behind doesn't scroll, and one finger pans the map and a plain scroll zooms it.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+  aria-label='Venues near Fortitude Valley'
+>
+  <Map.Toolbar expand />
+</Map>
+```
+
+To open it from a button of your own, such as View larger map, control it with `expanded` and `onExpandedChange`. Exit full screen and Escape call `onExpandedChange(false)`, and focus returns to your button. While the map fills the window, its toolbar always shows Exit full screen, and a map with no toolbar shows the button on its own, so people on a touch screen can always get back.
+
+```tsx-live-noinline layout=stack
+function LargerMap() {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <>
+      <Map
+        defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+        aria-label='Venues near Fortitude Valley'
+        expanded={expanded}
+        onExpandedChange={setExpanded}
+      >
+        <Map.Toolbar expand />
+      </Map>
+      <Button emphasis='subtle' onClick={() => setExpanded(true)}>
+        View larger map
+      </Button>
+    </>
+  )
+}
+
+render(<LargerMap />)
+```
+
+### Moving the map
+
+`center` and `zoom` move the map from your app: when they change, the map flies there. People can still pan it, and `onViewChange` says where the map settles, so you can keep it in step with a list or save the view. `actionsRef` takes `flyTo`, to fly to a view, and `fitTo`, to fit the map to some places.
+
+```tsx-live-noinline layout=stack
+function VenueTour() {
+  const venues = [
+    {
+      label: 'Kazoo Hollow Room',
+      position: { lat: -27.4587, lng: 153.0338 }
+    },
+    {
+      label: 'Foxglove Tin Pavilion',
+      position: { lat: -27.4527, lng: 153.0211 }
+    },
+    {
+      label: 'Barnacle Bowl Amphitheatre',
+      position: { lat: -27.4776, lng: 153.0224 }
+    }
+  ]
+  const actions = useRef(null)
+  const [view, setView] = useState(null)
+  return (
+    <div className='grid gap-3'>
+      <div className='flex flex-wrap gap-2'>
+        {venues.map((venue) => (
+          <Button
+            key={venue.label}
+            size='sm'
+            emphasis='subtle'
+            onClick={() =>
+              actions.current?.flyTo({ center: venue.position, zoom: 16 })
+            }
+          >
+            {venue.label}
+          </Button>
+        ))}
+        <Button
+          size='sm'
+          onClick={() =>
+            actions.current?.fitTo(venues.map((venue) => venue.position))
+          }
+        >
+          Show all venues
+        </Button>
+      </div>
+      <Map
+        defaultCenter={{ lat: -27.463, lng: 153.0275 }}
+        defaultZoom={12}
+        actionsRef={actions}
+        onViewChange={setView}
+        aria-label='Venue tour'
+      >
+        <Map.Toolbar />
+      </Map>
+      <p className='text-sm text-subtle'>
+        {view
+          ? `Centre ${view.center.lat.toFixed(4)}, ${view.center.lng.toFixed(4)} at zoom ${view.zoom.toFixed(1)}`
+          : 'Move the map to see where it settles.'}
+      </p>
+    </div>
+  )
+}
+
+render(<VenueTour />)
+```
+
+### Engines and tiles
+
+`MapProvider` picks the engine and tiles for every map inside it, once for an app. `maplibreEngine` takes other tiles: a style address and the credits its licence asks for.
+
+MapLibre draws the map in a worker, loaded from a file of its own. Next.js, webpack and Vite builds serve that file with the app, with no setup.
+
+```tsx
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
+
+const engine = maplibreEngine({ workerUrl })
+```
+
+Vite's dev server bundles Roadie ahead of time and loses the file, so a Vite app imports its address, as above, with `maplibre-gl` at Roadie's version in its own dependencies. With another bundler, copy `maplibre-gl/dist/maplibre-gl-worker.mjs` into the app and pass its address as `workerUrl`. A content security policy needs `worker-src 'self'`, and `blob:` too when the app's files come from another origin, such as a CDN.
+
+```tsx-live
+<MapProvider
+  engine={maplibreEngine({
+    tiles: {
+      light: 'https://tiles.openfreemap.org/styles/liberty',
+      attribution: [
+        { label: 'OpenFreeMap', href: 'https://openfreemap.org' },
+        { label: '© OpenMapTiles', href: 'https://www.openmaptiles.org/' },
+        {
+          label: '© OpenStreetMap contributors',
+          href: 'https://www.openstreetmap.org/copyright'
+        }
+      ]
+    }
+  })}
+>
+  <Map
+    defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+    aria-label='Where Kazoo Hollow Room is'
+  />
+</MapProvider>
+```
+
+#### Supported engines and tiles
+
+| Engine or tiles | How | Status |
+| --- | --- | --- |
+| MapLibre with OpenFreeMap tiles | Built in, in Roadie's colours. No key | Ready |
+| MapLibre with a style of your own | `maplibreEngine({ tiles })` with any MapLibre style address, such as MapTiler or Stadia Maps with their key, or tiles you host | Ready |
+| MapLibre with Mapbox tiles | `maplibreEngine({ tiles })` with Mapbox's tile addresses and token, as Mapbox documents. `mapbox://` addresses don't work | Ready, not tried |
+| Mapbox GL JS, Esri ArcGIS, Apple MapKit JS, HERE, Azure Maps | A new engine subpath that implements `MapEngine` and passes Roadie's engine tests | Not built |
+
+A style of your own keeps its own colours, so it doesn't follow dark mode or intent.
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Keep the address in text'>
+  <Guideline.Do code={`<p>Kazoo Hollow Room, Fortitude Valley</p>\n<Map defaultCenter={venue.position} aria-label='Where Kazoo Hollow Room is' />`}>
+    Write the address beside the map. A map shows where a place is, but people copy, read aloud and search the address.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Map defaultCenter={venue.position} />`}>
+    Don't let the map be the only place the address appears.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Map places, not numbers'>
+  <Guideline.Do code={`<RankedBars data={ticketsByPostcode} />`}>
+    Answer "where do buyers live?" with ranked bars, as [Data visualisation](/charts/data-visualisation) says. A list of places with numbers is easier to compare than shades on a map.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Map defaultCenter={australia} defaultZoom={4} />`}>
+    Don't zoom out to a whole country to show where something is. Pick the view that answers the question.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="Show a provider's data on its own map">
+  <Guideline.Do code={`<Map defaultCenter={addressFinderResult.position} />`}>
+    Use coordinates from open data, such as AddressFinder, which is built on G-NAF.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Map defaultCenter={googlePlacesResult.position} />`}>
+    Don't show Google Places or Mapbox search results on this map. Their terms say their results go on their own maps.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- The map is a region named by `aria-label`, "Map" by default. Say what it shows, such as "Where Kazoo Hollow Room is".
+- Scrolling the page never zooms the map. Zoom with Ctrl or ⌘ and scroll, or pinch with two fingers.
+- With the map focused, arrow keys pan and `+` and `-` zoom.
+- The map is a picture to a screen reader, so keep the place's name and address in text.
+- Place names on the basemap meet Roadie's label contrast, Lc 60, against the halo they're drawn in, in every intent, in both tones and in light and dark.
+- While it loads, the region is marked busy. If it can't load, the frame says so.
+- The zoom buttons are a toolbar named Zoom, so Tab reaches it once and the arrow keys move between Zoom in and Zoom out. Show my location and Full screen are buttons of their own. Your own buttons are a toolbar named Map controls.
+- Show my location is a toggle button: pressed while it follows the reader's location. The dot is a picture named Your location. Its pulse doesn't run when the reader asks for reduced motion. If the location isn't available, a message below the button says so, and screen readers hear it.
+- The full screen button is named Full screen, and Exit full screen while the map fills the window. The full screen map is a modal dialog named by `aria-label`, so Tab stays in the map while it's full screen. Escape closes the top layer first: the full screen map, then a drawer or dialog the map sits in. Focus returns to the button, or to your own button that opened it.
+- Inline, one finger scrolls the page, so the map never traps a scroll. Full screen is the way to pan with one finger and zoom with a plain scroll, and the arrow keys and `+` and `-` work in both.
+- The credits show when the map loads. On a narrow map, they fold behind an info button, Map credits, once the map moves or after five seconds, as OpenStreetMap's attribution guidelines allow. The button opens them again.
+
+<PropsDefinitions component='Map' />
