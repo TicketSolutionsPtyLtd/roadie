@@ -126,11 +126,18 @@ export function EditorLinkTargetFields({
             onKeyDown={(event) => {
               if (event.key !== 'Enter') return
               event.preventDefault()
-              if (!isImeEnter(event.nativeEvent))
-                event.currentTarget.form?.requestSubmit()
+              if (isImeEnter(event.nativeEvent)) return
+              if (whole(typed)) event.currentTarget.form?.requestSubmit()
+              else setRefused(true)
             }}
             // Says so only once they've moved on, not while they type.
             onBlur={() => setRefused(!whole(typed))}
+            // Backward, so a long link shows its start, as the add form's does.
+            onFocus={(event) => {
+              if (event.currentTarget.value !== href) return
+              const input = event.currentTarget
+              input.setSelectionRange(0, input.value.length, 'backward')
+            }}
           />
           <Field.ErrorText>{REFUSED}</Field.ErrorText>
         </Field>
