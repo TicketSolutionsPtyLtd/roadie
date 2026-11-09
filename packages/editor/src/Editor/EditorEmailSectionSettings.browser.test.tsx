@@ -447,6 +447,31 @@ describe('Editor email section settings', () => {
     )
   })
 
+  it('keeps the editor’s own end padding as well as the room it makes', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        className='pe-8'
+        variables={variables}
+        defaultValue={email(section())}
+      />
+    )
+    const root = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).closest<HTMLElement>('[data-slot="editor"]')!
+    const drawer = await openSettings()
+
+    // The editor's 32px, then the drawer's 16px gap.
+    await waitFor(() => {
+      const end =
+        root.getBoundingClientRect().right -
+        parseFloat(getComputedStyle(root).paddingRight)
+      expect(end).toBeLessThanOrEqual(drawer.getBoundingClientRect().left - 47)
+    })
+  })
+
   it('brings the section above its phone sheet', async () => {
     await page.viewport(390, 700)
     onTestFinished(() => page.viewport(1280, 800))
