@@ -1184,6 +1184,34 @@ describe('releaseTitle', () => {
     ).toBe('Update currency to show cents')
   })
 
+  it.each([
+    'Upgrade React Aria to 1.2.',
+    'Bump Base UI React to v1.4.0.',
+    'Update Phosphor Icons React to 2.1.10, for the new glyphs.'
+  ])(
+    'calls a bump of a dependency named in more than one word, %j, a dependency update',
+    (text) => {
+      expect(releaseTitle([], [item('changed', undefined, text)])).toBe(
+        'Dependency updates'
+      )
+    }
+  )
+
+  it('keeps a change that runs to a number further on as a change', () => {
+    expect(
+      releaseTitle(
+        [],
+        [
+          item(
+            'changed',
+            undefined,
+            'Update the badge so its gap is 2 to 4.5px.'
+          )
+        ]
+      )
+    ).not.toBe('Dependency updates')
+  })
+
   it('calls a breaking release whose other changes are dependency bumps a breaking change', () => {
     expect(
       releaseTitle(
