@@ -4,6 +4,7 @@ import { type CSSProperties, use } from 'react'
 
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
 
+import { Card } from '@oztix/roadie-components/card'
 import { EmptyState } from '@oztix/roadie-components/empty-state'
 
 import { EMBED_ALLOW, EMBED_SANDBOX, embedFrame } from '../render/embedFrame'
@@ -33,15 +34,15 @@ export function EditorEmbedView({ node, selected }: ReactNodeViewProps) {
           style={frame.style as CSSProperties}
         />
       ) : (
-        <EmptyState
-          size='sm'
-          intent='danger'
-          className='not-prose w-full rounded-lg bg-subtle'
-        >
-          <EmptyState.Title render={<p />}>
-            This embed can’t be shown.
-          </EmptyState.Title>
-        </EmptyState>
+        <Card emphasis='subtle' className='not-prose w-full'>
+          <Card.Content>
+            <EmptyState size='sm' intent='danger'>
+              <EmptyState.Title render={<p />}>
+                This embed can’t be shown
+              </EmptyState.Title>
+            </EmptyState>
+          </Card.Content>
+        </Card>
       )}
       <div aria-hidden data-slot='editor-embed-cover' />
     </NodeViewWrapper>

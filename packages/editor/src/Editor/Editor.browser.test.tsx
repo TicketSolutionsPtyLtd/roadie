@@ -1837,7 +1837,7 @@ describe('Editor embeds', () => {
     const { unmount } = render(<EmbedEditor defaultValue={value} />)
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     const unshown = await within(textbox).findByText(
-      'This embed can’t be shown.'
+      'This embed can’t be shown'
     )
     expect(unshown).toBeVisible()
     expect(unshown.closest('.intent-danger')).not.toBe(null)

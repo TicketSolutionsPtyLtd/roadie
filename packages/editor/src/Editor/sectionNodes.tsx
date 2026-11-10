@@ -7,6 +7,7 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import { NodeViewWrapper } from '@tiptap/react'
 
 import { Badge } from '@oztix/roadie-components/badge'
+import { Card } from '@oztix/roadie-components/card'
 import { EmptyState } from '@oztix/roadie-components/empty-state'
 
 import {
@@ -51,11 +52,15 @@ class SectionBoundary extends Component<
   render() {
     if (!this.state.failed) return this.props.children
     return (
-      <EmptyState size='sm' intent='danger' className='rounded-lg bg-subtle'>
-        <EmptyState.Title render={<p />}>
-          This section can’t be shown.
-        </EmptyState.Title>
-      </EmptyState>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <EmptyState size='sm' intent='danger'>
+            <EmptyState.Title render={<p />}>
+              This section can’t be shown
+            </EmptyState.Title>
+          </EmptyState>
+        </Card.Content>
+      </Card>
     )
   }
 }
