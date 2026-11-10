@@ -1,6 +1,6 @@
 import Supercluster from 'supercluster'
 
-import type { LatLng, MapEngineInstance } from './engine'
+import type { LatLng, MapEngineInstance } from '../Map/engine'
 
 /** A place with a value, such as a postcode and its total. */
 export type MapClusterPoint = {

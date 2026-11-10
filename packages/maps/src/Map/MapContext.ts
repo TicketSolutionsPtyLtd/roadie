@@ -17,7 +17,7 @@ export type MapContextValue = {
   frame: RefObject<HTMLDivElement | null>
   /**
    * Adds, replaces or, with `null`, removes an area the map draws, or a set
-   * of them, as `Map.Areas` draws.
+   * of them, as `MapAreas` draws.
    */
   setArea: (
     id: string,

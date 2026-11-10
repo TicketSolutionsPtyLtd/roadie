@@ -26,6 +26,10 @@ import { Map } from '@oztix/roadie-maps/map'
 </Map>
 ```
 
+`MapClusters` and `MapAreas` show totals by place, from
+`@oztix/roadie-maps/map-clusters` and `/map-areas`, so a map without them
+never loads them.
+
 `Map` draws with [MapLibre](https://maplibre.org/) and OpenFreeMap tiles,
 loaded when a map first mounts, so it needs no API key or setup. Pass
 `MapProvider` another engine or tiles for an app: `maplibreEngine` with tiles
@@ -33,7 +37,8 @@ of your own, or `googleEngine` from `@oztix/roadie-maps/map-google`.
 
 ## Working on it
 
-- `src/Map/` is the `Map` compound and the MapLibre engine, and
+- `src/Map/` is the `Map` compound and the MapLibre engine,
+  `src/MapClusters/` and `src/MapAreas/` the layers that show totals, and
   `src/MapGoogle/` the Google engine. Every engine implements `MapEngine` in
   `src/Map/engine.ts` and passes `engine.contract.browser.test.tsx`.
 - It builds on `@oztix/roadie-components` through its public subpaths only,

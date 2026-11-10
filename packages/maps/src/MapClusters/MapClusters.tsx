@@ -15,8 +15,9 @@ import {
 import { Popover } from '@oztix/roadie-components/popover'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { useMapContext } from './MapContext'
-import { MapPreview } from './MapPreview'
+import { useMapContext } from '../Map/MapContext'
+import { MapPreview } from '../Map/MapPreview'
+import type { LatLng, MapEngineInstance } from '../Map/engine'
 import {
   type ClusterIndex,
   type MapClusterGroup,
@@ -26,7 +27,6 @@ import {
   gridZoom,
   listOf
 } from './clusters'
-import type { LatLng, MapEngineInstance } from './engine'
 
 export type { MapClusterPoint } from './clusters'
 
@@ -114,7 +114,7 @@ export function MapClusters({
   show = 'both',
   className
 }: MapClustersProps) {
-  const { instance, frame, setPlace } = useMapContext('Map.Clusters')
+  const { instance, frame, setPlace } = useMapContext('MapClusters')
   const index = useMemo(() => clusterIndex(data), [data])
 
   // Locked, the groups stay as they were made at the zoom of the lock,
@@ -373,7 +373,7 @@ export function MapClusters({
   )
 }
 
-MapClusters.displayName = 'Map.Clusters'
+MapClusters.displayName = 'MapClusters'
 
 const LEGEND_LEVELS = [0, 1, 2, 3, 4]
 

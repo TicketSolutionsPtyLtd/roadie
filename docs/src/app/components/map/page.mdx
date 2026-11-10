@@ -18,7 +18,7 @@ A map of a place, such as where a venue is.
 import { Map, MapProvider } from '@oztix/roadie-maps/map'
 ```
 
-Maps ship from `@oztix/roadie-maps`, which builds on `@oztix/roadie-components`. Import its stylesheet after Roadie's.
+Maps ship from `@oztix/roadie-maps`, which builds on `@oztix/roadie-components`. `MapClusters` and `MapAreas` have subpaths of their own, so a map without them never loads them. Import the package's stylesheet after Roadie's.
 
 ```css
 @import '@oztix/roadie-core/css';
@@ -413,7 +413,7 @@ render(<VenuePreview />)
 
 ### Clusters
 
-`Map.Clusters` shows places with values, such as totals by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, and below it its share of every value in `data`, which stays the same as the map pans; `show='value'` or `show='share'` shows only one. As a band's value nears the largest band's at this zoom, it grows a little, its rings spread further, and its heat colour strengthens, to violet in light mode and pale cream in dark. `legend` keys the colours in the map's bottom corner, from nothing to the largest band's value, which changes as the map zooms.
+`MapClusters`, from `@oztix/roadie-maps/map-clusters`, shows places with values, such as totals by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, and below it its share of every value in `data`, which stays the same as the map pans; `show='value'` or `show='share'` shows only one. As a band's value nears the largest band's at this zoom, it grows a little, its rings spread further, and its heat colour strengthens, to violet in light mode and pale cream in dark. `legend` keys the colours in the map's bottom corner, from nothing to the largest band's value, which changes as the map zooms.
 
 Clicking a band zooms in until it splits. A single place opens a preview with its `label` instead. `locked` keeps the groups as they are: zooming in spreads the bands apart without splitting them, and clicking a band opens its preview, with the places in it and how far they spread. Put the controls for these display settings beside what lists the groups, such as a Display menu above a table, rather than on the map.
 
@@ -513,7 +513,7 @@ function PlaceTotals() {
         className='aspect-4/3'
       >
         <Map.Toolbar fit />
-        <Map.Clusters
+        <MapClusters
           data={places}
           label='Total'
           locked={locked}
@@ -585,13 +585,13 @@ render(<PlaceTotals />)
 
 ### Postcode areas
 
-`Map.Areas` fills areas, such as postcodes, in heat colours by their values: an alternative to `Map.Clusters` when values belong to areas rather than points. Each area keeps its shape at every zoom, so the map shows where values come from without grouping. Areas with no value aren't drawn, so the map shows through.
+`MapAreas`, from `@oztix/roadie-maps/map-areas`, fills areas, such as postcodes, in heat colours by their values: an alternative to `MapClusters` when values belong to areas rather than points. Each area keeps its shape at every zoom, so the map shows where values come from without grouping. Areas with no value aren't drawn, so the map shows through.
 
 Pass the boundaries as GeoJSON or TopoJSON in `areas`, each with an id such as its postcode, and the values by id in `data`. TopoJSON stores each shared border once, so it's often a third the size. Load the boundaries once, from your own server rather than the bundle, and keep the same object.
 
 Each colour holds a fifth of the areas with values, as totals per area are skewed, so even steps would leave most areas in the first. `legend` keys each colour's range, from where it starts to the largest value in it. Hovering an area names it, with its value and its share of every value in `data`. `onAreasChange` gives you the areas on the map, largest first, as the map settles, and `highlight` lights areas by id, as a row hovered in a table beside the map does here.
 
-When your data is a point for each sale rather than a total for each area, `areaTotals` sorts the points into the areas and adds them up, ready for `data`. A point counts as 1 unless it has a `value`, and a point in no area is left out. Sorting 20,000 points into Australia's postcodes takes about 50ms, and the example here sorts 12,000. Use it for a feed you can't change: totals from your server are better, as they keep each person's place out of the browser and can leave out postcodes with only a few.
+When your data is a point for each sale rather than a total for each area, `areaTotals`, from the same subpath, sorts the points into the areas and adds them up, ready for `data`. A point counts as 1 unless it has a `value`, and a point in no area is left out. Sorting 20,000 points into Australia's postcodes takes about 50ms, and the example here sorts 12,000. Use it for a feed you can't change: totals from your server are better, as they keep each person's place out of the browser and can leave out postcodes with only a few.
 
 Large rural areas draw the eye however small their values are. To compare places rather than totals, colour by a rate, such as each postcode's total per 1,000 residents.
 
@@ -644,7 +644,7 @@ function PostcodeTotals() {
       >
         <Map.Toolbar fit />
         {areas && (
-          <Map.Areas
+          <MapAreas
             areas={areas}
             data={totals}
             label='Total'
@@ -1117,10 +1117,10 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 </Guideline>
 
 <Guideline title='Put numbers on a map beside a list'>
-  <Guideline.Do code={`<Map aria-label='Totals by postcode'>\n  <Map.Clusters data={totalsByPostcode} label='Total' />\n</Map>\n<DataTable caption='Totals by postcode' columns={columns} rows={totalsByPostcode} />`}>
-    Show where the numbers are with `Map.Clusters`, and the same numbers in a table or ranked bars beside it, to compare.
+  <Guideline.Do code={`<Map aria-label='Totals by postcode'>\n  <MapClusters data={totalsByPostcode} label='Total' />\n</Map>\n<DataTable caption='Totals by postcode' columns={columns} rows={totalsByPostcode} />`}>
+    Show where the numbers are with `MapClusters`, and the same numbers in a table or ranked bars beside it, to compare.
   </Guideline.Do>
-  <Guideline.Dont code={`<Map.Clusters data={people.map((person) => ({ position: person.home }))} label='People' />`}>
+  <Guideline.Dont code={`<MapClusters data={people.map((person) => ({ position: person.home }))} label='People' />`}>
     Don't send a place for each person when totals will do. Total them by postcode or suburb on the server where you can, so no one's location reaches the browser.
   </Guideline.Dont>
 </Guideline>
@@ -1167,4 +1167,4 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 - Inline, one finger scrolls the page, so the map never traps a scroll. Full screen is the way to pan with one finger and zoom with a plain scroll, and the arrow keys and `+` and `-` work in both.
 - The credits show when the map loads. On a narrow map, they fold behind an info button, Map credits, once the map moves or after five seconds, as OpenStreetMap's attribution guidelines allow. The button opens them again.
 
-<PropsDefinitions component='Map' />
+<PropsDefinitions component={['Map', 'MapClusters', 'MapAreas']} />

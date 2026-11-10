@@ -2,8 +2,9 @@ import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Map, type MapClusterBand } from './index'
-import { fakeEngine, renderMap } from './mapTestUtils'
+import { Map } from '../Map'
+import { fakeEngine, renderMap } from '../Map/mapTestUtils'
+import { type MapClusterBand, MapClusters } from './MapClusters'
 
 // Two suburbs a kilometre apart, one 4 km away, and a town 35 km out. The
 // fake engine starts at zoom 14, where the three suburbs are one group.
@@ -23,7 +24,7 @@ const band = (name: string) =>
   screen.getByRole('button', { name: `Ticket sales: ${name}` })
 
 const renderClusters = async (
-  props: Partial<Parameters<typeof Map.Clusters>[0]> = {},
+  props: Partial<Parameters<typeof MapClusters>[0]> = {},
   toolbar?: Parameters<typeof Map.Toolbar>[0]
 ) => {
   const fake = fakeEngine(undefined, { zoomScales: true })
@@ -31,7 +32,7 @@ const renderClusters = async (
     fake.engine,
     <>
       {toolbar && <Map.Toolbar {...toolbar} />}
-      <Map.Clusters data={sales} label='Ticket sales' {...props} />
+      <MapClusters data={sales} label='Ticket sales' {...props} />
     </>
   )
   const zoomTo = (zoom: number) =>
@@ -41,7 +42,7 @@ const renderClusters = async (
   return { ...map, fake, zoomTo }
 }
 
-describe('Map.Clusters', () => {
+describe('MapClusters', () => {
   it('adds up the places near each other, largest first', async () => {
     await renderClusters()
 
@@ -62,7 +63,7 @@ describe('Map.Clusters', () => {
     expect(band('120, 67% of all').textContent).toBe('67%')
 
     await rerenderMap(
-      <Map.Clusters data={sales} label='Ticket sales' show='value' />
+      <MapClusters data={sales} label='Ticket sales' show='value' />
     )
     expect(band('120, 67% of all').textContent).toBe('120')
   })
@@ -79,7 +80,7 @@ describe('Map.Clusters', () => {
     expect(lit()).toEqual(['Ticket sales: 120, 67% of all'])
 
     await rerenderMap(
-      <Map.Clusters
+      <MapClusters
         data={sales}
         label='Ticket sales'
         highlight={['Ipswich', 'New Farm']}
@@ -111,7 +112,7 @@ describe('Map.Clusters', () => {
     expect(place!.label).toBe('Kazoo Hollow Room and Jumbuck Orchard Park')
 
     await rerenderMap(
-      <Map.Clusters data={data} label='Ticket sales' highlight={place!.label} />
+      <MapClusters data={data} label='Ticket sales' highlight={place!.label} />
     )
     expect(band('7, 100% of all')).toHaveAttribute('data-highlighted')
   })
@@ -378,7 +379,7 @@ describe('Map.Clusters', () => {
     expect(bandNames()).toHaveLength(2)
 
     await rerenderMap(
-      <Map.Clusters data={sales} label='Ticket sales' locked={false} />
+      <MapClusters data={sales} label='Ticket sales' locked={false} />
     )
     expect(bandNames()).toHaveLength(4)
   })

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import type { MapEngineInstance } from '../Map/engine'
 import { clusterIndex, gridLevel, gridZoom } from './clusters'
-import type { MapEngineInstance } from './engine'
 
 // Two suburbs a kilometre apart, one 4 km away, and a town 35 km out.
 const newFarm = { lat: -27.467, lng: 153.051 }

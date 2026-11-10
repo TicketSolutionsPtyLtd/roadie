@@ -122,7 +122,7 @@ export interface MapEngineInstance {
   /**
    * Gives these areas, by `id`, their active look, as on hover, without
    * drawing the others again. Parts that draw many areas, such as
-   * `Map.Areas`, send them all again with the look changed when an engine
+   * `MapAreas`, send them all again with the look changed when an engine
    * leaves this out.
    */
   setActiveAreas?(ids: readonly string[]): void

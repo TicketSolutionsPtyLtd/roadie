@@ -108,6 +108,14 @@
       "types": "./dist/Map/index.d.ts",
       "import": "./dist/Map/index.js"
     },
+    "./map-areas": {
+      "types": "./dist/MapAreas/index.d.ts",
+      "import": "./dist/MapAreas/index.js"
+    },
+    "./map-clusters": {
+      "types": "./dist/MapClusters/index.d.ts",
+      "import": "./dist/MapClusters/index.js"
+    },
     "./map-google": {
       "types": "./dist/MapGoogle/index.d.ts",
       "import": "./dist/MapGoogle/index.js"

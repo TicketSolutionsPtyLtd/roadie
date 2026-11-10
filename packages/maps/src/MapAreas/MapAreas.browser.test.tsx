@@ -13,11 +13,12 @@ import {
 import { userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
+import { Map, type MapActions } from '../Map'
+import { MapEngineContext } from '../Map/MapEngineContext'
+import blankStyle from '../Map/fixtures/blank-style.json?url'
+import { maplibreEngine } from '../Map/maplibreEngine'
 import { useStylesheet } from '../testUtils'
-import { MapEngineContext } from './MapEngineContext'
-import blankStyle from './fixtures/blank-style.json?url'
-import { Map, type MapActions, type MapAreaInView } from './index'
-import { maplibreEngine } from './maplibreEngine'
+import { type MapAreaInView, MapAreas } from './MapAreas'
 import type { MapAreaCollection } from './topology'
 
 const engine = maplibreEngine({
@@ -71,7 +72,7 @@ async function renderAreas(shapes = areas, values = data) {
           defaultZoom={9}
           actionsRef={actions}
         >
-          <Map.Areas
+          <MapAreas
             areas={shapes}
             data={values}
             label='Total'
@@ -88,7 +89,7 @@ async function renderAreas(shapes = areas, values = data) {
   return { frame, actions, seen }
 }
 
-describe('Map.Areas', () => {
+describe('MapAreas', () => {
   it(
     'lists the areas on the map, largest first, as the map settles',
     { timeout: 20_000 },

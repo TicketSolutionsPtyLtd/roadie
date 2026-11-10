@@ -4,11 +4,21 @@ import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { classStarts, levelOf, rangesOf } from './MapAreas'
-import type { MapAreaLayer } from './engine'
-import { Map, type MapAreaCollection, type MapAreaInView } from './index'
-import { fakeEngine, renderMap } from './mapTestUtils'
-import { type MapAreaTopology, areaFeatures } from './topology'
+import { Map } from '../Map'
+import type { MapAreaLayer } from '../Map/engine'
+import { fakeEngine, renderMap } from '../Map/mapTestUtils'
+import {
+  type MapAreaInView,
+  MapAreas,
+  classStarts,
+  levelOf,
+  rangesOf
+} from './MapAreas'
+import {
+  type MapAreaCollection,
+  type MapAreaTopology,
+  areaFeatures
+} from './topology'
 
 // Two squares side by side that share their middle edge, stored once.
 const topology: MapAreaTopology = {
@@ -130,12 +140,12 @@ describe('classStarts and levelOf', () => {
 const drawn = (setAreas: ReturnType<typeof vi.fn>) =>
   (setAreas.mock.lastCall?.[0] ?? []) as MapAreaLayer[]
 
-describe('Map.Areas', () => {
+describe('MapAreas', () => {
   it('draws the areas that have values, as one set', async () => {
     const fake = fakeEngine()
     await renderMap(
       fake.engine,
-      <Map.Areas
+      <MapAreas
         areas={topology}
         data={[
           { id: '4000', value: 12 },
@@ -161,12 +171,12 @@ describe('Map.Areas', () => {
     ]
     const { rerenderMap } = await renderMap(
       fake.engine,
-      <Map.Areas areas={topology} data={data} label='Total' />
+      <MapAreas areas={topology} data={data} label='Total' />
     )
     const draws = vi.mocked(fake.instance.setAreas).mock.calls.length
 
     await rerenderMap(
-      <Map.Areas areas={topology} data={data} label='Total' highlight='4001' />
+      <MapAreas areas={topology} data={data} label='Total' highlight='4001' />
     )
 
     const [ids] = setActiveAreas.mock.lastCall!
@@ -179,7 +189,7 @@ describe('Map.Areas', () => {
     const fake = fakeEngine()
     await renderMap(
       fake.engine,
-      <Map.Areas
+      <MapAreas
         areas={topology}
         data={[
           { id: '4000', value: 12 },
@@ -199,7 +209,7 @@ describe('Map.Areas', () => {
     const fake = fakeEngine()
     await renderMap(
       fake.engine,
-      <Map.Areas
+      <MapAreas
         areas={topology}
         data={[
           { id: '4000', value: 12 },
@@ -220,7 +230,7 @@ describe('Map.Areas', () => {
   it('keeps what is drawn when the same values arrive in a new array', async () => {
     const fake = fakeEngine()
     const areas = () => (
-      <Map.Areas
+      <MapAreas
         areas={topology}
         data={[
           { id: '4000', value: 12 },
@@ -242,7 +252,7 @@ describe('Map.Areas', () => {
     const onAreasChange = vi.fn<(areas: MapAreaInView[]) => void>()
     await renderMap(
       fake.engine,
-      <Map.Areas
+      <MapAreas
         areas={topology}
         data={[
           { id: '4000', value: 12 },
@@ -269,7 +279,7 @@ describe('Map.Areas', () => {
     function Totals() {
       const [, setInView] = useState<MapAreaInView[]>([])
       return (
-        <Map.Areas
+        <MapAreas
           areas={topology}
           data={[
             { id: '4000', value: 12 },
@@ -280,7 +290,7 @@ describe('Map.Areas', () => {
             onAreasChange(inView)
             // Stops a map that reports on every render, which never settles.
             if (onAreasChange.mock.calls.length > 50)
-              throw new Error('Map.Areas reported without end')
+              throw new Error('MapAreas reported without end')
             setInView(inView)
           }}
         />
@@ -309,7 +319,7 @@ describe('Map.Areas', () => {
       fake.engine,
       <>
         <Map.Toolbar fit />
-        <Map.Areas
+        <MapAreas
           areas={detailed}
           data={[{ id: '4000', value: 12 }]}
           label='Total'
@@ -330,7 +340,7 @@ describe('Map.Areas', () => {
     fake.instance.setActiveAreas = setActiveAreas
     await renderMap(
       fake.engine,
-      <Map.Areas
+      <MapAreas
         areas={topology}
         data={[
           { id: '4000', value: 12 },

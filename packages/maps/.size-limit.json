@@ -3,7 +3,37 @@
     "name": "Map",
     "path": "dist/Map/index.js",
     "import": "*",
-    "limit": "25.5 kB",
+    "limit": "15 kB",
+    "ignore": [
+      "react",
+      "react-dom",
+      "@oztix/roadie-core",
+      "@oztix/roadie-components",
+      "@phosphor-icons/react",
+      "@base-ui/react",
+      "maplibre-gl"
+    ]
+  },
+  {
+    "name": "MapClusters",
+    "path": "dist/MapClusters/index.js",
+    "import": "*",
+    "limit": "7.75 kB",
+    "ignore": [
+      "react",
+      "react-dom",
+      "@oztix/roadie-core",
+      "@oztix/roadie-components",
+      "@phosphor-icons/react",
+      "@base-ui/react",
+      "maplibre-gl"
+    ]
+  },
+  {
+    "name": "MapAreas",
+    "path": "dist/MapAreas/index.js",
+    "import": "*",
+    "limit": "5.5 kB",
     "ignore": [
       "react",
       "react-dom",

@@ -1,6 +1,6 @@
+import type { LatLng } from '../Map/engine'
+import { type AreaBox, areaBox, areaContains } from '../Map/geometry'
 import type { MapAreaValue } from './MapAreas'
-import type { LatLng } from './engine'
-import { type AreaBox, areaBox, areaContains } from './geometry'
 import {
   type MapAreaCollection,
   type MapAreaFeature,
@@ -70,7 +70,7 @@ function indexOf(
 /**
  * Totals by area for places, such as a point for each sale: each place adds
  * its value, or 1, to the area that holds it. Gives the areas with a total,
- * largest first, as `Map.Areas` takes them in `data`. A place in no area is
+ * largest first, as `MapAreas` takes them in `data`. A place in no area is
  * left out, as is a value that's negative or not a number.
  *
  * For a feed of places you can't change. Totals from your server are

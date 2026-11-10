@@ -12,10 +12,11 @@ import {
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { EventPage } from '../frameTestUtils'
-import { MapEngineContext } from './MapEngineContext'
-import blankStyle from './fixtures/blank-style.json?url'
-import { Map, type MapActions, type MapView } from './index'
-import { maplibreEngine } from './maplibreEngine'
+import { Map, type MapActions, type MapView } from '../Map'
+import { MapEngineContext } from '../Map/MapEngineContext'
+import blankStyle from '../Map/fixtures/blank-style.json?url'
+import { maplibreEngine } from '../Map/maplibreEngine'
+import { MapClusters } from './MapClusters'
 
 setupFrameTests({ css: roadieCss })
 
@@ -53,7 +54,7 @@ async function mountSales() {
           className='w-160'
         >
           <Map.Toolbar />
-          <Map.Clusters
+          <MapClusters
             data={points}
             label='Ticket sales'
             highlight='Spot 1'
@@ -77,13 +78,13 @@ async function mountSales() {
   return { root, actions, view }
 }
 
-describe('Map.Clusters at 60fps on a slowed CPU', () => {
+describe('MapClusters at 60fps on a slowed CPU', () => {
   it('pans over 20,000 points, with a highlight and a list of its bands', async () => {
     const { actions, view } = await mountSales()
     const east = { lat: centre.lat, lng: centre.lng + 0.03 }
 
     await expectFrameBudget(
-      'Map.Clusters, panning over 20,000 points',
+      'MapClusters, panning over 20,000 points',
       await measureWhile(async () => {
         actions.current!.flyTo({ center: east })
         await expect
@@ -100,7 +101,7 @@ describe('Map.Clusters at 60fps on a slowed CPU', () => {
     ].find((band) => band.dataset.level === '4')!
 
     await expectFrameBudget(
-      'Map.Clusters, splitting a band of 20,000 points',
+      'MapClusters, splitting a band of 20,000 points',
       await measureWhile(async () => {
         await userEvent.click(largest)
         await expect

@@ -5,11 +5,12 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
+import { Map, type MapActions } from '../Map'
+import { MapEngineContext } from '../Map/MapEngineContext'
+import blankStyle from '../Map/fixtures/blank-style.json?url'
+import { maplibreEngine } from '../Map/maplibreEngine'
 import { useStylesheet } from '../testUtils'
-import { MapEngineContext } from './MapEngineContext'
-import blankStyle from './fixtures/blank-style.json?url'
-import { Map, type MapActions } from './index'
-import { maplibreEngine } from './maplibreEngine'
+import { MapClusters } from './MapClusters'
 
 const engine = maplibreEngine({
   tiles: { light: blankStyle, attribution: [{ label: 'Fixture' }] }
@@ -34,7 +35,7 @@ async function renderSales(
   locked = false,
   highlight?: string,
   legend = false,
-  data: Parameters<typeof Map.Clusters>[0]['data'] = sales
+  data: Parameters<typeof MapClusters>[0]['data'] = sales
 ) {
   const actions = createRef<MapActions>()
   const views: number[] = []
@@ -47,7 +48,7 @@ async function renderSales(
           actionsRef={actions}
           onViewChange={({ zoom }) => views.push(zoom)}
         >
-          <Map.Clusters
+          <MapClusters
             data={data}
             label='Ticket sales'
             locked={isLocked}
@@ -76,7 +77,7 @@ async function renderSales(
 
 const bands = () => screen.queryAllByRole('button', { name: /^Ticket sales/ })
 
-describe('Map.Clusters in the browser', () => {
+describe('MapClusters in the browser', () => {
   it(
     'centres each band on its group, inside the frame',
     { timeout: 15_000 },
@@ -129,14 +130,14 @@ describe('Map.Clusters in the browser', () => {
     value
   })
   const renderAround = async (
-    clusters: Partial<Parameters<typeof Map.Clusters>[0]>
+    clusters: Partial<Parameters<typeof MapClusters>[0]>
   ) => {
     render(
       <div style={{ width: 480 }}>
         <MapEngineContext value={engine}>
           <Map defaultCenter={centre} defaultZoom={9.5}>
             <Map.Toolbar />
-            <Map.Clusters data={[]} label='Ticket sales' {...clusters} />
+            <MapClusters data={[]} label='Ticket sales' {...clusters} />
           </Map>
         </MapEngineContext>
       </div>

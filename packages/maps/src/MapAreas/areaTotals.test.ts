@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { areaContains } from '../Map/geometry'
 import { areaTotals } from './areaTotals'
-import { areaContains } from './geometry'
 import type { MapAreaCollection, MapAreaTopology } from './topology'
 
 const square = (west: number, south: number, size: number) => ({

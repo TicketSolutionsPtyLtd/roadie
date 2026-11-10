@@ -11,10 +11,10 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { useMapContext } from './MapContext'
-import type { LatLng, MapAreaLayer, MapBounds, MapPixel } from './engine'
-import { type AreaBox, areaBox, areaContains } from './geometry'
-import { readColor } from './palette'
+import { useMapContext } from '../Map/MapContext'
+import type { LatLng, MapAreaLayer, MapBounds, MapPixel } from '../Map/engine'
+import { type AreaBox, areaBox, areaContains } from '../Map/geometry'
+import { readColor } from '../Map/palette'
 import {
   type MapAreaCollection,
   type MapAreaFeature,
@@ -100,7 +100,7 @@ type Shape = MapAreaFeature & { box: AreaBox }
 
 /**
  * Areas, such as postcodes, filled in heat colours by their values. An
- * alternative to `Map.Clusters` when values belong to areas rather than
+ * alternative to `MapClusters` when values belong to areas rather than
  * points: each area shows where its value comes from, at every zoom.
  */
 export function MapAreas({
@@ -115,7 +115,7 @@ export function MapAreas({
   className
 }: MapAreasProps) {
   const uid = useId()
-  const { instance, frame, setArea } = useMapContext('Map.Areas')
+  const { instance, frame, setArea } = useMapContext('MapAreas')
   const data = useSameValues(given)
 
   const shapes = useMemo(
@@ -290,7 +290,7 @@ export function MapAreas({
   )
 }
 
-MapAreas.displayName = 'Map.Areas'
+MapAreas.displayName = 'MapAreas'
 
 // The key: each colour's range, strongest first. A colour whose range is
 // empty, as when many areas share one value, is left out.

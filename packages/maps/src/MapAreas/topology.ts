@@ -1,6 +1,6 @@
-import type { MapAreaGeometry } from './engine'
+import type { MapAreaGeometry } from '../Map/engine'
 
-/** A boundary `Map.Areas` draws: a GeoJSON polygon or multipolygon, by id. */
+/** A boundary `MapAreas` draws: a GeoJSON polygon or multipolygon, by id. */
 export type MapAreaFeature = {
   id: string
   geometry: MapAreaGeometry

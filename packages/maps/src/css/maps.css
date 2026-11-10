@@ -7,7 +7,7 @@
    hint Roadie's overlay emphasis and text style; this places and fades it.
    It also holds the insets that keep the toolbar, search and credits clear
    of a notch and the home indicator while the map fills the window, the
-   pulse around the reader's location, and the rings of Map.Clusters' bands. */
+   pulse around the reader's location, and the rings of MapClusters' bands. */
 
 @layer components {
   [data-slot='map-viewport'] {
@@ -105,7 +105,7 @@
       }
     }
   }
-  /* Map.Clusters' bands: filled with the group's heat colour, with rings
+  /* MapClusters' bands: filled with the group's heat colour, with rings
      of it radiating out and fading, as far as its value spreads them. The
      rings sit outside the band, so they never cover its text or focus
      ring. On hover, keyboard focus or `highlight`, the fill and rings shift
