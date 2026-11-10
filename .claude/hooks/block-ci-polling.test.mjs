@@ -64,7 +64,8 @@ describe('block-ci-polling', () => {
     'until gh pr checks 1; do :; done',
     'perl -e "sleep 60"',
     "python3 -c 'import time; time.sleep(60)'",
-    "node -e 'setTimeout(() => {}, 60000)'"
+    "node -e 'setTimeout(() => {}, 60000)'",
+    "node -e 'setTimeout(() => {}, 60_000)'"
   ]) {
     it(`denies ${JSON.stringify(command)}`, () => {
       const { status, stderr } = runHook({ command })
