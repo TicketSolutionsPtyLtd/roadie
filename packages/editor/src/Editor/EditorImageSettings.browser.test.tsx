@@ -20,7 +20,12 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { LINE_END, MOD, clickIntoEditor } from './testUtils'
+import {
+  LINE_END,
+  MOD,
+  clickIntoEditor,
+  enterEndingComposition
+} from './testUtils'
 
 const LABEL = 'Newsletter'
 const POSTER = 'https://example.test/poster.webp'
@@ -258,6 +263,65 @@ describe('Editor image settings', () => {
     )
   })
 
+  it('says a part-typed link can’t open on Enter, and stays open to finish it', async () => {
+    const onValueChange = renderImage()
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole('textbox', { name: 'Link' })
+    await userEvent.type(link, 'oztix')
+
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() => expect(link).toHaveAttribute('aria-invalid', 'true'))
+    await userEvent.type(link, '.com.au')
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({
+        href: 'https://oztix.com.au'
+      })
+    )
+  })
+
+  it('selects the saved link as its field takes focus, from its start', async () => {
+    renderImage(
+      valueOf('email', image({ href: TICKETS }), { type: 'paragraph' })
+    )
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole<HTMLInputElement>('textbox', {
+      name: 'Link'
+    })
+
+    link.focus()
+
+    expect(link).toHaveFocus()
+    expect(link.selectionStart).toBe(0)
+    expect(link.selectionEnd).toBe(TICKETS.length)
+    expect(link.selectionDirection).toBe('backward')
+  })
+
+  it.each([
+    ['Image address', 'email', STAGE],
+    ['Alt text', 'email', ' at dusk'],
+    ['Caption', 'rich', 'Gates 11am']
+  ] as const)(
+    'stays open on the Enter that ends an IME composition in %s',
+    async (name, preset, typed) => {
+      const onValueChange = renderImage(
+        valueOf(preset, image(), { type: 'paragraph' })
+      )
+      const dialog = await openSettings()
+      const field = within(dialog).getByRole('textbox', { name })
+      if (name === 'Image address') await userEvent.clear(field)
+      await userEvent.type(field, typed)
+      // Submitting applies an address, and closing writes the value again.
+      const changes = onValueChange.mock.calls.length
+
+      enterEndingComposition(field)
+
+      expect(onValueChange).toHaveBeenCalledTimes(changes)
+      await userEvent.keyboard('{Enter}')
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    }
+  )
+
   it('keeps the changes on Escape, which undo puts back in one step and redo restores', async () => {
     const onValueChange = renderImage(
       valueOf('email', image({ href: TICKETS }), { type: 'paragraph' })
@@ -295,6 +359,25 @@ describe('Editor image settings', () => {
     )
     await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
     await waitFor(() => expect(savedImage(onValueChange)).toMatchObject(edited))
+  })
+
+  it('keeps an address typed and left with Escape, which undo puts back', async () => {
+    const onValueChange = renderImage()
+    const dialog = await openSettings()
+    const field = within(dialog).getByRole('textbox', { name: 'Image address' })
+    await userEvent.clear(field)
+    await userEvent.type(field, STAGE)
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({ src: STAGE })
+    )
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({ src: POSTER })
+    )
   })
 
   it('undoes and redoes its own changes on Mod+Z while open, never an edit from before', async () => {

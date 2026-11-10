@@ -1,13 +1,22 @@
 const URL_ATTRIBUTES = ['href', 'src', 'action', 'formaction', 'xlink:href']
 
 // Browsers skip spaces and control characters around a scheme, and tabs and
-// newlines inside it.
-const isJavascriptUrl = (value: string) =>
-  [...value]
-    .filter((char) => char > ' ')
+// newlines inside it, but not a space.
+function isJavascriptUrl(value: string) {
+  const chars = [...value]
+  const start = chars.findIndex((char) => char > ' ')
+  if (start < 0) return false
+  return chars
+    .slice(start)
+    .filter((char) => !'\t\n\r'.includes(char))
     .join('')
     .toLowerCase()
     .startsWith('javascript:')
+}
+
+// An attribute is a handler only when the element runs it, unlike `only`.
+const isHandler = (element: Element, name: string) =>
+  /^on[a-z]+$/.test(name) && name in element
 
 /** Names what in the HTML runs code, which mail clients never run. */
 export function htmlWarning(html: string): string | null {
@@ -18,7 +27,7 @@ export function htmlWarning(html: string): string | null {
   for (const element of page.querySelectorAll('*')) {
     if (element.localName === 'script') scripts = true
     for (const { name, value } of element.attributes) {
-      if (name.startsWith('on')) handlers.add(name)
+      if (isHandler(element, name)) handlers.add(name)
       if (URL_ATTRIBUTES.includes(name) && isJavascriptUrl(value)) {
         javascriptLinks = true
       }

@@ -19,7 +19,8 @@ import {
   presetElementsFor,
   withButtonsAsLinks,
   withImageFigures,
-  withTableSections
+  withTableSections,
+  withVariablesAsText
 } from './elements'
 import type { RenderEditorOptions } from './renderEditorValue'
 
@@ -94,7 +95,9 @@ function renderDoc(
   const nodeMapping = renderers(nodes, ({ node }) => node.attrs, context)
   nodeMapping.text = ({ node }) =>
     typeof node.text === 'string' ? escapeHTML(node.text) : ''
-  const content = withTableSections(withButtonsAsLinks(doc))
+  const content = withTableSections(
+    withButtonsAsLinks(withVariablesAsText(doc))
+  )
   return renderJSONContentToString({
     nodeMapping,
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),

@@ -19,7 +19,7 @@ import { userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { MOD } from './testUtils'
+import { MOD, enterEndingComposition } from './testUtils'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
@@ -464,6 +464,23 @@ describe('Editor merge tag editing', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     expect(onValueChange).toHaveBeenLastCalledWith(edited)
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+  })
+
+  it('stays open on the Enter that ends an IME composition in Fallback', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    const dialog = await editTag()
+    await changeTag(dialog)
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(edited))
+    // Closing keeps the changes as one undo step, which writes the value again.
+    const changes = onValueChange.mock.calls.length
+
+    enterEndingComposition(
+      within(dialog).getByRole('textbox', { name: 'Fallback' })
+    )
+
+    expect(onValueChange).toHaveBeenCalledTimes(changes)
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
 
   it('starts its title at the form’s edge rather than centring it', async () => {

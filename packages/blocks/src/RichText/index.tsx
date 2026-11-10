@@ -9,8 +9,8 @@ import { BlockHeading, descriptionClass } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  SPOT_ILLUSTRATIONS,
-  type SpotIllustrationName
+  type SpotIllustrationName,
+  spotIllustration
 } from '../_shared/illustrations'
 import {
   type BlockAlign,
@@ -116,7 +116,7 @@ function Statement({
   illustration = 'Heart'
 }: PresetProps) {
   const { align, emphasis } = block
-  const Illustration = SPOT_ILLUSTRATIONS[illustration]
+  const Illustration = spotIllustration(illustration, 'Heart')
   const onSurface = emphasis != null
   return (
     <BlockSurface

@@ -20,7 +20,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
-import { LINE_END, MOD } from './testUtils'
+import { LINE_END, MOD, enterEndingComposition } from './testUtils'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
@@ -374,6 +374,41 @@ describe('Editor button settings', () => {
     await userEvent.keyboard('{Enter}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+  })
+
+  it('selects the saved link as its field takes focus, from its start', async () => {
+    renderEmail(email(button()))
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole<HTMLInputElement>('textbox', {
+      name: 'Link'
+    })
+
+    link.focus()
+
+    expect(link).toHaveFocus()
+    expect(link.selectionStart).toBe(0)
+    expect(link.selectionEnd).toBe(TICKETS.length)
+    expect(link.selectionDirection).toBe('backward')
+  })
+
+  it('stays open on the Enter that ends an IME composition', async () => {
+    const onValueChange = renderEmail(email(button()))
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole('textbox', { name: 'Link' })
+    await userEvent.fill(link, 'oztix.com.au/whats-on')
+    await waitFor(() =>
+      expect(savedButton(onValueChange)).toEqual(
+        button({ href: 'https://oztix.com.au/whats-on' })
+      )
+    )
+    // Closing keeps the changes as one undo step, which writes the value again.
+    const changes = onValueChange.mock.calls.length
+
+    enterEndingComposition(link)
+
+    expect(onValueChange).toHaveBeenCalledTimes(changes)
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
 
   it('keeps the last whole link, and says so, for one an email can’t open', async () => {

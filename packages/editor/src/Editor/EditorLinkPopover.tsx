@@ -312,6 +312,8 @@ function LinkCard({ editor, editing, onEdit }: LinkCardProps) {
     >
       {link && !editing ? (
         <Toolbar
+          // Its address is a label, not a link in a host page's prose.
+          data-not-prose=''
           aria-label='Link actions'
           size={size}
           emphasis='floating'

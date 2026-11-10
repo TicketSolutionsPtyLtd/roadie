@@ -69,7 +69,9 @@ export function BlockActions({
       )}
     >
       {actions.map(({ label, href, icon }, index) => {
-        const Icon = icon && ICONS[icon]
+        // Saved content is untrusted, and a prototype key such as `constructor` isn't an icon.
+        const Icon =
+          icon && Object.hasOwn(ICONS, icon) ? ICONS[icon] : undefined
         const glyph = Icon && (
           <Icon weight='bold' className='size-4' aria-hidden />
         )
