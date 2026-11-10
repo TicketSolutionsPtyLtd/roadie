@@ -152,6 +152,25 @@ needs to react to the same `invalid` / `required` / `disabled` state as
 | `helperTextId` | `string` | `Field.HelperText`'s id. |
 | `errorTextId` | `string` | `Field.ErrorText`'s id. |
 
+### FieldContext
+
+```tsx
+import { FieldContext, type FieldContextValue } from '@oztix/roadie-components/field'
+```
+
+The context `Field` provides and `useFieldContext` reads. Use it in a package built on Roadie when a control holds controls of its own, such as a map with a search box: give them an empty field, so they don't take the outer field's label and error.
+
+```tsx
+const NO_FIELD: FieldContextValue = {
+  fieldId: '',
+  labelId: '',
+  helperTextId: '',
+  errorTextId: ''
+}
+
+<FieldContext value={NO_FIELD}>{children}</FieldContext>
+```
+
 ### useFieldInputProps
 
 ```tsx

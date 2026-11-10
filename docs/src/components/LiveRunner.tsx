@@ -130,6 +130,7 @@ import {
 } from '@oztix/roadie-editor/extensions'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
 import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
+import * as RoadieMaps from '@oztix/roadie-maps'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -251,6 +252,7 @@ const renderEmail: typeof RenderEmail = async (...args) =>
 const scope = {
   ...RoadieComponents,
   ...RoadieCharts,
+  ...RoadieMaps,
   Editor,
   EmailHtmlField,
   renderEmail,

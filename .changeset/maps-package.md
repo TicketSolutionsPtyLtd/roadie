@@ -1,0 +1,21 @@
+---
+'@oztix/roadie-maps': minor
+---
+
+First release of `@oztix/roadie-maps`, maps of places for Oztix apps: where a venue is, pins and areas, choosing a place, and totals by place as clusters or coloured areas.
+
+It builds on `@oztix/roadie-components`, so install both, and import `@oztix/roadie-maps/css` after Roadie's stylesheets.
+
+`Map` (`@oztix/roadie-maps/map`) is a map of places, such as where a venue is. It draws with MapLibre and OpenFreeMap tiles, loaded when a map first mounts, so it needs no API key or setup, and scrolling the page never zooms it. The map draws in Roadie's colours from the intent around it, following dark mode, or with `tone='natural'` in green parks, blue water and yellow main roads. `center`, `zoom` and `onViewChange` move the map from the app and say where it settles, and `actionsRef` takes `flyTo` and `fitTo`. `Map.Toolbar` adds joined zoom buttons, plus my-location and full screen buttons on their own. My location follows the reader with a pulsing dot until pressed again. With `expand`, the map fills the window and goes back without reloading, and `expanded`, `defaultExpanded` and `onExpandedChange` let an app's own button do the same. Engines can implement the optional `setCooperativeGestures`, so one finger pans a full screen map. MapLibre draws in a worker loaded from a file of its own, which Next.js, webpack and Vite builds serve with no setup; in Vite's dev server or another bundler, pass its address as `maplibreEngine({ workerUrl })`. `MapProvider` picks another engine or tiles for an app.
+
+Add `Map.Marker` to pin places on a map, with an optional hover or tap preview. Its `pin` swaps Roadie's pin for a graphic of the app's own, such as a spot illustration. `Map.Toolbar`'s `fit` adds Show all, which fits the map to its pins.
+
+Add `Map.Area` to highlight a polygon on a map, with a click or tap preview. Show all and `fitTo` fit the map to areas as well as pins.
+
+Add `Map.Picker` and `Map.Search` to choose a place on a map. `Map.Picker` drops and drags a pin to choose a `Place`, flies the map to a `value` set from outside it, such as a form, and works as a form field, taking a `Field`'s states and submitting its position under `name`. Its `pin` swaps Roadie's pin for a graphic of the app's own, as a marker's does. `Map.Search` finds places from an app's own `suggest`, such as AddressFinder, on Roadie's `Autocomplete`, and flies the map to the one chosen. Both use the `Place` type, which `@oztix/roadie-maps/map` exports.
+
+Add `googleEngine` (`@oztix/roadie-maps/map-google`) to draw maps with Google Maps, for apps that show Google's search results. Pass it to `MapProvider`.
+
+Add `Map.Clusters` to show places with values, such as totals by postcode, as bands that add up the places near each other and split as the map zooms in. Each band shows its value and, below it, its share of the total, or one of them with `show`, and grows a little and strengthens in colour as its value nears the largest band's. `legend` keys the colours. `locked` keeps the groups as they are while the map zooms. A place's `region`, such as its state, keeps it from grouping with places in other regions. `onGroupsChange` gives the bands on the map as they change, and `highlight` lights the bands holding places by label, such as to list what the map shows in a table beside it and light a band while its row is hovered. Show all fits the map to the data too.
+
+Add `Map.Areas` to fill areas, such as postcodes, in heat colours by their values, as an alternative to `Map.Clusters` when values belong to areas. It takes boundaries as GeoJSON or TopoJSON and values by id, and colours a fifth of the areas with each step. `legend` keys each colour's range, hovering an area names it with its value and share, `onAreasChange` gives the areas on the map when they change, and `highlight` lights areas by id, such as while a row is hovered in a table beside the map. `areaTotals` sorts a point for each sale into the areas and adds them up, for a feed that can't send totals. Engines can implement the optional `setActiveAreas`, so lighting an area draws nothing else again.

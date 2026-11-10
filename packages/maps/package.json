@@ -1,0 +1,117 @@
+{
+  "name": "@oztix/roadie-maps",
+  "version": "0.0.0",
+  "description": "Maps for Roadie: places, pins, pickers, clusters and areas, drawn with MapLibre or Google Maps",
+  "type": "module",
+  "license": "ISC",
+  "author": {
+    "name": "Luke Brooker",
+    "email": "mail@lukebrooker.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TicketSolutionsPtyLtd/roadie",
+    "directory": "packages/maps"
+  },
+  "homepage": "https://ticketsolutionsptyltd.github.io/roadie/components/map",
+  "files": [
+    "dist",
+    "!dist/**/*.d.ts.map",
+    "src/css",
+    "!src/**/*.test.*"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build:quiet": "pnpm generate:exports && pnpm generate:manifest --alongside tsdown --log-level warn",
+    "build": "pnpm generate:exports && pnpm generate:manifest --alongside tsdown && pnpm check:use-client",
+    "check:package": "pnpm check:dts && pnpm check:exports && pnpm check:pack",
+    "generate:exports": "node scripts/generate-package-exports.mjs",
+    "generate:manifest": "node ../core/scripts/manifest/generate.ts",
+    "check:dts": "node scripts/check-dts.mjs",
+    "check:use-client": "node ../core/scripts/check-use-client.mjs",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
+    "check:pack": "node ../core/scripts/check-pack.mjs",
+    "dev": "tsdown --watch --log-level warn",
+    "test": "vitest run --project jsdom",
+    "test:browser": "vitest run --project 'browser*' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",
+    "test:perf": "NODE_ENV=production vitest run --project perf",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "size": "size-limit",
+    "size:check": "size-limit --limit"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.9.0",
+    "@oztix/roadie-core": "workspace:*",
+    "maplibre-gl": "6.16.0",
+    "supercluster": "9.1.0"
+  },
+  "peerDependencies": {
+    "@oztix/roadie-components": "workspace:^",
+    "@phosphor-icons/react": "^2.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@oztix/roadie-components": "workspace:*",
+    "@oztix/roadie-frames": "workspace:*",
+    "@phosphor-icons/react": "2.1.10",
+    "@rolldown/plugin-babel": "0.3.0",
+    "@size-limit/preset-small-lib": "14.3.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "@vitest/browser-playwright": "5.0.5",
+    "axe-core": "4.14.0",
+    "babel-plugin-react-compiler": "1.0.0",
+    "jsdom": "30.1.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "size-limit": "14.3.0",
+    "tsdown": "0.23.4",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  },
+  "turbo": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./css": {
+      "style": "./src/css/maps.css",
+      "default": "./src/css/maps.css"
+    },
+    "./map": {
+      "types": "./dist/Map/index.d.ts",
+      "import": "./dist/Map/index.js"
+    },
+    "./map-google": {
+      "types": "./dist/MapGoogle/index.d.ts",
+      "import": "./dist/MapGoogle/index.js"
+    },
+    "./roadie.manifest.json": "./dist/roadie.manifest.json"
+  }
+}

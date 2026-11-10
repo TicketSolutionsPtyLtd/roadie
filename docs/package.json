@@ -29,6 +29,7 @@
     "@number-flow/vue": "0.5.2",
     "@oztix/roadie-blocks": "workspace:*",
     "@oztix/roadie-charts": "workspace:*",
+    "@oztix/roadie-maps": "workspace:*",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
     "@oztix/roadie-editor": "workspace:*",

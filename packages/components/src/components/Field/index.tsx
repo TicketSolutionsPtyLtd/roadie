@@ -32,7 +32,12 @@ export type { FieldInputProps } from './FieldInput'
 export type { FieldTextareaProps } from './FieldTextarea'
 export type { FieldHelperTextProps } from './FieldHelperText'
 export type { FieldErrorTextProps } from './FieldErrorText'
+// `FieldContext` is for a package's own control that holds other controls,
+// such as a map with a search box: giving it an empty field stops them
+// taking the outer field's label and error.
 export {
+  FieldContext,
+  type FieldContextValue,
   useFieldContext,
   useFieldControlError,
   useFieldInputProps

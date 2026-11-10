@@ -401,3 +401,18 @@ the one `RoadieProvider` mounts. Throws outside one.
 | `setDark`        | `(dark: boolean) => void` | Sets dark mode and persists the choice to `localStorage`.           |
 
 <PropsDefinitions component='ThemeProvider' />
+
+### useAccentScopeProps
+
+```tsx
+import {
+  AccentScopeContext,
+  intentVariants,
+  useAccentScopeProps,
+  type RoadieIntent
+} from '@oztix/roadie-components/cascade'
+```
+
+For a package built on Roadie. A layer portalled out of the page, such as a full screen map, leaves the element that holds a nested `ThemeProvider`'s accent, so its content would fall back to the page's. `useAccentScopeProps(style)` gives the layer the `style` and attribute that carry the accent to it, as Roadie's own popovers and dialogs do, and `AccentScopeContext` holds the accent's variables, or `null` outside a nested `ThemeProvider`.
+
+`intentVariants` maps each intent to its class, such as `brand` to `intent-brand`, and `RoadieIntent` is the type of an intent's name, for a part that takes `intent` as a prop.

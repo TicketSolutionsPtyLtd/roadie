@@ -39,7 +39,8 @@ const PACKAGES = [
   ['packages/components', /^\.\/dist\/components\/(\w+)\//],
   // Charts keeps components at dist/<Folder>/; lowercase folders such as
   // examples and tables are helpers, not components.
-  ['packages/charts', /^\.\/dist\/([A-Z]\w+)\//]
+  ['packages/charts', /^\.\/dist\/([A-Z]\w+)\//],
+  ['packages/maps', /^\.\/dist\/([A-Z]\w+)\//]
 ]
 
 function exportedComponents() {

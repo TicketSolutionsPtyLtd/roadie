@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Map",
+    "path": "dist/Map/index.js",
+    "import": "*",
+    "limit": "25.5 kB",
+    "ignore": [
+      "react",
+      "react-dom",
+      "@oztix/roadie-core",
+      "@oztix/roadie-components",
+      "@phosphor-icons/react",
+      "@base-ui/react",
+      "maplibre-gl"
+    ]
+  },
+  {
+    "name": "MapGoogle",
+    "path": "dist/MapGoogle/index.js",
+    "import": "*",
+    "limit": "2 kB"
+  }
+]

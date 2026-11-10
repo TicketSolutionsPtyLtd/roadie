@@ -10,7 +10,7 @@ those apps out. The grills for the Map series settled this.
 
 ## Decision
 
-`Map` in `@oztix/roadie-components/map` draws through a `MapEngine`: mount (cancelled by an `AbortSignal`),
+`Map` in `@oztix/roadie-maps/map` draws through a `MapEngine`: mount (cancelled by an `AbortSignal`),
 read and set the view, project and unproject, listen, and destroy, all in
 Roadie types. MapLibre GL, with OpenFreeMap tiles, is built in and loads when
 a map first mounts, so a map works with no setup. Tiles belong to the engine,
@@ -30,8 +30,9 @@ credits control.
 
 ## Consequences
 
-Apps pick an engine once, through `MapProvider`. `maplibreEngine` takes other
-tiles, and `googleEngine` (`@oztix/roadie-components/map-google`) draws with
+`Map` and its engines ship from `@oztix/roadie-maps`, so `roadie-components`
+never depends on MapLibre. Apps pick an engine once, through `MapProvider`. `maplibreEngine` takes other
+tiles, and `googleEngine` (`@oztix/roadie-maps/map-google`) draws with
 Google Maps, loading Google's script itself so Roadie needs no Google
 package. A new engine is a subpath that implements `MapEngine` and must pass
 the contract suite unchanged; `googleEngine` hasn't run it yet, since that

@@ -26,6 +26,8 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 - Icons are [Phosphor](https://phosphoricons.com/).
 - The editor is [Tiptap](https://tiptap.dev/) v3, MIT parts only, in
   `@oztix/roadie-editor`; `roadie-components` never depends on Tiptap.
+- Maps draw with [MapLibre](https://maplibre.org/), or Google Maps, in
+  `@oztix/roadie-maps`; `roadie-components` never depends on MapLibre.
 
 | Path                    | Package                                                                                                                |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -34,6 +36,7 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 | `packages/charts/`      | `@oztix/roadie-charts`: charts, legends, and dashboard views                                                           |
 | `packages/editor/`      | `@oztix/roadie-editor`: the rich-text editor and its saved format                                                      |
 | `packages/blocks/`      | `@oztix/roadie-blocks`: designed page sections, with presets and tracking                                              |
+| `packages/maps/`        | `@oztix/roadie-maps`: maps of places, pins, pickers, clusters and areas, on MapLibre or Google                         |
 | `packages/widgets/`     | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins                                                          |
 | `packages/lint-plugin/` | `@oztix/roadie-lint-plugin`: oxlint and ESLint rules for apps on Roadie                                                |
 | `docs/`                 | The docs site                                                                                                          |

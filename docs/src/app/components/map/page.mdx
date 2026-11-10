@@ -5,7 +5,7 @@ export const metadata = {
   category: 'Media & brand',
 }
 
-import { Map } from '@oztix/roadie-components/map'
+import { Map } from '@oztix/roadie-maps/map'
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline, Guidelines } from '@/components/Guideline'
@@ -15,7 +15,15 @@ A map of a place, such as where a venue is.
 ## Import
 
 ```tsx
-import { Map, MapProvider } from '@oztix/roadie-components/map'
+import { Map, MapProvider } from '@oztix/roadie-maps/map'
+```
+
+Maps ship from `@oztix/roadie-maps`, which builds on `@oztix/roadie-components`. Import its stylesheet after Roadie's.
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-maps/css';
 ```
 
 ## Examples
@@ -789,7 +797,7 @@ render(<VenueSearch />)
 [AddressFinder](https://addressfinder.com.au/) finds Australian addresses from G-NAF, so its places can go on this map. Its autocomplete returns addresses without coordinates, so this asks its metadata, with `gps`, for each of the first five. That's up to six requests each time typing pauses, so lower the count if your plan charges per lookup. Check [AddressFinder's API docs](https://addressfinder.com.au/docs/) for the exact parameters, and use the key restricted to your domains.
 
 ```tsx
-import type { Place } from '@oztix/roadie-components/map'
+import type { Place } from '@oztix/roadie-maps/map'
 
 const ADDRESSFINDER = 'https://api.addressfinder.io/api/au/address'
 const key = process.env.NEXT_PUBLIC_ADDRESSFINDER_KEY ?? ''
@@ -836,8 +844,8 @@ Google's terms say Places results go on a Google map, so draw the map with `goog
 Autocomplete returns place IDs, and Place Details returns each one's location. Each time typing pauses, this sends one Autocomplete request and a Place Details request for each of the first five suggestions, and Google bills every Place Details request, so it costs up to six requests per pause. Lower the count to cut the cost. Session tokens group Autocomplete requests with one Place Details request, for the place someone chooses, so they don't cover a lookup for every suggestion. Check [Google's Places API docs](https://developers.google.com/maps/documentation/places/web-service) for field masks and pricing.
 
 ```tsx
-import { MapProvider, type Place } from '@oztix/roadie-components/map'
-import { googleEngine } from '@oztix/roadie-components/map-google'
+import { MapProvider, type Place } from '@oztix/roadie-maps/map'
+import { googleEngine } from '@oztix/roadie-maps/map-google'
 
 const PLACES = 'https://places.googleapis.com/v1'
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? ''
@@ -1056,11 +1064,11 @@ Vite's dev server bundles Roadie ahead of time and loses the file, so a Vite app
 </MapProvider>
 ```
 
-An app that shows Google Places or Geocoding results on a map draws it with Google, from `@oztix/roadie-components/map-google`. Pins, previews, the toolbar and the picker work the same on it. Google draws its own logo and terms, so the map shows no credits of its own. Each map load counts against the app's Google Maps Platform billing, so use a key restricted to the app's domains.
+An app that shows Google Places or Geocoding results on a map draws it with Google, from `@oztix/roadie-maps/map-google`. Pins, previews, the toolbar and the picker work the same on it. Google draws its own logo and terms, so the map shows no credits of its own. Each map load counts against the app's Google Maps Platform billing, so use a key restricted to the app's domains.
 
 ```tsx
-import { MapProvider } from '@oztix/roadie-components/map'
-import { googleEngine } from '@oztix/roadie-components/map-google'
+import { MapProvider } from '@oztix/roadie-maps/map'
+import { googleEngine } from '@oztix/roadie-maps/map-google'
 
 const google = googleEngine({
   apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? '',
@@ -1081,7 +1089,7 @@ const google = googleEngine({
 | MapLibre with OpenFreeMap tiles | Built in, in Roadie's colours. No key | Ready |
 | MapLibre with a style of your own | `maplibreEngine({ tiles })` with any MapLibre style address, such as MapTiler or Stadia Maps with their key, or tiles you host | Ready |
 | MapLibre with Mapbox tiles | `maplibreEngine({ tiles })` with Mapbox's tile addresses and token, as Mapbox documents. `mapbox://` addresses don't work | Ready, not tried |
-| Google Maps | `googleEngine` from `@oztix/roadie-components/map-google`, with a key. In Roadie's colours without a map ID | Built, not run yet |
+| Google Maps | `googleEngine` from `@oztix/roadie-maps/map-google`, with a key. In Roadie's colours without a map ID | Built, not run yet |
 | Mapbox GL JS, Esri ArcGIS, Apple MapKit JS, HERE, Azure Maps | A new engine subpath that implements `MapEngine` and passes Roadie's engine tests | Not built |
 
 A style of your own keeps its own colours, so it doesn't follow dark mode or intent.

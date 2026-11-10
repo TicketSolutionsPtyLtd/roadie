@@ -24,6 +24,8 @@ Toolbar.Toggle = ToolbarToggle
 Toolbar.ToggleGroup = ToolbarToggleGroup
 
 export { Toolbar }
+// The toolbar's surface, for a control that sits beside one and lines up.
+export { toolbarSurfaceVariants } from './variants'
 export type { ToolbarRootProps as ToolbarProps } from './ToolbarRoot'
 export type { ToolbarGroupProps } from './ToolbarGroup'
 export type { ToolbarButtonProps } from './ToolbarButton'

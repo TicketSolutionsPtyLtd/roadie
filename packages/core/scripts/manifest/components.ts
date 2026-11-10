@@ -33,7 +33,8 @@ export const SKIPPED_PROPS = new Set([
   'style',
   'dangerouslySetInnerHTML'
 ])
-const OUR_SOURCES = /(^|\/)(core|components|widgets|charts|editor|blocks)\//
+const OUR_SOURCES =
+  /(^|\/)(core|components|widgets|charts|editor|blocks|maps)\//
 
 export function isOurs(fileName: string | undefined) {
   return (

@@ -313,6 +313,14 @@ const buy = async () => {
 }
 ```
 
+## Building on Roadie's links
+
+```tsx
+import { RoadieRoutedLink } from '@oztix/roadie-components/link'
+```
+
+`RoadieRoutedLink` is the anchor under `Link`: it routes an internal `href` through the Link given to `RoadieProvider` and opens an external one in a new tab, with no link styling. Use it in a package built on Roadie for a link-shaped part that has a look of its own, such as a map pin. It takes `href`, `external` and an anchor's own attributes. In an app, use `Link`, or `href` on the component.
+
 ## Migration
 
 `LinkButton` and `LinkIconButton` are still exported and still work, but new
