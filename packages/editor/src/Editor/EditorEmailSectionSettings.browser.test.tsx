@@ -185,6 +185,28 @@ describe('Editor email section settings', () => {
     expect(within(drawer).queryByRole('combobox', { name: 'When' })).toBe(null)
   })
 
+  it('keeps a pasted number that’s still being typed, such as 5.', async () => {
+    const onValueChange = renderEmail(
+      email(
+        section({
+          showWhen: { key: 'tickets_left', op: 'lessThan', value: 50 }
+        })
+      )
+    )
+    const drawer = await openSettings()
+    const value = within(drawer).getByRole('textbox', { name: 'Value' })
+
+    await userEvent.fill(value, '5.')
+    await userEvent.keyboard('{End}5')
+
+    await waitFor(() =>
+      expect(savedSection(onValueChange).attrs).toEqual({
+        showWhen: { key: 'tickets_left', op: 'lessThan', value: 5.5 }
+      })
+    )
+    expect(value).toHaveValue('5.5')
+  })
+
   it('badges a section that loads with a rule, and takes it off for everyone', async () => {
     const onValueChange = renderEmail(
       email(section({ showWhen: { key: 'tickets_left', op: 'exists' } }))
