@@ -52,14 +52,18 @@ const AREAS = 'roadie-areas'
 
 const areaData = (areas: readonly MapAreaLayer[]) => ({
   type: 'FeatureCollection' as const,
-  features: areas.map(({ id, geometry, fill, fillOpacity, line }) => ({
+  features: areas.map(({ id, geometry, ...look }) => ({
     type: 'Feature' as const,
-    id,
     geometry,
-    properties: { fill, fillOpacity, line }
+    // MapLibre keeps state only on numeric feature ids, so the id goes in
+    // the properties and the source promotes it.
+    properties: { id, ...look }
   }))
 })
 
+// An area's look, or its active look while `setActiveAreas` names it.
+const ACTIVE = ['boolean', ['feature-state', 'active'], false]
+const LINE_WIDTH = ['coalesce', ['get', 'lineWidth'], 2]
 const areaLayers = [
   {
     id: `${AREAS}-fill`,
@@ -67,16 +71,40 @@ const areaLayers = [
     source: AREAS,
     paint: {
       'fill-color': ['get', 'fill'],
-      'fill-opacity': ['get', 'fillOpacity']
+      'fill-opacity': [
+        'case',
+        ACTIVE,
+        ['coalesce', ['get', 'fillOpacityActive'], ['get', 'fillOpacity']],
+        ['get', 'fillOpacity']
+      ]
     }
   },
   {
     id: `${AREAS}-line`,
     type: 'line',
     source: AREAS,
-    paint: { 'line-color': ['get', 'line'], 'line-width': 2 }
+    paint: {
+      'line-color': ['get', 'line'],
+      'line-width': [
+        'case',
+        ACTIVE,
+        ['coalesce', ['get', 'lineWidthActive'], LINE_WIDTH],
+        LINE_WIDTH
+      ]
+    }
   }
 ] as const
+
+// Areas draw over the basemap but under its first labels, so place names
+// stay readable over a filled area.
+function belowLabels<Layer extends { type: string }>(
+  layers: readonly Layer[],
+  areas: readonly unknown[]
+): unknown[] {
+  const labels = layers.findIndex(({ type }) => type === 'symbol')
+  if (labels === -1) return [...layers, ...areas]
+  return [...layers.slice(0, labels), ...areas, ...layers.slice(labels)]
+}
 
 type StyleSpecification = import('maplibre-gl').StyleSpecification
 type AddLayerObject = import('maplibre-gl').AddLayerObject
@@ -109,6 +137,7 @@ export function maplibreEngine(options: MaplibreEngineOptions = {}): MapEngine {
       if (workerUrl) setWorkerUrl(workerUrl)
       else if (!getWorkerUrl()) setWorkerUrl(defaultWorkerUrl())
       let areas: readonly MapAreaLayer[] = []
+      let active: readonly string[] = []
       // Roadie's style carries the areas, so restyling keeps them.
       const styled = (palette: MapPalette) => {
         const style = roadieStyle(palette)
@@ -116,9 +145,9 @@ export function maplibreEngine(options: MaplibreEngineOptions = {}): MapEngine {
           ...style,
           sources: {
             ...style.sources,
-            [AREAS]: { type: 'geojson', data: areaData(areas) }
+            [AREAS]: { type: 'geojson', data: areaData(areas), promoteId: 'id' }
           },
-          layers: [...style.layers, ...areaLayers]
+          layers: belowLabels(style.layers, areaLayers)
         } as unknown as StyleSpecification
       }
       const map = new Map({
@@ -184,9 +213,20 @@ export function maplibreEngine(options: MaplibreEngineOptions = {}): MapEngine {
       // A style of the app's own gets the area layers once it loads.
       const addAreaLayers = () => {
         if (map.getSource(AREAS)) return
-        map.addSource(AREAS, { type: 'geojson', data: areaData(areas) })
+        map.addSource(AREAS, {
+          type: 'geojson',
+          data: areaData(areas),
+          promoteId: 'id'
+        })
+        // Under the style's first labels, so place names stay readable.
+        const labels = map
+          .getStyle()
+          .layers.find(({ type }) => type === 'symbol')?.id
         for (const layer of areaLayers)
-          map.addLayer(layer as unknown as AddLayerObject)
+          map.addLayer(layer as unknown as AddLayerObject, labels)
+        // A new source starts with no area active.
+        for (const id of active)
+          map.setFeatureState({ source: AREAS, id }, { active: true })
       }
       if (tiles) {
         addAreaLayers()
@@ -213,6 +253,18 @@ export function maplibreEngine(options: MaplibreEngineOptions = {}): MapEngine {
             | { setData(data: ReturnType<typeof areaData>): void }
             | undefined
           source?.setData(areaData(next))
+        },
+        setActiveAreas: (ids) => {
+          if (removed || !map.getSource(AREAS)) {
+            active = ids
+            return
+          }
+          for (const id of active)
+            if (!ids.includes(id))
+              map.setFeatureState({ source: AREAS, id }, { active: false })
+          for (const id of ids)
+            map.setFeatureState({ source: AREAS, id }, { active: true })
+          active = ids
         },
         getView: () => {
           const { lat, lng } = map.getCenter()

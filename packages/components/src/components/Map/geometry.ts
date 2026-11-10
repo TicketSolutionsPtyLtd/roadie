@@ -31,6 +31,22 @@ export function areaContains(area: MapAreaGeometry, place: LatLng): boolean {
   )
 }
 
+/** An area's bounds: its west, south, east and north edges. */
+export type AreaBox = [west: number, south: number, east: number, north: number]
+
+/** The bounds of an area's outlines. */
+export function areaBox(area: MapAreaGeometry): AreaBox {
+  const box: AreaBox = [Infinity, Infinity, -Infinity, -Infinity]
+  for (const [outer = []] of polygonsOf(area))
+    for (const [lng, lat] of outer) {
+      box[0] = Math.min(box[0], lng)
+      box[1] = Math.min(box[1], lat)
+      box[2] = Math.max(box[2], lng)
+      box[3] = Math.max(box[3], lat)
+    }
+  return box
+}
+
 /** The middle of an area's first outline: where its label and preview sit. */
 export function areaCentre(area: MapAreaGeometry): LatLng {
   const outer = polygonsOf(area)[0]?.[0] ?? []

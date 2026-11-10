@@ -575,6 +575,100 @@ function PlaceTotals() {
 render(<PlaceTotals />)
 ```
 
+### Postcode areas
+
+`Map.Areas` fills areas, such as postcodes, in heat colours by their values: an alternative to `Map.Clusters` when values belong to areas rather than points. Each area keeps its shape at every zoom, so the map shows where values come from without grouping. Areas with no value aren't drawn, so the map shows through.
+
+Pass the boundaries as GeoJSON or TopoJSON in `areas`, each with an id such as its postcode, and the values by id in `data`. TopoJSON stores each shared border once, so it's often a third the size. Load the boundaries once, from your own server rather than the bundle, and keep the same object.
+
+Each colour holds a fifth of the areas with values, as totals per area are skewed, so even steps would leave most areas in the first. `legend` keys each colour's range, from where it starts to the largest value in it. Hovering an area names it, with its value and its share of every value in `data`. `onAreasChange` gives you the areas on the map, largest first, as the map settles, and `highlight` lights areas by id, as a row hovered in a table beside the map does here.
+
+When your data is a point for each sale rather than a total for each area, `areaTotals` sorts the points into the areas and adds them up, ready for `data`. A point counts as 1 unless it has a `value`, and a point in no area is left out. Sorting 20,000 points into Australia's postcodes takes about 50ms, and the example here sorts 12,000. Use it for a feed you can't change: totals from your server are better, as they keep each person's place out of the browser and can leave out postcodes with only a few.
+
+Large rural areas draw the eye however small their values are. To compare places rather than totals, colour by a rate, such as each postcode's total per 1,000 residents.
+
+The boundaries here are the Australian Bureau of Statistics' 2021 postal areas, simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented: 12,000 points at random places, in the shape of a feed with a point for each sale.
+
+```tsx-live-noinline
+const columns = [
+  { key: 'postcode', header: 'Postcode', kind: 'text' },
+  { key: 'value', header: 'Total', kind: 'number' },
+  { key: 'share', header: 'Share', kind: 'number', format: 'percent' }
+]
+
+function PostcodeTotals() {
+  const [areas, setAreas] = useState()
+  const [totals, setTotals] = useState([])
+  const [inView, setInView] = useState([])
+  const [lit, setLit] = useState()
+  useEffect(() => {
+    const load = (file) => fetch(mapDataUrl(file)).then((r) => r.json())
+    Promise.all([
+      load('postcodes-2021.topo.json'),
+      load('example-sale-points.json')
+    ]).then(([postcodes, sales]) => {
+      setAreas(postcodes)
+      // A point for each sale, sorted into postcodes and added up.
+      setTotals(
+        areaTotals(
+          postcodes,
+          sales.map(({ latitude, longitude }) => ({
+            position: { lat: Number(latitude), lng: Number(longitude) }
+          }))
+        )
+      )
+    })
+  }, [])
+  const rows = inView.slice(0, 10).map(({ id, value, share }) => ({
+    postcode: id,
+    value,
+    share
+  }))
+  const light = (event) =>
+    setLit(event.target.closest('tr')?.cells[0]?.textContent)
+  return (
+    <div className='grid gap-4'>
+      <Map
+        defaultCenter={{ lat: -28, lng: 134 }}
+        defaultZoom={2.6}
+        aria-label='Totals by postcode'
+        className='aspect-4/3'
+      >
+        <Map.Toolbar fit />
+        {areas && (
+          <Map.Areas
+            areas={areas}
+            data={totals}
+            label='Total'
+            legend
+            highlight={lit}
+            onAreasChange={setInView}
+          />
+        )}
+      </Map>
+      <p className='text-sm text-subtle'>
+        {inView.length > rows.length
+          ? `The top ${rows.length} of ${inView.length} postcodes on the map`
+          : `${inView.length} postcodes on the map`}
+      </p>
+      <DataTable
+        caption='Top postcodes on the map'
+        recordName={{ one: 'postcode', other: 'postcodes' }}
+        columns={columns}
+        rows={rows}
+        getRowKey={(row) => row.postcode}
+        onPointerOver={light}
+        onPointerLeave={() => setLit(undefined)}
+        onFocus={light}
+        onBlur={() => setLit(undefined)}
+      />
+    </div>
+  )
+}
+
+render(<PostcodeTotals />)
+```
+
 ### Pin drop
 
 `Map.Picker` chooses a place. A click or tap on the map drops the pin there, and the pin drags, or moves with the arrow keys, to refine it, such as onto a venue's entrance. Its `value` is a place: a `label`, a `position`, and an `address` when there is one. Moving the pin keeps the label and address, sets the new position, and adds `precision: 'manual'`, so you know a person placed it. A pin dropped with nothing chosen before has an empty label. It takes the same `intent`, `icon` and `pin` as a marker.

@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "289 kB",
+    "limit": "318 kB",
     "ignore": ["maplibre-gl"]
   },
   {
@@ -52,7 +52,7 @@
     "name": "Map",
     "path": "dist/components/Map/index.js",
     "import": "*",
-    "limit": "34.5 kB",
+    "limit": "37.5 kB",
     "ignore": [
       "react",
       "react-dom",

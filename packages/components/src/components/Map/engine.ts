@@ -53,6 +53,12 @@ export type MapAreaLayer = {
   /** How opaque the fill is, from 0 to 1. */
   fillOpacity: number
   line: string
+  /** The outline's width in pixels. Without it, 2. */
+  lineWidth?: number
+  /** The fill's opacity while the area is active, as `setActiveAreas` sets. */
+  fillOpacityActive?: number
+  /** The outline's width while the area is active. */
+  lineWidthActive?: number
 }
 
 /** A point in the map's frame, in CSS pixels from its top left. */
@@ -113,6 +119,13 @@ export interface MapEngineInstance {
   setPalette(palette: MapPalette): void
   /** Draws these areas over the basemap, replacing the ones before. */
   setAreas(areas: readonly MapAreaLayer[]): void
+  /**
+   * Gives these areas, by `id`, their active look, as on hover, without
+   * drawing the others again. Parts that draw many areas, such as
+   * `Map.Areas`, send them all again with the look changed when an engine
+   * leaves this out.
+   */
+  setActiveAreas?(ids: readonly string[]): void
   /**
    * Turns cooperative gestures on or off. On, as every map starts, one
    * finger and a plain scroll move the page, and two fingers or Ctrl or ⌘
