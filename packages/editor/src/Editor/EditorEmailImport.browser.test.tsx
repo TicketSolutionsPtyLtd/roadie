@@ -169,6 +169,32 @@ describe('Editor email import', () => {
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
   })
 
+  it('imports without submitting a form around the editor', async () => {
+    const onSubmit = vi.fn((event: SubmitEvent) => event.preventDefault())
+    const onValueChange = vi.fn()
+    render(
+      <form onSubmit={(event) => onSubmit(event.nativeEvent as SubmitEvent)}>
+        <Editor
+          aria-label={LABEL}
+          preset='email'
+          toolbar='docked'
+          onValueChange={onValueChange}
+        />
+      </form>
+    )
+    const dialog = await openImport()
+    await userEvent.fill(
+      within(dialog).getByRole('textbox', { name: 'Source' }),
+      MJML
+    )
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Import' })
+    )
+
+    await waitFor(() => expect(lastDoc(onValueChange)).toEqual(REPLACED))
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
   it('says what won’t come across before importing', async () => {
     renderEmail()
     const dialog = await openImport()

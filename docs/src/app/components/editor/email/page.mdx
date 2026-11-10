@@ -592,8 +592,10 @@ brings an existing email across. Paste its source, whole or in part, or
 pick an `.html` or `.mjml` file with Choose a file, and the
 dialog says whether it's reading MJML, which starts with `<mjml>`, or HTML.
 Before anything changes, it lists what won't come across: styles, a table's
-layout, images not on https, links an email can't open, hidden text past the
-preheader, and merge tags the editor doesn't know. Text is always kept. An
+layout, images not on https, unsafe links such as `javascript:`, a link
+around an image that an email can't open, hidden text past the preheader,
+and merge tags the editor doesn't know. Text is always kept, and
+a link around an image becomes the image's link. An
 `mj-preview`, or hidden text before any the email shows, becomes the
 [preview text](#preview-text). In place of the whole email, the email keeps
 its own preview text unless the source has one; below the cursor, it takes
@@ -661,8 +663,11 @@ const { value, format, dropped, restyled, unknownMergeTags } = importEmail(
 ```
 
 `dropped` lists images, embeds, hidden text past the preheader, which
-`value.doc.attrs.preheader` holds, links on images, links an
-email can't open, such as `javascript:`, and MJML elements with no block of their own, in order. `restyled` counts style sheets
+`value.doc.attrs.preheader` holds, unsafe links on text, such as
+`javascript:`, whose text it keeps, links around an image that an email
+can't open, such as a path on the site, and MJML elements with no block of
+their own, in order. A text link to a path on the site isn't listed: it's
+kept, and `renderEmail` sends it as its text. `restyled` counts style sheets
 and styled elements, and tables, outermost only. `unknownMergeTags` lists
 each token no variable matches, kept as text.
 
@@ -852,10 +857,15 @@ const preview = await renderEmail({ kind: 'design', value: welcome }, {
 
 - `syntax` is `ae` for `#Token#` or `liquid` for `{{ }}`. Each variable is
   written as its token, unescaped, in the HTML and the plain text alike.
+  Liquid writes a value as it is, so a value with `<` or `&` reaches the
+  HTML as markup. A token with `| escape`, as in
+  `{{ customer.first_name | escape }}`, keeps it text in the HTML, but the
+  plain text then shows it escaped too, as `&amp;`.
 - A Liquid token of one `{{ }}` output gets the fallback as its `default`.
   An AE token has no default, so its fallback isn't written.
 - With `values`, each variable is filled with its value, escaped, or its
-  fallback when the value is missing or empty. A preview needs no `syntax`.
+  fallback when the value is missing or empty. A preview needs no `syntax`,
+  and leaves out a button whose label fills to nothing.
 - A variable `variables` doesn't list, or one with no token in `syntax`,
   throws, so a template never asks for a value the sender can't fill.
 - Text an author typed that reads as a token, such as `{{ code }}` or

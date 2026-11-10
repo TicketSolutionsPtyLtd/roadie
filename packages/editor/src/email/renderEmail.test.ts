@@ -228,6 +228,37 @@ describe('renderEmail', () => {
       ).toHaveLength(3)
     })
 
+    it('writes a linked image as its alt text and link in the plain text, and an unlinked one as nothing', async () => {
+      const { text: plain } = await renderEmail(
+        email(
+          {
+            type: 'image',
+            attrs: { src: poster, alt: 'Ochre Kite poster', href: tickets }
+          },
+          image(poster),
+          p(text('Doors 7pm'))
+        )
+      )
+      expect(plain).toBe(`Ochre Kite poster [${tickets}]\n\nDoors 7pm`)
+    })
+
+    it.each([
+      ['no', ''],
+      ['blank', '  ']
+    ])(
+      'writes a linked image with %s alt text as its link alone in the plain text, so it stays reachable',
+      async (_, alt) => {
+        const { text: plain } = await renderEmail(
+          email(
+            p(text('Doors 7pm')),
+            { type: 'image', attrs: { src: poster, alt, href: tickets } },
+            p(text('All ages'))
+          )
+        )
+        expect(plain).toBe(`Doors 7pm\n\n${tickets}\n\nAll ages`)
+      }
+    )
+
     it('links an image to a link variable’s token', async () => {
       const { html } = await renderEmail(
         email({
@@ -829,6 +860,34 @@ describe('renderEmail', () => {
         { syntax: 'ae', variables }
       )
       expect(html).toMatch(/>\s*Tickets for #FirstName#\s*</)
+    })
+
+    it('previews no button whose label fills to nothing, never a link with no name', async () => {
+      const { html, text: plain } = await renderEmail(
+        email(
+          {
+            type: 'button',
+            attrs: { href: tickets },
+            content: [tag('first_name')]
+          },
+          p(text('Doors 7pm'))
+        ),
+        { variables, values: {} }
+      )
+      expect(html).not.toContain(`href="${tickets}"`)
+      expect(plain).toBe('Doors 7pm')
+    })
+
+    it('previews a button whose label fills from its fallback', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'button',
+          attrs: { href: tickets },
+          content: [tag('first_name', 'Get tickets')]
+        }),
+        { variables, values: {} }
+      )
+      expect(html).toMatch(/>\s*Get tickets\s*</)
     })
 
     it('writes a link variable’s token as a link’s href', async () => {
