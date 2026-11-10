@@ -21,6 +21,7 @@ import { isUnsafeHref } from '@oztix/roadie-core/utils'
 import type { EditorSetting } from '../extensions'
 import { isSafeImageSrc } from '../schema/imageSrc'
 import { EditorChoice } from './EditorChoice'
+import { isImeEnter } from './imeEnter'
 
 type Attrs = Record<string, unknown>
 
@@ -56,9 +57,7 @@ type FieldProps = {
 }
 
 const onEnter = (onDone: () => void) => (event: React.KeyboardEvent) => {
-  // The Enter that picks an IME candidate only ends the composition.
-  const composing = event.nativeEvent.isComposing || event.keyCode === 229
-  if (event.key !== 'Enter' || composing) return
+  if (event.key !== 'Enter' || isImeEnter(event.nativeEvent)) return
   event.preventDefault()
   onDone()
 }

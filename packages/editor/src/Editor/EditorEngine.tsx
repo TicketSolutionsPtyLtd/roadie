@@ -910,10 +910,6 @@ export function EditorEngine({
   }, [editor])
 
   useEffect(() => {
-    editorRef.current = editor
-  }, [editor])
-
-  useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
     variablesRef.current = variables
