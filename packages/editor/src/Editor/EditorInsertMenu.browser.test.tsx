@@ -405,6 +405,24 @@ describe('Editor insert menu', () => {
     expect(shown).not.toContain('No blocks match')
   })
 
+  it('opens on its matches, never on No blocks match', async () => {
+    renderEmail()
+    await focusedTextbox()
+    const shown: string[] = []
+    const watch = new MutationObserver(() => {
+      const option = document.querySelector('[role=listbox] [role=option]')
+      if (option) shown.push(option.textContent ?? '')
+    })
+    watch.observe(document.body, { childList: true, subtree: true })
+    onTestFinished(() => watch.disconnect())
+
+    await userEvent.keyboard('/')
+
+    await insertMenu()
+    expect(shown[0]).toMatch(/^Paragraph/)
+    expect(shown).not.toContain('No blocks match')
+  })
+
   it('ranks a match at the start of a name first, as /2 finds 2 columns before Heading 2', async () => {
     renderEmail()
     await focusedTextbox()
