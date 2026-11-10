@@ -144,13 +144,16 @@ export const InsertMenu = Extension.create<
     }
 
     // Mounted once per opening, so the menu isn't placed again on each key.
+    // Suggestion reports each query before its items, with none and
+    // `loading`, which would flash No blocks match on every key.
     const start = (props: Props) => {
       open = { props, active: 0, mount: props.mount }
-      publish()
+      if (!props.loading) publish()
     }
     const update = (props: Props) => {
+      if (props.loading && open?.props.items.length) return
       open = { props, active: 0, mount: open?.mount ?? props.mount }
-      publish()
+      if (!props.loading) publish()
     }
 
     return [

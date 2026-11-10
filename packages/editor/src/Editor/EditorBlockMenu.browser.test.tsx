@@ -387,9 +387,10 @@ describe('Editor block menu', () => {
           .map((button) => button.textContent)
           .filter(Boolean)
       ).toContain('Getting there')
-      await userEvent.click(
-        within(sheet).getByRole('button', { name: 'Getting there' })
-      )
+      const place = within(sheet).getByRole('button', { name: 'Getting there' })
+      // A place is an action, not a toggle, so it reads as a plain button.
+      expect(place).not.toHaveAttribute('aria-pressed')
+      await userEvent.click(place)
 
       await waitFor(() =>
         expect(

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useEffect, useRef } from 'react'
 
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { createPortal } from 'react-dom'
@@ -9,6 +9,7 @@ import { Kbd } from '@oztix/roadie-components/kbd'
 
 import { MenuGroups } from './EditorMenuGroups'
 import type { InsertMenuState } from './insertMenu'
+import { useShowsShortcuts } from './menuGroups'
 
 type EditorInsertMenuProps = {
   editor: TiptapEditor
@@ -19,22 +20,15 @@ type EditorInsertMenuProps = {
 
 const optionId = (listboxId: string, index: number) => `${listboxId}-${index}`
 
-// A touch screen types no markdown, and Kbd's hover check misses one that
-// reports hover. Swap for useShowsShortcuts once it ships in components.
-const FINE_POINTER = '(any-pointer: fine)'
-
-function subscribeToPointer(onChange: () => void) {
-  const query = window.matchMedia(FINE_POINTER)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
+// By what it is, not where it is, so an option the query moves into a place
+// gets an element of its own; the count tells same-named items apart.
+function optionKey(items: InsertMenuState['items'], index: number) {
+  const { group, label } = items[index]!
+  const before = items
+    .slice(0, index)
+    .filter((item) => item.group === group && item.label === label).length
+  return JSON.stringify([group ?? null, label, before])
 }
-
-const useFinePointer = () =>
-  useSyncExternalStore(
-    subscribeToPointer,
-    () => window.matchMedia(FINE_POINTER).matches,
-    () => false
-  )
 
 /**
  * What `/` or `{{` can insert, under the caret. Focus stays in the editor,
@@ -47,7 +41,9 @@ export function EditorInsertMenu({
   label
 }: EditorInsertMenuProps) {
   const listRef = useRef<HTMLDivElement>(null)
-  const showsShortcuts = useFinePointer()
+  // A touch screen types no markdown, and Kbd's hover check misses one that
+  // reports hover.
+  const showsShortcuts = useShowsShortcuts()
   const mount = state?.mount
   const active = state ? optionId(id, state.active) : undefined
 
@@ -100,7 +96,7 @@ export function EditorInsertMenu({
           const Icon = item.icon
           return (
             <div
-              key={item.label}
+              key={optionKey(state.items, index)}
               id={optionId(id, index)}
               role='option'
               aria-selected={index === state.active}
