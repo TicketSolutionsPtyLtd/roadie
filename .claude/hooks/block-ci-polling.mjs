@@ -22,7 +22,7 @@ const checksWatch =
 const watchCommand = new RegExp(`${atCommandStart}watch\\s`)
 const ghCall = /\bgh\s/
 // A `while read` loop works through a list, so only a polling loop counts.
-const pollingLoop = /^(?:while|until)\s(?!\s*read\b)/
+const pollingLoop = /^(?:while|until)\s(?!\s*(?:\w+=\S*\s+)*read\b)/
 
 const shellScript =
   /\b(?:ba|z)?sh\s+(?:-\w+\s+)*-\w*c\w*\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g

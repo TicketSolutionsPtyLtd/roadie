@@ -101,6 +101,7 @@ describe('block-ci-polling', () => {
     'echo "${NAME:-there}"; sleep 2',
     'pnpm --filter docs run watch',
     'while read -r n; do gh pr view "$n"; done < prs.txt',
+    'gh pr list -q .[].number | while IFS= read -r n; do gh pr view "$n"; done',
     'for n in 1 2; do gh pr view $n; done',
     'perl -e "sleep 2"',
     'python3 -c "print(1)"',
