@@ -16,6 +16,7 @@ import { Popover } from '@oztix/roadie-components/popover'
 import { Separator } from '@oztix/roadie-components/separator'
 
 import { EditorContext } from './EditorContext'
+import { isImeEnter } from './imeEnter'
 import { EDITOR_TOOLBAR_SIZE } from './variants'
 
 /** Gives `Popover.Content` its one-row width and tighter padding. */
@@ -74,11 +75,8 @@ function Row({
         onKeyDown={(event) => {
           if (event.key !== 'Enter') return
           event.preventDefault()
-          // The Enter that picks an IME candidate only ends the composition.
-          // Safari sends it after compositionend, marked only by keyCode 229.
-          const composing =
-            event.nativeEvent.isComposing || event.keyCode === 229
-          if (!composing) event.currentTarget.form?.requestSubmit()
+          if (!isImeEnter(event.nativeEvent))
+            event.currentTarget.form?.requestSubmit()
         }}
         className='min-w-0 flex-1 self-stretch bg-transparent px-2 font-sans text-base outline-none placeholder:text-subtle'
       />

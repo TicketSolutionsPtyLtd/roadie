@@ -10,9 +10,10 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  SPOT_ILLUSTRATIONS,
-  type SpotIllustrationName
+  type SpotIllustrationName,
+  spotIllustration
 } from '../_shared/illustrations'
+import { isOwnKey } from '../_shared/ownKey'
 import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
@@ -127,12 +128,14 @@ export function CallToAction(props: CallToActionProps) {
   const block = useBlock(callToActionDefinition, props)
   const image = block.name === 'photo' ? props.image : undefined
   const preset = presetOf(callToActionDefinition, block.name)
-  const ratio =
-    props.ratio ??
-    ('ratio' in preset.defaults ? preset.defaults.ratio : 'portrait')
+  const ratio = isOwnKey(PHOTO_WIDTH, props.ratio)
+    ? props.ratio
+    : 'ratio' in preset.defaults
+      ? preset.defaults.ratio
+      : 'portrait'
   const { emphasis } = block
   const centred = block.align === 'center'
-  const Illustration = SPOT_ILLUSTRATIONS[illustration]
+  const Illustration = spotIllustration(illustration, 'HighFive')
 
   return (
     <BlockRoot {...block.root}>
