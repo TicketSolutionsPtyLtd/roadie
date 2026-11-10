@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation'
 import { ReleaseMoved } from '@/components/changelog/ReleaseMoved'
 import { ReleasePage } from '@/components/changelog/ReleasePage'
 import { getReleaseViews, releaseRoutes } from '@/lib/releases'
-import { getAssetPath } from '@/utils/getAssetPath'
 
 type Props = { params: Promise<{ release: string }> }
 
@@ -21,11 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { release: slug } = await params
   const route = routeOf(slug)
   if (route?.movedTo)
-    return {
-      title: 'Release moved · Changelog',
-      robots: { index: false },
-      alternates: { canonical: `${getAssetPath(route.movedTo)}/` }
-    }
+    return { title: 'Release moved · Changelog', robots: { index: false } }
   const release = getReleaseViews().find((view) => view.slug === slug)
   if (!release) return {}
   return {

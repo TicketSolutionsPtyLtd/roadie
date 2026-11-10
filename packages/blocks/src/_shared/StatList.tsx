@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { SPOT_ILLUSTRATIONS, type SpotIllustrationName } from './illustrations'
+import { type SpotIllustrationName, spotIllustration } from './illustrations'
 
 export type StatItem = {
   /** The number as written, such as `7 million+` or `4.9 out of 5`. Over four words, it's set a step smaller. */
@@ -47,7 +47,7 @@ export function StatList({ items }: { items: readonly StatItem[] }) {
       className='grid grid-cols-[repeat(auto-fill,minmax(min(100%,max(16rem,calc((100%-(var(--stats-per-row)-1)*2rem)/var(--stats-per-row)))),1fr))] gap-x-8 gap-y-2'
     >
       {items.map(({ value, label, illustration }, index) => {
-        const Illustration = illustration && SPOT_ILLUSTRATIONS[illustration]
+        const Illustration = spotIllustration(illustration)
         return (
           <li key={`${index}-${value}-${label}`} className='@container min-w-0'>
             {/* The column's width, the same across a row, decides whether the

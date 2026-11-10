@@ -155,14 +155,24 @@ const legacy =
   '<img src="data:image/png;base64,iVBORw0KGgo=">' +
   '<iframe src="' + video + '"></iframe>'
 
-const { value, dropped } = htmlToEditorValue(legacy, 'rich')
+function LegacyDescription() {
+  const [imported, setImported] = useState()
+  if (!imported) {
+    return (
+      <Button onClick={() => setImported(htmlToEditorValue(legacy, 'rich'))}>
+        Edit description
+      </Button>
+    )
+  }
+  return (
+    <div className='grid gap-3'>
+      <Editor aria-label='Event description' preset='rich' defaultValue={imported.value} />
+      <p className='text-subtle text-display-ui-6'>
+        Not imported: {imported.dropped.map(({ kind }) => kind).join(', ') || 'nothing'}
+      </p>
+    </div>
+  )
+}
 
-render(
-  <div className='grid gap-3'>
-    <Editor aria-label='Event description' preset='rich' defaultValue={value} />
-    <p className='text-subtle text-display-ui-6'>
-      Not imported: {dropped.map(({ kind }) => kind).join(', ') || 'nothing'}
-    </p>
-  </div>
-)
+render(<LegacyDescription />)
 ```

@@ -11,6 +11,7 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { filledIntent } from '../_shared/items'
+import { isOwnKey } from '../_shared/ownKey'
 import {
   type BlockAlign,
   type BlockEmphasis,
@@ -175,11 +176,12 @@ function PhotoTile({
   description,
   logo,
   image,
-  size = 'sm',
+  size: saved,
   href,
   intent,
   filled
 }: MosaicTile & { filled: BlockIntent | undefined }) {
+  const size = isOwnKey(SIZE, saved) ? saved : 'sm'
   const layout = SIZE[size]
   return (
     <li

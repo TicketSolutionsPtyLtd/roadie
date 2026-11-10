@@ -16,6 +16,7 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BLEED, BlockSurface, PAGE_GUTTER } from '../_shared/BlockSurface'
+import { isOwnKey } from '../_shared/ownKey'
 import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
@@ -116,7 +117,9 @@ export function Gallery(props: GalleryProps) {
   const preset = presetOf(galleryDefinition, name)
   const readsRatio = (preset.fields as readonly string[]).includes('ratio')
   const ratio: TileRatio =
-    (readsRatio ? props.ratio : undefined) ?? preset.defaults.ratio
+    readsRatio && isOwnKey(CROPPED, props.ratio)
+      ? props.ratio
+      : preset.defaults.ratio
   const headingId = block.heading.id
   const gap = gapOf(size, 'loose')
   const heading = <BlockHeading {...block.heading} />

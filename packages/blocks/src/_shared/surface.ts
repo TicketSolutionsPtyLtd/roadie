@@ -1,3 +1,5 @@
+import { isOwnKey } from './ownKey'
+
 /** A Roadie intent a block or card can set. Children inherit it through the cascade. */
 export type BlockIntent =
   | 'neutral'
@@ -50,12 +52,12 @@ export type BlockAlign = 'start' | 'center'
 /** How much room a block takes: each step down from the preset's `lg` sets a smaller title, smaller text, and tighter spacing. */
 export type BlockSize = 'sm' | 'md' | 'lg'
 
-/** Picks a block's value for its size, `lg` when unset. */
+/** Picks a block's value for its size, `lg` when unset or saved as no size. */
 export function bySize<T>(
   size: BlockSize | undefined,
   values: Record<BlockSize, T>
 ): T {
-  return values[size ?? 'lg']
+  return values[isOwnKey(values, size) ? size : 'lg']
 }
 
 // Literal class names, so Tailwind finds them. Each step down a size closes the gap a step.
