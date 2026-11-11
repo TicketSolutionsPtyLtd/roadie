@@ -67,15 +67,31 @@ const NOT_ALLOWED = new Set([
   'use'
 ])
 
+const INHERITED = ['fill', 'fill-rule', 'stroke', 'stroke-width'] as const
+// What SVG paints when nothing sets these.
+const INITIAL_PAINT: Record<string, string> = { fill: '#000' }
+
 /** Every painted shape, in paint order, with a path's fill and stroke as separate items. */
 function readItems(svg: string): Item[] {
   const items: Item[] = []
+  const paint = new WeakMap<object, Record<string, string>>()
   const collect: CustomPlugin = {
     name: 'collectPaintOrder',
     fn: () => ({
       element: {
-        enter(node) {
-          const a = node.attributes
+        enter(node, parent) {
+          const inherited = {
+            ...(paint.get(parent) ?? INITIAL_PAINT),
+            ...Object.fromEntries(
+              INHERITED.flatMap((k) =>
+                node.attributes[k] === undefined
+                  ? []
+                  : [[k, node.attributes[k]]]
+              )
+            )
+          }
+          paint.set(node, inherited)
+          const a = { ...node.attributes, ...inherited }
           if (NOT_ALLOWED.has(node.name))
             throw new Error(
               `<${node.name}> isn't supported; flatten it to plain paths`

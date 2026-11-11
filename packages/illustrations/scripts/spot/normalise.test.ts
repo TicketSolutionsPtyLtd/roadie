@@ -159,6 +159,29 @@ describe('normalise', () => {
       ).toEqual(['Face', 'Stroke'])
   })
 
+  it('takes the fill and fill rule a group passes down to its shapes', () => {
+    const { layers } = normalise(
+      svg(
+        `<g fill="${FACE}" fill-rule="evenodd"><path d="${rect(4, 4, 20, 20)}${rect(10, 10, 8, 8)}"/></g>`,
+        line(rect(4, 4, 20, 20))
+      )
+    )
+    expect(layers.map((l) => l.name)).toEqual(['Face', 'Stroke'])
+    expect(covers(layers[0]!.d, 6, 6)).toBe(true)
+    expect(covers(layers[0]!.d, 14, 14)).toBe(false)
+  })
+
+  it('takes a stroke a group passes down as a line', () => {
+    const { layers, strokeWidths } = normalise(
+      svg(
+        fill(FACE, rect(4, 4, 10, 10)),
+        `<g stroke="${INK}" stroke-width=".5"><path d="M20 20L30 30"/></g>`
+      )
+    )
+    expect(inks(layers.at(-1)!.d, 25, 25)).toBe(true)
+    expect(strokeWidths).toEqual([0.5])
+  })
+
   it('takes near-miss colours as the nearest layer', () => {
     expect(
       names(svg(fill('#FFC9B0', rect(4, 4, 10, 10)), line(rect(4, 4, 10, 10))))
@@ -169,6 +192,11 @@ describe('normalise', () => {
     [
       'an off-palette colour',
       svg(fill('#FF0000', rect(4, 4, 10, 10))),
+      "isn't a spot illustration colour"
+    ],
+    [
+      'a shape with no fill, which paints black',
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="${rect(4, 4, 10, 10)}"/></svg>`,
       "isn't a spot illustration colour"
     ],
     [
