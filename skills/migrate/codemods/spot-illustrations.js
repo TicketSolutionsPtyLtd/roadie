@@ -40,6 +40,17 @@ const LEFT = {
     "createSpotIllustration isn't in @oztix/roadie-illustrations. Draw the art as a source in that package, or keep this import until the next major."
 }
 
+const REEXPORTED_WHOLE = `'${FROM}' is re-exported whole, and its exports changed in ${TO}. Migrate it by hand.`
+
+// Why a re-export stays on the old path, or undefined when it can move.
+function reExportLeft(specifier) {
+  if (specifier.type !== 'ExportSpecifier') return REEXPORTED_WHOLE
+  const name = specifier.local.name
+  if (LEFT[name]) return LEFT[name]
+  if (PROPS_TYPES.has(name)) return reExportedName(name)
+  return undefined
+}
+
 const importedName = (specifier) =>
   specifier.type === 'ImportSpecifier' ? specifier.imported.name : undefined
 
@@ -149,28 +160,29 @@ export default function transform(file, api) {
   root
     .find(j.ExportNamedDeclaration, { source: { value: FROM } })
     .forEach((path) => {
-      const deprecated = (path.node.specifiers ?? []).filter(
-        (specifier) =>
-          specifier.type !== 'ExportSpecifier' ||
-          PROPS_TYPES.has(specifier.local.name) ||
-          LEFT[specifier.local.name]
-      )
-      for (const specifier of deprecated) {
-        report(specifier, reExportedName(specifier.local?.name ?? '*'))
+      const specifiers = path.node.specifiers ?? []
+      const staying = specifiers.filter(reExportLeft)
+      for (const specifier of staying) {
+        report(specifier, reExportLeft(specifier))
       }
-      if (deprecated.length > 0) return
-      path.node.source = j.stringLiteral(TO)
+      const moving = specifiers.filter(
+        (specifier) => !staying.includes(specifier)
+      )
+      if (moving.length === 0) return
       changed = true
+      if (staying.length === 0) {
+        path.node.source = j.stringLiteral(TO)
+        return
+      }
+      path.node.specifiers = staying
+      const moved = j.exportNamedDeclaration(null, moving, j.stringLiteral(TO))
+      moved.exportKind = path.node.exportKind
+      path.insertAfter(moved)
     })
 
   root
     .find(j.ExportAllDeclaration, { source: { value: FROM } })
-    .forEach((path) =>
-      report(
-        path.node,
-        `'${FROM}' is re-exported whole, and its exports changed in @oztix/roadie-illustrations/spot. Migrate it by hand.`
-      )
-    )
+    .forEach((path) => report(path.node, REEXPORTED_WHOLE))
 
   root
     .find(j.CallExpression, { callee: { type: 'Import' } })
