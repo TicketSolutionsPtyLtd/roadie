@@ -207,6 +207,17 @@ describe('normalise', () => {
     ).toEqual(['Face', 'Stroke'])
   })
 
+  it("ignores a clip path that covers the whole box, as Figma's frame clipping exports", () => {
+    expect(
+      names(
+        svg(
+          '<defs><clipPath id="frame"><path fill="#fff" d="M0 0h48v48H0z"/></clipPath></defs>',
+          `<g clip-path="url(#frame)">${fill(FACE, rect(4, 4, 30, 30))}${line(rect(4, 4, 30, 30))}</g>`
+        )
+      )
+    ).toEqual(['Face', 'Stroke'])
+  })
+
   it('takes the fill and fill rule a group passes down to its shapes', () => {
     const { layers } = normalise(
       svg(
@@ -275,8 +286,11 @@ describe('normalise', () => {
     ['art with no lines', svg(fill(FACE, rect(4, 4, 10, 10))), 'no lines'],
     ['lines with no fills', svg(line(rect(4, 4, 10, 10))), 'nothing filled'],
     [
-      'a clip path',
-      svg(`<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 10, 10))}</g>`),
+      'a clip path that cuts into the art',
+      svg(
+        '<defs><clipPath id="c"><path d="M0 0h20v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
       'clip paths'
     ]
   ])('rejects %s', (_, source, message) => {

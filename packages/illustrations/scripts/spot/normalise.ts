@@ -76,9 +76,51 @@ const INHERITED = ['fill', 'fill-rule', 'stroke', 'stroke-width'] as const
 // What SVG paints when nothing sets these.
 const INITIAL_PAINT: Record<string, string> = { fill: '#000' }
 
+/** Clip paths covering the whole box, which clip nothing: Figma exports one for a frame that clips its content. */
+function wholeBoxClips(svg: string) {
+  const ids = new Set<string>()
+  const find: CustomPlugin = {
+    name: 'findWholeBoxClips',
+    fn: () => ({
+      element: {
+        enter(node) {
+          if (node.name !== 'clipPath' || !node.attributes.id) return
+          const covers = node.children.some((child) => {
+            if (
+              child.type !== 'element' ||
+              child.name !== 'path' ||
+              !child.attributes.d
+            )
+              return false
+            const shape = PK.FromSVGString(child.attributes.d)
+            if (!shape) return false
+            const b = shape.computeTightBounds()
+            shape.delete()
+            return (
+              b.fLeft <= 0 && b.fTop <= 0 && b.fRight >= BOX && b.fBottom >= BOX
+            )
+          })
+          if (covers) ids.add(node.attributes.id)
+        }
+      }
+    })
+  }
+  optimize(svg, {
+    plugins: [
+      { name: 'convertShapeToPath', params: { convertArcs: true } },
+      find
+    ]
+  })
+  return ids
+}
+
 /** Every painted shape, in paint order, with a path's fill and stroke as separate items. */
 function readItems(svg: string): Item[] {
   const items: Item[] = []
+  const harmlessClips = wholeBoxClips(svg)
+  const clipsSomething = (clip: string | undefined) =>
+    clip !== undefined &&
+    !harmlessClips.has(clip.match(/^url\(#(.+)\)$/)?.[1] ?? '')
   const paint = new WeakMap<object, Record<string, string>>()
   const unpainted = new WeakSet<object>()
   const collect: CustomPlugin = {
@@ -106,7 +148,7 @@ function readItems(svg: string): Item[] {
             throw new Error(
               `<${node.name}> isn't supported; flatten it to plain paths`
             )
-          if (a['clip-path'] || a.mask || a.filter)
+          if (clipsSomething(a['clip-path']) || a.mask || a.filter)
             throw new Error("clip paths, masks, and filters aren't supported")
           if (a.opacity || a['fill-opacity'] || a['stroke-opacity'])
             throw new Error('every layer is opaque; remove the opacity')

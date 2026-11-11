@@ -12,8 +12,10 @@ describe('the spot illustration sources', () => {
   })
 
   it('match their generated components; run `pnpm spot:generate` if not', () => {
+    // oxfmt lays the files out after generating, so only the content has to match.
+    const content = (code: string) => code.replace(/\s+/g, '')
     for (const [path, contents] of files)
-      expect(readFileSync(path, 'utf8'), path).toBe(contents)
+      expect(content(readFileSync(path, 'utf8')), path).toBe(content(contents))
     expect(stale(files)).toEqual([])
   })
 })
