@@ -1,7 +1,7 @@
 import { PK, type Path } from './pathkit.ts'
 
-type Point = [number, number]
-type Cubic = [Point, Point, Point, Point]
+export type Point = [number, number]
+export type Cubic = [Point, Point, Point, Point]
 
 // A conic's weight is the cosine of half the turn it spans.
 const QUARTER_TURN = Math.SQRT1_2 - 1e-6
@@ -118,7 +118,7 @@ export function pathData(path: Path) {
   return d
 }
 
-function pointAt([a, b, c, d]: Cubic, t: number): Point {
+export function pointAt([a, b, c, d]: Cubic, t: number): Point {
   const u = 1 - t
   const mix = (i: 0 | 1) =>
     u * u * u * a[i] +
@@ -128,7 +128,36 @@ function pointAt([a, b, c, d]: Cubic, t: number): Point {
   return [mix(0), mix(1)]
 }
 
-function split([a, b, c, d]: Cubic, t: number): [Cubic, Cubic] {
+export function tangentAt([a, b, c, d]: Cubic, t: number): Point {
+  const u = 1 - t
+  const mix = (i: 0 | 1) =>
+    3 * u * u * (b[i] - a[i]) +
+    6 * u * t * (c[i] - b[i]) +
+    3 * t * t * (d[i] - c[i])
+  return [mix(0), mix(1)]
+}
+
+const PROBE = 1e-3
+
+/**
+ * Whether a closed contour has its filled side on its left, where a positive
+ * signed area puts its inside. `polys` is the whole path, so a hole answers
+ * for the material around it.
+ */
+export function filledLeft(contour: Cubic[], polys: Point[][]) {
+  const chord = (c: Cubic) => Math.hypot(c[3][0] - c[0][0], c[3][1] - c[0][1])
+  // One probe can land on an edge another contour touches, so the longest few segments vote.
+  const voters = [...contour].sort((a, b) => chord(b) - chord(a)).slice(0, 5)
+  const votes = voters.filter((c) => {
+    const [x, y] = pointAt(c, 0.5)
+    const [dx, dy] = tangentAt(c, 0.5)
+    const l = Math.hypot(dx, dy) || 1
+    return inside(polys, [x - (dy / l) * PROBE, y + (dx / l) * PROBE])
+  }).length
+  return votes * 2 > voters.length
+}
+
+export function split([a, b, c, d]: Cubic, t: number): [Cubic, Cubic] {
   const ab = lerp(a, b, t)
   const bc = lerp(b, c, t)
   const cd = lerp(c, d, t)
@@ -149,7 +178,7 @@ function slice(cubic: Cubic, t0: number, t1: number): Cubic {
 const SAMPLES_PER_SEGMENT = 48
 
 /** A filled path as polygons, for an even-odd inside test. PathKit has no hit test. */
-function polygons(path: Path): Point[][] {
+export function polygons(path: Path): Point[][] {
   return toCubics(path).map((segments) =>
     segments.flatMap((s) =>
       Array.from({ length: SAMPLES_PER_SEGMENT }, (_, k) =>
@@ -159,7 +188,7 @@ function polygons(path: Path): Point[][] {
   )
 }
 
-function inside(polys: Point[][], [x, y]: Point) {
+export function inside(polys: Point[][], [x, y]: Point) {
   let hit = false
   for (const poly of polys)
     for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {

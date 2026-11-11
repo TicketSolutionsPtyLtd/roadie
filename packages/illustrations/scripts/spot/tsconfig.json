@@ -4,6 +4,6 @@
     "allowImportingTsExtensions": true,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["*.ts"],
+  "include": ["**/*.ts", "../../drawings/*.ts"],
   "exclude": []
 }

@@ -10,7 +10,7 @@ import {
 import { basename, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { check, layersOf } from './check.ts'
+import { check, layersOf, styleWarnings } from './check.ts'
 
 const SPOT = fileURLToPath(new URL('../../src/spot/', import.meta.url))
 export const SVGS = join(SPOT, 'svgs')
@@ -103,8 +103,7 @@ export function nameClashes(slugs: string[]) {
 }
 
 /** Every generated file and its contents, or the checks each source failed. */
-export function generate() {
-  const all = sources()
+export function generate(all = sources()) {
   const failures = [
     ...all.flatMap(({ file, svg }) =>
       check(svg, file).map((e) => `${file}: ${e}`)
@@ -118,7 +117,12 @@ export function generate() {
     ])
   )
   files.set(BARREL, barrelFor(all.map((s) => s.slug)))
-  return { files, failures }
+  const warnings = failures.length
+    ? []
+    : all.flatMap(({ file, slug, svg }) =>
+        styleWarnings(layersOf(svg), slug).map((w) => `${file}: ${w.message}`)
+      )
+  return { files, failures, warnings }
 }
 
 export function stale(files: Map<string, string>) {
@@ -129,7 +133,7 @@ export function stale(files: Map<string, string>) {
 }
 
 if (import.meta.main) {
-  const { files, failures } = generate()
+  const { files, failures, warnings } = generate()
   if (failures.length) {
     console.error(
       `These sources don't match the spot illustration format:\n${failures.map((f) => `  ${f}`).join('\n')}`
@@ -141,4 +145,8 @@ if (import.meta.main) {
   for (const [path, contents] of files) writeFileSync(path, contents)
   execFileSync('pnpm', ['exec', 'oxfmt', ...files.keys()], { stdio: 'inherit' })
   console.log(`Generated ${files.size - 1} spot illustrations.`)
+  if (warnings.length)
+    console.warn(
+      `These stray from how the set is drawn; look at them in spot:preview:\n${warnings.map((w) => `  ${w}`).join('\n')}`
+    )
 }
