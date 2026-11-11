@@ -58,6 +58,11 @@ describe('CopyChip', () => {
 
     await copyBrand5()
 
-    await screen.findByText('Couldn’t copy')
+    const title = await screen.findByText('Couldn’t copy')
+    expect(title.closest('.intent-danger')).toBeTruthy()
+    screen.getByText('Select the value and copy it yourself.')
+    expect(
+      screen.getByText('--color-brand-5', { selector: 'code' })
+    ).toBeTruthy()
   })
 })

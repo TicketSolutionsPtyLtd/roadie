@@ -13,7 +13,6 @@ import {
 import { Highlight, themes } from 'prism-react-renderer'
 
 import { IconButton } from '@oztix/roadie-components/button'
-import { useToastManager } from '@oztix/roadie-components/toast'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 import { DEVICES, type Device } from './exampleDevices'
