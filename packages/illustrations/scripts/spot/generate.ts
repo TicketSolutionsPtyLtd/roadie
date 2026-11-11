@@ -99,8 +99,7 @@ export function nameClashes(slugs: string[]) {
 }
 
 /** Every generated file and its contents, or the checks each source failed. */
-export function generate() {
-  const all = sources()
+export function generate(all = sources()) {
   const failures = [
     ...all.flatMap(({ file, svg }) =>
       check(svg, file).map((e) => `${file}: ${e}`)
