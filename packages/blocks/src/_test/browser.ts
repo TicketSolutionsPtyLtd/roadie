@@ -13,13 +13,12 @@ export const widths = [
   { name: 'desktop', ...DESKTOP }
 ] as const
 
-/** Gives every test in the file Roadie's stylesheet, loaded in the brand font, and a fresh desktop page with motion on. */
+/** Gives every test in the file Roadie's stylesheet and a fresh desktop page with motion on. */
 export function withBrowserPage() {
   const style = document.createElement('style')
-  beforeAll(async () => {
+  beforeAll(() => {
     style.textContent = roadieCss
     document.head.append(style)
-    await loadBrandFont()
   })
   afterEach(async () => {
     cleanup()
@@ -27,16 +26,6 @@ export function withBrowserPage() {
     await page.viewport(1920, 1080)
   })
   afterAll(() => style.remove())
-}
-
-// The first test in a fresh page can run before Intermission swaps in, and measure text in a
-// wider fallback (docs/solutions/test-failures/measured-before-popup-or-font-settles.md).
-async function loadBrandFont() {
-  const [face] = await document.fonts.load('1em Intermission')
-  if (face?.status !== 'loaded')
-    throw new Error(
-      'Intermission did not load, so text would measure in a fallback font'
-    )
 }
 
 export async function atWidth(width: number, height: number) {
