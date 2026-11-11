@@ -1,4 +1,4 @@
-import { act, screen, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -162,6 +162,8 @@ describe('Map.Clusters', () => {
 
     await zoomTo(21)
     expect(legend()).toHaveTextContent('$60')
+    // The bands' names hold their values, so screen readers skip the key.
+    expect(legend()).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('has no legend unless asked', async () => {
@@ -179,6 +181,13 @@ describe('Map.Clusters', () => {
       ]
     })
     expect(band('1, <1% of all')).toBeInTheDocument()
+  })
+
+  it('shows a share of 0% when no value adds anything', async () => {
+    await renderClusters({
+      data: [{ position: { lat: -27.46, lng: 153.0 }, value: 0 }]
+    })
+    expect(band('0, 0% of all')).toHaveTextContent('0%')
   })
 
   it('writes values with formatValue', async () => {
@@ -310,6 +319,38 @@ describe('Map.Clusters', () => {
     expect(within(preview).getByText('Ticket sales: 40')).toBeInTheDocument()
     expect(within(preview).getByText('22% of all')).toBeInTheDocument()
     expect(within(preview).getByText('New Farm')).toBeInTheDocument()
+  })
+
+  it('closes a preview when the map moves, so it never drifts from its band', async () => {
+    const { fake, zoomTo } = await renderClusters()
+    await zoomTo(21)
+    await userEvent.click(band('40, 22% of all'))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+
+    await fake.pan({ lat: -27.467, lng: 153.0511 })
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+  })
+
+  it('names a group’s three largest places and counts the rest', async () => {
+    await renderClusters({
+      locked: true,
+      data: [
+        ...sales,
+        {
+          position: { lat: -27.45, lng: 153.045 },
+          value: 20,
+          label: 'Newstead'
+        }
+      ]
+    })
+    await userEvent.click(band('140, 70% of all'))
+
+    const preview = await screen.findByRole('dialog')
+    expect(
+      within(preview).getByText('Paddington, New Farm, Teneriffe and 1 more')
+    ).toBeVisible()
   })
 
   it('keeps its groups while locked, and previews them instead of zooming', async () => {
