@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 
-import { check } from './check.ts'
+import { check, layersOf, styleWarnings } from './check.ts'
+import type { Layer } from './format.ts'
+import { sources } from './generate.ts'
 
 const FACE =
   '<path id="Face" fill="#e1d1fb" fill-rule="evenodd" d="M4 4h30v30H4z"/>'
@@ -101,4 +103,77 @@ describe('check', () => {
   ])('flags %s', (_, source, file, message) => {
     expect(check(source, file).join('\n')).toContain(message)
   })
+})
+
+describe('styleWarnings', () => {
+  const layer = (name: Layer['name'], d: string): Layer => ({ name, d })
+  const square = (x: number, y: number, size: number) =>
+    `M${x} ${y}h${size}v${size}h${-size}z`
+  // A block drawn as the set draws one: 2 to 46, its Shadow below and right, outlined.
+  const block = (shadow = square(8, 8, 38), face = square(2, 2, 38)) => [
+    layer('Shadow', shadow),
+    layer('Face', face),
+    layer('Stroke', `${face}${shadow}`)
+  ]
+  const rules = (layers: Layer[], name?: string) =>
+    styleWarnings(layers, name).map((w) => w.rule)
+
+  it.each([
+    [
+      'coverage',
+      'art too small to hold its own',
+      [
+        layer('Face', square(2, 2, 44)),
+        layer('Shadow', square(20, 20, 6)),
+        layer('Stroke', 'M2 2h44')
+      ]
+    ],
+    [
+      'long-side',
+      'art short of the full 44',
+      block(square(8, 8, 34), square(2, 2, 34))
+    ],
+    ['shadow-share', 'no Shadow showing', block(square(2, 2, 38))],
+    [
+      'stroke-share',
+      'line work too dense for 48px',
+      [
+        ...block().slice(0, 2),
+        layer(
+          'Stroke',
+          Array.from({ length: 40 }, (_, i) => `M3 ${3 + i}h36`).join('')
+        )
+      ]
+    ],
+    [
+      'shadow-direction',
+      'a shadow up and to the left',
+      block(square(2, 2, 38), square(8, 8, 38))
+    ],
+    [
+      'commands',
+      'a curve sampled into points',
+      [
+        ...block().slice(0, 2),
+        layer(
+          'Stroke',
+          `M2 2${Array.from({ length: 420 }, (_, i) => `L${2 + i / 10} 2`).join('')}`
+        )
+      ]
+    ]
+  ])('warns about %s: %s', (rule, _, layers) => {
+    expect(rules(layers)).toContain(rule)
+  })
+
+  it('stays quiet about a rule an illustration breaks on purpose', () => {
+    const upLeft = block(square(2, 2, 38), square(8, 8, 38))
+    expect(rules(upLeft, 'flower-spiral')).not.toContain('shadow-direction')
+  })
+
+  it.each(sources().map((s) => [s.slug, s.svg]))(
+    'finds nothing to flag in %s',
+    (slug, svg) => {
+      expect(styleWarnings(layersOf(svg), slug)).toEqual([])
+    }
+  )
 })

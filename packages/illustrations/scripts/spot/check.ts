@@ -8,6 +8,7 @@ import {
   OUTLINE_WIDTH,
   STROKE
 } from './format.ts'
+import { measure } from './measure.ts'
 import { bounds } from './normalise.ts'
 import { PK } from './pathkit.ts'
 
@@ -154,4 +155,81 @@ export function layersOf(svg: string): Layer[] {
     name: c.attributes.id as Layer['name'],
     d: c.attributes.d!
   }))
+}
+
+export type StyleRule =
+  | 'coverage'
+  | 'long-side'
+  | 'shadow-share'
+  | 'stroke-share'
+  | 'shadow-direction'
+  | 'commands'
+
+/** Drawn this way on purpose, so their warnings are expected. */
+export const ACCEPTED: Record<string, StyleRule[]> = {
+  // Its petals spin, so the shadow trails up and left.
+  'flower-spiral': ['shadow-direction']
+}
+
+/** The set's measured range for each rule, a little wider so the set itself passes. */
+export const STYLE = {
+  coverage: [0.35, 0.63],
+  longSide: 42.9,
+  shadowShare: [0.025, 0.3],
+  strokeShare: [0.07, 0.18],
+  commands: 400
+} as const
+
+const pct = (n: number) => `${Math.round(n * 100)}%`
+
+/**
+ * Where a source strays from how the set is drawn. These never fail the
+ * check: an illustration can break a rule on purpose, so each is a prompt to
+ * look at the preview.
+ */
+export function styleWarnings(
+  layers: Layer[],
+  name?: string
+): { rule: StyleRule; message: string }[] {
+  const m = measure(layers)
+  const out: { rule: StyleRule; message: string }[] = []
+  const [minCover, maxCover] = STYLE.coverage
+  if (m.coverage < minCover || m.coverage > maxCover)
+    out.push({
+      rule: 'coverage',
+      message: `it paints ${pct(m.coverage)} of the box; the set paints ${pct(minCover)} to ${pct(maxCover)}, so it will look ${m.coverage < minCover ? 'faint' : 'heavy'} beside them`
+    })
+  if (m.longSide < STYLE.longSide)
+    out.push({
+      rule: 'long-side',
+      message: `its long side spans ${m.longSide.toFixed(1)}; stretch it to 44, from 2 to 46, like the rest of the set (fit() does it for you)`
+    })
+  const shadow = m.shares.Shadow ?? 0
+  const [minShadow, maxShadow] = STYLE.shadowShare
+  if (shadow < minShadow || shadow > maxShadow)
+    out.push({
+      rule: 'shadow-share',
+      message: `Shadow is ${pct(shadow)} of what's painted; the set uses ${pct(minShadow)} to ${pct(maxShadow)}${shadow < minShadow ? ', so it will look flat' : ''}`
+    })
+  const stroke = m.shares.Stroke ?? 0
+  const [minStroke, maxStroke] = STYLE.strokeShare
+  if (stroke < minStroke || stroke > maxStroke)
+    out.push({
+      rule: 'stroke-share',
+      message: `lines are ${pct(stroke)} of what's painted; the set uses ${pct(minStroke)} to ${pct(maxStroke)}${stroke > maxStroke ? ", so drop the inner line work it doesn't need to be recognised" : ''}`
+    })
+  if (m.shadowOffset && m.shadowOffset[0] < 0 && m.shadowOffset[1] < 0)
+    out.push({
+      rule: 'shadow-direction',
+      message:
+        'Shadow sits up and to the left of the art; the set extrudes down, right, or both'
+    })
+  for (const [layer, n] of Object.entries(m.commands))
+    if (n > STYLE.commands)
+      out.push({
+        rule: 'commands',
+        message: `${layer} has ${n} path commands; the most in the set is under 200, so it's likely sampled points rather than curves`
+      })
+  const accepted = new Set(name ? ACCEPTED[name] : [])
+  return out.filter((w) => !accepted.has(w.rule))
 }
