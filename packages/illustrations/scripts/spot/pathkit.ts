@@ -47,7 +47,8 @@ export const PK = await init({
   wasmBinary: readFileSync(join(dirname(entry), 'pathkit.wasm'))
 })
 
-const NUMBER = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y
+export const NUMBER = String.raw`[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?`
+const NUMBER_TOKEN = new RegExp(NUMBER, 'y')
 const FLAG = /[01]/y
 const COMMAND = /[a-zA-Z]/y
 const SEPARATOR = /[\s,]*/y
@@ -81,7 +82,7 @@ export function spaceArcFlags(d: string) {
       continue
     }
     const flag = /[aA]/.test(command) && [3, 4].includes(param % ARC_PARAMS)
-    const token = read(flag ? FLAG : NUMBER)
+    const token = read(flag ? FLAG : NUMBER_TOKEN)
     // Left as written, so PathKit reports what's wrong with it.
     if (token === undefined) return d
     tokens.push(token)
