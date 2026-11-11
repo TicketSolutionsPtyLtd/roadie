@@ -1,0 +1,1 @@
+line 3: SpotIllustrationProps takes `layers` in place of `illustration` in @oztix/roadie-illustrations/spot. Move it by hand.
