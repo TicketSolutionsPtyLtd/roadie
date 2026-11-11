@@ -72,10 +72,15 @@ export function BlockActions({
         // Saved content is untrusted, and a prototype key such as `constructor` isn't an icon.
         const Icon =
           icon && Object.hasOwn(ICONS, icon) ? ICONS[icon] : undefined
-        const glyph = Icon && (
-          <Icon weight='bold' className='size-4' aria-hidden />
-        )
         const trailing = icon != null && TRAILING.has(icon)
+        // A leading icon only decorates, so a narrow block drops it to keep two actions on one row; a trailing one says where the link goes.
+        const glyph = Icon && (
+          <Icon
+            weight='bold'
+            className={cn('size-4', !trailing && '@max-md:hidden')}
+            aria-hidden
+          />
+        )
         return (
           <Button
             key={`${index}-${href}-${label}`}
