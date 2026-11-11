@@ -411,7 +411,7 @@ type Look = {
 }
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
-// Four 15rem cards with gap-12 fit from 76rem, so a 1280px window with a classic scrollbar still sets four across.
+// Four 15rem cards with gap-12 fit a band from 76rem, so a 1280px window with a classic scrollbar still sets four across.
 const LOOKS: Record<CardsPreset, Look> = {
   plain: {
     Item: PlainCard,

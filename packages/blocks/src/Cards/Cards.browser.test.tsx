@@ -186,12 +186,30 @@ describe('Cards at 1265px', () => {
     }
   )
 
-  it.each<Look>(['text-blocks', 'steps'])(
-    'won’t squeeze four %s cards under 15rem at 1180px',
-    (look) => {
-      render(<Block look={look} width={1180} count={4} />)
+  it('keeps four text-blocks cards in one row on a contained surface', () => {
+    render(
+      <div style={{ width: 1265 }}>
+        <Cards {...propsOf('text-blocks')} emphasis='raised' contained />
+      </div>
+    )
 
+    expect(columns()).toBe(4)
+  })
+})
+
+// Four 15rem cards and three gap-12 gaps first fit inside a band's padding at 1216px.
+describe('Cards four-across edge', () => {
+  it.each<Look>(['text-blocks', 'steps'])(
+    'sets four %s cards of at least 15rem across from 1216px',
+    (look) => {
+      const { unmount } = render(<Block look={look} width={1215} count={4} />)
       expect(columns()).toBeLessThan(4)
+      unmount()
+
+      render(<Block look={look} width={1216} count={4} />)
+      expect(columns()).toBe(4)
+      for (const card of cards())
+        expect(card.getBoundingClientRect().width).toBeGreaterThanOrEqual(240)
     }
   )
 })
