@@ -75,7 +75,7 @@ export type SideBySideProps = {
   intent?: BlockIntent
   /** The surface behind the block. Unset, it has none. */
   emphasis?: BlockEmphasis
-  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, it's a panel. */
+  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. Unset, it's a panel. */
   contained?: boolean
   /**
    * The heading's and text's alignment.
