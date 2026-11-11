@@ -16,6 +16,7 @@ const TABLES: [route: string, slot: string][] = [
     (hue): [string, string] => ['/brand/colour', `brand-swatches-${hue}`]
   ),
   ['/brand/illustration', 'illustration-library'],
+  ['/components/spot-illustration', 'illustration-library'],
   ['/charts/dashboards', 'card-sizes'],
   ['/charts/dashboards', 'copy-limits'],
   ['/charts/dashboards', 'chart-label-limits'],
@@ -236,18 +237,6 @@ describe('twins carry the data their pages render', () => {
       ['Scale', 'Steps'],
       ...scales
     ])
-  }, 60_000)
-
-  it('/components/spot-illustration names', async () => {
-    const page = await open('/components/spot-illustration')
-    const names = await page
-      .locator('[data-slot=illustration-gallery] code')
-      .allTextContents()
-    expect(names.length).toBeGreaterThan(10)
-    const listed = [
-      ...(await twin('/components/spot-illustration')).matchAll(/^- `(\w+)`$/gm)
-    ].map(([, name]) => name)
-    expect(listed).toEqual(names)
   }, 60_000)
 
   // Each page a token family names as guidance shows a Reference line under
