@@ -52,6 +52,7 @@ describe('areaTotals', () => {
         { position: { lat: Number.NaN, lng: 153.05 } },
         { position: { lat: -27.45, lng: 153.05 }, value: -4 },
         { position: { lat: -27.45, lng: 153.05 }, value: Number.NaN },
+        { position: { lat: -27.45, lng: 153.05 }, value: Infinity },
         { position: { lat: -27.45, lng: 153.05 }, value: 0 }
       ])
     ).toEqual([])
@@ -93,6 +94,26 @@ describe('areaTotals', () => {
         idProperty: 'POA_CODE21'
       })
     ).toEqual([{ id: '4000', value: 1 }])
+  })
+
+  it('reads the same boundaries again by another property', () => {
+    const named: MapAreaCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          properties: { POA_CODE21: '4000', STATE: 'QLD' },
+          geometry: square(153, -27.5, 0.1)
+        }
+      ]
+    }
+    const inside = [{ position: { lat: -27.45, lng: 153.05 } }]
+
+    expect(areaTotals(named, inside, { idProperty: 'POA_CODE21' })).toEqual([
+      { id: '4000', value: 1 }
+    ])
+    expect(areaTotals(named, inside, { idProperty: 'STATE' })).toEqual([
+      { id: 'QLD', value: 1 }
+    ])
   })
 
   it('agrees with checking every area, across areas of very different sizes', () => {

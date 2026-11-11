@@ -1,19 +1,13 @@
 import { useState } from 'react'
 
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Map } from '../Map'
 import type { MapAreaLayer } from '../Map/engine'
 import { fakeEngine, renderMap } from '../Map/mapTestUtils'
-import {
-  type MapAreaInView,
-  MapAreas,
-  classStarts,
-  levelOf,
-  rangesOf
-} from './MapAreas'
+import { type MapAreaInView, MapAreas } from './MapAreas'
 import {
   type MapAreaCollection,
   type MapAreaTopology,
@@ -114,31 +108,137 @@ describe('areaFeatures', () => {
       { id: '4000', geometry: square }
     ])
   })
-})
 
-describe('rangesOf', () => {
-  it('gives each colour’s range, strongest first, up to its own largest value', () => {
-    const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 400]
-    expect(
-      rangesOf([1, 3, 5, 7, 9], values, String).map((r) => r.range)
-    ).toEqual(['9–400', '7–8', '5–6', '3–4', '1–2'])
+  it('reads a TopoJSON area in several parts, such as a postcode with islands', () => {
+    const [both, ...rest] = areaFeatures({
+      ...topology,
+      objects: {
+        postcodes: {
+          type: 'GeometryCollection',
+          geometries: [
+            { type: 'MultiPolygon', id: '4000', arcs: [[[0, 1]], [[2, ~0]]] }
+          ]
+        }
+      }
+    })
+
+    expect(rest).toEqual([])
+    expect(both).toEqual({
+      id: '4000',
+      geometry: {
+        type: 'MultiPolygon',
+        coordinates: [
+          [
+            [
+              [151, -30],
+              [151, -29],
+              [150, -29],
+              [150, -30],
+              [151, -30]
+            ]
+          ],
+          [
+            [
+              [151, -30],
+              [152, -30],
+              [152, -29],
+              [151, -29],
+              [151, -30]
+            ]
+          ]
+        ]
+      }
+    })
   })
-})
 
-describe('classStarts and levelOf', () => {
-  it('puts a fifth of the values in each step, however skewed', () => {
-    const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 400]
-    const starts = classStarts(values)
+  it('reads TopoJSON ids from a property when given one', () => {
+    const named: MapAreaTopology = {
+      ...topology,
+      objects: {
+        postcodes: {
+          type: 'GeometryCollection',
+          geometries: [
+            {
+              type: 'Polygon',
+              arcs: [[0, 1]],
+              properties: { POA_CODE21: '4000' }
+            },
+            { type: 'Polygon', id: 7, arcs: [[2, ~0]], properties: null }
+          ]
+        }
+      }
+    }
 
-    expect(starts).toEqual([1, 3, 5, 7, 9])
-    expect(values.map((value) => levelOf(value, starts))).toEqual([
-      0, 0, 1, 1, 2, 2, 3, 3, 4, 4
+    expect(
+      areaFeatures(named, { idProperty: 'POA_CODE21' }).map(({ id }) => id)
+    ).toEqual(['4000'])
+    expect(areaFeatures(named).map(({ id }) => id)).toEqual(['7'])
+  })
+
+  it('takes a topology typed with plain arrays, as a TopoJSON library types it', () => {
+    // No tuples: a point is a `number[]`, as `topojson-specification` has it.
+    const loose: {
+      type: 'Topology'
+      arcs: number[][][]
+      transform: { scale: number[]; translate: number[] }
+      objects: {
+        postcodes: {
+          type: 'GeometryCollection'
+          geometries: { type: 'Polygon'; id: string; arcs: number[][] }[]
+        }
+      }
+    } = {
+      type: 'Topology',
+      arcs: [
+        [
+          [0, 0],
+          [2, 0],
+          [0, 2],
+          [-2, -2]
+        ]
+      ],
+      transform: { scale: [0.5, 0.5], translate: [150, -30] },
+      objects: {
+        postcodes: {
+          type: 'GeometryCollection',
+          geometries: [{ type: 'Polygon', id: '4000', arcs: [[0]] }]
+        }
+      }
+    }
+
+    expect(areaFeatures(loose)[0]!.geometry.coordinates).toEqual([
+      [
+        [150, -30],
+        [151, -30],
+        [151, -29],
+        [150, -30]
+      ]
     ])
   })
 })
 
 const drawn = (setAreas: ReturnType<typeof vi.fn>) =>
   (setAreas.mock.lastCall?.[0] ?? []) as MapAreaLayer[]
+
+// The two squares, with a value each.
+const squares = {
+  areas: topology,
+  data: [
+    { id: '4000', value: 12 },
+    { id: '4001', value: 30 }
+  ],
+  label: 'Total'
+}
+// The left square's middle.
+const left = { lat: -29.5, lng: 150.5 }
+// The fake map's frame has no size, so its view is the point a fifth of a
+// degree west and 0.15 north of its centre: here, inside the left square.
+const inLeft = { lat: -29.65, lng: 150.7 }
+// The map itself, under its parts, which is where a pointer hovers areas.
+const surface = () =>
+  document.querySelector<HTMLElement>('[data-slot="map-surface"]')!
+const tip = () =>
+  document.querySelector<HTMLElement>('[data-slot="map-areas-tip"]')
 
 describe('MapAreas', () => {
   it('draws the areas that have values, as one set', async () => {
@@ -338,34 +438,328 @@ describe('MapAreas', () => {
     const fake = fakeEngine()
     const setActiveAreas = vi.fn()
     fake.instance.setActiveAreas = setActiveAreas
+    await renderMap(fake.engine, <MapAreas {...squares} />)
+    // The left square's middle is the map's.
+    await fake.pan(left)
+
+    fireEvent.pointerMove(surface(), { clientX: 200, clientY: 150 })
+    const [leftLayer] = drawn(vi.mocked(fake.instance.setAreas))
+    await waitFor(() =>
+      expect(setActiveAreas).toHaveBeenLastCalledWith([leftLayer!.id])
+    )
+    const lit = setActiveAreas.mock.calls.length
+    const placed = tip()!.style.transform
+    fireEvent.pointerMove(surface(), { clientX: 210, clientY: 160 })
+    await waitFor(() => expect(tip()!.style.transform).not.toBe(placed))
+    // Lets a second lighting, if there were one, reach the engine.
+    await act(async () => {})
+
+    expect(setActiveAreas.mock.calls).toHaveLength(lit)
+  })
+
+  it('names a tapped area with its value and share, until a tap elsewhere or a move', async () => {
+    const fake = fakeEngine()
+    await renderMap(fake.engine, <MapAreas {...squares} />)
+
+    await fake.click(left)
+    expect(tip()).toHaveTextContent('4000Total: 12, 29% of all')
+
+    await fake.click({ lat: 0, lng: 0 })
+    expect(tip()).not.toBeInTheDocument()
+
+    await fake.click(left)
+    expect(tip()).toBeInTheDocument()
+    await fake.pan({ lat: -29.4, lng: 150.5 })
+    expect(tip()).not.toBeInTheDocument()
+  })
+
+  it('leaves a finger moving over the map, and a pointer over a control, without a label', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <>
+        <Map.Toolbar />
+        <MapAreas {...squares} />
+      </>
+    )
+    await fake.pan(left)
+
+    fireEvent.pointerMove(surface(), {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 150
+    })
+    // The label waits a frame for the pointer, so one has to pass.
+    await act(() => new Promise(requestAnimationFrame))
+    expect(tip()).not.toBeInTheDocument()
+
+    fireEvent.pointerMove(surface(), { clientX: 200, clientY: 150 })
+    await waitFor(() => expect(tip()).toBeInTheDocument())
+    fireEvent.pointerMove(screen.getByRole('button', { name: 'Zoom in' }), {
+      clientX: 200,
+      clientY: 150
+    })
+    await waitFor(() => expect(tip()).not.toBeInTheDocument())
+  })
+
+  it('takes the label away when the pointer leaves the map', async () => {
+    const fake = fakeEngine()
+    await renderMap(fake.engine, <MapAreas {...squares} />)
+    await fake.pan(left)
+    fireEvent.pointerMove(surface(), { clientX: 200, clientY: 150 })
+    await waitFor(() => expect(tip()).toBeInTheDocument())
+
+    fireEvent.pointerLeave(surface().parentElement!)
+
+    expect(tip()).not.toBeInTheDocument()
+  })
+
+  it('gives each area its share of every value in data, with a boundary or not', async () => {
+    const fake = fakeEngine()
+    const onAreasChange = vi.fn<(areas: MapAreaInView[]) => void>()
     await renderMap(
       fake.engine,
       <MapAreas
         areas={topology}
         data={[
-          { id: '4000', value: 12 },
+          { id: '4000', value: 30 },
+          { id: '9999', value: 70 }
+        ]}
+        label='Total'
+        onAreasChange={onAreasChange}
+      />
+    )
+    await fake.pan(inLeft)
+
+    expect(onAreasChange).toHaveBeenLastCalledWith([
+      { id: '4000', label: '4000', value: 30, share: 0.3 }
+    ])
+    await fake.click(left)
+    expect(tip()).toHaveTextContent('Total: 30, 30% of all')
+  })
+
+  it('adds up rows that share an id, and leaves out values that aren’t amounts', async () => {
+    const fake = fakeEngine()
+    const onAreasChange = vi.fn<(areas: MapAreaInView[]) => void>()
+    await renderMap(
+      fake.engine,
+      <MapAreas
+        areas={topology}
+        data={[
+          { id: '4000', value: 10 },
+          { id: '4000', value: 20, label: 'Brisbane City' },
+          { id: '4000', value: -5 },
+          { id: '4001', value: Infinity },
+          { id: '9999', value: 70 }
+        ]}
+        label='Total'
+        onAreasChange={onAreasChange}
+      />
+    )
+    await fake.pan(inLeft)
+
+    expect(drawn(vi.mocked(fake.instance.setAreas))).toHaveLength(1)
+    expect(onAreasChange).toHaveBeenLastCalledWith([
+      { id: '4000', label: 'Brisbane City', value: 30, share: 0.3 }
+    ])
+  })
+
+  it('writes a share under half a percent as less than 1%', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <MapAreas
+        areas={topology}
+        data={[
+          { id: '4000', value: 1 },
+          { id: '4001', value: 999 }
+        ]}
+        label='Total'
+      />
+    )
+
+    await fake.click(left)
+
+    expect(tip()).toHaveTextContent('Total: 1, <1% of all')
+  })
+
+  it('lights the areas of every MapAreas on the map together', async () => {
+    const fake = fakeEngine()
+    const setActiveAreas = vi.fn()
+    fake.instance.setActiveAreas = setActiveAreas
+    await renderMap(
+      fake.engine,
+      <>
+        <MapAreas {...squares} highlight='4000' />
+        <MapAreas {...squares} highlight='4001' />
+      </>
+    )
+
+    const layers = drawn(vi.mocked(fake.instance.setAreas))
+    expect(layers).toHaveLength(4)
+    const [ids] = setActiveAreas.mock.lastCall!
+    expect([...ids].sort()).toEqual([layers[0]!.id, layers[3]!.id].sort())
+  })
+
+  it('takes its areas and their lighting off the map when it leaves', async () => {
+    const fake = fakeEngine()
+    const setActiveAreas = vi.fn()
+    fake.instance.setActiveAreas = setActiveAreas
+    const { rerenderMap } = await renderMap(
+      fake.engine,
+      <MapAreas {...squares} highlight='4000' />
+    )
+    expect(drawn(vi.mocked(fake.instance.setAreas))).toHaveLength(2)
+    expect(setActiveAreas.mock.lastCall![0]).toHaveLength(1)
+
+    await rerenderMap(null)
+
+    expect(fake.instance.setAreas).toHaveBeenLastCalledWith([])
+    expect(setActiveAreas).toHaveBeenLastCalledWith([])
+  })
+
+  it('draws an area whose id is empty at rest on an engine that can’t light areas', async () => {
+    const fake = fakeEngine()
+    const square = (west: number) => ({
+      type: 'Polygon' as const,
+      coordinates: [
+        [
+          [west, -30],
+          [west + 1, -30],
+          [west + 1, -29],
+          [west, -30]
+        ] as [number, number][]
+      ]
+    })
+    await renderMap(
+      fake.engine,
+      <MapAreas
+        areas={{
+          type: 'FeatureCollection',
+          features: [
+            { id: '', geometry: square(150) },
+            { id: '4001', geometry: square(151) }
+          ]
+        }}
+        data={[
+          { id: '', value: 12 },
           { id: '4001', value: 30 }
         ]}
         label='Total'
       />
     )
-    // The left square's middle is the map's.
-    await fake.pan({ lat: -29.5, lng: 150.5 })
-    // The map's parts live in its viewport, which is what they measure.
-    const frame = document.querySelector<HTMLElement>(
-      '[data-slot="map-viewport"]'
-    )!
-    const tip = () =>
-      document.querySelector<HTMLElement>('[data-slot="map-areas-tip"]')
 
-    fireEvent.pointerMove(frame, { clientX: 200, clientY: 150 })
-    await waitFor(() => expect(tip()).toBeInTheDocument())
-    const lit = setActiveAreas.mock.calls.length
-    fireEvent.pointerMove(frame, { clientX: 210, clientY: 160 })
-    await waitFor(() =>
-      expect(tip()!.style.transform).toBe('translate(222px, 172px)')
+    const [unnamed, named] = drawn(vi.mocked(fake.instance.setAreas))
+    expect(unnamed!.fillOpacity).toBe(named!.fillOpacity)
+    expect(unnamed!.lineWidth).toBe(named!.lineWidth)
+  })
+
+  it('reads the view from an engine whose methods need their map', async () => {
+    const fake = fakeEngine()
+    const flat = fake.instance.unproject
+    fake.instance.unproject = function (this: unknown, pixel) {
+      if (this !== fake.instance) throw new TypeError('unproject lost its map')
+      return flat(pixel)
+    }
+    const onAreasChange = vi.fn<(areas: MapAreaInView[]) => void>()
+    await renderMap(
+      fake.engine,
+      <MapAreas {...squares} onAreasChange={onAreasChange} />
+    )
+    await fake.pan(inLeft)
+
+    expect(onAreasChange.mock.lastCall![0].map(({ id }) => id)).toEqual([
+      '4000'
+    ])
+  })
+
+  it('finds an area across the date line from where the map started', async () => {
+    const fake = fakeEngine()
+    const onAreasChange = vi.fn<(areas: MapAreaInView[]) => void>()
+    await renderMap(
+      fake.engine,
+      <MapAreas
+        areas={{
+          type: 'FeatureCollection',
+          features: [
+            {
+              id: 'east',
+              geometry: {
+                type: 'Polygon',
+                coordinates: [
+                  [
+                    [-177, -30],
+                    [-176, -30],
+                    [-176, -29],
+                    [-177, -29],
+                    [-177, -30]
+                  ]
+                ]
+              }
+            }
+          ]
+        }}
+        data={[{ id: 'east', value: 12 }]}
+        label='Total'
+        onAreasChange={onAreasChange}
+      />
+    )
+    // Panned east past 180, the map counts on: 183.7 is 176.3 west.
+    await fake.pan({ lat: -29.35, lng: 183.7 })
+
+    expect(onAreasChange.mock.lastCall![0].map(({ id }) => id)).toEqual([
+      'east'
+    ])
+    fireEvent.pointerMove(surface(), { clientX: 200, clientY: 150 })
+    await waitFor(() => expect(tip()).toHaveTextContent('east'))
+  })
+
+  it('reports again when the values change while the map is still', async () => {
+    const fake = fakeEngine()
+    const onAreasChange = vi.fn<(areas: MapAreaInView[]) => void>()
+    const areas = (value: number) => (
+      <MapAreas
+        areas={topology}
+        data={[{ id: '4000', value }]}
+        label='Total'
+        onAreasChange={onAreasChange}
+      />
+    )
+    const { rerenderMap } = await renderMap(fake.engine, areas(12))
+    await fake.pan(inLeft)
+    expect(onAreasChange.mock.lastCall![0][0]!.value).toBe(12)
+
+    await rerenderMap(areas(20))
+
+    expect(onAreasChange.mock.lastCall![0][0]!.value).toBe(20)
+  })
+
+  it('shows no key unless asked', async () => {
+    const fake = fakeEngine()
+    await renderMap(fake.engine, <MapAreas {...squares} />)
+
+    expect(drawn(vi.mocked(fake.instance.setAreas))).toHaveLength(2)
+    expect(
+      document.querySelector('[data-slot="map-cluster-legend"]')
+    ).not.toBeInTheDocument()
+  })
+
+  it('reads GeoJSON ids from the property idProperty names', async () => {
+    const fake = fakeEngine()
+    const { geometry } = areaFeatures(topology)[0]!
+    await renderMap(
+      fake.engine,
+      <MapAreas
+        areas={{
+          type: 'FeatureCollection',
+          features: [{ id: 1, properties: { POA_CODE21: '4000' }, geometry }]
+        }}
+        idProperty='POA_CODE21'
+        data={[{ id: '4000', value: 12 }]}
+        label='Total'
+      />
     )
 
-    expect(setActiveAreas.mock.calls).toHaveLength(lit)
+    expect(drawn(vi.mocked(fake.instance.setAreas))).toHaveLength(1)
   })
 })
