@@ -7,7 +7,7 @@ export const metadata = {
 }
 
 import { Button, EmptyState } from '@oztix/roadie-components'
-import { MagnifyGlass, SparklingGlitterStar } from '@oztix/roadie-illustrations/spot'
+import { MagnifyGlass, Ticket } from '@oztix/roadie-illustrations/spot'
 import { TicketIcon } from '@phosphor-icons/react/ssr'
 
 import { Guideline, Guidelines } from '@/components/Guideline'
@@ -88,48 +88,25 @@ screen. Raise the heading to `h1` with `render`.
 
 ### Sizes
 
-```tsx-live layout=stack gap=8
-{['sm', 'md', 'lg'].map((size) => (
-  <EmptyState key={size} size={size}>
-    <EmptyState.IconTile>
-      <MagnifyingGlassIcon weight='duotone' />
-    </EmptyState.IconTile>
-    <EmptyState.Title>No events match your search</EmptyState.Title>
-    <EmptyState.Description>Try a different search.</EmptyState.Description>
-  </EmptyState>
-))}
-```
-
-### Media by size
-
-The recommended pairing: `sm` → IconTile, `md` →
-[spot illustration](/components/spot-illustration), `lg` → hero illustration.
-The pairing is a convention, not enforced.
+Each size takes its own media: `sm` an IconTile, `md` a
+[spot illustration](/components/spot-illustration), and `lg` a hero
+illustration, as in Whole page. Pick the icon or illustration by the message,
+as the Guidelines say.
 
 ```tsx-live layout=stack gap=8
 <EmptyState size='sm'>
   <EmptyState.IconTile>
-    <HeartIcon weight='duotone' />
+    <MagnifyingGlassIcon weight='duotone' />
   </EmptyState.IconTile>
-  <EmptyState.Title>No favourites yet</EmptyState.Title>
-  <EmptyState.Description>
-    Save events you love and they'll show up here.
-  </EmptyState.Description>
-  <EmptyState.Actions>
-    <Button href='#'>Browse events</Button>
-  </EmptyState.Actions>
+  <EmptyState.Title>No events match your search</EmptyState.Title>
+  <EmptyState.Description>Try a different search.</EmptyState.Description>
 </EmptyState>
 <EmptyState size='md'>
   <EmptyState.Illustration>
-    <NoteMusic />
+    <MagnifyGlass />
   </EmptyState.Illustration>
-  <EmptyState.Title>No upcoming events</EmptyState.Title>
-  <EmptyState.Description>
-    New shows will appear here as they're announced.
-  </EmptyState.Description>
-  <EmptyState.Actions>
-    <Button href='#'>Browse events</Button>
-  </EmptyState.Actions>
+  <EmptyState.Title>No events match your search</EmptyState.Title>
+  <EmptyState.Description>Try a different search.</EmptyState.Description>
 </EmptyState>
 ```
 
@@ -137,12 +114,12 @@ The pairing is a convention, not enforced.
 
 Set `intent` on the root to tint the IconTile and Button together. Omit it to
 inherit the palette from an ancestor instead. A spot illustration keeps its
-brand colours, so only the actions take the intent.
+brand colours at `md`, so only the actions take the intent.
 
 ```tsx-live layout=stack gap=8
 <EmptyState intent='accent' size='sm'>
   <EmptyState.IconTile>
-    <StarIcon weight='duotone' />
+    <CheckCircleIcon weight='duotone' />
   </EmptyState.IconTile>
   <EmptyState.Title>You're all caught up</EmptyState.Title>
   <EmptyState.Description>No new notifications right now.</EmptyState.Description>
@@ -177,8 +154,8 @@ Title and description only.
   <EmptyState.IconTile>
     <EnvelopeIcon weight='duotone' />
   </EmptyState.IconTile>
-  <EmptyState.Title>Inbox zero</EmptyState.Title>
-  <EmptyState.Description>You're all caught up.</EmptyState.Description>
+  <EmptyState.Title>No messages yet</EmptyState.Title>
+  <EmptyState.Description>Messages from promoters appear here.</EmptyState.Description>
 </EmptyState>
 ```
 
@@ -187,18 +164,18 @@ Title and description only.
 Write the title, description, and actions with
 [Interface copy](/content/interface-copy#empty-states).
 
-Pick the spot illustration for an `md` empty state by what its message says.
-Search the [library](/components/spot-illustration#available-illustrations) by tag
-for anything else. At `sm`, use an IconTile with the matching icon instead.
+Pick the media by what the message says, and use the same idea at every
+size. Search the [library](/components/spot-illustration#available-illustrations)
+by tag for anything the table doesn't cover.
 
-| Empty state                        | Spot illustration                                                    | Title, for example             |
-| ---------------------------------- | -------------------------------------------------------------------- | ------------------------------ |
-| No results from a search or filter | `MagnifyGlass`                                                       | No events match your search    |
-| Nothing yet                        | What will fill it, such as `Ticket`, `NoteMusic`, `Mail`, or `Heart` | No tickets yet                 |
-| Error, such as a failed load       | `ExclamationMark`                                                    | We couldn't load your events   |
-| Offline                            | `Cloud`                                                              | You're offline                 |
-| Done                               | `CheckCorrect`                                                       | You're all caught up           |
-| Gone, such as a removed event      | `Ghost`                                                              | This event is no longer listed |
+| Empty state                        | `sm` icon                                                 | `md` spot illustration                        | Title, for example             |
+| ---------------------------------- | --------------------------------------------------------- | --------------------------------------------- | ------------------------------ |
+| No results from a search or filter | `MagnifyingGlassIcon`                                     | `MagnifyGlass`                                | No events match your search    |
+| Nothing yet                        | What will fill it, such as `TicketIcon` or `EnvelopeIcon` | What will fill it, such as `Ticket` or `Mail` | No tickets yet                 |
+| Error, such as a failed load       | `WarningIcon`                                             | `ExclamationMark`                             | We couldn't load your events   |
+| Offline                            | `WifiSlashIcon`                                           | `Cloud`                                       | You're offline                 |
+| Done                               | `CheckCircleIcon`                                         | `CheckCorrect`                                | You're all caught up           |
+| Gone, such as a removed event      | `GhostIcon`                                               | `Ghost`                                       | This event is no longer listed |
 
 <Guidelines>
 
@@ -216,22 +193,23 @@ for anything else. At `sm`, use an IconTile with the matching icon instead.
       </EmptyState>
     }
   >
-    Show what the state is about, so the art and the title say the same thing.
+    Show the state, so the art and the title say the same thing.
   </Guideline.Do>
   <Guideline.Dont
     example={
-      <EmptyState intent='danger'>
+      <EmptyState>
         <EmptyState.Illustration>
-          <SparklingGlitterStar />
+          <Ticket />
         </EmptyState.Illustration>
-        <EmptyState.Title>We couldn't load your events</EmptyState.Title>
+        <EmptyState.Title>No events match your search</EmptyState.Title>
         <EmptyState.Actions>
-          <Button emphasis='strong'>Retry</Button>
+          <Button>Clear search</Button>
         </EmptyState.Actions>
       </EmptyState>
     }
   >
-    Don't pick one for looks. Cheerful art on an error reads as a joke.
+    Don't reuse the "nothing yet" art when a search hid everything. It tells
+    the reader there are no events at all.
   </Guideline.Dont>
 </Guideline>
 
