@@ -17,6 +17,7 @@ import {
   catalogueToMarkdown,
   dashboardExampleToMarkdown,
   llmsIndex,
+  pageComponents,
   pageToMarkdown,
   tokenFamilyToMarkdown
 } from '../src/lib/llms.ts'
@@ -69,7 +70,6 @@ const manifests = [
   '@oztix/roadie-widgets'
 ].map((pkg) => require(`${pkg}/roadie.manifest.json`) as Manifest)
 const site = `${new URL(manifests[0]!.docs).origin}${basePath}`
-const components = manifests.flatMap((manifest) => manifest.components)
 
 const routes = await getMarkdownRoutes()
 const markdownRoutes = new Set([
@@ -264,9 +264,7 @@ async function markdownFor(route: string) {
       }
     }),
     mdx: await readFile(path.join(appDir, route, 'page.mdx'), 'utf8'),
-    components: components.filter((component) =>
-      component.docs?.endsWith(`${route}/`)
-    ),
+    components: pageComponents(manifests, route),
     resolveLink,
     renderers,
     drawings
