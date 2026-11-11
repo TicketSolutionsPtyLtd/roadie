@@ -303,6 +303,8 @@ import type { EditorSection } from '@oztix/roadie-editor/extensions'
   it. Opened from the keyboard with Enter, the block stays selected.
 - `templates` offer it more than one way, each a tile with the `attrs` it
   changes. Without them, it has one, named by its `label`.
+- `migrate(value, 'blocks', { customBlocks: ['callToAction'] })` keeps them
+  in a stored value. The editor and `renderEditorValue` pass these for you.
 
 ```tsx-live-prose-noinline
 // Stored attrs are untrusted, so the link is kept only when it's a site path.
@@ -396,8 +398,7 @@ import {
   new `key` to change them.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
   block that gets its `attrs`, as a section's `render` does.
-- `migrate(value, 'blocks', { customBlocks: ['callToAction'] })` keeps them
-  in a stored value. The editor and `renderEditorValue` pass these for you.
+- `migrate` keeps them by name in `customBlocks`, as it does a section.
 - A block can't take the name of one of the preset's own nodes or marks;
   the editor leaves it out.
 - `/extensions` brings Tiptap with it, so import your blocks where the

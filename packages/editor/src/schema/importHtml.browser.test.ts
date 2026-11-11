@@ -577,7 +577,7 @@ describe('htmlToEditorValue', () => {
     expect(() => htmlToEditorValue('<p>Doors</p>', 'fancy')).toThrow(RangeError)
   })
 
-  it('sends an email to importEmail, which keeps its preheader and buttons', () => {
+  it('points an email at importEmail', () => {
     const importing = () => htmlToEditorValue('<p>Doors</p>', 'email')
 
     expect(importing).toThrow(RangeError)

@@ -216,7 +216,7 @@ export function bodyToDoc(
  *
  * Needs a browser's `DOMParser`, so call it in an effect or event handler.
  * Throws a RangeError on an unknown preset, and on `email`, which
- * `importEmail` reads with its preheader, buttons, columns, merge tags and
+ * `importEmail` reads with its preheader, buttons, columns, merge tags, and
  * unsafe links.
  */
 export function htmlToEditorValue(
@@ -231,7 +231,7 @@ export function htmlToEditorValue(
   }
   if (preset === 'email') {
     throw new RangeError(
-      'htmlToEditorValue doesn’t read the email preset. Use importEmail, which keeps an email’s preheader, buttons, columns and merge tags.'
+      'htmlToEditorValue doesn’t read the email preset. Use importEmail, which keeps an email’s preheader, buttons, columns, and merge tags.'
     )
   }
   if (typeof DOMParser === 'undefined') {
