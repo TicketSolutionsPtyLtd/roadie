@@ -80,7 +80,7 @@ const img = (svg: string, size: number) =>
   `<img width="${size}" height="${size}" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}">`
 
 const GRID = 384
-const LIVE = (OUTLINE_WIDTH / BOX) * 100
+const INSET = (OUTLINE_WIDTH / BOX) * 100
 
 function sheet(items: Item[]) {
   const targets = items.filter((i) => i.target)
@@ -105,7 +105,7 @@ body{margin:0;padding:16px;background:#eceef2;font:12px system-ui;color:#2b303b;
 .large{display:flex;gap:16px;margin-bottom:16px}
 figure{margin:0}
 .grid{position:relative;width:${GRID}px;height:${GRID}px;background:#fff;background-image:linear-gradient(#0000000f 1px,transparent 1px),linear-gradient(90deg,#0000000f 1px,transparent 1px);background-size:${GRID / BOX}px ${GRID / BOX}px}
-.grid::after{content:'';position:absolute;inset:${LIVE}%;outline:1px dashed #ff4d6d}
+.grid::after{content:'';position:absolute;inset:${INSET}%;outline:1px dashed #ff4d6d}
 .grid img{position:relative;display:block}
 table{border-collapse:collapse}
 th{font-weight:500;text-align:left;padding:0 16px;white-space:nowrap}
