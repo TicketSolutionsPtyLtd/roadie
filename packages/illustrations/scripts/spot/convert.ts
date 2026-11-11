@@ -8,7 +8,7 @@ import { compare } from './compare.ts'
 import { SVGS } from './generate.ts'
 import { normalise, toSvg } from './normalise.ts'
 
-const USAGE = `Usage: pnpm spot:convert <file.svg>... [--name <slug>] [--no-compare]
+const USAGE = `Usage: pnpm spot:convert <file.svg>... [--name <slug>] [--out <file.png>] [--no-compare]
 
 Turns SVGs drawn in the spot illustration colours (a Figma export, say) into
 sources in src/spot/svgs/: one path per layer, the art fitted inside the box,
@@ -16,12 +16,14 @@ then regenerates the components. It renders each before and after and counts
 the pixels that changed, so you can see nothing moved.
 
 --name       the file name, for a single SVG (defaults to its own, in kebab-case)
+--out        where to save the before and after sheet (defaults to the OS temp folder)
 --no-compare skip the before and after render`
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
   options: {
     name: { type: 'string' },
+    out: { type: 'string' },
     'no-compare': { type: 'boolean' },
     help: { type: 'boolean' }
   }
@@ -73,7 +75,9 @@ for (const file of positionals) {
 }
 
 if (pairs.length && !values['no-compare']) {
-  const sheet = join(tmpdir(), `spot-compare-${Date.now()}.png`)
+  const sheet = values.out
+    ? resolve(calledFrom, values.out)
+    : join(tmpdir(), `spot-compare-${Date.now()}.png`)
   for (const { name, changedPixels } of await compare(pairs, sheet))
     console.log(`${name}: ${changedPixels} pixels changed at 8×`)
   console.log(`Before, after, and the changes in red: ${sheet}`)
