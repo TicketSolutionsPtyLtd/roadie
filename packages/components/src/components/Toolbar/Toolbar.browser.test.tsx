@@ -141,6 +141,56 @@ describe('Toolbar layout', () => {
     }
   )
 
+  // Each kind on its own, so no square neighbour holds the column open.
+  const icon = <svg viewBox='0 0 16 16' className='size-4' />
+  it.each([
+    ['a button', <Toolbar.Button aria-label='Zoom in'>{icon}</Toolbar.Button>],
+    [
+      'a link',
+      <Toolbar.Button href='/help' aria-label='Zoom in'>
+        {icon}
+      </Toolbar.Button>
+    ],
+    [
+      'a button in a group',
+      <Toolbar.Group aria-label='Zoom'>
+        <Toolbar.Button aria-label='Zoom in'>{icon}</Toolbar.Button>
+      </Toolbar.Group>
+    ]
+  ] as const)(
+    'keeps %s square in a vertical toolbar at every size',
+    (_, item) => {
+      for (const size of ['sm', 'md', 'lg'] as const) {
+        const { unmount } = render(
+          <Toolbar aria-label='Map' orientation='vertical' size={size}>
+            {item}
+          </Toolbar>
+        )
+        const box = (
+          screen.queryByRole('button', { name: 'Zoom in' }) ??
+          screen.getByRole('link', { name: 'Zoom in' })
+        ).getBoundingClientRect()
+        expect(box.width).toBe(box.height)
+        unmount()
+      }
+    }
+  )
+
+  it('stretches icon-only items beside a wider one in a vertical toolbar', () => {
+    const icon = <svg viewBox='0 0 16 16' className='size-4' />
+    render(
+      <Toolbar aria-label='History' orientation='vertical'>
+        <Toolbar.Button aria-label='Undo'>{icon}</Toolbar.Button>
+        <Toolbar.Button>Save draft</Toolbar.Button>
+      </Toolbar>
+    )
+    const undo = screen.getByRole('button', { name: 'Undo' })
+    const save = screen.getByRole('button', { name: 'Save draft' })
+    expect(undo.getBoundingClientRect().width).toBe(
+      save.getBoundingClientRect().width
+    )
+  })
+
   it('slides its fill to a toggle that is also a tooltip trigger', async () => {
     render(
       <Toolbar aria-label='Formatting'>
@@ -215,6 +265,8 @@ describe('Toolbar layout', () => {
       '[data-slot="toolbar-toggle-group-indicator"]'
     )!
     await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+    // A web font landing between the two reads would widen the labels.
+    await document.fonts.ready
     // Layout widths: a rect would catch the press's scale still springing back.
     const widths = () =>
       screen.getAllByRole('button').map((toggle) => toggle.offsetWidth)
