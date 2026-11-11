@@ -67,6 +67,16 @@ describe('SpotIllustration', () => {
     expect(svg).toHaveAttribute('role', 'img')
   })
 
+  it('is named by another element through aria-labelledby', () => {
+    const { getByRole } = render(
+      <>
+        <p id='spot-name'>Ticket</p>
+        <SpotIllustration layers={LAYERS} aria-labelledby='spot-name' />
+      </>
+    )
+    expect(getByRole('img', { name: 'Ticket' })).toBeInTheDocument()
+  })
+
   it('takes a size class that replaces the default', () => {
     const { container } = render(
       <SpotIllustration layers={LAYERS} className='size-24' />
