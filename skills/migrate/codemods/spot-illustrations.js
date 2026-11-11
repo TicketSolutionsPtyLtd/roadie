@@ -41,16 +41,22 @@ const LEFT = {
 
 const REEXPORTED_WHOLE = `'${FROM}' is re-exported whole, and its exports changed in ${TO}. Migrate it by hand.`
 
+// `export { 'a-b' as c }` names an export with a string.
+const nameOf = (node) => node.name ?? node.value
+
 // Why a re-export stays on the old path, or undefined when it can move.
 function reExportLeft(specifier) {
   if (specifier.type !== 'ExportSpecifier') return REEXPORTED_WHOLE
-  const name = specifier.local.name
+  const name = nameOf(specifier.local)
   if (LEFT[name]) return LEFT[name]
+  if (PROPS_TYPES.has(name) && specifier.exported.type !== 'Identifier') {
+    return `${name} is re-exported under a string name. Re-export ${SHARED_PROPS} from ${TO} under that name by hand.`
+  }
   return undefined
 }
 
 const importedName = (specifier) =>
-  specifier.type === 'ImportSpecifier' ? specifier.imported.name : undefined
+  specifier.type === 'ImportSpecifier' ? nameOf(specifier.imported) : undefined
 
 // A name is the app's own when it's declared, or imported from elsewhere.
 function declaresElsewhere(j, root, name) {
@@ -168,7 +174,7 @@ export default function transform(file, api) {
       const moving = specifiers
         .filter((specifier) => !staying.includes(specifier))
         .map((specifier) => {
-          if (!PROPS_TYPES.has(specifier.local.name)) return specifier
+          if (!PROPS_TYPES.has(nameOf(specifier.local))) return specifier
           // The alias keeps the module's own public name.
           const aliased = j.exportSpecifier.from({
             local: j.identifier(SHARED_PROPS),
