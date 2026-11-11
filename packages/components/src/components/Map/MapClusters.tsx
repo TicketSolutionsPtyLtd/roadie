@@ -167,6 +167,7 @@ export function MapClusters({
   // Focus moves to the largest of a group's parts once it splits, at the
   // zoom `at`.
   const bands = useRef(new Map<string, HTMLButtonElement>())
+  const layer = useRef<HTMLDivElement>(null)
   const focusAfterSplit = useRef<{
     parts: readonly string[]
     at: number
@@ -226,6 +227,10 @@ export function MapClusters({
     const target = focusAfterSplit.current
     if (!target || !layout || layout.level < target.at) return
     focusAfterSplit.current = null
+    // The split band took its focus with it, to the page or to what holds
+    // the map. Focus the reader moved elsewhere meanwhile stays there.
+    const active = document.activeElement
+    if (active && !active.contains(layer.current)) return
     // Groups are largest first, so this is the largest part on screen.
     const part = groups.find(({ key }) => target.parts.includes(key))
     if (part) bands.current.get(part.key)?.focus()
@@ -261,7 +266,11 @@ export function MapClusters({
         Zooms in to split it
       </span>
       {/* The bands stack among themselves, under the map's controls. */}
-      <div data-slot='map-cluster-bands' className='absolute top-0 left-0 z-1'>
+      <div
+        ref={layer}
+        data-slot='map-cluster-bands'
+        className='absolute top-0 left-0 z-1'
+      >
         {groups.map((group, rank) => {
           const share = shareOf(group.value, index.total)
           const name = `${label}: ${formatValue(group.value)}, ${share} of all`

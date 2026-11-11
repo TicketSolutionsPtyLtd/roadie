@@ -242,15 +242,27 @@ describe('Map.Clusters', () => {
     expect(document.activeElement).toBe(band('70, 39% of all'))
   })
 
-  it('leaves focus where it is when the zoom stops short of the split', async () => {
-    const { fake, zoomTo } = await renderClusters({}, {})
+  it('moves no focus later when the zoom stops short of the split', async () => {
+    const { fake, zoomTo } = await renderClusters()
     // The ease stops where it started, as when the reader zooms away.
     vi.mocked(fake.instance.setView).mockImplementationOnce(() => {})
     await userEvent.click(band('120, 67% of all'))
     fake.pan(fake.instance.getView().center)
 
+    // A zoom of the reader's own splits the group later, and no band takes
+    // the focus its band had.
+    await zoomTo(21)
+    expect(document.activeElement).toBe(document.body)
+  })
+
+  it('leaves focus where the reader moved it while the map zoomed', async () => {
+    const { fake, zoomTo } = await renderClusters({}, {})
+    // The ease is still on its way when the reader moves on.
+    vi.mocked(fake.instance.setView).mockImplementationOnce(() => {})
+    await userEvent.click(band('120, 67% of all'))
     const zoomIn = screen.getByRole('button', { name: 'Zoom in' })
     act(() => zoomIn.focus())
+
     await zoomTo(21)
     expect(document.activeElement).toBe(zoomIn)
   })
