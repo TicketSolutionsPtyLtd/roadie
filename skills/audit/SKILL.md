@@ -451,12 +451,12 @@ Check the main CSS entry point (usually `globals.css`, `app.css`, or `index.css`
 Each Roadie package registers its own classes with Tailwind through its CSS entry, so the same file needs one import per package the app uses:
 
 ```
-@import ['"]@oztix/roadie-(components|charts|widgets)/css
+@import ['"]@oztix/roadie-(components|charts|editor|illustrations|widgets)/css
 ```
 
 Without it, Tailwind never sees the components' class strings and they render unstyled.
 
-**Fix:** Add `@import '@oztix/roadie-components/css';` after the core import, plus `/charts/css` and `/widgets/css` if used. An old `@source "…/node_modules/@oztix/roadie-components/dist"` line is no longer needed.
+**Fix:** Add `@import '@oztix/roadie-components/css';` after the core import, plus `@oztix/roadie-charts/css`, `@oztix/roadie-editor/css`, `@oztix/roadie-illustrations/css`, and `@oztix/roadie-widgets/css` for each one used. An old `@source "…/node_modules/@oztix/roadie-components/dist"` line is no longer needed.
 
 ---
 
@@ -956,7 +956,7 @@ and the rule says what to rule out by eye.
 **Batch 5** (setup: check CSS files only):
 
 - G1: `@import.*roadie-core`
-- G2: `@import.*roadie-(components|charts|widgets)/css`
+- G2: `@import.*roadie-(components|charts|editor|illustrations|widgets)/css`
 
 **Batch 6** (linking). Prettier often puts each JSX prop on its own line, so run E6 to E8, I2 to I4, and I6 with multiline on (Grep `multiline: true`, `rg -U`). A `[^>]*` match also stops at an arrow function's `=>`, so check components with inline handlers by eye:
 

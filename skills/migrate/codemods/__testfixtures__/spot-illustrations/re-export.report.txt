@@ -1,0 +1,2 @@
+line 4: '@oztix/roadie-components/spot-illustrations' is re-exported whole, and its exports changed in @oztix/roadie-illustrations/spot. Migrate it by hand.
+line 6: import('@oztix/roadie-components/spot-illustrations') loads the deprecated module. Load @oztix/roadie-illustrations/spot by hand, checking what it reads.

@@ -39,6 +39,10 @@ If any of this is missing, run `/roadie:setup` first.
   `RoadieProvider` is the one root import.
 - `Editor` is in its own package. Install `@oztix/roadie-editor` and import
   `@oztix/roadie-editor/css` after the components' CSS.
+- Spot illustrations are in `@oztix/roadie-illustrations`. Import
+  `@oztix/roadie-illustrations/css` after the components' CSS, and each
+  illustration from `@oztix/roadie-illustrations/spot`, never the deprecated
+  `@oztix/roadie-components/spot-illustrations`.
 
 ## 1. Pick a component before writing markup
 
@@ -319,6 +323,10 @@ page.
   with different actions: create one, or clear the filters.
 - `size='sm'` inside a card or section, `md` on its own, and `lg` for a
   whole page or 404, with `EmptyState.Title render={<h1 />}`.
+- `sm` shows an `EmptyState.IconTile`, and `md` a spot illustration in
+  `EmptyState.Illustration`, such as `<Ticket />` from
+  `@oztix/roadie-illustrations/spot`, that names what the view holds. Find one in the
+  [library](https://ticketsolutionsptyltd.github.io/roadie/components/spot-illustration/).
 - A failed load is `<EmptyState intent='danger'>` with a Retry action. Set
   the intent once on the root.
 - EmptyState has no surface. Put it in a `Card` when it needs one.
