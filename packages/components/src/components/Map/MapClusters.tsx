@@ -210,23 +210,25 @@ export function MapClusters({
 
   // The bands holding a highlighted place. A spot several places share goes
   // by any of their names, or by its label, as `onGroupsChange` gives it.
+  // It reads every place in view, so it follows the bands shown, not each
+  // frame of a move.
   const highlighted = useMemo(() => {
     const wanted = typeof highlight === 'string' ? [highlight] : highlight
-    if (!wanted?.length || !layout) return new Set<string>()
+    if (!wanted?.length || !shownKeys) return new Set<string>()
     return new Set(
-      layout.groups
-        .filter((group) =>
+      shownKeys
+        .split(' ')
+        .filter((key) =>
           index
-            .placesIn(group)
+            .placesIn({ key })
             .some(
               ({ names, label }) =>
                 names.some((name) => wanted.includes(name)) ||
                 (label !== undefined && wanted.includes(label))
             )
         )
-        .map(({ key }) => key)
     )
-  }, [highlight, layout, index])
+  }, [highlight, shownKeys, index])
 
   useEffect(() => {
     const target = focusAfterSplit.current

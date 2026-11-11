@@ -149,14 +149,20 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
     groupsAt,
     /** The largest group's value at a zoom, anywhere on the map. */
     largestAt(zoom: number) {
-      const level = Math.floor(zoom)
+      // Past the last zoom that groups, every zoom has the same bands.
+      const level = Math.min(Math.floor(zoom), MAX_ZOOM + 1)
       let value = largest.get(level)
       if (value === undefined) {
         // A loop, since a point for each sale can make more groups than a
-        // call takes arguments.
+        // call takes arguments. It reads only values: where each group
+        // splits costs far more, and the first frame at a zoom pays for it.
         value = 0
-        for (const group of groupsAt([-180, -85, 180, 85], level))
-          if (group.value > value) value = group.value
+        for (const index of indexes)
+          for (const { properties } of index.getClusters(
+            [-180, -85, 180, 85],
+            level
+          ))
+            if (properties.value > value) value = properties.value
         largest.set(level, value)
       }
       return value
@@ -170,7 +176,9 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
       )
     },
     /** The places in a group, largest first. */
-    placesIn(group: MapClusterGroup): ({ position: LatLng } & Place)[] {
+    placesIn(
+      group: Pick<MapClusterGroup, 'key'>
+    ): ({ position: LatLng } & Place)[] {
       const cluster = parseClusterKey(group.key)
       if (!cluster) {
         const place = placeOf.get(group.key)
