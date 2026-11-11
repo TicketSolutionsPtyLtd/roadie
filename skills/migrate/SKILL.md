@@ -116,10 +116,12 @@ npx --yes jscodeshift@17.4.0 -t "$CODEMODS/link-button.js" \
   components in the table.
 - Use `pnpm dlx`, `yarn dlx`, or `bunx` in place of `npx` to match the app.
 - Read the `REP` lines in the output. Each is a use left for step 5.
-- An `ERR` line is a file the parser couldn't read, so nothing in it moved.
-  A string with a raw line or paragraph separator (U+2028 or U+2029) is the
-  usual cause: write it as `\u2028` and run the codemod again, or migrate the
-  file by hand.
+- An `ERR` line is a file the codemod couldn't read, so nothing in it moved.
+  The codemods read every file as TSX, so an angle-bracket cast in a `.ts`
+  file (`<Type>value`) fails: write it as `value as Type`. So does a string
+  with a raw line or paragraph separator (U+2028 or U+2029): write it as
+  `\u2028` or `\u2029`. Then run the codemod again, or migrate the file by
+  hand.
 - Run the app's formatter on the changed files. The codemods print new code
   with single quotes and semicolons.
 
@@ -158,8 +160,7 @@ What they change:
   old path moves too, and a re-exported props type keeps its public name as
   an alias: `export type { SpotIllustrationComponentProps as HeartProps }`.
   It reports `export *`, and leaves it, because the module's exports
-  changed. Add
-  `@oztix/roadie-illustrations` to the app's dependencies, and
+  changed. Add `@oztix/roadie-illustrations` to the app's dependencies, and
   `@import '@oztix/roadie-illustrations/css';` after the components' CSS, so
   Tailwind keeps the colours and sizes the illustrations use. Every
   illustration was redrawn, so check the pages that show one.
