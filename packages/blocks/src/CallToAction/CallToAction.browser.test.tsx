@@ -315,6 +315,15 @@ describe('CallToAction body', () => {
 })
 
 describe('CallToAction contained with photo', () => {
+  it('keeps the photo within the page’s measure on a band across a wide window, breaking out of its top', async () => {
+    await page.viewport(1920, 900)
+    render(<CallToAction {...props} />)
+
+    const { panel, heading, photo } = boxes()
+    expect(photo.right - heading.left).toBeLessThanOrEqual(1440)
+    expect(panel.top - photo.top).toBeGreaterThanOrEqual(96)
+  })
+
   it('keeps the photo breaking out of the top of a contained panel', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(<CallToAction {...props} contained />)

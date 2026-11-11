@@ -11,8 +11,8 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  SPOT_ILLUSTRATIONS,
-  type SpotIllustrationName
+  type SpotIllustrationName,
+  spotIllustration
 } from '../_shared/illustrations'
 import {
   cycledMarkIntent,
@@ -73,7 +73,7 @@ export type CardsProps = {
   intent?: BlockIntent
   /** The surface behind the block. Unset, `photo` sits on `raised` and the other presets have none. */
   emphasis?: BlockEmphasis
-  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `photo` is contained and the other presets are bands. */
+  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. Unset, `photo` is contained and the other presets are bands. */
   contained?: boolean
   /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap` and `photo` ignore it, since they draw an inverted panel or a photo. */
   itemEmphasis?: ItemEmphasis
@@ -148,9 +148,8 @@ function Illustration({
   name: SpotIllustrationName | undefined
   className: string
 }) {
-  if (!name) return null
-  const Drawing = SPOT_ILLUSTRATIONS[name]
-  return <Drawing outline className={className} />
+  const Drawing = spotIllustration(name)
+  return Drawing ? <Drawing outline className={className} /> : null
 }
 
 // A tile that draws its own photo has no surface to tint, so a linked one grows its photo instead.

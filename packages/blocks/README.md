@@ -107,8 +107,9 @@ Run `pnpm generate:exports` after adding the folder.
   on a `strong` or `inverted` panel, or over a photo scrim, and it picks an intent that
   stands out (`strongActionIntent`, tested against every intent in both modes).
 - **One surface frame.** Every block draws its surface with `BlockSurface`,
-  never its own markup. A band runs full width and rounds at `@7xl:rounded-3xl`;
-  with `contained`, it's a panel inside the page padding, rounded at every width.
+  never its own markup. A band runs square across the window, and its content keeps
+  the page's measure; with `contained`, it's a rounded panel in line with the hero
+  (`FRAME_EDGE`).
 - **Keys.** List keys use the item's index with its content, so repeated content stays
   distinct.
 - **Room for an overhang.** A Call to action `photo` keeps a top margin for the photo that

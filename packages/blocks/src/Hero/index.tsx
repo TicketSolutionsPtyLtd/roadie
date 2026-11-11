@@ -11,11 +11,11 @@ import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
-import { BlockSurface } from '../_shared/BlockSurface'
+import { BlockSurface, FRAME_EDGE } from '../_shared/BlockSurface'
 import { cleanHighlight } from '../_shared/highlight'
 import {
-  SPOT_ILLUSTRATIONS,
-  type SpotIllustrationName
+  type SpotIllustrationName,
+  spotIllustration
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
 import {
@@ -249,7 +249,7 @@ const IMAGE_SHARE: Record<BlockSize, { text: string; photo: string }> = {
 }
 
 function ImageHero({ block, image, ratio, size = 'lg' }: PresetProps) {
-  const share = IMAGE_SHARE[size]
+  const share = bySize(size, IMAGE_SHARE)
   const preset = presetOf(heroDefinition, block.name)
   const shape =
     ratio ?? ('ratio' in preset.defaults ? preset.defaults.ratio : 'banner')
@@ -336,7 +336,7 @@ function Bento({
   size
 }: PresetProps) {
   const { align } = block
-  const Illustration = SPOT_ILLUSTRATIONS[illustration]
+  const Illustration = spotIllustration(illustration, 'HighFive')
   const [primaryImages, secondaryImages] = bentoPanels(images)
   const hasPrimary = primaryImages.length > 0
   const hasSecondary = secondaryImages.length > 0
@@ -348,7 +348,7 @@ function Bento({
     (secondaryImages.length > 1 ? 'hidden @xl:block' : 'hidden @4xl:block')
   return (
     <HeroMotionProvider>
-      <div className='mx-auto w-full max-w-8xl px-4 @xl:px-6 @7xl:px-2'>
+      <div className={cn('mx-auto w-full max-w-8xl', FRAME_EDGE)}>
         <div className='relative grid grid-cols-1 gap-4 *:min-w-0 @xl:grid-cols-9 @xl:gap-2.5 @4xl:gap-3 @7xl:gap-4'>
           <div
             data-slot='hero-heading'

@@ -1836,9 +1836,11 @@ describe('Editor embeds', () => {
     const value = embedded({ provider: 'loom', id, params: null })
     const { unmount } = render(<EmbedEditor defaultValue={value} />)
     const textbox = await screen.findByRole('textbox', { name: LABEL })
-    expect(
-      await within(textbox).findByText('This embed can’t be shown.')
-    ).toBeVisible()
+    const unshown = await within(textbox).findByText(
+      'This embed can’t be shown'
+    )
+    expect(unshown).toBeVisible()
+    expect(unshown.closest('.intent-danger')).not.toBe(null)
     expect(textbox.querySelector('iframe')).toBe(null)
     unmount()
 

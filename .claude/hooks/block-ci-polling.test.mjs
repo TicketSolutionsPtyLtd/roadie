@@ -49,7 +49,23 @@ describe('block-ci-polling', () => {
     "zsh -l -c 'sleep 60'",
     'while true; do gh pr checks 1 && break; sleep $DELAY; done',
     'while sleep $DELAY; do gh pr checks 1 && break; done',
-    'until gh pr checks 1; do /bin/sleep 5; done'
+    'until gh pr checks 1; do /bin/sleep 5; done',
+    'gh pr checks 1 \\\n  --watch --fail-fast',
+    'gh run \\\n  watch 123',
+    'sleep \\\n  60',
+    'sleep infinity',
+    'sleep $((60))',
+    'sleep $((5 * 60))',
+    'sleep "${DELAY:-60}"',
+    'sleep ${DELAY:=2m}',
+    'watch -n 30 gh pr checks 1',
+    'watch gh run list',
+    'while gh run view 1 | grep -q in_progress; do :; done',
+    'until gh pr checks 1; do :; done',
+    'perl -e "sleep 60"',
+    "python3 -c 'import time; time.sleep(60)'",
+    "node -e 'setTimeout(() => {}, 60000)'",
+    "node -e 'setTimeout(() => {}, 60_000)'"
   ]) {
     it(`denies ${JSON.stringify(command)}`, () => {
       const { status, stderr } = runHook({ command })
@@ -79,7 +95,21 @@ describe('block-ci-polling', () => {
     'echo waiting for build; sleep 2; ls; echo done',
     'for f in $(grep -rl sleep src); do wc -l $f; done',
     'do-build; sleep 2; done-check',
-    'node scripts/wait-for-load.mjs'
+    'node scripts/wait-for-load.mjs',
+    'gh pr checks 1 -w',
+    'sleep $((2 * 3))',
+    'sleep "${DELAY:-5}"',
+    'echo "${NAME:-there}"; sleep 2',
+    'pnpm --filter docs run watch',
+    'while read -r n; do gh pr view "$n"; done < prs.txt',
+    'gh pr list -q .[].number | while IFS= read -r n; do gh pr view "$n"; done',
+    'for n in 1 2; do gh pr view $n; done',
+    'perl -e "sleep 2"',
+    'python3 -c "print(1)"',
+    "node -e 'setTimeout(() => {}, 500)'",
+    'git commit -m "Block watch -n 30 and perl sleeps"',
+    `git commit -m "Deny inline sleeps\n\nperl -e 'sleep 60' now fails"`,
+    `git commit -m "Fix\nnode -e 'setTimeout(() => {}, 60000)'"`
   ]) {
     it(`allows ${JSON.stringify(command)}`, () => {
       assert.equal(runHook({ command }).status, 0)

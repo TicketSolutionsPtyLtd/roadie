@@ -100,6 +100,25 @@ describe('Editor link card', () => {
     expect(target).toHaveAttribute('title', TICKETS)
   })
 
+  it('shows where a link goes as plain text inside a page’s prose', async () => {
+    render(
+      <div className='prose'>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueOf(
+            'rich',
+            linked('your tickets', { href: TICKETS })
+          )}
+        />
+      </div>
+    )
+    await caretIn('your tickets')
+
+    const target = within(await card()).getByRole('link')
+    // Prose's links draw their underline as a background image.
+    expect(getComputedStyle(target).backgroundImage).toBe('none')
+  })
+
   it('hangs under the link, clear of its text', async () => {
     renderEditor(valueOf('rich', linked('your tickets', { href: TICKETS })))
     const textbox = await caretIn('your tickets')

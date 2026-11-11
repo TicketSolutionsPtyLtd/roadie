@@ -44,3 +44,15 @@ export async function clickIntoEditor(target: Element) {
   await expect.poll(() => document.activeElement).toBe(editor)
   await synced
 }
+
+/** Safari's Enter that picks an IME candidate, sent after compositionend. */
+export function enterEndingComposition(field: Element) {
+  field.dispatchEvent(
+    new KeyboardEvent('keydown', {
+      key: 'Enter',
+      keyCode: 229,
+      bubbles: true,
+      cancelable: true
+    })
+  )
+}

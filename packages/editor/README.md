@@ -61,8 +61,9 @@ const description: EditorValue = {
   `presets.basic` has paragraphs, hard breaks, bulleted and numbered lists,
   bold, italic, underline (`underline`), and links. A link saves only its `href`. `presets.rich` adds
   headings 2 to 4 (`heading`, saving only `level`), quotes (`blockquote`),
-  dividers (`horizontalRule`), images (`image`, saving only `src` and
-  `alt`), embeds (`embed`, saving only `provider`, `id`, and `params`), and
+  dividers (`horizontalRule`), images (`image`, saving only `src`, `alt`,
+  and, when not the default, `fullWidth: true`, `align: 'center' | 'right'`
+  and a `caption`), embeds (`embed`, saving only `provider`, `id`, and `params`), and
   tables (`table`, `tableRow`, `tableHeader` and `tableCell`, saving only a
   cell's `colspan` and `rowspan`). A cell holds paragraphs only.
   `presets.blocks` holds what `rich` does, and every block but a table's
@@ -72,17 +73,24 @@ const description: EditorValue = {
   until someone writes it.
   `presets.email` holds the basic preset's text plus headings 2 to 4, and
   layout blocks: sections (`section`), columns (`columns`, holding two to
-  four `column`s), buttons (`button`, saving only `href`, with its label as unmarked text and
-  variables), images
-  (`image`, saving only `src`, `alt`, and `width`), spacers (`spacer`, saving
-  only `height`), and dividers (`horizontalRule`). A button links to https,
-  http, mailto, or tel, an image's `src` is https only, its `width` is 1 to
-  600 pixels or `null` to fill its column, and a spacer is 8 to 160 pixels
-  high. A list item holds text blocks only. A merge tag is an inline
-  `variable`, saving only `key` and, when it has one, `fallback`; its token
-  is chosen when the email renders. A section and each email block can
-  save a `showWhen` rule, `{ key, op, value }`, naming a variable; columns
-  and text blocks never do, so a conditional paragraph goes in a section.
+  four `column`s), buttons (`button`, with its label as unmarked text and
+  variables), images (`image`), spacers (`spacer`, saving only `height`),
+  and dividers (`horizontalRule`). The doc saves a `preheader`. A heading
+  or paragraph saves `align: 'center'`, and a link `href` or a link
+  `variable`. A button saves its `href` or a link `variable`, and an image
+  its `src`, `alt`, `width`, and an optional `href` or link `variable`. Each
+  look saves only when it isn't the default: a section's
+  `look: 'tint' | 'accent'` and `spacing: 'tight' | 'roomy'`, columns'
+  `layout: 'wide-left' | 'wide-right'` and `stack: 'reverse'`, a button's
+  `align: 'center' | 'right'`, `emphasis: 'normal' | 'subtle'` and
+  `fullWidth: true`, and an image's `align: 'left' | 'right'`. A button links to https, http, mailto, or tel, an image's
+  `src` is https only, its `width` is 1 to 600 pixels or `null` to fill its
+  column, and a spacer is 8 to 160 pixels high. A list item holds text
+  blocks only. A merge tag is an inline `variable`, saving only `key` and,
+  when it has one, `fallback`; its token is chosen when the email renders.
+  A section and each email block can save a `showWhen` rule,
+  `{ key, op, value }`, naming a variable; columns and text blocks never
+  do, so a conditional paragraph goes in a section.
 - `doc` is Tiptap's JSON, with Tiptap's default names (`paragraph`,
   `bulletList`, `bold`…), so any Tiptap or ProseMirror tool reads it.
 

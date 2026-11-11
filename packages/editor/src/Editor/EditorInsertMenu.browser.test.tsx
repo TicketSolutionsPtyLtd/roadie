@@ -5,7 +5,7 @@ import {
   waitFor,
   within
 } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Dialog } from '@oztix/roadie-components/dialog'
@@ -363,6 +363,64 @@ describe('Editor insert menu', () => {
         'No blocks match'
       )
     )
+  })
+
+  // A new element, so a screen reader reads the new active option, and a
+  // thumbnail never shows the last one's picture.
+  it('gives the active option a new element when typing changes the first match', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const first = within(await insertMenu()).getAllByRole('option')[0]!
+    expect(first).toHaveTextContent('Paragraph')
+    await userEvent.keyboard('h')
+
+    const active = await waitFor(async () => {
+      const option = within(await insertMenu()).getAllByRole('option')[0]!
+      expect(option).toHaveTextContent('Heading 2')
+      return option
+    })
+    expect(active).toHaveAttribute('aria-selected', 'true')
+    expect(active).not.toBe(first)
+  })
+
+  it('keeps its matches on screen while a query that matches is typed', async () => {
+    renderEmail()
+    await focusedTextbox()
+    await userEvent.keyboard('/')
+    const menu = await insertMenu()
+    const shown: string[] = []
+    const watch = new MutationObserver(() =>
+      shown.push(menu.querySelector('[role=option]')?.textContent ?? '')
+    )
+    watch.observe(menu, { childList: true, subtree: true })
+    onTestFinished(() => watch.disconnect())
+
+    await userEvent.keyboard('h')
+
+    await waitFor(() =>
+      expect(shown.some((text) => text.startsWith('Heading 2'))).toBe(true)
+    )
+    expect(shown).not.toContain('No blocks match')
+  })
+
+  it('opens on its matches, never on No blocks match', async () => {
+    renderEmail()
+    await focusedTextbox()
+    const shown: string[] = []
+    const watch = new MutationObserver(() => {
+      const option = document.querySelector('[role=listbox] [role=option]')
+      if (option) shown.push(option.textContent ?? '')
+    })
+    watch.observe(document.body, { childList: true, subtree: true })
+    onTestFinished(() => watch.disconnect())
+
+    await userEvent.keyboard('/')
+
+    await insertMenu()
+    expect(shown[0]).toMatch(/^Paragraph/)
+    expect(shown).not.toContain('No blocks match')
   })
 
   it('ranks a match at the start of a name first, as /2 finds 2 columns before Heading 2', async () => {

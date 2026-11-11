@@ -142,6 +142,11 @@ Iframes become embeds when a provider reads their player address. If the
 editor has its own `embedProviders`, pass the same list:
 `htmlToEditorValue(html, 'rich', { embedProviders })`.
 
+It reads into `basic`, `rich`, and `blocks`. An email goes through
+[`importEmail`](/components/editor/email#importing-html-or-mjml), which keeps
+its preview text, buttons, columns, and merge tags, so `htmlToEditorValue`
+throws a `RangeError` for `email`.
+
 It needs a browser's `DOMParser` and throws on the server, where a client
 component also renders first. Call it in an effect or an event handler, such
 as the one that opens the editor.
@@ -155,14 +160,24 @@ const legacy =
   '<img src="data:image/png;base64,iVBORw0KGgo=">' +
   '<iframe src="' + video + '"></iframe>'
 
-const { value, dropped } = htmlToEditorValue(legacy, 'rich')
+function LegacyDescription() {
+  const [imported, setImported] = useState()
+  if (!imported) {
+    return (
+      <Button onClick={() => setImported(htmlToEditorValue(legacy, 'rich'))}>
+        Edit description
+      </Button>
+    )
+  }
+  return (
+    <div className='grid gap-3'>
+      <Editor aria-label='Event description' preset='rich' defaultValue={imported.value} />
+      <p className='text-subtle text-display-ui-6'>
+        Not imported: {imported.dropped.map(({ kind }) => kind).join(', ') || 'nothing'}
+      </p>
+    </div>
+  )
+}
 
-render(
-  <div className='grid gap-3'>
-    <Editor aria-label='Event description' preset='rich' defaultValue={value} />
-    <p className='text-subtle text-display-ui-6'>
-      Not imported: {dropped.map(({ kind }) => kind).join(', ') || 'nothing'}
-    </p>
-  </div>
-)
+render(<LegacyDescription />)
 ```

@@ -908,7 +908,6 @@ export function EditorBlockHandle({
                 ).map((place) => ({
                   label: place.label,
                   icon: place.kind === 'heading' ? TextHIcon : RectangleIcon,
-                  chosen: false,
                   run: () =>
                     run((pos) => moveBlockTo(editor.state, pos, place.to))
                 }))}

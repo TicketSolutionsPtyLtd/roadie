@@ -1,18 +1,12 @@
 'use client'
 
-import {
-  type KeyboardEvent,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  useSyncExternalStore
-} from 'react'
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from 'react'
 
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { flushSync } from 'react-dom'
 
 import { Drawer } from '@oztix/roadie-components/drawer'
+import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { Input } from '@oztix/roadie-components/input'
 
@@ -25,6 +19,7 @@ import {
   rankedInsertItems
 } from './insertItems'
 import { inGroupOrder } from './menuGroups'
+import { makeRoomBeside, useRoomBeside } from './roomBeside'
 import { useOnPhone } from './toolbarMode'
 
 type EditorBlocksDrawerProps = {
@@ -57,50 +52,6 @@ const sectionsFirst = (groups: [string, EditorInsertItem[]][]) => [
   ...groups.filter(([group]) => group === 'Sections'),
   ...groups.filter(([group]) => group !== 'Sections')
 ]
-
-// Wide enough to keep the email in view beside the drawer.
-const WIDE = '(min-width: 1280px)'
-
-function subscribeToWide(onChange: () => void) {
-  const query = window.matchMedia(WIDE)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-const useWide = () =>
-  useSyncExternalStore(
-    subscribeToWide,
-    () => window.matchMedia(WIDE).matches,
-    () => false
-  )
-
-/**
- * Pads `root`'s end by as much of it as `popup`, pinned to the page's end,
- * covers, until the returned cleanup. The section settings drawer does the
- * same, and the two could share this.
- */
-function makeRoomBeside(root: HTMLElement, popup: HTMLElement) {
-  // The drawer is on the right whatever the direction, so physical padding.
-  const previous = root.style.paddingRight
-  // offsetWidth ignores the slide in, which a rect would catch midway.
-  const fit = () => {
-    root.style.paddingRight = previous
-    const own = parseFloat(getComputedStyle(root).paddingRight)
-    const covered =
-      root.getBoundingClientRect().right -
-      (document.documentElement.clientWidth - popup.offsetWidth)
-    if (covered > 0) root.style.paddingRight = `${own + covered}px`
-  }
-  fit()
-  const resizes = new ResizeObserver(fit)
-  resizes.observe(root.parentElement ?? document.documentElement)
-  window.addEventListener('resize', fit)
-  return () => {
-    resizes.disconnect()
-    window.removeEventListener('resize', fit)
-    root.style.paddingRight = previous
-  }
-}
 
 const centre = (rect: DOMRect) => rect.left + rect.width / 2
 
@@ -152,7 +103,7 @@ export function EditorBlocksDrawer({
 }: EditorBlocksDrawerProps) {
   const phone = useOnPhone()
   // A wide touch screen still gets the bottom sheet, which takes the page.
-  const beside = useWide() && !phone
+  const beside = useRoomBeside() && !phone
   const id = useId()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
@@ -296,7 +247,11 @@ export function EditorBlocksDrawer({
                 onKeyDown={onGridKeyDown}
               >
                 {groups.length === 0 ? (
-                  <p className='text-sm text-subtle'>No blocks match</p>
+                  <EmptyState size='sm'>
+                    <EmptyState.Title render={<p />}>
+                      No blocks match
+                    </EmptyState.Title>
+                  </EmptyState>
                 ) : null}
                 {groups.map(([group, groupTiles], groupIndex) => {
                   const headingId = `${id}-group-${groupIndex}`
@@ -320,12 +275,12 @@ export function EditorBlocksDrawer({
                             : 'grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2'
                         }
                       >
-                        {groupTiles.map((item) => {
+                        {groupTiles.map((item, at) => {
                           const Icon = item.icon
                           const disabled = !usable(item)
                           return (
                             <button
-                              key={item.label}
+                              key={`${at}-${item.label}`}
                               type='button'
                               data-slot='editor-blocks-tile'
                               data-group={group}

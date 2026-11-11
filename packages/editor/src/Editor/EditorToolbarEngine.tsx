@@ -647,24 +647,12 @@ function MoreMenu({
             )
           }
           return (
-            <Menu.RadioGroup
+            <BlockMenuRadioGroup
               key={item.label}
-              value={states?.[index]?.current}
-              onValueChange={(label) => {
-                const type = item.types.find((option) => option.label === label)
-                if (editor && type) type.run(editor)
-              }}
-            >
-              {item.types.map((type) => (
-                <Menu.RadioItem
-                  key={type.label}
-                  value={type.label}
-                  closeOnClick
-                >
-                  {type.label}
-                </Menu.RadioItem>
-              ))}
-            </Menu.RadioGroup>
+              menu={item}
+              state={states?.[index]}
+              editor={editor}
+            />
           )
         })}
       </Menu.Content>

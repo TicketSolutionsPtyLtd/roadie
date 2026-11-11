@@ -20,7 +20,7 @@ import { CURRENT_VERSION, type EditorValue, migrate } from './value'
 /**
  * Content an import couldn't keep. `src` is left out for a `data:` URI.
  * `importEmail` also reports `hidden` text past the preheader, a `link` on
- * an image, its `src` the link's href, an `unsafe-link`, such as
+ * an image that an email can't open, its `src` the link's href, an `unsafe-link`, such as
  * `javascript:`, whose text it keeps, and an MJML `element` it has no block
  * for, by `tag`, whose text it keeps.
  */
@@ -215,7 +215,9 @@ export function bodyToDoc(
  * pass the editor's own providers if it has them.
  *
  * Needs a browser's `DOMParser`, so call it in an effect or event handler.
- * Throws a RangeError on an unknown preset.
+ * Throws a RangeError on an unknown preset, and on `email`, which
+ * `importEmail` reads with its preheader, buttons, columns, merge tags, and
+ * unsafe links.
  */
 export function htmlToEditorValue(
   html: string,
@@ -226,6 +228,11 @@ export function htmlToEditorValue(
 ): { value: EditorValue; dropped: DroppedContent[] } {
   if (!isPreset(preset)) {
     throw new RangeError(`Unknown EditorValue preset "${preset}".`)
+  }
+  if (preset === 'email') {
+    throw new RangeError(
+      'htmlToEditorValue doesn’t read the email preset. Use importEmail, which keeps an email’s preheader, buttons, columns, and merge tags.'
+    )
   }
   if (typeof DOMParser === 'undefined') {
     throw new Error('htmlToEditorValue needs a browser’s DOMParser.')

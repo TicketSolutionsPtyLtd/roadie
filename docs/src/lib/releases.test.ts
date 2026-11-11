@@ -1184,6 +1184,62 @@ describe('releaseTitle', () => {
     ).toBe('Update currency to show cents')
   })
 
+  it.each([
+    'Upgrade React Aria to 1.2.',
+    'Bump Base UI React to v1.4.0.',
+    'Update Phosphor Icons React to 2.1.10, for the new glyphs.'
+  ])(
+    'calls a bump of a dependency named in more than one word, %j, a dependency update',
+    (text) => {
+      expect(releaseTitle([], [item('changed', undefined, text)])).toBe(
+        'Dependency updates'
+      )
+    }
+  )
+
+  it('keeps a change that runs to a number further on as a change', () => {
+    expect(
+      releaseTitle(
+        [],
+        [
+          item(
+            'changed',
+            undefined,
+            'Update the badge so its gap is 2 to 4.5px.'
+          )
+        ]
+      )
+    ).not.toBe('Dependency updates')
+  })
+
+  it.each([
+    'Update the badge gap to 2.5px.',
+    'Update the badge gap to 2.5.',
+    'Update the gap to 1.2.3rem.',
+    'Update Card gap to 2.5px.',
+    'Update `Badge` padding to 1.2.3rem.',
+    'Update Meter fill to 12.5%.',
+    'Update `CartContents` to stable, so a breaking change to it only comes in a major version.',
+    'Upgrade to PandaCSS 1.4.3 and Ark UI with modernized component system'
+  ])(
+    'keeps %j, which updates no dependency to a version, as a change',
+    (text) => {
+      expect(releaseTitle([], [item('changed', undefined, text)])).not.toBe(
+        'Dependency updates'
+      )
+    }
+  )
+
+  it.each([
+    'Update Tiptap to 3.32.1.',
+    'Update Tiptap to v3.',
+    'Bump Base UI React to v1.4.0, for the new Popover.'
+  ])('calls the bump %j a dependency update', (text) => {
+    expect(releaseTitle([], [item('changed', undefined, text)])).toBe(
+      'Dependency updates'
+    )
+  })
+
   it('calls a breaking release whose other changes are dependency bumps a breaking change', () => {
     expect(
       releaseTitle(
