@@ -142,8 +142,8 @@ Draw the front flat, in any units. The kit in `scripts/spot/draw/` has:
   surface.
 - **`side`,** which picks each face's layer from whether it's a hole's wall and
   which way it faces. By default a hole's walls are Detail and the rest Shadow,
-  as Letter B has it. For undersides in Detail, as the letters E and P in the
-  Figma file have them, use
+  as Letter B has it. For undersides in Detail, as Letter E and Letter P have
+  them, use
   `side: ({ hole, normal }) => hole || normal[1] > normal[0] ? 'Detail' : 'Shadow'`.
 - **`lines`,** for marks that bound no fill, such as grip lines.
 - **`fit`,** which scales the art so its long side spans 2 to 46, growing it as
@@ -162,18 +162,18 @@ percentile of the set. An illustration can break a rule on purpose:
 `ACCEPTED` in `scripts/spot/check.ts` lists the set's own, such as line art
 drawn mostly in Stroke and squarish shapes that sit smaller.
 
-| Measure                      | The set                                        | Warns outside |
-| ---------------------------- | ---------------------------------------------- | ------------- |
-| Long side                    | 44, from 2 to 46, for most; squares down to 32 | under 35      |
-| Short side                   | 15 to 44, mostly 30 to 42                      |               |
-| Painted share of the box     | 0.27 to 0.79, mostly 0.36 to 0.61, median 0.48 | 0.30 to 0.68  |
-| Face share of what's painted | mostly 0.50 to 0.71, median 0.63               |               |
-| Shadow share                 | mostly 0.06 to 0.26, median 0.16               | 0.02 to 0.33  |
-| Detail share, where used     | mostly 0.05 to 0.23, in 142 of 177             |               |
-| Highlight share, where used  | 0.02 to 0.12, in 5 (Caravan, High Five)        |               |
-| Stroke share                 | mostly 0.08 to 0.15, median 0.11               | 0.065 to 0.21 |
-| Shadow direction             | down, right, or both                           | up and left   |
-| Path commands in a layer     | median 39, mostly under 220                    | over 450      |
+| Measure                      | The set                                              | Warns outside |
+| ---------------------------- | ---------------------------------------------------- | ------------- |
+| Long side                    | 44, from 2 to 46, in 121 of 177; the rest 32 to 43.5 | under 35      |
+| Short side                   | 15 to 44, mostly 30 to 42                            |               |
+| Painted share of the box     | 0.27 to 0.79, mostly 0.36 to 0.61, median 0.48       | 0.30 to 0.68  |
+| Face share of what's painted | mostly 0.50 to 0.71, median 0.63                     |               |
+| Shadow share                 | mostly 0.06 to 0.26, median 0.16                     | 0.02 to 0.33  |
+| Detail share, where used     | mostly 0.05 to 0.23, in 142 of 177                   |               |
+| Highlight share, where used  | 0.02 to 0.12, in 5, such as Caravan                  |               |
+| Stroke share                 | mostly 0.08 to 0.15, median 0.11                     | 0.065 to 0.21 |
+| Shadow direction             | down, right, or both                                 | up and left   |
+| Path commands in a layer     | median 18; a source's most, mostly under 220         | over 450      |
 
 - **Depth.** Shadow is the front swept back along one vector, not a copy
   shifted behind it. Compact objects go down and right, 2.5 to 5.5 long at 35

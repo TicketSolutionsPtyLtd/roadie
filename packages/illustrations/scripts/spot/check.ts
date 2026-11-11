@@ -171,7 +171,7 @@ export const ACCEPTED: Record<string, StyleRule[]> = {
   'arch-window': ['long-side'],
   'l-shape': ['long-side'],
   'square-cube-box': ['long-side'],
-  // Thin marks that paint little of the box, and solid blocks that paint most of it.
+  // Thin or small marks that paint little of the box, and solid blocks that paint most of it.
   'check-correct': ['coverage'],
   'heart-pixel': ['coverage'],
   'letter-i': ['coverage'],
@@ -183,14 +183,14 @@ export const ACCEPTED: Record<string, StyleRule[]> = {
   grass: ['stroke-share'],
   shrub: ['shadow-share', 'stroke-share'],
   'sparkling-glitter-star-rotate': ['stroke-share'],
-  // Flat, with no depth, or deep enough that the side outweighs the front.
+  // Sides drawn in Detail, leaving little or no Shadow, or a Shadow side nearly as big as the front, or bigger.
   'cursor-head': ['shadow-share'],
   rock: ['shadow-share'],
   sign: ['shadow-share'],
   wing: ['shadow-share'],
   'lightning-bolt': ['shadow-share'],
   'piece-cake': ['shadow-share'],
-  // Their Shadow falls up and to the left.
+  // Extruded up or to the left, so their Shadow sits up and left of the rest.
   'block-l-right': ['shadow-direction'],
   'cloud-puff': ['shadow-direction'],
   'flower-spiral': ['shadow-direction'],
@@ -233,7 +233,7 @@ export function styleWarnings(
   if (m.longSide < STYLE.longSide)
     out.push({
       rule: 'long-side',
-      message: `its long side spans ${m.longSide.toFixed(1)}; the set stretches to 44, from 2 to 46 (fit() does it for you), and only a few squarish shapes sit smaller, down to 32`
+      message: `its long side spans ${m.longSide.toFixed(1)}; most of the set spans 44, from 2 to 46 (fit() does it for you), and few span under ${STYLE.longSide}`
     })
   const shadow = m.shares.Shadow ?? 0
   const [minShadow, maxShadow] = STYLE.shadowShare

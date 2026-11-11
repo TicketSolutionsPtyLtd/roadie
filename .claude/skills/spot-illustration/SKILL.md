@@ -12,10 +12,9 @@ sections first. Run every command with
 
 ## 1. Find a reference
 
-- Check the set first: if `src/spot/svgs/` has the object, change that source.
-  Until the rest of the Figma set is converted, the Figma Foundations file's
-  Spot Illustrations section may hold one already drawn; convert that with
-  `spot:convert` instead of drawing it again.
+- Check the set first: if `src/spot/svgs/` has the object, change that source
+  instead of drawing it again. Figma holds nothing the set doesn't: its
+  letters set as text are still to draw.
 - Otherwise take a line icon (Phosphor, say) or a sketch from the person
   asking. It gives the silhouette and the major parts; the style turns it into
   an extruded sticker.
