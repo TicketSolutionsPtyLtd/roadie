@@ -3,7 +3,7 @@ import type { BrandColour } from '@/lib/brand-colours'
 import { Badge } from '@oztix/roadie-components/badge'
 import { getContrastColor } from '@oztix/roadie-core/colors'
 
-import { CopyToastChip } from '../tokens/CopyToastChip'
+import { CopyChip } from '../tokens/CopyChip'
 
 // The brand's dark text is Blackout and its light text Flood, both pinned so
 // a swatch reads the same in dark mode.
@@ -30,7 +30,7 @@ function SwatchValue({
     <div className='grid grid-cols-[3rem_1fr] items-center gap-1 py-1'>
       <dt className='text-xs text-subtle'>{label}</dt>
       <dd className='flex min-w-0 flex-wrap items-center gap-1'>
-        <CopyToastChip
+        <CopyChip
           value={value}
           swatch={swatch}
           nowrap
@@ -40,7 +40,7 @@ function SwatchValue({
             {value}
             {derived && <span className='sr-only'> (derived)</span>}
           </code>
-        </CopyToastChip>
+        </CopyChip>
         {derived && (
           <Badge size='sm' emphasis='subtle' aria-hidden>
             derived

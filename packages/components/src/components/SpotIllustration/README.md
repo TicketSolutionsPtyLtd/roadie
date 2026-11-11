@@ -1,4 +1,4 @@
-> **Deprecated.** Spot illustrations now live in [`@oztix/roadie-illustrations`](../../../../illustrations), with all 178 and a code-first workflow for adding more. This folder stays until a future major removes `@oztix/roadie-components/spot-illustrations`.
+> **Deprecated.** Spot illustrations now live in [`@oztix/roadie-illustrations`](../../../../illustrations), with the whole set and a code-first workflow for adding more. This folder stays until a future major removes `@oztix/roadie-components/spot-illustrations`.
 
 # SpotIllustration System
 

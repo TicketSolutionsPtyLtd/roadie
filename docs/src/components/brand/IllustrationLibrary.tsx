@@ -24,8 +24,8 @@ import { Field } from '@oztix/roadie-components/field'
 import { Menu } from '@oztix/roadie-components/menu'
 
 import { Image } from '../Image'
-import { CopyToastChip } from '../tokens/CopyToastChip'
-import { useCopy } from '../useCopy'
+import { CopyChip } from '../tokens/CopyChip'
+import { useCopyToast } from '../useCopy'
 
 const PNG_SIZE = 1024
 
@@ -116,17 +116,13 @@ function IllustrationTile({
   illustration: BrandIllustration
 }) {
   const { slug, label, tags, component } = illustration
-  const { copied, failed, copy } = useCopy()
+  const { copied, copy } = useCopyToast()
   const { state, download } = useDownload(slug)
-  const announcement = copied
-    ? `Copied the SVG of ${label}`
-    : failed
-      ? `Couldn't copy the SVG of ${label}`
-      : state?.ok
-        ? `Downloaded the ${state.format} of ${label}`
-        : state
-          ? `Couldn't download the ${state.format} of ${label}`
-          : ''
+  const announcement = state?.ok
+    ? `Downloaded the ${state.format} of ${label}`
+    : state
+      ? `Couldn't download the ${state.format} of ${label}`
+      : ''
 
   return (
     <li data-slot='illustration-tile' data-twin-row className='grid'>
@@ -153,13 +149,13 @@ function IllustrationTile({
             <code data-twin-cell className='sr-only'>
               {`/brand/illustrations/${slug}.svg`}
             </code>
-            <CopyToastChip
+            <CopyChip
               value={component}
               nowrap
               className='-ms-1.5 justify-self-start text-xs text-subtle'
             >
               <code data-twin-cell>{component}</code>
-            </CopyToastChip>
+            </CopyChip>
           </div>
         </Card.Content>
         <Card.Footer className='gap-1 px-3 pb-3'>
@@ -167,7 +163,13 @@ function IllustrationTile({
             size='xs'
             emphasis='normal'
             aria-label={`Copy SVG of ${label}`}
-            onClick={() => copy(svgMarkup(slug))}
+            onClick={() =>
+              copy(svgMarkup(slug), {
+                copied: 'SVG copied',
+                failed: 'Couldn’t copy the SVG',
+                description: label
+              })
+            }
             className='min-w-0 flex-1'
           >
             {copied ? (
@@ -175,7 +177,7 @@ function IllustrationTile({
             ) : (
               <CopyIcon weight='bold' className='size-4' />
             )}
-            {copied ? 'Copied' : failed ? "Couldn't copy" : 'Copy SVG'}
+            Copy SVG
           </Button>
           <Menu>
             <Menu.Trigger

@@ -1,53 +1,63 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { ReactNode } from 'react'
+
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { Toast } from '@oztix/roadie-components/toast'
 
 import { CopyChip } from './CopyChip'
 
 afterEach(cleanup)
 
+function WithToasts({ children }: { children: ReactNode }) {
+  return (
+    <Toast.Provider>
+      {children}
+      <Toast.Viewport />
+    </Toast.Provider>
+  )
+}
+
+function setClipboard(writeText: (() => Promise<void>) | undefined) {
+  Object.defineProperty(navigator, 'clipboard', {
+    value: writeText && { writeText: vi.fn(writeText) },
+    configurable: true
+  })
+  Object.defineProperty(document, 'execCommand', {
+    value: vi.fn(() => false),
+    configurable: true
+  })
+}
+
+const copyBrand5 = async () => {
+  render(<CopyChip value='--color-brand-5'>--color-brand-5</CopyChip>, {
+    wrapper: WithToasts
+  })
+  const button = screen.getByRole('button', { name: 'Copy --color-brand-5' })
+  await act(async () => fireEvent.click(button))
+}
+
 describe('CopyChip', () => {
-  it('shows and announces a failure when nothing can copy', async () => {
-    Object.defineProperty(navigator, 'clipboard', {
-      value: undefined,
-      configurable: true
-    })
-    Object.defineProperty(document, 'execCommand', {
-      value: vi.fn(() => false),
-      configurable: true
-    })
-    render(<CopyChip value='--color-brand-5'>--color-brand-5</CopyChip>)
+  it('confirms a copy in a toast that shows the value', async () => {
+    setClipboard(() => Promise.resolve())
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Copy --color-brand-5' })
+    await copyBrand5()
+
+    await screen.findByText('Copied')
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      '--color-brand-5'
     )
-
-    expect(await screen.findByText('Couldn’t copy')).toBeTruthy()
-    expect(screen.getByText("Couldn't copy --color-brand-5")).toBeTruthy()
+    expect(
+      screen.getByText('--color-brand-5', { selector: 'code' })
+    ).toBeTruthy()
   })
 
-  it('hands the confirmation to onCopy, with no text or announcement of its own', async () => {
-    Object.defineProperty(navigator, 'clipboard', {
-      value: undefined,
-      configurable: true
-    })
-    Object.defineProperty(document, 'execCommand', {
-      value: vi.fn(() => false),
-      configurable: true
-    })
-    const onCopy = vi.fn()
-    const { container } = render(
-      <CopyChip value='--color-brand-5' onCopy={onCopy}>
-        --color-brand-5
-      </CopyChip>
-    )
+  it('says so in a toast when nothing can copy', async () => {
+    setClipboard(undefined)
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Copy --color-brand-5' })
-    )
+    await copyBrand5()
 
-    await vi.waitFor(() => expect(onCopy).toHaveBeenCalledWith(false))
-    expect(screen.queryByText('Couldn’t copy')).toBeNull()
-    expect(container.querySelector('[aria-live]')).toBeNull()
+    await screen.findByText('Couldn’t copy')
   })
 })

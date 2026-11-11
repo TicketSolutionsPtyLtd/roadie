@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 // @vitest-environment jsdom
 import {
   cleanup,
@@ -14,6 +16,15 @@ import { BRAND_ILLUSTRATIONS } from '@/lib/brand-illustrations'
 import { Toast } from '@oztix/roadie-components/toast'
 
 import { IllustrationLibrary, filterIllustrations } from './IllustrationLibrary'
+
+function WithToasts({ children }: { children: ReactNode }) {
+  return (
+    <Toast.Provider>
+      {children}
+      <Toast.Viewport />
+    </Toast.Provider>
+  )
+}
 
 afterEach(() => {
   cleanup()
@@ -43,7 +54,7 @@ describe('filterIllustrations', () => {
 
 describe('IllustrationLibrary', () => {
   it('narrows the tiles as you type, and shows an empty state with no match', () => {
-    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
+    render(<IllustrationLibrary />, { wrapper: WithToasts })
     expect(tiles()).toHaveLength(BRAND_ILLUSTRATIONS.length)
 
     const search = screen.getByRole('searchbox', {
@@ -60,7 +71,7 @@ describe('IllustrationLibrary', () => {
   })
 
   it('puts the tile actions in a Card.Footer, after the body', () => {
-    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
+    render(<IllustrationLibrary />, { wrapper: WithToasts })
     fireEvent.change(screen.getByRole('searchbox'), {
       target: { value: 'ghost' }
     })
@@ -79,7 +90,7 @@ describe('IllustrationLibrary', () => {
     ).toBeTruthy()
   })
 
-  it('copies the SVG markup and announces it', async () => {
+  it('copies the SVG markup and confirms in a toast', async () => {
     const markup = '<svg viewBox="0 0 48 48"><path d="M0 0h48v48z"/></svg>'
     vi.stubGlobal(
       'fetch',
@@ -90,7 +101,7 @@ describe('IllustrationLibrary', () => {
       value: { writeText },
       configurable: true
     })
-    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
+    render(<IllustrationLibrary />, { wrapper: WithToasts })
     fireEvent.change(screen.getByRole('searchbox'), {
       target: { value: 'ghost' }
     })
@@ -101,7 +112,7 @@ describe('IllustrationLibrary', () => {
     )
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(markup))
-    expect(within(tile!).getByText('Copied the SVG of Ghost')).toBeTruthy()
+    await screen.findByText('SVG copied')
     expect(fetch).toHaveBeenCalledWith('/brand/illustrations/ghost.svg')
   })
 
@@ -111,7 +122,7 @@ describe('IllustrationLibrary', () => {
       value: { writeText },
       configurable: true
     })
-    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
+    render(<IllustrationLibrary />, { wrapper: WithToasts })
     fireEvent.change(screen.getByRole('searchbox'), {
       target: { value: 'NoteMusic' }
     })
@@ -122,6 +133,7 @@ describe('IllustrationLibrary', () => {
     )
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith('NoteMusic'))
+    await screen.findByText('Copied')
   })
 
   it('offers SVG and PNG downloads in the more options menu', async () => {
@@ -131,7 +143,7 @@ describe('IllustrationLibrary', () => {
     ) {
       saved.push(`${this.download} ${this.getAttribute('href')}`)
     })
-    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
+    render(<IllustrationLibrary />, { wrapper: WithToasts })
     fireEvent.change(screen.getByRole('searchbox'), {
       target: { value: 'ghost' }
     })

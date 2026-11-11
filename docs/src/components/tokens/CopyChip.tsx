@@ -2,41 +2,54 @@
 
 import type { ReactNode } from 'react'
 
-import { CheckIcon, CopyIcon, WarningCircleIcon } from '@phosphor-icons/react'
+import { CheckIcon, CopyIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { useCopy } from '../useCopy'
+import { useCopyToast } from '../useCopy'
 
+function CopiedValue({ value, swatch }: { value: string; swatch?: string }) {
+  return (
+    <span className='flex min-w-0 items-center gap-2'>
+      {swatch && (
+        <span
+          aria-hidden
+          className='size-4 shrink-0 rounded-sm border border-subtler'
+          // The swatch shows the colour itself, so it paints the value, not a themed utility.
+          style={{ backgroundColor: swatch }}
+        />
+      )}
+      <code className='font-mono break-all select-all'>{value}</code>
+    </span>
+  )
+}
+
+/** Copies a value, such as a token or component name, and confirms in a toast that shows it. */
 export function CopyChip({
   value,
   children,
   nowrap = false,
-  onCopy,
+  swatch,
   className
 }: {
   value: string
   children: ReactNode
   /** Keeps a value such as a token name on one line, rather than breaking it anywhere. */
   nowrap?: boolean
-  /**
-   * Reports each copy and whether it worked. The caller then owns the
-   * confirmation, so the chip drops its own text and announcement.
-   */
-  onCopy?: (copied: boolean) => void
+  /** A CSS colour shown beside the value in the toast. */
+  swatch?: string
   className?: string
 }) {
-  const { copied, failed, copy } = useCopy()
-  const Icon = copied ? CheckIcon : failed ? WarningCircleIcon : CopyIcon
-  const confirmsInline = !onCopy
+  const { copied, copy } = useCopyToast()
+  const Icon = copied ? CheckIcon : CopyIcon
+  const description = <CopiedValue value={value} swatch={swatch} />
 
   return (
     <button
       type='button'
-      onClick={async () => {
-        const copied = await copy(value)
-        onCopy?.(copied)
-      }}
+      onClick={() =>
+        copy(value, { copied: 'Copied', failed: 'Couldn’t copy', description })
+      }
       aria-label={`Copy ${value}`}
       className={cn(
         'is-interactive inline-flex min-w-0 items-center gap-1.5 rounded-md border-0 px-1.5 py-0.5 emphasis-subtler text-start font-mono text-sm select-none',
@@ -47,16 +60,6 @@ export function CopyChip({
         {children}
       </span>
       <Icon weight='bold' className='size-3 shrink-0 text-subtle' />
-      {confirmsInline && failed && (
-        <span className='font-sans text-xs whitespace-nowrap text-strong intent-danger'>
-          Couldn&rsquo;t copy
-        </span>
-      )}
-      {confirmsInline && (
-        <span aria-live='polite' className='sr-only'>
-          {copied ? `Copied ${value}` : failed ? `Couldn't copy ${value}` : ''}
-        </span>
-      )}
     </button>
   )
 }
