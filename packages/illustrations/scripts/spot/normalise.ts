@@ -9,7 +9,14 @@ import {
   OUTLINE_WIDTH,
   STROKE
 } from './format.ts'
-import { clipOutside, grow, runsInside, shrink, union } from './geometry.ts'
+import {
+  clipOutside,
+  grow,
+  pathData,
+  runsInside,
+  shrink,
+  union
+} from './geometry.ts'
 import { PK, type Path, parse } from './pathkit.ts'
 
 type Item =
@@ -243,13 +250,13 @@ export function normalise(svg: string): Report {
   const strokePath = parse(strokes.join(''))
   const fit = fitInside([...layers.map((l) => l.path), strokePath])
   const result: Layer[] = [
-    ...layers.map((l) => ({
-      name: l.name,
-      d: l.path.simplify()?.toSVGString() ?? ''
-    })),
+    ...layers.map((l) => {
+      const simplified = l.path.simplify()
+      return { name: l.name, d: simplified ? pathData(simplified) : '' }
+    }),
     {
       name: 'Stroke' as const,
-      d: fit ? strokePath.toSVGString() : strokes.join('')
+      d: fit ? pathData(strokePath) : strokes.join('')
     }
   ].filter((l) => l.d !== '')
   for (const l of layers) l.path.delete()

@@ -47,8 +47,54 @@ export const PK = await init({
   wasmBinary: readFileSync(join(dirname(entry), 'pathkit.wasm'))
 })
 
+const NUMBER = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y
+const FLAG = /[01]/y
+const COMMAND = /[a-zA-Z]/y
+const SEPARATOR = /[\s,]*/y
+const ARC_PARAMS = 7
+
+/**
+ * Path data with every arc flag spaced out. PathKit only reads flags written
+ * apart, as in `a5 5 0 0 1 10 0`, and minifiers run them together:
+ * `a5 5 0 0110 0`.
+ */
+export function spaceArcFlags(d: string) {
+  if (!/[aA]/.test(d)) return d
+  const tokens: string[] = []
+  let at = 0
+  let command = ''
+  let param = 0
+  const read = (pattern: RegExp) => {
+    pattern.lastIndex = at
+    const match = pattern.exec(d)?.[0]
+    if (match !== undefined) at = pattern.lastIndex
+    return match
+  }
+  for (;;) {
+    read(SEPARATOR)
+    if (at >= d.length) return tokens.join(' ')
+    const letter = read(COMMAND)
+    if (letter) {
+      tokens.push(letter)
+      command = letter
+      param = 0
+      continue
+    }
+    const flag = /[aA]/.test(command) && [3, 4].includes(param % ARC_PARAMS)
+    const token = read(flag ? FLAG : NUMBER)
+    // Left as written, so PathKit reports what's wrong with it.
+    if (token === undefined) return d
+    tokens.push(token)
+    param++
+  }
+}
+
+export function tryParse(d: string) {
+  return PK.FromSVGString(spaceArcFlags(d))
+}
+
 export function parse(d: string) {
-  const path = PK.FromSVGString(d)
+  const path = tryParse(d)
   if (!path) throw new Error(`path data doesn't parse: ${d.slice(0, 40)}`)
   return path
 }
