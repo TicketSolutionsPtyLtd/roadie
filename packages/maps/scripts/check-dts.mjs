@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Fails if a .d.ts leaks ComponentProps<typeof ...> — it can't survive bundler boundaries.
+// Fails if a .d.ts leaks ComponentProps<typeof ...>, which can't survive bundler boundaries.
 import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,7 +12,7 @@ let entries
 try {
   entries = readdirSync(distDir, { recursive: true })
 } catch {
-  // No dist yet — nothing to check.
+  // No dist yet, so nothing to check.
   process.exit(0)
 }
 
@@ -24,7 +24,7 @@ const offenders = entries
 
 if (offenders.length > 0) {
   console.error(
-    `ERROR: dist .d.ts files contain ${needle} — use named prop types instead:`
+    `ERROR: dist .d.ts files contain ${needle}. Use named prop types instead:`
   )
   for (const name of offenders)
     console.error(`  dist/${String(name).replaceAll('\\', '/')}`)

@@ -32,20 +32,6 @@ export function EventPage({ children }: { children?: ReactNode }) {
   )
 }
 
-export function pressEscape() {
-  ;(document.activeElement ?? document.body).dispatchEvent(
-    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
-  )
-}
-
-export const byText = <T extends HTMLElement = HTMLButtonElement>(
-  selector: string,
-  text: string
-) =>
-  [...document.querySelectorAll<T>(selector)].find(
-    (element) => element.textContent?.trim() === text
-  )!
-
 const VENUE_NAMES = [
   'Kazoo Hollow Room',
   'The Tin Lantern',
@@ -59,11 +45,3 @@ export const venues = (count: number) =>
     { length: count },
     (_, index) => `${VENUE_NAMES[index % VENUE_NAMES.length]} ${index + 1}`
   )
-
-/**
- * Dialog and Drawer keep their full-page backdrop blur by design. Drawing it
- * costs more than a frame in CI's software raster, whatever the radius, and
- * none of the cheaper ways to blur kept the look (INNO-1522).
- */
-export const BACKDROP_BLUR =
-  'the full-page backdrop blur, kept by design (INNO-1522)'

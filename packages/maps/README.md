@@ -6,7 +6,7 @@ place, and totals by place as clusters or coloured areas. The
 guide.
 
 ```bash
-pnpm add @oztix/roadie-maps @oztix/roadie-components @oztix/roadie-core @phosphor-icons/react
+pnpm add @oztix/roadie-maps @oztix/roadie-components @oztix/roadie-core @base-ui/react @phosphor-icons/react
 ```
 
 ```css

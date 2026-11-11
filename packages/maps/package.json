@@ -1,7 +1,7 @@
 {
   "name": "@oztix/roadie-maps",
   "version": "0.0.0",
-  "description": "Maps for Roadie: places, pins, pickers, clusters and areas, drawn with MapLibre or Google Maps",
+  "description": "Maps for Roadie: places, pins, pickers, clusters, and areas, drawn with MapLibre or Google Maps",
   "type": "module",
   "license": "ISC",
   "author": {
@@ -48,12 +48,12 @@
     "size:check": "size-limit --limit"
   },
   "dependencies": {
-    "@base-ui/react": "1.9.0",
     "@oztix/roadie-core": "workspace:*",
     "maplibre-gl": "6.16.0",
     "supercluster": "9.1.0"
   },
   "peerDependencies": {
+    "@base-ui/react": "^1.8.0",
     "@oztix/roadie-components": "workspace:^",
     "@phosphor-icons/react": "^2.0.0",
     "react": "^19.2.0",
@@ -61,6 +61,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
+    "@base-ui/react": "1.9.0",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-frames": "workspace:*",
     "@phosphor-icons/react": "2.1.10",

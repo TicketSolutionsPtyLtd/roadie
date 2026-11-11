@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Regenerates package.json's exports from src/*; run after adding/removing a top-level chart piece.
+// Regenerates package.json's exports from src/*; run after adding/removing a top-level folder.
 import {
   existsSync,
   readFileSync,

@@ -40,19 +40,6 @@ export function oklchLightness([r, g, b]: Rgb) {
   return 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s
 }
 
-// The colour an element shows: its own fill over every ancestor's.
-export function shownFill(element: Element): Rgb {
-  const fills: string[] = []
-  for (let node: Element | null = element; node; node = node.parentElement) {
-    fills.unshift(getComputedStyle(node).backgroundColor)
-  }
-  return flatten('#fff', ...fills)
-}
-
-export function over(base: Rgb, colour: string): Rgb {
-  return flatten(`rgb(${base.join(' ')})`, colour)
-}
-
 // APCA-W3 0.0.98G, constants as published in Myndex/apca-w3
 // (src/apca-w3.js, SA98G). Returns Lc; negative is light text on dark.
 export function apcaLc(text: Rgb, background: Rgb) {

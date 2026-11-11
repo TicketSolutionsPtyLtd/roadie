@@ -3,7 +3,12 @@ export {
   IconButton,
   type IconButtonProps
 } from './components/Button/IconButton'
-export { Link, type LinkProps } from './components/Link'
+export {
+  Link,
+  RoadieRoutedLink,
+  type LinkProps,
+  type RoadieRoutedLinkProps
+} from './components/Link'
 export { LinkButton, type LinkButtonProps } from './components/LinkButton'
 export {
   LinkIconButton,
@@ -420,6 +425,7 @@ export {
 } from './components/Textarea'
 export {
   Field,
+  FieldContext,
   useFieldContext,
   useFieldInputProps,
   type FieldProps,
@@ -428,6 +434,7 @@ export {
   type FieldTextareaProps,
   type FieldHelperTextProps,
   type FieldErrorTextProps,
+  type FieldContextValue,
   useFieldControlError
 } from './components/Field'
 export {
@@ -742,8 +749,15 @@ export {
   type ToolbarToggleProps,
   type ToolbarToggleGroupProps,
   type ToolbarEmphasis,
-  type ToolbarSize
+  type ToolbarSize,
+  toolbarSurfaceVariants
 } from './components/Toolbar'
+export {
+  AccentScopeContext,
+  intentVariants,
+  useAccentScopeProps,
+  type RoadieIntent
+} from './cascade'
 
 export {
   Switch,

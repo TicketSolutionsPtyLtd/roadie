@@ -57,6 +57,7 @@ describe('isOurs', () => {
   it.each([
     'packages/components/src/components/Button/Button.tsx',
     'packages/blocks/src/Provider/index.tsx',
+    'packages/maps/src/Map/MapRoot.tsx',
     'packages/editor/dist/Editor/index.d.ts'
   ])('keeps props declared in %s', (file) => {
     expect(isOurs(`/repo/${file}`)).toBe(true)

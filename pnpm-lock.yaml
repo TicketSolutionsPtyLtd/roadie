@@ -892,9 +892,6 @@ importers:
 
   packages/maps:
     dependencies:
-      '@base-ui/react':
-        specifier: 1.9.0
-        version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@oztix/roadie-core':
         specifier: workspace:*
         version: link:../core
@@ -908,6 +905,9 @@ importers:
       '@arethetypeswrong/cli':
         specifier: 0.18.5
         version: 0.18.5
+      '@base-ui/react':
+        specifier: 1.9.0
+        version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@oztix/roadie-components':
         specifier: workspace:*
         version: link:../components
