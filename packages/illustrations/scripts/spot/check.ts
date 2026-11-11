@@ -1,0 +1,157 @@
+import { type CustomPlugin, optimize } from 'svgo'
+
+import {
+  BOX,
+  FILL_LAYERS,
+  type FillLayer,
+  type Layer,
+  OUTLINE_WIDTH,
+  STROKE
+} from './format.ts'
+import { bounds } from './normalise.ts'
+import { tryParse } from './pathkit.ts'
+
+const FILE_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*\.svg$/
+const ROOT_ATTRIBUTES = {
+  xmlns: 'http://www.w3.org/2000/svg',
+  fill: 'none',
+  viewBox: `0 0 ${BOX} ${BOX}`
+}
+const STROKE_ATTRIBUTES = {
+  stroke: STROKE.colour,
+  'stroke-width': String(STROKE.width),
+  'stroke-linecap': 'round',
+  'stroke-linejoin': 'round'
+}
+const FIT_TOLERANCE = 0.05
+
+type Element = { name: string; attributes: Record<string, string> }
+
+function read(svg: string) {
+  let root: Element | undefined
+  const children: Element[] = []
+  let nested = false
+  const collect: CustomPlugin = {
+    name: 'collectStructure',
+    fn: () => ({
+      element: {
+        enter(node, parent) {
+          if (parent.type === 'root') root = node
+          else if (parent === root) children.push(node)
+          else nested = true
+        }
+      }
+    })
+  }
+  // Without plugins, optimize only parses; the collector sees the file as written.
+  optimize(svg, { plugins: [collect] })
+  return { root, children, nested }
+}
+
+/** A layer's attributes other than its name and path data. */
+function paintOf({ attributes }: Element) {
+  return Object.fromEntries(
+    Object.entries(attributes).filter(([k]) => k !== 'id' && k !== 'd')
+  )
+}
+
+function sameAttributes(
+  actual: Record<string, string>,
+  expected: Record<string, string>
+) {
+  const keys = new Set([...Object.keys(actual), ...Object.keys(expected)])
+  return [...keys].every((k) =>
+    k === 'stroke-width'
+      ? Number(actual[k]) === Number(expected[k])
+      : actual[k] === expected[k]
+  )
+}
+
+/**
+ * Checks a spot illustration's source against the format `spot:convert`
+ * writes. Returns what's wrong, in words a designer can act on, or nothing.
+ */
+export function check(svg: string, fileName: string): string[] {
+  const errors: string[] = []
+  if (!FILE_NAME.test(fileName))
+    errors.push(
+      `${fileName}: name it in kebab-case and start it with a letter, such as map-pin.svg`
+    )
+
+  const { root, children, nested } = read(svg)
+  if (!root || root.name !== 'svg') return [...errors, 'not an SVG']
+  if (!sameAttributes(root.attributes, ROOT_ATTRIBUTES))
+    errors.push(
+      `the <svg> takes only ${Object.entries(ROOT_ATTRIBUTES)
+        .map(([k, v]) => `${k}="${v}"`)
+        .join(' ')}`
+    )
+  if (nested)
+    errors.push(
+      "groups and nested elements aren't allowed; each layer is one <path> in the <svg>"
+    )
+
+  const names = children.map((c) => c.attributes.id ?? `<${c.name}>`)
+  const known = new Set<string>([...Object.keys(FILL_LAYERS), 'Stroke'])
+  for (const c of children) {
+    const id = c.attributes.id
+    if (c.name !== 'path')
+      errors.push(`<${c.name}> isn't a layer; draw everything as paths`)
+    else if (id === 'Outline')
+      errors.push("remove the Outline layer; it's drawn from the art")
+    else if (!id || !known.has(id))
+      errors.push(
+        `${id ?? 'a path with no id'} isn't a layer; use ${[...known].join(', ')}`
+      )
+    else if (id === 'Stroke') {
+      if (!sameAttributes(paintOf(c), STROKE_ATTRIBUTES))
+        errors.push(
+          `Stroke takes only ${Object.entries(STROKE_ATTRIBUTES)
+            .map(([k, v]) => `${k}="${v}"`)
+            .join(' ')}`
+        )
+    } else {
+      const colour = FILL_LAYERS[id as FillLayer]
+      if (!sameAttributes(paintOf(c), { fill: colour, 'fill-rule': 'evenodd' }))
+        errors.push(`${id} takes only fill="${colour}" fill-rule="evenodd"`)
+    }
+    if (c.name === 'path' && !c.attributes.d)
+      errors.push(`${id ?? 'a path'} has no path data`)
+  }
+  const repeated = names.filter((n, i) => names.indexOf(n) !== i)
+  if (repeated.length)
+    errors.push(
+      `${[...new Set(repeated)].join(', ')} appears more than once; merge each layer into one path`
+    )
+  if (!names.includes('Stroke')) errors.push("there's no Stroke layer")
+  else if (names.at(-1) !== 'Stroke')
+    errors.push('Stroke has to be the last layer')
+  if (!names.some((n) => n in FILL_LAYERS))
+    errors.push('there are no fill layers')
+  if (errors.length) return errors
+
+  const parsed = children.map((c) => tryParse(c.attributes.d!))
+  const paths = parsed.filter((p) => p !== null)
+  const unparsed = names.filter((_, i) => parsed[i] === null)
+  if (unparsed.length) {
+    for (const p of paths) p.delete()
+    return unparsed.map((n) => `${n}'s path data doesn't parse`)
+  }
+  const { minX, minY, maxX, maxY } = bounds(paths)
+  for (const p of paths) p.delete()
+  const lo = OUTLINE_WIDTH - FIT_TOLERANCE
+  const hi = BOX - OUTLINE_WIDTH + FIT_TOLERANCE
+  if (minX < lo || minY < lo || maxX > hi || maxY > hi)
+    errors.push(
+      `the art reaches ${[minX, minY, BOX - maxX, BOX - maxY].map((v) => v.toFixed(2)).join(', ')} from the left, top, right, and bottom edges; keep it ${OUTLINE_WIDTH} inside so the outline fits (spot:convert shrinks it for you)`
+    )
+  return errors
+}
+
+/** The layers of a source that passes the check, back to front. */
+export function layersOf(svg: string): Layer[] {
+  return read(svg).children.map((c) => ({
+    name: c.attributes.id as Layer['name'],
+    d: c.attributes.d!
+  }))
+}
