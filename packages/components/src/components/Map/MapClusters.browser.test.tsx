@@ -30,7 +30,12 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-async function renderSales(locked = false, highlight?: string, legend = false) {
+async function renderSales(
+  locked = false,
+  highlight?: string,
+  legend = false,
+  data: Parameters<typeof Map.Clusters>[0]['data'] = sales
+) {
   const actions = createRef<MapActions>()
   const views: number[] = []
   const sample = (isLocked: boolean) => (
@@ -43,7 +48,7 @@ async function renderSales(locked = false, highlight?: string, legend = false) {
           onViewChange={({ zoom }) => views.push(zoom)}
         >
           <Map.Clusters
-            data={sales}
+            data={data}
             label='Ticket sales'
             locked={isLocked}
             highlight={highlight}
@@ -245,6 +250,65 @@ describe('Map.Clusters in the browser', () => {
           screen.getByRole('button', { name: 'Ticket sales: 50, 28% of all' })
         ).toBeInTheDocument()
       )
+    }
+  )
+
+  it(
+    'drills from every sale down to one spot, fed a point for each sale',
+    { timeout: 60_000 },
+    async () => {
+      // 20,000 points with no value or label: four at each of 5,000 spots
+      // about 30 m apart, as an order of four tickets sends.
+      const points = Array.from({ length: 20_000 }, (_, i) => {
+        const spot = Math.floor(i / 4)
+        return {
+          position: {
+            lat: -27.45 - Math.floor(spot / 100) * 0.0003,
+            lng: 153.015 + (spot % 100) * 0.0003
+          }
+        }
+      })
+      await renderSales(false, undefined, false, points)
+      let band = await screen.findByRole('button', {
+        name: /^Ticket sales: 20\D?000, 100% of all$/
+      })
+
+      // Each click splits the group, and focus moves to its largest part.
+      for (let clicks = 0; band.hasAttribute('aria-describedby'); clicks++) {
+        expect(clicks).toBeLessThan(20)
+        const group = band
+        await userEvent.click(group)
+        await waitFor(
+          () => {
+            expect(document.activeElement).not.toBe(group)
+            expect(document.activeElement).toHaveAttribute(
+              'data-slot',
+              'map-cluster-band'
+            )
+          },
+          { timeout: 10_000 }
+        )
+        band = document.activeElement as HTMLElement
+      }
+
+      // One spot is left: its four sales, and nothing to split.
+      expect(band).toHaveAccessibleName('Ticket sales: 4, <1% of all')
+      // A preview closes while the map moves, so wait for the ease to end.
+      let last = ''
+      let since = 0
+      await waitFor(
+        () => {
+          const { x, y } = band.getBoundingClientRect()
+          if (last !== `${x},${y}`) {
+            last = `${x},${y}`
+            since = performance.now()
+          }
+          expect(performance.now() - since).toBeGreaterThan(300)
+        },
+        { timeout: 5_000 }
+      )
+      await userEvent.click(band)
+      expect(await screen.findByText('Ticket sales: 4')).toBeVisible()
     }
   )
 })

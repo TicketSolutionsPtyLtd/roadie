@@ -66,6 +66,10 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
   // from the start.
   const merged = new Map<string, { position: LatLng; region: string } & Place>()
   for (const { position, value = 1, label, region = '' } of points) {
+    // A point with no position, such as a row with an empty coordinate,
+    // has nowhere to sit.
+    if (!Number.isFinite(position.lat) || !Number.isFinite(position.lng))
+      continue
     // A negative or missing number adds nothing.
     const amount = Number.isFinite(value) && value > 0 ? value : 0
     const spot = `${region}\u0000${position.lat},${position.lng}`
@@ -83,6 +87,7 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
   for (const place of merged.values())
     if (place.names.length > 0) place.label = listOf(place.names)
   const places = [...merged.values()]
+  const placeOf = new Map(places.map((place) => [place.key, place]))
   const total = places.reduce((sum, { value }) => sum + value, 0)
 
   const regions = [...new Set(places.map(({ region }) => region))]
@@ -147,10 +152,11 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
       const level = Math.floor(zoom)
       let value = largest.get(level)
       if (value === undefined) {
-        value = Math.max(
-          0,
-          ...groupsAt([-180, -85, 180, 85], level).map((group) => group.value)
-        )
+        // A loop, since a point for each sale can make more groups than a
+        // call takes arguments.
+        value = 0
+        for (const group of groupsAt([-180, -85, 180, 85], level))
+          if (group.value > value) value = group.value
         largest.set(level, value)
       }
       return value
@@ -166,10 +172,12 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
     /** The places in a group, largest first. */
     placesIn(group: MapClusterGroup): ({ position: LatLng } & Place)[] {
       const cluster = parseClusterKey(group.key)
-      if (!cluster)
-        return places
-          .filter(({ key }) => key === group.key)
-          .map(({ region: _region, ...place }) => place)
+      if (!cluster) {
+        const place = placeOf.get(group.key)
+        if (!place) return []
+        const { key, position, value, label, names } = place
+        return [{ key, position, value, label, names }]
+      }
       return indexes[cluster.region]!.getLeaves(cluster.id, Infinity)
         .map(({ geometry, properties }) => {
           const [lng, lat] = geometry.coordinates as [number, number]

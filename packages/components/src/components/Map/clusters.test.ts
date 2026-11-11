@@ -176,6 +176,46 @@ describe('clusterIndex', () => {
     expect(index.total).toBe(0)
     expect(index.groupsAt(world, 9)).toEqual([])
   })
+
+  it('leaves out a point with no position, such as a row with an empty coordinate', () => {
+    const index = clusterIndex([
+      { position: newFarm },
+      { position: { lat: Number.NaN, lng: 153.051 } },
+      { position: { lat: -27.467, lng: Number.POSITIVE_INFINITY } }
+    ])
+    expect(index.total).toBe(1)
+    expect(values(index, 4)).toEqual([1])
+    expect(values(index, 22)).toEqual([1])
+  })
+})
+
+// A feed with a point for each sale rather than totals: no value or label,
+// and far more points than a list of postcodes.
+describe('clusterIndex, with a point for each sale', () => {
+  // 150,000 spots about 5 m apart, in a square of about 2 km.
+  const spots = Array.from({ length: 150_000 }, (_, i) => ({
+    position: {
+      lat: -27.46 - Math.floor(i / 400) * 0.00005,
+      lng: 153.02 + (i % 400) * 0.00005
+    }
+  }))
+
+  it('counts each point as 1, and adds up points at the same spot', () => {
+    const index = clusterIndex([
+      ...spots.slice(0, 2_000),
+      ...spots.slice(0, 500)
+    ])
+    expect(index.total).toBe(2_500)
+    expect(values(index, 4)).toEqual([2_500])
+    expect(values(index, 22).slice(0, 2)).toEqual([2, 2])
+    expect(values(index, 22)).toHaveLength(2_000)
+  })
+
+  it('scales against the largest of 150,000 places on their own', () => {
+    const index = clusterIndex(spots)
+    expect(index.total).toBe(150_000)
+    expect(index.largestAt(22)).toBe(1)
+  })
 })
 
 describe('gridZoom', () => {

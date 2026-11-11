@@ -196,6 +196,21 @@ describe('Map.Clusters', () => {
     expect(document.activeElement).toBe(band('70, 39% of all'))
   })
 
+  it('still moves focus when the click interrupts a move, as a quick second click does', async () => {
+    const { fake } = await renderClusters()
+    const setView = vi.mocked(fake.instance.setView)
+    const moveTo = setView.getMockImplementation()!
+    // An engine ends the move it interrupts before it starts the new one.
+    setView.mockImplementationOnce((next, options) => {
+      moveTo({}, options)
+      moveTo(next, options)
+    })
+
+    await userEvent.click(band('120, 67% of all'))
+
+    expect(document.activeElement).toBe(band('70, 39% of all'))
+  })
+
   it('leaves focus where it is when the zoom stops short of the split', async () => {
     const { fake, zoomTo } = await renderClusters({}, {})
     // The ease stops where it started, as when the reader zooms away.
@@ -255,6 +270,63 @@ describe('Map.Clusters', () => {
 
   it('takes Show all to every place in the data', async () => {
     const { fake } = await renderClusters({}, { fit: true })
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
+
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+      {
+        southWest: { lat: -27.614, lng: 152.76 },
+        northEast: { lat: -27.457, lng: 153.051 }
+      },
+      expect.anything()
+    )
+  })
+
+  it('takes a point for each sale, 150,000 of them, and fits them all', async () => {
+    // Spots about half a metre apart, so they share a few bands at zoom 14.
+    const data = Array.from({ length: 150_000 }, (_, i) => ({
+      position: {
+        lat: -27.46 - Math.floor(i / 400) * 0.000005,
+        lng: 153.02 + (i % 400) * 0.000005
+      }
+    }))
+    const { fake } = await renderClusters({ data }, { fit: true })
+
+    const total = screen
+      .getAllByRole('button', { name: /^Ticket sales/ })
+      .map((band) => Number(band.firstChild?.textContent?.replace(/,/g, '')))
+      .reduce((sum, value) => sum + value, 0)
+    expect(total).toBe(150_000)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+      {
+        southWest: { lat: expect.closeTo(-27.46187, 5), lng: 153.02 },
+        northEast: { lat: -27.46, lng: expect.closeTo(153.021995, 5) }
+      },
+      expect.anything()
+    )
+  })
+
+  it('previews a group of 150,000 points while locked', async () => {
+    const data = Array.from({ length: 150_000 }, (_, i) => ({
+      position: { lat: -27.46, lng: 153.02 + i * 0.00000001 }
+    }))
+    await renderClusters({ data, locked: true })
+
+    await userEvent.click(band('150,000, 100% of all'))
+    expect(await screen.findByText('Ticket sales: 150,000')).toBeInTheDocument()
+  })
+
+  it('fits only the points that have a position', async () => {
+    const { fake } = await renderClusters(
+      {
+        data: [
+          ...sales,
+          { position: { lat: Number.NaN, lng: Number.NaN }, value: 5 }
+        ]
+      },
+      { fit: true }
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
 
     expect(fake.instance.fitBounds).toHaveBeenCalledWith(

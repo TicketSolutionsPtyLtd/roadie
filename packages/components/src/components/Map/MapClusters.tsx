@@ -235,10 +235,6 @@ export function MapClusters({
   const split = (group: MapClusterGroup) => {
     if (group.splitsAt === undefined) return
     const { zoom: engineZoom } = instance.getView()
-    focusAfterSplit.current = {
-      parts: index.partsOf(group),
-      at: group.splitsAt
-    }
     instance.setView(
       {
         center: group.position,
@@ -246,6 +242,12 @@ export function MapClusters({
       },
       { animate: true }
     )
+    // Set once the move has started: a click during a move ends that move
+    // first, short of this split, which would drop the focus.
+    focusAfterSplit.current = {
+      parts: index.partsOf(group),
+      at: group.splitsAt
+    }
   }
 
   return (
@@ -402,9 +404,9 @@ function GroupPreview({
   const named = places.flatMap((place) => (place.label ? [place.label] : []))
   const shown = named.slice(0, 3)
   const more = places.length - shown.length
-  const reach = Math.max(
-    0,
-    ...places.map(({ position }) => kilometres(group.position, position))
+  const reach = places.reduce(
+    (far, { position }) => Math.max(far, kilometres(group.position, position)),
+    0
   )
   return (
     <Popover.Header>
@@ -511,12 +513,24 @@ function boundsOf(
 function cornersOf(
   data: readonly MapClusterPoint[]
 ): [LatLng, LatLng] | undefined {
-  if (data.length === 0) return undefined
-  const lats = data.map(({ position }) => position.lat)
-  const lngs = data.map(({ position }) => position.lng)
+  // A loop, since a point for each sale can be more points than a call
+  // takes arguments. A point with no position has no corner to add.
+  let south = Infinity
+  let west = Infinity
+  let north = -Infinity
+  let east = -Infinity
+  for (const { position } of data) {
+    if (!Number.isFinite(position.lat) || !Number.isFinite(position.lng))
+      continue
+    south = Math.min(south, position.lat)
+    north = Math.max(north, position.lat)
+    west = Math.min(west, position.lng)
+    east = Math.max(east, position.lng)
+  }
+  if (south > north) return undefined
   return [
-    { lat: Math.min(...lats), lng: Math.min(...lngs) },
-    { lat: Math.max(...lats), lng: Math.max(...lngs) }
+    { lat: south, lng: west },
+    { lat: north, lng: east }
   ]
 }
 
