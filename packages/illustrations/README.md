@@ -137,8 +137,9 @@ Draw the front flat, in any units. The kit in `scripts/spot/draw/` has:
   front back along it. It cuts the outline into faces at its corners and where
   it turns out of view, then draws each face as its own shape. Each face's
   ends become the join lines at corners and creases. A smooth turn gets none.
-  A corner eased by under about 1.6 still counts as a corner, as the letters'
-  are; a wider rounding reads as one surface.
+  A corner eased by up to about 1.1 (a curve under 1.6 across) still counts
+  as a corner, as the letters' ease of 0.9 does; a wider rounding reads as one
+  surface.
 - **`side`,** which picks each face's layer from whether it's a hole's wall and
   which way it faces. By default a hole's walls are Detail and the rest Shadow,
   as the letters D and B have it. For undersides in Detail, as in E and P, use
