@@ -171,6 +171,31 @@ describe('normalise', () => {
       ).toEqual(['Face', 'Stroke'])
   })
 
+  it('drops a white outline drawn as a stroke too', () => {
+    expect(
+      names(
+        svg(
+          `<path d="${rect(2, 2, 34, 34)}" stroke="#fff" stroke-width="4"/>`,
+          fill(FACE, rect(4, 4, 30, 30)),
+          line(rect(4, 4, 30, 30))
+        )
+      )
+    ).toEqual(['Face', 'Stroke'])
+  })
+
+  it("ignores shapes in <defs> and <symbol>, which aren't painted where they're written", () => {
+    expect(
+      names(
+        svg(
+          `<defs>${fill(SHADOW, rect(4, 4, 10, 10))}</defs>`,
+          `<symbol id="s">${fill(DETAIL, rect(4, 4, 10, 10))}</symbol>`,
+          fill(FACE, rect(4, 4, 30, 30)),
+          line(rect(4, 4, 30, 30))
+        )
+      )
+    ).toEqual(['Face', 'Stroke'])
+  })
+
   it('takes the fill and fill rule a group passes down to its shapes', () => {
     const { layers } = normalise(
       svg(
@@ -220,9 +245,9 @@ describe('normalise', () => {
       'a gradient',
       svg(
         '<defs><linearGradient id="g"/></defs>',
-        fill(FACE, rect(4, 4, 10, 10))
+        fill('url(#g)', rect(4, 4, 10, 10))
       ),
-      "<linearGradient> isn't supported"
+      "url(#g) isn't a colour"
     ],
     [
       'a transform',
@@ -236,6 +261,8 @@ describe('normalise', () => {
       svg(`<path d="${rect(4, 4, 10, 10)}" fill="${FACE}" opacity=".5"/>`),
       'opaque'
     ],
+    ['art with no lines', svg(fill(FACE, rect(4, 4, 10, 10))), 'no lines'],
+    ['lines with no fills', svg(line(rect(4, 4, 10, 10))), 'nothing filled'],
     [
       'a clip path',
       svg(`<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 10, 10))}</g>`),

@@ -18,7 +18,7 @@ export type SpotIllustrationLayers = readonly (readonly [
 
 export interface SpotIllustrationProps extends Omit<
   ComponentProps<'svg'>,
-  'outline'
+  'outline' | 'children'
 > {
   layers: SpotIllustrationLayers
   /** Draws a white sticker outline around the art, for busy or dark backgrounds. */

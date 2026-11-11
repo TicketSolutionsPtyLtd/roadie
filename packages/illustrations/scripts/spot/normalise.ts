@@ -45,8 +45,10 @@ function distance(a: string, b: string) {
 // Wide enough for the near-misses drawn by hand (#ffc9b0 for #ffc3a8), far narrower than the gap between any two layers.
 const PALETTE_TOLERANCE = 40
 
+const OUTLINE_MATCH = 8
+
 function layerFor(colour: string): FillLayer | 'Outline' {
-  if (distance(colour, OUTLINE_COLOUR) < 8) return 'Outline'
+  if (distance(colour, OUTLINE_COLOUR) < OUTLINE_MATCH) return 'Outline'
   const [nearest] = (Object.entries(FILL_LAYERS) as [FillLayer, string][])
     .map(([name, c]) => [name, distance(colour, c)] as const)
     .sort((a, b) => a[1] - b[1])
@@ -67,6 +69,9 @@ const NOT_ALLOWED = new Set([
   'use'
 ])
 
+// Shapes inside these are only drawn where something references them.
+const NOT_PAINTED = new Set(['defs', 'symbol'])
+
 const INHERITED = ['fill', 'fill-rule', 'stroke', 'stroke-width'] as const
 // What SVG paints when nothing sets these.
 const INITIAL_PAINT: Record<string, string> = { fill: '#000' }
@@ -75,11 +80,16 @@ const INITIAL_PAINT: Record<string, string> = { fill: '#000' }
 function readItems(svg: string): Item[] {
   const items: Item[] = []
   const paint = new WeakMap<object, Record<string, string>>()
+  const unpainted = new WeakSet<object>()
   const collect: CustomPlugin = {
     name: 'collectPaintOrder',
     fn: () => ({
       element: {
         enter(node, parent) {
+          if (NOT_PAINTED.has(node.name) || unpainted.has(parent)) {
+            unpainted.add(node)
+            return
+          }
           const inherited = {
             ...(paint.get(parent) ?? INITIAL_PAINT),
             ...Object.fromEntries(
@@ -113,7 +123,7 @@ function readItems(svg: string): Item[] {
               d: a.d,
               evenOdd: a['fill-rule'] === 'evenodd'
             })
-          if (stroke) {
+          if (stroke && distance(stroke, OUTLINE_COLOUR) >= OUTLINE_MATCH) {
             if (distance(stroke, STROKE.colour) > PALETTE_TOLERANCE)
               throw new Error(`stroke ${stroke} isn't the stroke colour`)
             items.push({
@@ -205,6 +215,12 @@ export function normalise(svg: string): Report {
     shape.delete()
   })
 
+  if (!layers.length)
+    throw new Error("there's nothing filled; draw the art in the layer colours")
+  if (!strokes.length)
+    throw new Error(
+      `there are no lines; every spot illustration has a Stroke in ${STROKE.colour}`
+    )
   const strokePath = parse(strokes.join(''))
   const fit = fitInside([...layers.map((l) => l.path), strokePath])
   const result: Layer[] = [

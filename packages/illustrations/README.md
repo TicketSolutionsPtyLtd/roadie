@@ -67,7 +67,7 @@ pnpm --filter @oztix/roadie-illustrations spot:convert path/to/megaphone.svg
 - shapes of one colour merge into their layer, cut where a shape above covered
   them, so nothing that shows moves
 - strokes merge into Stroke, each cut back to the part no fill above it hid
-- the white outline, if there is one, is dropped
+- a white outline, drawn as a fill or a stroke, is dropped
 - art that would push the outline out of the box is shrunk just enough
 - path data is rounded to 2 decimal places
 
