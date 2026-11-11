@@ -11,11 +11,11 @@ import {
 } from '@oztix/roadie-frames'
 
 import roadieCss from '../../vitest.browser.css?inline'
-import { EventPage } from '../frameTestUtils'
 import { Map, type MapActions, type MapView } from '../Map'
 import { MapEngineContext } from '../Map/MapEngineContext'
 import blankStyle from '../Map/fixtures/blank-style.json?url'
 import { maplibreEngine } from '../Map/maplibreEngine'
+import { EventPage } from '../frameTestUtils'
 import { MapClusters } from './MapClusters'
 
 setupFrameTests({ css: roadieCss })
