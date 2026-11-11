@@ -61,8 +61,9 @@ In the global stylesheet (`app/globals.css` in Next), replace any
 ```
 
 - Import every package's CSS you use: add `@oztix/roadie-charts/css`,
-  `@oztix/roadie-illustrations/css`, and `@oztix/roadie-widgets/css` too. Each registers only its own classes, so a
-  missing one leaves those components unstyled.
+  `@oztix/roadie-illustrations/css`, and `@oztix/roadie-widgets/css` too.
+  Each registers only its own classes, so a missing one leaves those
+  components unstyled.
 - Never add `@source` paths into `node_modules`; the package CSS carries them.
 - In a fresh scaffold, remove the starter's own colour and font rules (such as
   `:root` `--background`, `body { background: … }`, and the `next/font`

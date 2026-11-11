@@ -150,11 +150,12 @@ What they change:
   leaves `SpotIllustration`, `SpotIllustrationProps`, and
   `createSpotIllustration` on the old path and reports them: the new
   `SpotIllustration` takes `layers` in place of `illustration`, and
-  `createSpotIllustration` isn't in the new package. Add
+  `createSpotIllustration` isn't in the new package. An `export … from` the
+  old path moves the illustrations and reports the rest. Add
   `@oztix/roadie-illustrations` to the app's dependencies, and
-  `@import '@oztix/roadie-illustrations/css';` after the components' CSS, or
-  the illustrations render blank. Every illustration was redrawn, so check
-  the pages that show one.
+  `@import '@oztix/roadie-illustrations/css';` after the components' CSS, so
+  Tailwind keeps the colours and sizes the illustrations use. Every
+  illustration was redrawn, so check the pages that show one.
 - **`widgets-renames`.** Moves `@oztix/roadie-widgets/cart-drawer/core`
   imports to `@oztix/roadie-widgets/cart`, and renames `CartExpiryModals`
   and `CartExpiryModalsProps` to `CartExpiryDialogs` and
