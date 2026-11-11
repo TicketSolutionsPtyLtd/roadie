@@ -65,6 +65,22 @@ for (const codemod of readdirSync(fixtures)) {
   })
 }
 
+describe('print', () => {
+  it.each([
+    ['U+2028', '\u2028'],
+    ['U+2029', '\u2029']
+  ])(
+    'refuses a changed file with a raw %s, rather than turn it into a line break',
+    async (_, separator) => {
+      const transform = await import(
+        pathToFileURL(path.join(here, 'spot-illustrations.js')).href
+      )
+      const input = `import { Heart } from '@oztix/roadie-components/spot-illustrations'\n// a${separator} b\nexport const art = <Heart />\n`
+      expect(() => run(transform, input, {})).toThrow('U+2028 or U+2029')
+    }
+  )
+})
+
 describe('the skill', () => {
   it('pins the jscodeshift these tests run', () => {
     const skill = readFileSync(path.join(here, '../SKILL.md'), 'utf8')

@@ -39,6 +39,10 @@ If any of this is missing, run `/roadie:setup` first.
   `RoadieProvider` is the one root import.
 - `Editor` is in its own package. Install `@oztix/roadie-editor` and import
   `@oztix/roadie-editor/css` after the components' CSS.
+- Spot illustrations are in `@oztix/roadie-illustrations`. Import
+  `@oztix/roadie-illustrations/css` after the components' CSS, and each
+  illustration from `@oztix/roadie-illustrations/spot`, never the deprecated
+  `@oztix/roadie-components/spot-illustrations`.
 
 ## 1. Pick a component before writing markup
 
@@ -320,10 +324,11 @@ page.
 - `size='sm'` inside a card or section, `md` on its own, and `lg` for a
   whole page or 404, with `EmptyState.Title render={<h1 />}`.
 - `sm` media is an `EmptyState.IconTile`. `md` media is a spot illustration
-  from `@oztix/roadie-illustrations/spot` in `EmptyState.Illustration`,
-  picked by the message from the table in the page's Guidelines. Install
-  `@oztix/roadie-illustrations` and import `@oztix/roadie-illustrations/css`
-  after Roadie's, or Tailwind drops the illustration colours.
+  from `@oztix/roadie-illustrations/spot` in `EmptyState.Illustration`, such
+  as `<Ticket />`, picked by the message from the table in the page's
+  Guidelines. Find one in the
+  [library](https://ticketsolutionsptyltd.github.io/roadie/components/spot-illustration/).
+  Section 0 covers installing the package and its CSS.
 - A failed load is `<EmptyState intent='danger'>` with a Retry action. Set
   the intent once on the root.
 - EmptyState has no surface. Put it in a `Card` when it needs one.

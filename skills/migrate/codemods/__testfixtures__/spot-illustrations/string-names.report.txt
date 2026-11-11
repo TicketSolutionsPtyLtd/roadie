@@ -1,0 +1,2 @@
+line 2: SpotIllustration takes `layers` in place of `illustration` in @oztix/roadie-illustrations/spot. Move it by hand.
+line 3: CursorProps is re-exported under a string name. Re-export SpotIllustrationComponentProps from @oztix/roadie-illustrations/spot under that name by hand.
