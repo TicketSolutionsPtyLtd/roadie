@@ -111,7 +111,8 @@
     "size:check": "size-limit --limit"
   },
   "dependencies": {
-    "@oztix/roadie-core": "workspace:*"
+    "@oztix/roadie-core": "workspace:*",
+    "@oztix/roadie-illustrations": "workspace:*"
   },
   "peerDependencies": {
     "@oztix/roadie-components": "workspace:^",

@@ -63,6 +63,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 type Manifest = { docs: string; components: ManifestComponent[] }
 const manifests = [
   '@oztix/roadie-components',
+  '@oztix/roadie-illustrations',
   '@oztix/roadie-charts',
   '@oztix/roadie-editor',
   '@oztix/roadie-widgets'

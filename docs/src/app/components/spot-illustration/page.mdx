@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'SpotIllustration',
-  description: 'Themed SVG illustrations that adapt to the design system color palette',
+  description: 'Small Oztix illustrations in fixed brand colours, for empty states, features, and moments of delight',
   status: 'stable',
   category: 'Media & brand'
 }
@@ -8,29 +8,36 @@ export const metadata = {
 import { IllustrationGallery } from '@/components/IllustrationGallery'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Themed SVG illustrations that adapt to the design system color palette.
+Small Oztix illustrations in fixed brand colours, for empty states, features, and moments of delight.
 
 ## Import
 
 ```tsx
-import { NoteMusic, HighFive } from '@oztix/roadie-components/spot-illustrations'
+import { NoteMusic, HighFive } from '@oztix/roadie-illustrations/spot'
 ```
+
+Import the package's CSS after Roadie's, so Tailwind keeps the illustration colours:
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-illustrations/css';
+```
+
+Each illustration is its own module, so an app ships only the ones it imports. `@oztix/roadie-components/spot-illustrations` is deprecated: it has 12 of these, with older art.
 
 ## Examples
 
 ### Default
 
-All spot illustrations default to 48px.
+Every spot illustration is 48px square.
 
 ```tsx-live
 <NoteMusic />
 ```
 
-### Variants
+### Sizes
 
-#### Custom size
-
-Use `className` with Tailwind size utilities to change the illustration size. For smaller sizes in UI, use iconography instead.
+Size an illustration with a `size-*` class. Below 32px, use an icon instead.
 
 ```tsx-live layout=row gap=4
 <NoteMusic className='size-8' />
@@ -39,12 +46,12 @@ Use `className` with Tailwind size utilities to change the illustration size. Fo
 <NoteMusic className='size-24' />
 ```
 
-#### With outline
+### Outline
 
-Use the `outline` prop to show a white outline layer. Useful on dark backgrounds.
+`outline` draws a white sticker outline around the art, for busy or dark backgrounds. It's drawn from the art as it renders, 2px beyond it at 48px, so it always fits the square.
 
 ```tsx-live
-<div className='flex flex-row gap-4 rounded-xl bg-neutral-12 p-4'>
+<div className='grid grid-flow-col justify-start gap-4 rounded-xl emphasis-inverted p-4'>
   <NoteMusic />
   <NoteMusic outline />
 </div>
@@ -54,33 +61,23 @@ Use the `outline` prop to show a white outline layer. Useful on dark backgrounds
 
 <IllustrationGallery />
 
-More illustrations can be added using the creation workflow below.
+## Adding an illustration
 
-## Creating new illustrations
+Spot illustrations are drawn in code, not exported from a design file. Each is an SVG source in `packages/illustrations/src/spot/svgs/`, one path per named layer:
 
-The build system automatically generates components from SVG files during development:
+| Layer     | Colour    | What it's for                                         |
+| --------- | --------- | ----------------------------------------------------- |
+| Shadow    | `#0091eb` | The extruded depth: the side faces                    |
+| Face      | `#e1d1fb` | The object's front surface                            |
+| Detail    | `#ffc3a8` | Secondary planes and accents, such as top faces       |
+| Highlight | `#c2dffb` | Glass, screens, and shine                             |
+| Stroke    | `#1a1f2b` | Every line, 0.5 wide with round ends, always on top   |
 
-```bash
-# Start dev mode (includes watch mode for SVG changes)
-pnpm dev
-```
-
-**Quick workflow:**
-
-1. Export your illustration from Figma as SVG
-2. Save to the `SpotIllustration/svgs/` directory as `your-name.svg`
-3. The component is automatically generated and ready to use
-
-**Design requirements:**
-
-- 48x48 frame size
-- Use semantic illustration colors: `neutralSlate.0` (outline), `purple.5` (face), `orange.5` (detail), `blue.9` (shadow), `blue.5` (highlight), `neutralSlate.12` (stroke)
-
-For detailed information about the build system, color matching, and troubleshooting, see the [SpotIllustration README](https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/components/src/components/SpotIllustration).
+Draw in those colours, in any tool or by hand, and run `pnpm --filter @oztix/roadie-illustrations spot:convert` on the SVG. It merges each colour into its layer, cuts back lines that were hidden, fits the art inside the box, checks nothing visible moved, and generates the component. The [package README](https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/illustrations) has the whole workflow.
 
 ## Guidelines
 
-- Spot illustrations are decorative by default and include `aria-hidden="true"`. If an illustration conveys meaningful information, add `role='img'` and `aria-label`.
-- Illustration colors are fixed and do not change in dark mode.
+- Spot illustrations are decorative, so they're hidden from assistive tech. When one carries meaning, give it an `aria-label` and it becomes an image with that name.
+- Their colours are fixed, so they look the same in dark mode.
 
 <PropsDefinitions component='SpotIllustration' />

@@ -1,4 +1,4 @@
-import { FlowerSpiral, Hand } from '@oztix/roadie-components/spot-illustrations'
+import { FlowerSpiral, Hand } from '@oztix/roadie-illustrations/spot'
 
 import { Skel } from './ComponentSkeleton'
 

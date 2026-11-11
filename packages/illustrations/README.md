@@ -3,8 +3,15 @@
 Oztix illustrations as React components. The SVG sources in this package are
 the source of truth: there's no design file to export from.
 
-Not yet published. Until it is, apps import spot illustrations from
-`@oztix/roadie-components/spot-illustrations`.
+## Setup
+
+Import its CSS after Roadie's, so Tailwind keeps the illustration colours and
+sizes the components use:
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-illustrations/css';
+```
 
 ## Spot illustrations
 

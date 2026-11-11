@@ -34,7 +34,7 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 | `packages/charts/`        | `@oztix/roadie-charts`: charts, legends, and dashboard views                                                           |
 | `packages/editor/`        | `@oztix/roadie-editor`: the rich-text editor and its saved format                                                      |
 | `packages/blocks/`        | `@oztix/roadie-blocks`: designed page sections, with presets and tracking                                              |
-| `packages/illustrations/` | `@oztix/roadie-illustrations`: spot illustrations, drawn from SVG sources in the repo (not yet published)              |
+| `packages/illustrations/` | `@oztix/roadie-illustrations`: spot illustrations, drawn from SVG sources in the repo                                  |
 | `packages/widgets/`       | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins                                                          |
 | `packages/lint-plugin/`   | `@oztix/roadie-lint-plugin`: oxlint and ESLint rules for apps on Roadie                                                |
 | `docs/`                   | The docs site                                                                                                          |

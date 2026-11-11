@@ -5,7 +5,7 @@ import { type ComponentType, createElement } from 'react'
 import { SPOT_ILLUSTRATION_NAMES } from '@/lib/spot-illustrations'
 
 import { Code } from '@oztix/roadie-components'
-import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
+import * as SpotIllustrations from '@oztix/roadie-illustrations/spot'
 
 export function IllustrationGallery() {
   return (

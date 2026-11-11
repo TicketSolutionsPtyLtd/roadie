@@ -11,6 +11,7 @@ pnpm add @oztix/roadie-blocks @oztix/roadie-components @oztix/roadie-core @phosp
 ```css
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-components/css';
+@import '@oztix/roadie-illustrations/css';
 @import '@oztix/roadie-blocks/css';
 ```
 

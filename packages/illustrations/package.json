@@ -1,7 +1,6 @@
 {
   "name": "@oztix/roadie-illustrations",
   "version": "0.0.0",
-  "private": true,
   "description": "Oztix illustrations as React components, drawn from SVG sources kept in the repo",
   "type": "module",
   "license": "ISC",
@@ -18,13 +17,20 @@
   "files": [
     "dist",
     "!dist/**/*.d.ts.map",
+    "src/css",
     "src/spot/svgs"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "publishConfig": {
     "access": "public"
   },
   "exports": {
+    "./css": {
+      "style": "./src/css/illustrations.css",
+      "default": "./src/css/illustrations.css"
+    },
     "./spot": {
       "types": "./dist/spot/index.d.ts",
       "import": "./dist/spot/index.js"
@@ -39,7 +45,7 @@
     "spot:convert": "node scripts/spot/convert.ts",
     "spot:generate": "node scripts/spot/generate.ts",
     "check:package": "pnpm check:exports && pnpm check:pack",
-    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints roadie.manifest.json spot/svgs/*",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json spot/svgs/*",
     "check:pack": "node ../core/scripts/check-pack.mjs",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project jsdom",

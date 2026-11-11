@@ -24,6 +24,8 @@ export type SpotIllustrationComponentProps = Omit<
  *
  * export const NoteMusic = createSpotIllustration('NoteMusic', noteMusicData)
  * ```
+ *
+ * @deprecated Draw new illustrations in `@oztix/roadie-illustrations`; see its README.
  */
 export function createSpotIllustration(name: string, data: unknown) {
   function Component(props: SpotIllustrationComponentProps) {

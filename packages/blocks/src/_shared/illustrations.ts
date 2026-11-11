@@ -11,7 +11,7 @@ import {
   NoteMusic,
   Ticket,
   WineGlass
-} from '@oztix/roadie-components/spot-illustrations'
+} from '@oztix/roadie-illustrations/spot'
 
 /** Every spot illustration a block can show, by its export name. */
 export const SPOT_ILLUSTRATIONS = {

@@ -4,6 +4,7 @@
    (relative to its own package), so no node_modules path needed here. The docs
    render React widgets (which use components) plus components on their own. */
 @import '@oztix/roadie-components/css';
+@import '@oztix/roadie-illustrations/css';
 @import '@oztix/roadie-widgets/css';
 @import '@oztix/roadie-charts/css';
 @import '@oztix/roadie-blocks/css';
