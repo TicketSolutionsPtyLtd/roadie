@@ -79,16 +79,17 @@ Keep the list. It's what step 5 checks off.
 
 ## 3. Pick a codemod or a hand migration
 
-| Deprecation                                                                                                                                            | Codemod             | By hand                                                 |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- | ------------------------------------------------------- |
-| `LinkButton`, `LinkIconButton` (`/link-button`)                                                                                                        | `link-button`       | Uses the codemod reports, and the `LinkButton*` types   |
-| `as` on `Card`, `Breadcrumb.Link`, `Carousel.Title`, `Carousel.TitleLink`, `Mark`, `Highlight`, `Prose`, or any `as` whose reason says to use `render` | `as-to-render`      | Uses the codemod reports, and type errors after it      |
-| `'icon-*'` sizes on `IconButton` (a deprecated type, so not in the manifest)                                                                           | `icon-button-size`  | A `size` that isn't a string literal, such as a ternary |
-| `side`, `align`, `sideOffset`, `alignOffset` in `Popover.Content`'s `positionerProps` (nested, so not in the manifest)                                 | `popover-placement` | Uses the codemod reports                                |
-| `@oztix/roadie-widgets/cart-drawer/core`, `CartExpiryModals`, `CartExpiryModalsProps`                                                                  | `widgets-renames`   | `.vue` files                                            |
-| `intent` on `Input`, `Textarea`, `Select.Trigger`, `Field.Input`, `Field.Textarea`                                                                     | None                | Always, see step 5                                      |
-| `motion-fade-in`, `motion-scale-in`, `motion-pop-in`, `motion-fade-out`, `motion-scale-out`                                                            | None                | Always, see step 5                                      |
-| Anything else                                                                                                                                          | None                | Follow its reason                                       |
+| Deprecation                                                                                                                                            | Codemod              | By hand                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | ---------------------------------------------------------------- |
+| `LinkButton`, `LinkIconButton` (`/link-button`)                                                                                                        | `link-button`        | Uses the codemod reports, and the `LinkButton*` types            |
+| `as` on `Card`, `Breadcrumb.Link`, `Carousel.Title`, `Carousel.TitleLink`, `Mark`, `Highlight`, `Prose`, or any `as` whose reason says to use `render` | `as-to-render`       | Uses the codemod reports, and type errors after it               |
+| `'icon-*'` sizes on `IconButton` (a deprecated type, so not in the manifest)                                                                           | `icon-button-size`   | A `size` that isn't a string literal, such as a ternary          |
+| `side`, `align`, `sideOffset`, `alignOffset` in `Popover.Content`'s `positionerProps` (nested, so not in the manifest)                                 | `popover-placement`  | Uses the codemod reports                                         |
+| `@oztix/roadie-widgets/cart-drawer/core`, `CartExpiryModals`, `CartExpiryModalsProps`                                                                  | `widgets-renames`    | `.vue` files                                                     |
+| `@oztix/roadie-components/spot-illustrations`                                                                                                          | `spot-illustrations` | `SpotIllustration`, `createSpotIllustration`, and the CSS import |
+| `intent` on `Input`, `Textarea`, `Select.Trigger`, `Field.Input`, `Field.Textarea`                                                                     | None                 | Always, see step 5                                               |
+| `motion-fade-in`, `motion-scale-in`, `motion-pop-in`, `motion-fade-out`, `motion-scale-out`                                                            | None                 | Always, see step 5                                               |
+| Anything else                                                                                                                                          | None                 | Follow its reason                                                |
 
 A codemod changes only what it can prove keeps behaviour, apart from the
 replacement's own defaults (step 5 lists them). Everything else it leaves
@@ -140,6 +141,20 @@ What they change:
   wins when it's defined, so a literal one drops its `positionerProps` twin
   and any other becomes `side={side ?? 'top'}`. It leaves a
   `Popover.Content` that spreads props.
+- **`spot-illustrations`.** Moves imports from
+  `@oztix/roadie-components/spot-illustrations` to
+  `@oztix/roadie-illustrations/spot`, and turns each illustration's props
+  type, such as `HeartProps`, into `SpotIllustrationComponentProps`. If the
+  file already has a `SpotIllustrationComponentProps` or another
+  `HeartProps` of its own, it imports the new type under the old name. It
+  leaves `SpotIllustration`, `SpotIllustrationProps`, and
+  `createSpotIllustration` on the old path and reports them: the new
+  `SpotIllustration` takes `layers` in place of `illustration`, and
+  `createSpotIllustration` isn't in the new package. Add
+  `@oztix/roadie-illustrations` to the app's dependencies, and
+  `@import '@oztix/roadie-illustrations/css';` after the components' CSS, or
+  the illustrations render blank. Every illustration was redrawn, so check
+  the pages that show one.
 - **`widgets-renames`.** Moves `@oztix/roadie-widgets/cart-drawer/core`
   imports to `@oztix/roadie-widgets/cart`, and renames `CartExpiryModals`
   and `CartExpiryModalsProps` to `CartExpiryDialogs` and
