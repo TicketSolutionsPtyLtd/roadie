@@ -1,3 +1,4 @@
+import { readdirSync } from 'fs'
 import { readdir } from 'fs/promises'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
@@ -192,8 +193,15 @@ describe('the Brand catalogue', () => {
     const dirs = await readdir(join(import.meta.dirname, '../app/brand'), {
       withFileTypes: true
     })
+    // A folder with only a route handler serves files, such as the illustration SVGs, not a page.
     const pages = dirs
-      .filter((dir) => dir.isDirectory())
+      .filter(
+        (dir) =>
+          dir.isDirectory() &&
+          readdirSync(join(dir.parentPath, dir.name)).some((file) =>
+            /^page\.(mdx|tsx)$/.test(file)
+          )
+      )
       .map((dir) => `/brand/${dir.name}`)
     const brand = await getCatalogue(BRAND)
 

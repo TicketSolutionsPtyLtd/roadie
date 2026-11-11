@@ -24,7 +24,8 @@ import { Field } from '@oztix/roadie-components/field'
 import { Menu } from '@oztix/roadie-components/menu'
 
 import { Image } from '../Image'
-import { useCopy } from '../useCopy'
+import { CopyChip } from '../tokens/CopyChip'
+import { useCopyToast } from '../useCopy'
 
 const PNG_SIZE = 1024
 
@@ -41,7 +42,7 @@ export function filterIllustrations(
     const haystack = [
       illustration.label,
       ...illustration.tags,
-      illustration.component ?? ''
+      illustration.component
     ]
       .join(' ')
       .toLowerCase()
@@ -115,17 +116,13 @@ function IllustrationTile({
   illustration: BrandIllustration
 }) {
   const { slug, label, tags, component } = illustration
-  const { copied, failed, copy } = useCopy()
+  const { copied, copy } = useCopyToast()
   const { state, download } = useDownload(slug)
-  const announcement = copied
-    ? `Copied the SVG of ${label}`
-    : failed
-      ? `Couldn't copy the SVG of ${label}`
-      : state?.ok
-        ? `Downloaded the ${state.format} of ${label}`
-        : state
-          ? `Couldn't download the ${state.format} of ${label}`
-          : ''
+  const announcement = state?.ok
+    ? `Downloaded the ${state.format} of ${label}`
+    : state
+      ? `Couldn't download the ${state.format} of ${label}`
+      : ''
 
   return (
     <li data-slot='illustration-tile' data-twin-row className='grid'>
@@ -152,13 +149,13 @@ function IllustrationTile({
             <code data-twin-cell className='sr-only'>
               {`/brand/illustrations/${slug}.svg`}
             </code>
-            {component ? (
-              <code data-twin-cell className='font-mono text-xs text-subtler'>
-                {component}
-              </code>
-            ) : (
-              <span data-twin-cell />
-            )}
+            <CopyChip
+              value={component}
+              nowrap
+              className='-ms-1.5 justify-self-start text-xs text-subtle'
+            >
+              <code data-twin-cell>{component}</code>
+            </CopyChip>
           </div>
         </Card.Content>
         <Card.Footer className='gap-1 px-3 pb-3'>
@@ -166,7 +163,15 @@ function IllustrationTile({
             size='xs'
             emphasis='normal'
             aria-label={`Copy SVG of ${label}`}
-            onClick={() => copy(svgMarkup(slug))}
+            onClick={() =>
+              copy(svgMarkup(slug), {
+                copied: 'SVG copied',
+                failed: 'Couldn’t copy the SVG',
+                description: label,
+                failedDescription:
+                  'Download it from the more options menu instead.'
+              })
+            }
             className='min-w-0 flex-1'
           >
             {copied ? (
@@ -174,7 +179,7 @@ function IllustrationTile({
             ) : (
               <CopyIcon weight='bold' className='size-4' />
             )}
-            {copied ? 'Copied' : failed ? "Couldn't copy" : 'Copy SVG'}
+            Copy SVG
           </Button>
           <Menu>
             <Menu.Trigger
@@ -212,7 +217,7 @@ function IllustrationTile({
   )
 }
 
-/** Every brand illustration, searchable by label and tag, with Copy SVG and Download PNG on each. */
+/** Every spot illustration, searchable by label, tag, and component name, with its component name to copy, Copy SVG, and downloads on each. */
 export function IllustrationLibrary() {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)

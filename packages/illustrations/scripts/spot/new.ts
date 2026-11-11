@@ -46,5 +46,6 @@ if (import.meta.main) {
   mkdirSync(DRAWINGS, { recursive: true })
   writeFileSync(file, template(slug))
   console.log(`Started drawings/${slug}.ts, which becomes <${componentName(slug)} />.
-Next: shape it, then pnpm spot:draw ${slug} --preview ${slug}.png`)
+Next: give it a few lowercase tags in src/spot/tags.json, such as "${slug}": ["marketing"],
+then shape it and run pnpm spot:draw ${slug} --preview ${slug}.png`)
 }

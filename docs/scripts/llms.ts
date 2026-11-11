@@ -1,4 +1,5 @@
 import type { TokenFamily } from '@roadie-core/tokens'
+import { statSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
@@ -17,6 +18,7 @@ import {
   catalogueToMarkdown,
   dashboardExampleToMarkdown,
   llmsIndex,
+  pageComponents,
   pageToMarkdown,
   tokenFamilyToMarkdown
 } from '../src/lib/llms.ts'
@@ -47,6 +49,7 @@ import {
   releaseRoutes,
   statusSentence
 } from '../src/lib/releases.ts'
+import { ILLUSTRATION_PACK } from '../src/lib/spot-sources.ts'
 import {
   ALL_TOKENS_INTRO,
   TOKEN_FAMILY_PAGES,
@@ -63,12 +66,12 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 type Manifest = { docs: string; components: ManifestComponent[] }
 const manifests = [
   '@oztix/roadie-components',
+  '@oztix/roadie-illustrations',
   '@oztix/roadie-charts',
   '@oztix/roadie-editor',
   '@oztix/roadie-widgets'
 ].map((pkg) => require(`${pkg}/roadie.manifest.json`) as Manifest)
 const site = `${new URL(manifests[0]!.docs).origin}${basePath}`
-const components = manifests.flatMap((manifest) => manifest.components)
 
 const routes = await getMarkdownRoutes()
 const markdownRoutes = new Set([
@@ -169,6 +172,14 @@ const renderers = {
         '<DownloadCard> needs a title, href, formats, size, and description'
       )
     return `[${title}](${resolveLink(href as string)}), ${formats}, ${size}. ${description}`
+  },
+  // The build writes the pack, so its size is read from the export.
+  IllustrationPackCard: () => {
+    const { size } = statSync(path.join(outDir, ILLUSTRATION_PACK.href))
+    return renderers.DownloadCard({
+      ...ILLUSTRATION_PACK,
+      size: `${Math.round(size / 1024)} KB`
+    })
   }
 }
 
@@ -263,9 +274,7 @@ async function markdownFor(route: string) {
       }
     }),
     mdx: await readFile(path.join(appDir, route, 'page.mdx'), 'utf8'),
-    components: components.filter((component) =>
-      component.docs?.endsWith(`${route}/`)
-    ),
+    components: pageComponents(manifests, route),
     resolveLink,
     renderers,
     drawings

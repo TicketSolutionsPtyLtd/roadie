@@ -249,6 +249,9 @@ importers:
       '@oztix/roadie-editor':
         specifier: workspace:*
         version: link:../packages/editor
+      '@oztix/roadie-illustrations':
+        specifier: workspace:*
+        version: link:../packages/illustrations
       '@oztix/roadie-widgets':
         specifier: workspace:*
         version: link:../packages/widgets
@@ -267,6 +270,9 @@ importers:
       colorjs.io:
         specifier: 0.7.1
         version: 0.7.1
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       focus-trap:
         specifier: 8.2.4
         version: 8.2.4
@@ -397,6 +403,9 @@ importers:
       '@oztix/roadie-core':
         specifier: workspace:*
         version: link:../core
+      '@oztix/roadie-illustrations':
+        specifier: workspace:*
+        version: link:../illustrations
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: 0.18.5

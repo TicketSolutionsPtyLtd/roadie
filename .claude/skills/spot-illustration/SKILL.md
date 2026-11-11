@@ -60,6 +60,11 @@ density.
 
 ## 4. Check and commit
 
+Give it a few lowercase tags in `packages/illustrations/src/spot/tags.json`,
+under its name, so the docs library can find it: words it shows or suits,
+such as `"megaphone": ["marketing", "announcement"]`. The check fails a source
+with no tags.
+
 ```bash
 pnpm test:gated illustrations scripts
 pnpm --filter @oztix/roadie-illustrations typecheck
@@ -68,7 +73,7 @@ pnpm --filter @oztix/roadie-illustrations size
 ```
 
 `size` measures `dist`, so build first. Commit `drawings/<name>.ts`,
-`src/spot/svgs/<name>.svg`, and the generated `src/spot/illustrations/` and
+`src/spot/svgs/<name>.svg`, its line in `src/spot/tags.json`, and the generated `src/spot/illustrations/` and
 `src/spot/index.ts` together. If the "Every spot illustration" budget in
 `.size-limit.json` fails, raise it to about 10% over.
 Put the preview sheet in the PR as its evidence.

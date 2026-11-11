@@ -10,15 +10,16 @@ import {
 import { basename, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { componentName } from '../../src/spot/names.ts'
 import { check, layersOf, styleWarnings } from './check.ts'
 
 const SPOT = fileURLToPath(new URL('../../src/spot/', import.meta.url))
 export const SVGS = join(SPOT, 'svgs')
 const MODULES = join(SPOT, 'illustrations')
 const BARREL = join(SPOT, 'index.ts')
+const TAGS = join(SPOT, 'tags.json')
 
-export const componentName = (slug: string) =>
-  slug.replace(/(^|-)([a-z0-9])/g, (_, __, c: string) => c.toUpperCase())
+export { componentName }
 
 const PRINT_WIDTH = 80
 const HEADER =
@@ -102,13 +103,41 @@ export function nameClashes(slugs: string[]) {
   return clashes
 }
 
+const TAG = /^[a-z0-9]+( [a-z0-9]+)*$/
+
+/** What's wrong with `tags.json`: every source needs at least one lowercase tag, and nothing else. */
+export function tagProblems(slugs: string[], tags: Record<string, unknown>) {
+  const problems: string[] = []
+  for (const slug of slugs) {
+    const entry = tags[slug]
+    if (!Array.isArray(entry) || entry.length === 0)
+      problems.push(
+        `${slug}.svg has no tags in tags.json; add a few words it shows or suits`
+      )
+    else if (!entry.every((tag) => typeof tag === 'string' && TAG.test(tag)))
+      problems.push(`${slug} in tags.json takes lowercase words only`)
+  }
+  for (const slug of Object.keys(tags))
+    if (!slugs.includes(slug))
+      problems.push(`tags.json has ${slug}, but there's no ${slug}.svg`)
+  return problems
+}
+
 /** Every generated file and its contents, or the checks each source failed. */
-export function generate(all = sources()) {
+function readTags(): Record<string, string[]> {
+  return existsSync(TAGS) ? JSON.parse(readFileSync(TAGS, 'utf8')) : {}
+}
+
+export function generate(all = sources(), tags = readTags()) {
   const failures = [
     ...all.flatMap(({ file, svg }) =>
       check(svg, file).map((e) => `${file}: ${e}`)
     ),
-    ...nameClashes(all.map((s) => s.slug))
+    ...nameClashes(all.map((s) => s.slug)),
+    ...tagProblems(
+      all.map((s) => s.slug),
+      tags
+    )
   ]
   const files = new Map<string, string>(
     all.map(({ slug, svg }) => [

@@ -1,11 +1,7 @@
 import { Logo } from '@oztix/roadie-components/logo'
 import { Mark } from '@oztix/roadie-components/mark'
 import { Pattern } from '@oztix/roadie-components/pattern'
-import {
-  Heart,
-  NoteMusic,
-  Ticket
-} from '@oztix/roadie-components/spot-illustrations'
+import { Heart, NoteMusic, Ticket } from '@oztix/roadie-illustrations/spot'
 
 // A poster is brand artwork, so it keeps its light colours in dark mode, from
 // the pinned light steps.

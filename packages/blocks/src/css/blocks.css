@@ -1,2 +1,2 @@
-/* Registers the blocks dist for Tailwind. Consumers also import @oztix/roadie-components/css. */
+/* Registers the blocks dist for Tailwind. Consumers also import @oztix/roadie-components/css and @oztix/roadie-illustrations/css. */
 @source '../../dist';

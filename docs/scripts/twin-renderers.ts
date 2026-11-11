@@ -51,7 +51,6 @@ import {
   inlineCode,
   markdownTable
 } from '../src/lib/llms.ts'
-import { SPOT_ILLUSTRATION_NAMES } from '../src/lib/spot-illustrations.ts'
 import { statusTable } from '../src/lib/status.ts'
 import {
   type TwinCell,
@@ -117,7 +116,7 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
         label,
         tags.join(', '),
         [{ code: `/brand/illustrations/${slug}.svg` }],
-        component ? [{ code: component }] : ''
+        [{ code: component }]
       ])
     }),
   ContainerScale: () => twinTableMarkdown(containerTable(tokens())),
@@ -167,8 +166,6 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
   CardSizes: () => twinTableMarkdown(cardSizeTable()),
   ChartLabelLimits: () => twinTableMarkdown(chartLabelLimitsTable()),
   CopyLimits: () => twinTableMarkdown(copyLimitsTable()),
-  IllustrationGallery: () =>
-    SPOT_ILLUSTRATION_NAMES.map((name) => `- \`${name}\``).join('\n'),
   PeriodComparisons: () => twinTableMarkdown(periodComparisonsTable()),
   QuerySuggestions: () => fence('ts', querySuggestionsExample()),
   RecordsAdapters: () =>

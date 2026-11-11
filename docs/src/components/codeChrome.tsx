@@ -13,11 +13,10 @@ import {
 import { Highlight, themes } from 'prism-react-renderer'
 
 import { IconButton } from '@oztix/roadie-components/button'
-import { useToastManager } from '@oztix/roadie-components/toast'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 import { DEVICES, type Device } from './exampleDevices'
-import { useCopy } from './useCopy'
+import { useCopyToast } from './useCopy'
 
 const darkTheme = {
   ...themes.nightOwl,
@@ -221,22 +220,17 @@ export function ExampleHeader({
 
 /** Copies the code; the icon turns to a tick for a moment and a toast says it worked. */
 export function CopyButton({ code }: { code: string }) {
-  const { copied, copy } = useCopy()
-  const toast = useToastManager()
+  const { copied, copy } = useCopyToast()
 
   return (
     <IconButton
-      onClick={async () => {
-        toast.add(
-          (await copy(code))
-            ? { title: 'Code copied' }
-            : {
-                title: "We couldn't copy the code",
-                description: 'Select the code and copy it yourself.',
-                intent: 'danger'
-              }
-        )
-      }}
+      onClick={() =>
+        copy(code, {
+          copied: 'Code copied',
+          failed: 'Couldn’t copy the code',
+          failedDescription: 'Select the code and copy it yourself.'
+        })
+      }
       size='sm'
       emphasis='normal'
       aria-label='Copy code'

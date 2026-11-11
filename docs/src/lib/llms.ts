@@ -548,6 +548,21 @@ export function catalogueToMarkdown(
     .join('\n\n')
 }
 
+/** The components a page documents, once by name: a later manifest's replaces an earlier's, as on the page's API reference. */
+export function pageComponents(
+  manifests: { components: ManifestComponent[] }[],
+  route: string
+): ManifestComponent[] {
+  const byName = new Map(
+    manifests.flatMap(({ components }) =>
+      components.map((component) => [component.name, component] as const)
+    )
+  )
+  return [...byName.values()].filter((component) =>
+    component.docs?.endsWith(`${route}/`)
+  )
+}
+
 export type LlmsIndex = {
   title: string
   summary: string
