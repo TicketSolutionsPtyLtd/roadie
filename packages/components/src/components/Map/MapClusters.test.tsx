@@ -99,6 +99,23 @@ describe('Map.Clusters', () => {
     ])
   })
 
+  it('highlights a spot by the label onGroupsChange gives it, when places share the spot', async () => {
+    const spot = { lat: -27.467, lng: 153.051 }
+    const data = [
+      { position: spot, value: 3, label: 'Kazoo Hollow Room' },
+      { position: spot, value: 4, label: 'Jumbuck Orchard Park' }
+    ]
+    const onGroupsChange = vi.fn<(bands: MapClusterBand[]) => void>()
+    const { rerenderMap } = await renderClusters({ data, onGroupsChange })
+    const [place] = onGroupsChange.mock.lastCall![0][0]!.places
+    expect(place!.label).toBe('Kazoo Hollow Room and Jumbuck Orchard Park')
+
+    await rerenderMap(
+      <Map.Clusters data={data} label='Ticket sales' highlight={place!.label} />
+    )
+    expect(band('7, 100% of all')).toHaveAttribute('data-highlighted')
+  })
+
   it('tells the app the bands on the map when they change', async () => {
     const onGroupsChange = vi.fn()
     const { fake, zoomTo } = await renderClusters({ onGroupsChange })

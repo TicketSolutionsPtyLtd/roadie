@@ -208,7 +208,8 @@ export function MapClusters({
     if (shownKeys !== null) reportGroups()
   }, [shownKeys, index])
 
-  // The bands holding a highlighted place.
+  // The bands holding a highlighted place. A spot several places share goes
+  // by any of their names, or by its label, as `onGroupsChange` gives it.
   const highlighted = useMemo(() => {
     const wanted = typeof highlight === 'string' ? [highlight] : highlight
     if (!wanted?.length || !layout) return new Set<string>()
@@ -217,7 +218,11 @@ export function MapClusters({
         .filter((group) =>
           index
             .placesIn(group)
-            .some(({ names }) => names.some((name) => wanted.includes(name)))
+            .some(
+              ({ names, label }) =>
+                names.some((name) => wanted.includes(name)) ||
+                (label !== undefined && wanted.includes(label))
+            )
         )
         .map(({ key }) => key)
     )
