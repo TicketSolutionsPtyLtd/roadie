@@ -7,7 +7,7 @@ describe('drawSource', () => {
   it.each(['../scripts/spot/new', '/etc/hosts', 'Letter-B'])(
     "refuses %s, which isn't the name of a drawing",
     async (name) => {
-      await expect(drawSource(name)).rejects.toThrow('kebab-case')
+      await expect(drawSource(name)).rejects.toThrow(/^use a kebab-case/)
     }
   )
 })

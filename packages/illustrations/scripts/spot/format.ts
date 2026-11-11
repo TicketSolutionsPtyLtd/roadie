@@ -8,7 +8,7 @@ export const NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
 export function assertName(name: string) {
   if (!NAME.test(name))
     throw new Error(
-      `${name}: name it in kebab-case and start it with a letter, such as map-pin`
+      'use a kebab-case name that starts with a letter, such as map-pin'
     )
 }
 
