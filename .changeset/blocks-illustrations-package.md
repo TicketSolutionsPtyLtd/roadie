@@ -2,4 +2,4 @@
 '@oztix/roadie-blocks': minor
 ---
 
-Blocks draw their spot illustrations from `@oztix/roadie-illustrations`, so their art matches the new set. Import `@oztix/roadie-illustrations/css` alongside Roadie's CSS in apps that use blocks.
+Update blocks to draw their spot illustrations from `@oztix/roadie-illustrations`, with its new art. Import `@oztix/roadie-illustrations/css` after the components' CSS in apps that use blocks.
