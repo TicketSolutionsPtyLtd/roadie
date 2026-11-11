@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-import { componentName, generate, stale } from './generate.ts'
+import { componentName, generate, nameClashes, stale } from './generate.ts'
 
 describe('the spot illustration sources', () => {
   const { files, failures } = generate()
@@ -15,6 +15,19 @@ describe('the spot illustration sources', () => {
     for (const [path, contents] of files)
       expect(readFileSync(path, 'utf8'), path).toBe(contents)
     expect(stale(files)).toEqual([])
+  })
+})
+
+describe('nameClashes', () => {
+  it('passes names that each give their own component', () => {
+    expect(nameClashes(['heart', 'map-pin', 'mappin'])).toEqual([])
+  })
+
+  it('flags names that give the same component, or one the package already exports', () => {
+    expect(nameClashes(['note-1', 'note1', 'spot-illustration'])).toEqual([
+      'note-1.svg and note1.svg would both be Note1; rename one',
+      'spot-illustration.svg would be SpotIllustration, which the package already exports; rename it'
+    ])
   })
 })
 

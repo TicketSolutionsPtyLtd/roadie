@@ -76,12 +76,37 @@ export function sources() {
     }))
 }
 
+const EXPORTED = new Set(['SpotIllustration'])
+
+/** Sources whose component names collide with each other or the barrel's exports. */
+export function nameClashes(slugs: string[]) {
+  const slugByName = new Map<string, string>()
+  const clashes: string[] = []
+  for (const slug of slugs) {
+    const name = componentName(slug)
+    const taken = slugByName.get(name)
+    if (taken)
+      clashes.push(
+        `${taken}.svg and ${slug}.svg would both be ${name}; rename one`
+      )
+    else if (EXPORTED.has(name))
+      clashes.push(
+        `${slug}.svg would be ${name}, which the package already exports; rename it`
+      )
+    slugByName.set(name, slug)
+  }
+  return clashes
+}
+
 /** Every generated file and its contents, or the checks each source failed. */
 export function generate() {
   const all = sources()
-  const failures = all.flatMap(({ file, svg }) =>
-    check(svg, file).map((e) => `${file}: ${e}`)
-  )
+  const failures = [
+    ...all.flatMap(({ file, svg }) =>
+      check(svg, file).map((e) => `${file}: ${e}`)
+    ),
+    ...nameClashes(all.map((s) => s.slug))
+  ]
   const files = new Map<string, string>(
     all.map(({ slug, svg }) => [
       join(MODULES, `${componentName(slug)}.ts`),
