@@ -260,80 +260,83 @@ export function MapClusters({
       <span id={hintId} hidden>
         Zooms in to split it
       </span>
-      {groups.map((group, rank) => {
-        const share = shareOf(group.value, index.total)
-        const name = `${label}: ${formatValue(group.value)}, ${share} of all`
-        const zooms = !locked && group.splitsAt !== undefined
-        return (
-          <div
-            key={group.key}
-            data-slot='map-cluster'
-            className='absolute top-0 left-0'
-            style={{
-              transform: `translate(${group.x}px, ${group.y}px)`,
-              zIndex: groups.length - rank
-            }}
-          >
-            <Popover
-              open={open === group.key}
-              onOpenChange={(next) => {
-                if (next && zooms) {
-                  split(group)
-                  return
-                }
-                setOpen(next ? group.key : null)
+      {/* The bands stack among themselves, under the map's controls. */}
+      <div data-slot='map-cluster-bands' className='absolute top-0 left-0 z-1'>
+        {groups.map((group, rank) => {
+          const share = shareOf(group.value, index.total)
+          const name = `${label}: ${formatValue(group.value)}, ${share} of all`
+          const zooms = !locked && group.splitsAt !== undefined
+          return (
+            <div
+              key={group.key}
+              data-slot='map-cluster'
+              className='absolute top-0 left-0'
+              style={{
+                transform: `translate(${group.x}px, ${group.y}px)`,
+                zIndex: groups.length - rank
               }}
             >
-              <Popover.Trigger
-                ref={(element: HTMLButtonElement | null) => {
-                  if (element) bands.current.set(group.key, element)
-                  else bands.current.delete(group.key)
+              <Popover
+                open={open === group.key}
+                onOpenChange={(next) => {
+                  if (next && zooms) {
+                    split(group)
+                    return
+                  }
+                  setOpen(next ? group.key : null)
                 }}
-                aria-label={name}
-                aria-describedby={zooms ? hintId : undefined}
-                data-slot='map-cluster-band'
-                data-level={levelOf(group.value, largest)}
-                data-highlighted={highlighted.has(group.key) || undefined}
-                className='is-interactive relative grid aspect-square min-w-(--map-cluster-size) -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums select-none'
-                style={
-                  {
-                    '--map-cluster-size': `${sizeOf(group.value, largest)}px`,
-                    '--map-cluster-spread': `${spreadOf(group.value, largest)}px`
-                  } as CSSProperties
-                }
               >
-                {show !== 'share' && (
-                  <span className='text-sm font-medium'>
-                    {formatValue(group.value)}
-                  </span>
-                )}
-                {show !== 'value' && (
-                  <span
-                    className={cn(
-                      show === 'both'
-                        ? 'text-xs opacity-75'
-                        : 'text-sm font-medium'
-                    )}
-                  >
-                    {share}
-                  </span>
-                )}
-              </Popover.Trigger>
-              <MapPreview sideOffset={8} onClose={() => setOpen(null)}>
-                {open === group.key && (
-                  <GroupPreview
-                    index={index}
-                    group={group}
-                    label={label}
-                    share={share}
-                    formatValue={formatValue}
-                  />
-                )}
-              </MapPreview>
-            </Popover>
-          </div>
-        )
-      })}
+                <Popover.Trigger
+                  ref={(element: HTMLButtonElement | null) => {
+                    if (element) bands.current.set(group.key, element)
+                    else bands.current.delete(group.key)
+                  }}
+                  aria-label={name}
+                  aria-describedby={zooms ? hintId : undefined}
+                  data-slot='map-cluster-band'
+                  data-level={levelOf(group.value, largest)}
+                  data-highlighted={highlighted.has(group.key) || undefined}
+                  className='is-interactive relative grid aspect-square min-w-(--map-cluster-size) -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums select-none'
+                  style={
+                    {
+                      '--map-cluster-size': `${sizeOf(group.value, largest)}px`,
+                      '--map-cluster-spread': `${spreadOf(group.value, largest)}px`
+                    } as CSSProperties
+                  }
+                >
+                  {show !== 'share' && (
+                    <span className='text-sm font-medium'>
+                      {formatValue(group.value)}
+                    </span>
+                  )}
+                  {show !== 'value' && (
+                    <span
+                      className={cn(
+                        show === 'both'
+                          ? 'text-xs opacity-75'
+                          : 'text-sm font-medium'
+                      )}
+                    >
+                      {share}
+                    </span>
+                  )}
+                </Popover.Trigger>
+                <MapPreview sideOffset={8} onClose={() => setOpen(null)}>
+                  {open === group.key && (
+                    <GroupPreview
+                      index={index}
+                      group={group}
+                      label={label}
+                      share={share}
+                      formatValue={formatValue}
+                    />
+                  )}
+                </MapPreview>
+              </Popover>
+            </div>
+          )
+        })}
+      </div>
       {legend && (
         <ClusterLegend
           label={label}

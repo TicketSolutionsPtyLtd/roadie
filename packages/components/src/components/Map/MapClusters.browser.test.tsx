@@ -117,6 +117,92 @@ describe('Map.Clusters in the browser', () => {
     }
   )
 
+  // The map's centre, and a degree of longitude for each pixel at zoom 9.5.
+  const centre = { lat: -27.46, lng: 153.03 }
+  const pixel = 360 / (512 * 2 ** 9.5)
+  /** A place this many pixels right of and below the map's centre. */
+  const placeAt = (x: number, y: number, value: number) => ({
+    position: {
+      lat: centre.lat - y * pixel * Math.cos((centre.lat * Math.PI) / 180),
+      lng: centre.lng + x * pixel
+    },
+    value
+  })
+  const renderAround = async (
+    clusters: Partial<Parameters<typeof Map.Clusters>[0]>
+  ) => {
+    render(
+      <div style={{ width: 480 }}>
+        <MapEngineContext value={engine}>
+          <Map defaultCenter={centre} defaultZoom={9.5}>
+            <Map.Toolbar />
+            <Map.Clusters data={[]} label='Ticket sales' {...clusters} />
+          </Map>
+        </MapEngineContext>
+      </div>
+    )
+    const frame = screen.getByRole('region', { name: 'Map' })
+    await waitFor(() => expect(frame).toHaveAttribute('data-status', 'ready'), {
+      timeout: 10_000
+    })
+  }
+  const middleOf = (element: Element) => {
+    const box = element.getBoundingClientRect()
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+  }
+
+  it(
+    'keeps the map’s controls above the bands, however many are in view',
+    { timeout: 15_000 },
+    async () => {
+      // The largest band sits under Zoom in, with fifteen more in view.
+      const data = [placeAt(211, -106, 500)]
+      for (const x of [-270, -190, -110, -30, 50])
+        for (const y of [-40, 40, 120]) data.push(placeAt(x, y, 10))
+      await renderAround({ data })
+      await waitFor(() => expect(bands()).toHaveLength(16))
+
+      const zoomIn = screen.getByRole('button', { name: 'Zoom in' })
+      const { x, y } = middleOf(zoomIn)
+      const largest = screen
+        .getByRole('button', { name: /^Ticket sales: 500,/ })
+        .getBoundingClientRect()
+      expect(largest.left).toBeLessThan(x)
+      expect(largest.right).toBeGreaterThan(x)
+      expect(largest.top).toBeLessThan(y)
+      expect(largest.bottom).toBeGreaterThan(y)
+      expect(zoomIn.contains(document.elementFromPoint(x, y))).toBe(true)
+    }
+  )
+
+  it(
+    'draws a larger band over a smaller one it overlaps',
+    { timeout: 15_000 },
+    async () => {
+      // Long values widen two bands 90px apart until they overlap.
+      await renderAround({
+        data: [placeAt(-45, 0, 2_000_000), placeAt(45, 0, 1_000_000)],
+        formatValue: (value) => `${value.toLocaleString('en-AU')}.00 sold`
+      })
+      await waitFor(() => expect(bands()).toHaveLength(2))
+      const [larger, smaller] = bands()
+      const overlap = {
+        x:
+          (larger!.getBoundingClientRect().right +
+            smaller!.getBoundingClientRect().left) /
+          2,
+        y: middleOf(larger!).y
+      }
+
+      expect(smaller!.getBoundingClientRect().left).toBeLessThan(
+        larger!.getBoundingClientRect().right - 8
+      )
+      expect(
+        larger!.contains(document.elementFromPoint(overlap.x, overlap.y))
+      ).toBe(true)
+    }
+  )
+
   it(
     'shifts a band to the next heat colour on hover and keyboard focus',
     { timeout: 15_000 },
