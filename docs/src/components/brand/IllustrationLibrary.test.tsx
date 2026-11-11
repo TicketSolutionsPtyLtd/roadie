@@ -105,6 +105,25 @@ describe('IllustrationLibrary', () => {
     expect(fetch).toHaveBeenCalledWith('/brand/illustrations/ghost.svg')
   })
 
+  it('copies the component name from its chip', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true
+    })
+    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
+    fireEvent.change(screen.getByRole('searchbox'), {
+      target: { value: 'NoteMusic' }
+    })
+
+    const [tile] = tiles()
+    fireEvent.click(
+      within(tile!).getByRole('button', { name: 'Copy NoteMusic' })
+    )
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('NoteMusic'))
+  })
+
   it('offers SVG and PNG downloads in the more options menu', async () => {
     const saved: string[] = []
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
