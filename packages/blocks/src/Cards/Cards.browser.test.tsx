@@ -186,7 +186,7 @@ describe('Cards at 1265px', () => {
     }
   )
 
-  it('keeps four text-blocks cards in one row on a contained surface', () => {
+  it('keeps four text-blocks cards of at least 15rem in one row on a contained surface', () => {
     render(
       <div style={{ width: 1265 }}>
         <Cards {...propsOf('text-blocks')} emphasis='raised' contained />
@@ -194,6 +194,8 @@ describe('Cards at 1265px', () => {
     )
 
     expect(columns()).toBe(4)
+    for (const card of cards())
+      expect(card.getBoundingClientRect().width).toBeGreaterThanOrEqual(240)
   })
 })
 
