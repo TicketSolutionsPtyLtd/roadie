@@ -97,7 +97,9 @@ describe('RecordTable bulk actions', () => {
   it('keeps the selection when an action rejects, and reports the error', async () => {
     const failure = new Error('Network')
     const onAction = vi.fn().mockRejectedValue(failure)
-    const reportError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const reportError = vi
+      .spyOn(window, 'reportError')
+      .mockImplementation(() => {})
     render(<Bulk actions={[{ label: 'Export', onAction }]} />)
     await pick('Ocean Alley 1')
     await userEvent.click(screen.getByRole('button', { name: 'Export' }))
