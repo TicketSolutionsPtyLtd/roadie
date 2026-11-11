@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'SpotIllustration',
   description: 'Small Oztix illustrations in fixed brand colours, for empty states, dividers, and help content',
-  status: 'stable',
+  status: 'beta',
   category: 'Media & brand'
 }
 
@@ -37,10 +37,9 @@ Every spot illustration is 48px square by default.
 
 ### Sizes
 
-Size an illustration with a `size-*` class. Below 32px, use an icon instead.
+Size an illustration with a `size-*` class. Spot illustrations start at 48px; anything smaller is an icon's job.
 
 ```tsx-live layout=row gap=4
-<NoteMusic className='size-8' />
 <NoteMusic />
 <NoteMusic className='size-16' />
 <NoteMusic className='size-24' />
