@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 48 48">
+  <path id="Shadow" fill="#0091eb" fill-rule="evenodd" d="m20.2 32.88 4.78-6.82 10.64 14.5-7.01 3.8z"/>
+  <path id="Face" fill="#e1d1fb" fill-rule="evenodd" d="M41.92 12.19 9.09 3.65l8.54 32.82 7.32-10.4 10.67 14.48L46 30.17 31.5 19.5z"/>
+  <path id="Detail" fill="#ffc3a8" fill-rule="evenodd" d="m9.05 3.65 8.58 32.81-7.06 3.78L2 7.43z"/>
+  <path id="Stroke" stroke="#1a1f2b" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5" d="M41.92 12.19 9.09 3.65l8.54 32.82 7.32-10.4 10.67 14.48L46 30.17 31.5 19.5zM9.05 3.65l8.58 32.81-7.06 3.78L2 7.43zM20.2 32.88l4.78-6.82 10.64 14.5-7.01 3.8z"/>
+</svg>

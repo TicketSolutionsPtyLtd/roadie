@@ -1,0 +1,91 @@
+{
+  "name": "@oztix/roadie-illustrations",
+  "version": "0.0.0",
+  "description": "Oztix illustrations as React components, drawn from SVG sources kept in the repo",
+  "type": "module",
+  "license": "ISC",
+  "author": {
+    "name": "Luke Brooker",
+    "email": "mail@lukebrooker.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TicketSolutionsPtyLtd/roadie",
+    "directory": "packages/illustrations"
+  },
+  "homepage": "https://ticketsolutionsptyltd.github.io/roadie/components/spot-illustration",
+  "files": [
+    "dist",
+    "!dist/**/*.d.ts.map",
+    "src/spot/svgs"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    "./spot": {
+      "types": "./dist/spot/index.d.ts",
+      "import": "./dist/spot/index.js"
+    },
+    "./spot/svgs/*": "./src/spot/svgs/*",
+    "./roadie.manifest.json": "./dist/roadie.manifest.json"
+  },
+  "scripts": {
+    "build:quiet": "pnpm generate:manifest --alongside tsdown --log-level warn",
+    "build": "pnpm generate:manifest --alongside tsdown",
+    "generate:manifest": "node ../core/scripts/manifest/generate.ts",
+    "spot:convert": "node scripts/spot/convert.ts",
+    "spot:generate": "node scripts/spot/generate.ts",
+    "check:package": "pnpm check:exports && pnpm check:pack",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints roadie.manifest.json spot/svgs/*",
+    "check:pack": "node ../core/scripts/check-pack.mjs",
+    "dev": "tsdown --watch --log-level warn",
+    "test": "vitest run --project jsdom",
+    "test:browser": "vitest run --project 'browser (*)' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p scripts/spot",
+    "lint": "oxlint src scripts",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "size": "size-limit",
+    "size:check": "size-limit --limit"
+  },
+  "dependencies": {
+    "@oztix/roadie-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@size-limit/preset-small-lib": "14.3.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "@vitest/browser-playwright": "5.1.0",
+    "jsdom": "30.1.3",
+    "pathkit-wasm": "1.0.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "size-limit": "14.3.0",
+    "svgo": "4.1.0",
+    "tsdown": "0.23.5",
+    "vite": "8.3.6",
+    "vitest": "5.1.0"
+  },
+  "turbo": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    }
+  }
+}
