@@ -116,6 +116,27 @@ describe('IllustrationLibrary', () => {
     expect(fetch).toHaveBeenCalledWith('/brand/illustrations/ghost.svg')
   })
 
+  it('says how to get the SVG in a danger toast when it can’t copy', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }))
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: vi.fn().mockResolvedValue(undefined) },
+      configurable: true
+    })
+    render(<IllustrationLibrary />, { wrapper: WithToasts })
+    fireEvent.change(screen.getByRole('searchbox'), {
+      target: { value: 'ghost' }
+    })
+
+    const [tile] = tiles()
+    fireEvent.click(
+      within(tile!).getByRole('button', { name: 'Copy SVG of Ghost' })
+    )
+
+    const title = await screen.findByText('Couldn’t copy the SVG')
+    expect(title.closest('.intent-danger')).toBeTruthy()
+    screen.getByText('Download it from the more options menu instead.')
+  })
+
   it('copies the component name from its chip', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
