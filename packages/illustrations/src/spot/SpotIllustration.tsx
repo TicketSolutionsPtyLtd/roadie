@@ -30,17 +30,15 @@ export type SpotIllustrationComponentProps = Omit<
   'layers'
 >
 
-// Fixed colours: an illustration looks the same in light and dark mode.
-const fill = (layer: string): CSSProperties => ({
-  fill: `var(--color-illustration-${layer})`,
-  fillRule: 'evenodd'
-})
-
+// Each token is named whole: Tailwind emits only the theme variables it finds in scanned source.
 const LAYER_STYLES: Record<SpotIllustrationLayer, CSSProperties> = {
-  shadow: fill('shadow'),
-  face: fill('face'),
-  detail: fill('detail'),
-  highlight: fill('highlight'),
+  shadow: { fill: 'var(--color-illustration-shadow)', fillRule: 'evenodd' },
+  face: { fill: 'var(--color-illustration-face)', fillRule: 'evenodd' },
+  detail: { fill: 'var(--color-illustration-detail)', fillRule: 'evenodd' },
+  highlight: {
+    fill: 'var(--color-illustration-highlight)',
+    fillRule: 'evenodd'
+  },
   stroke: {
     fill: 'none',
     stroke: 'var(--color-illustration-stroke)',

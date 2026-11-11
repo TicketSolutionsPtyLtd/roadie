@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import roadieCss from '../../vitest.browser.css?inline'
+import { SpotIllustration } from './SpotIllustration'
 import { Heart } from './illustrations/Heart'
 
 let style: HTMLStyleElement
@@ -28,16 +29,20 @@ function tokenColour(name: string) {
 const paint = (svg: Element, part: string) =>
   getComputedStyle(svg.querySelector(`[data-part="${part}"]`)!)
 
+const SQUARE = 'M4 4h30v30H4z'
+const EVERY_LAYER = (
+  ['shadow', 'face', 'detail', 'highlight', 'stroke'] as const
+).map((layer) => [layer, SQUARE] as const)
+const FILLS = ['shadow', 'face', 'detail', 'highlight'] as const
+
 describe('SpotIllustration colours', () => {
   it('paints each layer in its illustration colour', () => {
-    const { container } = render(<Heart />)
+    const { container } = render(<SpotIllustration layers={EVERY_LAYER} />)
     const svg = container.querySelector('svg')!
-    expect(paint(svg, 'shadow').fill).toBe(
-      tokenColour('--color-illustration-shadow')
-    )
-    expect(paint(svg, 'face').fill).toBe(
-      tokenColour('--color-illustration-face')
-    )
+    for (const layer of FILLS)
+      expect(paint(svg, layer).fill, layer).toBe(
+        tokenColour(`--color-illustration-${layer}`)
+      )
     expect(paint(svg, 'stroke').stroke).toBe(
       tokenColour('--color-illustration-stroke')
     )
@@ -45,11 +50,18 @@ describe('SpotIllustration colours', () => {
   })
 
   it('keeps the same colours in dark mode', () => {
-    const { container } = render(<Heart />)
+    const { container } = render(
+      <SpotIllustration layers={EVERY_LAYER} outline />
+    )
     const svg = container.querySelector('svg')!
-    const light = paint(svg, 'face').fill
+    const colours = () =>
+      [...FILLS, 'stroke', 'outline'].map((part) => {
+        const { fill, stroke } = paint(svg, part)
+        return { part, fill, stroke }
+      })
+    const light = colours()
     document.documentElement.classList.add('dark')
-    expect(paint(svg, 'face').fill).toBe(light)
+    expect(colours()).toEqual(light)
     document.documentElement.classList.remove('dark')
   })
 
