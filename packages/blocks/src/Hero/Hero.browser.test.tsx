@@ -73,6 +73,9 @@ describe('Hero bento layout', () => {
     const first = screen.getByRole('link', { name: 'Contact sales' })
     const second = screen.getByRole('link', { name: /Create my event/ })
     expect(rect(second).top).toBeCloseTo(rect(first).top, 0)
+    // Text sets wider on Linux than on a Mac, so the row keeps room to spare rather than fitting exactly.
+    const row = rect(first.parentElement!)
+    expect(row.right - rect(second).right).toBeGreaterThanOrEqual(16)
   })
 
   it('stacks the title over the video on a phone, with no photo panels', async () => {
