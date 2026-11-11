@@ -23,7 +23,7 @@ import { CallToAction } from '@oztix/roadie-blocks/call-to-action'
 ### Photo
 
 The default. The pitch and actions start beside a tilted portrait (3:4) photo that
-breaks out of the top of the panel. `ratio='story'` (9:16),
+breaks out of the top of a rounded panel, in line with the hero. `ratio='story'` (9:16),
 `'square'`, `'landscape'` (3:2), or `'banner'` (2:1) changes its shape. On a phone, the photo sits above the
 copy.
 
@@ -93,7 +93,7 @@ The heading, copy, and actions centred in the panel, with no photo.
 
 `intent` tints the panel and the highlighted words, and `emphasis` sets the panel: `raised` by default, or `subtler`, `subtle`, `normal`, `strong`, or `inverted`. On a `strong` or `inverted` panel, the first action switches to an intent that stands apart from the panel's fill, and highlighted words, links, and code take the panel's text colour.
 
-`contained` draws a rounded panel in line with the hero instead of a band across the window. `align` overrides the preset's alignment, which starts on `photo` and centres on `centred`, and `size='md'` or `'sm'` sets the title one or two steps smaller, with smaller body text and tighter spacing.
+`centred` runs its surface across the window as a band, and `contained` draws it as a rounded panel in line with the hero instead, as `photo` does by default. `contained={false}` sets `photo` on a band. `align` overrides the preset's alignment, which starts on `photo` and centres on `centred`, and `size='md'` or `'sm'` sets the title one or two steps smaller, with smaller body text and tighter spacing.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, strong */}
