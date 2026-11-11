@@ -88,6 +88,17 @@ describe('normalise', () => {
     expect(covers(shadow!.d, 28, 28)).toBe(true)
   })
 
+  it('keeps a stroke drawn with relative points where it was', () => {
+    // SVGO writes paths like this: the points after a leading `m` are relative lines.
+    const { layers } = normalise(
+      svg(fill(FACE, rect(4, 4, 30, 30)), line('m4 30 10 0 0 -10'))
+    )
+    const stroke = layers.at(-1)!.d
+    expect(inks(stroke, 9, 30)).toBe(true)
+    expect(inks(stroke, 14, 25)).toBe(true)
+    expect(inks(stroke, 7, 15)).toBe(false)
+  })
+
   it('merges every stroke into one Stroke on top', () => {
     const { layers } = normalise(
       svg(

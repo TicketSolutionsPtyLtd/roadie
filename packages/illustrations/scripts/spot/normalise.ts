@@ -196,7 +196,10 @@ export function normalise(svg: string): Report {
         clippedStrokes++
         strokes.push(clipOutside(line, grow(covering, CUT_SHORT)))
       } else {
-        strokes.push(item.d.trim().replace(/^m/, 'M'))
+        // Rewritten absolute, so joining it to other strokes can't turn its relative points absolute.
+        const absolute = parse(item.d)
+        strokes.push(absolute.toSVGString())
+        absolute.delete()
       }
       for (const p of [line, core, covering]) p?.delete()
       return
