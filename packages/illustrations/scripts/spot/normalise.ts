@@ -84,21 +84,33 @@ function wholeBoxClips(svg: string) {
     fn: () => ({
       element: {
         enter(node) {
-          if (node.name !== 'clipPath' || !node.attributes.id) return
+          if (
+            node.name !== 'clipPath' ||
+            !node.attributes.id ||
+            node.attributes.transform
+          )
+            return
           const covers = node.children.some((child) => {
             if (
               child.type !== 'element' ||
               child.name !== 'path' ||
-              !child.attributes.d
+              !child.attributes.d ||
+              child.attributes.transform
             )
               return false
             const shape = PK.FromSVGString(child.attributes.d)
             if (!shape) return false
-            const b = shape.computeTightBounds()
-            shape.delete()
-            return (
-              b.fLeft <= 0 && b.fTop <= 0 && b.fRight >= BOX && b.fBottom >= BOX
+            const rule =
+              child.attributes['clip-rule'] ?? node.attributes['clip-rule']
+            shape.setFillType(
+              rule === 'evenodd' ? PK.FillType.EVENODD : PK.FillType.WINDING
             )
+            const uncovered = parse(`M0 0h${BOX}v${BOX}H0z`)
+            uncovered.op(shape, PK.PathOp.DIFFERENCE)
+            const whole = uncovered.toSVGString() === ''
+            uncovered.delete()
+            shape.delete()
+            return whole
           })
           if (covers) ids.add(node.attributes.id)
         }

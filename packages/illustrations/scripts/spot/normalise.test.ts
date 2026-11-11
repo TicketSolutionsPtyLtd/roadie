@@ -292,6 +292,38 @@ describe('normalise', () => {
         `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
       ),
       'clip paths'
+    ],
+    [
+      'a clip path that spans the box but cuts a corner off',
+      svg(
+        '<defs><clipPath id="c"><path d="M0 0h48v48z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a clip path that spans the box with a hole in it',
+      svg(
+        `<defs><clipPath id="c"><path clip-rule="evenodd" d="M0 0h48v48H0z${rect(10, 10, 10, 10)}"/></clipPath></defs>`,
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip path shrunk by a transform',
+      svg(
+        '<defs><clipPath id="c" transform="scale(.5)"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip shape moved by a transform',
+      svg(
+        '<defs><clipPath id="c"><path transform="translate(20)" d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
     ]
   ])('rejects %s', (_, source, message) => {
     expect(() => normalise(source)).toThrow(message)
