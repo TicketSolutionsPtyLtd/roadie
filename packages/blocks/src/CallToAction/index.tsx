@@ -76,7 +76,7 @@ export type CallToActionProps = {
    * @default 'raised'
    */
   emphasis?: BlockEmphasis
-  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. */
+  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. Unset, `photo` is contained and `centred` is a band. */
   contained?: boolean
   /**
    * Where the heading, copy, and actions line up: `start` on `photo`, `center` on `centred`.
@@ -110,16 +110,22 @@ const COPY_WIDTH: Record<BlockRatio, string> = {
 
 // The photo's height at its width, so the copy keeps the panel tall enough for it.
 const PHOTO_HEIGHT: Record<BlockRatio, string> = {
-  portrait:
-    '@xl:min-h-[calc(min(33.3cqw,416px)-9rem)] @7xl:min-h-[calc(min(33.3cqw,416px)-11rem)]',
-  story:
-    '@xl:min-h-[calc(min(44.5cqw,555px)-9rem)] @7xl:min-h-[calc(min(44.5cqw,555px)-11rem)]',
+  portrait: '@xl:[--photo-height:min(33.3cqw,416px)]',
+  story: '@xl:[--photo-height:min(44.5cqw,555px)]',
   square:
-    '@xl:min-h-[calc(min(25cqw,312px)-9rem)] @5xl:min-h-[calc(min(33.3cqw,384px)-9rem)] @7xl:min-h-[calc(min(33.3cqw,384px)-11rem)]',
+    '@xl:[--photo-height:min(25cqw,312px)] @5xl:[--photo-height:min(33.3cqw,384px)]',
   landscape:
-    '@xl:min-h-[calc(min(16.7cqw,208px)-9rem)] @5xl:min-h-[calc(min(22.2cqw,256px)-9rem)] @7xl:min-h-[calc(min(22.2cqw,256px)-11rem)]',
+    '@xl:[--photo-height:min(16.7cqw,208px)] @5xl:[--photo-height:min(22.2cqw,256px)]',
   banner:
-    '@xl:min-h-[calc(min(12.5cqw,156px)-9rem)] @5xl:min-h-[calc(min(16.7cqw,192px)-9rem)] @7xl:min-h-[calc(min(16.7cqw,192px)-11rem)]'
+    '@xl:[--photo-height:min(12.5cqw,156px)] @5xl:[--photo-height:min(16.7cqw,192px)]'
+}
+
+// The photo's height the copy needn't cover: its overhang, less the illustration below it, plus the
+// surface's padding, which is thinner on a panel than a band.
+const PHOTO_ROOM = {
+  band: '@xl:min-h-[calc(var(--photo-height)-9rem)] @7xl:min-h-[calc(var(--photo-height)-11rem)]',
+  panel:
+    '@xl:min-h-[calc(var(--photo-height)-7rem)] @3xl:min-h-[calc(var(--photo-height)-9rem)] @7xl:min-h-[calc(var(--photo-height)-11rem)]'
 }
 
 /** Closes a page with a short pitch and the next step to take. */
@@ -149,7 +155,9 @@ export function CallToAction(props: CallToActionProps) {
           {image && (
             <div
               className={cn(
-                'relative -mt-24 @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @3xl:end-16 @7xl:-top-32',
+                'relative @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @3xl:end-16 @7xl:-top-32',
+                // On a phone the photo is in flow, so its overhang counts from the surface's top padding.
+                block.contained ? '-mt-20' : '-mt-24',
                 PHOTO_WIDTH[ratio],
                 tilted && '-rotate-5 @xl:rotate-5'
               )}
@@ -184,7 +192,8 @@ export function CallToAction(props: CallToActionProps) {
                 // enough for it: the photo's height at its width, less its overhang, plus the
                 // illustration below it, less the panel's padding. Its rows
                 // pack at the centre of that height, so short copy keeps its gaps.
-                PHOTO_HEIGHT[ratio]
+                PHOTO_HEIGHT[ratio],
+                PHOTO_ROOM[block.contained ? 'panel' : 'band']
               ],
               centred && 'justify-items-center text-center'
             )}

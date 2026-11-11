@@ -72,15 +72,21 @@ function boxes() {
 }
 
 describe('CallToAction with photo', () => {
-  it('sets the photo above the copy on a phone, breaking out of the panel', async () => {
-    await page.viewport(PHONE.width, PHONE.height)
-    render(<CallToAction {...props} />)
+  it.each([
+    ['a contained panel', true],
+    ['a band', false]
+  ] as const)(
+    'sets the photo above the copy on a phone, breaking out of %s',
+    async (_, contained) => {
+      await page.viewport(PHONE.width, PHONE.height)
+      render(<CallToAction {...props} contained={contained} />)
 
-    const { section, panel, heading, photo } = boxes()
-    expect(photo.top).toBeLessThan(panel.top)
-    expect(photo.top).toBeGreaterThanOrEqual(section.top)
-    expect(photo.bottom).toBeLessThanOrEqual(heading.top)
-  })
+      const { section, panel, heading, photo } = boxes()
+      expect(photo.top).toBeLessThan(panel.top)
+      expect(photo.top).toBeGreaterThanOrEqual(section.top)
+      expect(photo.bottom).toBeLessThanOrEqual(heading.top)
+    }
+  )
 
   it('sets the photo beside the copy on a mid-width screen', async () => {
     await page.viewport(640, 800)
@@ -128,17 +134,21 @@ describe('CallToAction with photo', () => {
         ['a wide desktop', { width: 1600, height: 900 }]
       ] as const
     ).flatMap(([name, size]) =>
-      (['square', 'story', 'portrait', 'landscape', 'banner'] as const).map(
-        (ratio) => [name, ratio, size] as const
+      (['square', 'story', 'portrait', 'landscape', 'banner'] as const).flatMap(
+        (ratio) =>
+          (['contained panel', 'band'] as const).map(
+            (shape) => [shape, name, ratio, size] as const
+          )
       )
     )
   )(
-    'keeps the photo and its illustration above the panel’s foot, with short copy, on %s at %s',
-    async (_, ratio, size) => {
+    'keeps the photo and its illustration above a %s’s foot, with short copy, on %s at %s',
+    async (shape, _, ratio, size) => {
       await page.viewport(size.width, size.height)
       const { container } = render(
         <CallToAction
           {...props}
+          contained={shape === 'contained panel'}
           ratio={ratio}
           body={undefined}
           actions={undefined}
@@ -193,17 +203,6 @@ describe('CallToAction with photo', () => {
     const above = heading.top - panel.top
     const below = panel.bottom - link.bottom
     expect(Math.abs(above - below)).toBeLessThan(4)
-  })
-
-  it('keeps the photo above a contained panel’s foot, with short copy', async () => {
-    await page.viewport(DESKTOP.width, DESKTOP.height)
-    const { container } = render(
-      <CallToAction {...props} body={undefined} actions={undefined} contained />
-    )
-
-    const { panel } = boxes()
-    const illustration = container.querySelector('svg')!.getBoundingClientRect()
-    expect(illustration.bottom).toBeLessThanOrEqual(panel.bottom)
   })
 
   it('has no axe violations', async () => {
