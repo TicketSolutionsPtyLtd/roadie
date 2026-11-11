@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 
-import { previewSvg } from './preview.ts'
+import { preview, previewSvg } from './preview.ts'
 
 const layers = [
   { name: 'Face' as const, d: 'M2 2h44v44H2z' },
@@ -21,4 +21,15 @@ describe('previewSvg', () => {
   it('leaves the outline off when asked', () => {
     expect(previewSvg(layers, false)).not.toContain('<g')
   })
+})
+
+describe('preview', () => {
+  it.each(['../../package', 'svgs/../../index', 'Heart'])(
+    "refuses %s, which isn't the name of a source",
+    async (name) => {
+      await expect(preview([name], { out: 'unused.png' })).rejects.toThrow(
+        'kebab-case'
+      )
+    }
+  )
 })

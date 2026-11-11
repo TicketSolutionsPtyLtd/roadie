@@ -2,6 +2,16 @@
 
 export const BOX = 48
 
+/** A source's name: kebab-case, starting with a letter, so it makes a component name. */
+export const NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
+
+export function assertName(name: string) {
+  if (!NAME.test(name))
+    throw new Error(
+      `${name}: name it in kebab-case and start it with a letter, such as map-pin`
+    )
+}
+
 /** How far the outline reaches past the art, so the art has to stay this far inside the box. */
 export const OUTLINE_WIDTH = 2
 

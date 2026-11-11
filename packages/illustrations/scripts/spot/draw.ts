@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 
 import { type Drawing, draw } from './draw/index.ts'
+import { assertName } from './format.ts'
 import { SVGS } from './generate.ts'
 import { measure } from './measure.ts'
 import { normalise, toSvg } from './normalise.ts'
@@ -24,6 +25,7 @@ const pct = (n = 0) => `${Math.round(n * 100)}%`
 
 /** Draws a drawing file into its source, returning the source's layers. */
 export async function drawSource(slug: string) {
+  assertName(slug)
   const file = join(DRAWINGS, `${slug}.ts`)
   if (!existsSync(file))
     throw new Error(

@@ -11,7 +11,8 @@ import {
   type Layer,
   OUTLINE_COLOUR,
   OUTLINE_WIDTH,
-  STROKE
+  STROKE,
+  assertName
 } from './format.ts'
 import { SVGS } from './generate.ts'
 
@@ -65,6 +66,7 @@ export function previewSvg(layers: Layer[], outline: boolean) {
 type Item = { name: string; layers: Layer[]; target: boolean }
 
 function load(arg: string, target: boolean, calledFrom: string): Item {
+  if (!arg.endsWith('.svg')) assertName(arg)
   const file = arg.endsWith('.svg')
     ? resolve(calledFrom, arg)
     : join(SVGS, `${arg}.svg`)

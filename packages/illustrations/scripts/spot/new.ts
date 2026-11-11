@@ -3,14 +3,13 @@ import { join } from 'node:path'
 import { parseArgs } from 'node:util'
 
 import { DRAWINGS } from './draw.ts'
+import { NAME } from './format.ts'
 import { componentName } from './generate.ts'
 
 const USAGE = `Usage: pnpm spot:new <name>
 
 Starts drawings/<name>.ts, a spot illustration drawn in code. Shape it, then
 run spot:draw <name> to make its source and component.`
-
-const NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
 
 /** A drawing to start from: one rounded block, extruded down and right. */
 export const template = (
