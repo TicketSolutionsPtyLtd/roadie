@@ -430,7 +430,7 @@
     "axe-core": "4.14.0",
     "babel-plugin-react-compiler": "1.0.0",
     "class-variance-authority": "0.7.1",
-    "jsdom": "30.1.3",
+    "jsdom": "31.0.0",
     "jsqr": "1.4.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
