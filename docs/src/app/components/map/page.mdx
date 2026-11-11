@@ -413,7 +413,7 @@ Give places a `region`, such as their state, and they only group with places in 
 
 `onGroupsChange` gives you the bands on the map whenever they change, each with its value, share and places, largest first. Here each band is a group of rows in a [`DataTable`](/charts/data-table#grouped-rows), so the table lists only what the map shows, and View all lists every place by state. A share column with `total: true` adds up in each group and the totals. `highlight` lights the bands holding places by their `label`, as hover does, so hovering or focusing a row lights its band. A place inside a group lights its group's band. Opening a group fits the map to its places with `actionsRef`, which splits its band unless the groups are locked.
 
-Send totals per postcode or suburb, not a place per person, so no one's location reaches the browser, and leave out totals small enough to point to someone.
+Totals per postcode or suburb are the better feed. No one's location reaches the browser, and your server can leave out totals small enough to point to someone. A point for each sale also works, for a feed you can't change. Leave out `value` and each point counts as 1, and points at the same spot add up into one band.
 
 ```tsx-live-noinline
 const places = [
@@ -1019,7 +1019,7 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
     Show where the numbers are with `Map.Clusters`, and the same numbers in a table or ranked bars beside it, to compare.
   </Guideline.Do>
   <Guideline.Dont code={`<Map.Clusters data={people.map((person) => ({ position: person.home }))} label='People' />`}>
-    Don't send a place for each person. Total them by postcode or suburb on the server, so no one's location reaches the browser.
+    Don't send a place for each person when totals will do. Total them by postcode or suburb on the server where you can, so no one's location reaches the browser.
   </Guideline.Dont>
 </Guideline>
 

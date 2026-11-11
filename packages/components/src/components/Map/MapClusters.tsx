@@ -44,8 +44,9 @@ export type MapClusterBand = {
 
 export type MapClustersProps = {
   /**
-   * The places and their values. Send totals per postcode or suburb rather
-   * than a point per person, so no one's location reaches the browser.
+   * The places and their values. Totals per postcode or suburb keep each
+   * person's location out of the browser. A point for each sale also works,
+   * each counting as 1.
    */
   data: readonly MapClusterPoint[]
   /** Says what the values count, such as "Total". */
