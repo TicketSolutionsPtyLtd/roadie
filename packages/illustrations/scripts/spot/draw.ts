@@ -4,7 +4,6 @@ import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 
-import { styleWarnings } from './check.ts'
 import { type Drawing, draw } from './draw/index.ts'
 import { SVGS } from './generate.ts'
 import { measure } from './measure.ts'
@@ -56,8 +55,6 @@ if (import.meta.main) {
             .map(([layer, share]) => `${layer} ${pct(share)}`)
             .join(', ')
       )
-      for (const w of styleWarnings(layers, slug))
-        console.warn(`  ${w.message}`)
       drawn.push(slug)
     } catch (error) {
       console.error(`${slug}: ${(error as Error).message}`)
