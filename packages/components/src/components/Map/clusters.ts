@@ -208,3 +208,15 @@ export function gridZoom(instance: MapEngineInstance) {
   const east = instance.project({ lat: center.lat, lng: center.lng + 1 })
   return Math.log2((Math.abs(east.x - here.x) * 360) / 512)
 }
+
+// Well above an engine's rounding, and far below a step anyone zooms.
+const ROUNDING = 1e-6
+
+/**
+ * The whole zoom groups are made at. An engine's pixels carry rounding, so
+ * a whole zoom reads a hair under itself at some centres, and flooring that
+ * would regroup the bands a zoom further out as the map pans.
+ */
+export function gridLevel(instance: MapEngineInstance) {
+  return Math.floor(gridZoom(instance) + ROUNDING)
+}

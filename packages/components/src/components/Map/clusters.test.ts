@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { clusterIndex, gridZoom } from './clusters'
+import { clusterIndex, gridLevel, gridZoom } from './clusters'
 import type { MapEngineInstance } from './engine'
 
 // Two suburbs a kilometre apart, one 4 km away, and a town 35 km out.
@@ -232,5 +232,13 @@ describe('gridZoom', () => {
     // A 512px world, as MapLibre draws zoom 0, and Google draws zoom 1.
     expect(gridZoom(engine(512 / 360))).toBeCloseTo(0)
     expect(gridZoom(engine((512 * 2 ** 10) / 360))).toBeCloseTo(10)
+  })
+
+  it('groups at a whole zoom as that zoom, though the engine’s pixels carry rounding', () => {
+    // Pixels measured from the world's edge read a whole zoom a hair under
+    // itself, which would group a zoom further out.
+    for (const zoom of [0, 4, 9, 12, 16, 20, 22])
+      expect(gridLevel(engine((512 * 2 ** zoom) / 360))).toBe(zoom)
+    expect(gridLevel(engine((512 * 2 ** 9.97) / 360))).toBe(9)
   })
 })

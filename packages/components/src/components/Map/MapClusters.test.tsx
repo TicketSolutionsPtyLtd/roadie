@@ -181,6 +181,37 @@ describe('Map.Clusters', () => {
     ])
   })
 
+  it('keeps its groups as the map pans at a whole zoom', async () => {
+    // Two places 80px apart where a 512px world has doubled ten times, so
+    // they are two bands there and one band a zoom further out.
+    const pixel = 360 / (512 * 2 ** 10)
+    const { fake } = await renderClusters({
+      data: [
+        { position: { lat: -27.46, lng: 153.03 }, value: 3 },
+        { position: { lat: -27.46, lng: 153.03 + 80 * pixel }, value: 4 }
+      ]
+    })
+    // Engines measure pixels from the world's edge, so they carry rounding.
+    const scale = 1 / pixel
+    fake.instance.project = ({ lat, lng }) => {
+      const { center } = fake.instance.getView()
+      return {
+        x: 200 + (lng * scale - center.lng * scale),
+        y: 150 - (lat * scale - center.lat * scale)
+      }
+    }
+
+    for (let step = 0; step < 10; step++) {
+      await act(() => {
+        fake.instance.setView({
+          center: { lat: -27.46, lng: 153.03 + step * pixel },
+          zoom: 14 + Math.log2(scale / 1000)
+        })
+      })
+      expect(bandNames()).toHaveLength(2)
+    }
+  })
+
   it('zooms in until a group splits, and moves focus to its largest part', async () => {
     const { fake } = await renderClusters()
     const group = band('120, 67% of all')

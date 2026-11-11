@@ -22,6 +22,7 @@ import {
   type MapClusterGroup,
   type MapClusterPoint,
   clusterIndex,
+  gridLevel,
   gridZoom,
   listOf
 } from './clusters'
@@ -144,7 +145,7 @@ export function MapClusters({
     () => {
       if (!instance || !frame.current) return ''
       if (!locked) lockedAt.current = null
-      else lockedAt.current ??= Math.floor(gridZoom(instance))
+      else lockedAt.current ??= gridLevel(instance)
       return JSON.stringify(
         layoutOf(instance, frame.current, index, lockedAt.current)
       )
@@ -178,7 +179,7 @@ export function MapClusters({
     if (!instance) return
     return instance.on('moveend', () => {
       const target = focusAfterSplit.current
-      const level = lockedAt.current ?? Math.floor(gridZoom(instance))
+      const level = lockedAt.current ?? gridLevel(instance)
       if (target && level < target.at) focusAfterSplit.current = null
     })
   }, [instance])
@@ -471,7 +472,7 @@ function layoutOf(
   index: ClusterIndex,
   lockedAt: number | null
 ): Layout {
-  const level = lockedAt ?? Math.floor(gridZoom(instance))
+  const level = lockedAt ?? gridLevel(instance)
   return {
     level,
     largest: index.largestAt(level),
