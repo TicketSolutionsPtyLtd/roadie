@@ -31,8 +31,16 @@ plain `vite`. Vitest, which peers on `vite`, then installs twice. A test
 file loads one Vitest and its snapshot client from the other, so the client
 has no state for the file.
 
-Count the copies: `grep -c "^  vitest@" pnpm-lock.yaml`. A new entry means
-a split.
+List the copies: `grep "^  vitest@" pnpm-lock.yaml`. The bare `vitest@<version>:`
+line is the package, and each line with peers after it is a copy. Compare
+the list before and after a dependency change: a new line means a split.
+
+The lockfile already holds two copies, which differ only in `yaml`:
+components, core, and widgets resolve `vite` with `yaml@2.9.0`, and the root,
+blocks, charts, editor, lint-plugin, docs, and `testing/frames` with
+`yaml@2.9.1`. Each package's tests load their own package's copy, so this
+split hasn't broken a suite yet. A test that loads Vitest through another
+package across that line can hit the same error.
 
 ## Fix
 

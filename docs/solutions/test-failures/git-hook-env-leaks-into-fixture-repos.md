@@ -3,9 +3,8 @@ title: A test's temp git repo writes to the real repo when a hook runs it
 date: 2026-11-05
 category: test-failures
 problem_type: test_failure
-components:
-  - scripts
-keywords:
+module: repo
+tags:
   - git
   - GIT_DIR
   - GIT_WORK_TREE
