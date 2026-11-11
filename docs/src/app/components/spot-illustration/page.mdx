@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'SpotIllustration',
-  description: 'Small Oztix illustrations in fixed brand colours, for empty states, features, and moments of delight',
+  description: 'Small Oztix illustrations in fixed brand colours, for empty states, dividers, and help content',
   status: 'stable',
   category: 'Media & brand'
 }
@@ -8,7 +8,7 @@ export const metadata = {
 import { IllustrationGallery } from '@/components/IllustrationGallery'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Small Oztix illustrations in fixed brand colours, for empty states, features, and moments of delight.
+Small Oztix illustrations in fixed brand colours, for empty states, dividers, and help content.
 
 ## Import
 
@@ -23,13 +23,13 @@ Import the package's CSS after Roadie's, so Tailwind keeps the illustration colo
 @import '@oztix/roadie-illustrations/css';
 ```
 
-Each illustration is its own module, so an app ships only the ones it imports. `@oztix/roadie-components/spot-illustrations` is deprecated: it has 12 of these, with older art.
+Each illustration is its own module, so an app ships only the ones it imports. `@oztix/roadie-components/spot-illustrations` is deprecated. It has 12 of these, with older art.
 
 ## Examples
 
 ### Default
 
-Every spot illustration is 48px square.
+Every spot illustration is 48px square by default.
 
 ```tsx-live
 <NoteMusic />
@@ -63,7 +63,7 @@ Size an illustration with a `size-*` class. Below 32px, use an icon instead.
 
 ## Adding an illustration
 
-Spot illustrations are drawn in code, not exported from a design file. Each is an SVG source in `packages/illustrations/src/spot/svgs/`, one path per named layer:
+Spot illustrations live in code, not in a design file. Each is an SVG source in `packages/illustrations/src/spot/svgs/`, one path per named layer:
 
 | Layer     | Colour    | What it's for                                         |
 | --------- | --------- | ----------------------------------------------------- |
@@ -73,7 +73,7 @@ Spot illustrations are drawn in code, not exported from a design file. Each is a
 | Highlight | `#c2dffb` | Glass, screens, and shine                             |
 | Stroke    | `#1a1f2b` | Every line, 0.5 wide with round ends, always on top   |
 
-Draw in those colours, in any tool or by hand, and run `pnpm --filter @oztix/roadie-illustrations spot:convert` on the SVG. It merges each colour into its layer, cuts back lines that were hidden, fits the art inside the box, checks nothing visible moved, and generates the component. The [package README](https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/illustrations) has the whole workflow.
+Draw in those colours, in any tool or by hand, and run `pnpm --filter @oztix/roadie-illustrations spot:convert` on the SVG. It merges each colour into its layer, cuts back lines that were hidden, shrinks art that would push the outline out of the box, and generates the component. It also counts the pixels that changed, so you can check nothing moved. The [package README](https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/illustrations) has the whole workflow.
 
 ## Guidelines
 
