@@ -116,7 +116,7 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
         label,
         tags.join(', '),
         [{ code: `/brand/illustrations/${slug}.svg` }],
-        component ? [{ code: component }] : ''
+        [{ code: component }]
       ])
     }),
   ContainerScale: () => twinTableMarkdown(containerTable(tokens())),

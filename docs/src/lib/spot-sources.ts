@@ -13,6 +13,15 @@ const SOURCES = join(
 export const spotSource = (slug: string) =>
   readFile(join(SOURCES, `${slug}.svg`))
 
+/** The pack's download card, less its size, for the page and its markdown twin. */
+export const ILLUSTRATION_PACK = {
+  title: 'Illustration pack',
+  href: '/brand/illustration/oztix-illustration-pack.zip',
+  formats: 'SVG',
+  description:
+    'Every spot illustration in the library, as an SVG in its brand colours.'
+}
+
 let pack: Promise<Uint8Array<ArrayBuffer>> | undefined
 
 /** Every spot illustration's SVG in one zip, built once per build. */

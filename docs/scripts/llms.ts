@@ -49,6 +49,7 @@ import {
   releaseRoutes,
   statusSentence
 } from '../src/lib/releases.ts'
+import { ILLUSTRATION_PACK } from '../src/lib/spot-sources.ts'
 import {
   ALL_TOKENS_INTRO,
   TOKEN_FAMILY_PAGES,
@@ -174,9 +175,11 @@ const renderers = {
   },
   // The build writes the pack, so its size is read from the export.
   IllustrationPackCard: () => {
-    const href = '/brand/illustration/oztix-illustration-pack.zip'
-    const size = Math.round(statSync(path.join(outDir, href)).size / 1024)
-    return `[Illustration pack](${resolveLink(href)}), SVG, ${size} KB. Every spot illustration in the library, as an SVG in its brand colours.`
+    const { size } = statSync(path.join(outDir, ILLUSTRATION_PACK.href))
+    return renderers.DownloadCard({
+      ...ILLUSTRATION_PACK,
+      size: `${Math.round(size / 1024)} KB`
+    })
   }
 }
 
