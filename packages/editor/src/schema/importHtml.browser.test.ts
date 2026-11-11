@@ -576,4 +576,11 @@ describe('htmlToEditorValue', () => {
     // @ts-expect-error: checks the runtime guard
     expect(() => htmlToEditorValue('<p>Doors</p>', 'fancy')).toThrow(RangeError)
   })
+
+  it('sends an email to importEmail, which keeps its preheader and buttons', () => {
+    const importing = () => htmlToEditorValue('<p>Doors</p>', 'email')
+
+    expect(importing).toThrow(RangeError)
+    expect(importing).toThrow(/importEmail/)
+  })
 })
