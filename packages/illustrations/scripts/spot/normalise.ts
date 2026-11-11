@@ -83,43 +83,65 @@ const INHERITED = ['fill', 'fill-rule', 'stroke', 'stroke-width'] as const
 // What SVG paints when nothing sets these.
 const INITIAL_PAINT: Record<string, string> = { fill: '#000' }
 
+// Attributes that can't change the region a clip path covers.
+const INERT_IN_CLIP = new Set([
+  'id',
+  'clipPathUnits',
+  'clip-rule',
+  'd',
+  'fill',
+  'fill-rule'
+])
+const inert = (node: { attributes: Record<string, string> }) =>
+  Object.keys(node.attributes).every((k) => INERT_IN_CLIP.has(k))
+
+function coversBox(d: string) {
+  const shape = PK.FromSVGString(d)
+  if (!shape) return false
+  // Even-odd covers the least, so the answer holds whatever clip-rule an ancestor or stylesheet sets.
+  shape.setFillType(PK.FillType.EVENODD)
+  const uncovered = parse(`M0 0h${BOX}v${BOX}H0z`)
+  uncovered.op(shape, PK.PathOp.DIFFERENCE)
+  const whole = uncovered.toSVGString() === ''
+  uncovered.delete()
+  shape.delete()
+  return whole
+}
+
 /** Clip paths covering the whole box, which clip nothing: Figma exports one for a frame that clips its content. */
 function wholeBoxClips(svg: string) {
   const ids = new Set<string>()
+  const taken = new Set<string>()
+  // Visibility and styles are inherited, and could hide a clip's shape.
+  const restyled = new WeakSet<object>()
+  let stylesheet = false
   const find: CustomPlugin = {
     name: 'findWholeBoxClips',
     fn: () => ({
       element: {
-        enter(node) {
+        enter(node, parent) {
+          if (node.name === 'style') stylesheet = true
           if (
-            node.name !== 'clipPath' ||
-            !node.attributes.id ||
-            node.attributes.transform
+            restyled.has(parent) ||
+            node.attributes.visibility ||
+            node.attributes.style
           )
+            restyled.add(node)
+          const { id } = node.attributes
+          // A reference goes to the first element with the id.
+          if (!id || taken.has(id)) return
+          taken.add(id)
+          if (node.name !== 'clipPath' || !inert(node) || restyled.has(node))
             return
-          const covers = node.children.some((child) => {
-            if (
-              child.type !== 'element' ||
-              child.name !== 'path' ||
-              !child.attributes.d ||
-              child.attributes.transform
-            )
-              return false
-            const shape = PK.FromSVGString(child.attributes.d)
-            if (!shape) return false
-            const rule =
-              child.attributes['clip-rule'] ?? node.attributes['clip-rule']
-            shape.setFillType(
-              rule === 'evenodd' ? PK.FillType.EVENODD : PK.FillType.WINDING
-            )
-            const uncovered = parse(`M0 0h${BOX}v${BOX}H0z`)
-            uncovered.op(shape, PK.PathOp.DIFFERENCE)
-            const whole = uncovered.toSVGString() === ''
-            uncovered.delete()
-            shape.delete()
-            return whole
-          })
-          if (covers) ids.add(node.attributes.id)
+          const covers = node.children.some(
+            (child) =>
+              child.type === 'element' &&
+              child.name === 'path' &&
+              inert(child) &&
+              child.attributes.d !== undefined &&
+              coversBox(child.attributes.d)
+          )
+          if (covers) ids.add(id)
         }
       }
     })
@@ -130,7 +152,7 @@ function wholeBoxClips(svg: string) {
       find
     ]
   })
-  return ids
+  return stylesheet ? new Set<string>() : ids
 }
 
 /** Every painted shape, in paint order, with a path's fill and stroke as separate items. */
