@@ -1,7 +1,6 @@
 import {
   namespaceUses,
   print,
-  reExportedName,
   readWhole,
   renameReferences,
   reporter
@@ -47,7 +46,6 @@ function reExportLeft(specifier) {
   if (specifier.type !== 'ExportSpecifier') return REEXPORTED_WHOLE
   const name = specifier.local.name
   if (LEFT[name]) return LEFT[name]
-  if (PROPS_TYPES.has(name)) return reExportedName(name)
   return undefined
 }
 
@@ -167,13 +165,23 @@ export default function transform(file, api) {
       for (const specifier of staying) {
         report(specifier, reExportLeft(specifier))
       }
-      const moving = specifiers.filter(
-        (specifier) => !staying.includes(specifier)
-      )
+      const moving = specifiers
+        .filter((specifier) => !staying.includes(specifier))
+        .map((specifier) => {
+          if (!PROPS_TYPES.has(specifier.local.name)) return specifier
+          // The alias keeps the module's own public name.
+          const aliased = j.exportSpecifier.from({
+            local: j.identifier(SHARED_PROPS),
+            exported: j.identifier(specifier.exported.name)
+          })
+          aliased.exportKind = specifier.exportKind
+          return aliased
+        })
       if (moving.length === 0) return
       changed = true
       if (staying.length === 0) {
         path.node.source = j.stringLiteral(TO)
+        path.node.specifiers = moving
         return
       }
       path.node.specifiers = staying

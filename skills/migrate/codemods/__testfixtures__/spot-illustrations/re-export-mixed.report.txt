@@ -1,4 +1,2 @@
-line 1: export { HeartProps } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.
 line 2: SpotIllustration takes `layers` in place of `illustration` in @oztix/roadie-illustrations/spot. Move it by hand.
 line 3: '@oztix/roadie-components/spot-illustrations' is re-exported whole, and its exports changed in @oztix/roadie-illustrations/spot. Migrate it by hand.
-line 4: export { CursorProps } re-exports a deprecated name, and renaming it changes this module's own API. Migrate it by hand.

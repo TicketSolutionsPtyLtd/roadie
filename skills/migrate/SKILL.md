@@ -155,7 +155,10 @@ What they change:
   `createSpotIllustration` on the old path and reports them: the new
   `SpotIllustration` takes `layers` in place of `illustration`, and
   `createSpotIllustration` isn't in the new package. An `export … from` the
-  old path moves the illustrations and reports the rest. Add
+  old path moves too, and a re-exported props type keeps its public name as
+  an alias: `export type { SpotIllustrationComponentProps as HeartProps }`.
+  It reports `export *`, and leaves it, because the module's exports
+  changed. Add
   `@oztix/roadie-illustrations` to the app's dependencies, and
   `@import '@oztix/roadie-illustrations/css';` after the components' CSS, so
   Tailwind keeps the colours and sizes the illustrations use. Every
