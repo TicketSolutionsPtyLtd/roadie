@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -12,8 +13,8 @@ const svgs = readdirSync(fileURLToPath(new URL('./svgs/', import.meta.url)))
   .sort()
 
 describe('SPOT_ILLUSTRATIONS', () => {
-  it('lists every source once, with a component the package exports', () => {
-    expect(SPOT_ILLUSTRATIONS.map((i) => i.slug).sort()).toEqual(svgs)
+  it('lists every source once, in file name order, with a component the package exports', () => {
+    expect(SPOT_ILLUSTRATIONS.map((i) => i.slug)).toEqual(svgs)
     for (const { name } of SPOT_ILLUSTRATIONS)
       expect(Spot, name).toHaveProperty(name)
   })
