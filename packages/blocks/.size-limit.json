@@ -7,6 +7,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "react",
       "react-dom"
     ]
@@ -25,6 +26,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -38,6 +40,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -51,6 +54,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -64,6 +68,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -77,6 +82,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -90,6 +96,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -103,6 +110,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -116,6 +124,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -129,6 +138,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -142,6 +152,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -155,6 +166,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -168,6 +180,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
