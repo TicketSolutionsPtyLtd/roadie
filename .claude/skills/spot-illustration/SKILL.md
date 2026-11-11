@@ -62,10 +62,12 @@ density.
 ```bash
 pnpm test:gated illustrations scripts
 pnpm --filter @oztix/roadie-illustrations typecheck
+pnpm --filter @oztix/roadie-illustrations build
 pnpm --filter @oztix/roadie-illustrations size
 ```
 
-Commit `drawings/<name>.ts`, `src/spot/svgs/<name>.svg`, and the generated
-`src/spot/illustrations/` and `src/spot/index.ts` together. Raise the
-`.size-limit.json` budget for all of them if it fails, to about 10% over.
+`size` measures `dist`, so build first. Commit `drawings/<name>.ts`,
+`src/spot/svgs/<name>.svg`, and the generated `src/spot/illustrations/` and
+`src/spot/index.ts` together. If the "Every spot illustration" budget in
+`.size-limit.json` fails, raise it to about 10% over.
 Put the preview sheet in the PR as its evidence.
