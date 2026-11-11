@@ -121,12 +121,31 @@ describe('styleWarnings', () => {
   it.each([
     [
       'coverage',
-      'art too small to hold its own',
+      'art so solid it looks heavy',
       [
         layer('Face', square(2, 2, 44)),
         layer('Shadow', square(20, 20, 6)),
         layer('Stroke', 'M2 2h44')
       ]
+    ],
+    [
+      'coverage',
+      'art too thin to hold its own',
+      [
+        layer('Shadow', 'M4 22h42v8H4z'),
+        layer('Face', 'M2 20h42v8H2z'),
+        layer('Stroke', 'M2 20h42v8H2z')
+      ]
+    ],
+    [
+      'shadow-share',
+      'a Shadow that outweighs the front',
+      block(square(2, 2, 44), square(2, 2, 16))
+    ],
+    [
+      'stroke-share',
+      'line work too sparse to hold the shapes',
+      [...block().slice(0, 2), layer('Stroke', 'M2 2h4')]
     ],
     [
       'long-side',
