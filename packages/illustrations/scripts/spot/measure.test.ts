@@ -90,8 +90,9 @@ describe('measure', () => {
   })
 
   it('finds which way the shadow falls', () => {
+    // The visible Shadow, an L from 8 to 46 less the Face, centres at 34.3; the Face at 21.
     const [dx, dy] = measure(layers).shadowOffset!
-    expect(dx).toBeGreaterThan(0)
+    expect(dx).toBeCloseTo(13.3, 0)
     expect(dy).toBeCloseTo(dx, 6)
   })
 })

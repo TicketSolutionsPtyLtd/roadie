@@ -13,10 +13,14 @@ import {
   ellipse,
   extrude,
   fit,
+  intersect,
   polygon,
   rect,
+  rotate,
+  scale,
   subtract,
   tangent,
+  translate,
   union
 } from './index.ts'
 
@@ -62,6 +66,26 @@ describe('extrude', () => {
     expect(extrude(ellipse(0, 0, 10, 6), [3, 3]).faces).toHaveLength(1)
   })
 
+  it('sweeps a circle into a capsule, its face ending where the sides run parallel to the vector', () => {
+    const circle = ellipse(0, 0, 10)
+    const { back, faces } = extrude(circle, [3, 4])
+    const swept = area(circle, back, ...faces.map((f) => f.path))
+    expect(swept).toBeCloseTo(100 * Math.PI + 2 * 10 * 5, 0)
+  })
+
+  it('paints the faces further along the vector, nearer the viewer, last', () => {
+    const step = polygon([
+      [0, 0],
+      [10, 0],
+      [10, 10],
+      [20, 10],
+      [20, 20],
+      [0, 20]
+    ])
+    const { faces } = extrude(step, [3, 3])
+    expect(faces.map((f) => bounds([f.path]).minX)).toEqual([10, 0, 20])
+  })
+
   it('makes the walls of a hole Detail, and the outside Shadow', () => {
     const ring = subtract(rect(0, 0, 30, 30), rect(10, 10, 10, 10))
     const { faces } = extrude(ring, [3, 3])
@@ -99,6 +123,17 @@ describe('fit', () => {
     expect((b.minY + b.maxY) / 2).toBeCloseTo(24, 4)
   })
 
+  it('centres tall art across, its height spanning 2 to 46', () => {
+    const tall = rect(0, 0, 2, 4)
+    fit([tall])
+    const b = bounds([tall])
+    expect([b.minY, b.maxY]).toEqual([
+      expect.closeTo(2, 4),
+      expect.closeTo(46, 4)
+    ])
+    expect((b.minX + b.maxX) / 2).toBeCloseTo(24, 4)
+  })
+
   it('counts lines that bound no fill', () => {
     const face = rect(0, 0, 10, 10)
     const mark = polygon([
@@ -117,6 +152,41 @@ describe('shapes', () => {
     const b = bounds([rounded])
     expect([b.minX, b.minY, b.maxX, b.maxY]).toEqual([0, 0, 10, 10])
     expect(region(rounded).area).toBeCloseTo(100 - (4 - Math.PI) * 4, 2)
+  })
+
+  it('caps a radius at half the edge, so an oversized one rounds a square into a circle', () => {
+    const circle = rect(0, 0, 10, 10, 99)
+    const b = bounds([circle])
+    expect([b.minX, b.minY, b.maxX, b.maxY]).toEqual([0, 0, 10, 10])
+    expect(region(circle).area).toBeCloseTo(25 * Math.PI, 1)
+  })
+
+  it.each([
+    [
+      'rotates about a point',
+      rotate(rect(0, 0, 10, 2), 90, [5, 1]),
+      [4, -4, 6, 6]
+    ],
+    [
+      'scales about a point',
+      scale(rect(0, 0, 10, 10), 2, [5, 5]),
+      [-5, -5, 15, 15]
+    ],
+    ['translates', translate(rect(0, 0, 10, 10), 3, -2), [3, -2, 13, 8]],
+    [
+      'intersects',
+      intersect(rect(0, 0, 10, 10), rect(5, 5, 10, 10)),
+      [5, 5, 10, 10]
+    ]
+  ])('%s', (_, shape, expected) => {
+    const b = bounds([shape])
+    expect([b.minX, b.minY, b.maxX, b.maxY]).toEqual(
+      expected.map((n) => expect.closeTo(n, 6))
+    )
+  })
+
+  it('refuses a tangent from a point inside the ellipse', () => {
+    expect(() => tangent([1, 0], [0, 0], 5)).toThrow()
   })
 
   it('finds where a line from a point touches an ellipse', () => {
