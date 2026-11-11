@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { check } from './check.ts'
 import { pathData, toCubics } from './geometry.ts'
 import { absoluteStart, bounds, normalise, toSvg } from './normalise.ts'
-import { PK, parse, spaceArcFlags } from './pathkit.ts'
+import { PK, type Path, parse, spaceArcFlags } from './pathkit.ts'
 
 const SHADOW = '#0091EB'
 const FACE = '#E1D1FB'
@@ -160,6 +160,17 @@ describe('normalise', () => {
       svg(fill(FACE, rect(4, 4, 8, 8)), line('M20 30a5 5 0 0110 0'))
     )
     expect(inks(layers.at(-1)!.d, 25, 25)).toBe(true)
+  })
+
+  it('drops a layer that draws nothing', () => {
+    const { layers } = normalise(
+      svg(
+        fill(FACE, rect(4, 4, 10, 10)),
+        fill(SHADOW, 'M30 30'),
+        line('M20 20h4')
+      )
+    )
+    expect(layers.map((l) => l.name)).toEqual(['Face', 'Stroke'])
   })
 
   it('merges every stroke into one Stroke on top', () => {
@@ -393,21 +404,56 @@ describe('toSvg', () => {
   })
 })
 
-describe('pathData', () => {
-  it('keeps an arc of more than a quarter turn on its circle', () => {
-    // 350° of the circle around 24,24, which PathKit draws as three conics of about 117°.
-    const arc = parse('M24 14A10 10 0 1 1 22.26352 14.15192')
-    const written = parse(pathData(arc))
-    arc.delete()
-    const drift = toCubics(written)
+/** How far a path's curves stray from a circle, a quarter of the way along each, since the fit is exact at the middle. */
+function drift(path: Path, cx: number, cy: number, r: number) {
+  return Math.max(
+    ...toCubics(path)
       .flat()
       .map(([a, b, c, d]) => {
-        // A quarter of the way along, since the fit is exact at the middle.
         const at = (i: 0 | 1) => (27 * a[i] + 27 * b[i] + 9 * c[i] + d[i]) / 64
-        return Math.abs(Math.hypot(at(0) - 24, at(1) - 24) - 10)
+        return Math.abs(Math.hypot(at(0) - cx, at(1) - cy) - r)
       })
+  )
+}
+
+// 350° of the circle around 24,24, which PathKit draws as three conics of about 117°.
+const WIDE_ARC = 'M24 14A10 10 0 1 1 22.26352 14.15192'
+
+describe('toCubics', () => {
+  it('keeps an arc of more than a quarter turn on its circle', () => {
+    const arc = parse(WIDE_ARC)
+    expect(drift(arc, 24, 24, 10)).toBeLessThan(0.001)
+    arc.delete()
+  })
+})
+
+describe('pathData', () => {
+  it('keeps an arc of more than a quarter turn on its circle', () => {
+    const arc = parse(WIDE_ARC)
+    const written = parse(pathData(arc))
+    arc.delete()
+    expect(drift(written, 24, 24, 10)).toBeLessThan(0.001)
     written.delete()
-    expect(Math.max(...drift)).toBeLessThan(0.001)
+  })
+
+  it('writes every kind of segment where PathKit has it', () => {
+    const path = parse(
+      'M4 24Q4 4 14 4A5 5 0 0 1 24 4C30 4 34 8 34 14A10 10 0 0 1 24 24ZM40 40h4a2 2 0 0 1 0 4z'
+    )
+    const written = parse(pathData(path))
+    const [expected, actual] = [path, written].map((p) => toCubics(p).flat(3))
+    path.delete()
+    written.delete()
+    expect(actual).toHaveLength(expected!.length)
+    expect(
+      Math.max(...actual!.map((v, i) => Math.abs(v - expected![i]!)))
+    ).toBeLessThan(0.001)
+  })
+
+  it('leaves out a move that draws nothing', () => {
+    const path = parse('M4 4h10v10H4zM30 30')
+    expect(pathData(path)).toBe('M4 4L14 4L14 14L4 14Z')
+    path.delete()
   })
 })
 
@@ -415,6 +461,7 @@ describe('spaceArcFlags', () => {
   it.each([
     ['M20 30a5 5 0 0110 0', 'M 20 30 a 5 5 0 0 1 10 0'],
     ['M0 0A5,5,0,1,0,10,0', 'M 0 0 A 5 5 0 1 0 10 0'],
+    ['M0 0A5 5 0 1110 0', 'M 0 0 A 5 5 0 1 1 10 0'],
     [
       'M0 0a5 5 0 0110 0 5 5 0 10-10 0',
       'M 0 0 a 5 5 0 0 1 10 0 5 5 0 1 0 -10 0'
@@ -438,7 +485,7 @@ describe('absoluteStart', () => {
     ['m1e1 2E-1 3 4', 'M1e1 2E-1l3 4'],
     ['m4 30h5z', 'M4 30h5z'],
     ['m4 30a3 3 0 0 1 6 0', 'M4 30a3 3 0 0 1 6 0'],
-    ['M4 30 10 0', 'M4 30 10 0']
+    [' M4 30 10 0 ', 'M4 30 10 0']
   ])('starts %j at its own point, as %j', (d, expected) => {
     expect(absoluteStart(d)).toBe(expected)
   })

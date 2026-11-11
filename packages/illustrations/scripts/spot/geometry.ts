@@ -86,13 +86,19 @@ const coordinates = (...points: Point[]) =>
 export function pathData(path: Path) {
   let d = ''
   let at: Point = [0, 0]
+  // Held back until something draws from it, as PathKit's writer does.
+  let move = ''
   for (const [verb, ...c] of path.toCmds()) {
     const n = c as number[]
     const end = (i: number): Point => [n[i]!, n[i + 1]!]
     if (verb === PK.MOVE_VERB) {
       at = end(0)
-      d += `M${coordinates(at)}`
-    } else if (verb === PK.LINE_VERB) {
+      move = `M${coordinates(at)}`
+      continue
+    }
+    d += move
+    move = ''
+    if (verb === PK.LINE_VERB) {
       at = end(0)
       d += `L${coordinates(at)}`
     } else if (verb === PK.QUAD_VERB) {
