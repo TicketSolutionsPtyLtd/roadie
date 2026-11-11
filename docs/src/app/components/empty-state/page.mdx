@@ -7,6 +7,7 @@ export const metadata = {
 }
 
 import { Button, EmptyState } from '@oztix/roadie-components'
+import { MagnifyGlass, SparklingGlitterStar } from '@oztix/roadie-illustrations/spot'
 import { TicketIcon } from '@phosphor-icons/react/ssr'
 
 import { Guideline, Guidelines } from '@/components/Guideline'
@@ -25,13 +26,14 @@ import { EmptyState } from '@oztix/roadie-components/empty-state'
 
 ### Default
 
-The standalone `md` empty state has an IconTile, a message, and one action.
+The standalone `md` empty state has a spot illustration, a message, and one
+action.
 
 ```tsx-live
 <EmptyState>
-  <EmptyState.IconTile>
-    <TicketIcon weight='duotone' />
-  </EmptyState.IconTile>
+  <EmptyState.Illustration>
+    <Ticket />
+  </EmptyState.Illustration>
   <EmptyState.Title>No events yet</EmptyState.Title>
   <EmptyState.Description>
     This collection doesn't have any events listed yet. Check back soon.
@@ -100,8 +102,9 @@ screen. Raise the heading to `h1` with `render`.
 
 ### Media by size
 
-The recommended pairing: `sm` → IconTile, `md` → SpotIllustration,
-`lg` → hero illustration. The pairing is a convention, not enforced.
+The recommended pairing: `sm` → IconTile, `md` →
+[spot illustration](/components/spot-illustration), `lg` → hero illustration.
+The pairing is a convention, not enforced.
 
 ```tsx-live layout=stack gap=8
 <EmptyState size='sm'>
@@ -133,7 +136,8 @@ The recommended pairing: `sm` → IconTile, `md` → SpotIllustration,
 ### Intents
 
 Set `intent` on the root to tint the IconTile and Button together. Omit it to
-inherit the palette from an ancestor instead.
+inherit the palette from an ancestor instead. A spot illustration keeps its
+brand colours, so only the actions take the intent.
 
 ```tsx-live layout=stack gap=8
 <EmptyState intent='accent' size='sm'>
@@ -183,7 +187,53 @@ Title and description only.
 Write the title, description, and actions with
 [Interface copy](/content/interface-copy#empty-states).
 
+Pick the spot illustration for an `md` empty state by what its message says.
+Search the [library](/components/spot-illustration#available-illustrations) by tag
+for anything else. At `sm`, use an IconTile with the matching icon instead.
+
+| Empty state                        | Spot illustration                                                    | Title, for example           |
+| ---------------------------------- | -------------------------------------------------------------------- | ---------------------------- |
+| No results from a search or filter | `MagnifyGlass`                                                       | No events match your search  |
+| Nothing yet                        | What will fill it, such as `Ticket`, `NoteMusic`, `Mail`, or `Heart` | No tickets yet               |
+| Error, such as a failed load       | `ExclamationMark`                                                    | We couldn't load your events |
+| Offline                            | `Cloud`                                                              | You're offline               |
+| Done                               | `CheckCorrect`                                                       | You're all caught up         |
+| Gone, such as a removed event      | `Ghost`                                                              | This event has been removed  |
+
 <Guidelines>
+
+<Guideline title='Pick the illustration by its message'>
+  <Guideline.Do
+    example={
+      <EmptyState>
+        <EmptyState.Illustration>
+          <MagnifyGlass />
+        </EmptyState.Illustration>
+        <EmptyState.Title>No events match your search</EmptyState.Title>
+        <EmptyState.Actions>
+          <Button>Clear search</Button>
+        </EmptyState.Actions>
+      </EmptyState>
+    }
+  >
+    Show what the state is about, so the art and the title say the same thing.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <EmptyState intent='danger'>
+        <EmptyState.Illustration>
+          <SparklingGlitterStar />
+        </EmptyState.Illustration>
+        <EmptyState.Title>We couldn't load your events</EmptyState.Title>
+        <EmptyState.Actions>
+          <Button emphasis='strong'>Retry</Button>
+        </EmptyState.Actions>
+      </EmptyState>
+    }
+  >
+    Don't pick one for looks. Cheerful art on an error reads as a joke.
+  </Guideline.Dont>
+</Guideline>
 
 <Guideline title='Match the size to its context'>
   <Guideline.Do
@@ -254,8 +304,8 @@ Write the title, description, and actions with
   another level) so the heading fits the surrounding document outline.
   A whole-page state usually wants `h1`.
 - Decorative media should be hidden from assistive tech: pass `alt=''` on
-  `<img>` heroes. `SpotIllustration` sets `aria-hidden` automatically unless
-  you give it an `aria-label`. `IconTile` is not hidden by default. Add
+  `<img>` heroes. A spot illustration sets `aria-hidden` automatically
+  unless you give it an `aria-label`. `IconTile` is not hidden by default. Add
   `aria-hidden` to a purely decorative tile. The title and description carry
   the meaning.
 

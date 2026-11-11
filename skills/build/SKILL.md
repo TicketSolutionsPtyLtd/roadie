@@ -319,6 +319,9 @@ page.
   with different actions: create one, or clear the filters.
 - `size='sm'` inside a card or section, `md` on its own, and `lg` for a
   whole page or 404, with `EmptyState.Title render={<h1 />}`.
+- `sm` media is an `EmptyState.IconTile`. `md` media is a spot illustration
+  from `@oztix/roadie-illustrations/spot` in `EmptyState.Illustration`,
+  picked by the message from the table in the page's Guidelines.
 - A failed load is `<EmptyState intent='danger'>` with a Retry action. Set
   the intent once on the root.
 - EmptyState has no surface. Put it in a `Card` when it needs one.
