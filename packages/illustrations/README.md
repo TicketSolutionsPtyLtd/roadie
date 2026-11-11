@@ -30,6 +30,10 @@ Each illustration is its own module, so a bundler keeps only the ones you
 import. The sources are published too, at
 `@oztix/roadie-illustrations/spot/svgs/<name>.svg`.
 
+For a picker or search, `@oztix/roadie-illustrations/spot/catalogue` exports
+`SPOT_ILLUSTRATIONS`: each illustration's component name, file name, label,
+and tags.
+
 ### The format
 
 A spot illustration is a 48 by 48 drawing made of named layers. Each layer
@@ -63,7 +67,10 @@ Importing that SVG into a design tool gives you the named layers back.
 
 ### Adding or changing one
 
-Draw it in the layer colours, in any tool or by hand, then convert it:
+Draw it in the layer colours, in any tool or by hand. Give a new one a few
+lowercase tags in `src/spot/tags.json`, under its file name, so the docs
+library can find it, such as `"megaphone": ["marketing", "announcement"]`.
+Then convert it:
 
 ```bash
 pnpm --filter @oztix/roadie-illustrations spot:convert path/to/megaphone.svg
@@ -83,6 +90,7 @@ saves the comparison, so you can check nothing moved. Last, it regenerates the
 components.
 
 Edited a source by hand? Run `pnpm --filter @oztix/roadie-illustrations
-spot:generate`. It checks every source against the format and fails with what
-to fix, then writes `src/spot/illustrations/` and `src/spot/index.ts`. Don't
-edit those generated files; the tests fail if they drift from the sources.
+spot:generate`. It checks every source against the format, and `tags.json`
+against the sources, and fails with what to fix, then writes
+`src/spot/illustrations/` and `src/spot/index.ts`. Don't edit those generated
+files; the tests fail if they drift from the sources.
