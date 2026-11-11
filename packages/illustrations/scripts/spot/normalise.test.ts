@@ -462,6 +462,14 @@ describe('normalise', () => {
         `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
       ),
       'clip paths'
+    ],
+    [
+      'a transform on a group a whole-box clip keeps in place',
+      svg(
+        '<defs><clipPath id="c"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)" transform="translate(10)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'flatten'
     ]
   ])('rejects %s', (_, source, message) => {
     expect(() => normalise(source)).toThrow(message)

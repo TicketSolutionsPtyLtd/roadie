@@ -193,9 +193,12 @@ function readItems(svg: string): Item[] {
             throw new Error("clip paths, masks, and filters aren't supported")
           if (a.opacity || a['fill-opacity'] || a['stroke-opacity'])
             throw new Error('every layer is opaque; remove the opacity')
-          if (node.name !== 'path') return
+          // A group keeps its transform when it references a clip, so check every element, not just paths.
           if (a.transform)
-            throw new Error('a transform was left on a path; flatten it')
+            throw new Error(
+              `a transform was left on a <${node.name}>; flatten it`
+            )
+          if (node.name !== 'path') return
           const fill = a.fill && a.fill !== 'none' ? a.fill : null
           const stroke = a.stroke && a.stroke !== 'none' ? a.stroke : null
           if (!a.d) return
