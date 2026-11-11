@@ -411,6 +411,7 @@ type Look = {
 }
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
+// Four 15rem cards with gap-12 fit from 76rem, so a 1280px window with a classic scrollbar still sets four across.
 const LOOKS: Record<CardsPreset, Look> = {
   plain: {
     Item: PlainCard,
@@ -418,11 +419,11 @@ const LOOKS: Record<CardsPreset, Look> = {
   },
   steps: {
     Item: StepCard,
-    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4'
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3 @[76rem]:grid-cols-4'
   },
   'text-blocks': {
     Item: ServiceCard,
-    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @7xl:grid-cols-4'
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @[76rem]:grid-cols-4'
   },
   overlap: {
     Item: IndustryCard,

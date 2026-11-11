@@ -173,6 +173,29 @@ describe('Cards columns', () => {
   })
 })
 
+// A 1280px window less a classic, always-visible scrollbar.
+describe('Cards at 1265px', () => {
+  it.each<Look>(['text-blocks', 'steps', 'photo', 'lists'])(
+    'keeps four %s cards of at least 15rem in one row',
+    (look) => {
+      render(<Block look={look} width={1265} count={4} />)
+
+      expect(columns()).toBe(4)
+      for (const card of cards())
+        expect(card.getBoundingClientRect().width).toBeGreaterThanOrEqual(240)
+    }
+  )
+
+  it.each<Look>(['text-blocks', 'steps'])(
+    'won’t squeeze four %s cards under 15rem at 1180px',
+    (look) => {
+      render(<Block look={look} width={1180} count={4} />)
+
+      expect(columns()).toBeLessThan(4)
+    }
+  )
+})
+
 describe('Cards lists', () => {
   it.each([
     [768, 2],
