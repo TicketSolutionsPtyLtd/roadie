@@ -1,7 +1,10 @@
 import { PK, type Path } from './pathkit.ts'
 
-type Point = [number, number]
-type Cubic = [Point, Point, Point, Point]
+export type Point = [number, number]
+export type Cubic = [Point, Point, Point, Point]
+
+// A conic's weight is the cosine of half the turn it spans.
+const QUARTER_TURN = Math.SQRT1_2 - 1e-6
 
 const lerp = (a: Point, b: Point, t: number): Point => [
   a[0] + (b[0] - a[0]) * t,
@@ -12,6 +15,19 @@ const lerp = (a: Point, b: Point, t: number): Point => [
 function conicAsCubic(p0: Point, p1: Point, p2: Point, w: number): Cubic {
   const k = (4 / 3) * (w / (1 + w))
   return [p0, lerp(p0, p1, k), lerp(p2, p1, k), p2]
+}
+
+/** A conic as cubics, halved until each spans at most a quarter turn. */
+function conicAsCubics(p0: Point, p1: Point, p2: Point, w: number): Cubic[] {
+  if (w >= QUARTER_TURN) return [conicAsCubic(p0, p1, p2, w)]
+  const a = lerp(p0, p1, w / (1 + w))
+  const b = lerp(p2, p1, w / (1 + w))
+  const middle = lerp(a, b, 0.5)
+  const half = Math.sqrt((1 + w) / 2)
+  return [
+    ...conicAsCubics(p0, a, middle, half),
+    ...conicAsCubics(middle, b, p2, half)
+  ]
 }
 
 /** A path's segments as cubic Béziers, one array per subpath. */
@@ -41,7 +57,7 @@ export function toCubics(path: Path): Cubic[][] {
       at = p
     } else if (verb === PK.CONIC_VERB) {
       const p: Point = [n[2]!, n[3]!]
-      current.push(conicAsCubic(at, [n[0]!, n[1]!], p, n[4]!))
+      current.push(...conicAsCubics(at, [n[0]!, n[1]!], p, n[4]!))
       at = p
     } else if (verb === PK.CLOSE_VERB) {
       if (Math.hypot(at[0] - start[0], at[1] - start[1]) > 1e-6)
@@ -57,7 +73,52 @@ export function toCubics(path: Path): Cubic[][] {
   return subpaths
 }
 
-function pointAt([a, b, c, d]: Cubic, t: number): Point {
+const coordinates = (...points: Point[]) =>
+  points
+    .flat()
+    .map((v) => +v.toFixed(4))
+    .join(' ')
+
+/**
+ * A path's data, with conics written as cubics. PathKit's own writer turns
+ * each conic, which every arc becomes, into a run of quadratics.
+ */
+export function pathData(path: Path) {
+  let d = ''
+  let at: Point = [0, 0]
+  // Held back until something draws from it, as PathKit's writer does.
+  let move = ''
+  for (const [verb, ...c] of path.toCmds()) {
+    const n = c as number[]
+    const end = (i: number): Point => [n[i]!, n[i + 1]!]
+    if (verb === PK.MOVE_VERB) {
+      at = end(0)
+      move = `M${coordinates(at)}`
+      continue
+    }
+    d += move
+    move = ''
+    if (verb === PK.LINE_VERB) {
+      at = end(0)
+      d += `L${coordinates(at)}`
+    } else if (verb === PK.QUAD_VERB) {
+      d += `Q${coordinates(end(0), end(2))}`
+      at = end(2)
+    } else if (verb === PK.CUBIC_VERB) {
+      d += `C${coordinates(end(0), end(2), end(4))}`
+      at = end(4)
+    } else if (verb === PK.CONIC_VERB) {
+      for (const [, b, c2, p] of conicAsCubics(at, end(0), end(2), n[4]!))
+        d += `C${coordinates(b, c2, p)}`
+      at = end(2)
+    } else if (verb === PK.CLOSE_VERB) {
+      d += 'Z'
+    }
+  }
+  return d
+}
+
+export function pointAt([a, b, c, d]: Cubic, t: number): Point {
   const u = 1 - t
   const mix = (i: 0 | 1) =>
     u * u * u * a[i] +
@@ -67,7 +128,36 @@ function pointAt([a, b, c, d]: Cubic, t: number): Point {
   return [mix(0), mix(1)]
 }
 
-function split([a, b, c, d]: Cubic, t: number): [Cubic, Cubic] {
+export function tangentAt([a, b, c, d]: Cubic, t: number): Point {
+  const u = 1 - t
+  const mix = (i: 0 | 1) =>
+    3 * u * u * (b[i] - a[i]) +
+    6 * u * t * (c[i] - b[i]) +
+    3 * t * t * (d[i] - c[i])
+  return [mix(0), mix(1)]
+}
+
+const PROBE = 1e-3
+
+/**
+ * Whether a closed contour has its filled side on its left, where a positive
+ * signed area puts its inside. `polys` is the whole path, so a hole answers
+ * for the material around it.
+ */
+export function filledLeft(contour: Cubic[], polys: Point[][]) {
+  const chord = (c: Cubic) => Math.hypot(c[3][0] - c[0][0], c[3][1] - c[0][1])
+  // One probe can land on an edge another contour touches, so the longest few segments vote.
+  const voters = [...contour].sort((a, b) => chord(b) - chord(a)).slice(0, 5)
+  const votes = voters.filter((c) => {
+    const [x, y] = pointAt(c, 0.5)
+    const [dx, dy] = tangentAt(c, 0.5)
+    const l = Math.hypot(dx, dy) || 1
+    return inside(polys, [x - (dy / l) * PROBE, y + (dx / l) * PROBE])
+  }).length
+  return votes * 2 > voters.length
+}
+
+export function split([a, b, c, d]: Cubic, t: number): [Cubic, Cubic] {
   const ab = lerp(a, b, t)
   const bc = lerp(b, c, t)
   const cd = lerp(c, d, t)
@@ -88,7 +178,7 @@ function slice(cubic: Cubic, t0: number, t1: number): Cubic {
 const SAMPLES_PER_SEGMENT = 48
 
 /** A filled path as polygons, for an even-odd inside test. PathKit has no hit test. */
-function polygons(path: Path): Point[][] {
+export function polygons(path: Path): Point[][] {
   return toCubics(path).map((segments) =>
     segments.flatMap((s) =>
       Array.from({ length: SAMPLES_PER_SEGMENT }, (_, k) =>
@@ -98,7 +188,7 @@ function polygons(path: Path): Point[][] {
   )
 }
 
-function inside(polys: Point[][], [x, y]: Point) {
+export function inside(polys: Point[][], [x, y]: Point) {
   let hit = false
   for (const poly of polys)
     for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {

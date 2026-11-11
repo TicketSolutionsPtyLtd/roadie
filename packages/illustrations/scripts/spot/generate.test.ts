@@ -71,3 +71,32 @@ describe('tagProblems', () => {
     ])
   })
 })
+
+describe('generate', () => {
+  const source = (slug: string, body: string) => ({
+    file: `${slug}.svg`,
+    slug,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 48 48">${body}</svg>`
+  })
+  const FACE = (d: string) =>
+    `<path id="Face" fill="#e1d1fb" fill-rule="evenodd" d="${d}"/>`
+  const STROKE = (d: string) =>
+    `<path id="Stroke" stroke="#1a1f2b" stroke-width=".5" stroke-linecap="round" stroke-linejoin="round" d="${d}"/>`
+
+  it('warns, without failing, about a source that strays from the style', () => {
+    const tiny = source(
+      'tiny',
+      FACE('M20 20h8v8h-8z') + STROKE('M20 20h8v8h-8z')
+    )
+    const { failures, warnings } = generate([tiny], { tiny: ['square'] })
+    expect(failures).toEqual([])
+    expect(warnings).toEqual(
+      expect.arrayContaining([expect.stringMatching(/^tiny\.svg: it paints/)])
+    )
+  })
+
+  it('leaves the warnings until every source passes the check', () => {
+    const broken = source('broken', FACE('M20 20h8v8h-8z'))
+    expect(generate([broken]).warnings).toEqual([])
+  })
+})

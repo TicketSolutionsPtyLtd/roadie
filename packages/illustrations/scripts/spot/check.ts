@@ -8,8 +8,9 @@ import {
   OUTLINE_WIDTH,
   STROKE
 } from './format.ts'
+import { measure } from './measure.ts'
 import { bounds } from './normalise.ts'
-import { PK } from './pathkit.ts'
+import { tryParse } from './pathkit.ts'
 
 const FILE_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*\.svg$/
 const ROOT_ATTRIBUTES = {
@@ -130,7 +131,7 @@ export function check(svg: string, fileName: string): string[] {
     errors.push('there are no fill layers')
   if (errors.length) return errors
 
-  const parsed = children.map((c) => PK.FromSVGString(c.attributes.d!))
+  const parsed = children.map((c) => tryParse(c.attributes.d!))
   const paths = parsed.filter((p) => p !== null)
   const unparsed = names.filter((_, i) => parsed[i] === null)
   if (unparsed.length) {
@@ -154,4 +155,114 @@ export function layersOf(svg: string): Layer[] {
     name: c.attributes.id as Layer['name'],
     d: c.attributes.d!
   }))
+}
+
+export type StyleRule =
+  | 'coverage'
+  | 'long-side'
+  | 'shadow-share'
+  | 'stroke-share'
+  | 'shadow-direction'
+  | 'commands'
+
+/** Sources in the set that sit outside a rule's range, so their warnings are expected. */
+export const ACCEPTED: Record<string, StyleRule[]> = {
+  // Squarish shapes that sit smaller in the box.
+  'arch-window': ['long-side'],
+  'l-shape': ['long-side'],
+  'square-cube-box': ['long-side'],
+  // Thin or small marks that paint little of the box, and solid blocks that paint most of it.
+  'check-correct': ['coverage'],
+  'heart-pixel': ['coverage'],
+  'letter-i': ['coverage'],
+  sponge: ['coverage'],
+  'stamp-frame': ['coverage', 'commands'],
+  'web-page': ['coverage', 'shadow-direction'],
+  // Line art, drawn mostly in Stroke.
+  'abstract-ring': ['shadow-share', 'stroke-share'],
+  grass: ['stroke-share'],
+  shrub: ['shadow-share', 'stroke-share'],
+  'sparkling-glitter-star-rotate': ['stroke-share'],
+  // Sides drawn in Detail, leaving little or no Shadow, or a Shadow side nearly as big as the front, or bigger.
+  'cursor-head': ['shadow-share'],
+  rock: ['shadow-share'],
+  sign: ['shadow-share'],
+  wing: ['shadow-share'],
+  'lightning-bolt': ['shadow-share'],
+  'piece-cake': ['shadow-share'],
+  // Extruded up or to the left, so their Shadow sits up and left of the rest.
+  'block-l-right': ['shadow-direction'],
+  'cloud-puff': ['shadow-direction'],
+  'flower-spiral': ['shadow-direction'],
+  pencil: ['shadow-direction'],
+  vase: ['shadow-direction'],
+  // Many short curves.
+  'cloud-rotate': ['commands'],
+  'flower-rotate': ['commands'],
+  'number-9': ['commands']
+}
+
+/** About the 2nd to 98th percentile of the set for each rule; `ACCEPTED` lists the rest. */
+export const STYLE = {
+  coverage: [0.3, 0.68],
+  longSide: 35,
+  shadowShare: [0.02, 0.33],
+  strokeShare: [0.065, 0.21],
+  commands: 450
+} as const
+
+const pct = (n: number) => `${Math.round(n * 100)}%`
+
+/**
+ * Where a source strays from how the set is drawn. These never fail the
+ * check: an illustration can break a rule on purpose, so each is a prompt to
+ * look at the preview.
+ */
+export function styleWarnings(
+  layers: Layer[],
+  name?: string
+): { rule: StyleRule; message: string }[] {
+  const m = measure(layers)
+  const out: { rule: StyleRule; message: string }[] = []
+  const [minCover, maxCover] = STYLE.coverage
+  if (m.coverage < minCover || m.coverage > maxCover)
+    out.push({
+      rule: 'coverage',
+      message: `it paints ${pct(m.coverage)} of the box; the set paints ${pct(minCover)} to ${pct(maxCover)}, so it will look ${m.coverage < minCover ? 'faint' : 'heavy'} beside them`
+    })
+  if (m.longSide < STYLE.longSide)
+    out.push({
+      rule: 'long-side',
+      message: `its long side spans ${m.longSide.toFixed(1)}; most of the set spans 44, from 2 to 46 (fit() does it for you), and few span under ${STYLE.longSide}`
+    })
+  const shadow = m.shares.Shadow ?? 0
+  const [minShadow, maxShadow] = STYLE.shadowShare
+  if (shadow < minShadow || shadow > maxShadow)
+    out.push({
+      rule: 'shadow-share',
+      message: `Shadow is ${pct(shadow)} of what's painted; the set uses ${pct(minShadow)} to ${pct(maxShadow)}${shadow < minShadow ? ', so it will look flat' : ''}`
+    })
+  const stroke = m.shares.Stroke ?? 0
+  const [minStroke, maxStroke] = STYLE.strokeShare
+  if (stroke < minStroke || stroke > maxStroke)
+    out.push({
+      rule: 'stroke-share',
+      message: `lines are ${pct(stroke)} of what's painted; the set uses ${pct(minStroke)} to ${pct(maxStroke)}${stroke > maxStroke ? ", so drop the inner line work it doesn't need to be recognised" : ''}`
+    })
+  if (m.shadowOffset && m.shadowOffset[0] < 0 && m.shadowOffset[1] < 0)
+    out.push({
+      rule: 'shadow-direction',
+      message:
+        'Shadow sits up and to the left of the art; the set extrudes down, right, or both'
+    })
+  for (const [layer, n] of Object.entries(m.commands))
+    if (n > STYLE.commands)
+      out.push({
+        rule: 'commands',
+        message: `${layer} has ${n} path commands; most of the set stays under 220, so it's likely sampled points rather than curves`
+      })
+  const accepted = new Set(
+    name && Object.hasOwn(ACCEPTED, name) ? ACCEPTED[name] : []
+  )
+  return out.filter((w) => !accepted.has(w.rule))
 }

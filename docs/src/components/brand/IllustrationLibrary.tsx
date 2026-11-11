@@ -167,7 +167,9 @@ function IllustrationTile({
               copy(svgMarkup(slug), {
                 copied: 'SVG copied',
                 failed: 'Couldn’t copy the SVG',
-                description: label
+                description: label,
+                failedDescription:
+                  'Download it from the more options menu instead.'
               })
             }
             className='min-w-0 flex-1'

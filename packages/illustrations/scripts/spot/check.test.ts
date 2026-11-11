@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 
-import { check } from './check.ts'
+import { check, layersOf, styleWarnings } from './check.ts'
+import type { Layer } from './format.ts'
+import { sources } from './generate.ts'
 
 const FACE =
   '<path id="Face" fill="#e1d1fb" fill-rule="evenodd" d="M4 4h30v30H4z"/>'
@@ -15,6 +17,11 @@ const svg = (...children: string[]) =>
 describe('check', () => {
   it('passes a source in the format', () => {
     expect(check(svg(SHADOW, FACE, STROKE), 'square.svg')).toEqual([])
+  })
+
+  it('reads arcs whose flags run together, as minifiers write them', () => {
+    const arc = STROKE.replace('M4 4h30v30H4z', 'M10 30a5 5 0 0110 0')
+    expect(check(svg(FACE, arc), 'arc.svg')).toEqual([])
   })
 
   it.each([
@@ -101,4 +108,101 @@ describe('check', () => {
   ])('flags %s', (_, source, file, message) => {
     expect(check(source, file).join('\n')).toContain(message)
   })
+})
+
+describe('styleWarnings', () => {
+  const layer = (name: Layer['name'], d: string): Layer => ({ name, d })
+  const square = (x: number, y: number, size: number) =>
+    `M${x} ${y}h${size}v${size}h${-size}z`
+  // A block drawn as the set draws one: 2 to 46, its Shadow below and right, outlined.
+  const block = (shadow = square(8, 8, 38), face = square(2, 2, 38)) => [
+    layer('Shadow', shadow),
+    layer('Face', face),
+    layer('Stroke', `${face}${shadow}`)
+  ]
+  const rules = (layers: Layer[], name?: string) =>
+    styleWarnings(layers, name).map((w) => w.rule)
+
+  it.each([
+    [
+      'coverage',
+      'art so solid it looks heavy',
+      [
+        layer('Face', square(2, 2, 44)),
+        layer('Shadow', square(20, 20, 6)),
+        layer('Stroke', 'M2 2h44')
+      ]
+    ],
+    [
+      'coverage',
+      'art too thin to hold its own',
+      [
+        layer('Shadow', 'M4 22h42v8H4z'),
+        layer('Face', 'M2 20h42v8H2z'),
+        layer('Stroke', 'M2 20h42v8H2z')
+      ]
+    ],
+    [
+      'shadow-share',
+      'a Shadow that outweighs the front',
+      block(square(2, 2, 44), square(2, 2, 16))
+    ],
+    [
+      'stroke-share',
+      'line work too sparse to hold the shapes',
+      [...block().slice(0, 2), layer('Stroke', 'M2 2h4')]
+    ],
+    [
+      'long-side',
+      'art well short of the full 44',
+      block(square(10, 10, 24), square(6, 6, 24))
+    ],
+    ['shadow-share', 'no Shadow showing', block(square(2, 2, 38))],
+    [
+      'stroke-share',
+      'line work too dense for 48px',
+      [
+        ...block().slice(0, 2),
+        layer(
+          'Stroke',
+          Array.from({ length: 40 }, (_, i) => `M3 ${3 + i}h36`).join('')
+        )
+      ]
+    ],
+    [
+      'shadow-direction',
+      'a shadow up and to the left',
+      block(square(2, 2, 38), square(8, 8, 38))
+    ],
+    [
+      'commands',
+      'a curve sampled into points',
+      [
+        ...block().slice(0, 2),
+        layer(
+          'Stroke',
+          `M2 2${Array.from({ length: 480 }, (_, i) => `L${2 + i / 10} 2`).join('')}`
+        )
+      ]
+    ]
+  ])('warns about %s: %s', (rule, _, layers) => {
+    expect(rules(layers)).toContain(rule)
+  })
+
+  it('stays quiet about a rule an illustration breaks on purpose', () => {
+    const upLeft = block(square(2, 2, 38), square(8, 8, 38))
+    expect(rules(upLeft, 'flower-spiral')).not.toContain('shadow-direction')
+  })
+
+  it('accepts nothing for a name an object inherits', () => {
+    const upLeft = block(square(2, 2, 38), square(8, 8, 38))
+    expect(rules(upLeft, 'constructor')).toContain('shadow-direction')
+  })
+
+  it.each(sources().map((s) => [s.slug, s.svg]))(
+    'finds nothing to flag in %s',
+    (slug, svg) => {
+      expect(styleWarnings(layersOf(svg), slug)).toEqual([])
+    }
+  )
 })
