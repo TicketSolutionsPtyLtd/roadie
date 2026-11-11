@@ -45,7 +45,8 @@ pnpm add @oztix/roadie-core @oztix/roadie-components \
 Swap `pnpm add` for the detected tool (`npm install`, `yarn add`, or
 `bun add`). The last four are peers, so install them yourself; the package's
 `peerDependencies` is the source of truth. Components need `react` and
-`react-dom` 19.2 or later. Add `@oztix/roadie-charts` for charts, and
+`react-dom` 19.2 or later. Add `@oztix/roadie-charts` for charts,
+`@oztix/roadie-illustrations` for spot illustrations, and
 `@oztix/roadie-widgets` with its framework's peers for widgets (its README
 lists them).
 
@@ -59,8 +60,8 @@ In the global stylesheet (`app/globals.css` in Next), replace any
 @import '@oztix/roadie-components/css';
 ```
 
-- Import every package's CSS you use: add `@oztix/roadie-charts/css` and
-  `@oztix/roadie-widgets/css` too. Each registers only its own classes, so a
+- Import every package's CSS you use: add `@oztix/roadie-charts/css`,
+  `@oztix/roadie-illustrations/css`, and `@oztix/roadie-widgets/css` too. Each registers only its own classes, so a
   missing one leaves those components unstyled.
 - Never add `@source` paths into `node_modules`; the package CSS carries them.
 - In a fresh scaffold, remove the starter's own colour and font rules (such as

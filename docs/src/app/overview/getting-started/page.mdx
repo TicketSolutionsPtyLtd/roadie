@@ -51,7 +51,7 @@ Tailwind v4 ignores `node_modules` by default, so it won't see the class strings
 @import '@oztix/roadie-components/css';
 ```
 
-Using widgets, charts, or the editor too? Add `@oztix/roadie-widgets/css`, `@oztix/roadie-charts/css`, or `@oztix/roadie-editor/css` as well. Each package's CSS registers only its own classes, so include every package you use. The React widget skins render Roadie components, so they need the components CSS too; the Vue skins don't:
+Using widgets, charts, the editor, or illustrations too? Add `@oztix/roadie-widgets/css`, `@oztix/roadie-charts/css`, `@oztix/roadie-editor/css`, or `@oztix/roadie-illustrations/css` as well. Each package's CSS registers only its own classes, so include every package you use. The React widget skins render Roadie components, so they need the components CSS too; the Vue skins don't:
 
 ```css
 @import '@oztix/roadie-core/css';
@@ -59,6 +59,7 @@ Using widgets, charts, or the editor too? Add `@oztix/roadie-widgets/css`, `@ozt
 @import '@oztix/roadie-widgets/css';
 @import '@oztix/roadie-charts/css';
 @import '@oztix/roadie-editor/css';
+@import '@oztix/roadie-illustrations/css';
 ```
 
 ### 4. Mount RoadieProvider
