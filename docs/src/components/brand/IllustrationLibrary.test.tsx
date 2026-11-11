@@ -11,6 +11,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { BRAND_ILLUSTRATIONS } from '@/lib/brand-illustrations'
 
+import { Toast } from '@oztix/roadie-components/toast'
+
 import { IllustrationLibrary, filterIllustrations } from './IllustrationLibrary'
 
 afterEach(() => {
@@ -41,7 +43,7 @@ describe('filterIllustrations', () => {
 
 describe('IllustrationLibrary', () => {
   it('narrows the tiles as you type, and shows an empty state with no match', () => {
-    render(<IllustrationLibrary />)
+    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
     expect(tiles()).toHaveLength(BRAND_ILLUSTRATIONS.length)
 
     const search = screen.getByRole('searchbox', {
@@ -58,7 +60,7 @@ describe('IllustrationLibrary', () => {
   })
 
   it('puts the tile actions in a Card.Footer, after the body', () => {
-    render(<IllustrationLibrary />)
+    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
     fireEvent.change(screen.getByRole('searchbox'), {
       target: { value: 'ghost' }
     })
@@ -88,7 +90,7 @@ describe('IllustrationLibrary', () => {
       value: { writeText },
       configurable: true
     })
-    render(<IllustrationLibrary />)
+    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
     fireEvent.change(screen.getByRole('searchbox'), {
       target: { value: 'ghost' }
     })
@@ -110,7 +112,7 @@ describe('IllustrationLibrary', () => {
     ) {
       saved.push(`${this.download} ${this.getAttribute('href')}`)
     })
-    render(<IllustrationLibrary />)
+    render(<IllustrationLibrary />, { wrapper: Toast.Provider })
     fireEvent.change(screen.getByRole('searchbox'), {
       target: { value: 'ghost' }
     })

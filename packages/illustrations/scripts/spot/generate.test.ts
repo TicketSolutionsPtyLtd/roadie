@@ -2,7 +2,13 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-import { componentName, generate, nameClashes, stale } from './generate.ts'
+import {
+  componentName,
+  generate,
+  nameClashes,
+  stale,
+  tagProblems
+} from './generate.ts'
 
 describe('the spot illustration sources', () => {
   const { files, failures } = generate()
@@ -38,5 +44,30 @@ describe('componentName', () => {
     ['number-0-zero', 'Number0Zero']
   ])('names %s %s', (slug, name) => {
     expect(componentName(slug)).toBe(name)
+  })
+})
+
+describe('tagProblems', () => {
+  it('passes tags.json when it covers every source with lowercase words', () => {
+    expect(
+      tagProblems(['heart', 'map-pin'], {
+        heart: ['love'],
+        'map-pin': ['place', 'venue']
+      })
+    ).toEqual([])
+  })
+
+  it("flags a source with no tags, tags that aren't lowercase words, and tags for no source", () => {
+    expect(
+      tagProblems(['heart', 'map-pin'], {
+        heart: [],
+        'map-pin': ['Venue'],
+        ghost: ['spooky']
+      })
+    ).toEqual([
+      'heart.svg has no tags in tags.json; add a few words it shows or suits',
+      'map-pin in tags.json takes lowercase words only',
+      "tags.json has ghost, but there's no ghost.svg"
+    ])
   })
 })

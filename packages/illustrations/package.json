@@ -35,6 +35,10 @@
       "types": "./dist/spot/index.d.ts",
       "import": "./dist/spot/index.js"
     },
+    "./spot/catalogue": {
+      "types": "./dist/spot/catalogue.d.ts",
+      "import": "./dist/spot/catalogue.js"
+    },
     "./spot/svgs/*": "./src/spot/svgs/*",
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },

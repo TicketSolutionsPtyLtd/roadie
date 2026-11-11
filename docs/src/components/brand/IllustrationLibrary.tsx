@@ -24,6 +24,7 @@ import { Field } from '@oztix/roadie-components/field'
 import { Menu } from '@oztix/roadie-components/menu'
 
 import { Image } from '../Image'
+import { CopyToastChip } from '../tokens/CopyToastChip'
 import { useCopy } from '../useCopy'
 
 const PNG_SIZE = 1024
@@ -41,7 +42,7 @@ export function filterIllustrations(
     const haystack = [
       illustration.label,
       ...illustration.tags,
-      illustration.component ?? ''
+      illustration.component
     ]
       .join(' ')
       .toLowerCase()
@@ -152,13 +153,13 @@ function IllustrationTile({
             <code data-twin-cell className='sr-only'>
               {`/brand/illustrations/${slug}.svg`}
             </code>
-            {component ? (
-              <code data-twin-cell className='font-mono text-xs text-subtler'>
-                {component}
-              </code>
-            ) : (
-              <span data-twin-cell />
-            )}
+            <CopyToastChip
+              value={component}
+              nowrap
+              className='-ms-1.5 justify-self-start text-xs text-subtle'
+            >
+              <code data-twin-cell>{component}</code>
+            </CopyToastChip>
           </div>
         </Card.Content>
         <Card.Footer className='gap-1 px-3 pb-3'>
@@ -212,7 +213,7 @@ function IllustrationTile({
   )
 }
 
-/** Every brand illustration, searchable by label and tag, with Copy SVG and Download PNG on each. */
+/** Every spot illustration, searchable by label, tag, and component name, with its component name to copy, Copy SVG, and downloads on each. */
 export function IllustrationLibrary() {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)

@@ -1,4 +1,5 @@
 import type { TokenFamily } from '@roadie-core/tokens'
+import { statSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
@@ -170,6 +171,12 @@ const renderers = {
         '<DownloadCard> needs a title, href, formats, size, and description'
       )
     return `[${title}](${resolveLink(href as string)}), ${formats}, ${size}. ${description}`
+  },
+  // The build writes the pack, so its size is read from the export.
+  IllustrationPackCard: () => {
+    const href = '/brand/illustration/oztix-illustration-pack.zip'
+    const size = Math.round(statSync(path.join(outDir, href)).size / 1024)
+    return `[Illustration pack](${resolveLink(href)}), SVG, ${size} KB. Every spot illustration in the library, as an SVG in its brand colours.`
   }
 }
 
