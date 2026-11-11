@@ -1,2 +1,3 @@
 line 2: SpotIllustration takes `layers` in place of `illustration` in @oztix/roadie-illustrations/spot. Move it by hand.
 line 3: '@oztix/roadie-components/spot-illustrations' is re-exported whole, and its exports changed in @oztix/roadie-illustrations/spot. Migrate it by hand.
+line 5: createSpotIllustration isn't in @oztix/roadie-illustrations. Draw the art as a source in that package, or keep this import until the next major.
