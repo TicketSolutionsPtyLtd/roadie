@@ -118,8 +118,9 @@ npx --yes jscodeshift@17.4.0 -t "$CODEMODS/link-button.js" \
 - Read the `REP` lines in the output. Each is a use left for step 5.
 - An `ERR` line is a file the codemod couldn't read, so nothing in it moved.
   The codemods read every file as TSX, so an angle-bracket cast in a `.ts`
-  file (`<Type>value`) fails: write it as `value as Type`. So does a string
-  with a raw line or paragraph separator (U+2028 or U+2029): write it as
+  file (`<Type>value`) fails: write it as `value as Type`. So does a raw line
+  or paragraph separator (U+2028 or U+2029) anywhere in a file a codemod
+  changes, since printing would turn it into a line break: write it as
   `\u2028` or `\u2029`. Then run the codemod again, or migrate the file by
   hand.
 - Run the app's formatter on the changed files. The codemods print new code

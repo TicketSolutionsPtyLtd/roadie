@@ -334,7 +334,15 @@ const PROLOGUE = /^(?:\s*(['"])use [a-z ]+\1;?[ \t]*\r?\n)+\s*/
 // Recast reprints the whole program when a statement is added, which drops
 // the blank line after a 'use client' directive. It also ends lines the OS
 // way unless told, so a file keeps its own line endings.
+// Recast splits lines on these and joins them back with a newline, which
+// would change a string, JSX text, or comment that holds one.
+const LINE_SEPARATORS = /[\u2028\u2029]/
+
 export function print(root, source) {
+  if (LINE_SEPARATORS.test(source))
+    throw new Error(
+      'This file has a raw U+2028 or U+2029, which the codemod would turn into a line break. Write it as \\u2028 or \\u2029, then run the codemod again.'
+    )
   const output = root.toSource({
     quote: 'single',
     lineTerminator: source.includes('\r\n') ? '\r\n' : '\n'
