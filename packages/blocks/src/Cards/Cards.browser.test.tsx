@@ -173,6 +173,49 @@ describe('Cards columns', () => {
   })
 })
 
+// A 1280px window less a classic, always-visible scrollbar.
+describe('Cards at 1265px', () => {
+  it.each<Look>(['text-blocks', 'steps', 'photo', 'lists'])(
+    'keeps four %s cards of at least 15rem in one row',
+    (look) => {
+      render(<Block look={look} width={1265} count={4} />)
+
+      expect(columns()).toBe(4)
+      for (const card of cards())
+        expect(card.getBoundingClientRect().width).toBeGreaterThanOrEqual(240)
+    }
+  )
+
+  it('keeps four text-blocks cards of at least 15rem in one row on a contained surface', () => {
+    render(
+      <div style={{ width: 1265 }}>
+        <Cards {...propsOf('text-blocks')} emphasis='raised' contained />
+      </div>
+    )
+
+    expect(columns()).toBe(4)
+    for (const card of cards())
+      expect(card.getBoundingClientRect().width).toBeGreaterThanOrEqual(240)
+  })
+})
+
+// Four 15rem cards and three gap-12 gaps first fit inside a band's padding at 1216px.
+describe('Cards four-across edge', () => {
+  it.each<Look>(['text-blocks', 'steps'])(
+    'sets four %s cards of at least 15rem across from 1216px',
+    (look) => {
+      const { unmount } = render(<Block look={look} width={1215} count={4} />)
+      expect(columns()).toBeLessThan(4)
+      unmount()
+
+      render(<Block look={look} width={1216} count={4} />)
+      expect(columns()).toBe(4)
+      for (const card of cards())
+        expect(card.getBoundingClientRect().width).toBeGreaterThanOrEqual(240)
+    }
+  )
+})
+
 describe('Cards lists', () => {
   it.each([
     [768, 2],
