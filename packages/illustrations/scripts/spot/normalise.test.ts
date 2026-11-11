@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { check } from './check.ts'
-import { bounds, normalise, toSvg } from './normalise.ts'
+import { absoluteStart, bounds, normalise, toSvg } from './normalise.ts'
 import { PK, parse } from './pathkit.ts'
 
 const SHADOW = '#0091EB'
@@ -97,6 +97,35 @@ describe('normalise', () => {
     expect(inks(stroke, 9, 30)).toBe(true)
     expect(inks(stroke, 14, 25)).toBe(true)
     expect(inks(stroke, 7, 15)).toBe(false)
+  })
+
+  it('keeps a relative stroke where it was when it follows another stroke', () => {
+    const { layers } = normalise(
+      svg(
+        fill(FACE, rect(4, 4, 30, 30)),
+        line('M40 40h4'),
+        line('m4 30 10 0 0 -10')
+      )
+    )
+    const stroke = layers.at(-1)!.d
+    expect(inks(stroke, 42, 40)).toBe(true)
+    expect(inks(stroke, 9, 30)).toBe(true)
+    expect(inks(stroke, 14, 25)).toBe(true)
+  })
+
+  it('keeps the arcs of a stroke, so a circle stays a few bytes', () => {
+    const { layers } = normalise(
+      svg(
+        fill(FACE, rect(4, 4, 8, 8)),
+        `<circle cx="30" cy="30" r="8" stroke="${INK}" stroke-width=".5"/>`,
+        line('m20 10a3 3 0 0 1 6 0')
+      )
+    )
+    const stroke = layers.at(-1)!.d
+    expect(inks(stroke, 30, 22)).toBe(true)
+    expect(inks(stroke, 23, 7)).toBe(true)
+    expect(stroke.length).toBeLessThan(80)
+    expect(check(toSvg(layers), 'circle.svg')).toEqual([])
   })
 
   it('merges every stroke into one Stroke on top', () => {
@@ -316,5 +345,19 @@ describe('toSvg', () => {
     expect(data).toContain('4.12')
     expect(data).not.toMatch(/\d\.\d{3}/)
     expect(data).not.toMatch(/[aA]/)
+  })
+})
+
+describe('absoluteStart', () => {
+  it.each([
+    ['  m4 30 10 0 0 -10 ', 'M4 30l10 0 0 -10'],
+    ['m4,30-10,0', 'M4 30l-10,0'],
+    ['m4.5.5.5.5', 'M4.5 .5l.5.5'],
+    ['m1e1 2E-1 3 4', 'M1e1 2E-1l3 4'],
+    ['m4 30h5z', 'M4 30h5z'],
+    ['m4 30a3 3 0 0 1 6 0', 'M4 30a3 3 0 0 1 6 0'],
+    ['M4 30 10 0', 'M4 30 10 0']
+  ])('starts %j at its own point, as %j', (d, expected) => {
+    expect(absoluteStart(d)).toBe(expected)
   })
 })
