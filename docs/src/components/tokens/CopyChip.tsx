@@ -43,12 +43,23 @@ export function CopyChip({
   const { copied, copy } = useCopyToast()
   const Icon = copied ? CheckIcon : CopyIcon
   const description = <CopiedValue value={value} swatch={swatch} />
+  const failedDescription = (
+    <span className='grid gap-1'>
+      {description}
+      <span>Select the value and copy it yourself.</span>
+    </span>
+  )
 
   return (
     <button
       type='button'
       onClick={() =>
-        copy(value, { copied: 'Copied', failed: 'Couldn’t copy', description })
+        copy(value, {
+          copied: 'Copied',
+          failed: 'Couldn’t copy',
+          description,
+          failedDescription
+        })
       }
       aria-label={`Copy ${value}`}
       className={cn(
