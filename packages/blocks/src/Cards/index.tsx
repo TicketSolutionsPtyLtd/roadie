@@ -73,7 +73,7 @@ export type CardsProps = {
   intent?: BlockIntent
   /** The surface behind the block. Unset, `photo` sits on `raised` and the other presets have none. */
   emphasis?: BlockEmphasis
-  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `photo` is contained and the other presets are bands. */
+  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. Unset, `photo` is contained and the other presets are bands. */
   contained?: boolean
   /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap` and `photo` ignore it, since they draw an inverted panel or a photo. */
   itemEmphasis?: ItemEmphasis

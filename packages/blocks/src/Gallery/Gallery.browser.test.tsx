@@ -456,6 +456,11 @@ describe('Gallery surfaces', () => {
       right: left + surface.clientLeft + surface.clientWidth
     }
   }
+  // A band runs the window's width, so a marquee runs to the window's edges rather than inside its border.
+  const edgesOf = (contained: boolean) =>
+    contained
+      ? surfaceBox()
+      : document.querySelector('section')!.getBoundingClientRect()
 
   it('runs the marquee the full width of the block on the page', async () => {
     await page.viewport(1920, 900)
@@ -482,8 +487,24 @@ describe('Gallery surfaces', () => {
       />
     )
 
-    expect(marqueeBox().left).toBeCloseTo(surfaceBox().left, 0)
-    expect(marqueeBox().right).toBeCloseTo(surfaceBox().right, 0)
+    expect(marqueeBox().left).toBeCloseTo(edgesOf(contained).left, 0)
+    expect(marqueeBox().right).toBeCloseTo(edgesOf(contained).right, 0)
+  })
+
+  it('runs the marquee on a band to the window’s edges past the page’s measure', async () => {
+    await page.viewport(1920, 900)
+    const { container } = render(
+      <Gallery
+        preset='marquee'
+        emphasis='subtle'
+        title='Our people'
+        images={images}
+      />
+    )
+    const block = container.querySelector('section')!.getBoundingClientRect()
+
+    expect(marqueeBox().left).toBeCloseTo(block.left, 0)
+    expect(marqueeBox().right).toBeCloseTo(block.right, 0)
   })
 
   it('keeps the carousel inside the surface', async () => {
@@ -525,8 +546,8 @@ describe('Gallery surfaces', () => {
       const viewport = document
         .querySelector('[data-slot=carousel-content]')!
         .getBoundingClientRect()
-      expect(viewport.left).toBeCloseTo(surfaceBox().left, 0)
-      expect(viewport.right).toBeCloseTo(surfaceBox().right, 0)
+      expect(viewport.left).toBeCloseTo(edgesOf(contained).left, 0)
+      expect(viewport.right).toBeCloseTo(edgesOf(contained).right, 0)
       expect(tile().left).toBeCloseTo(
         screen.getByRole('heading', { level: 2 }).getBoundingClientRect().left,
         0

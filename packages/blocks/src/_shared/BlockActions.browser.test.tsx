@@ -1,7 +1,7 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { withBrowserPage } from '../_test/browser'
+import { atWidth, withBrowserPage } from '../_test/browser'
 import {
   MINIMUM_FILL_LC,
   MODES,
@@ -50,4 +50,38 @@ describe('the strong action on a filled surface', () => {
             MINIMUM_FILL_LC
           )
         })
+})
+
+describe('action icons', () => {
+  const icons = () => (
+    <div className='@container'>
+      <BlockActions
+        actions={[
+          { label: 'Talk to us', href: '/contact/sales', icon: 'chat' },
+          {
+            label: 'Our studio',
+            href: 'https://studio.oztix.com.au',
+            icon: 'external'
+          }
+        ]}
+      />
+    </div>
+  )
+  const iconIn = (name: string) =>
+    screen.getByRole('link', { name: new RegExp(name) }).querySelector('svg')!
+
+  it('drops a leading icon in a narrow block, keeping a trailing one', async () => {
+    await atWidth(375, 800)
+    render(icons())
+
+    expect(iconIn('Talk to us')).not.toBeVisible()
+    expect(iconIn('Our studio')).toBeVisible()
+  })
+
+  it('shows a leading icon once the block is wide enough', async () => {
+    await atWidth(800, 800)
+    render(icons())
+
+    expect(iconIn('Talk to us')).toBeVisible()
+  })
 })

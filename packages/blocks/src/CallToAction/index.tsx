@@ -76,7 +76,7 @@ export type CallToActionProps = {
    * @default 'raised'
    */
   emphasis?: BlockEmphasis
-  /** Draws the panel inside the page's padding, rounded at every width, instead of as a full-width band. */
+  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. */
   contained?: boolean
   /**
    * Where the heading, copy, and actions line up: `start` on `photo`, `center` on `centred`.
