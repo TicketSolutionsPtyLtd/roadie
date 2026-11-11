@@ -3,6 +3,9 @@ import { PK, type Path } from './pathkit.ts'
 export type Point = [number, number]
 export type Cubic = [Point, Point, Point, Point]
 
+// A conic's weight is the cosine of half the turn it spans.
+const QUARTER_TURN = Math.SQRT1_2 - 1e-6
+
 const lerp = (a: Point, b: Point, t: number): Point => [
   a[0] + (b[0] - a[0]) * t,
   a[1] + (b[1] - a[1]) * t
@@ -12,6 +15,19 @@ const lerp = (a: Point, b: Point, t: number): Point => [
 function conicAsCubic(p0: Point, p1: Point, p2: Point, w: number): Cubic {
   const k = (4 / 3) * (w / (1 + w))
   return [p0, lerp(p0, p1, k), lerp(p2, p1, k), p2]
+}
+
+/** A conic as cubics, halved until each spans at most a quarter turn. */
+function conicAsCubics(p0: Point, p1: Point, p2: Point, w: number): Cubic[] {
+  if (w >= QUARTER_TURN) return [conicAsCubic(p0, p1, p2, w)]
+  const a = lerp(p0, p1, w / (1 + w))
+  const b = lerp(p2, p1, w / (1 + w))
+  const middle = lerp(a, b, 0.5)
+  const half = Math.sqrt((1 + w) / 2)
+  return [
+    ...conicAsCubics(p0, a, middle, half),
+    ...conicAsCubics(middle, b, p2, half)
+  ]
 }
 
 /** A path's segments as cubic Béziers, one array per subpath. */
@@ -41,7 +57,7 @@ export function toCubics(path: Path): Cubic[][] {
       at = p
     } else if (verb === PK.CONIC_VERB) {
       const p: Point = [n[2]!, n[3]!]
-      current.push(conicAsCubic(at, [n[0]!, n[1]!], p, n[4]!))
+      current.push(...conicAsCubics(at, [n[0]!, n[1]!], p, n[4]!))
       at = p
     } else if (verb === PK.CLOSE_VERB) {
       if (Math.hypot(at[0] - start[0], at[1] - start[1]) > 1e-6)
@@ -55,6 +71,45 @@ export function toCubics(path: Path): Cubic[][] {
     }
   }
   return subpaths
+}
+
+const coordinates = (...points: Point[]) =>
+  points
+    .flat()
+    .map((v) => +v.toFixed(4))
+    .join(' ')
+
+/**
+ * A path's data, with conics written as cubics. PathKit's own writer turns
+ * each conic, which every arc becomes, into a run of quadratics.
+ */
+export function pathData(path: Path) {
+  let d = ''
+  let at: Point = [0, 0]
+  for (const [verb, ...c] of path.toCmds()) {
+    const n = c as number[]
+    const end = (i: number): Point => [n[i]!, n[i + 1]!]
+    if (verb === PK.MOVE_VERB) {
+      at = end(0)
+      d += `M${coordinates(at)}`
+    } else if (verb === PK.LINE_VERB) {
+      at = end(0)
+      d += `L${coordinates(at)}`
+    } else if (verb === PK.QUAD_VERB) {
+      d += `Q${coordinates(end(0), end(2))}`
+      at = end(2)
+    } else if (verb === PK.CUBIC_VERB) {
+      d += `C${coordinates(end(0), end(2), end(4))}`
+      at = end(4)
+    } else if (verb === PK.CONIC_VERB) {
+      for (const [, b, c2, p] of conicAsCubics(at, end(0), end(2), n[4]!))
+        d += `C${coordinates(b, c2, p)}`
+      at = end(2)
+    } else if (verb === PK.CLOSE_VERB) {
+      d += 'Z'
+    }
+  }
+  return d
 }
 
 export function pointAt([a, b, c, d]: Cubic, t: number): Point {

@@ -19,6 +19,11 @@ describe('check', () => {
     expect(check(svg(SHADOW, FACE, STROKE), 'square.svg')).toEqual([])
   })
 
+  it('reads arcs whose flags run together, as minifiers write them', () => {
+    const arc = STROKE.replace('M4 4h30v30H4z', 'M10 30a5 5 0 0110 0')
+    expect(check(svg(FACE, arc), 'arc.svg')).toEqual([])
+  })
+
   it.each([
     [
       "a name that isn't kebab-case",

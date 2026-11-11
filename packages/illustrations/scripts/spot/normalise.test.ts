@@ -2,8 +2,9 @@
 import { describe, expect, it } from 'vitest'
 
 import { check } from './check.ts'
-import { bounds, normalise, toSvg } from './normalise.ts'
-import { PK, parse } from './pathkit.ts'
+import { pathData, toCubics } from './geometry.ts'
+import { absoluteStart, bounds, normalise, toSvg } from './normalise.ts'
+import { PK, parse, spaceArcFlags } from './pathkit.ts'
 
 const SHADOW = '#0091EB'
 const FACE = '#E1D1FB'
@@ -97,6 +98,68 @@ describe('normalise', () => {
     expect(inks(stroke, 9, 30)).toBe(true)
     expect(inks(stroke, 14, 25)).toBe(true)
     expect(inks(stroke, 7, 15)).toBe(false)
+  })
+
+  it('keeps a relative stroke where it was when it follows another stroke', () => {
+    const { layers } = normalise(
+      svg(
+        fill(FACE, rect(4, 4, 30, 30)),
+        line('M40 40h4'),
+        line('m4 30 10 0 0 -10')
+      )
+    )
+    const stroke = layers.at(-1)!.d
+    expect(inks(stroke, 42, 40)).toBe(true)
+    expect(inks(stroke, 9, 30)).toBe(true)
+    expect(inks(stroke, 14, 25)).toBe(true)
+  })
+
+  it('keeps the arcs of a stroke, so a circle stays a few bytes', () => {
+    const { layers } = normalise(
+      svg(
+        fill(FACE, rect(4, 4, 8, 8)),
+        `<circle cx="30" cy="30" r="8" stroke="${INK}" stroke-width=".5"/>`,
+        line('m20 10a3 3 0 0 1 6 0')
+      )
+    )
+    const stroke = layers.at(-1)!.d
+    expect(inks(stroke, 30, 22)).toBe(true)
+    expect(inks(stroke, 23, 7)).toBe(true)
+    expect(stroke.length).toBeLessThan(80)
+    expect(check(toSvg(layers), 'circle.svg')).toEqual([])
+  })
+
+  it('writes a filled circle as a few curves', () => {
+    const { layers } = normalise(
+      svg(`<circle cx="24" cy="24" r="10" fill="${FACE}"/>`, line('M20 24h8'))
+    )
+    const face = layers[0]!.d
+    expect(covers(face, 24, 24)).toBe(true)
+    expect(covers(face, 24, 14.2)).toBe(true)
+    expect(covers(face, 31, 31)).toBe(true)
+    expect(covers(face, 32, 32)).toBe(false)
+    expect(face.length).toBeLessThan(160)
+  })
+
+  it('keeps a stroke’s arcs as a few curves when the art shrinks to fit', () => {
+    const report = normalise(
+      svg(
+        fill(FACE, rect(0, 0, 48, 48)),
+        `<circle cx="24" cy="24" r="8" stroke="${INK}" stroke-width=".5"/>`
+      )
+    )
+    expect(report.fit).not.toBeNull()
+    const stroke = report.layers.at(-1)!.d
+    // Shrunk by 44/48 about the centre, so the top of the circle moves to 24 - 8 × 44/48.
+    expect(inks(stroke, 24, 16.67)).toBe(true)
+    expect(stroke.length).toBeLessThan(300)
+  })
+
+  it('reads arcs whose flags run together, as minifiers write them', () => {
+    const { layers } = normalise(
+      svg(fill(FACE, rect(4, 4, 8, 8)), line('M20 30a5 5 0 0110 0'))
+    )
+    expect(inks(layers.at(-1)!.d, 25, 25)).toBe(true)
   })
 
   it('merges every stroke into one Stroke on top', () => {
@@ -309,6 +372,17 @@ describe('toSvg', () => {
     ])
   })
 
+  it('writes a circle drawn in curves without arcs', () => {
+    const circle =
+      'M34 24C34 29.523 29.523 34 24 34C18.477 34 14 29.523 14 24C14 18.477 18.477 14 24 14C29.523 14 34 18.477 34 24Z'
+    const written = toSvg([
+      { name: 'Face', d: circle },
+      { name: 'Stroke', d: circle }
+    ])
+    expect(written).toContain('<path id="Face"')
+    expect(written).not.toMatch(/ d="[^"]*[aA]/)
+  })
+
   it('keeps 2 decimal places and no arcs', () => {
     const data = [...source.matchAll(/ d="([^"]+)"/g)]
       .map((m) => m[1])
@@ -316,5 +390,56 @@ describe('toSvg', () => {
     expect(data).toContain('4.12')
     expect(data).not.toMatch(/\d\.\d{3}/)
     expect(data).not.toMatch(/[aA]/)
+  })
+})
+
+describe('pathData', () => {
+  it('keeps an arc of more than a quarter turn on its circle', () => {
+    // 350° of the circle around 24,24, which PathKit draws as three conics of about 117°.
+    const arc = parse('M24 14A10 10 0 1 1 22.26352 14.15192')
+    const written = parse(pathData(arc))
+    arc.delete()
+    const drift = toCubics(written)
+      .flat()
+      .map(([a, b, c, d]) => {
+        // A quarter of the way along, since the fit is exact at the middle.
+        const at = (i: 0 | 1) => (27 * a[i] + 27 * b[i] + 9 * c[i] + d[i]) / 64
+        return Math.abs(Math.hypot(at(0) - 24, at(1) - 24) - 10)
+      })
+    written.delete()
+    expect(Math.max(...drift)).toBeLessThan(0.001)
+  })
+})
+
+describe('spaceArcFlags', () => {
+  it.each([
+    ['M20 30a5 5 0 0110 0', 'M 20 30 a 5 5 0 0 1 10 0'],
+    ['M0 0A5,5,0,1,0,10,0', 'M 0 0 A 5 5 0 1 0 10 0'],
+    [
+      'M0 0a5 5 0 0110 0 5 5 0 10-10 0',
+      'M 0 0 a 5 5 0 0 1 10 0 5 5 0 1 0 -10 0'
+    ],
+    ['M0 0a1e1 5 0 01.5.5', 'M 0 0 a 1e1 5 0 0 1 .5 .5'],
+    ['M0 0h10l5 5z', 'M0 0h10l5 5z']
+  ])('spaces out %s', (d, spaced) => {
+    expect(spaceArcFlags(d)).toBe(spaced)
+  })
+
+  it('leaves data it can’t read for PathKit to report', () => {
+    expect(spaceArcFlags('M0 0a5 5 0 2 1 10 0')).toBe('M0 0a5 5 0 2 1 10 0')
+  })
+})
+
+describe('absoluteStart', () => {
+  it.each([
+    ['  m4 30 10 0 0 -10 ', 'M4 30l10 0 0 -10'],
+    ['m4,30-10,0', 'M4 30l-10,0'],
+    ['m4.5.5.5.5', 'M4.5 .5l.5.5'],
+    ['m1e1 2E-1 3 4', 'M1e1 2E-1l3 4'],
+    ['m4 30h5z', 'M4 30h5z'],
+    ['m4 30a3 3 0 0 1 6 0', 'M4 30a3 3 0 0 1 6 0'],
+    ['M4 30 10 0', 'M4 30 10 0']
+  ])('starts %j at its own point, as %j', (d, expected) => {
+    expect(absoluteStart(d)).toBe(expected)
   })
 })
