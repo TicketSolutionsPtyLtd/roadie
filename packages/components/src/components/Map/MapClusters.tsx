@@ -280,6 +280,42 @@ export function MapClusters({
           const share = shareOf(group.value, index.total)
           const name = `${label}: ${formatValue(group.value)}, ${share} of all`
           const zooms = !locked && group.splitsAt !== undefined
+          const band = {
+            ref: (element: HTMLButtonElement | null) => {
+              if (element) bands.current.set(group.key, element)
+              else bands.current.delete(group.key)
+            },
+            'aria-label': name,
+            'data-slot': 'map-cluster-band',
+            'data-level': levelOf(group.value, largest),
+            'data-highlighted': highlighted.has(group.key) || undefined,
+            className:
+              'is-interactive relative grid aspect-square min-w-(--map-cluster-size) -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums select-none',
+            style: {
+              '--map-cluster-size': `${sizeOf(group.value, largest)}px`,
+              '--map-cluster-spread': `${spreadOf(group.value, largest)}px`
+            } as CSSProperties
+          }
+          const text = (
+            <>
+              {show !== 'share' && (
+                <span className='text-sm font-medium'>
+                  {formatValue(group.value)}
+                </span>
+              )}
+              {show !== 'value' && (
+                <span
+                  className={cn(
+                    show === 'both'
+                      ? 'text-xs opacity-75'
+                      : 'text-sm font-medium'
+                  )}
+                >
+                  {share}
+                </span>
+              )}
+            </>
+          )
           return (
             <div
               key={group.key}
@@ -290,63 +326,35 @@ export function MapClusters({
                 zIndex: groups.length - rank
               }}
             >
-              <Popover
-                open={open === group.key}
-                onOpenChange={(next) => {
-                  if (next && zooms) {
-                    split(group)
-                    return
-                  }
-                  setOpen(next ? group.key : null)
-                }}
-              >
-                <Popover.Trigger
-                  ref={(element: HTMLButtonElement | null) => {
-                    if (element) bands.current.set(group.key, element)
-                    else bands.current.delete(group.key)
-                  }}
-                  aria-label={name}
-                  aria-describedby={zooms ? hintId : undefined}
-                  data-slot='map-cluster-band'
-                  data-level={levelOf(group.value, largest)}
-                  data-highlighted={highlighted.has(group.key) || undefined}
-                  className='is-interactive relative grid aspect-square min-w-(--map-cluster-size) -translate-1/2 place-content-center rounded-full p-1.5 text-center leading-none tabular-nums select-none'
-                  style={
-                    {
-                      '--map-cluster-size': `${sizeOf(group.value, largest)}px`,
-                      '--map-cluster-spread': `${spreadOf(group.value, largest)}px`
-                    } as CSSProperties
-                  }
+              {zooms ? (
+                // A band that zooms opens nothing, so it's a plain button.
+                <button
+                  type='button'
+                  {...band}
+                  aria-describedby={hintId}
+                  onClick={() => split(group)}
                 >
-                  {show !== 'share' && (
-                    <span className='text-sm font-medium'>
-                      {formatValue(group.value)}
-                    </span>
-                  )}
-                  {show !== 'value' && (
-                    <span
-                      className={cn(
-                        show === 'both'
-                          ? 'text-xs opacity-75'
-                          : 'text-sm font-medium'
-                      )}
-                    >
-                      {share}
-                    </span>
-                  )}
-                </Popover.Trigger>
-                <MapPreview sideOffset={8} onClose={() => setOpen(null)}>
-                  {open === group.key && (
-                    <GroupPreview
-                      index={index}
-                      group={group}
-                      label={label}
-                      share={share}
-                      formatValue={formatValue}
-                    />
-                  )}
-                </MapPreview>
-              </Popover>
+                  {text}
+                </button>
+              ) : (
+                <Popover
+                  open={open === group.key}
+                  onOpenChange={(next) => setOpen(next ? group.key : null)}
+                >
+                  <Popover.Trigger {...band}>{text}</Popover.Trigger>
+                  <MapPreview sideOffset={8} onClose={() => setOpen(null)}>
+                    {open === group.key && (
+                      <GroupPreview
+                        index={index}
+                        group={group}
+                        label={label}
+                        share={share}
+                        formatValue={formatValue}
+                      />
+                    )}
+                  </MapPreview>
+                </Popover>
+              )}
             </div>
           )
         })}

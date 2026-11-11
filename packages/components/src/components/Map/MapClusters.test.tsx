@@ -284,6 +284,20 @@ describe('Map.Clusters', () => {
     expect(document.activeElement).toBe(zoomIn)
   })
 
+  it('says a band opens a preview only when it does, not when it zooms', async () => {
+    const { zoomTo } = await renderClusters()
+    const group = band('120, 67% of all')
+    expect(group).not.toHaveAttribute('aria-haspopup')
+    expect(group).not.toHaveAttribute('aria-expanded')
+
+    await zoomTo(21)
+    const place = band('40, 22% of all')
+    expect(place).toHaveAttribute('aria-haspopup', 'dialog')
+    expect(place).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.click(place)
+    expect(place).toHaveAttribute('aria-expanded', 'true')
+  })
+
   it('shows a single place’s name in its preview', async () => {
     const { zoomTo } = await renderClusters()
     await zoomTo(21)
