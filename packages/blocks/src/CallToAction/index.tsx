@@ -121,11 +121,12 @@ const PHOTO_HEIGHT: Record<BlockRatio, string> = {
 }
 
 // The photo's height the copy needn't cover: its overhang, less the illustration below it, plus the
-// surface's padding, which is thinner on a panel than a band.
+// surface's padding, which is thinner on a panel than a band. From @5xl, a third-wide photo's
+// tilt drops its illustration lower, so a panel leaves it a little more.
 const PHOTO_ROOM = {
   band: '@xl:min-h-[calc(var(--photo-height)-9rem)] @7xl:min-h-[calc(var(--photo-height)-11rem)]',
   panel:
-    '@xl:min-h-[calc(var(--photo-height)-7rem)] @3xl:min-h-[calc(var(--photo-height)-9rem)] @7xl:min-h-[calc(var(--photo-height)-11rem)]'
+    '@xl:min-h-[calc(var(--photo-height)-7rem)] @3xl:min-h-[calc(var(--photo-height)-9rem)] @5xl:min-h-[calc(var(--photo-height)-8rem)] @7xl:min-h-[calc(var(--photo-height)-11rem)]'
 }
 
 /** Closes a page with a short pitch and the next step to take. */

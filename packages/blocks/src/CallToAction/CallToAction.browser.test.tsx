@@ -130,20 +130,24 @@ describe('CallToAction with photo', () => {
       [
         ['a phone', PHONE],
         ['a mid-width screen', { width: 640, height: 800 }],
+        ['a tablet', { width: 900, height: 1000 }],
+        ['a small desktop', { width: 1100, height: 800 }],
         ['a desktop', DESKTOP],
         ['a wide desktop', { width: 1600, height: 900 }]
       ] as const
     ).flatMap(([name, size]) =>
       (['square', 'story', 'portrait', 'landscape', 'banner'] as const).flatMap(
         (ratio) =>
-          (['contained panel', 'band'] as const).map(
-            (shape) => [shape, name, ratio, size] as const
+          (['contained panel', 'band'] as const).flatMap((shape) =>
+            (['tilted', 'straight'] as const).map(
+              (tilt) => [tilt, shape, name, ratio, size] as const
+            )
           )
       )
     )
   )(
-    'keeps the photo and its illustration above a %s’s foot, with short copy, on %s at %s',
-    async (shape, _, ratio, size) => {
+    'keeps a %s photo and its illustration above a %s’s foot, with short copy, on %s at %s',
+    async (tilt, shape, _, ratio, size) => {
       await page.viewport(size.width, size.height)
       const { container } = render(
         <CallToAction
@@ -152,7 +156,7 @@ describe('CallToAction with photo', () => {
           ratio={ratio}
           body={undefined}
           actions={undefined}
-          tilted={false}
+          tilted={tilt === 'tilted'}
         />
       )
 
