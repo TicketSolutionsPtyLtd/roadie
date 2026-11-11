@@ -83,7 +83,7 @@ export type MosaicProps = {
   intent?: BlockIntent
   /** The surface behind the block. Without one, the tiles sit on the page. */
   emphasis?: BlockEmphasis
-  /** Draws the `emphasis` inside the page's padding, rounded at every width, instead of as a full-width band. Read only when there's an `emphasis`. */
+  /** Draws the `emphasis` as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. Read only when there's an `emphasis`. */
   contained?: boolean
   /**
    * Where the heading and actions line up.

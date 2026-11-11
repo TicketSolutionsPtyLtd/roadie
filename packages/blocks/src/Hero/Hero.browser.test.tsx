@@ -58,6 +58,23 @@ async function showAt(width: number, ui = <Hero {...bento(photo)} />) {
 }
 
 describe('Hero bento layout', () => {
+  it('fits a chat action and a second action on one row on a 375px phone', async () => {
+    await showAt(
+      375,
+      <Hero
+        {...bento(photo)}
+        actions={[
+          { label: 'Contact sales', href: '/contact/sales', icon: 'chat' },
+          { label: 'Create my event', href: 'https://studio.oztix.com.au' }
+        ]}
+      />
+    )
+
+    const first = screen.getByRole('link', { name: 'Contact sales' })
+    const second = screen.getByRole('link', { name: /Create my event/ })
+    expect(rect(second).top).toBeCloseTo(rect(first).top, 0)
+  })
+
   it('stacks the title over the video on a phone, with no photo panels', async () => {
     await showAt(PHONE.width)
 
