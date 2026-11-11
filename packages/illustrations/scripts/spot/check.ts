@@ -230,6 +230,8 @@ export function styleWarnings(
         rule: 'commands',
         message: `${layer} has ${n} path commands; the most in the set is under 200, so it's likely sampled points rather than curves`
       })
-  const accepted = new Set(name ? ACCEPTED[name] : [])
+  const accepted = new Set(
+    name && Object.hasOwn(ACCEPTED, name) ? ACCEPTED[name] : []
+  )
   return out.filter((w) => !accepted.has(w.rule))
 }

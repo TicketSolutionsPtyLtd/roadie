@@ -170,6 +170,11 @@ describe('styleWarnings', () => {
     expect(rules(upLeft, 'flower-spiral')).not.toContain('shadow-direction')
   })
 
+  it('accepts nothing for a name an object inherits', () => {
+    const upLeft = block(square(2, 2, 38), square(8, 8, 38))
+    expect(rules(upLeft, 'constructor')).toContain('shadow-direction')
+  })
+
   it.each(sources().map((s) => [s.slug, s.svg]))(
     'finds nothing to flag in %s',
     (slug, svg) => {
