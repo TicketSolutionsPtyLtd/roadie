@@ -17,7 +17,7 @@ import {
   shrink,
   union
 } from './geometry.ts'
-import { PK, type Path, parse } from './pathkit.ts'
+import { NUMBER, PK, type Path, parse } from './pathkit.ts'
 
 type Item =
   | { kind: 'fill'; layer: FillLayer | 'Outline'; d: string; evenOdd: boolean }
@@ -169,7 +169,6 @@ function toPath(item: { d: string; evenOdd?: boolean }) {
   return p
 }
 
-const NUMBER = String.raw`[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?`
 const LEADING_MOVE = new RegExp(
   String.raw`^\s*m\s*(${NUMBER})[\s,]*(${NUMBER})[\s,]*`
 )
