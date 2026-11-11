@@ -49,6 +49,9 @@ const RADIUS = 56
 // zoom both engines reach: MapLibre's 22, and Google's 21, which is 20 here.
 const MAX_ZOOM = 19
 
+// How many groups' lists of places are kept at once.
+const KEPT_LISTS = 512
+
 // A group's key names its region's index and its cluster in it.
 const clusterKey = (region: number, id: number) => `c${region}-${id}`
 const parseClusterKey = (key: string) => {
@@ -123,6 +126,7 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
       : properties.key
 
   const largest = new Map<number, number>()
+  const lists = new Map<string, ({ position: LatLng } & Place)[]>()
   const groupsAt = (
     bbox: readonly [number, number, number, number],
     zoom: number
@@ -178,7 +182,7 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
     /** The places in a group, largest first. */
     placesIn(
       group: Pick<MapClusterGroup, 'key'>
-    ): ({ position: LatLng } & Place)[] {
+    ): readonly ({ position: LatLng } & Place)[] {
       const cluster = parseClusterKey(group.key)
       if (!cluster) {
         const place = placeOf.get(group.key)
@@ -186,12 +190,20 @@ export function clusterIndex(points: readonly MapClusterPoint[]) {
         const { key, position, value, label, names } = place
         return [{ key, position, value, label, names }]
       }
-      return indexes[cluster.region]!.getLeaves(cluster.id, Infinity)
-        .map(({ geometry, properties }) => {
-          const [lng, lat] = geometry.coordinates as [number, number]
-          return { ...properties, position: { lat, lng } }
-        })
-        .sort((a, b) => b.value - a.value)
+      // Listing a large group walks every place in it, and a highlight and
+      // a listener both ask as the bands change, so the last lists are kept.
+      let listed = lists.get(group.key)
+      if (!listed) {
+        listed = indexes[cluster.region]!.getLeaves(cluster.id, Infinity)
+          .map(({ geometry, properties }) => {
+            const [lng, lat] = geometry.coordinates as [number, number]
+            return { ...properties, position: { lat, lng } }
+          })
+          .sort((a, b) => b.value - a.value)
+        if (lists.size >= KEPT_LISTS) lists.clear()
+        lists.set(group.key, listed)
+      }
+      return listed
     }
   }
 }
