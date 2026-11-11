@@ -142,7 +142,8 @@ Draw the front flat, in any units. The kit in `scripts/spot/draw/` has:
   surface.
 - **`side`,** which picks each face's layer from whether it's a hole's wall and
   which way it faces. By default a hole's walls are Detail and the rest Shadow,
-  as the letters D and B have it. For undersides in Detail, as in E and P, use
+  as Letter B has it. For undersides in Detail, as the letters E and P in the
+  Figma file have them, use
   `side: ({ hole, normal }) => hole || normal[1] > normal[0] ? 'Detail' : 'Shadow'`.
 - **`lines`,** for marks that bound no fill, such as grip lines.
 - **`fit`,** which scales the art so its long side spans 2 to 46, growing it as

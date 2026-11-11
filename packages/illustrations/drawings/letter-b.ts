@@ -5,7 +5,7 @@ import {
   union
 } from '../scripts/spot/draw/index.ts'
 
-// Proportions from the set's drawn letters (P, R, D): a 42.3 tall front, an
+// Proportions from the letters P, R, and D drawn in the Figma file: a 42.3 tall front, an
 // 11.4 wide stem, bowls as deep as half their height, corners eased by 0.9.
 const EASE = 0.9
 
