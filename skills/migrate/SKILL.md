@@ -116,6 +116,10 @@ npx --yes jscodeshift@17.4.0 -t "$CODEMODS/link-button.js" \
   components in the table.
 - Use `pnpm dlx`, `yarn dlx`, or `bunx` in place of `npx` to match the app.
 - Read the `REP` lines in the output. Each is a use left for step 5.
+- An `ERR` line is a file the parser couldn't read, so nothing in it moved.
+  A string with a raw line or paragraph separator (U+2028 or U+2029) is the
+  usual cause: write it as `\u2028` and run the codemod again, or migrate the
+  file by hand.
 - Run the app's formatter on the changed files. The codemods print new code
   with single quotes and semicolons.
 
