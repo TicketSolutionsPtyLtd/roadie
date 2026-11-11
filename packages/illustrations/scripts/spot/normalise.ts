@@ -262,6 +262,9 @@ function fitInside(paths: Path[]) {
   return { scale: +scale.toFixed(4), dx: +dx.toFixed(3), dy: +dy.toFixed(3) }
 }
 
+// SVGO's types allow only undefined, which brings back the default; null is what turns arcs off.
+const ARCS_OFF = null as unknown as undefined
+
 /** A spot illustration's source file: one path per layer, named by its id. */
 export function toSvg(layers: Layer[]) {
   const paths = layers.map(({ name, d }) =>
@@ -283,7 +286,7 @@ export function toSvg(layers: Layer[]) {
               cleanupIds: false,
               mergePaths: false,
               // At 2 decimals, curves rewritten as arcs drift enough to show.
-              convertPathData: { makeArcs: null }
+              convertPathData: { makeArcs: ARCS_OFF }
             }
           }
         }

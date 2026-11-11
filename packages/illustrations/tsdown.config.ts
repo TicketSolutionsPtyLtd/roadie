@@ -6,6 +6,8 @@ import { skipUnchangedWrites } from '../../scripts/tsdown-watch.mjs'
 export default defineConfig(({ watch }) => ({
   entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
   unbundle: true,
+  // Keeps `spot/` in the output, so each kind of illustration gets its own subpath.
+  root: 'src',
   format: ['esm'],
   platform: 'neutral',
   // The docs dev server reads only JS, so watch skips the declarations.

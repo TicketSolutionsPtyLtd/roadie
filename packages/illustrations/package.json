@@ -1,6 +1,7 @@
 {
   "name": "@oztix/roadie-illustrations",
   "version": "0.0.0",
+  "private": true,
   "description": "Oztix illustrations as React components, drawn from SVG sources kept in the repo",
   "type": "module",
   "license": "ISC",
