@@ -369,7 +369,7 @@ function Bento({
             <div
               data-slot='hero-scrim'
               className={cn(
-                'relative grid px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12',
+                'relative grid px-5 py-8 text-(--color-neutral-light-0) @md:px-6 @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12',
                 gapOf(size, 'normal'),
                 align === 'center' && 'justify-items-center text-center',
                 SCRIM[intent ?? 'brand']
@@ -411,7 +411,12 @@ function Bento({
                   </p>
                 )}
               </div>
-              <BlockActions {...block.actions} fill='scrim' className='gap-2' />
+              {/* A narrow phone sets text wider on some platforms, so the panel and its buttons give a little of their padding to keep two actions on one row. */}
+              <BlockActions
+                {...block.actions}
+                fill='scrim'
+                className='gap-2 @max-md:*:px-3'
+              />
             </div>
           </div>
           {hasPrimary && (
