@@ -281,6 +281,17 @@ describe('normalise', () => {
     ).toEqual(['Face', 'Stroke'])
   })
 
+  it("ignores a clip path that covers the whole box, as Figma's frame clipping exports", () => {
+    expect(
+      names(
+        svg(
+          '<defs><clipPath id="frame"><path fill="#fff" d="M0 0h48v48H0z"/></clipPath></defs>',
+          `<g clip-path="url(#frame)">${fill(FACE, rect(4, 4, 30, 30))}${line(rect(4, 4, 30, 30))}</g>`
+        )
+      )
+    ).toEqual(['Face', 'Stroke'])
+  })
+
   it('takes the fill and fill rule a group passes down to its shapes', () => {
     const { layers } = normalise(
       svg(
@@ -349,9 +360,116 @@ describe('normalise', () => {
     ['art with no lines', svg(fill(FACE, rect(4, 4, 10, 10))), 'no lines'],
     ['lines with no fills', svg(line(rect(4, 4, 10, 10))), 'nothing filled'],
     [
-      'a clip path',
-      svg(`<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 10, 10))}</g>`),
+      'a clip path that cuts into the art',
+      svg(
+        '<defs><clipPath id="c"><path d="M0 0h20v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
       'clip paths'
+    ],
+    [
+      'a clip path that spans the box but cuts a corner off',
+      svg(
+        '<defs><clipPath id="c"><path d="M0 0h48v48z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a clip path that spans the box with a hole in it',
+      svg(
+        `<defs><clipPath id="c"><path clip-rule="evenodd" d="M0 0h48v48H0z${rect(10, 10, 10, 10)}"/></clipPath></defs>`,
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip path shrunk by a transform',
+      svg(
+        '<defs><clipPath id="c" transform="scale(.5)"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip shape moved by a transform',
+      svg(
+        '<defs><clipPath id="c"><path transform="translate(20)" d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip shape moved by its style',
+      svg(
+        '<defs><clipPath id="c"><path style="transform:translate(20px)" d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a clip path with a hole its ancestor sets the rule for',
+      svg(
+        `<defs clip-rule="evenodd"><clipPath id="c"><path d="M0 0h48v48H0z${rect(10, 10, 10, 10)}"/></clipPath></defs>`,
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip shape that is hidden',
+      svg(
+        '<defs><clipPath id="c"><path display="none" d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip path inside a hidden group',
+      svg(
+        '<defs visibility="hidden"><clipPath id="c"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip path inside a group its style hides',
+      svg(
+        '<defs style="visibility:hidden"><clipPath id="c"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip path clipped by another',
+      svg(
+        '<defs><clipPath id="d"><path d="M0 0h10v48H0z"/></clipPath><clipPath id="c" clip-path="url(#d)"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip path a stylesheet can restyle',
+      svg(
+        '<style>path{display:none}</style><defs><clipPath id="c"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a whole-box clip path whose id an earlier clip already took',
+      svg(
+        '<defs><clipPath id="c"><path d="M0 0h10v48H0z"/></clipPath><clipPath id="c"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'clip paths'
+    ],
+    [
+      'a transform on a group a whole-box clip keeps in place',
+      svg(
+        '<defs><clipPath id="c"><path d="M0 0h48v48H0z"/></clipPath></defs>',
+        `<g clip-path="url(#c)" transform="translate(10)">${fill(FACE, rect(4, 4, 30, 30))}</g>`
+      ),
+      'flatten'
     ]
   ])('rejects %s', (_, source, message) => {
     expect(() => normalise(source)).toThrow(message)

@@ -156,24 +156,24 @@ folder.
 
 ### The style
 
-Measured across the set. `spot:generate` and `spot:draw` warn when a source
-falls outside the ranges in the warning column, which are a little wider than
-the set so the set itself passes. An illustration can break a rule on purpose
-(Flower Spiral's shadow trails up and left); `ACCEPTED` in
-`scripts/spot/check.ts` records those.
+Measured across all 177. `spot:generate` and `spot:draw` warn when a source
+falls outside the ranges in the warning column, about the 2nd to 98th
+percentile of the set. An illustration can break a rule on purpose:
+`ACCEPTED` in `scripts/spot/check.ts` lists the set's own, such as line art
+drawn mostly in Stroke and squarish shapes that sit smaller.
 
-| Measure                      | The set                           | Warns outside |
-| ---------------------------- | --------------------------------- | ------------- |
-| Long side                    | 43 to 44, so 2 to 46              | under 42.9    |
-| Short side                   | 32 to 44; Wine Glass is 26        |               |
-| Painted share of the box     | 0.37 to 0.61, median 0.46         | 0.35 to 0.63  |
-| Face share of what's painted | 0.27 to 0.73, mostly 0.52 to 0.67 |               |
-| Shadow share                 | 0.03 to 0.29, mostly 0.10 to 0.21 | 0.025 to 0.30 |
-| Detail share, where used     | 0.04 to 0.32, mostly 0.08 to 0.28 |               |
-| Highlight share, where used  | 0.09 to 0.12 (Caravan, High Five) |               |
-| Stroke share                 | 0.09 to 0.17, median 0.12         | 0.07 to 0.18  |
-| Shadow direction             | down, right, or both              | up and left   |
-| Path commands in a layer     | under 200                         | over 400      |
+| Measure                      | The set                                        | Warns outside |
+| ---------------------------- | ---------------------------------------------- | ------------- |
+| Long side                    | 44, from 2 to 46, for most; squares down to 32 | under 35      |
+| Short side                   | 15 to 44, mostly 30 to 42                      |               |
+| Painted share of the box     | 0.27 to 0.79, mostly 0.36 to 0.61, median 0.48 | 0.30 to 0.68  |
+| Face share of what's painted | mostly 0.50 to 0.71, median 0.63               |               |
+| Shadow share                 | mostly 0.06 to 0.26, median 0.16               | 0.02 to 0.33  |
+| Detail share, where used     | mostly 0.05 to 0.23, in 142 of 177             |               |
+| Highlight share, where used  | 0.02 to 0.12, in 5 (Caravan, High Five)        |               |
+| Stroke share                 | mostly 0.08 to 0.15, median 0.11               | 0.065 to 0.21 |
+| Shadow direction             | down, right, or both                           | up and left   |
+| Path commands in a layer     | median 39, mostly under 220                    | over 450      |
 
 - **Depth.** Shadow is the front swept back along one vector, not a copy
   shifted behind it. Compact objects go down and right, 2.5 to 5.5 long at 35

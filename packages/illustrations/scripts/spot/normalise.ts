@@ -83,9 +83,85 @@ const INHERITED = ['fill', 'fill-rule', 'stroke', 'stroke-width'] as const
 // What SVG paints when nothing sets these.
 const INITIAL_PAINT: Record<string, string> = { fill: '#000' }
 
+// Attributes that can't change the region a clip path covers.
+const INERT_IN_CLIP = new Set([
+  'id',
+  'clipPathUnits',
+  'clip-rule',
+  'd',
+  'fill',
+  'fill-rule'
+])
+const inert = (node: { attributes: Record<string, string> }) =>
+  Object.keys(node.attributes).every((k) => INERT_IN_CLIP.has(k))
+
+function coversBox(d: string) {
+  const shape = PK.FromSVGString(d)
+  if (!shape) return false
+  // Even-odd covers the least, so the answer holds whatever clip-rule an ancestor or stylesheet sets.
+  shape.setFillType(PK.FillType.EVENODD)
+  const uncovered = parse(`M0 0h${BOX}v${BOX}H0z`)
+  uncovered.op(shape, PK.PathOp.DIFFERENCE)
+  const whole = uncovered.toSVGString() === ''
+  uncovered.delete()
+  shape.delete()
+  return whole
+}
+
+/** Clip paths covering the whole box, which clip nothing: Figma exports one for a frame that clips its content. */
+function wholeBoxClips(svg: string) {
+  const ids = new Set<string>()
+  const taken = new Set<string>()
+  // Visibility and styles are inherited, and could hide a clip's shape.
+  const restyled = new WeakSet<object>()
+  let stylesheet = false
+  const find: CustomPlugin = {
+    name: 'findWholeBoxClips',
+    fn: () => ({
+      element: {
+        enter(node, parent) {
+          if (node.name === 'style') stylesheet = true
+          if (
+            restyled.has(parent) ||
+            node.attributes.visibility ||
+            node.attributes.style
+          )
+            restyled.add(node)
+          const { id } = node.attributes
+          // A reference goes to the first element with the id.
+          if (!id || taken.has(id)) return
+          taken.add(id)
+          if (node.name !== 'clipPath' || !inert(node) || restyled.has(node))
+            return
+          const covers = node.children.some(
+            (child) =>
+              child.type === 'element' &&
+              child.name === 'path' &&
+              inert(child) &&
+              child.attributes.d !== undefined &&
+              coversBox(child.attributes.d)
+          )
+          if (covers) ids.add(id)
+        }
+      }
+    })
+  }
+  optimize(svg, {
+    plugins: [
+      { name: 'convertShapeToPath', params: { convertArcs: true } },
+      find
+    ]
+  })
+  return stylesheet ? new Set<string>() : ids
+}
+
 /** Every painted shape, in paint order, with a path's fill and stroke as separate items. */
 function readItems(svg: string): Item[] {
   const items: Item[] = []
+  const harmlessClips = wholeBoxClips(svg)
+  const clipsSomething = (clip: string | undefined) =>
+    clip !== undefined &&
+    !harmlessClips.has(clip.match(/^url\(#(.+)\)$/)?.[1] ?? '')
   const paint = new WeakMap<object, Record<string, string>>()
   const unpainted = new WeakSet<object>()
   const collect: CustomPlugin = {
@@ -113,13 +189,16 @@ function readItems(svg: string): Item[] {
             throw new Error(
               `<${node.name}> isn't supported; flatten it to plain paths`
             )
-          if (a['clip-path'] || a.mask || a.filter)
+          if (clipsSomething(a['clip-path']) || a.mask || a.filter)
             throw new Error("clip paths, masks, and filters aren't supported")
           if (a.opacity || a['fill-opacity'] || a['stroke-opacity'])
             throw new Error('every layer is opaque; remove the opacity')
-          if (node.name !== 'path') return
+          // A group keeps its transform when it references a clip, so check every element, not just paths.
           if (a.transform)
-            throw new Error('a transform was left on a path; flatten it')
+            throw new Error(
+              `a transform was left on a <${node.name}>; flatten it`
+            )
+          if (node.name !== 'path') return
           const fill = a.fill && a.fill !== 'none' ? a.fill : null
           const stroke = a.stroke && a.stroke !== 'none' ? a.stroke : null
           if (!a.d) return

@@ -28,22 +28,26 @@ function moduleFor(slug: string, svg: string) {
   const name = componentName(slug)
   const all = layersOf(svg)
   // Laid out as oxfmt would, so the drift test compares files exactly.
+  const opening = `export const ${name} = createSpotIllustration('${name}', [`
+  const wrapped = opening.length > PRINT_WIDTH
+  const indent = wrapped ? '    ' : '  '
   const layers = all
     .map(({ name: layer, d }, i) => {
-      const line = `  ['${layer.toLowerCase()}', '${d}']`
+      const line = `${indent}['${layer.toLowerCase()}', '${d}']`
       const comma = i < all.length - 1 ? 1 : 0
       return line.length + comma <= PRINT_WIDTH
         ? line
-        : `  [\n    '${layer.toLowerCase()}',\n    '${d}'\n  ]`
+        : `${indent}[\n${indent}  '${layer.toLowerCase()}',\n${indent}  '${d}'\n${indent}]`
     })
     .join(',\n')
+  const call = wrapped
+    ? `export const ${name} = createSpotIllustration(\n  '${name}',\n  [\n${layers}\n  ]\n)`
+    : `${opening}\n${layers}\n])`
   return `${HEADER}
 import { createSpotIllustration } from '../SpotIllustration'
 
 /** The ${slug.replaceAll('-', ' ')} spot illustration, from \`svgs/${slug}.svg\`. */
-export const ${name} = createSpotIllustration('${name}', [
-${layers}
-])
+${call}
 `
 }
 

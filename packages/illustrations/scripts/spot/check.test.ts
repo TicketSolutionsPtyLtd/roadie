@@ -154,8 +154,8 @@ describe('styleWarnings', () => {
     ],
     [
       'long-side',
-      'art short of the full 44',
-      block(square(8, 8, 34), square(2, 2, 34))
+      'art well short of the full 44',
+      block(square(10, 10, 24), square(6, 6, 24))
     ],
     ['shadow-share', 'no Shadow showing', block(square(2, 2, 38))],
     [
@@ -181,7 +181,7 @@ describe('styleWarnings', () => {
         ...block().slice(0, 2),
         layer(
           'Stroke',
-          `M2 2${Array.from({ length: 420 }, (_, i) => `L${2 + i / 10} 2`).join('')}`
+          `M2 2${Array.from({ length: 480 }, (_, i) => `L${2 + i / 10} 2`).join('')}`
         )
       ]
     ]

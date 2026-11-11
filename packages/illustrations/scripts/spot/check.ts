@@ -165,19 +165,50 @@ export type StyleRule =
   | 'shadow-direction'
   | 'commands'
 
-/** Drawn this way on purpose, so their warnings are expected. */
+/** Sources in the set that sit outside a rule's range, so their warnings are expected. */
 export const ACCEPTED: Record<string, StyleRule[]> = {
-  // Its petals spin, so the shadow trails up and left.
-  'flower-spiral': ['shadow-direction']
+  // Squarish shapes that sit smaller in the box.
+  'arch-window': ['long-side'],
+  'l-shape': ['long-side'],
+  'square-cube-box': ['long-side'],
+  // Thin marks that paint little of the box, and solid blocks that paint most of it.
+  'check-correct': ['coverage'],
+  'heart-pixel': ['coverage'],
+  'letter-i': ['coverage'],
+  sponge: ['coverage'],
+  'stamp-frame': ['coverage', 'commands'],
+  'web-page': ['coverage', 'shadow-direction'],
+  // Line art, drawn mostly in Stroke.
+  'abstract-ring': ['shadow-share', 'stroke-share'],
+  grass: ['stroke-share'],
+  shrub: ['shadow-share', 'stroke-share'],
+  'sparkling-glitter-star-rotate': ['stroke-share'],
+  // Flat, with no depth, or deep enough that the side outweighs the front.
+  'cursor-head': ['shadow-share'],
+  rock: ['shadow-share'],
+  sign: ['shadow-share'],
+  wing: ['shadow-share'],
+  'lightning-bolt': ['shadow-share'],
+  'piece-cake': ['shadow-share'],
+  // Their Shadow falls up and to the left.
+  'block-l-right': ['shadow-direction'],
+  'cloud-puff': ['shadow-direction'],
+  'flower-spiral': ['shadow-direction'],
+  pencil: ['shadow-direction'],
+  vase: ['shadow-direction'],
+  // Many short curves.
+  'cloud-rotate': ['commands'],
+  'flower-rotate': ['commands'],
+  'number-9': ['commands']
 }
 
-/** The set's measured range for each rule, a little wider so the set itself passes. */
+/** About the 2nd to 98th percentile of the set for each rule; `ACCEPTED` lists the rest. */
 export const STYLE = {
-  coverage: [0.35, 0.63],
-  longSide: 42.9,
-  shadowShare: [0.025, 0.3],
-  strokeShare: [0.07, 0.18],
-  commands: 400
+  coverage: [0.3, 0.68],
+  longSide: 35,
+  shadowShare: [0.02, 0.33],
+  strokeShare: [0.065, 0.21],
+  commands: 450
 } as const
 
 const pct = (n: number) => `${Math.round(n * 100)}%`
@@ -202,7 +233,7 @@ export function styleWarnings(
   if (m.longSide < STYLE.longSide)
     out.push({
       rule: 'long-side',
-      message: `its long side spans ${m.longSide.toFixed(1)}; stretch it to 44, from 2 to 46, like the rest of the set (fit() does it for you)`
+      message: `its long side spans ${m.longSide.toFixed(1)}; the set stretches to 44, from 2 to 46 (fit() does it for you), and only a few squarish shapes sit smaller, down to 32`
     })
   const shadow = m.shares.Shadow ?? 0
   const [minShadow, maxShadow] = STYLE.shadowShare
@@ -228,7 +259,7 @@ export function styleWarnings(
     if (n > STYLE.commands)
       out.push({
         rule: 'commands',
-        message: `${layer} has ${n} path commands; the most in the set is under 200, so it's likely sampled points rather than curves`
+        message: `${layer} has ${n} path commands; most of the set stays under 220, so it's likely sampled points rather than curves`
       })
   const accepted = new Set(
     name && Object.hasOwn(ACCEPTED, name) ? ACCEPTED[name] : []

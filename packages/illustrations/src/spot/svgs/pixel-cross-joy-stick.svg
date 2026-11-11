@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 48 48">
+  <path id="Shadow" fill="#0091eb" fill-rule="evenodd" d="m14.57 15.4 6.29 4.63h6.28v-4.58h.07l-.07-.05zM2 27.97l6.29 4.63h6.28v-4.63zm31.43 4.69-6.29-4.64h12.57L46 32.66zM20.86 45.18l-6.29-4.64h12.57l6.29 4.64z"/>
+  <path id="Detail" fill="#ffc3a8" fill-rule="evenodd" d="M27.14 2.82V15.4l.07.05h6.22V7.46zM14.57 15.4v12.57h6.29v-7.94zm25.14 12.62V15.45L46 20.08v12.58zM27.14 40.54V27.97l6.29 4.63v12.57z"/>
+  <path id="Face" fill="#e1d1fb" fill-rule="evenodd" d="M27.14 2.82H14.57V15.4H2v12.57h12.57v12.57h12.57V28.02h12.58V15.45H27.14v12.52H14.57V15.4h12.57z"/>
+  <path id="Stroke" stroke="#1a1f2b" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5" d="M21.06 20.03h5.88m18.72 12.63H33.63m-31.36-4.5q3 2.23 6.02 4.44h6.08m6.49 12.58-6.02-4.44m18.25 4.44H20.86M14.57 2.82h12.57V15.4H14.57zm12.57 12.63h12.58v12.57H27.14zm0-12.63V15.4l.07.05h6.22V7.46zM2 15.4h12.57v12.57H2zm37.71 12.62V15.45L46 20.08v12.58zm-25.14-.05h12.57v12.57H14.57zm0-12.57v12.57h6.29v-7.94zm12.57 25.14V27.97l6.29 4.63v12.57z"/>
+</svg>
