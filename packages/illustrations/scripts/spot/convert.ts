@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { basename, join } from 'node:path'
+import { basename, join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 
 import { compare } from './compare.ts'
@@ -43,11 +43,14 @@ const slugOf = (file: string) =>
     .replace(/^-|-$/g, '')
     .toLowerCase()
 
+// `pnpm --filter` runs this in the package, so paths are read from where it was called.
+const calledFrom = process.env.INIT_CWD ?? process.cwd()
+
 const pairs = []
 for (const file of positionals) {
   const slug = values.name ?? slugOf(file)
-  const before = readFileSync(file, 'utf8')
   try {
+    const before = readFileSync(resolve(calledFrom, file), 'utf8')
     const report = normalise(before)
     const after = toSvg(report.layers)
     writeFileSync(join(SVGS, `${slug}.svg`), after)
