@@ -10,7 +10,7 @@ import {
   STROKE
 } from './format.ts'
 import { clipOutside, grow, runsInside, shrink, union } from './geometry.ts'
-import { PK, type Path } from './pathkit.ts'
+import { PK, type Path, parse } from './pathkit.ts'
 
 type Item =
   | { kind: 'fill'; layer: FillLayer | 'Outline'; d: string; evenOdd: boolean }
@@ -147,7 +147,7 @@ function readItems(svg: string): Item[] {
 }
 
 function toPath(item: { d: string; evenOdd?: boolean }) {
-  const p = PK.FromSVGString(item.d)
+  const p = parse(item.d)
   p.setFillType(item.evenOdd ? PK.FillType.EVENODD : PK.FillType.WINDING)
   return p
 }
@@ -180,7 +180,7 @@ export function normalise(svg: string): Report {
         .slice(i + 1)
         .filter((it) => it.kind === 'fill' && it.layer !== 'Outline')
       const covering = union(fillsAbove.map(toPath))
-      const line = PK.FromSVGString(item.d)
+      const line = parse(item.d)
       const core = covering && shrink(covering.copy(), EDGE_TOLERANCE)
       if (covering && core && runsInside(line, core)) {
         clippedStrokes++
@@ -205,7 +205,7 @@ export function normalise(svg: string): Report {
     shape.delete()
   })
 
-  const strokePath = PK.FromSVGString(strokes.join(''))
+  const strokePath = parse(strokes.join(''))
   const fit = fitInside([...layers.map((l) => l.path), strokePath])
   const result: Layer[] = [
     ...layers.map((l) => ({

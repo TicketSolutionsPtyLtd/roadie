@@ -25,6 +25,18 @@ describe('check', () => {
       'kebab-case'
     ],
     [
+      'a name starting with a digit, which no component can take',
+      svg(FACE, STROKE),
+      '3d-glasses.svg',
+      'start it with a letter'
+    ],
+    [
+      "path data that doesn't parse",
+      svg(FACE.replace('M4 4h30v30H4z', "M4 4h30v30H4z'"), STROKE),
+      'a.svg',
+      "Face's path data doesn't parse"
+    ],
+    [
       'a different box',
       svg(FACE, STROKE).replace('0 0 48 48', '0 0 24 24'),
       'a.svg',

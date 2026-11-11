@@ -22,7 +22,7 @@ export interface Path {
 }
 
 interface PathKit {
-  FromSVGString(d: string): Path
+  FromSVGString(d: string): Path | null
   NewPath(): Path
   PathOp: { UNION: number; DIFFERENCE: number; INTERSECT: number }
   FillType: { WINDING: number; EVENODD: number }
@@ -46,3 +46,9 @@ const init = require(entry) as (options: {
 export const PK = await init({
   wasmBinary: readFileSync(join(dirname(entry), 'pathkit.wasm'))
 })
+
+export function parse(d: string) {
+  const path = PK.FromSVGString(d)
+  if (!path) throw new Error(`path data doesn't parse: ${d.slice(0, 40)}`)
+  return path
+}

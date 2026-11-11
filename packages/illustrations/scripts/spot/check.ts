@@ -11,7 +11,7 @@ import {
 import { bounds } from './normalise.ts'
 import { PK } from './pathkit.ts'
 
-const FILE_NAME = /^[a-z0-9]+(-[a-z0-9]+)*\.svg$/
+const FILE_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*\.svg$/
 const ROOT_ATTRIBUTES = {
   xmlns: 'http://www.w3.org/2000/svg',
   fill: 'none',
@@ -74,7 +74,9 @@ function sameAttributes(
 export function check(svg: string, fileName: string): string[] {
   const errors: string[] = []
   if (!FILE_NAME.test(fileName))
-    errors.push(`${fileName}: name it in kebab-case, such as map-pin.svg`)
+    errors.push(
+      `${fileName}: name it in kebab-case and start it with a letter, such as map-pin.svg`
+    )
 
   const { root, children, nested } = read(svg)
   if (!root || root.name !== 'svg') return [...errors, 'not an SVG']
@@ -128,7 +130,13 @@ export function check(svg: string, fileName: string): string[] {
     errors.push('there are no fill layers')
   if (errors.length) return errors
 
-  const paths = children.map((c) => PK.FromSVGString(c.attributes.d!))
+  const parsed = children.map((c) => PK.FromSVGString(c.attributes.d!))
+  const paths = parsed.filter((p) => p !== null)
+  const unparsed = names.filter((_, i) => parsed[i] === null)
+  if (unparsed.length) {
+    for (const p of paths) p.delete()
+    return unparsed.map((n) => `${n}'s path data doesn't parse`)
+  }
   const { minX, minY, maxX, maxY } = bounds(paths)
   for (const p of paths) p.delete()
   const lo = OUTLINE_WIDTH - FIT_TOLERANCE

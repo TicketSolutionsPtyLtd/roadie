@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { check } from './check.ts'
 import { bounds, normalise, toSvg } from './normalise.ts'
-import { PK } from './pathkit.ts'
+import { PK, parse } from './pathkit.ts'
 
 const SHADOW = '#0091EB'
 const FACE = '#E1D1FB'
@@ -20,9 +20,9 @@ const rect = (x: number, y: number, w: number, h: number) =>
 
 /** Whether a layer's fill covers a point, sampled through a tiny square there. */
 function covers(d: string, x: number, y: number) {
-  const layer = PK.FromSVGString(d)
+  const layer = parse(d)
   layer.setFillType(PK.FillType.EVENODD)
-  const dot = PK.FromSVGString(rect(x - 0.01, y - 0.01, 0.02, 0.02))
+  const dot = parse(rect(x - 0.01, y - 0.01, 0.02, 0.02))
   layer.op(dot, PK.PathOp.INTERSECT)
   const hit = layer.toSVGString() !== ''
   layer.delete()
@@ -32,7 +32,7 @@ function covers(d: string, x: number, y: number) {
 
 /** Whether a stroke's 0.5-wide line passes over a point. */
 function inks(d: string, x: number, y: number) {
-  const swept = PK.FromSVGString(d)
+  const swept = parse(d)
   swept.stroke({
     width: 0.5,
     join: PK.StrokeJoin.ROUND,
@@ -134,7 +134,7 @@ describe('normalise', () => {
       svg(fill(FACE, rect(0, 10, 48, 20)), line(rect(0, 10, 48, 20)))
     )
     expect(big.fit?.scale).toBeCloseTo(44 / 48, 3)
-    const paths = big.layers.map((l) => PK.FromSVGString(l.d))
+    const paths = big.layers.map((l) => parse(l.d))
     const { minX, maxX } = bounds(paths)
     for (const p of paths) p.delete()
     expect(minX).toBeCloseTo(2, 2)
@@ -198,6 +198,11 @@ describe('normalise', () => {
       'a shape with no fill, which paints black',
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="${rect(4, 4, 10, 10)}"/></svg>`,
       "isn't a spot illustration colour"
+    ],
+    [
+      "path data that doesn't parse",
+      svg(fill(FACE, 'M4 4h10v10H4z!')),
+      "path data doesn't parse"
     ],
     [
       'a gradient',
