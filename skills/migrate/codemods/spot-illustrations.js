@@ -67,11 +67,13 @@ function declaresElsewhere(j, root, name) {
   const declared = [
     j.TSTypeAliasDeclaration,
     j.TSInterfaceDeclaration,
+    j.TSEnumDeclaration,
     j.VariableDeclarator,
     j.FunctionDeclaration,
     j.ClassDeclaration
   ].some((type) => root.find(type, { id: { name } }).size() > 0)
-  return imported || declared
+  const typeParameter = root.find(j.TSTypeParameter, { name }).size() > 0
+  return imported || declared || typeParameter
 }
 
 export default function transform(file, api) {
