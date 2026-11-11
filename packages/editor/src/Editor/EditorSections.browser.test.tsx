@@ -277,6 +277,16 @@ describe('Editor sections', () => {
     ).toEqual(['Calm promo', 'Loud promo'])
   })
 
+  it('leaves out a section named for one of the preset’s own nodes', async () => {
+    renderPage(page(intro), { sections: [{ ...promo, name: 'image' }] })
+    await clickInto('Doors 7pm')
+
+    await userEvent.keyboard('{End}{Enter}/')
+
+    await screen.findByRole('listbox', { name: 'Insert' })
+    expect(screen.queryByRole('group', { name: 'Sections' })).toBe(null)
+  })
+
   it('renders a saved section through /render with its own renderer', () => {
     const value = page({
       type: 'promo',

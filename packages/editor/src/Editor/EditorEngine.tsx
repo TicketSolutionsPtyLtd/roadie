@@ -38,7 +38,7 @@ import {
 } from '@oztix/roadie-components/field'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { EditorBlock, EditorSection } from '../extensions'
+import type { EditorBlock } from '../extensions'
 import {
   CURRENT_VERSION,
   type EditorValue,
@@ -79,6 +79,7 @@ import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
 import { EditorVariablePopover } from './EditorVariablePopover'
 import { EditorVariableView } from './EditorVariableView'
+import { blocksFor, presetTakes, sectionsFor } from './appBlocks'
 import { type BlockContainers, TOP_LEVEL } from './blockActions'
 import { BlockClick } from './blockClick'
 import { BlockDrag } from './blockDrag'
@@ -276,37 +277,6 @@ function presetSchema(preset: Preset) {
     schemas.set(preset, schema)
   }
   return schema
-}
-
-/** Whether a block's name is one the preset's own nodes or marks use. */
-function takenName(preset: Preset, { node }: EditorBlock) {
-  return presetTakes(preset, node.name)
-}
-
-function presetTakes(preset: Preset, name: string) {
-  const { nodes, marks } = presetSchema(preset)
-  return Object.hasOwn(nodes, name) || Object.hasOwn(marks, name)
-}
-
-/** An app's sections, only in the preset that takes them, each name once. */
-function sectionsFor(
-  preset: Preset,
-  sections: readonly EditorSection[] = [],
-  blocks: readonly EditorBlock[] = []
-) {
-  if (preset !== 'blocks') return []
-  const taken = new Set(blocks.map(({ node }) => node.name))
-  return sections.filter(({ name }) => {
-    if (presetTakes(preset, name) || taken.has(name)) return false
-    taken.add(name)
-    return true
-  })
-}
-
-/** An app's blocks, only in the preset that takes them. */
-function blocksFor(preset: Preset, blocks: readonly EditorBlock[] = []) {
-  if (preset !== 'blocks') return []
-  return blocks.filter((block) => !takenName(preset, block))
 }
 
 // Each app block is an id-carrying block too, so UniqueID needs its name.
@@ -836,7 +806,7 @@ export function EditorEngine({
 
   const leftOut = preset !== 'blocks' && Boolean(extensionsProp?.length)
   const taken = (preset === 'blocks' ? (extensionsProp ?? []) : [])
-    .filter((block) => takenName(preset, block))
+    .filter(({ node }) => presetTakes(preset, node.name))
     .map(({ node }) => node.name)
     .join(', ')
   const holding = blocks

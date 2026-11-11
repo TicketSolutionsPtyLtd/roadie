@@ -1,11 +1,12 @@
 import type { Preset } from '../schema/presetShapes'
 import { type EditorValue, createEmptyValue, migrate } from '../schema/value'
 import type { EditorRootProps } from './EditorRoot'
+import { customBlockNames } from './appBlocks'
 import type { EditorEmphasis, EditorToolbarMode } from './variants'
 
 type PresetProps = Pick<
   EditorRootProps,
-  'preset' | 'value' | 'defaultValue' | 'extensions'
+  'preset' | 'value' | 'defaultValue' | 'extensions' | 'sections'
 >
 
 /**
@@ -56,9 +57,7 @@ export function resolvedPreset({
 export function startingValue(props: PresetProps): EditorValue {
   const preset = resolvedPreset(props)
   const stored = props.value ?? props.defaultValue ?? createEmptyValue(preset)
-  const customBlocks =
-    preset === 'blocks'
-      ? (props.extensions ?? []).map(({ node }) => node.name)
-      : []
-  return migrate(stored, preset, { customBlocks })
+  return migrate(stored, preset, {
+    customBlocks: customBlockNames(preset, props.extensions, props.sections)
+  })
 }

@@ -215,7 +215,9 @@ export function bodyToDoc(
  * pass the editor's own providers if it has them.
  *
  * Needs a browser's `DOMParser`, so call it in an effect or event handler.
- * Throws a RangeError on an unknown preset.
+ * Throws a RangeError on an unknown preset, and on `email`, which
+ * `importEmail` reads with its preheader, buttons, columns, merge tags, and
+ * unsafe links.
  */
 export function htmlToEditorValue(
   html: string,
@@ -226,6 +228,11 @@ export function htmlToEditorValue(
 ): { value: EditorValue; dropped: DroppedContent[] } {
   if (!isPreset(preset)) {
     throw new RangeError(`Unknown EditorValue preset "${preset}".`)
+  }
+  if (preset === 'email') {
+    throw new RangeError(
+      'htmlToEditorValue doesn’t read the email preset. Use importEmail, which keeps an email’s preheader, buttons, columns, and merge tags.'
+    )
   }
   if (typeof DOMParser === 'undefined') {
     throw new Error('htmlToEditorValue needs a browser’s DOMParser.')
