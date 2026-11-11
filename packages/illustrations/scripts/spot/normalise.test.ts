@@ -146,6 +146,18 @@ describe('normalise', () => {
     ).toBeNull()
   })
 
+  it('moves art that is small enough but too near an edge back inside, without shrinking it', () => {
+    const { fit, layers } = normalise(
+      svg(fill(FACE, rect(0, 10, 20, 20)), line(rect(0, 10, 20, 20)))
+    )
+    expect(fit?.scale).toBe(1)
+    const paths = layers.map((l) => parse(l.d))
+    const { minX, maxX } = bounds(paths)
+    for (const p of paths) p.delete()
+    expect(minX).toBeCloseTo(2, 2)
+    expect(maxX).toBeCloseTo(22, 2)
+  })
+
   it("drops the white outline, written either way, since it's drawn from the art", () => {
     for (const white of ['#FFFFFF', 'white', '#fff'])
       expect(
