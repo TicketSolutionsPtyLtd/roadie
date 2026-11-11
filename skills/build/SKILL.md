@@ -321,7 +321,9 @@ page.
   whole page or 404, with `EmptyState.Title render={<h1 />}`.
 - `sm` media is an `EmptyState.IconTile`. `md` media is a spot illustration
   from `@oztix/roadie-illustrations/spot` in `EmptyState.Illustration`,
-  picked by the message from the table in the page's Guidelines.
+  picked by the message from the table in the page's Guidelines. Install
+  `@oztix/roadie-illustrations` and import `@oztix/roadie-illustrations/css`
+  after Roadie's, or Tailwind drops the illustration colours.
 - A failed load is `<EmptyState intent='danger'>` with a Retry action. Set
   the intent once on the root.
 - EmptyState has no surface. Put it in a `Card` when it needs one.
