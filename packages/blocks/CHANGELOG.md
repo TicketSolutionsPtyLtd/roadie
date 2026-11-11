@@ -1,5 +1,31 @@
 # @oztix/roadie-blocks
 
+## 0.2.0
+
+### Minor Changes
+
+- 88e2597: Add `catalogueSections()` (`@oztix/roadie-blocks/catalogue/sections`), which turns the blocks an app passes into the editor's `sections`: one per block, named such as `heroSection`, a template per preset with its thumbnail from `thumbnailUrl`, and the block's text, layout, alignment, size, surface, and colour as settings.
+
+  Each catalogue block gains `keywords`, such as `cta` and `banner` for Call to action, which the editor's insert menu finds it by. Align, Size, Colour and Surface show what the block draws while unset, which can differ by layout, such as Cards' centred Plain and left-aligned Photo, or a raised Call to action, whose Surface offers no None. Align reads Left and Centre, as an image's and a button's do.
+
+  A section's settings now cover every part of its block: images and logos as `image` settings, buttons as a list of `action`s up to the preset's limit, and items such as cards, questions and stats as a `list` of their text and images. A section draws whatever was saved for it without throwing: its text and choices must be strings, and its images and buttons keep only their own fields, so a saved `style` on an image or an object as a button's label is left out.
+
+- 2aca9b2: Breaking: a block's band now runs across the window's full width at every size, square, and `contained` draws a rounded panel in line with the bento Hero's edges. A band used to stop 8px in and round once the block was wide, and a contained panel sat inside the page's content padding, narrower than the Hero. Set `contained` on a surfaced block that should keep the rounded look on wide screens. A marquee or carousel on a band now runs to the window's edges past the page's measure.
+- 4c7249f: Call to action `photo` draws a contained panel by default, as Cards `photo` does. Set `contained={false}` to keep it on a band. On a contained panel, the photo no longer rises above the section on a phone, and a tall photo and its illustration no longer run past the panel's foot when the copy is short.
+- 1fef0ac: Add `editingItem` to an `EditorSection`'s `render`, the path of the list item open in its Settings drawer, such as `questions.2`, and `FAQ`'s `openQuestion`, so a section shows the item being edited and an FAQ opens to the answer being edited.
+
+  Removing a list item in Settings is now an undo step of its own, and focus moves to the next item, the one before, or Add. While Settings are open, `Mod+Z` and `Mod+Shift+Z` step the editor's history through the visit's own steps, never a field's own undo, so Undo brings an item back without taking away the block. On a phone, the sheet opens scrolled to the item tapped without raising the keyboard, and the item being edited stays above it as you type. A button or image item no longer repeats its name above its fields.
+
+  In the editor, a catalogue section draws a new button with its label, or Button, before it has a link, and an image waiting on its link, a Gallery's or Hero's list images too, as a placeholder from the sunken surface, so it follows dark mode.
+
+### Patch Changes
+
+- 2aca9b2: Block titles are now set black (900) at every size, as Oztix's designed pages set them, heavier than a `text-display-prose-2` heading elsewhere. Eyebrows, descriptions, and card titles keep their weights.
+- 589b8f7: On a block narrower than 448px, the bento Hero's text panel and its action buttons give up a little side padding, so Contact sales and Create my event stay on one row down to a 360px phone, with room to spare where text sets wider.
+- 2aca9b2: A block narrower than 448px drops its actions' leading icons, so two actions such as Contact sales and Create my event fit on one row on a phone. Trailing icons, which say where a link goes, stay.
+- 2045deb: A block's action `icon` that names no icon, such as `constructor`, draws no icon. An `illustration` that names no spot illustration draws none on a card or stat, and the block's default on Hero, RichText, and CallToAction. A block's or Mosaic tile's `size`, or a Gallery's or CallToAction's `ratio`, that names none of its values draws as the default.
+- 8d5110f: Cards' Text blocks and Steps presets set four cards across from a 76rem (1216px) block, down from 80rem, so a 1280px window with a classic, always-visible scrollbar keeps four in a row instead of dropping to two or three. Each card stays at least 15rem wide, except on a contained surface from 1216 to 1231px, where the panel's padding leaves them just under, down to 14.75rem.
+
 ## 0.1.0
 
 ### Minor Changes

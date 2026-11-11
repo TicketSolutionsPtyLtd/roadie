@@ -9,7 +9,7 @@ import {
   STROKE
 } from './format.ts'
 import { bounds } from './normalise.ts'
-import { PK } from './pathkit.ts'
+import { tryParse } from './pathkit.ts'
 
 const FILE_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*\.svg$/
 const ROOT_ATTRIBUTES = {
@@ -130,7 +130,7 @@ export function check(svg: string, fileName: string): string[] {
     errors.push('there are no fill layers')
   if (errors.length) return errors
 
-  const parsed = children.map((c) => PK.FromSVGString(c.attributes.d!))
+  const parsed = children.map((c) => tryParse(c.attributes.d!))
   const paths = parsed.filter((p) => p !== null)
   const unparsed = names.filter((_, i) => parsed[i] === null)
   if (unparsed.length) {

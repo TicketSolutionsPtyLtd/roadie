@@ -9,8 +9,15 @@ import {
   OUTLINE_WIDTH,
   STROKE
 } from './format.ts'
-import { clipOutside, grow, runsInside, shrink, union } from './geometry.ts'
-import { PK, type Path, parse } from './pathkit.ts'
+import {
+  clipOutside,
+  grow,
+  pathData,
+  runsInside,
+  shrink,
+  union
+} from './geometry.ts'
+import { NUMBER, PK, type Path, parse } from './pathkit.ts'
 
 type Item =
   | { kind: 'fill'; layer: FillLayer | 'Outline'; d: string; evenOdd: boolean }
@@ -216,6 +223,24 @@ function toPath(item: { d: string; evenOdd?: boolean }) {
   return p
 }
 
+const LEADING_MOVE = new RegExp(
+  String.raw`^\s*m\s*(${NUMBER})[\s,]*(${NUMBER})[\s,]*`
+)
+
+/**
+ * Path data that still starts in place once joined after another stroke. A
+ * leading `m` is absolute only at the start of a path, and the pairs after it
+ * are relative lines, so they get an `l`. The rest is kept as written, arcs
+ * included, rather than rewritten as PathKit's curves.
+ */
+export function absoluteStart(d: string) {
+  const move = LEADING_MOVE.exec(d)
+  if (!move) return d.trim()
+  const [matched, x, y] = move
+  const rest = d.slice(matched.length).trimEnd()
+  return `M${x} ${y}${/^[\d.+-]/.test(rest) ? 'l' : ''}${rest}`
+}
+
 // A stroke lying on a shape's edge is drawn twice, once by each shape; only a fill reaching past it buries it.
 const EDGE_TOLERANCE = 0.05
 // Cut a buried stroke this far short of the covering edge, so its round cap ends inside that shape's own stroke.
@@ -250,10 +275,7 @@ export function normalise(svg: string): Report {
         clippedStrokes++
         strokes.push(clipOutside(line, grow(covering, CUT_SHORT)))
       } else {
-        // Rewritten absolute, so joining it to other strokes can't turn its relative points absolute.
-        const absolute = parse(item.d)
-        strokes.push(absolute.toSVGString())
-        absolute.delete()
+        strokes.push(absoluteStart(item.d))
       }
       for (const p of [line, core, covering]) p?.delete()
       return
@@ -281,13 +303,13 @@ export function normalise(svg: string): Report {
   const strokePath = parse(strokes.join(''))
   const fit = fitInside([...layers.map((l) => l.path), strokePath])
   const result: Layer[] = [
-    ...layers.map((l) => ({
-      name: l.name,
-      d: l.path.simplify()?.toSVGString() ?? ''
-    })),
+    ...layers.map((l) => {
+      const simplified = l.path.simplify()
+      return { name: l.name, d: simplified ? pathData(simplified) : '' }
+    }),
     {
       name: 'Stroke' as const,
-      d: fit ? strokePath.toSVGString() : strokes.join('')
+      d: fit ? pathData(strokePath) : strokes.join('')
     }
   ].filter((l) => l.d !== '')
   for (const l of layers) l.path.delete()
