@@ -9,8 +9,15 @@ import {
   OUTLINE_WIDTH,
   STROKE
 } from './format.ts'
-import { clipOutside, grow, runsInside, shrink, union } from './geometry.ts'
-import { PK, type Path, parse } from './pathkit.ts'
+import {
+  clipOutside,
+  grow,
+  pathData,
+  runsInside,
+  shrink,
+  union
+} from './geometry.ts'
+import { NUMBER, PK, type Path, parse } from './pathkit.ts'
 
 type Item =
   | { kind: 'fill'; layer: FillLayer | 'Outline'; d: string; evenOdd: boolean }
@@ -76,43 +83,65 @@ const INHERITED = ['fill', 'fill-rule', 'stroke', 'stroke-width'] as const
 // What SVG paints when nothing sets these.
 const INITIAL_PAINT: Record<string, string> = { fill: '#000' }
 
+// Attributes that can't change the region a clip path covers.
+const INERT_IN_CLIP = new Set([
+  'id',
+  'clipPathUnits',
+  'clip-rule',
+  'd',
+  'fill',
+  'fill-rule'
+])
+const inert = (node: { attributes: Record<string, string> }) =>
+  Object.keys(node.attributes).every((k) => INERT_IN_CLIP.has(k))
+
+function coversBox(d: string) {
+  const shape = PK.FromSVGString(d)
+  if (!shape) return false
+  // Even-odd covers the least, so the answer holds whatever clip-rule an ancestor or stylesheet sets.
+  shape.setFillType(PK.FillType.EVENODD)
+  const uncovered = parse(`M0 0h${BOX}v${BOX}H0z`)
+  uncovered.op(shape, PK.PathOp.DIFFERENCE)
+  const whole = uncovered.toSVGString() === ''
+  uncovered.delete()
+  shape.delete()
+  return whole
+}
+
 /** Clip paths covering the whole box, which clip nothing: Figma exports one for a frame that clips its content. */
 function wholeBoxClips(svg: string) {
   const ids = new Set<string>()
+  const taken = new Set<string>()
+  // Visibility and styles are inherited, and could hide a clip's shape.
+  const restyled = new WeakSet<object>()
+  let stylesheet = false
   const find: CustomPlugin = {
     name: 'findWholeBoxClips',
     fn: () => ({
       element: {
-        enter(node) {
+        enter(node, parent) {
+          if (node.name === 'style') stylesheet = true
           if (
-            node.name !== 'clipPath' ||
-            !node.attributes.id ||
-            node.attributes.transform
+            restyled.has(parent) ||
+            node.attributes.visibility ||
+            node.attributes.style
           )
+            restyled.add(node)
+          const { id } = node.attributes
+          // A reference goes to the first element with the id.
+          if (!id || taken.has(id)) return
+          taken.add(id)
+          if (node.name !== 'clipPath' || !inert(node) || restyled.has(node))
             return
-          const covers = node.children.some((child) => {
-            if (
-              child.type !== 'element' ||
-              child.name !== 'path' ||
-              !child.attributes.d ||
-              child.attributes.transform
-            )
-              return false
-            const shape = PK.FromSVGString(child.attributes.d)
-            if (!shape) return false
-            const rule =
-              child.attributes['clip-rule'] ?? node.attributes['clip-rule']
-            shape.setFillType(
-              rule === 'evenodd' ? PK.FillType.EVENODD : PK.FillType.WINDING
-            )
-            const uncovered = parse(`M0 0h${BOX}v${BOX}H0z`)
-            uncovered.op(shape, PK.PathOp.DIFFERENCE)
-            const whole = uncovered.toSVGString() === ''
-            uncovered.delete()
-            shape.delete()
-            return whole
-          })
-          if (covers) ids.add(node.attributes.id)
+          const covers = node.children.some(
+            (child) =>
+              child.type === 'element' &&
+              child.name === 'path' &&
+              inert(child) &&
+              child.attributes.d !== undefined &&
+              coversBox(child.attributes.d)
+          )
+          if (covers) ids.add(id)
         }
       }
     })
@@ -123,7 +152,7 @@ function wholeBoxClips(svg: string) {
       find
     ]
   })
-  return ids
+  return stylesheet ? new Set<string>() : ids
 }
 
 /** Every painted shape, in paint order, with a path's fill and stroke as separate items. */
@@ -164,9 +193,12 @@ function readItems(svg: string): Item[] {
             throw new Error("clip paths, masks, and filters aren't supported")
           if (a.opacity || a['fill-opacity'] || a['stroke-opacity'])
             throw new Error('every layer is opaque; remove the opacity')
-          if (node.name !== 'path') return
+          // A group keeps its transform when it references a clip, so check every element, not just paths.
           if (a.transform)
-            throw new Error('a transform was left on a path; flatten it')
+            throw new Error(
+              `a transform was left on a <${node.name}>; flatten it`
+            )
+          if (node.name !== 'path') return
           const fill = a.fill && a.fill !== 'none' ? a.fill : null
           const stroke = a.stroke && a.stroke !== 'none' ? a.stroke : null
           if (!a.d) return
@@ -216,6 +248,24 @@ function toPath(item: { d: string; evenOdd?: boolean }) {
   return p
 }
 
+const LEADING_MOVE = new RegExp(
+  String.raw`^\s*m\s*(${NUMBER})[\s,]*(${NUMBER})[\s,]*`
+)
+
+/**
+ * Path data that still starts in place once joined after another stroke. A
+ * leading `m` is absolute only at the start of a path, and the pairs after it
+ * are relative lines, so they get an `l`. The rest is kept as written, arcs
+ * included, rather than rewritten as PathKit's curves.
+ */
+export function absoluteStart(d: string) {
+  const move = LEADING_MOVE.exec(d)
+  if (!move) return d.trim()
+  const [matched, x, y] = move
+  const rest = d.slice(matched.length).trimEnd()
+  return `M${x} ${y}${/^[\d.+-]/.test(rest) ? 'l' : ''}${rest}`
+}
+
 // A stroke lying on a shape's edge is drawn twice, once by each shape; only a fill reaching past it buries it.
 const EDGE_TOLERANCE = 0.05
 // Cut a buried stroke this far short of the covering edge, so its round cap ends inside that shape's own stroke.
@@ -250,10 +300,7 @@ export function normalise(svg: string): Report {
         clippedStrokes++
         strokes.push(clipOutside(line, grow(covering, CUT_SHORT)))
       } else {
-        // Rewritten absolute, so joining it to other strokes can't turn its relative points absolute.
-        const absolute = parse(item.d)
-        strokes.push(absolute.toSVGString())
-        absolute.delete()
+        strokes.push(absoluteStart(item.d))
       }
       for (const p of [line, core, covering]) p?.delete()
       return
@@ -281,13 +328,13 @@ export function normalise(svg: string): Report {
   const strokePath = parse(strokes.join(''))
   const fit = fitInside([...layers.map((l) => l.path), strokePath])
   const result: Layer[] = [
-    ...layers.map((l) => ({
-      name: l.name,
-      d: l.path.simplify()?.toSVGString() ?? ''
-    })),
+    ...layers.map((l) => {
+      const simplified = l.path.simplify()
+      return { name: l.name, d: simplified ? pathData(simplified) : '' }
+    }),
     {
       name: 'Stroke' as const,
-      d: fit ? strokePath.toSVGString() : strokes.join('')
+      d: fit ? pathData(strokePath) : strokes.join('')
     }
   ].filter((l) => l.d !== '')
   for (const l of layers) l.path.delete()
