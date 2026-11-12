@@ -310,9 +310,7 @@ describe('shapes', () => {
   })
 
   it('reads a join as smooth when a handle sits on its end point', () => {
-    const shape = path(
-      'M0 0L10 0C15.5228 0 20 4.4772 20 10C20 10 20 20 10 20L0 20Z'
-    )
+    const shape = path('M0 0L10 0C20 0 20 10 20 10C20 10 20 20 10 20L0 20Z')
     const quarter = (4 - Math.PI) / 4
     expect(region(ease(shape, 1)).area).toBeCloseTo(
       region(shape).area - 2 * quarter,
