@@ -13,8 +13,8 @@ import roadieCss from '../../vitest.browser.css?inline'
 
 // Limits: a string scan, not a selector parser. It reads core and component
 // CSS as the test stylesheet compiles it, which also scans test files, so a
-// class string only a test mentions can trip it; charts, widgets and docs CSS
-// aren't read, so the cart drawer's sheet goes unchecked. It knows nested
+// class string only a test mentions can trip it; charts, maps, widgets, and
+// docs CSS aren't read, so the cart drawer's sheet goes unchecked. It knows nested
 // rules, :is(), :where(), :not() and :has() nesting and escapes, not
 // namespaces or `of S` in :nth-child(). See
 // docs/solutions/best-practices/has-invalidation-scales-with-page.md.

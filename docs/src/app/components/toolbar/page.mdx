@@ -201,6 +201,7 @@ On a touch screen, or a screen narrower than `md`, the items stay on one row and
 - **Let its container shrink.** On a phone the toolbar's row is as wide as all its items. A grid or flex item holding it, such as a form control in a `Field`, grows to fit unless it has `min-w-0`.
 - **Use `Toolbar.Toggle` for an on and off state.** It reports whether it's pressed; a `Toolbar.Button` only runs an action. Put toggles that pick one of a set, such as alignment, in a `Toolbar.ToggleGroup`.
 - **Wrap popup triggers, not the button.** Pass `Toolbar.Button` to a `Menu.Trigger`, `Popover.Trigger`, or `Tooltip.Trigger` with `render`, so it keeps the toolbar's look and arrow order.
+- **Match the surface with `toolbarSurfaceVariants`.** In a package built on Roadie, a control that sits beside a toolbar, such as a map's full screen button beside its zoom buttons, takes the same surface from `toolbarSurfaceVariants()` in `@oztix/roadie-components/toolbar`, so the two line up.
 - **Label every icon-only control,** and the toolbar itself.
 
 ## Accessibility

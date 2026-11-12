@@ -64,6 +64,7 @@ type Manifest = { docs: string; components: ManifestComponent[] }
 const manifests = [
   '@oztix/roadie-components',
   '@oztix/roadie-charts',
+  '@oztix/roadie-maps',
   '@oztix/roadie-editor',
   '@oztix/roadie-widgets'
 ].map((pkg) => require(`${pkg}/roadie.manifest.json`) as Manifest)
