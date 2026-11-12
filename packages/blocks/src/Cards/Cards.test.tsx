@@ -2,8 +2,25 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
+import {
+  Number1,
+  Number2,
+  Number3,
+  Number4,
+  Number5,
+  Number6,
+  Number7,
+  Number8,
+  Number9
+} from '@oztix/roadie-illustrations/spot'
+
 import { Cards, type CardsItem } from '.'
 import { BlocksProvider } from '../Provider'
+
+const drawn = (Drawing: typeof Number1) =>
+  render(<Drawing outline />).container.querySelector('svg')!.innerHTML
+
+const drawingOf = (step: HTMLElement) => step.querySelector('svg')?.innerHTML
 
 const benefits: CardsItem[] = [
   {
@@ -294,15 +311,54 @@ describe('Cards', () => {
       within(list)
         .getAllByRole('listitem')
         .map((step) => [
-          step.querySelector('[aria-hidden="true"]')?.textContent,
+          drawingOf(step),
           within(step).getByRole('heading', { level: 3 }).textContent
         ])
     ).toEqual([
-      ['1', 'Name the artist'],
-      ['2', 'Check the essentials'],
-      ['3', 'Mark tributes as tributes']
+      [drawn(Number1), 'Name the artist'],
+      [drawn(Number2), 'Check the essentials'],
+      [drawn(Number3), 'Mark tributes as tributes']
     ])
     expect(screen.getByText('Spell it the same way every time.')).toBeVisible()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+
+  it('numbers steps one to nine with their number illustrations, then in text', () => {
+    render(
+      <Cards
+        preset='steps'
+        title='Plan a festival'
+        cards={Array.from({ length: 11 }, (_, index) => ({
+          title: `Step ${index + 1}`
+        }))}
+      />
+    )
+
+    const steps = screen.getAllByRole('listitem')
+    expect(steps.slice(0, 9).map(drawingOf)).toEqual(
+      [
+        Number1,
+        Number2,
+        Number3,
+        Number4,
+        Number5,
+        Number6,
+        Number7,
+        Number8,
+        Number9
+      ].map(drawn)
+    )
+    expect(
+      steps
+        .slice(9)
+        .map((step) => [
+          step.querySelector('svg'),
+          step.querySelector('[aria-hidden="true"]')?.textContent
+        ])
+    ).toEqual([
+      [null, '10'],
+      [null, '11']
+    ])
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 
@@ -319,7 +375,9 @@ describe('Cards', () => {
     )
 
     expect(screen.queryByText('Subtitle 0')).not.toBeInTheDocument()
-    expect(container.querySelector('li svg')).toBeNull()
+    expect(
+      [...container.querySelectorAll('li svg')].map((svg) => svg.innerHTML)
+    ).toEqual([drawn(Number1), drawn(Number2)])
     expect(
       screen.getByRole('img', { name: 'A crowd at a gig' })
     ).toHaveAttribute('src', '/crowd.jpg')
@@ -548,14 +606,23 @@ describe('Cards', () => {
     const markOf = (name: string) =>
       screen.getByText(name).closest('[data-slot="mark"]')
 
+    // Steps one to nine are illustrations in their own colours, so only a later step's mark takes an intent.
+    const firstNine = Array.from({ length: 9 }, (_, index) => ({
+      title: `Step ${index + 1}`
+    }))
+
     it.each([
-      ['text-blocks', ['Proactive touch', 'Positive energy'], 'info'],
-      ['steps', ['1', '2'], 'brand-secondary']
+      ['text-blocks', [], ['Proactive touch', 'Positive energy'], 'info'],
+      ['steps', firstNine, ['10', '11'], 'brand-secondary']
     ] as const)(
       'marks %s in the block’s intent, an item’s own, or %s',
-      (preset, marked, fallback) => {
+      (preset, before, marked, fallback) => {
         const { unmount } = render(
-          <Cards preset={preset} title='Section' cards={values} />
+          <Cards
+            preset={preset}
+            title='Section'
+            cards={[...before, ...values]}
+          />
         )
         for (const name of marked)
           expect(markOf(name)).toHaveClass(`intent-${fallback}`)
@@ -566,7 +633,11 @@ describe('Cards', () => {
             preset={preset}
             intent='danger'
             title='Section'
-            cards={[values[0]!, { ...values[1]!, intent: 'success' }]}
+            cards={[
+              ...before,
+              values[0]!,
+              { ...values[1]!, intent: 'success' }
+            ]}
           />
         )
         expect(markOf(marked[0])).toHaveClass('intent-danger')
