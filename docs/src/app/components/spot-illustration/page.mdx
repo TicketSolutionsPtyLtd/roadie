@@ -74,7 +74,7 @@ Spot illustrations live in code, not in a design file. Each is an SVG source in 
 
 Draw in those colours, in any tool or by hand. Give a new illustration a few lowercase tags in `packages/illustrations/src/spot/tags.json`, so the library above can find it. Then run `pnpm --filter @oztix/roadie-illustrations spot:convert` on the SVG. It merges each colour into its layer, cuts back lines that were hidden, shrinks art that would push the outline out of the box, and generates the component. It also counts the pixels that changed, so you can check nothing moved. The [package README](https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/illustrations) has the whole workflow.
 
-Keep every illustration's name once it's released. A [block](/blocks) saves the name in CMS content, so a renamed or removed illustration quietly falls back to the block's default. To change one, redraw its SVG under the same name.
+Keep every illustration's name once it's released. A [block](/blocks) saves the name in CMS content, so a renamed or removed illustration quietly falls back to the block's default, or disappears from a card or stat, which has none. To change one, redraw its SVG under the same name.
 
 ## Guidelines
 
