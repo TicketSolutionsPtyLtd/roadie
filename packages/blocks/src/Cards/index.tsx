@@ -452,9 +452,10 @@ const LOOKS: Record<CardsPreset, Look> = {
     Item: PlainCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @4xl:grid-cols-3'
   },
+  // Steps size themselves, from 15rem to 24rem, so a short row fills its width and stays centred.
   steps: {
     Item: StepCard,
-    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3 @[76rem]:grid-cols-4'
+    list: 'flex flex-wrap gap-6 *:flex-[1_1_15rem] *:max-w-96'
   },
   'text-blocks': {
     Item: ServiceCard,
@@ -523,7 +524,13 @@ export function Cards(props: CardsProps) {
             className='w-full'
           />
         </div>
-        <List className={listOf(name, cards)}>
+        <List
+          className={cn(
+            listOf(name, cards),
+            name === 'steps' &&
+              (headingAlign === 'center' ? 'justify-center' : 'justify-start')
+          )}
+        >
           {cards.map((item, index) => (
             <Item
               key={`${index}-${item.title}`}
