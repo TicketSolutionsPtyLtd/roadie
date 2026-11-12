@@ -1,6 +1,6 @@
 ---
 name: migrate
-description: Use when moving an app off deprecated Roadie APIs or onto a new Roadie major, or when typecheck, lint, or an editor flags a Roadie deprecation. Reads the deprecations in the installed manifest, finds each use in the app, runs a codemod where the rewrite is mechanical (LinkButton to Button with href, as to render, IconButton icon-* sizes, Popover positionerProps placement, renamed widget exports), migrates the rest by hand from the deprecation's reason, then typechecks and builds. Triggers on "migrate Roadie", "upgrade Roadie", "remove deprecated Roadie APIs", "LinkButton is deprecated", "as is deprecated, use render", "Roadie v3".
+description: Use when moving an app off deprecated Roadie APIs or onto a new Roadie major, or when typecheck, lint, or an editor flags a Roadie deprecation. Reads the deprecations in the installed manifest, finds each use in the app, runs a codemod where the rewrite is mechanical (LinkButton to Button with href, as to render, IconButton icon-* sizes, Popover positionerProps placement, renamed widget exports, spot illustrations to @oztix/roadie-illustrations), migrates the rest by hand from the deprecation's reason, then typechecks and builds. Triggers on "migrate Roadie", "upgrade Roadie", "remove deprecated Roadie APIs", "LinkButton is deprecated", "as is deprecated, use render", "spot-illustrations is deprecated", "Roadie v3".
 ---
 
 # Roadie migrate
