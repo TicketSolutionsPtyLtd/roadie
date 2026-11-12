@@ -3,6 +3,17 @@ import type { ReactNode } from 'react'
 import { Card } from '@oztix/roadie-components/card'
 import { Mark } from '@oztix/roadie-components/mark'
 import { cn } from '@oztix/roadie-core/utils'
+import {
+  Number1,
+  Number2,
+  Number3,
+  Number4,
+  Number5,
+  Number6,
+  Number7,
+  Number8,
+  Number9
+} from '@oztix/roadie-illustrations/spot'
 
 import type { BlockAction, BlockImage } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
@@ -52,14 +63,14 @@ export type CardsItem = {
   /** The item's own page. Its title becomes the link, and the whole card the place to click. */
   href?: string
   /**
-   * This item's intent, in place of the block's. It tints the card in `plain`, `steps`, `text-blocks`, and `lists`, and sets the mark that carries the preset's colour: the title in `text-blocks` and `overlap`, the number in `steps`, and the subtitle in `photo`.
+   * This item's intent, in place of the block's. It tints the card in `plain`, `steps`, `text-blocks`, and `lists`, and sets the mark that carries the preset's colour: the title in `text-blocks` and `overlap`, the subtitle in `photo`, and in `steps`, a number past 9. Steps 1 to 9 are number illustrations, whose colours are fixed.
    */
   intent?: BlockIntent
 }
 
 export type CardsProps = {
   /**
-   * The look. Every preset is a grid of cards. `plain` shows what each item has: an image, and an illustration over it or above the title. `steps` numbers the cards in order.
+   * The look. Every preset is a grid of cards. `plain` shows what each item has: an image, and an illustration over it or above the title. `steps` numbers the cards in order, with number illustrations up to 9.
    * @default 'plain'
    */
   preset?: CardsPreset
@@ -68,7 +79,7 @@ export type CardsProps = {
   /** An id for linking to the block. */
   id?: string
   /**
-   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `text-blocks` and `overlap`, the number in `steps`, and the subtitle in `photo`. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
+   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `text-blocks` and `overlap`, the subtitle in `photo`, and in `steps`, a number past 9, since steps 1 to 9 are number illustrations in fixed colours. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
    */
   intent?: BlockIntent
   /** The surface behind the block. Unset, `photo` sits on `raised` and the other presets have none. */
@@ -241,6 +252,34 @@ function PlainCard(props: CardProps) {
   )
 }
 
+const NUMBERS = [
+  Number1,
+  Number2,
+  Number3,
+  Number4,
+  Number5,
+  Number6,
+  Number7,
+  Number8,
+  Number9
+]
+
+// The list's own numbering tells assistive tech each step's place, so the number is decoration.
+function StepNumber({ step, intent }: { step: number; intent: BlockIntent }) {
+  const Drawing = NUMBERS[step - 1]
+  if (Drawing) return <Drawing outline className='size-16' />
+  return (
+    <Mark
+      aria-hidden
+      render={<span />}
+      intent={intent}
+      className='px-3 py-1 text-display-prose-2 tabular-nums'
+    >
+      {step}
+    </Mark>
+  )
+}
+
 function StepCard(props: CardProps) {
   const { item, index, itemEmphasis, centred } = props
   return (
@@ -260,14 +299,10 @@ function StepCard(props: CardProps) {
           className={cn(ratioClass.banner, 'w-full rounded-2xl')}
         />
       )}
-      <Mark
-        aria-hidden
-        render={<span />}
+      <StepNumber
+        step={index + 1}
         intent={markIntent(item, props.blockIntent, 'brand-secondary')}
-        className='px-3 py-1 text-display-prose-2 tabular-nums'
-      >
-        {index + 1}
-      </Mark>
+      />
       <div className='grid gap-2'>
         <h3 className='text-display-prose-4 text-strong'>
           <CardTitle item={item} />

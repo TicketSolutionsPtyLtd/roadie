@@ -54,7 +54,9 @@ Run `pnpm generate:exports` after adding the folder.
   inside a surface it draws, such as a raised panel. The one exception is RichText's
   `statement`, whose generous space above and below is its look.
 - **Shared names.** Illustrations take `SpotIllustrationName` from `src/_shared/illustrations.ts`
-  (re-exported from `/provider`), headings go through `BlockHeading` (its `size` sets a
+  (re-exported from `/provider`), which is every export of `@oztix/roadie-illustrations/spot`
+  but its base, so a new illustration reaches blocks with no change here. Draw one by name
+  only through `spotIllustration`, which ignores prototype keys. Headings go through `BlockHeading` (its `size` sets a
   preset's title step), and images through `BlockImg` with the `sizes` the layout needs.
 - **Prop shapes.** Array props are `readonly`, `actions` is optional, `preset` has a
   `@default`, and `position` and `id` keep the wording: "The block's place on the page,

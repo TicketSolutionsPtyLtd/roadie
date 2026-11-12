@@ -88,7 +88,7 @@ Cards with no images are compact. Boxed, with an `href` on each, they're places 
 
 ### Steps
 
-`steps` numbers the cards in order, as an ordered list, for how something works. Each step is a title and description, with an image if it needs one:
+`steps` numbers the cards in order, as an ordered list, for how something works. Each number is a [spot illustration](/components/spot-illustration) up to 9, and text from 10. Each step is a title and description, with an image if it needs one:
 
 ```tsx-live-expand id=steps
 <Cards
@@ -244,7 +244,7 @@ Square photos with each title and subtitle marked over them, on a contained rais
 />
 ```
 
-Steps on normal cards, with one step marked as the one that matters most:
+Steps 1 to 9 keep their illustrations' fixed colours, so an item's `intent` tints its step's card, not its number. Steps on normal cards, with one step marked as the one that matters most:
 
 ```tsx-live-expand id=intent-and-emphasis-cards
 <Cards

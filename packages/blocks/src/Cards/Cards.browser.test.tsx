@@ -347,6 +347,41 @@ describe('Cards align and size', () => {
   })
 })
 
+describe('Cards steps', () => {
+  const sides = (element: Element) => {
+    const { left, right, width, height } = element.getBoundingClientRect()
+    return { left, right, centre: (left + right) / 2, width, height }
+  }
+
+  it.each([375, 1280])(
+    'starts each step’s 4rem number with its title at %ipx',
+    (width) => {
+      render(<Block look='steps' width={width} />)
+
+      for (const card of cards()) {
+        const number = sides(card.querySelector('svg')!)
+        const title = sides(within(card).getByRole('heading', { level: 3 }))
+        expect([number.width, number.height]).toEqual([64, 64])
+        expect(number.left).toBeCloseTo(title.left, 0)
+      }
+    }
+  )
+
+  it('centres each step’s number over its centred text', () => {
+    render(
+      <div style={{ width: 1280 }}>
+        <Cards {...propsOf('steps')} align='center' />
+      </div>
+    )
+
+    for (const card of cards())
+      expect(sides(card.querySelector('svg')!).centre).toBeCloseTo(
+        sides(within(card).getByRole('heading', { level: 3 })).centre,
+        0
+      )
+  })
+})
+
 describe('Cards images', () => {
   const ratio = (image: HTMLElement) => {
     const { width, height } = image.getBoundingClientRect()
