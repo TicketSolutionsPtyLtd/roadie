@@ -338,10 +338,33 @@ describe('Map defaultFit', () => {
   const surface = () =>
     document.querySelector<HTMLElement>('[data-slot="map-surface"]')!
 
+  const finger = { pointerType: 'touch', isPrimary: true }
+
   it.each([
     ['presses', () => fireEvent.pointerDown(surface())],
+    [
+      'taps',
+      () => {
+        fireEvent.pointerDown(surface(), finger)
+        fireEvent.pointerUp(surface(), finger)
+      }
+    ],
+    [
+      'puts two fingers on',
+      () => {
+        fireEvent.pointerDown(surface(), finger)
+        fireEvent.pointerDown(surface(), { ...finger, isPrimary: false })
+      }
+    ],
     ['uses a key on', () => fireEvent.keyDown(surface(), { key: 'ArrowLeft' })],
-    ['scrolls on', () => fireEvent.wheel(surface(), { deltaY: -100 })]
+    [
+      'holds Ctrl and scrolls on',
+      () => fireEvent.wheel(surface(), { deltaY: -100, ctrlKey: true })
+    ],
+    [
+      'holds ⌘ and scrolls on',
+      () => fireEvent.wheel(surface(), { deltaY: -100, metaKey: true })
+    ]
   ])(
     'stays put when the reader %s the map before the pins arrive',
     async (_, use) => {
@@ -362,6 +385,8 @@ describe('Map defaultFit', () => {
     }
   )
 
+  // Tab and Shift move focus, and inline, a plain scroll and one finger move
+  // the page. None of them uses the map.
   it.each([
     ['Tab passes through', () => fireEvent.keyDown(surface(), { key: 'Tab' })],
     [
@@ -369,6 +394,17 @@ describe('Map defaultFit', () => {
       () => {
         fireEvent.keyDown(surface(), { key: 'Shift', shiftKey: true })
         fireEvent.keyDown(surface(), { key: 'Tab', shiftKey: true })
+      }
+    ],
+    [
+      'a plain scroll moves the page across',
+      () => fireEvent.wheel(surface(), { deltaY: 100 })
+    ],
+    [
+      'one finger moves the page across',
+      () => {
+        fireEvent.pointerDown(surface(), finger)
+        fireEvent.pointerCancel(surface(), finger)
       }
     ]
   ])('still eases to the pins after %s the map', async (_, pass) => {
@@ -383,6 +419,22 @@ describe('Map defaultFit', () => {
       expect.objectContaining({ animate: true })
     )
   })
+
+  it.each([
+    ['a plain scroll', () => fireEvent.wheel(surface(), { deltaY: -100 })],
+    ['one finger', () => fireEvent.pointerDown(surface(), finger)]
+  ])(
+    'stays put when %s moves a map filling the window before the pins arrive',
+    async (_, use) => {
+      const fake = fakeEngine()
+      const props = { defaultFit: true, defaultExpanded: true }
+      const view = await renderMap(fake.engine, null, props)
+      use()
+
+      await view.rerenderMap(pins, props)
+      expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+    }
+  )
 
   it('opens on its pins though the reader pressed the map while it loaded', async () => {
     const fake = fakeEngine()

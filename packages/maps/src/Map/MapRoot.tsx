@@ -287,15 +287,28 @@ export function MapRoot({
 
   // A press, a key or a scroll on the map is the reader using it: a pin
   // they drop is theirs to place, not content to fit. Tab and the keys held
-  // with it only pass through. Nothing is use until there's a map. A resize
-  // isn't use, so the map's view isn't what's compared.
+  // with it only pass through. Inline, a plain scroll and one finger move
+  // the page, as maps.css and the engine's cooperative gestures have it, so
+  // a tap counts once the finger lifts. Nothing is use until there's a map.
+  // A resize isn't use, so the map's view isn't what's compared.
   useEffect(() => {
     if (!host || !instance || !fitsFirst) return
     const used = (event: Event) => {
-      if (!(event instanceof KeyboardEvent && PASSING_KEYS.has(event.key)))
-        stopOpening()
+      if (event instanceof KeyboardEvent && PASSING_KEYS.has(event.key)) return
+      if (!host.hasAttribute('data-expanded')) {
+        if (event instanceof WheelEvent && !event.ctrlKey && !event.metaKey)
+          return
+        if (
+          event.type === 'pointerdown' &&
+          event instanceof PointerEvent &&
+          event.pointerType === 'touch' &&
+          event.isPrimary
+        )
+          return
+      }
+      stopOpening()
     }
-    const events = ['pointerdown', 'keydown', 'wheel'] as const
+    const events = ['pointerdown', 'pointerup', 'keydown', 'wheel'] as const
     for (const event of events)
       host.addEventListener(event, used, { capture: true, passive: true })
     return () => {
