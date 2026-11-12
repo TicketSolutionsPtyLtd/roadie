@@ -18,11 +18,16 @@ second placeholder. Step 2 is what illustrations showed.
    `E403 Forbidden - PUT` and "You cannot publish using the version".
 2. The package appears under the org's packages on npmjs.com, but
    `npm view <pkg>` and its package page return 404, and its settings page
-   can't set a trusted publisher. Waiting doesn't change that: illustrations
-   was still 404 more than 5 minutes later.
+   can't set a trusted publisher. For illustrations that lasted over 5
+   minutes.
 3. A second publish under a new version, such as `0.0.1-stage`, succeeds.
-   Both versions show on npm within a few minutes, with `latest` and `stage`
-   on the second.
+   Both versions then show on npm, with `latest` and `stage` on the second.
+
+The 403'd version does land, but late. npm records illustrations'
+`0.0.0-stage` about 7 minutes after its 403 and 78 seconds before
+`0.0.1-stage`. In all four packages the first placeholder's time is 35 to 97
+seconds before the second's, so it seems to land around the second publish,
+not on a timer. Why is unknown.
 
 Until the first real release, `npm i <pkg>` installs the placeholder, and the
 `stage` tag stays on it afterwards.
