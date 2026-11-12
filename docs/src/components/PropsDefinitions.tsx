@@ -225,12 +225,14 @@ function groupBySource(props: ManifestProp[]): PropGroup[] {
 const UNION_SHOWN = 8
 const UNION_COLLAPSED = 24
 
+const isLiteral = (member: string) => /^("[^"]*"|null|undefined)$/.test(member)
+
 function PropType({ type }: { type: string }) {
   const members = type.split(' | ')
-  if (members.length <= UNION_COLLAPSED)
+  if (members.length <= UNION_COLLAPSED || !members.every(isLiteral))
     return <span className='font-mono text-sm text-info-11'>{type}</span>
   return (
-    <span className='grid gap-1 font-mono text-sm text-info-11'>
+    <div className='grid gap-1 font-mono text-sm text-info-11'>
       <span>{[...members.slice(0, UNION_SHOWN), '…'].join(' | ')}</span>
       <details>
         <summary className='is-interactive w-fit cursor-pointer rounded-sm font-sans text-subtle'>
@@ -238,7 +240,7 @@ function PropType({ type }: { type: string }) {
         </summary>
         {type}
       </details>
-    </span>
+    </div>
   )
 }
 

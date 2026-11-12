@@ -49,6 +49,18 @@ describe('PropsList', () => {
     expect(within(container).getByText(type)).not.toBeNull()
     expect(container.querySelector('details')).toBeNull()
   })
+
+  it('shows an object type whole, however many unions its fields hold', () => {
+    const field = (index: number) =>
+      `kind${index}: "number" | "text" | "status"`
+    const type = `readonly { ${Array.from({ length: 12 }, (_, index) => field(index)).join('; ')} }[]`
+    const { container } = render(
+      <PropsList props={[{ name: 'columns', type }]} />
+    )
+
+    expect(within(container).getByText(type)).not.toBeNull()
+    expect(container.querySelector('details')).toBeNull()
+  })
 })
 
 describe('PropsDefinitions', () => {
