@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from 'react'
 
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import {
   afterAll,
   afterEach,
@@ -29,6 +29,7 @@ import type {
 } from './engine'
 import blankStyle from './fixtures/blank-style.json?url'
 import { Map } from './index'
+import { fakeEngine } from './mapTestUtils'
 import { maplibreEngine } from './maplibreEngine'
 
 const engine = maplibreEngine({
@@ -1204,6 +1205,283 @@ describe('Map keyboard-only buttons in the browser', () => {
       await waitFor(() => expect(drop).toHaveFocus())
       expect(getComputedStyle(drop).opacity).toBe('1')
       expect(submitted).toBe(false)
+    }
+  )
+})
+
+describe('Map defaultFit in the browser', () => {
+  // Four cities a continent apart, which no one zoom shows at every width.
+  const cities = [
+    { label: 'Tin Whistle Wharf', position: { lat: -31.95, lng: 115.86 } },
+    { label: 'Mango Drum Yard', position: { lat: -12.46, lng: 130.84 } },
+    { label: 'Apple Crate Hall', position: { lat: -42.88, lng: 147.33 } },
+    { label: 'Kazoo Hollow Room', position: venue }
+  ]
+  const pinned = (fit: boolean) => (
+    <Map defaultCenter={venue} defaultFit={fit}>
+      {cities.map((city) => (
+        <Map.Marker key={city.label} {...city} />
+      ))}
+    </Map>
+  )
+  const pinsInside = (frame: HTMLElement) => {
+    const outer = frame.getBoundingClientRect()
+    return cities.map(({ label }) => {
+      const pin = screen.queryByRole('img', { name: label })
+      return pin !== null && inside(pin.getBoundingClientRect(), outer)
+    })
+  }
+
+  for (const width of [308, 714])
+    it(
+      `opens with every pin inside a ${width}px map`,
+      { timeout: 15_000 },
+      async () => {
+        const frame = await renderReadyMap(pinned(true), width)
+
+        await waitFor(() =>
+          expect(pinsInside(frame)).toEqual([true, true, true, true])
+        )
+      }
+    )
+
+  it(
+    'leaves pins out of view without it, so the test above can fail',
+    { timeout: 15_000 },
+    async () => {
+      const frame = await renderReadyMap(pinned(false), 308)
+
+      await screen.findByRole('img', { name: 'Kazoo Hollow Room' })
+      expect(pinsInside(frame).filter(Boolean)).toHaveLength(1)
+    }
+  )
+
+  it('tells onViewChange where it opened', { timeout: 15_000 }, async () => {
+    const onViewChange = vi.fn()
+    const frame = await renderReadyMap(
+      <Map defaultCenter={venue} defaultFit onViewChange={onViewChange}>
+        {cities.map((city) => (
+          <Map.Marker key={city.label} {...city} />
+        ))}
+      </Map>,
+      714
+    )
+    await waitFor(() =>
+      expect(pinsInside(frame)).toEqual([true, true, true, true])
+    )
+
+    // The start is a suburb, at 13; the cities fit from far further out.
+    expect(onViewChange).toHaveBeenCalledTimes(1)
+    expect(onViewChange.mock.calls[0]![0].zoom).toBeLessThan(6)
+  })
+
+  it(
+    'opens a narrow map with its credits showing',
+    { timeout: 15_000 },
+    async () => {
+      const frame = await renderReadyMap(pinned(true), 308)
+      await waitFor(() =>
+        expect(pinsInside(frame)).toEqual([true, true, true, true])
+      )
+
+      expect(screen.getByText('Fixture')).toBeVisible()
+    }
+  )
+
+  // Ways a map has no size until it's shown.
+  const unsized = [
+    [
+      'no size, as in a tab that is not showing',
+      (shown: boolean) => ({ display: shown ? 'block' : 'none', width: 480 }),
+      {}
+    ],
+    // MapLibre draws a container with no height 300px tall, taller than the
+    // panel opens to, so a fit made before it opened leaves pins out.
+    [
+      'no height, as in a panel that is closed',
+      (shown: boolean) => ({ height: shown ? 200 : 0, width: 480 }),
+      { className: 'aspect-auto h-full' }
+    ],
+    // And one with no width 400px wide.
+    [
+      'no width, as in a column that is closed',
+      (shown: boolean) => ({ width: shown ? 200 : 0 }),
+      { className: 'aspect-auto', style: { height: 400 } }
+    ]
+  ] as const
+  type Unsized = (typeof unsized)[number]
+
+  /** A map with the cities on it, in a box that Show the map gives a size. */
+  function renderUnsized(
+    drawn: MapEngine,
+    style: Unsized[1],
+    sized: Unsized[2]
+  ) {
+    function Tabs() {
+      const [shown, setShown] = useState(false)
+      return (
+        <>
+          <button type='button' onClick={() => setShown(true)}>
+            Show the map
+          </button>
+          <div style={style(shown)}>
+            <MapEngineContext value={drawn}>
+              <Map defaultCenter={venue} defaultFit {...sized}>
+                {cities.map((city) => (
+                  <Map.Marker key={city.label} {...city} />
+                ))}
+              </Map>
+            </MapEngineContext>
+          </div>
+        </>
+      )
+    }
+    render(<Tabs />)
+    return {
+      frame: screen.getByRole('region', { name: 'Map', hidden: true }),
+      show: () =>
+        userEvent.click(screen.getByRole('button', { name: 'Show the map' }))
+    }
+  }
+
+  it.each(unsized)(
+    'waits while it has %s, and opens on its pins when shown',
+    { timeout: 15_000 },
+    async (_, style, sized) => {
+      const { frame, show } = renderUnsized(engine, style, sized)
+      await waitFor(
+        () => expect(frame).toHaveAttribute('data-status', 'ready'),
+        { timeout: 10_000 }
+      )
+
+      await show()
+      await waitFor(() =>
+        expect(pinsInside(frame)).toEqual([true, true, true, true])
+      )
+    }
+  )
+
+  it.each(unsized)(
+    'waits while it has %s, though its engine is ready before the page has drawn',
+    async (_, style, sized) => {
+      // Ready at once, before a ResizeObserver has reported the map's size.
+      const fake = fakeEngine()
+      const { frame, show } = renderUnsized(fake.engine, style, sized)
+      await act(async () => {})
+      expect(frame).toHaveAttribute('data-status', 'ready')
+      expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+
+      await show()
+      await waitFor(() =>
+        expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+      )
+      expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ animate: false })
+      )
+    }
+  )
+
+  // Where a pin is at every frame and after every change to the page, not
+  // only at the end. So a pin drawn where the starting view puts it, or an
+  // ease into place, is seen.
+  function watchPin() {
+    const lefts: number[] = []
+    let sampling = true
+    const read = () => {
+      const pin = screen.queryByRole('img', { name: 'Tin Whistle Wharf' })
+      if (pin) lefts.push(pin.getBoundingClientRect().left)
+    }
+    const eachFrame = () => {
+      read()
+      if (sampling) requestAnimationFrame(eachFrame)
+    }
+    requestAnimationFrame(eachFrame)
+    const changes = new MutationObserver(read)
+    changes.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true
+    })
+    return {
+      lefts,
+      // A dozen more frames, which an ease would still be moving in.
+      async settle() {
+        const seen = lefts.length
+        await waitFor(() => expect(lefts.length).toBeGreaterThan(seen + 12), {
+          timeout: 5_000
+        })
+      },
+      stop() {
+        sampling = false
+        changes.disconnect()
+      }
+    }
+  }
+
+  it(
+    'is on its pins from the first frame they show, and never moves after',
+    { timeout: 15_000 },
+    async () => {
+      // From before the map is ready.
+      const pin = watchPin()
+      try {
+        const frame = await renderReadyMap(pinned(true), 714)
+        await waitFor(() =>
+          expect(pinsInside(frame)).toEqual([true, true, true, true])
+        )
+        await pin.settle()
+      } finally {
+        pin.stop()
+      }
+
+      expect(pin.lefts.length).toBeGreaterThan(2)
+      expect(Math.max(...pin.lefts) - Math.min(...pin.lefts)).toBeLessThan(1)
+    }
+  )
+
+  it(
+    'is on its pins from the first frame of an engine swapped in, too',
+    { timeout: 15_000 },
+    async () => {
+      const other = maplibreEngine({
+        tiles: { light: blankStyle, attribution: [{ label: 'Fixture' }] }
+      })
+      let mounted = false
+      const swapped: MapEngine = {
+        attribution: other.attribution,
+        mount: async (...args) => {
+          const instance = await other.mount(...args)
+          mounted = true
+          return instance
+        }
+      }
+      const page = (drawn: MapEngine) => (
+        <div style={{ width: 714 }}>
+          <MapEngineContext value={drawn}>{pinned(true)}</MapEngineContext>
+        </div>
+      )
+      const view = render(page(engine))
+      const frame = screen.getByRole('region', { name: 'Map' })
+      await waitFor(
+        () => expect(pinsInside(frame)).toEqual([true, true, true, true]),
+        { timeout: 10_000 }
+      )
+
+      const pin = watchPin()
+      try {
+        view.rerender(page(swapped))
+        await waitFor(() => expect(mounted).toBe(true), { timeout: 10_000 })
+        await waitFor(() =>
+          expect(pinsInside(frame)).toEqual([true, true, true, true])
+        )
+        await pin.settle()
+      } finally {
+        pin.stop()
+      }
+
+      expect(pin.lefts.length).toBeGreaterThan(2)
+      expect(Math.max(...pin.lefts) - Math.min(...pin.lefts)).toBeLessThan(1)
     }
   )
 })

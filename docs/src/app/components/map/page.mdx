@@ -226,7 +226,7 @@ A dialog opened from a preview shows over the full screen map, but its backdrop 
 
 ### Moving the map
 
-`center` and `zoom` move the map from your app: when they change, the map flies there. People can still pan it, and `onViewChange` says where the map settles, so you can keep it in step with a list or save the view. `actionsRef` takes `flyTo`, to fly to a view, and `fitTo`, to fit the map to some places or, with none, to every pin and area on it.
+`center` and `zoom` move the map from your app: when they change, the map flies there. People can still pan it, and `onViewChange` says where the map settles, so you can keep it in step with a list or save the view. `actionsRef` takes `flyTo`, to fly to a view, and `fitTo`, to fit the map to some places or, with none, to every pin and area on it. To open on them, use [`defaultFit`](#pins).
 
 ```tsx-live-noinline layout=stack
 function VenueTour() {
@@ -298,12 +298,10 @@ render(<VenueTour />)
 
 `Map.Marker` puts a pin on a place. `label` names it for screen readers and keyboard users, and `intent` colours it. Give each pin an `href` to link to the place, or an `onClick`.
 
+`defaultFit` opens the map on every pin and area on it, at any width, so you don't pick a centre and zoom that only suit one. It fits once. When the pins arrive after the map has loaded, it eases to them, unless the reader has used the map or your app has moved it by then.
+
 ```tsx-live
-<Map
-  defaultCenter={{ lat: -27.463, lng: 153.0275 }}
-  defaultZoom={11.75}
-  aria-label='Venues in Brisbane'
->
+<Map defaultFit aria-label='Venues in Brisbane'>
   <Map.Marker
     position={{ lat: -27.4587, lng: 153.0338 }}
     label='Kazoo Hollow Room'
@@ -419,7 +417,7 @@ Clicking a band zooms in until it splits. A single place opens a preview with it
 
 Give places a `region`, such as their state, and they only group with places in the same region, so two cities never merge however far out the map is.
 
-`onGroupsChange` gives you the bands on the map whenever they change, each with its value, share and places, largest first. Here each band is a group of rows in a [`DataTable`](/charts/data-table#grouped-rows), so the table lists only what the map shows, and View all lists every place by state. A share column with `total: true` adds up in each group and the totals. `highlight` lights the bands holding places by their `label`, as hover does, so hovering or focusing a row lights its band. A place inside a group lights its group's band. Opening a group fits the map to its places with `actionsRef`, which splits its band unless the groups are locked. The same `fitTo` runs once when the bands first show, so every place is in view at any width.
+`onGroupsChange` gives you the bands on the map whenever they change, each with its value, share and places, largest first. Here each band is a group of rows in a [`DataTable`](/charts/data-table#grouped-rows), so the table lists only what the map shows, and View all lists every place by state. A share column with `total: true` adds up in each group and the totals. `highlight` lights the bands holding places by their `label`, as hover does, so hovering or focusing a row lights its band. A place inside a group lights its group's band. Opening a group fits the map to its places with `actionsRef`, which splits its band unless the groups are locked. `defaultFit` opens the map on every place, so they're all in view at any width.
 
 Totals per postcode or suburb are the better feed. No one's location reaches the browser, and your server can leave out totals small enough to point to someone. A point for each sale also works, for a feed you can't change. Leave out `value` and each point counts as 1, and points at the same spot add up into one band.
 
@@ -476,14 +474,6 @@ const stateGroups = () =>
 function PlaceTotals() {
   const map = useRef(null)
   const [bands, setBands] = useState([])
-  // Open on every place, whatever the map's width.
-  const opened = useRef(false)
-  const showBands = (next) => {
-    setBands(next)
-    if (opened.current || !next.length) return
-    opened.current = true
-    map.current?.fitTo()
-  }
   const [all, setAll] = useState(false)
   const [locked, setLocked] = useState(false)
   const [show, setShow] = useState('both')
@@ -516,6 +506,7 @@ function PlaceTotals() {
       <Map
         defaultCenter={{ lat: -26.5, lng: 137.5 }}
         defaultZoom={2.3}
+        defaultFit
         actionsRef={map}
         aria-label='Where the totals are'
         className='aspect-4/3'
@@ -528,7 +519,7 @@ function PlaceTotals() {
           show={show}
           legend={legend}
           highlight={lit}
-          onGroupsChange={showBands}
+          onGroupsChange={setBands}
         />
       </Map>
       <div className='flex flex-wrap items-center justify-between gap-2'>
@@ -603,7 +594,7 @@ When your data is a point for each sale rather than a total for each area, `area
 
 Large rural areas draw the eye however small their values are. To compare places rather than totals, colour by a rate, such as each postcode's total per 1,000 residents.
 
-The boundaries here are the Australian Bureau of Statistics' [2021 postal areas](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files), simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented, 12,000 points at random places, in the shape of a feed with a point for each sale. The map fits to them once the areas show, with `fitTo` from `actionsRef`, so every area is in view at any width.
+The boundaries here are the Australian Bureau of Statistics' [2021 postal areas](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files), simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented, 12,000 points at random places, in the shape of a feed with a point for each sale. `defaultFit` opens the map on the areas once they show, so every area is in view at any width.
 
 ```tsx-live-noinline
 const columns = [
@@ -613,9 +604,7 @@ const columns = [
 ]
 
 function PostcodeTotals() {
-  const map = useRef(null)
   const [areas, setAreas] = useState()
-  const [points, setPoints] = useState([])
   const [totals, setTotals] = useState([])
   const [inView, setInView] = useState([])
   const [lit, setLit] = useState()
@@ -624,23 +613,18 @@ function PostcodeTotals() {
       fetch('/maps/postcodes-2021.topo.json').then((r) => r.json()),
       fetch('/maps/example-sale-points.json').then((r) => r.json())
     ]).then(([postcodes, sales]) => {
-      // A point for each sale, sorted into postcodes and added up.
-      const places = sales.map(({ latitude, longitude }) => ({
-        position: { lat: Number(latitude), lng: Number(longitude) }
-      }))
       setAreas(postcodes)
-      setPoints(places)
-      setTotals(areaTotals(postcodes, places))
+      // A point for each sale, sorted into postcodes and added up.
+      setTotals(
+        areaTotals(
+          postcodes,
+          sales.map(({ latitude, longitude }) => ({
+            position: { lat: Number(latitude), lng: Number(longitude) }
+          }))
+        )
+      )
     })
   }, [])
-  // Open on every sale, whatever the map's width, once the areas show.
-  const drawn = inView.length > 0
-  const opened = useRef(false)
-  useEffect(() => {
-    if (!drawn || opened.current) return
-    opened.current = true
-    map.current?.fitTo(points.map(({ position }) => position))
-  }, [drawn])
   const rows = inView.slice(0, 10).map(({ id, value, share }) => ({
     postcode: id,
     value,
@@ -653,7 +637,7 @@ function PostcodeTotals() {
       <Map
         defaultCenter={{ lat: -28, lng: 134 }}
         defaultZoom={2.6}
-        actionsRef={map}
+        defaultFit
         aria-label='Totals by postcode'
         className='aspect-4/3'
       >
