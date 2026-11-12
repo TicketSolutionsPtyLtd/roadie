@@ -10,8 +10,9 @@ problem_type: best_practice
 ## Problem
 
 Trusted publishing needs a package to exist before its publisher can be set,
-so a new name starts with a placeholder published by hand. Every bootstrap so
-far has gone the same way: lint plugin, editor, blocks, and illustrations.
+so a new name starts with a placeholder published by hand. The lint plugin,
+editor, blocks, and illustrations each hit the 403 below and published a
+second placeholder. Step 2 is what illustrations showed.
 
 1. `npm publish --tag stage` of `0.0.0-stage` fails with
    `E403 Forbidden - PUT` and "You cannot publish using the version".
@@ -33,7 +34,8 @@ Until the first real release, `npm i <pkg>` installs the placeholder, and the
 - To see whether a publish landed before `npm view` catches up, read the
   dist-tags: `curl https://registry.npmjs.org/-/package/<pkg>/dist-tags`.
 - Set the trusted publisher once the package page loads: GitHub Actions,
-  workflow `release.yml`, environment `production`.
+  repository `TicketSolutionsPtyLtd/roadie`, workflow `release.yml`, and
+  environment `production`.
 - After the first real release, remove the tag and deprecate the placeholders:
   `npm dist-tag rm <pkg> stage` and
   `npm deprecate <pkg>@"<first-real-version" "Placeholder"`.
