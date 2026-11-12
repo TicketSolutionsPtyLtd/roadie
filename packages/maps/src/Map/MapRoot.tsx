@@ -287,9 +287,10 @@ export function MapRoot({
 
   // A press, a key or a scroll on the map is the reader using it: a pin
   // they drop is theirs to place, not content to fit. Tab only passes
-  // through. A resize isn't use, so the map's view isn't what's compared.
+  // through. Nothing is use until there's a map. A resize isn't use, so the
+  // map's view isn't what's compared.
   useEffect(() => {
-    if (!host || !fitsFirst) return
+    if (!host || !instance || !fitsFirst) return
     const used = (event: Event) => {
       if (!(event instanceof KeyboardEvent && event.key === 'Tab'))
         stopOpening()
@@ -301,7 +302,7 @@ export function MapRoot({
       for (const event of events)
         host.removeEventListener(event, used, { capture: true })
     }
-  }, [host, fitsFirst, stopOpening])
+  }, [host, instance, fitsFirst, stopOpening])
   // A map with no size, as in a tab that isn't showing, waits to be shown:
   // there's nothing to fit its content into.
   const [hidden, setHidden] = useState(false)

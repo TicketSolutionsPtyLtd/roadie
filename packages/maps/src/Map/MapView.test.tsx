@@ -371,6 +371,25 @@ describe('Map defaultFit', () => {
     expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
   })
 
+  it('opens on its pins though the reader pressed the map while it loaded', async () => {
+    const fake = fakeEngine()
+    render(
+      <MapProvider engine={fake.engine}>
+        <Map defaultFit>{pins}</Map>
+      </MapProvider>
+    )
+    // The engine isn't ready until the next tick, so there's no map to use.
+    fireEvent.pointerDown(surface())
+    fireEvent.keyDown(surface(), { key: 'ArrowLeft' })
+    await act(async () => {})
+
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+      bothPins,
+      expect.objectContaining({ animate: false })
+    )
+  })
+
   it.each([
     ['north', north],
     ['east', east]
