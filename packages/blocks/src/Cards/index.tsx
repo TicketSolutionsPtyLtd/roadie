@@ -70,7 +70,7 @@ export type CardsItem = {
 
 export type CardsProps = {
   /**
-   * The look. Every preset is a grid of cards. `plain` shows what each item has: an image, and an illustration over it or above the title. `steps` numbers the cards in order, with number illustrations up to 9.
+   * The look. Every preset sets cards in columns. `plain` shows what each item has: an image, and an illustration over it or above the title. `steps` numbers the cards in order, with number illustrations up to 9.
    * @default 'plain'
    */
   preset?: CardsPreset
@@ -452,10 +452,10 @@ const LOOKS: Record<CardsPreset, Look> = {
     Item: PlainCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @4xl:grid-cols-3'
   },
-  // Steps size themselves, from 15rem to 24rem, so a short row fills its width and stays centred.
+  // Steps share one width, up to 24rem, so a short row or a short last row centres under a centred heading.
   steps: {
     Item: StepCard,
-    list: 'flex flex-wrap gap-6 *:flex-[1_1_15rem] *:max-w-96'
+    list: 'flex flex-wrap gap-6 *:max-w-96'
   },
   'text-blocks': {
     Item: ServiceCard,
@@ -478,10 +478,31 @@ const LOOKS: Record<CardsPreset, Look> = {
 // Compact cards with no images fit two from a narrower width.
 const COMPACT_LIST = 'grid grid-cols-1 gap-6 @xl:grid-cols-2 @4xl:grid-cols-3'
 
+// As many 15rem steps as fit with 1.5rem gaps, and never more than there are, measured on the list's own width.
+const STEP_COLUMNS = [
+  '*:basis-full',
+  '@[31.5rem]:*:basis-[calc((100%-1.5rem)/2)]',
+  '@[48rem]:*:basis-[calc((100%-3rem)/3)]',
+  '@[64.5rem]:*:basis-[calc((100%-4.5rem)/4)]'
+]
+
 function listOf(name: CardsPreset, cards: readonly CardsItem[]) {
+  if (name === 'steps')
+    return cn(LOOKS.steps.list, STEP_COLUMNS.slice(0, cards.length))
   if (name !== 'plain' || cards.some((card) => card.image))
     return LOOKS[name].list
   return COMPACT_LIST
+}
+
+// Steps measure their columns on the list's width, not the block's, whose padding varies with its surface.
+function StepsFrame({
+  steps,
+  children
+}: {
+  steps: boolean
+  children: ReactNode
+}) {
+  return steps ? <div className='@container'>{children}</div> : children
 }
 
 /** Like items, such as benefits, services, steps, contact options, values, or people, as cards in columns. */
@@ -524,25 +545,27 @@ export function Cards(props: CardsProps) {
             className='w-full'
           />
         </div>
-        <List
-          className={cn(
-            listOf(name, cards),
-            name === 'steps' &&
-              (headingAlign === 'center' ? 'justify-center' : 'justify-start')
-          )}
-        >
-          {cards.map((item, index) => (
-            <Item
-              key={`${index}-${item.title}`}
-              item={item}
-              index={index}
-              itemEmphasis={itemEmphasis}
-              blockIntent={intent}
-              filled={filledIntent(intent, block.emphasis)}
-              centred={align === 'center'}
-            />
-          ))}
-        </List>
+        <StepsFrame steps={name === 'steps'}>
+          <List
+            className={cn(
+              listOf(name, cards),
+              name === 'steps' &&
+                (headingAlign === 'center' ? 'justify-center' : 'justify-start')
+            )}
+          >
+            {cards.map((item, index) => (
+              <Item
+                key={`${index}-${item.title}`}
+                item={item}
+                index={index}
+                itemEmphasis={itemEmphasis}
+                blockIntent={intent}
+                filled={filledIntent(intent, block.emphasis)}
+                centred={align === 'center'}
+              />
+            ))}
+          </List>
+        </StepsFrame>
         <BlockActions {...block.actions} />
       </BlockSurface>
     </BlockRoot>

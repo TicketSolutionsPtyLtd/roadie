@@ -394,6 +394,31 @@ describe('Cards steps', () => {
     expect(before).toBeCloseTo(after, 0)
   })
 
+  it.each<[number, number]>([
+    [4, 1024],
+    [4, 900],
+    [3, 640],
+    [5, 1280]
+  ])(
+    'keeps %i steps one width at %ipx, centring a short last row',
+    (count, width) => {
+      render(<Block look='steps' width={width} count={count} />)
+
+      const list = screen.getAllByRole('list')[0]!.getBoundingClientRect()
+      const steps = cards().map((card) => card.getBoundingClientRect())
+      for (const step of steps)
+        expect(step.width).toBeCloseTo(steps[0]!.width, 0)
+      const last = steps.at(-1)!
+      const lastRow = steps.filter(
+        ({ top }) => Math.round(top) === Math.round(last.top)
+      )
+      expect(lastRow[0]!.left - list.left).toBeCloseTo(
+        list.right - last.right,
+        0
+      )
+    }
+  )
+
   it('grows steps to fill their row, up to 24rem each', () => {
     const { unmount } = render(<Block look='steps' width={1440} count={2} />)
     expect(row().widths).toEqual([384, 384])
