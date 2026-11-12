@@ -317,7 +317,9 @@ export function MapRoot({
     }
   }, [host, instance, fitsFirst, stopOpening])
   // A map with no size, as in a tab that isn't showing, waits to be shown:
-  // there's nothing to fit its content into.
+  // there's nothing to fit its content into. The observer says when its
+  // size changes. Its first report can come after a fast engine is ready,
+  // so the fit reads the size itself too.
   const [hidden, setHidden] = useState(false)
   useEffect(() => {
     if (!frameElement || !fitsFirst) return
@@ -345,7 +347,7 @@ export function MapRoot({
   const [, setJumped] = useState(false)
   useLayoutEffect(() => {
     const waiting = opening.current
-    if (!waiting || !instance || hidden) return
+    if (!waiting || !instance || hidden || hasNoSize(frame.current)) return
     const bounds = boundsOf(content)
     if (!bounds) {
       waiting.late = true
@@ -709,6 +711,15 @@ function areaCorners(geometry: MapAreaLayer['geometry']): LatLng[] {
   }
   cornersOf.set(geometry, corners)
   return corners
+}
+
+/**
+ * Whether the map's frame has no size on a page that has one. Where nothing
+ * is laid out, as in jsdom, every box measures nothing, so it says no.
+ */
+function hasNoSize(frame: HTMLElement | null) {
+  if (!frame || document.documentElement.clientWidth === 0) return false
+  return frame.clientWidth === 0 || frame.clientHeight === 0
 }
 
 /** The smallest bounds holding every place, or `undefined` for none. */

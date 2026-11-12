@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from 'react'
 
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import {
   afterAll,
   afterEach,
@@ -29,6 +29,7 @@ import type {
 } from './engine'
 import blankStyle from './fixtures/blank-style.json?url'
 import { Map } from './index'
+import { fakeEngine } from './mapTestUtils'
 import { maplibreEngine } from './maplibreEngine'
 
 const engine = maplibreEngine({
@@ -1287,35 +1288,96 @@ describe('Map defaultFit in the browser', () => {
     }
   )
 
-  it(
-    'waits while it has no size, as in a tab that is not showing, and opens on its pins when shown',
+  // Ways a map has no size until it's shown.
+  const unsized = [
+    [
+      'no size, as in a tab that is not showing',
+      (shown: boolean) => ({ display: shown ? 'block' : 'none', width: 480 }),
+      {}
+    ],
+    // MapLibre draws a container with no height 300px tall, taller than the
+    // panel opens to, so a fit made before it opened leaves pins out.
+    [
+      'no height, as in a panel that is closed',
+      (shown: boolean) => ({ height: shown ? 200 : 0, width: 480 }),
+      { className: 'aspect-auto h-full' }
+    ],
+    // And one with no width 400px wide.
+    [
+      'no width, as in a column that is closed',
+      (shown: boolean) => ({ width: shown ? 200 : 0 }),
+      { className: 'aspect-auto', style: { height: 400 } }
+    ]
+  ] as const
+  type Unsized = (typeof unsized)[number]
+
+  /** A map with the cities on it, in a box that Show the map gives a size. */
+  function renderUnsized(
+    drawn: MapEngine,
+    style: Unsized[1],
+    sized: Unsized[2]
+  ) {
+    function Tabs() {
+      const [shown, setShown] = useState(false)
+      return (
+        <>
+          <button type='button' onClick={() => setShown(true)}>
+            Show the map
+          </button>
+          <div style={style(shown)}>
+            <MapEngineContext value={drawn}>
+              <Map defaultCenter={venue} defaultFit {...sized}>
+                {cities.map((city) => (
+                  <Map.Marker key={city.label} {...city} />
+                ))}
+              </Map>
+            </MapEngineContext>
+          </div>
+        </>
+      )
+    }
+    render(<Tabs />)
+    return {
+      frame: screen.getByRole('region', { name: 'Map', hidden: true }),
+      show: () =>
+        userEvent.click(screen.getByRole('button', { name: 'Show the map' }))
+    }
+  }
+
+  it.each(unsized)(
+    'waits while it has %s, and opens on its pins when shown',
     { timeout: 15_000 },
-    async () => {
-      function Tabs() {
-        const [shown, setShown] = useState(false)
-        return (
-          <>
-            <button type='button' onClick={() => setShown(true)}>
-              Show the map
-            </button>
-            <div style={{ display: shown ? 'block' : 'none', width: 480 }}>
-              <MapEngineContext value={engine}>{pinned(true)}</MapEngineContext>
-            </div>
-          </>
-        )
-      }
-      render(<Tabs />)
-      const frame = screen.getByRole('region', { name: 'Map', hidden: true })
+    async (_, style, sized) => {
+      const { frame, show } = renderUnsized(engine, style, sized)
       await waitFor(
         () => expect(frame).toHaveAttribute('data-status', 'ready'),
         { timeout: 10_000 }
       )
 
-      await userEvent.click(
-        screen.getByRole('button', { name: 'Show the map' })
-      )
+      await show()
       await waitFor(() =>
         expect(pinsInside(frame)).toEqual([true, true, true, true])
+      )
+    }
+  )
+
+  it.each(unsized)(
+    'waits while it has %s, though its engine is ready before the page has drawn',
+    async (_, style, sized) => {
+      // Ready at once, before a ResizeObserver has reported the map's size.
+      const fake = fakeEngine()
+      const { frame, show } = renderUnsized(fake.engine, style, sized)
+      await act(async () => {})
+      expect(frame).toHaveAttribute('data-status', 'ready')
+      expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+
+      await show()
+      await waitFor(() =>
+        expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+      )
+      expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ animate: false })
       )
     }
   )
