@@ -593,17 +593,17 @@ render(<PlaceTotals />)
 
 ### Postcode areas
 
-`MapAreas`, from `@oztix/roadie-maps/map-areas`, fills areas, such as postcodes, in heat colours by their values: an alternative to `MapClusters` when values belong to areas rather than points. Each area keeps its shape at every zoom, so the map shows where values come from without grouping. Areas with no value aren't drawn, so the map shows through.
+`MapAreas`, from `@oztix/roadie-maps/map-areas`, fills areas, such as postcodes, in heat colours by their values. Use it in place of `MapClusters` when values belong to areas rather than points. Each area keeps its shape at every zoom, so the map shows where values come from without grouping. Areas with no value aren't drawn, so the map shows through.
 
 Pass the boundaries as GeoJSON or TopoJSON in `areas`, each with an id such as its postcode, and the values by id in `data`. TopoJSON stores each shared border once, so it's often a third the size. Load the boundaries once, from your own server rather than the bundle, and keep the same object.
 
-Each colour holds a fifth of the areas with values, as totals per area are skewed, so even steps would leave most areas in the first. `legend` keys each colour's range, from where it starts to the largest value in it. Hovering an area names it, with its value and its share of every value in `data`. `onAreasChange` gives you the areas on the map, largest first, as the map settles, and `highlight` lights areas by id, as a row hovered in a table beside the map does here.
+Each colour holds a fifth of the areas with values, as totals per area are skewed, so even steps would leave most areas in the first. `legend` keys each colour's range, from where it starts to the largest value in it. Hovering or tapping an area names it, with its value and its share of every value in `data`. `onAreasChange` gives you the areas on the map, largest first, as the map settles, and `highlight` lights areas by id, as a row hovered in a table beside the map does here.
 
-When your data is a point for each sale rather than a total for each area, `areaTotals`, from the same subpath, sorts the points into the areas and adds them up, ready for `data`. A point counts as 1 unless it has a `value`, and a point in no area is left out. Sorting 20,000 points into Australia's postcodes takes about 50ms, and the example here sorts 12,000. Use it for a feed you can't change: totals from your server are better, as they keep each person's place out of the browser and can leave out postcodes with only a few.
+When your data is a point for each sale rather than a total for each area, `areaTotals`, from the same subpath, sorts the points into the areas and adds them up, ready for `data`. A point counts as 1 unless it has a `value`, and a point in no area is left out. Sorting 20,000 points into Australia's postcodes takes about 50ms, and the example here sorts 12,000. Use it for a feed you can't change. Totals from your server are better, as they keep each person's place out of the browser and can leave out postcodes with only a few.
 
 Large rural areas draw the eye however small their values are. To compare places rather than totals, colour by a rate, such as each postcode's total per 1,000 residents.
 
-The boundaries here are the Australian Bureau of Statistics' 2021 postal areas, simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented: 12,000 points at random places, in the shape of a feed with a point for each sale.
+The boundaries here are the Australian Bureau of Statistics' [2021 postal areas](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files), simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented, 12,000 points at random places, in the shape of a feed with a point for each sale. The map fits to them once the areas show, with `fitTo` from `actionsRef`, so every area is in view at any width.
 
 ```tsx-live-noinline
 const columns = [
@@ -613,28 +613,34 @@ const columns = [
 ]
 
 function PostcodeTotals() {
+  const map = useRef(null)
   const [areas, setAreas] = useState()
+  const [points, setPoints] = useState([])
   const [totals, setTotals] = useState([])
   const [inView, setInView] = useState([])
   const [lit, setLit] = useState()
   useEffect(() => {
-    const load = (file) => fetch(mapDataUrl(file)).then((r) => r.json())
     Promise.all([
-      load('postcodes-2021.topo.json'),
-      load('example-sale-points.json')
+      fetch('/maps/postcodes-2021.topo.json').then((r) => r.json()),
+      fetch('/maps/example-sale-points.json').then((r) => r.json())
     ]).then(([postcodes, sales]) => {
-      setAreas(postcodes)
       // A point for each sale, sorted into postcodes and added up.
-      setTotals(
-        areaTotals(
-          postcodes,
-          sales.map(({ latitude, longitude }) => ({
-            position: { lat: Number(latitude), lng: Number(longitude) }
-          }))
-        )
-      )
+      const places = sales.map(({ latitude, longitude }) => ({
+        position: { lat: Number(latitude), lng: Number(longitude) }
+      }))
+      setAreas(postcodes)
+      setPoints(places)
+      setTotals(areaTotals(postcodes, places))
     })
   }, [])
+  // Open on every sale, whatever the map's width, once the areas show.
+  const drawn = inView.length > 0
+  const opened = useRef(false)
+  useEffect(() => {
+    if (!drawn || opened.current) return
+    opened.current = true
+    map.current?.fitTo(points.map(({ position }) => position))
+  }, [drawn])
   const rows = inView.slice(0, 10).map(({ id, value, share }) => ({
     postcode: id,
     value,
@@ -647,6 +653,7 @@ function PostcodeTotals() {
       <Map
         defaultCenter={{ lat: -28, lng: 134 }}
         defaultZoom={2.6}
+        actionsRef={map}
         aria-label='Totals by postcode'
         className='aspect-4/3'
       >
@@ -1169,6 +1176,7 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 - A custom `pin` is still named by `label`, so screen readers read the place, not the graphic.
 - The search is a combobox named by `aria-label`, "Search the map" by default. A status message says while it searches, how many places it found, when it found none, and when places couldn't load. Arrow keys move through the places and Enter chooses one. Escape closes the list, then clears the text, then exits full screen.
 - Each cluster band is a button named with what it counts, its value and its share, such as "Total: 120, 6% of all", largest first in Tab order. One that zooms in to split is described as such, and focus moves to the largest band it splits into. Locked, or for a single place, Enter opens its preview. The legend is hidden from screen readers, as the bands' names hold their values. Put the numbers in a list or table beside the map too, so they can be compared and read without it.
+- The areas `MapAreas` draws can't be reached by keyboard, and their labels and legend are hidden from screen readers. List the values in a table beside the map, as the [postcode example](#postcode-areas) does.
 - The zoom buttons are a toolbar named Zoom, so Tab reaches it once and the arrow keys move between Zoom in and Zoom out. Show all, Show my location and Full screen are buttons of their own. Your own buttons are a toolbar named Map controls.
 - Show my location is a toggle button: pressed while it follows the reader's location. The dot is a picture named Your location. Its pulse doesn't run when the reader asks for reduced motion. If the location isn't available, a message below the button says so, and screen readers hear it.
 - The full screen button is named Full screen, and Exit full screen while the map fills the window. The full screen map is a modal dialog named by `aria-label`, so Tab stays in the map while it's full screen. Escape closes the top layer first: an open preview, then the full screen map, then a drawer or dialog the map sits in. Focus returns to the button, or to your own button that opened it.

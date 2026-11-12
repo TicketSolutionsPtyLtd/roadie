@@ -131,6 +131,7 @@ describe('withBasePath', () => {
     const code = [
       "image: '/cart-demo-event.svg'",
       '<Button href="/roadie-logo.png" download />',
+      "fetch('/maps/postcodes-2021.topo.json')",
       "<Link href='/foundations/linking' />",
       "src='https://example.com/logo.png'",
       "src='//cdn.example.com/logo.png'"
@@ -138,6 +139,7 @@ describe('withBasePath', () => {
     expect(withBasePath(code, '/roadie').split('\n')).toEqual([
       "image: '/roadie/cart-demo-event.svg'",
       '<Button href="/roadie/roadie-logo.png" download />',
+      "fetch('/roadie/maps/postcodes-2021.topo.json')",
       "<Link href='/foundations/linking' />",
       "src='https://example.com/logo.png'",
       "src='//cdn.example.com/logo.png'"
@@ -150,6 +152,7 @@ describe('withBasePath', () => {
     ["href='/users/jane.doe'", 'a route with a dot'],
     ["href='/events/v1.10'", 'a versioned route'],
     ["fetch('/api/export.csv')", 'an API path'],
+    ["fetch('/api/totals.json')", 'an API path that returns JSON'],
     ["const label = '/ 2 tickets.png'", 'a string with a space'],
     ["const path = '/'", 'the root'],
     ['`/template.png`', 'a template literal'],

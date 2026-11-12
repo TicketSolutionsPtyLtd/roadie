@@ -140,6 +140,79 @@ describe('Map view', () => {
     expect(northEast.lng).toBeCloseTo(180.02)
   })
 
+  it('fits an area wider than half the world along it, not round the back', async () => {
+    const fake = fakeEngine()
+    const wide: MapAreaGeometry = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [-100, -10],
+          [-50, -10],
+          [0, -10],
+          [50, -10],
+          [100, -10],
+          [100, 10],
+          [50, 10],
+          [0, 10],
+          [-50, 10],
+          [-100, 10],
+          [-100, -10]
+        ]
+      ]
+    }
+    await renderMap(
+      fake.engine,
+      <>
+        <Map.Toolbar fit />
+        <Map.Area area={wide} label='Touring region' />
+      </>
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(fake.instance.fitBounds).toHaveBeenLastCalledWith(
+      {
+        southWest: { lat: -10, lng: -100 },
+        northEast: { lat: 10, lng: 100 }
+      },
+      expect.anything()
+    )
+  })
+
+  it('fits an area across the date line with a pin inside it', async () => {
+    const fake = fakeEngine()
+    const islands: MapAreaGeometry = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [170, -18],
+          [179, -18],
+          [-170, -18],
+          [-170, -16],
+          [170, -16],
+          [170, -18]
+        ]
+      ]
+    }
+    await renderMap(
+      fake.engine,
+      <>
+        <Map.Toolbar fit />
+        <Map.Area area={islands} label='Islands' />
+        <Map.Marker
+          position={{ lat: -17, lng: -179 }}
+          label='Kazoo Hollow Room'
+        />
+      </>
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
+    const [{ southWest, northEast }] = vi.mocked(fake.instance.fitBounds).mock
+      .lastCall!
+    expect(southWest).toEqual({ lat: -18, lng: 170 })
+    // East of the date line, counted on past 180.
+    expect(northEast).toEqual({ lat: -16, lng: 190 })
+  })
+
   it('does nothing when there is nothing to fit', async () => {
     const fake = fakeEngine()
     const actionsRef = createRef<MapActions>()
