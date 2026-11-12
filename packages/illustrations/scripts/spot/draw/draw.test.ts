@@ -10,10 +10,12 @@ import { template } from '../new.ts'
 import { bounds, normalise, toSvg } from '../normalise.ts'
 import {
   draw,
+  ease,
   ellipse,
   extrude,
   fit,
   intersect,
+  letterSide,
   polygon,
   rect,
   rotate,
@@ -97,6 +99,49 @@ describe('extrude', () => {
       'Shadow',
       'Shadow'
     ])
+  })
+
+  it('marks the walls that look sideways across a gap at more of the front', () => {
+    const h = subtract(
+      rect(0, 0, 30, 30),
+      rect(10, -1, 10, 11),
+      rect(10, 20, 10, 11)
+    )
+    const { faces } = extrude(h, [3, 3])
+    const walls = faces.filter((f) => f.normal[0] > 0.99)
+    expect(walls.map((f) => [bounds([f.path]).minX, f.notch])).toEqual(
+      expect.arrayContaining([
+        [10, true],
+        [30, false]
+      ])
+    )
+  })
+
+  it.each([
+    [
+      'a counter wall',
+      subtract(rect(0, 0, 30, 30), rect(10, 10, 10, 10)),
+      10,
+      'Detail'
+    ],
+    [
+      'a notch wall',
+      subtract(rect(0, 0, 30, 30), rect(10, 20, 10, 11)),
+      10,
+      'Detail'
+    ],
+    ['an outside wall', rect(0, 0, 30, 30), 30, 'Shadow']
+  ])("gives %s facing right the letters' layer", (_, shape, x, layer) => {
+    const { faces } = extrude(shape, [3, 3], { side: letterSide })
+    const wall = faces.find(
+      (f) => f.normal[0] > 0.99 && bounds([f.path]).minX === x
+    )
+    expect(wall?.layer).toBe(layer)
+  })
+
+  it("makes the letters' undersides Detail", () => {
+    const { faces } = extrude(rect(0, 0, 10, 10), [3, 3], { side: letterSide })
+    expect(faces.find((f) => f.normal[1] > 0.99)?.layer).toBe('Detail')
   })
 
   it('lets the drawing pick each side by its normal', () => {
@@ -183,6 +228,36 @@ describe('shapes', () => {
     expect([b.minX, b.minY, b.maxX, b.maxY]).toEqual(
       expected.map((n) => expect.closeTo(n, 6))
     )
+  })
+
+  it('eases convex and concave corners by their own amounts', () => {
+    const l = polygon([
+      [0, 0],
+      [10, 0],
+      [10, 20],
+      [20, 20],
+      [20, 30],
+      [0, 30]
+    ])
+    const eased = ease(l, 2, 1)
+    const quarter = (r: number) => ((4 - Math.PI) * r * r) / 4
+    // Five convex corners lose area and the one concave corner gains it.
+    expect(region(eased).area).toBeCloseTo(
+      region(l).area - 5 * quarter(2) + quarter(1),
+      2
+    )
+    expect(bounds([eased])).toEqual(bounds([l]))
+  })
+
+  it('leaves smooth turns alone, so an already rounded shape keeps its curves', () => {
+    const rounded = rect(0, 0, 10, 10, 3)
+    expect(region(ease(rounded, 1)).area).toBeCloseTo(region(rounded).area, 4)
+  })
+
+  it('caps an ease at half of each edge', () => {
+    const thin = ease(rect(0, 0, 10, 2), 5)
+    expect(bounds([thin])).toEqual(bounds([rect(0, 0, 10, 2)]))
+    expect(region(thin).area).toBeCloseTo(region(rect(0, 0, 10, 2, 1)).area, 2)
   })
 
   it('refuses a tangent from a point inside the ellipse', () => {

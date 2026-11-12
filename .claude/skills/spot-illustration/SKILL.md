@@ -13,8 +13,8 @@ sections first. Run every command with
 ## 1. Find a reference
 
 - Check the set first: if `src/spot/svgs/` has the object, change that source
-  instead of drawing it again. Figma holds nothing the set doesn't: its
-  letters set as text are still to draw.
+  instead of drawing it again. Figma holds nothing the set doesn't, and the
+  alphabet is complete.
 - Otherwise take a line icon (Phosphor, say) or a sketch from the person
   asking. It gives the silhouette and the major parts; the style turns it into
   an extruded sticker.
@@ -37,6 +37,9 @@ Edit `drawings/<name>.ts`:
   labels, and openings `inner`.
 - Set `vector` from the style table: about (3, 3.5) for a compact object,
   (3.9, 3.7) for a letter, deeper and flatter for a flat symbol.
+- For a letter or numeral, copy a drawing in `drawings/` (Letter K for
+  straight strokes, Letter C for round ones): an 11.4 stem and 9.7 bars on a
+  42.3 tall front, `ease(shape, 0.9, 0.3)`, and `side: letterSide`.
 - Keep it simple: the silhouette, the major parts, at most one shape inside
   each part, no marks outside the silhouette.
 
