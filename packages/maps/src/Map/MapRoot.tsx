@@ -256,6 +256,14 @@ export function MapRoot({
     [instance, fitTo]
   )
 
+  // A layout effect ahead of the opening fit below, as a jump settles while
+  // it's made, before a later effect could listen for it.
+  const viewChanged = useEffectEvent((view: MapView) => onViewChange?.(view))
+  useLayoutEffect(() => {
+    if (!instance) return
+    return instance.on('moveend', () => viewChanged(instance.getView()))
+  }, [instance])
+
   // `defaultFit` opens the map on its content, once. Content that's there as
   // the engine becomes ready is fitted at once, in a layout effect, so no
   // frame paints the pins where the starting view would put them. Content
@@ -325,11 +333,6 @@ export function MapRoot({
     )
   }, [instance, centerLat, centerLng, zoom])
 
-  const viewChanged = useEffectEvent((view: MapView) => onViewChange?.(view))
-  useEffect(() => {
-    if (!instance) return
-    return instance.on('moveend', () => viewChanged(instance.getView()))
-  }, [instance])
   const [uncontrolledExpanded, setUncontrolledExpanded] =
     useState(defaultExpanded)
   const expandedAsked = expandedProp ?? uncontrolledExpanded

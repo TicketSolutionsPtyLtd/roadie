@@ -1255,6 +1255,25 @@ describe('Map defaultFit in the browser', () => {
     }
   )
 
+  it('tells onViewChange where it opened', { timeout: 15_000 }, async () => {
+    const onViewChange = vi.fn()
+    const frame = await renderReadyMap(
+      <Map defaultCenter={venue} defaultFit onViewChange={onViewChange}>
+        {cities.map((city) => (
+          <Map.Marker key={city.label} {...city} />
+        ))}
+      </Map>,
+      714
+    )
+    await waitFor(() =>
+      expect(pinsInside(frame)).toEqual([true, true, true, true])
+    )
+
+    // The start is a suburb, at 13; the cities fit from far further out.
+    expect(onViewChange).toHaveBeenCalledTimes(1)
+    expect(onViewChange.mock.calls[0]![0].zoom).toBeLessThan(6)
+  })
+
   it(
     'is on its pins from the first frame they show, and never moves after',
     { timeout: 15_000 },

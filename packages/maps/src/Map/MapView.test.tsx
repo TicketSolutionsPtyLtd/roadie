@@ -388,4 +388,19 @@ describe('Map defaultFit', () => {
     expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
   })
+
+  it('tells onViewChange where it opened', async () => {
+    const fake = fakeEngine()
+    const onViewChange = vi.fn()
+    await renderMap(fake.engine, pins, { defaultFit: true, onViewChange })
+
+    expect(onViewChange).toHaveBeenCalledTimes(1)
+    expect(onViewChange).toHaveBeenCalledWith({
+      center: {
+        lat: (venue.lat + north.lat) / 2,
+        lng: (venue.lng + east.lng) / 2
+      },
+      zoom: 16
+    })
+  })
 })
