@@ -1,7 +1,7 @@
 import {
   type Cubic,
   type Point,
-  inside,
+  filledLeft,
   pointAt,
   polygons,
   split,
@@ -185,15 +185,15 @@ function lengths(c: Cubic) {
   return out
 }
 
-/** The parameter `by` along a cubic's length, or back from its end when `by` is negative. */
+const lengthOf = (c: Cubic) => lengths(c).at(-1)!
+
+/** The parameter `by` along a cubic's length. */
 function tAtLength(c: Cubic, by: number) {
   const ls = lengths(c)
-  const total = ls.at(-1)!
-  const target = by >= 0 ? by : total + by
-  const k = ls.findIndex((l) => l >= target)
-  if (k <= 0) return 0
+  const k = ls.findIndex((l) => l >= by)
+  if (k <= 0) return k ? 1 : 0
   const span = ls[k]! - ls[k - 1]!
-  return (k - 1 + (span ? (target - ls[k - 1]!) / span : 0)) / LENGTH_SAMPLES
+  return (k - 1 + (span ? (by - ls[k - 1]!) / span : 0)) / LENGTH_SAMPLES
 }
 
 function sliced(c: Cubic, t0: number, t1: number): Cubic {
@@ -206,6 +206,40 @@ const straight = ([a, b, c, d]: Cubic) => {
   const off = ([x, y]: Point) =>
     Math.abs((d[0] - a[0]) * (y - a[1]) - (d[1] - a[1]) * (x - a[0])) / l
   return l > 0 && off(b) < 1e-6 && off(c) < 1e-6
+}
+
+const drawn = (c: Cubic) =>
+  straight(c) ? `L${pt(c[3])}` : `C${pt(c[1])} ${pt(c[2])} ${pt(c[3])}`
+
+/** The point and direction `by` along an edge. */
+function along(edge: Cubic[], by: number): [Point, Point] {
+  let left = by
+  for (const c of edge) {
+    const l = lengthOf(c)
+    if (left <= l) {
+      const t = tAtLength(c, left)
+      return [pointAt(c, t), unitOf(tangentAt(c, t))]
+    }
+    left -= l
+  }
+  const last = edge.at(-1)!
+  return [last[3], unitOf(tangentAt(last, 1))]
+}
+
+/** The part of an edge from `from` along it to `to` back from its end. */
+function trimmed(edge: Cubic[], from: number, to: number) {
+  const end = edge.reduce((sum, c) => sum + lengthOf(c), 0) - to
+  const out: Cubic[] = []
+  let at = 0
+  for (const c of edge) {
+    const l = lengthOf(c)
+    const a = Math.max(from - at, 0)
+    const b = Math.min(end - at, l)
+    at += l
+    if (b - a > 1e-9)
+      out.push(sliced(c, a ? tAtLength(c, a) : 0, b < l ? tAtLength(c, b) : 1))
+  }
+  return out
 }
 
 /**
@@ -225,53 +259,45 @@ export function ease(shape: Path, convex: number, concave = convex) {
     )
     const n = segs.length
     if (!n) continue
-    const total = segs.map((c) => lengths(c).at(-1)!)
-    // The ease at the corner each segment starts from.
-    const radii = segs.map((c, i) => {
-      const prev = segs[(i + n - 1) % n]!
-      const a = unitOf(tangentAt(prev, 1))
+    const materialLeft = filledLeft(segs, polys)
+    const corners = segs.flatMap((c, i) => {
+      const a = unitOf(tangentAt(segs[(i + n - 1) % n]!, 1))
       const b = unitOf(tangentAt(c, 0))
       const turn = Math.acos(
         Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1]))
       )
-      if (turn < EASE_TURN) return 0
-      const r = Math.min(
-        convex,
-        concave,
-        total[(i + n - 1) % n]! / 2,
-        total[i]! / 2
+      if (turn < EASE_TURN) return []
+      // Turning towards the material is turning round a convex corner.
+      const convexCorner = a[0] * b[1] - a[1] * b[0] > 0 === materialLeft
+      return [{ at: i, want: convexCorner ? convex : concave }]
+    })
+    if (!corners.length) {
+      d += `M${pt(segs[0]![0])}${segs.map(drawn).join('')}Z`
+      continue
+    }
+    // An edge runs from one corner to the next, however many segments Skia split it into.
+    const edges = corners.map(({ at }, k) => {
+      const to = corners[(k + 1) % corners.length]!.at
+      return Array.from(
+        { length: (to - at + n) % n || n },
+        (_, j) => segs[(at + j) % n]!
       )
-      const across: Point = [
-        (pointAt(prev, tAtLength(prev, -r))[0] +
-          pointAt(c, tAtLength(c, r))[0]) /
-          2,
-        (pointAt(prev, tAtLength(prev, -r))[1] +
-          pointAt(c, tAtLength(c, r))[1]) /
-          2
-      ]
-      const want = inside(polys, across) ? convex : concave
-      return Math.min(want, total[(i + n - 1) % n]! / 2, total[i]! / 2)
     })
-    const trims = segs.map((c, i) => {
-      const r1 = radii[(i + 1) % n]!
-      return [
-        radii[i] ? tAtLength(c, radii[i]!) : 0,
-        r1 ? tAtLength(c, -r1) : 1
-      ] as const
-    })
-    const pieces = segs.map((c, i) => sliced(c, ...trims[i]!))
-    d += `M${pt(pieces[0]![0])}`
-    pieces.forEach((c, i) => {
-      d += straight(c) ? `L${pt(c[3])}` : `C${pt(c[1])} ${pt(c[2])} ${pt(c[3])}`
-      const j = (i + 1) % n
-      const r = radii[j]!
+    const m = edges.length
+    const totals = edges.map((e) => e.reduce((sum, c) => sum + lengthOf(c), 0))
+    const radii = corners.map(({ want }, k) =>
+      Math.min(want, totals[(k + m - 1) % m]! / 2, totals[k]! / 2)
+    )
+    d += `M${pt(along(edges[0]!, radii[0]!)[0])}`
+    edges.forEach((edge, k) => {
+      const next = (k + 1) % m
+      const r = radii[next]!
+      d += trimmed(edge, radii[k]!, r).map(drawn).join('')
       if (!r) return
-      // Taken from the whole segments: an ease can use up a short edge entirely.
-      const a = unitOf(tangentAt(segs[i]!, trims[i]![1]))
-      const b = unitOf(tangentAt(segs[j]!, trims[j]![0]))
-      const next = pieces[j]![0]
-      const k = r * KAPPA
-      d += `C${pt([c[3][0] + a[0] * k, c[3][1] + a[1] * k])} ${pt([next[0] - b[0] * k, next[1] - b[1] * k])} ${pt(next)}`
+      const [from, a] = along(edge, totals[k]! - r)
+      const [to, b] = along(edges[next]!, r)
+      const h = r * KAPPA
+      d += `C${pt([from[0] + a[0] * h, from[1] + a[1] * h])} ${pt([to[0] - b[0] * h, to[1] - b[1] * h])} ${pt(to)}`
     })
     d += 'Z'
   }
