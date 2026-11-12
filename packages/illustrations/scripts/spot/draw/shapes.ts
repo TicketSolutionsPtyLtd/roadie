@@ -1,4 +1,13 @@
-import type { Point } from '../geometry.ts'
+import {
+  type Cubic,
+  type Point,
+  filledLeft,
+  pointAt,
+  polygons,
+  split,
+  tangentAt,
+  toCubics
+} from '../geometry.ts'
 import { PK, type Path, parse } from '../pathkit.ts'
 
 export type { Point }
@@ -154,4 +163,160 @@ export function tangent(
     const y = (v + s * u * h) / d
     return [cx + x * rx, cy + y * ry] as Point
   }) as [Point, Point]
+}
+
+/** Turns sharper than this where two segments meet make a corner to ease. */
+const EASE_TURN = (10 * Math.PI) / 180
+const LENGTH_SAMPLES = 64
+
+const unitOf = ([x, y]: Point): Point => {
+  const l = Math.hypot(x, y) || 1
+  return [x / l, y / l]
+}
+
+function lengths(c: Cubic) {
+  const out = [0]
+  let at = c[0]
+  for (let k = 1; k <= LENGTH_SAMPLES; k++) {
+    const p = pointAt(c, k / LENGTH_SAMPLES)
+    out.push(out[k - 1]! + Math.hypot(p[0] - at[0], p[1] - at[1]))
+    at = p
+  }
+  return out
+}
+
+const lengthOf = (c: Cubic) => lengths(c).at(-1)!
+
+/** The parameter `by` along a cubic's length. */
+function tAtLength(c: Cubic, by: number) {
+  const ls = lengths(c)
+  const k = ls.findIndex((l) => l >= by)
+  if (k <= 0) return k ? 1 : 0
+  const span = ls[k]! - ls[k - 1]!
+  return (k - 1 + (span ? (by - ls[k - 1]!) / span : 0)) / LENGTH_SAMPLES
+}
+
+function sliced(c: Cubic, t0: number, t1: number): Cubic {
+  const right = t0 > 0 ? split(c, t0)[1] : c
+  return t1 < 1 ? split(right, (t1 - t0) / (1 - t0))[0] : right
+}
+
+const straight = ([a, b, c, d]: Cubic) => {
+  const l = Math.hypot(d[0] - a[0], d[1] - a[1])
+  const off = ([x, y]: Point) =>
+    Math.abs((d[0] - a[0]) * (y - a[1]) - (d[1] - a[1]) * (x - a[0])) / l
+  return l > 0 && off(b) < 1e-6 && off(c) < 1e-6
+}
+
+const drawn = (c: Cubic) =>
+  straight(c) ? `L${pt(c[3])}` : `C${pt(c[1])} ${pt(c[2])} ${pt(c[3])}`
+
+/**
+ * Which way a cubic runs at its start (0) or end (1). A handle on its end
+ * point gives no tangent there, so the next control point says instead.
+ */
+function endDirection(c: Cubic, end: 0 | 1): Point {
+  const [from, ...rest] = end ? [...c].reverse() : c
+  for (const p of rest) {
+    const d: Point = [p[0] - from![0], p[1] - from![1]]
+    if (Math.hypot(d[0], d[1]) > 1e-9) return unitOf(end ? [-d[0], -d[1]] : d)
+  }
+  return [0, 0]
+}
+
+/** The point and direction `by` along an edge. */
+function along(edge: Cubic[], by: number): [Point, Point] {
+  let left = by
+  for (const c of edge) {
+    const l = lengthOf(c)
+    if (left <= l) {
+      const t = tAtLength(c, left)
+      return [pointAt(c, t), unitOf(tangentAt(c, t))]
+    }
+    left -= l
+  }
+  const last = edge.at(-1)!
+  return [last[3], endDirection(last, 1)]
+}
+
+/** The part of an edge from `from` along it to `to` back from its end. */
+function trimmed(edge: Cubic[], from: number, to: number) {
+  const end = edge.reduce((sum, c) => sum + lengthOf(c), 0) - to
+  const out: Cubic[] = []
+  let at = 0
+  for (const c of edge) {
+    const l = lengthOf(c)
+    const a = Math.max(from - at, 0)
+    const b = Math.min(end - at, l)
+    at += l
+    if (b - a > 1e-9)
+      out.push(sliced(c, a ? tAtLength(c, a) : 0, b < l ? tAtLength(c, b) : 1))
+  }
+  return out
+}
+
+/**
+ * A shape with every corner eased, as the letters have them: each convex
+ * corner by `convex` and each concave one by `concave`, measured back along
+ * both edges and capped at half of each. So shapes can be cut and joined
+ * sharp, then eased once.
+ */
+export function ease(shape: Path, convex: number, concave = convex) {
+  const outline = shape.copy()
+  outline.simplify()
+  const polys = polygons(outline)
+  let d = ''
+  for (const contour of toCubics(outline)) {
+    const segs = contour.filter(
+      (c) => Math.hypot(c[3][0] - c[0][0], c[3][1] - c[0][1]) > 1e-6
+    )
+    const n = segs.length
+    if (!n) continue
+    const materialLeft = filledLeft(segs, polys)
+    const corners = segs.flatMap((c, i) => {
+      const a = endDirection(segs[(i + n - 1) % n]!, 1)
+      const b = endDirection(c, 0)
+      const turn = Math.acos(
+        Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1]))
+      )
+      if (turn < EASE_TURN) return []
+      // Turning towards the material is turning round a convex corner.
+      const convexCorner = a[0] * b[1] - a[1] * b[0] > 0 === materialLeft
+      return [{ at: i, want: convexCorner ? convex : concave }]
+    })
+    if (!corners.length) {
+      d += `M${pt(segs[0]![0])}${segs.map(drawn).join('')}Z`
+      continue
+    }
+    // An edge runs from one corner to the next, however many segments Skia split it into.
+    const edges = corners.map(({ at }, k) => {
+      const to = corners[(k + 1) % corners.length]!.at
+      return Array.from(
+        { length: (to - at + n) % n || n },
+        (_, j) => segs[(at + j) % n]!
+      )
+    })
+    const m = edges.length
+    const totals = edges.map((e) => e.reduce((sum, c) => sum + lengthOf(c), 0))
+    const radii = corners.map(({ want }, k) =>
+      Math.min(want, totals[(k + m - 1) % m]! / 2, totals[k]! / 2)
+    )
+    d += `M${pt(along(edges[0]!, radii[0]!)[0])}`
+    edges.forEach((edge, k) => {
+      const next = (k + 1) % m
+      const r = radii[next]!
+      d += trimmed(edge, radii[k]!, r).map(drawn).join('')
+      if (!r) return
+      const [from, a] = along(edge, totals[k]! - r)
+      const [to, b] = along(edges[next]!, r)
+      const h = r * KAPPA
+      d += `C${pt([from[0] + a[0] * h, from[1] + a[1] * h])} ${pt([to[0] - b[0] * h, to[1] - b[1] * h])} ${pt(to)}`
+    })
+    d += 'Z'
+  }
+  outline.delete()
+  const eased = parse(d)
+  // Skia's simplified contours can all wind one way, so only even-odd keeps the holes.
+  eased.setFillType(PK.FillType.EVENODD)
+  return eased
 }

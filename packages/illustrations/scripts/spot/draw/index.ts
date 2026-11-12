@@ -3,10 +3,12 @@ export {
   type ExtrudeOptions,
   type Face,
   type SideRule,
-  extrude
+  extrude,
+  letterSide
 } from './extrude.ts'
 export {
   type Point,
+  ease,
   ellipse,
   intersect,
   path,

@@ -140,8 +140,10 @@ Draw the front flat, in any units. The kit in `scripts/spot/draw/` has:
 
 - **Shapes:** `rect` and `polygon` with a radius per corner, `ellipse`, `path`
   for raw path data, `union`, `subtract`, `intersect`, `rotate`, `scale`,
-  `translate`, and `tangent`, the points where a straight side meets an ellipse
-  without a corner.
+  `translate`, `tangent`, the points where a straight side meets an ellipse
+  without a corner, and `ease`, which rounds every corner of a shape, convex
+  and concave by their own amounts. Cut and join shapes sharp, then ease the
+  result once, as the letters do with `ease(shape, 0.9, 0.3)`.
 - **Parts,** in paint order, each with its `layer`. A part that attaches, such
   as a handle or a knob, goes before the body, so you never see the edge where
   they overlap. Mark a part `inner` when it sits on the front without adding to
@@ -154,11 +156,12 @@ Draw the front flat, in any units. The kit in `scripts/spot/draw/` has:
   A corner eased by up to about 1.1 (a curve under 1.6 across) still counts
   as a corner, as the letters' ease of 0.9 does; a wider rounding reads as one
   surface.
-- **`side`,** which picks each face's layer from whether it's a hole's wall and
-  which way it faces. By default a hole's walls are Detail and the rest Shadow,
-  as Letter B has it. For undersides in Detail, as Letter E and Letter P have
-  them, use
-  `side: ({ hole, normal }) => hole || normal[1] > normal[0] ? 'Detail' : 'Shadow'`.
+- **`side`,** which picks each face's layer from whether it's a hole's wall
+  (`hole`), whether it looks sideways across a gap at more of the front, as a
+  notch's walls do (`notch`), and which way it faces (`normal`). By default a
+  hole's walls are Detail and the rest Shadow, as Letter B has it.
+  `letterSide` makes undersides and the walls of counters and notches Detail
+  too, as most of the letters have them.
 - **`lines`,** for marks that bound no fill, such as grip lines.
 - **`fit`,** which scales the art so its long side spans 2 to 46, growing it as
   readily as shrinking it, and centres it. `spot:draw` runs it for you.

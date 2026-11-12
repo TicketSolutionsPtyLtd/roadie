@@ -3,6 +3,7 @@ import {
   type Cubic,
   type Point,
   filledLeft,
+  inside,
   pointAt,
   polygons,
   split,
@@ -19,9 +20,19 @@ export type Face = {
   hole: boolean
   /** The edge's average outward normal, unit length. */
   normal: Point
+  /**
+   * Whether the edge mostly looks sideways across a gap at more of the
+   * front, as the walls of a counter or a notch do, like those between an
+   * H's stems.
+   */
+  notch: boolean
 }
 
-export type SideRule = (face: { hole: boolean; normal: Point }) => FillLayer
+export type SideRule = (face: {
+  hole: boolean
+  notch: boolean
+  normal: Point
+}) => FillLayer
 
 export type ExtrudeOptions = {
   /** Picks each side's layer. By default a hole's walls are Detail and the rest Shadow. */
@@ -39,6 +50,30 @@ const CORNER_ARC = 1.6
 const ARC_TURN = (30 * Math.PI) / 180
 
 const defaultSide: SideRule = ({ hole }) => (hole ? 'Detail' : 'Shadow')
+
+/**
+ * The letters' rule: the walls of counters and notches, and the undersides,
+ * are Detail; the sides facing right are Shadow.
+ */
+export const letterSide: SideRule = ({ hole, notch, normal }) =>
+  hole || notch || normal[1] > normal[0] ? 'Detail' : 'Shadow'
+
+const RAY_STEP = 0.25
+const RAY_SAMPLES = 8
+
+/** Whether a level ray out from `from`, on the side `normal` faces, meets the front again. */
+function looksAcross(
+  polys: Point[][],
+  [minX, maxX]: [number, number],
+  from: Point,
+  [nx]: Point
+) {
+  if (Math.abs(nx) < 1e-6) return false
+  const step = Math.sign(nx) * RAY_STEP
+  for (let x = from[0] + step; x >= minX && x <= maxX; x += step)
+    if (inside(polys, [x, from[1]])) return true
+  return false
+}
 
 const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1]]
 const cross = (a: Point, b: Point) => a[0] * b[1] - a[1] * b[0]
@@ -124,6 +159,11 @@ export function extrude(
   const outline = front.copy()
   outline.simplify()
   const polys = polygons(outline)
+  const xs = polys.flat().map((p) => p[0])
+  const span: [number, number] = [
+    xs.reduce((a, b) => Math.min(a, b), Infinity),
+    xs.reduce((a, b) => Math.max(a, b), -Infinity)
+  ]
   const faces: (Face & { depth: number })[] = []
 
   for (const contour of toCubics(outline)) {
@@ -178,6 +218,7 @@ export function extrude(
       let normal: Point = [0, 0]
       let depth = 0
       let weight = 0
+      let across = 0
       for (const { cubic } of run) {
         const s = strip(cubic, vector)
         region.op(s, PK.PathOp.UNION)
@@ -186,13 +227,20 @@ export function extrude(
         normal = add(normal, outward(cubic, 0.5).map((n) => n * w) as Point)
         depth += dot(pointAt(cubic, 0.5), vector) * w
         weight += w
+        for (let k = 0; k < RAY_SAMPLES; k++) {
+          const t = (k + 0.5) / RAY_SAMPLES
+          if (looksAcross(polys, span, pointAt(cubic, t), outward(cubic, t)))
+            across += w / RAY_SAMPLES
+        }
       }
       region.simplify()
       const n = unit(normal)
+      const notch = across * 2 > weight
       faces.push({
-        layer: side({ hole, normal: n }),
+        layer: side({ hole, notch, normal: n }),
         path: region,
         hole,
+        notch,
         normal: n,
         depth: depth / weight
       })
