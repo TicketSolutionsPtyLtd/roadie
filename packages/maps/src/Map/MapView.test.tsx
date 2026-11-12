@@ -335,22 +335,28 @@ describe('Map defaultFit', () => {
     expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
   })
 
-  it('stays put when the reader pans before the pins arrive', async () => {
-    const fake = fakeEngine()
-    const view = await renderMap(fake.engine, null, { defaultFit: true })
-    await fake.pan(north)
+  it.each([
+    ['north', north],
+    ['east', east]
+  ])(
+    'stays put when the reader pans %s before the pins arrive',
+    async (_, to) => {
+      const fake = fakeEngine()
+      const view = await renderMap(fake.engine, null, { defaultFit: true })
+      await fake.pan(to)
 
-    await view.rerenderMap(pins)
-    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
-    // And it has given up: a second pin doesn't fit either.
-    await view.rerenderMap(
-      <>
-        {pins}
-        <Map.Marker position={venue} label='Wombat Lane Hall' />
-      </>
-    )
-    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
-  })
+      await view.rerenderMap(pins)
+      expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+      // And it has given up: a second pin doesn't fit either.
+      await view.rerenderMap(
+        <>
+          {pins}
+          <Map.Marker position={venue} label='Wombat Lane Hall' />
+        </>
+      )
+      expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+    }
+  )
 
   it('stays put when the app moves the map before the pins arrive', async () => {
     const fake = fakeEngine()

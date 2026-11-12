@@ -456,6 +456,27 @@ describe('MapAreas', () => {
     expect(opened.northEast.lng).toBeGreaterThan(left.lng)
   })
 
+  it('eases a map with defaultFit to areas that come after it has loaded, unless the reader panned first', async () => {
+    const waited = fakeEngine()
+    const waiting = await renderMap(waited.engine, null, { defaultFit: true })
+    await waiting.rerenderMap(<MapAreas {...squares} />)
+    expect(waited.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(waited.instance.fitBounds).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ animate: true })
+    )
+    waiting.unmount()
+
+    // Areas register with none drawn until they've read their colours, which
+    // mustn't count as the map starting again from where the reader left it.
+    const panned = fakeEngine()
+    const view = await renderMap(panned.engine, null, { defaultFit: true })
+    await panned.pan(left)
+    await view.rerenderMap(<MapAreas {...squares} />)
+    expect(drawn(vi.mocked(panned.instance.setAreas))).toHaveLength(2)
+    expect(panned.instance.fitBounds).not.toHaveBeenCalled()
+  })
+
   it('lights the area under the pointer once, however far the pointer moves in it', async () => {
     const fake = fakeEngine()
     const setActiveAreas = vi.fn()
