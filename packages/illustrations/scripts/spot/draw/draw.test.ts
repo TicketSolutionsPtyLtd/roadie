@@ -260,6 +260,15 @@ describe('shapes', () => {
     expect(region(thin).area).toBeCloseTo(region(rect(0, 0, 10, 2, 1)).area, 2)
   })
 
+  it('keeps the counter of a shape it eases', () => {
+    const o = subtract(rect(0, 0, 30, 30), rect(10, 10, 10, 10))
+    const quarter = (r: number) => ((4 - Math.PI) * r * r) / 4
+    expect(region(ease(o, 2, 1)).area).toBeCloseTo(
+      800 - 4 * quarter(2) + 4 * quarter(1),
+      2
+    )
+  })
+
   it('refuses a tangent from a point inside the ellipse', () => {
     expect(() => tangent([1, 0], [0, 0], 5)).toThrow()
   })

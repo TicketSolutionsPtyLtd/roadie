@@ -276,5 +276,8 @@ export function ease(shape: Path, convex: number, concave = convex) {
     d += 'Z'
   }
   outline.delete()
-  return parse(d)
+  const eased = parse(d)
+  // Skia's simplified contours can all wind one way, so only even-odd keeps the holes.
+  eased.setFillType(PK.FillType.EVENODD)
+  return eased
 }
