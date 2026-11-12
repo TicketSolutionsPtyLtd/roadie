@@ -16,6 +16,7 @@ import {
   fit,
   intersect,
   letterSide,
+  path,
   polygon,
   rect,
   rotate,
@@ -304,6 +305,34 @@ describe('shapes', () => {
     const quarter = (4 - Math.PI) / 4
     expect(region(ease(half, 1)).area).toBeCloseTo(
       region(half).area - 2 * quarter,
+      2
+    )
+  })
+
+  it('reads a join as smooth when a handle sits on its end point', () => {
+    const shape = path(
+      'M0 0L10 0C15.5228 0 20 4.4772 20 10C20 10 20 20 10 20L0 20Z'
+    )
+    const quarter = (4 - Math.PI) / 4
+    expect(region(ease(shape, 1)).area).toBeCloseTo(
+      region(shape).area - 2 * quarter,
+      2
+    )
+  })
+
+  it('eases a shape with a single corner', () => {
+    const shape = polygon(
+      [
+        [0, 0],
+        [10, 0],
+        [10, 10],
+        [0, 10]
+      ],
+      [0, 5, 5, 5]
+    )
+    const quarter = (4 - Math.PI) / 4
+    expect(region(ease(shape, 2)).area).toBeCloseTo(
+      region(shape).area - 4 * quarter,
       2
     )
   })

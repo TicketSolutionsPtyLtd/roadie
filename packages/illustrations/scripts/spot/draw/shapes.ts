@@ -211,6 +211,19 @@ const straight = ([a, b, c, d]: Cubic) => {
 const drawn = (c: Cubic) =>
   straight(c) ? `L${pt(c[3])}` : `C${pt(c[1])} ${pt(c[2])} ${pt(c[3])}`
 
+/**
+ * Which way a cubic runs at its start (0) or end (1). A handle on its end
+ * point gives no tangent there, so the next control point says instead.
+ */
+function endDirection(c: Cubic, end: 0 | 1): Point {
+  const [from, ...rest] = end ? [...c].reverse() : c
+  for (const p of rest) {
+    const d: Point = [p[0] - from![0], p[1] - from![1]]
+    if (Math.hypot(d[0], d[1]) > 1e-9) return unitOf(end ? [-d[0], -d[1]] : d)
+  }
+  return [0, 0]
+}
+
 /** The point and direction `by` along an edge. */
 function along(edge: Cubic[], by: number): [Point, Point] {
   let left = by
@@ -223,7 +236,7 @@ function along(edge: Cubic[], by: number): [Point, Point] {
     left -= l
   }
   const last = edge.at(-1)!
-  return [last[3], unitOf(tangentAt(last, 1))]
+  return [last[3], endDirection(last, 1)]
 }
 
 /** The part of an edge from `from` along it to `to` back from its end. */
@@ -261,8 +274,8 @@ export function ease(shape: Path, convex: number, concave = convex) {
     if (!n) continue
     const materialLeft = filledLeft(segs, polys)
     const corners = segs.flatMap((c, i) => {
-      const a = unitOf(tangentAt(segs[(i + n - 1) % n]!, 1))
-      const b = unitOf(tangentAt(c, 0))
+      const a = endDirection(segs[(i + n - 1) % n]!, 1)
+      const b = endDirection(c, 0)
       const turn = Math.acos(
         Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1]))
       )
