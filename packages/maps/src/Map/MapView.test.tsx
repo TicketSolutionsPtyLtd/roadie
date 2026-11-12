@@ -362,13 +362,26 @@ describe('Map defaultFit', () => {
     }
   )
 
-  it('still eases to the pins after Tab passes through the map', async () => {
+  it.each([
+    ['Tab passes through', () => fireEvent.keyDown(surface(), { key: 'Tab' })],
+    [
+      'Shift and Tab pass back through',
+      () => {
+        fireEvent.keyDown(surface(), { key: 'Shift', shiftKey: true })
+        fireEvent.keyDown(surface(), { key: 'Tab', shiftKey: true })
+      }
+    ]
+  ])('still eases to the pins after %s the map', async (_, pass) => {
     const fake = fakeEngine()
     const view = await renderMap(fake.engine, null, { defaultFit: true })
-    fireEvent.keyDown(surface(), { key: 'Tab' })
+    pass()
 
     await view.rerenderMap(pins)
     expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+      bothPins,
+      expect.objectContaining({ animate: true })
+    )
   })
 
   it('opens on its pins though the reader pressed the map while it loaded', async () => {

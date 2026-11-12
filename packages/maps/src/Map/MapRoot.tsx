@@ -286,13 +286,13 @@ export function MapRoot({
   }, [instance])
 
   // A press, a key or a scroll on the map is the reader using it: a pin
-  // they drop is theirs to place, not content to fit. Tab only passes
-  // through. Nothing is use until there's a map. A resize isn't use, so the
-  // map's view isn't what's compared.
+  // they drop is theirs to place, not content to fit. Tab and the keys held
+  // with it only pass through. Nothing is use until there's a map. A resize
+  // isn't use, so the map's view isn't what's compared.
   useEffect(() => {
     if (!host || !instance || !fitsFirst) return
     const used = (event: Event) => {
-      if (!(event instanceof KeyboardEvent && event.key === 'Tab'))
+      if (!(event instanceof KeyboardEvent && PASSING_KEYS.has(event.key)))
         stopOpening()
     }
     const events = ['pointerdown', 'keydown', 'wheel'] as const
@@ -657,6 +657,9 @@ export function MapRoot({
 
 // What the map's parts see of a Field: none. The picker reads the real one.
 const NO_FIELD = { fieldId: '', labelId: '', helperTextId: '', errorTextId: '' }
+
+// Keys that move focus through the map without using it.
+const PASSING_KEYS = new Set(['Tab', 'Shift', 'Control', 'Alt', 'Meta'])
 
 // Closer than this, a centre or zoom is where the map already is.
 const SAME_PLACE = 1e-7
