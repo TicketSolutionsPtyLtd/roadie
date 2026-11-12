@@ -419,7 +419,7 @@ Clicking a band zooms in until it splits. A single place opens a preview with it
 
 Give places a `region`, such as their state, and they only group with places in the same region, so two cities never merge however far out the map is.
 
-`onGroupsChange` gives you the bands on the map whenever they change, each with its value, share and places, largest first. Here each band is a group of rows in a [`DataTable`](/charts/data-table#grouped-rows), so the table lists only what the map shows, and View all lists every place by state. A share column with `total: true` adds up in each group and the totals. `highlight` lights the bands holding places by their `label`, as hover does, so hovering or focusing a row lights its band. A place inside a group lights its group's band. Opening a group fits the map to its places with `actionsRef`, which splits its band unless the groups are locked.
+`onGroupsChange` gives you the bands on the map whenever they change, each with its value, share and places, largest first. Here each band is a group of rows in a [`DataTable`](/charts/data-table#grouped-rows), so the table lists only what the map shows, and View all lists every place by state. A share column with `total: true` adds up in each group and the totals. `highlight` lights the bands holding places by their `label`, as hover does, so hovering or focusing a row lights its band. A place inside a group lights its group's band. Opening a group fits the map to its places with `actionsRef`, which splits its band unless the groups are locked. The same `fitTo` runs once when the bands first show, so every place is in view at any width.
 
 Totals per postcode or suburb are the better feed. No one's location reaches the browser, and your server can leave out totals small enough to point to someone. A point for each sale also works, for a feed you can't change. Leave out `value` and each point counts as 1, and points at the same spot add up into one band.
 
@@ -476,6 +476,14 @@ const stateGroups = () =>
 function PlaceTotals() {
   const map = useRef(null)
   const [bands, setBands] = useState([])
+  // Open on every place, whatever the map's width.
+  const opened = useRef(false)
+  const showBands = (next) => {
+    setBands(next)
+    if (opened.current || !next.length) return
+    opened.current = true
+    map.current?.fitTo()
+  }
   const [all, setAll] = useState(false)
   const [locked, setLocked] = useState(false)
   const [show, setShow] = useState('both')
@@ -520,7 +528,7 @@ function PlaceTotals() {
           show={show}
           legend={legend}
           highlight={lit}
-          onGroupsChange={setBands}
+          onGroupsChange={showBands}
         />
       </Map>
       <div className='flex flex-wrap items-center justify-between gap-2'>
