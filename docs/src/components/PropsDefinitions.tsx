@@ -221,6 +221,27 @@ function groupBySource(props: ManifestProp[]): PropGroup[] {
   )
 }
 
+// A union this long, such as every spot illustration's name, would fill the page.
+const UNION_SHOWN = 8
+const UNION_COLLAPSED = 24
+
+function PropType({ type }: { type: string }) {
+  const members = type.split(' | ')
+  if (members.length <= UNION_COLLAPSED)
+    return <span className='font-mono text-sm text-info-11'>{type}</span>
+  return (
+    <span className='grid gap-1 font-mono text-sm text-info-11'>
+      <span>{[...members.slice(0, UNION_SHOWN), '…'].join(' | ')}</span>
+      <details>
+        <summary className='is-interactive w-fit cursor-pointer rounded-sm font-sans text-subtle'>
+          Show all {members.length}
+        </summary>
+        {type}
+      </details>
+    </span>
+  )
+}
+
 export function PropsList({
   props,
   title
@@ -243,9 +264,7 @@ export function PropsList({
                 <span className='shrink-0 font-mono text-sm font-semibold'>
                   {prop.name}
                 </span>
-                <span className='font-mono text-sm text-info-11'>
-                  {prop.type}
-                </span>
+                <PropType type={prop.type} />
               </div>
               {prop.required && (
                 <Badge intent='danger' size='sm'>
