@@ -61,6 +61,8 @@ export default defineConfig({
     // The formatter rewrites the live tsx fences, which are the content here:
     // it turns {/* comments */} into blocks with a `;` before the next line.
     'docs/**/*.mdx',
+    // Data the docs serve as it is: laid out, the boundaries double in size.
+    'docs/public/maps/*.json',
     'docs/plans/',
     'docs/brainstorms/',
     '.scratch/'

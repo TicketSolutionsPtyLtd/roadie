@@ -14,8 +14,14 @@ export type MapContextValue = {
    * positions or colours.
    */
   frame: RefObject<HTMLDivElement | null>
-  /** Adds, replaces or, with `null`, removes an area the map draws. */
-  setArea: (id: string, area: MapAreaLayer | null) => void
+  /**
+   * Adds, replaces or, with `null`, removes an area the map draws, or a set
+   * of them, as `Map.Areas` draws.
+   */
+  setArea: (
+    id: string,
+    area: MapAreaLayer | readonly MapAreaLayer[] | null
+  ) => void
   /**
    * Adds, moves or, with `null`, removes a place a part marks, such as a pin,
    * so fitting the map to its places includes it.
