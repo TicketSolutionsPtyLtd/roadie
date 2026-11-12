@@ -1,5 +1,16 @@
 # roadie-skills
 
+## 0.7.0
+
+### Minor Changes
+
+- d6673b3: `/roadie:migrate` has a `spot-illustrations` codemod, which moves imports from the deprecated `@oztix/roadie-components/spot-illustrations` to `@oztix/roadie-illustrations/spot` and reports what it can't move. `/roadie:setup`, `/roadie:build`, and `/roadie:audit` add `@oztix/roadie-illustrations` and its CSS, and `/roadie:build` gives a medium `EmptyState` a spot illustration.
+
+### Patch Changes
+
+- 17722ed: Update `/roadie:build` to give an `md` empty state a spot illustration from `@oztix/roadie-illustrations`, picked by its message, and an `sm` one an IconTile.
+- 12e98f9: Update `/roadie:migrate`'s description to name its `spot-illustrations` codemod, so a request to move off the deprecated spot illustrations loads it.
+
 ## 0.6.1
 
 ### Patch Changes
