@@ -273,6 +273,13 @@ export function MapRoot({
     () => defaultFit && center === undefined && zoom === undefined
   )
   const opening = useRef<{ from?: MapView } | null>(fitsFirst ? {} : null)
+  // True while the map jumps to where it opens, which isn't the map being
+  // used, so the credits stay open.
+  const jumping = useRef(false)
+  // Parts read where they sit as they render, which is before the jump. An
+  // update from a layout effect renders them again before the browser
+  // paints, so no frame shows them where the starting view put them.
+  const [, setJumped] = useState(false)
   useLayoutEffect(() => {
     const waiting = opening.current
     if (!waiting || !instance) return
@@ -284,11 +291,14 @@ export function MapRoot({
     opening.current = null
     const { from } = waiting
     if (from && !sameView(from, instance.getView())) return
+    jumping.current = from === undefined
     instance.fitBounds(bounds, {
       animate: from !== undefined,
       padding: FIT_PADDING,
       maxZoom: PLACE_ZOOM
     })
+    jumping.current = false
+    if (!from) setJumped(true)
   }, [instance, content])
   useEffect(() => {
     if (
@@ -489,7 +499,9 @@ export function MapRoot({
         // OpenStreetMap's guidelines let credits fold once the map is used,
         // or after five seconds.
         const collapseCredits = () => setCreditsCollapsed(true)
-        const stopMoves = instance.on('move', collapseCredits)
+        const stopMoves = instance.on('move', () => {
+          if (!jumping.current) collapseCredits()
+        })
         const timer = setTimeout(collapseCredits, CREDITS_SHOWN_FOR)
         destroy = () => {
           clearTimeout(timer)

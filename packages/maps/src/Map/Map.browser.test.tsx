@@ -1275,6 +1275,19 @@ describe('Map defaultFit in the browser', () => {
   })
 
   it(
+    'opens a narrow map with its credits showing',
+    { timeout: 15_000 },
+    async () => {
+      const frame = await renderReadyMap(pinned(true), 308)
+      await waitFor(() =>
+        expect(pinsInside(frame)).toEqual([true, true, true, true])
+      )
+
+      expect(screen.getByText('Fixture')).toBeVisible()
+    }
+  )
+
+  it(
     'is on its pins from the first frame they show, and never moves after',
     { timeout: 15_000 },
     async () => {

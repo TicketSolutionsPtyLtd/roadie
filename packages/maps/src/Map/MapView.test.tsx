@@ -403,4 +403,15 @@ describe('Map defaultFit', () => {
       zoom: 16
     })
   })
+
+  it('opens with its credits showing, as a map with no fit does', async () => {
+    const fake = fakeEngine()
+    await renderMap(fake.engine, pins, { defaultFit: true })
+
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Map credits' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
+  })
 })
