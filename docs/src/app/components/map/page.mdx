@@ -603,7 +603,7 @@ When your data is a point for each sale rather than a total for each area, `area
 
 Large rural areas draw the eye however small their values are. To compare places rather than totals, colour by a rate, such as each postcode's total per 1,000 residents.
 
-The boundaries here are the Australian Bureau of Statistics' [2021 postal areas](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files), simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented, 12,000 points at random places, in the shape of a feed with a point for each sale.
+The boundaries here are the Australian Bureau of Statistics' [2021 postal areas](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files), simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented, 12,000 points at random places, in the shape of a feed with a point for each sale. The map fits to them once the areas show, with `fitTo` from `actionsRef`, so every area is in view at any width.
 
 ```tsx-live-noinline
 const columns = [
@@ -613,7 +613,9 @@ const columns = [
 ]
 
 function PostcodeTotals() {
+  const map = useRef(null)
   const [areas, setAreas] = useState()
+  const [points, setPoints] = useState([])
   const [totals, setTotals] = useState([])
   const [inView, setInView] = useState([])
   const [lit, setLit] = useState()
@@ -622,18 +624,23 @@ function PostcodeTotals() {
       fetch('/maps/postcodes-2021.topo.json').then((r) => r.json()),
       fetch('/maps/example-sale-points.json').then((r) => r.json())
     ]).then(([postcodes, sales]) => {
-      setAreas(postcodes)
       // A point for each sale, sorted into postcodes and added up.
-      setTotals(
-        areaTotals(
-          postcodes,
-          sales.map(({ latitude, longitude }) => ({
-            position: { lat: Number(latitude), lng: Number(longitude) }
-          }))
-        )
-      )
+      const places = sales.map(({ latitude, longitude }) => ({
+        position: { lat: Number(latitude), lng: Number(longitude) }
+      }))
+      setAreas(postcodes)
+      setPoints(places)
+      setTotals(areaTotals(postcodes, places))
     })
   }, [])
+  // Open on every sale, whatever the map's width, once the areas show.
+  const drawn = inView.length > 0
+  const opened = useRef(false)
+  useEffect(() => {
+    if (!drawn || opened.current) return
+    opened.current = true
+    map.current?.fitTo(points.map(({ position }) => position))
+  }, [drawn])
   const rows = inView.slice(0, 10).map(({ id, value, share }) => ({
     postcode: id,
     value,
@@ -646,6 +653,7 @@ function PostcodeTotals() {
       <Map
         defaultCenter={{ lat: -28, lng: 134 }}
         defaultZoom={2.6}
+        actionsRef={map}
         aria-label='Totals by postcode'
         className='aspect-4/3'
       >
