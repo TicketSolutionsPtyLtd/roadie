@@ -121,7 +121,7 @@ describe('Cards columns', () => {
     ['overlap', 1],
     ['photo', 2],
     ['lists', 2],
-    ['steps', 1],
+    ['steps', 2],
     ['link', 2]
   ])('%s fits %i column(s) of at least 15rem at 640px', (look, expected) => {
     render(<Block look={look} width={640} count={4} />)
@@ -201,7 +201,7 @@ describe('Cards at 1265px', () => {
 
 // Four 15rem cards and three gap-12 gaps first fit inside a band's padding at 1216px.
 describe('Cards four-across edge', () => {
-  it.each<Look>(['text-blocks', 'steps'])(
+  it.each<Look>(['text-blocks'])(
     'sets four %s cards of at least 15rem across from 1216px',
     (look) => {
       const { unmount } = render(<Block look={look} width={1215} count={4} />)
@@ -344,6 +344,125 @@ describe('Cards align and size', () => {
       </div>
     )
     expect(fontSizeOf(heading())).toBeLessThan(medium)
+  })
+})
+
+describe('Cards steps', () => {
+  const sides = (element: Element) => {
+    const { left, right, width, height } = element.getBoundingClientRect()
+    return { left, right, centre: (left + right) / 2, width, height }
+  }
+
+  it.each([375, 1280])(
+    'starts each step’s 4rem number with its title at %ipx',
+    (width) => {
+      render(<Block look='steps' width={width} />)
+
+      for (const card of cards()) {
+        const number = sides(card.querySelector('svg')!)
+        const title = sides(within(card).getByRole('heading', { level: 3 }))
+        expect([number.width, number.height]).toEqual([64, 64])
+        expect(number.left).toBeCloseTo(title.left, 0)
+      }
+    }
+  )
+
+  const row = () => {
+    const list = screen.getAllByRole('list')[0]!.getBoundingClientRect()
+    const steps = cards().map((card) => card.getBoundingClientRect())
+    return {
+      tops: new Set(steps.map(({ top }) => Math.round(top))).size,
+      widths: steps.map(({ width }) => width),
+      before: steps[0]!.left - list.left,
+      after: list.right - steps.at(-1)!.right
+    }
+  }
+
+  it.each<[number, number]>([
+    [2, 1440],
+    [3, 1280],
+    [4, 1440]
+  ])('centres a row of %i steps of 15 to 24rem at %ipx', (count, width) => {
+    render(<Block look='steps' width={width} count={count} />)
+
+    const { tops, widths, before, after } = row()
+    expect(tops).toBe(1)
+    for (const stepWidth of widths) {
+      expect(stepWidth).toBeGreaterThanOrEqual(240)
+      expect(stepWidth).toBeLessThanOrEqual(384)
+    }
+    expect(before).toBeCloseTo(after, 0)
+  })
+
+  it.each<[number, number]>([
+    [4, 1024],
+    [4, 900],
+    [3, 640],
+    [5, 1280]
+  ])(
+    'keeps %i steps one width at %ipx, centring a short last row',
+    (count, width) => {
+      render(<Block look='steps' width={width} count={count} />)
+
+      const list = screen.getAllByRole('list')[0]!.getBoundingClientRect()
+      const steps = cards().map((card) => card.getBoundingClientRect())
+      for (const step of steps)
+        expect(step.width).toBeCloseTo(steps[0]!.width, 0)
+      const last = steps.at(-1)!
+      const lastRow = steps.filter(
+        ({ top }) => Math.round(top) === Math.round(last.top)
+      )
+      expect(lastRow[0]!.left - list.left).toBeCloseTo(
+        list.right - last.right,
+        0
+      )
+    }
+  )
+
+  it('grows steps to fill their row, up to 24rem each', () => {
+    const { unmount } = render(<Block look='steps' width={1440} count={2} />)
+    expect(row().widths).toEqual([384, 384])
+    unmount()
+
+    render(<Block look='steps' width={1280} count={4} />)
+    const { before, after } = row()
+    expect(before).toBeCloseTo(0, 0)
+    expect(after).toBeCloseTo(0, 0)
+  })
+
+  it.each([375, 1280])('spaces steps 1.5rem apart at %ipx', (width) => {
+    render(<Block look='steps' width={width} count={2} />)
+
+    const [first, second] = cards().map((card) => card.getBoundingClientRect())
+    const gap =
+      width < 640 ? second!.top - first!.bottom : second!.left - first!.right
+    expect(gap).toBeCloseTo(24, 0)
+  })
+
+  it('starts a row of steps with a start-aligned heading', () => {
+    render(
+      <div style={{ width: 1440 }}>
+        <Cards {...propsOf('steps', 2)} align='start' />
+      </div>
+    )
+
+    const { before, after } = row()
+    expect(before).toBe(0)
+    expect(after).toBeGreaterThan(0)
+  })
+
+  it('centres each step’s number over its centred text', () => {
+    render(
+      <div style={{ width: 1280 }}>
+        <Cards {...propsOf('steps')} align='center' />
+      </div>
+    )
+
+    for (const card of cards())
+      expect(sides(card.querySelector('svg')!).centre).toBeCloseTo(
+        sides(within(card).getByRole('heading', { level: 3 })).centre,
+        0
+      )
   })
 })
 
