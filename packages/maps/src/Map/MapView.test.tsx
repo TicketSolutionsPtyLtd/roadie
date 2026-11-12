@@ -276,3 +276,116 @@ describe('Map.Toolbar extras', () => {
     expect(screen.queryByRole('button', { name: 'Show all' })).toBeNull()
   })
 })
+
+describe('Map defaultFit', () => {
+  const pins = (
+    <>
+      <Map.Marker position={east} label='Kazoo Hollow Room' />
+      <Map.Marker position={north} label='Foxglove Tin Pavilion' />
+    </>
+  )
+  const bothPins = {
+    southWest: { lat: venue.lat, lng: venue.lng },
+    northEast: { lat: north.lat, lng: east.lng }
+  }
+
+  it('opens on the pins it mounts with, without easing', async () => {
+    const fake = fakeEngine()
+    await renderMap(fake.engine, pins, { defaultFit: true })
+
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(bothPins, {
+      animate: false,
+      padding: 48,
+      maxZoom: 16
+    })
+  })
+
+  it('leaves the view alone unless asked', async () => {
+    const fake = fakeEngine()
+    await renderMap(fake.engine, pins)
+
+    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+  })
+
+  it('eases to pins that arrive after it has loaded', async () => {
+    const fake = fakeEngine()
+    const view = await renderMap(fake.engine, null, { defaultFit: true })
+    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+
+    await view.rerenderMap(pins)
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+      bothPins,
+      expect.objectContaining({ animate: true })
+    )
+  })
+
+  it('fits once, so a pin added later moves nothing', async () => {
+    const fake = fakeEngine()
+    const view = await renderMap(
+      fake.engine,
+      <Map.Marker position={east} label='Kazoo Hollow Room' />,
+      { defaultFit: true }
+    )
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+
+    await view.rerenderMap(pins)
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+  })
+
+  it('stays put when the reader pans before the pins arrive', async () => {
+    const fake = fakeEngine()
+    const view = await renderMap(fake.engine, null, { defaultFit: true })
+    await fake.pan(north)
+
+    await view.rerenderMap(pins)
+    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+    // And it has given up: a second pin doesn't fit either.
+    await view.rerenderMap(
+      <>
+        {pins}
+        <Map.Marker position={venue} label='Wombat Lane Hall' />
+      </>
+    )
+    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+  })
+
+  it('stays put when the app moves the map before the pins arrive', async () => {
+    const fake = fakeEngine()
+    const actionsRef = createRef<MapActions>()
+    const view = await renderMap(fake.engine, null, {
+      defaultFit: true,
+      actionsRef
+    })
+    act(() => actionsRef.current!.flyTo({ zoom: 9 }))
+
+    await view.rerenderMap(pins, { defaultFit: true, actionsRef })
+    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+  })
+
+  it('gives way to a controlled centre or zoom, and says so', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    for (const controlled of [{ center: venue }, { zoom: 12 }]) {
+      const fake = fakeEngine()
+      const view = await renderMap(fake.engine, pins, {
+        defaultFit: true,
+        ...controlled
+      })
+      expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+      view.unmount()
+    }
+    expect(warn).toHaveBeenCalledTimes(2)
+    expect(warn.mock.calls[0]![0]).toMatch(/defaultFit/)
+    warn.mockRestore()
+  })
+
+  it('says nothing when it is not controlled', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const fake = fakeEngine()
+    await renderMap(fake.engine, pins, { defaultFit: true })
+
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+})

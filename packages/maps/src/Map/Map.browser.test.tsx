@@ -1207,3 +1207,95 @@ describe('Map keyboard-only buttons in the browser', () => {
     }
   )
 })
+
+describe('Map defaultFit in the browser', () => {
+  // Four cities a continent apart, which no one zoom shows at every width.
+  const cities = [
+    { label: 'Tin Whistle Wharf', position: { lat: -31.95, lng: 115.86 } },
+    { label: 'Mango Drum Yard', position: { lat: -12.46, lng: 130.84 } },
+    { label: 'Apple Crate Hall', position: { lat: -42.88, lng: 147.33 } },
+    { label: 'Kazoo Hollow Room', position: venue }
+  ]
+  const pinned = (fit: boolean) => (
+    <Map defaultCenter={venue} defaultFit={fit}>
+      {cities.map((city) => (
+        <Map.Marker key={city.label} {...city} />
+      ))}
+    </Map>
+  )
+  const pinsInside = (frame: HTMLElement) => {
+    const outer = frame.getBoundingClientRect()
+    return cities.map(({ label }) => {
+      const pin = screen.queryByRole('img', { name: label })
+      return pin !== null && inside(pin.getBoundingClientRect(), outer)
+    })
+  }
+
+  for (const width of [308, 714])
+    it(
+      `opens with every pin inside a ${width}px map`,
+      { timeout: 15_000 },
+      async () => {
+        const frame = await renderReadyMap(pinned(true), width)
+
+        await waitFor(() =>
+          expect(pinsInside(frame)).toEqual([true, true, true, true])
+        )
+      }
+    )
+
+  it(
+    'leaves pins out of view without it, so the test above can fail',
+    { timeout: 15_000 },
+    async () => {
+      const frame = await renderReadyMap(pinned(false), 308)
+
+      await screen.findByRole('img', { name: 'Kazoo Hollow Room' })
+      expect(pinsInside(frame).filter(Boolean)).toHaveLength(1)
+    }
+  )
+
+  it(
+    'is on its pins from the first frame they show, and never moves after',
+    { timeout: 15_000 },
+    async () => {
+      // Where the pin is at every frame and after every change to the page,
+      // from before the map is ready, not only at the end. So a pin drawn
+      // where the starting view puts it, or an ease into place, is seen.
+      const lefts: number[] = []
+      let sampling = true
+      const read = () => {
+        const pin = screen.queryByRole('img', { name: 'Tin Whistle Wharf' })
+        if (pin) lefts.push(pin.getBoundingClientRect().left)
+      }
+      const eachFrame = () => {
+        read()
+        if (sampling) requestAnimationFrame(eachFrame)
+      }
+      requestAnimationFrame(eachFrame)
+      const changes = new MutationObserver(read)
+      changes.observe(document.body, {
+        subtree: true,
+        childList: true,
+        attributes: true
+      })
+      try {
+        const frame = await renderReadyMap(pinned(true), 714)
+        await waitFor(() =>
+          expect(pinsInside(frame)).toEqual([true, true, true, true])
+        )
+        // A dozen more frames, which an ease would still be moving in.
+        const seen = lefts.length
+        await waitFor(() => expect(lefts.length).toBeGreaterThan(seen + 12), {
+          timeout: 5_000
+        })
+      } finally {
+        sampling = false
+        changes.disconnect()
+      }
+
+      expect(lefts.length).toBeGreaterThan(2)
+      expect(Math.max(...lefts) - Math.min(...lefts)).toBeLessThan(1)
+    }
+  )
+})

@@ -434,6 +434,28 @@ describe('MapAreas', () => {
     expect(bounds.northEast.lat).toBeCloseTo(-28)
   })
 
+  it('opens a map with defaultFit on its areas, as Show all would', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <>
+        <Map.Toolbar fit />
+        <MapAreas {...squares} />
+      </>,
+      { defaultFit: true }
+    )
+
+    const fitBounds = vi.mocked(fake.instance.fitBounds)
+    expect(fitBounds).toHaveBeenCalledTimes(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(fitBounds).toHaveBeenCalledTimes(2)
+    const [opened] = fitBounds.mock.calls[0]!
+    const [shown] = fitBounds.mock.calls[1]!
+    expect(opened).toEqual(shown)
+    expect(opened.southWest.lng).toBeLessThan(left.lng)
+    expect(opened.northEast.lng).toBeGreaterThan(left.lng)
+  })
+
   it('lights the area under the pointer once, however far the pointer moves in it', async () => {
     const fake = fakeEngine()
     const setActiveAreas = vi.fn()

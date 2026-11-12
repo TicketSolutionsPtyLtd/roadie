@@ -76,6 +76,15 @@ export type MapRootProps = Omit<ComponentProps<'div'>, 'children'> & {
    */
   defaultZoom?: number
   /**
+   * Whether the map opens on every pin and area on it, as Show all does,
+   * once they're there. Until then it shows `defaultCenter` and
+   * `defaultZoom`. It fits once, and not at all if the map has moved first.
+   * Read once, on first render. A controlled `center` or `zoom` takes its
+   * place.
+   * @default false
+   */
+  defaultFit?: boolean
+  /**
    * Where the map is centred, when controlled. When it changes, the map
    * moves there. The reader can still pan; `onViewChange` says where to.
    */
@@ -134,6 +143,7 @@ export type MapRootProps = Omit<ComponentProps<'div'>, 'children'> & {
 export function MapRoot({
   defaultCenter,
   defaultZoom,
+  defaultFit = false,
   center,
   zoom,
   onViewChange,
@@ -245,6 +255,44 @@ export function MapRoot({
     }),
     [instance, fitTo]
   )
+
+  // `defaultFit` opens the map on its content, once. Content that's there as
+  // the engine becomes ready is fitted at once, in a layout effect, so no
+  // frame paints the pins where the starting view would put them. Content
+  // that arrives later is eased to, unless the map has moved from where it
+  // started.
+  const [fitsFirst] = useState(
+    () => defaultFit && center === undefined && zoom === undefined
+  )
+  const opening = useRef<{ from?: MapView } | null>(fitsFirst ? {} : null)
+  useLayoutEffect(() => {
+    const waiting = opening.current
+    if (!waiting || !instance) return
+    const bounds = boundsOf(content)
+    if (!bounds) {
+      waiting.from ??= instance.getView()
+      return
+    }
+    opening.current = null
+    const { from } = waiting
+    if (from && !sameView(from, instance.getView())) return
+    instance.fitBounds(bounds, {
+      animate: from !== undefined,
+      padding: FIT_PADDING,
+      maxZoom: PLACE_ZOOM
+    })
+  }, [instance, content])
+  useEffect(() => {
+    if (
+      defaultFit &&
+      !fitsFirst &&
+      typeof process !== 'undefined' &&
+      process?.env?.NODE_ENV !== 'production'
+    )
+      console.warn(
+        '[Map] defaultFit does nothing with center or zoom set. Use defaultCenter and defaultZoom with it, or call fitTo.'
+      )
+  }, [defaultFit, fitsFirst])
 
   // A controlled centre or zoom moves the map when it changes, unless it's
   // where the map already is, as when it comes back from onViewChange.
@@ -544,6 +592,15 @@ const NO_FIELD = { fieldId: '', labelId: '', helperTextId: '', errorTextId: '' }
 // Closer than this, a centre or zoom is where the map already is.
 const SAME_PLACE = 1e-7
 const SAME_ZOOM = 1e-3
+
+/** Whether two views are the same place and zoom, as near as the engine keeps them. */
+function sameView(a: MapView, b: MapView) {
+  return (
+    Math.abs(a.center.lat - b.center.lat) <= SAME_PLACE &&
+    Math.abs(a.center.lng - b.center.lng) <= SAME_PLACE &&
+    Math.abs(a.zoom - b.zoom) <= SAME_ZOOM
+  )
+}
 
 // An area's corners, kept per geometry, as a map of postcodes would
 // otherwise walk every point each time one changes.
