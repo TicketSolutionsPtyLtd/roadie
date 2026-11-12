@@ -299,6 +299,15 @@ describe('shapes', () => {
     }
   )
 
+  it('eases a corner beside a curve without moving the curve', () => {
+    const half = intersect(ellipse(10, 10, 10), rect(0, 0, 10, 20))
+    const quarter = (4 - Math.PI) / 4
+    expect(region(ease(half, 1)).area).toBeCloseTo(
+      region(half).area - 2 * quarter,
+      2
+    )
+  })
+
   it('keeps the counter of a shape it eases', () => {
     const o = subtract(rect(0, 0, 30, 30), rect(10, 10, 10, 10))
     const quarter = (r: number) => ((4 - Math.PI) * r * r) / 4
