@@ -298,7 +298,7 @@ render(<VenueTour />)
 
 `Map.Marker` puts a pin on a place. `label` names it for screen readers and keyboard users, and `intent` colours it. Give each pin an `href` to link to the place, or an `onClick`.
 
-`defaultFit` opens the map on every pin and area on it, at any width, so you don't pick a centre and zoom that only suit one. It fits once. When the pins arrive after the map has loaded, it eases to them, unless the map has already moved.
+`defaultFit` opens the map on every pin and area on it, at any width, so you don't pick a centre and zoom that only suit one. It fits once. When the pins arrive after the map has loaded, it eases to them, unless the reader has used the map or your app has moved it by then.
 
 ```tsx-live
 <Map defaultFit aria-label='Venues in Brisbane'>
@@ -594,7 +594,7 @@ When your data is a point for each sale rather than a total for each area, `area
 
 Large rural areas draw the eye however small their values are. To compare places rather than totals, colour by a rate, such as each postcode's total per 1,000 residents.
 
-The boundaries here are the Australian Bureau of Statistics' [2021 postal areas](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files), simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented, 12,000 points at random places, in the shape of a feed with a point for each sale. `defaultFit` eases the map to the areas once they show, so every area is in view at any width.
+The boundaries here are the Australian Bureau of Statistics' [2021 postal areas](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files), simplified, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). They approximate postcodes and leave out PO box postcodes, so list values with no area beside the map. The sales are invented, 12,000 points at random places, in the shape of a feed with a point for each sale. `defaultFit` opens the map on the areas once they show, so every area is in view at any width.
 
 ```tsx-live-noinline
 const columns = [

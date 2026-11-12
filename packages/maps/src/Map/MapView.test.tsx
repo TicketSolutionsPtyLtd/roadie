@@ -1,6 +1,6 @@
 import { StrictMode, createRef } from 'react'
 
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -335,15 +335,19 @@ describe('Map defaultFit', () => {
     expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
   })
 
+  const surface = () =>
+    document.querySelector<HTMLElement>('[data-slot="map-surface"]')!
+
   it.each([
-    ['north', north],
-    ['east', east]
+    ['presses', () => fireEvent.pointerDown(surface())],
+    ['uses a key on', () => fireEvent.keyDown(surface(), { key: 'ArrowLeft' })],
+    ['scrolls on', () => fireEvent.wheel(surface(), { deltaY: -100 })]
   ])(
-    'stays put when the reader pans %s before the pins arrive',
-    async (_, to) => {
+    'stays put when the reader %s the map before the pins arrive',
+    async (_, use) => {
       const fake = fakeEngine()
       const view = await renderMap(fake.engine, null, { defaultFit: true })
-      await fake.pan(to)
+      use()
 
       await view.rerenderMap(pins)
       expect(fake.instance.fitBounds).not.toHaveBeenCalled()
@@ -357,6 +361,104 @@ describe('Map defaultFit', () => {
       expect(fake.instance.fitBounds).not.toHaveBeenCalled()
     }
   )
+
+  it('still eases to the pins after Tab passes through the map', async () => {
+    const fake = fakeEngine()
+    const view = await renderMap(fake.engine, null, { defaultFit: true })
+    fireEvent.keyDown(surface(), { key: 'Tab' })
+
+    await view.rerenderMap(pins)
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['north', north],
+    ['east', east]
+  ])(
+    'still eases to the pins after the engine moves %s on its own, as a resize can',
+    async (_, to) => {
+      const fake = fakeEngine()
+      const view = await renderMap(fake.engine, null, { defaultFit: true })
+      await fake.pan(to)
+
+      await view.rerenderMap(pins)
+      expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+      expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+        bothPins,
+        expect.objectContaining({ animate: true })
+      )
+    }
+  )
+
+  it('leaves the map where it is when the reader drops a pin', async () => {
+    const fake = fakeEngine()
+    const onValueChange = vi.fn()
+    await renderMap(fake.engine, <Map.Picker onValueChange={onValueChange} />, {
+      defaultFit: true
+    })
+    // A click on the map is a press on it, then the engine's click.
+    fireEvent.pointerDown(surface())
+    await fake.click(east)
+
+    expect(onValueChange).toHaveBeenCalled()
+    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+  })
+
+  it('opens on a picker’s place when it starts with one', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <Map.Picker defaultValue={{ position: east, label: 'Side door' }} />,
+      { defaultFit: true }
+    )
+
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+      { southWest: east, northEast: east },
+      expect.objectContaining({ animate: false })
+    )
+  })
+
+  it('opens on its pins again when the engine is swapped for another', async () => {
+    const first = fakeEngine()
+    const second = fakeEngine()
+    const tree = (engine: typeof first.engine) => (
+      <MapProvider engine={engine}>
+        <Map defaultFit>{pins}</Map>
+      </MapProvider>
+    )
+    const view = render(tree(first.engine))
+    await act(async () => {})
+    expect(first.instance.fitBounds).toHaveBeenCalledTimes(1)
+
+    view.rerender(tree(second.engine))
+    await act(async () => {})
+    expect(second.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(second.instance.fitBounds).toHaveBeenCalledWith(
+      bothPins,
+      expect.objectContaining({ animate: false })
+    )
+  })
+
+  it('stays put when fitTo has already moved the map, and when a controlled centre has', async () => {
+    const fake = fakeEngine()
+    const actionsRef = createRef<MapActions>()
+    const view = await renderMap(fake.engine, null, {
+      defaultFit: true,
+      actionsRef
+    })
+    act(() => actionsRef.current!.fitTo([north]))
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    await view.rerenderMap(pins, { defaultFit: true, actionsRef })
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    view.unmount()
+
+    const later = fakeEngine()
+    const controlled = await renderMap(later.engine, null, { defaultFit: true })
+    await controlled.rerenderMap(null, { defaultFit: true, center: east })
+    await controlled.rerenderMap(pins, { defaultFit: true, center: east })
+    expect(later.instance.fitBounds).not.toHaveBeenCalled()
+  })
 
   it('stays put when the app moves the map before the pins arrive', async () => {
     const fake = fakeEngine()

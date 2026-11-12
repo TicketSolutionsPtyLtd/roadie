@@ -1288,6 +1288,39 @@ describe('Map defaultFit in the browser', () => {
   )
 
   it(
+    'waits while it has no size, as in a tab that is not showing, and opens on its pins when shown',
+    { timeout: 15_000 },
+    async () => {
+      function Tabs() {
+        const [shown, setShown] = useState(false)
+        return (
+          <>
+            <button type='button' onClick={() => setShown(true)}>
+              Show the map
+            </button>
+            <div style={{ display: shown ? 'block' : 'none', width: 480 }}>
+              <MapEngineContext value={engine}>{pinned(true)}</MapEngineContext>
+            </div>
+          </>
+        )
+      }
+      render(<Tabs />)
+      const frame = screen.getByRole('region', { name: 'Map', hidden: true })
+      await waitFor(
+        () => expect(frame).toHaveAttribute('data-status', 'ready'),
+        { timeout: 10_000 }
+      )
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Show the map' })
+      )
+      await waitFor(() =>
+        expect(pinsInside(frame)).toEqual([true, true, true, true])
+      )
+    }
+  )
+
+  it(
     'is on its pins from the first frame they show, and never moves after',
     { timeout: 15_000 },
     async () => {

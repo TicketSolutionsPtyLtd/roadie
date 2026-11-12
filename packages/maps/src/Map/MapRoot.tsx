@@ -78,9 +78,9 @@ export type MapRootProps = Omit<ComponentProps<'div'>, 'children'> & {
   /**
    * Whether the map opens on every pin and area on it, as Show all does,
    * once they're there. Until then it shows `defaultCenter` and
-   * `defaultZoom`. It fits once, and not at all if the map has moved first.
-   * Read once, on first render. A controlled `center` or `zoom` takes its
-   * place.
+   * `defaultZoom`. It fits once, and not at all once the reader has used
+   * the map or the app has moved it. Read once, on first render. A
+   * controlled `center` or `zoom` takes its place.
    * @default false
    */
   defaultFit?: boolean
@@ -235,25 +235,46 @@ export function MapRoot({
     ],
     [places, areas]
   )
+  // `defaultFit` opens the map on its content, once. Content that's there as
+  // the engine becomes ready is fitted at once, in a layout effect, so no
+  // frame paints the pins where the starting view would put them. Content
+  // that arrives later is eased to, unless the reader has used the map or
+  // the app has moved it by then.
+  const [fitsFirst] = useState(
+    () => defaultFit && center === undefined && zoom === undefined
+  )
+  // Null once the fit is made or given up. `late` once the engine has been
+  // ready with nothing to fit.
+  const opening = useRef<{ late: boolean } | null>(
+    fitsFirst ? { late: false } : null
+  )
+  const stopOpening = useCallback(() => {
+    opening.current = null
+  }, [])
   const fitTo = useCallback(
     (given?: readonly LatLng[]) => {
       const bounds = boundsOf(given ?? content)
       if (!instance || !bounds) return
+      stopOpening()
       instance.fitBounds(bounds, {
         animate: true,
         padding: FIT_PADDING,
         maxZoom: PLACE_ZOOM
       })
     },
-    [instance, content]
+    [instance, content, stopOpening]
   )
   useImperativeHandle(
     actionsRef,
     () => ({
-      flyTo: (view) => instance?.setView(view, { animate: true }),
+      flyTo: (view) => {
+        if (!instance) return
+        stopOpening()
+        instance.setView(view, { animate: true })
+      },
       fitTo
     }),
-    [instance, fitTo]
+    [instance, fitTo, stopOpening]
   )
 
   // A layout effect ahead of the opening fit below, as a jump settles while
@@ -264,15 +285,43 @@ export function MapRoot({
     return instance.on('moveend', () => viewChanged(instance.getView()))
   }, [instance])
 
-  // `defaultFit` opens the map on its content, once. Content that's there as
-  // the engine becomes ready is fitted at once, in a layout effect, so no
-  // frame paints the pins where the starting view would put them. Content
-  // that arrives later is eased to, unless the map has moved from where it
-  // started.
-  const [fitsFirst] = useState(
-    () => defaultFit && center === undefined && zoom === undefined
-  )
-  const opening = useRef<{ from?: MapView } | null>(fitsFirst ? {} : null)
+  // A press, a key or a scroll on the map is the reader using it: a pin
+  // they drop is theirs to place, not content to fit. Tab only passes
+  // through. A resize isn't use, so the map's view isn't what's compared.
+  useEffect(() => {
+    if (!host || !fitsFirst) return
+    const used = (event: Event) => {
+      if (!(event instanceof KeyboardEvent && event.key === 'Tab'))
+        stopOpening()
+    }
+    const events = ['pointerdown', 'keydown', 'wheel'] as const
+    for (const event of events)
+      host.addEventListener(event, used, { capture: true, passive: true })
+    return () => {
+      for (const event of events)
+        host.removeEventListener(event, used, { capture: true })
+    }
+  }, [host, fitsFirst, stopOpening])
+  // A map with no size, as in a tab that isn't showing, waits to be shown:
+  // there's nothing to fit its content into.
+  const [hidden, setHidden] = useState(false)
+  useEffect(() => {
+    if (!frameElement || !fitsFirst) return
+    const sizes = new ResizeObserver(([entry]) => {
+      const { width, height } = entry!.contentRect
+      setHidden(width === 0 || height === 0)
+    })
+    sizes.observe(frameElement)
+    return () => sizes.disconnect()
+  }, [frameElement, fitsFirst])
+  // An engine mounted again starts from the first view again, so it opens
+  // on the content again too.
+  useEffect(() => {
+    if (!instance || !fitsFirst) return
+    return () => {
+      opening.current = { late: false }
+    }
+  }, [instance, fitsFirst])
   // True while the map jumps to where it opens, which isn't the map being
   // used, so the credits stay open.
   const jumping = useRef(false)
@@ -282,24 +331,23 @@ export function MapRoot({
   const [, setJumped] = useState(false)
   useLayoutEffect(() => {
     const waiting = opening.current
-    if (!waiting || !instance) return
+    if (!waiting || !instance || hidden) return
     const bounds = boundsOf(content)
     if (!bounds) {
-      waiting.from ??= instance.getView()
+      waiting.late = true
       return
     }
     opening.current = null
-    const { from } = waiting
-    if (from && !sameView(from, instance.getView())) return
-    jumping.current = from === undefined
+    const { late } = waiting
+    jumping.current = !late
     instance.fitBounds(bounds, {
-      animate: from !== undefined,
+      animate: late,
       padding: FIT_PADDING,
       maxZoom: PLACE_ZOOM
     })
     jumping.current = false
-    if (!from) setJumped(true)
-  }, [instance, content])
+    if (!late) setJumped(true)
+  }, [instance, content, hidden])
   // The warning is made once, as StrictMode runs the effect twice.
   const controlled = center !== undefined || zoom !== undefined
   const warned = useRef(false)
@@ -334,6 +382,7 @@ export function MapRoot({
     if (zoom !== undefined && Math.abs(zoom - now.zoom) > SAME_ZOOM)
       next.zoom = zoom
     if (next.center === undefined && next.zoom === undefined) return
+    stopOpening()
     // A changed centre keeps the controlled zoom with it, and the other way.
     instance.setView(
       {
@@ -345,7 +394,7 @@ export function MapRoot({
       },
       { animate: true }
     )
-  }, [instance, centerLat, centerLng, zoom])
+  }, [instance, centerLat, centerLng, zoom, stopOpening])
 
   const [uncontrolledExpanded, setUncontrolledExpanded] =
     useState(defaultExpanded)
@@ -611,15 +660,6 @@ const NO_FIELD = { fieldId: '', labelId: '', helperTextId: '', errorTextId: '' }
 // Closer than this, a centre or zoom is where the map already is.
 const SAME_PLACE = 1e-7
 const SAME_ZOOM = 1e-3
-
-/** Whether two views are the same place and zoom, as near as the engine keeps them. */
-function sameView(a: MapView, b: MapView) {
-  return (
-    Math.abs(a.center.lat - b.center.lat) <= SAME_PLACE &&
-    Math.abs(a.center.lng - b.center.lng) <= SAME_PLACE &&
-    Math.abs(a.zoom - b.zoom) <= SAME_ZOOM
-  )
-}
 
 // An area's corners, kept per geometry, as a map of postcodes would
 // otherwise walk every point each time one changes.
