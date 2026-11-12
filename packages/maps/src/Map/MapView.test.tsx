@@ -1,11 +1,12 @@
-import { createRef } from 'react'
+import { StrictMode, createRef } from 'react'
 
-import { act, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
+import { MapProvider } from './MapProvider'
 import type { MapActions } from './MapRoot'
 import type { MapAreaGeometry } from './engine'
 import { Map } from './index'
@@ -387,6 +388,49 @@ describe('Map defaultFit', () => {
 
     expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
+  })
+
+  it('says nothing when it is set after first render with no centre or zoom', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const fake = fakeEngine()
+    const view = await renderMap(fake.engine, pins)
+    await view.rerenderMap(pins, { defaultFit: true })
+
+    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
+  it('warns once in strict mode', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const fake = fakeEngine()
+    render(
+      <StrictMode>
+        <MapProvider engine={fake.engine}>
+          <Map center={venue} defaultFit>
+            {pins}
+          </Map>
+        </MapProvider>
+      </StrictMode>
+    )
+    await act(async () => {})
+
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
+  })
+
+  it('says nothing in production', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const fake = fakeEngine()
+      await renderMap(fake.engine, pins, { defaultFit: true, center: venue })
+
+      expect(warn).not.toHaveBeenCalled()
+    } finally {
+      warn.mockRestore()
+      vi.unstubAllEnvs()
+    }
   })
 
   it('tells onViewChange where it opened', async () => {

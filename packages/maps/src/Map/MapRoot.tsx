@@ -300,17 +300,21 @@ export function MapRoot({
     jumping.current = false
     if (!from) setJumped(true)
   }, [instance, content])
+  // The warning is made once, as StrictMode runs the effect twice.
+  const controlled = center !== undefined || zoom !== undefined
+  const warned = useRef(false)
   useEffect(() => {
+    if (!defaultFit || fitsFirst || !controlled || warned.current) return
     if (
-      defaultFit &&
-      !fitsFirst &&
       typeof process !== 'undefined' &&
       process?.env?.NODE_ENV !== 'production'
-    )
+    ) {
+      warned.current = true
       console.warn(
-        '[Map] defaultFit does nothing with center or zoom set. Use defaultCenter and defaultZoom with it, or call fitTo.'
+        '[Roadie] Map ignores defaultFit with center or zoom set. Use defaultCenter and defaultZoom with it, or call fitTo.'
       )
-  }, [defaultFit, fitsFirst])
+    }
+  }, [defaultFit, fitsFirst, controlled])
 
   // A controlled centre or zoom moves the map when it changes, unless it's
   // where the map already is, as when it comes back from onViewChange.
