@@ -62,11 +62,14 @@ const RAY_STEP = 0.25
 const RAY_SAMPLES = 8
 
 /** Whether a level ray out from `from`, on the side `normal` faces, meets the front again. */
-function looksAcross(polys: Point[][], from: Point, [nx]: Point) {
+function looksAcross(
+  polys: Point[][],
+  [minX, maxX]: [number, number],
+  from: Point,
+  [nx]: Point
+) {
   if (Math.abs(nx) < 1e-6) return false
   const step = Math.sign(nx) * RAY_STEP
-  const xs = polys.flat().map((p) => p[0])
-  const [minX, maxX] = [Math.min(...xs), Math.max(...xs)]
   for (let x = from[0] + step; x >= minX && x <= maxX; x += step)
     if (inside(polys, [x, from[1]])) return true
   return false
@@ -156,6 +159,11 @@ export function extrude(
   const outline = front.copy()
   outline.simplify()
   const polys = polygons(outline)
+  const xs = polys.flat().map((p) => p[0])
+  const span: [number, number] = [
+    xs.reduce((a, b) => Math.min(a, b), Infinity),
+    xs.reduce((a, b) => Math.max(a, b), -Infinity)
+  ]
   const faces: (Face & { depth: number })[] = []
 
   for (const contour of toCubics(outline)) {
@@ -221,7 +229,7 @@ export function extrude(
         weight += w
         for (let k = 0; k < RAY_SAMPLES; k++) {
           const t = (k + 0.5) / RAY_SAMPLES
-          if (looksAcross(polys, pointAt(cubic, t), outward(cubic, t)))
+          if (looksAcross(polys, span, pointAt(cubic, t), outward(cubic, t)))
             across += w / RAY_SAMPLES
         }
       }
