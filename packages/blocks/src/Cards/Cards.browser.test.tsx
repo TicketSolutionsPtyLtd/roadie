@@ -394,6 +394,17 @@ describe('Cards steps', () => {
     expect(before).toBeCloseTo(after, 0)
   })
 
+  it('grows steps to fill their row, up to 24rem each', () => {
+    const { unmount } = render(<Block look='steps' width={1440} count={2} />)
+    expect(row().widths).toEqual([384, 384])
+    unmount()
+
+    render(<Block look='steps' width={1280} count={4} />)
+    const { before, after } = row()
+    expect(before).toBeCloseTo(0, 0)
+    expect(after).toBeCloseTo(0, 0)
+  })
+
   it.each([375, 1280])('spaces steps 1.5rem apart at %ipx', (width) => {
     render(<Block look='steps' width={width} count={2} />)
 
