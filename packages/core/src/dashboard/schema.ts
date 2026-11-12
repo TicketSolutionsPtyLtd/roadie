@@ -46,7 +46,10 @@ const column = z.strictObject({
   baseline: z.number().optional(),
   target: z.number().optional(),
   max: z.number().positive().optional(),
-  /** `false` leaves a number column out of a totals row's sum. */
+  /**
+   * `false` leaves a number column out of a totals row's sum, and `true`
+   * adds up one that doesn't by default, such as shares of one whole.
+   */
   total: z.boolean().optional(),
   priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   pin: z.boolean().optional(),

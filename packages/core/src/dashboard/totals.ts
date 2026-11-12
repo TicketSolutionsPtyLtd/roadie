@@ -26,11 +26,15 @@ const SUMMABLE_FORMATS = new Set([
 ])
 const CURRENCY_FORMATS = new Set(['currency', 'compactCurrency'])
 
-/** Whether a totals row sums this column: a count or an amount that hasn't set `total: false`. */
+/**
+ * Whether a totals row sums this column: a count or an amount that hasn't
+ * set `total: false`, or any number column that sets `total: true`, such as
+ * shares of one whole.
+ */
 export const isSummable = (column: TableColumn) =>
   column.kind === 'number' &&
-  column.total !== false &&
-  SUMMABLE_FORMATS.has(column.format)
+  (column.total === true ||
+    (column.total !== false && SUMMABLE_FORMATS.has(column.format)))
 
 const count = new Intl.NumberFormat('en-AU')
 

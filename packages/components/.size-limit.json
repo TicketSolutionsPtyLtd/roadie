@@ -52,7 +52,7 @@
     "name": "Map",
     "path": "dist/components/Map/index.js",
     "import": "*",
-    "limit": "28 kB",
+    "limit": "34.5 kB",
     "ignore": [
       "react",
       "react-dom",

@@ -30,6 +30,21 @@ describe('isSummable', () => {
       'gross'
     ])
   })
+
+  it('sums a share that sets total: true, as shares of one whole add up', () => {
+    const share: TableColumn = {
+      key: 'share',
+      header: 'Share',
+      kind: 'number',
+      format: 'percent',
+      total: true
+    }
+    expect(isSummable(share)).toBe(true)
+    expect(
+      resolveTableTotals([share], [{ share: 0.25 }, { share: 0.5 }], 'sum')
+        .values.share
+    ).toBe(0.75)
+  })
 })
 
 describe('totalsLabel', () => {
