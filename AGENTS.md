@@ -65,6 +65,9 @@ pnpm --filter docs dev
   from `exports`, props, `@deprecated` tags, and docs pages
   (`packages/core/scripts/manifest/`). A component with no docs fails it;
   link it in `elsewhere.ts`.
+- A spot illustration is an SVG source plus a generated component. Read
+  `packages/illustrations/README.md` before adding or redrawing one; the
+  `spot-illustration` skill draws one in code.
 
 ## Components
 

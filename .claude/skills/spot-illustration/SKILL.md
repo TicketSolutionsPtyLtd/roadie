@@ -35,13 +35,10 @@ Edit `drawings/<name>.ts`:
   `tangent`. Draw flat, in any units; `fit` sizes it.
 - List parts in paint order, attached parts before the body. Mark windows,
   labels, and openings `inner`.
-- Set `vector` from the style table: about (3, 3.5) for a compact object,
-  (3.9, 3.7) for a letter, deeper and flatter for a flat symbol.
-- For a letter or numeral, copy a drawing in `drawings/` (Letter K for
-  straight strokes, Letter C for round ones): an 11.4 stem and 9.7 bars on a
-  42.3 tall front, `ease(shape, 0.9, 0.3)`, and `side: letterSide`.
-- Keep it simple: the silhouette, the major parts, at most one shape inside
-  each part, no marks outside the silhouette.
+- Set `vector` from Depth in the README's style section.
+- For a letter or numeral, follow Letters and numerals there.
+- Simplify as the style section says: the silhouette, the major parts, and at
+  most one shape inside each part.
 
 ## 3. Draw, preview, repeat
 

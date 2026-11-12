@@ -100,6 +100,8 @@ failing, about any source that strays from the style below.
 
 No design tool needed. A drawing in `drawings/` describes the front of the
 object; the kit extrudes it, fits it to the box, and hands it to the converter.
+In the Roadie repo, Claude Code's `spot-illustration` skill walks an agent
+through drawing one, from a reference to the commit.
 
 ```bash
 pnpm --filter @oztix/roadie-illustrations spot:new letter-b
@@ -197,6 +199,10 @@ drawn mostly in Stroke and squarish shapes that sit smaller.
   to 50° (Caravan, Wine Glass, Megaphone, Football, Map Pin, the letters at
   about (3.9, 3.7)). Flat symbols go deeper, 6 to 9, and nearer an axis: Heart
   is about (8.5, 3), Star Rotate (8.25, 0.25), Hand (1, 6.25).
+- **Letters and numerals.** An 11.4 stem and bars 9.7 deep on a front 42.3
+  tall, eased with `ease(shape, 0.9, 0.3)`, swept along about (3.9, 3.7), with
+  `side: letterSide`. Start from Letter K for straight strokes or Letter C for
+  round ones.
 - **Join lines.** A line runs from each hard corner and each crease where two
   parts meet, back along the vector, wherever it shows. A rounded corner gets
   none: it reads as one surface.
