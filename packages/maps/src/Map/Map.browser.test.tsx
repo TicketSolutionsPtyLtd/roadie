@@ -1382,47 +1382,106 @@ describe('Map defaultFit in the browser', () => {
     }
   )
 
+  // Where a pin is at every frame and after every change to the page, not
+  // only at the end. So a pin drawn where the starting view puts it, or an
+  // ease into place, is seen.
+  function watchPin() {
+    const lefts: number[] = []
+    let sampling = true
+    const read = () => {
+      const pin = screen.queryByRole('img', { name: 'Tin Whistle Wharf' })
+      if (pin) lefts.push(pin.getBoundingClientRect().left)
+    }
+    const eachFrame = () => {
+      read()
+      if (sampling) requestAnimationFrame(eachFrame)
+    }
+    requestAnimationFrame(eachFrame)
+    const changes = new MutationObserver(read)
+    changes.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true
+    })
+    return {
+      lefts,
+      // A dozen more frames, which an ease would still be moving in.
+      async settle() {
+        const seen = lefts.length
+        await waitFor(() => expect(lefts.length).toBeGreaterThan(seen + 12), {
+          timeout: 5_000
+        })
+      },
+      stop() {
+        sampling = false
+        changes.disconnect()
+      }
+    }
+  }
+
   it(
     'is on its pins from the first frame they show, and never moves after',
     { timeout: 15_000 },
     async () => {
-      // Where the pin is at every frame and after every change to the page,
-      // from before the map is ready, not only at the end. So a pin drawn
-      // where the starting view puts it, or an ease into place, is seen.
-      const lefts: number[] = []
-      let sampling = true
-      const read = () => {
-        const pin = screen.queryByRole('img', { name: 'Tin Whistle Wharf' })
-        if (pin) lefts.push(pin.getBoundingClientRect().left)
-      }
-      const eachFrame = () => {
-        read()
-        if (sampling) requestAnimationFrame(eachFrame)
-      }
-      requestAnimationFrame(eachFrame)
-      const changes = new MutationObserver(read)
-      changes.observe(document.body, {
-        subtree: true,
-        childList: true,
-        attributes: true
-      })
+      // From before the map is ready.
+      const pin = watchPin()
       try {
         const frame = await renderReadyMap(pinned(true), 714)
         await waitFor(() =>
           expect(pinsInside(frame)).toEqual([true, true, true, true])
         )
-        // A dozen more frames, which an ease would still be moving in.
-        const seen = lefts.length
-        await waitFor(() => expect(lefts.length).toBeGreaterThan(seen + 12), {
-          timeout: 5_000
-        })
+        await pin.settle()
       } finally {
-        sampling = false
-        changes.disconnect()
+        pin.stop()
       }
 
-      expect(lefts.length).toBeGreaterThan(2)
-      expect(Math.max(...lefts) - Math.min(...lefts)).toBeLessThan(1)
+      expect(pin.lefts.length).toBeGreaterThan(2)
+      expect(Math.max(...pin.lefts) - Math.min(...pin.lefts)).toBeLessThan(1)
+    }
+  )
+
+  it(
+    'is on its pins from the first frame of an engine swapped in, too',
+    { timeout: 15_000 },
+    async () => {
+      const other = maplibreEngine({
+        tiles: { light: blankStyle, attribution: [{ label: 'Fixture' }] }
+      })
+      let mounted = false
+      const swapped: MapEngine = {
+        attribution: other.attribution,
+        mount: async (...args) => {
+          const instance = await other.mount(...args)
+          mounted = true
+          return instance
+        }
+      }
+      const page = (drawn: MapEngine) => (
+        <div style={{ width: 714 }}>
+          <MapEngineContext value={drawn}>{pinned(true)}</MapEngineContext>
+        </div>
+      )
+      const view = render(page(engine))
+      const frame = screen.getByRole('region', { name: 'Map' })
+      await waitFor(
+        () => expect(pinsInside(frame)).toEqual([true, true, true, true]),
+        { timeout: 10_000 }
+      )
+
+      const pin = watchPin()
+      try {
+        view.rerender(page(swapped))
+        await waitFor(() => expect(mounted).toBe(true), { timeout: 10_000 })
+        await waitFor(() =>
+          expect(pinsInside(frame)).toEqual([true, true, true, true])
+        )
+        await pin.settle()
+      } finally {
+        pin.stop()
+      }
+
+      expect(pin.lefts.length).toBeGreaterThan(2)
+      expect(Math.max(...pin.lefts) - Math.min(...pin.lefts)).toBeLessThan(1)
     }
   )
 })

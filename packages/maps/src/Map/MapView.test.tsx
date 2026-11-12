@@ -320,6 +320,11 @@ describe('Map defaultFit', () => {
       bothPins,
       expect.objectContaining({ animate: true })
     )
+    // A move the reader sees folds the credits, as any move does.
+    expect(screen.getByRole('button', { name: 'Map credits' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
   })
 
   it('fits once, so a pin added later moves nothing', async () => {
@@ -455,6 +460,41 @@ describe('Map defaultFit', () => {
     )
   })
 
+  it('opens on its pins though fitTo and flyTo were called while it loaded', async () => {
+    const fake = fakeEngine()
+    const actionsRef = createRef<MapActions>()
+    render(
+      <MapProvider engine={fake.engine}>
+        <Map defaultFit actionsRef={actionsRef}>
+          {pins}
+        </Map>
+      </MapProvider>
+    )
+    act(() => {
+      actionsRef.current!.fitTo([north])
+      actionsRef.current!.flyTo({ zoom: 9 })
+    })
+    await act(async () => {})
+
+    expect(fake.instance.setView).not.toHaveBeenCalled()
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+      bothPins,
+      expect.objectContaining({ animate: false })
+    )
+  })
+
+  it('still eases to the pins after fitTo found nothing to fit', async () => {
+    const fake = fakeEngine()
+    const actionsRef = createRef<MapActions>()
+    const props = { defaultFit: true, actionsRef }
+    const view = await renderMap(fake.engine, null, props)
+    act(() => actionsRef.current!.fitTo())
+
+    await view.rerenderMap(pins, props)
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+  })
+
   it.each([
     ['north', north],
     ['east', east]
@@ -522,6 +562,23 @@ describe('Map defaultFit', () => {
       bothPins,
       expect.objectContaining({ animate: false })
     )
+  })
+
+  it('leaves a swapped engine where it starts without defaultFit', async () => {
+    const first = fakeEngine()
+    const second = fakeEngine()
+    const tree = (engine: typeof first.engine) => (
+      <MapProvider engine={engine}>
+        <Map defaultCenter={venue}>{pins}</Map>
+      </MapProvider>
+    )
+    const view = render(tree(first.engine))
+    await act(async () => {})
+    view.rerender(tree(second.engine))
+    await act(async () => {})
+
+    expect(second.engine.mount).toHaveBeenCalledTimes(1)
+    expect(second.instance.fitBounds).not.toHaveBeenCalled()
   })
 
   it('stays put when fitTo has already moved the map, and when a controlled centre has', async () => {
