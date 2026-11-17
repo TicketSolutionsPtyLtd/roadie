@@ -213,9 +213,19 @@ export const scenarios: Scenario[] = [
   { name: 'delta', ui: () => <Deltas />, shortLabels: '[data-slot="delta"]' }
 ]
 
+// Firefox 159 crashes when page code reads `ariaLabelledByElements` after
+// Playwright has, so axe takes `aria-labelledby` from the attribute there
+// (docs/solutions/test-failures/firefox-crashes-on-aria-element-reflection.md).
+const labelledByFromAttribute = { type: 'idrefs' as const, prop: undefined }
+
 export function setUpCheckPage() {
   let removeStylesheets = () => {}
   beforeAll(async () => {
+    if (server.browser === 'firefox') {
+      axe.configure({
+        standards: { ariaAttrs: { 'aria-labelledby': labelledByFromAttribute } }
+      })
+    }
     const removeRoadie = useStylesheet(roadieCss)
     const removeStill = useStylesheet(STILL)
     removeStylesheets = () => {
@@ -225,6 +235,7 @@ export function setUpCheckPage() {
     await loadBrandFont()
   })
   afterAll(async () => {
+    axe.reset()
     removeStylesheets()
     document.documentElement.classList.remove('dark')
     await page.viewport(1920, 1080)
