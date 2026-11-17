@@ -563,6 +563,71 @@ async function suggest(
 <Map.Search suggest={suggest} placeholder='Search for an address' />
 ```
 
+#### Search with Google Places
+
+Google's terms say Places results go on a Google map, so draw the map with `googleEngine`, as [Engines and tiles](#engines-and-tiles) shows. It needs a Google Maps Platform key with the Places API (New) turned on and billing set up, restricted to your app's domains.
+
+Autocomplete returns place IDs, and Place Details returns each one's location. Each time typing pauses, this sends one Autocomplete request and a Place Details request for each of the first five suggestions, and Google bills every Place Details request, so it costs up to six requests per pause. Lower the count to cut the cost. Session tokens group Autocomplete requests with one Place Details request, for the place someone chooses, so they don't cover a lookup for every suggestion. Check [Google's Places API docs](https://developers.google.com/maps/documentation/places/web-service) for field masks and pricing.
+
+```tsx
+import { MapProvider, type Place } from '@oztix/roadie-components/map'
+import { googleEngine } from '@oztix/roadie-components/map-google'
+
+const PLACES = 'https://places.googleapis.com/v1'
+const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? ''
+const google = googleEngine({ apiKey, mapId: 'your-map-id' })
+const brisbane = { lat: -27.4698, lng: 153.0251 }
+
+type Suggestions = { suggestions?: { placePrediction: { placeId: string } }[] }
+type Details = {
+  displayName: { text: string }
+  formattedAddress: string
+  location: { latitude: number; longitude: number }
+}
+
+async function suggest(
+  text: string,
+  { signal }: { signal: AbortSignal }
+): Promise<Place[]> {
+  const { suggestions = [] }: Suggestions = await fetch(
+    `${PLACES}/places:autocomplete`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey },
+      body: JSON.stringify({ input: text, includedRegionCodes: ['au'] }),
+      signal
+    }
+  ).then((response) => response.json())
+
+  return Promise.all(
+    suggestions.slice(0, 5).map(async ({ placePrediction: { placeId } }) => {
+      const place: Details = await fetch(`${PLACES}/places/${placeId}`, {
+        headers: {
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': 'displayName,formattedAddress,location'
+        },
+        signal
+      }).then((response) => response.json())
+      return {
+        label: place.displayName.text,
+        address: place.formattedAddress,
+        position: {
+          lat: place.location.latitude,
+          lng: place.location.longitude
+        },
+        source: { provider: 'google', id: placeId }
+      }
+    })
+  )
+}
+
+<MapProvider engine={google}>
+  <Map defaultCenter={brisbane} aria-label='Find a venue'>
+    <Map.Search suggest={suggest} />
+  </Map>
+</MapProvider>
+```
+
 ### In a form
 
 A map beside a form takes its place from the form and gives one back. Pass a place in through `Map.Picker`'s `value`: when it changes from outside the map, such as from a venue chosen in a `Combobox`, the map flies to it at street level. Take one out through `onValueChange`, which runs as the pin is dropped, dragged or moved with the arrow keys, and doesn't move the map.
@@ -725,6 +790,24 @@ Vite's dev server bundles Roadie ahead of time and loses the file, so a Vite app
 </MapProvider>
 ```
 
+An app that shows Google Places or Geocoding results on a map draws it with Google, from `@oztix/roadie-components/map-google`. Pins, previews, the toolbar and the picker work the same on it. Google draws its own logo and terms, so the map shows no credits of its own. Each map load counts against the app's Google Maps Platform billing, so use a key restricted to the app's domains.
+
+```tsx
+import { MapProvider } from '@oztix/roadie-components/map'
+import { googleEngine } from '@oztix/roadie-components/map-google'
+
+const google = googleEngine({
+  apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? '',
+  mapId: 'your-map-id'
+})
+
+<MapProvider engine={google}>
+  <Map defaultCenter={venue.position} aria-label='Where Kazoo Hollow Room is'>
+    <Map.Marker position={venue.position} label='Kazoo Hollow Room' />
+  </Map>
+</MapProvider>
+```
+
 #### Supported engines and tiles
 
 | Engine or tiles | How | Status |
@@ -732,6 +815,7 @@ Vite's dev server bundles Roadie ahead of time and loses the file, so a Vite app
 | MapLibre with OpenFreeMap tiles | Built in, in Roadie's colours. No key | Ready |
 | MapLibre with a style of your own | `maplibreEngine({ tiles })` with any MapLibre style address, such as MapTiler or Stadia Maps with their key, or tiles you host | Ready |
 | MapLibre with Mapbox tiles | `maplibreEngine({ tiles })` with Mapbox's tile addresses and token, as Mapbox documents. `mapbox://` addresses don't work | Ready, not tried |
+| Google Maps | `googleEngine` from `@oztix/roadie-components/map-google`, with a key. In Roadie's colours without a map ID | Built, not run yet |
 | Mapbox GL JS, Esri ArcGIS, Apple MapKit JS, HERE, Azure Maps | A new engine subpath that implements `MapEngine` and passes Roadie's engine tests | Not built |
 
 A style of your own keeps its own colours, so it doesn't follow dark mode or intent.

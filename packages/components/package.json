@@ -192,6 +192,10 @@
       "types": "./dist/components/Map/index.d.ts",
       "import": "./dist/components/Map/index.js"
     },
+    "./map-google": {
+      "types": "./dist/components/MapGoogle/index.d.ts",
+      "import": "./dist/components/MapGoogle/index.js"
+    },
     "./mark": {
       "types": "./dist/components/Mark/index.d.ts",
       "import": "./dist/components/Mark/index.js"

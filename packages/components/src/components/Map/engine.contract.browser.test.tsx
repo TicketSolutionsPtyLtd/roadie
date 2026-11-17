@@ -1,8 +1,11 @@
 // The contract every map engine keeps. Each engine runs this same file, so a
-// new engine proves itself here before Map uses it. Tiles are local, so the
-// suite never reaches the network.
+// new engine proves itself here before Map uses it. MapLibre's tiles are
+// local, so it never reaches the network. Google needs its own servers and a
+// key, and each load is billed, so it runs only when VITE_GOOGLE_MAPS_KEY is
+// set, never in CI.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { googleEngine } from '../MapGoogle/googleEngine'
 import type { LatLng, MapEngine, MapEngineInstance } from './engine'
 import blankStyle from './fixtures/blank-style.json?url'
 import { testPalette as palette } from './mapTestUtils'
@@ -17,6 +20,10 @@ const ENGINES: [name: string, create: () => MapEngine][] = [
       })
   ]
 ]
+
+const googleKey = import.meta.env.VITE_GOOGLE_MAPS_KEY as string | undefined
+if (googleKey)
+  ENGINES.push(['google', () => googleEngine({ apiKey: googleKey })])
 
 const venue = { lat: -27.4575, lng: 153.0355 }
 
@@ -35,6 +42,19 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
     instance = undefined
     container.remove()
   })
+
+  // What the engine draws in the frame, whatever it draws with: MapLibre a
+  // canvas, Google raster tiles in its own elements.
+  const drawn = () => container.childElementCount
+  // The engine's element under a point of the frame, where pointer events go.
+  const targetAt = (x: number, y: number) => {
+    const box = container.getBoundingClientRect()
+    const at = { clientX: box.left + x, clientY: box.top + y }
+    return {
+      target: document.elementFromPoint(at.clientX, at.clientY)!,
+      at
+    }
+  }
 
   const mount = async () => {
     instance = await create().mount(container, {
@@ -57,15 +77,15 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
   it('moves to a new view and says so', { timeout: 15_000 }, async () => {
     const map = await mount()
     let moves = 0
-    const stop = map.on('move', () => moves++)
+    map.on('move', () => moves++)
     map.setView({ center: { lat: -33.8688, lng: 151.2093 }, zoom: 10 })
-    stop()
 
     const { center, zoom } = map.getView()
     expect(center.lat).toBeCloseTo(-33.8688, 5)
     expect(center.lng).toBeCloseTo(151.2093, 5)
     expect(zoom).toBeCloseTo(10, 5)
-    expect(moves).toBeGreaterThan(0)
+    // An engine may say so a frame later, as Google does.
+    await vi.waitFor(() => expect(moves).toBeGreaterThan(0))
   })
 
   it(
@@ -92,7 +112,7 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
   )
 
   it(
-    'names its focusable canvas with the label',
+    'names its focusable map with the label',
     { timeout: 15_000 },
     async () => {
       await mount()
@@ -123,7 +143,7 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
       loading.abort(new Error('Unmounted'))
 
       await expect(mounting).rejects.toThrow('Unmounted')
-      expect(container.querySelector('canvas')).toBeNull()
+      expect(drawn()).toBe(0)
     }
   )
 
@@ -132,7 +152,7 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
     { timeout: 15_000 },
     async () => {
       const loading = new AbortController()
-      // Abort as soon as the engine adds its canvas, before the style loads.
+      // Abort as soon as the engine adds to the frame, before the map loads.
       const started = new MutationObserver(() => {
         started.disconnect()
         loading.abort(new Error('Unmounted'))
@@ -150,7 +170,7 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
       )
 
       await expect(mounting).rejects.toThrow('Unmounted')
-      expect(container.querySelector('canvas')).toBeNull()
+      expect(drawn()).toBe(0)
     }
   )
 
@@ -272,15 +292,13 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
       // Optional: Map does without it for an engine that leaves it out.
       if (!map.setCooperativeGestures) context.skip()
       map.setCooperativeGestures!(false)
-      const target = container.querySelector('canvas')!
-      const box = target.getBoundingClientRect()
+      const { target, at } = targetAt(200, 150)
       target.dispatchEvent(
         new WheelEvent('wheel', {
           deltaY: -100,
           bubbles: true,
           cancelable: true,
-          clientX: box.left + 200,
-          clientY: box.top + 150
+          ...at
         })
       )
 
@@ -293,16 +311,13 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
     const clicked = new Promise<LatLng>((resolve) => {
       map.on('click', resolve)
     })
-    const target = container.querySelector('canvas')!
-    const box = target.getBoundingClientRect()
-    const at = {
-      clientX: box.left + 300,
-      clientY: box.top + 100,
-      bubbles: true
-    }
-    target.dispatchEvent(new MouseEvent('mousedown', at))
-    target.dispatchEvent(new MouseEvent('mouseup', at))
-    target.dispatchEvent(new MouseEvent('click', at))
+    const { target, at } = targetAt(300, 100)
+    const press = { ...at, bubbles: true, isPrimary: true, button: 0 }
+    target.dispatchEvent(new PointerEvent('pointerdown', press))
+    target.dispatchEvent(new MouseEvent('mousedown', press))
+    target.dispatchEvent(new PointerEvent('pointerup', press))
+    target.dispatchEvent(new MouseEvent('mouseup', press))
+    target.dispatchEvent(new MouseEvent('click', press))
 
     const place = await clicked
     const expected = map.unproject({ x: 300, y: 100 })
@@ -312,10 +327,10 @@ describe.each(ENGINES)('%s engine contract', (_name, create) => {
 
   it('leaves nothing behind when destroyed', { timeout: 15_000 }, async () => {
     const map = await mount()
-    expect(container.querySelector('canvas')).not.toBeNull()
+    expect(drawn()).toBeGreaterThan(0)
     map.destroy()
     instance = undefined
 
-    expect(container.querySelector('canvas')).toBeNull()
+    expect(drawn()).toBe(0)
   })
 })

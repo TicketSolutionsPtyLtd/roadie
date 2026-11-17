@@ -62,6 +62,12 @@
     ]
   },
   {
+    "name": "MapGoogle",
+    "path": "dist/components/MapGoogle/index.js",
+    "import": "*",
+    "limit": "2 kB"
+  },
+  {
     "name": "SpotIllustrations",
     "path": "dist/components/SpotIllustration/index.js",
     "limit": "20 kB"
