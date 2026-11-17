@@ -20,6 +20,7 @@ const PACKAGES = [
   'editor',
   'blocks',
   'illustrations',
+  'maps',
   'widgets',
   'lint-plugin',
   'docs'

@@ -36,6 +36,7 @@ const nextConfig = {
     '@oztix/roadie-editor',
     '@oztix/roadie-blocks',
     '@oztix/roadie-illustrations',
+    '@oztix/roadie-maps',
     '@oztix/roadie-widgets'
   ]
 }

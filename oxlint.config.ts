@@ -265,7 +265,7 @@ export default defineConfig({
       env: { node: true, vitest: true }
     },
     {
-      files: ['packages/components/**/*.{ts,tsx}'],
+      files: ['packages/{components,maps}/**/*.{ts,tsx}'],
       plugins: ['react'],
       rules: {
         'react/rules-of-hooks': 'error',

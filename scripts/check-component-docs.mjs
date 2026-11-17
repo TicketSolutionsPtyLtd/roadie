@@ -20,6 +20,8 @@ const root = join(import.meta.dirname, '..')
 const ALLOW_LIST = {
   CheckboxGroup: 'Documented on the Checkbox page.',
   DashboardView: 'Documented on the Dashboard design guide, charts/dashboards.',
+  MapAreas: 'Documented on the Map page under Postcode areas.',
+  MapClusters: 'Documented on the Map page under Clusters.',
   MapGoogle:
     'Holds googleEngine, documented on the Map page under Engines and tiles.',
   Records:
@@ -39,7 +41,8 @@ const PACKAGES = [
   ['packages/components', /^\.\/dist\/components\/(\w+)\//],
   // Charts keeps components at dist/<Folder>/; lowercase folders such as
   // examples and tables are helpers, not components.
-  ['packages/charts', /^\.\/dist\/([A-Z]\w+)\//]
+  ['packages/charts', /^\.\/dist\/([A-Z]\w+)\//],
+  ['packages/maps', /^\.\/dist\/([A-Z]\w+)\//]
 ]
 
 function exportedComponents() {

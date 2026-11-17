@@ -5,7 +5,7 @@ export const metadata = {
   category: 'Media & brand',
 }
 
-import { Map } from '@oztix/roadie-components/map'
+import { Map } from '@oztix/roadie-maps/map'
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline, Guidelines } from '@/components/Guideline'
@@ -15,7 +15,15 @@ A map of a place, such as where a venue is.
 ## Import
 
 ```tsx
-import { Map, MapProvider } from '@oztix/roadie-components/map'
+import { Map, MapProvider } from '@oztix/roadie-maps/map'
+```
+
+Maps ship from `@oztix/roadie-maps`, which builds on `@oztix/roadie-components`. `MapClusters` and `MapAreas` have subpaths of their own, so a map without them never loads them. Import the package's stylesheet after Roadie's.
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-maps/css';
 ```
 
 ## Examples
@@ -405,7 +413,7 @@ render(<VenuePreview />)
 
 ### Clusters
 
-`Map.Clusters` shows places with values, such as totals by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, and below it its share of every value in `data`, which stays the same as the map pans; `show='value'` or `show='share'` shows only one. As a band's value nears the largest band's at this zoom, it grows a little, its rings spread further, and its heat colour strengthens, to violet in light mode and pale cream in dark. `legend` keys the colours in the map's bottom corner, from nothing to the largest band's value, which changes as the map zooms.
+`MapClusters`, from `@oztix/roadie-maps/map-clusters`, shows places with values, such as totals by postcode, as bands. Places near each other on screen add up into one band, and zooming in splits a band into the bands inside it, down to single places. Each band shows its value, and below it its share of every value in `data`, which stays the same as the map pans; `show='value'` or `show='share'` shows only one. As a band's value nears the largest band's at this zoom, it grows a little, its rings spread further, and its heat colour strengthens, to violet in light mode and pale cream in dark. `legend` keys the colours in the map's bottom corner, from nothing to the largest band's value, which changes as the map zooms.
 
 Clicking a band zooms in until it splits. A single place opens a preview with its `label` instead. `locked` keeps the groups as they are: zooming in spreads the bands apart without splitting them, and clicking a band opens its preview, with the places in it and how far they spread. Put the controls for these display settings beside what lists the groups, such as a Display menu above a table, rather than on the map.
 
@@ -513,7 +521,7 @@ function PlaceTotals() {
         className='aspect-4/3'
       >
         <Map.Toolbar fit />
-        <Map.Clusters
+        <MapClusters
           data={places}
           label='Total'
           locked={locked}
@@ -585,13 +593,13 @@ render(<PlaceTotals />)
 
 ### Postcode areas
 
-`Map.Areas` fills areas, such as postcodes, in heat colours by their values: an alternative to `Map.Clusters` when values belong to areas rather than points. Each area keeps its shape at every zoom, so the map shows where values come from without grouping. Areas with no value aren't drawn, so the map shows through.
+`MapAreas`, from `@oztix/roadie-maps/map-areas`, fills areas, such as postcodes, in heat colours by their values: an alternative to `MapClusters` when values belong to areas rather than points. Each area keeps its shape at every zoom, so the map shows where values come from without grouping. Areas with no value aren't drawn, so the map shows through.
 
 Pass the boundaries as GeoJSON or TopoJSON in `areas`, each with an id such as its postcode, and the values by id in `data`. TopoJSON stores each shared border once, so it's often a third the size. Load the boundaries once, from your own server rather than the bundle, and keep the same object.
 
 Each colour holds a fifth of the areas with values, as totals per area are skewed, so even steps would leave most areas in the first. `legend` keys each colour's range, from where it starts to the largest value in it. Hovering an area names it, with its value and its share of every value in `data`. `onAreasChange` gives you the areas on the map, largest first, as the map settles, and `highlight` lights areas by id, as a row hovered in a table beside the map does here.
 
-When your data is a point for each sale rather than a total for each area, `areaTotals` sorts the points into the areas and adds them up, ready for `data`. A point counts as 1 unless it has a `value`, and a point in no area is left out. Sorting 20,000 points into Australia's postcodes takes about 50ms, and the example here sorts 12,000. Use it for a feed you can't change: totals from your server are better, as they keep each person's place out of the browser and can leave out postcodes with only a few.
+When your data is a point for each sale rather than a total for each area, `areaTotals`, from the same subpath, sorts the points into the areas and adds them up, ready for `data`. A point counts as 1 unless it has a `value`, and a point in no area is left out. Sorting 20,000 points into Australia's postcodes takes about 50ms, and the example here sorts 12,000. Use it for a feed you can't change: totals from your server are better, as they keep each person's place out of the browser and can leave out postcodes with only a few.
 
 Large rural areas draw the eye however small their values are. To compare places rather than totals, colour by a rate, such as each postcode's total per 1,000 residents.
 
@@ -644,7 +652,7 @@ function PostcodeTotals() {
       >
         <Map.Toolbar fit />
         {areas && (
-          <Map.Areas
+          <MapAreas
             areas={areas}
             data={totals}
             label='Total'
@@ -797,7 +805,7 @@ render(<VenueSearch />)
 [AddressFinder](https://addressfinder.com.au/) finds Australian addresses from G-NAF, so its places can go on this map. Its autocomplete returns addresses without coordinates, so this asks its metadata, with `gps`, for each of the first five. That's up to six requests each time typing pauses, so lower the count if your plan charges per lookup. Check [AddressFinder's API docs](https://addressfinder.com.au/docs/) for the exact parameters, and use the key restricted to your domains.
 
 ```tsx
-import type { Place } from '@oztix/roadie-components/map'
+import type { Place } from '@oztix/roadie-maps/map'
 
 const ADDRESSFINDER = 'https://api.addressfinder.io/api/au/address'
 const key = process.env.NEXT_PUBLIC_ADDRESSFINDER_KEY ?? ''
@@ -844,8 +852,8 @@ Google's terms say Places results go on a Google map, so draw the map with `goog
 Autocomplete returns place IDs, and Place Details returns each one's location. Each time typing pauses, this sends one Autocomplete request and a Place Details request for each of the first five suggestions, and Google bills every Place Details request, so it costs up to six requests per pause. Lower the count to cut the cost. Session tokens group Autocomplete requests with one Place Details request, for the place someone chooses, so they don't cover a lookup for every suggestion. Check [Google's Places API docs](https://developers.google.com/maps/documentation/places/web-service) for field masks and pricing.
 
 ```tsx
-import { MapProvider, type Place } from '@oztix/roadie-components/map'
-import { googleEngine } from '@oztix/roadie-components/map-google'
+import { MapProvider, type Place } from '@oztix/roadie-maps/map'
+import { googleEngine } from '@oztix/roadie-maps/map-google'
 
 const PLACES = 'https://places.googleapis.com/v1'
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? ''
@@ -1064,11 +1072,11 @@ Vite's dev server bundles Roadie ahead of time and loses the file, so a Vite app
 </MapProvider>
 ```
 
-An app that shows Google Places or Geocoding results on a map draws it with Google, from `@oztix/roadie-components/map-google`. Pins, previews, the toolbar and the picker work the same on it. Google draws its own logo and terms, so the map shows no credits of its own. Each map load counts against the app's Google Maps Platform billing, so use a key restricted to the app's domains.
+An app that shows Google Places or Geocoding results on a map draws it with Google, from `@oztix/roadie-maps/map-google`. Pins, previews, the toolbar and the picker work the same on it. Google draws its own logo and terms, so the map shows no credits of its own. Each map load counts against the app's Google Maps Platform billing, so use a key restricted to the app's domains.
 
 ```tsx
-import { MapProvider } from '@oztix/roadie-components/map'
-import { googleEngine } from '@oztix/roadie-components/map-google'
+import { MapProvider } from '@oztix/roadie-maps/map'
+import { googleEngine } from '@oztix/roadie-maps/map-google'
 
 const google = googleEngine({
   apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? '',
@@ -1089,7 +1097,7 @@ const google = googleEngine({
 | MapLibre with OpenFreeMap tiles | Built in, in Roadie's colours. No key | Ready |
 | MapLibre with a style of your own | `maplibreEngine({ tiles })` with any MapLibre style address, such as MapTiler or Stadia Maps with their key, or tiles you host | Ready |
 | MapLibre with Mapbox tiles | `maplibreEngine({ tiles })` with Mapbox's tile addresses and token, as Mapbox documents. `mapbox://` addresses don't work | Ready, not tried |
-| Google Maps | `googleEngine` from `@oztix/roadie-components/map-google`, with a key. In Roadie's colours without a map ID | Built, not run yet |
+| Google Maps | `googleEngine` from `@oztix/roadie-maps/map-google`, with a key. In Roadie's colours without a map ID | Built, not run yet |
 | Mapbox GL JS, Esri ArcGIS, Apple MapKit JS, HERE, Azure Maps | A new engine subpath that implements `MapEngine` and passes Roadie's engine tests | Not built |
 
 A style of your own keeps its own colours, so it doesn't follow dark mode or intent.
@@ -1117,10 +1125,10 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 </Guideline>
 
 <Guideline title='Put numbers on a map beside a list'>
-  <Guideline.Do code={`<Map aria-label='Totals by postcode'>\n  <Map.Clusters data={totalsByPostcode} label='Total' />\n</Map>\n<DataTable caption='Totals by postcode' columns={columns} rows={totalsByPostcode} />`}>
-    Show where the numbers are with `Map.Clusters`, and the same numbers in a table or ranked bars beside it, to compare.
+  <Guideline.Do code={`<Map aria-label='Totals by postcode'>\n  <MapClusters data={totalsByPostcode} label='Total' />\n</Map>\n<DataTable caption='Totals by postcode' columns={columns} rows={totalsByPostcode} />`}>
+    Show where the numbers are with `MapClusters`, and the same numbers in a table or ranked bars beside it, to compare.
   </Guideline.Do>
-  <Guideline.Dont code={`<Map.Clusters data={people.map((person) => ({ position: person.home }))} label='People' />`}>
+  <Guideline.Dont code={`<MapClusters data={people.map((person) => ({ position: person.home }))} label='People' />`}>
     Don't send a place for each person when totals will do. Total them by postcode or suburb on the server where you can, so no one's location reaches the browser.
   </Guideline.Dont>
 </Guideline>
@@ -1167,4 +1175,4 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 - Inline, one finger scrolls the page, so the map never traps a scroll. Full screen is the way to pan with one finger and zoom with a plain scroll, and the arrow keys and `+` and `-` work in both.
 - The credits show when the map loads. On a narrow map, they fold behind an info button, Map credits, once the map moves or after five seconds, as OpenStreetMap's attribution guidelines allow. The button opens them again.
 
-<PropsDefinitions component='Map' />
+<PropsDefinitions component={['Map', 'MapClusters', 'MapAreas']} />

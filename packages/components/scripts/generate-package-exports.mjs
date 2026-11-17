@@ -88,6 +88,12 @@ function buildExports(folders) {
     import: './dist/components/SpotIllustration/index.js'
   }
 
+  // For packages built on Roadie: intent classes and the accent scope.
+  exports['./cascade'] = {
+    types: './dist/cascade.d.ts',
+    import: './dist/cascade.js'
+  }
+
   exports['./roadie.manifest.json'] = './dist/roadie.manifest.json'
 
   return exports
