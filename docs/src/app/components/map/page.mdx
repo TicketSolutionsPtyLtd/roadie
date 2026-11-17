@@ -60,10 +60,10 @@ The map fills its container's width in a 16:9 frame. Set another ratio or height
 
 `tone` sets how the basemap is coloured, and both tones follow light and dark mode with the rest of the page.
 
-- `intent`, the default, draws the map in the intent around it, so it sits quietly in the page and pins stand out. Set an intent on the map, or on anything around it, to tint it.
+- `intent`, the default, draws the map in the intent around it, so it sits quietly in the page and pins and areas stand out. Set an intent on the map, or on anything around it, to tint it.
 - `natural` draws green parks, blue water and yellow main roads, as people know maps. Use it where people find their way, such as getting to a venue. It ignores the intent around it.
 
-Pins keep their own intents on top of either.
+Pins and areas keep their own intents on top of either.
 
 ```tsx-live-noinline layout=stack
 function MapColours() {
@@ -100,9 +100,60 @@ function MapColours() {
 render(<MapColours />)
 ```
 
+### Areas
+
+`Map.Area` highlights a GeoJSON polygon or multipolygon, such as a venue's site or a precinct, in a light wash of its `intent`. Its coordinates are `[lng, lat]`, longitude first, as GeoJSON's are.
+
+Children show in a preview where the area is clicked or tapped, and the area strengthens while the pointer is over it. Keyboard users reach it by Tab, where a label shows at its middle, and Enter opens the preview there.
+
+```tsx-live
+<Map
+  defaultCenter={{ lat: -27.4572, lng: 153.0352 }}
+  defaultZoom={15}
+  aria-label='Kazoo Hollow Room and its precinct'
+>
+  <Map.Area
+    label='Fortitude Valley entertainment precinct'
+    intent='accent'
+    area={{
+      type: 'Polygon',
+      coordinates: [
+        [
+          [153.0315, -27.4545],
+          [153.0390, -27.4545],
+          [153.0390, -27.4600],
+          [153.0315, -27.4600],
+          [153.0315, -27.4545]
+        ]
+      ]
+    }}
+  >
+    <Popover.Header>
+      <Popover.Title>Entertainment precinct</Popover.Title>
+      <Popover.Description>
+        Venues here can trade later. Plan your trip home before the last train.
+      </Popover.Description>
+    </Popover.Header>
+  </Map.Area>
+  <Map.Marker
+    position={{ lat: -27.4587, lng: 153.0338 }}
+    label='Kazoo Hollow Room'
+    intent='brand'
+    icon={<TicketIcon weight='bold' />}
+  >
+    <Popover.Header>
+      <Popover.Title>Kazoo Hollow Room</Popover.Title>
+      <Popover.Description>
+        Fortitude Valley
+      </Popover.Description>
+    </Popover.Header>
+  </Map.Marker>
+</Map>
+```
+
 ### Controls
 
-`Map.Toolbar` adds zoom in and zoom out, joined, in the top corner. `fit` adds Show all, which fits the map to its pins, and is turned off while there are none. Show all, Show my location and full screen each sit on their own below. `Toolbar.Button`s you put inside it, such as for layers, sit together at the bottom, in a toolbar of their own.
+`Map.Toolbar` adds zoom in and zoom out, joined, in the top corner. `fit` adds Show all, which fits the map to its pins and areas, and is turned off while there are none. Show all, Show my location and full screen each sit on their own below. `Toolbar.Button`s you put inside it, such as for layers, sit together at the bottom, in a toolbar of their own.
 
 `locate` adds Show my location. Pressed, it asks the browser for the reader's location, which asks their permission the first time, then centres the map on them. A dot marks where they are, with a ring pulsing out from it, and it follows them as they move while the map stays where they pan it. Pressing it again stops following and removes the dot. Browsers share a location only with secure pages, served over HTTPS or from localhost.
 
@@ -117,7 +168,7 @@ render(<MapColours />)
 
 ### Full screen
 
-`expand` adds a Full screen button below the zoom buttons. The map fills the window, and the button, or Escape, puts it back. Pins, previews and your location move with it, and the map redraws to fit.
+`expand` adds a Full screen button below the zoom buttons. The map fills the window, and the button, or Escape, puts it back. Pins, areas, previews and your location move with it, and the map redraws to fit.
 
 Full screen fills the window, not the device: the browser's own bars stay visible. While it fills the window, the page behind doesn't scroll, and one finger pans the map and a plain scroll zooms it.
 
@@ -167,7 +218,7 @@ A dialog opened from a preview shows over the full screen map, but its backdrop 
 
 ### Moving the map
 
-`center` and `zoom` move the map from your app: when they change, the map flies there. People can still pan it, and `onViewChange` says where the map settles, so you can keep it in step with a list or save the view. `actionsRef` takes `flyTo`, to fly to a view, and `fitTo`, to fit the map to some places or, with none, to every pin on it.
+`center` and `zoom` move the map from your app: when they change, the map flies there. People can still pan it, and `onViewChange` says where the map settles, so you can keep it in step with a list or save the view. `actionsRef` takes `flyTo`, to fly to a view, and `fitTo`, to fit the map to some places or, with none, to every pin and area on it.
 
 ```tsx-live-noinline layout=stack
 function VenueTour() {
@@ -424,7 +475,7 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 
 <Guideline title='Offer full screen on maps people explore'>
   <Guideline.Do code={`<Map defaultCenter={valley} aria-label='Venues near Fortitude Valley'>\n  <Map.Toolbar expand />\n  {venues.map((venue) => <Map.Marker key={venue.id} {...venue} />)}\n</Map>`}>
-    Add `expand` where people pan and compare, such as several venues.
+    Add `expand` where people pan and compare, such as several venues or areas.
   </Guideline.Do>
   <Guideline.Dont code={`<Map defaultCenter={venue.position} aria-label='Where Kazoo Hollow Room is'>\n  <Map.Toolbar expand />\n</Map>`}>
     Don't offer it on a map that only shows where one venue is. The address beside it says more.
@@ -450,6 +501,7 @@ A style of your own keeps its own colours, so it doesn't follow dark mode or int
 - The map is a picture to a screen reader, so keep the place's name and address in text.
 - Place names on the basemap meet Roadie's label contrast, Lc 60, against the halo they're drawn in, in every intent, in both tones and in light and dark.
 - While it loads, the region is marked busy. If it can't load, the frame says so.
+- An area with a preview is a button named by `label`, at the area's middle. It shows only while it has keyboard focus, and Enter opens the preview there.
 - Pins are buttons or links named by `label`, in the order you write them, so Tab reaches each place. A pin that does nothing is a named picture.
 - A pin's preview opens on keyboard focus as well as hover, and on tap, since phones can't hover. Escape closes it.
 - A custom `pin` is still named by `label`, so screen readers read the place, not the graphic.
