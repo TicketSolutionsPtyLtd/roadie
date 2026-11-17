@@ -12,6 +12,7 @@ import type { EditorSetting } from '../extensions'
 import { SettingField, type UploadSettingImage } from './EditorSettingFields'
 import { itemElement } from './blockClick'
 import { focusEditor } from './focusEditor'
+import { makeRoomBeside, useRoomBeside } from './roomBeside'
 import { useOnPhone } from './toolbarMode'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
@@ -84,12 +85,6 @@ function SettingsForm({
   )
 }
 
-/**
- * Brings an element a fifth of the screen down, clear of a sticky bar above
- * it and of the sheet below, moving only if it isn't there already. Each
- * scroller from it out takes what it can of the move, as one may be at its
- * end.
- */
 const EDGE = 16
 
 /** Whether an element shows whole between the top of the screen and the sheet. */
@@ -103,6 +98,12 @@ function scrollToTop(scroller: Element, element: Element) {
     element.getBoundingClientRect().top - scroller.getBoundingClientRect().top
 }
 
+/**
+ * Brings an element a fifth of the screen down, clear of a sticky bar above
+ * it and of the sheet below, moving only if it isn't there already. Each
+ * scroller from it out takes what it can of the move, as one may be at its
+ * end.
+ */
 function scrollNearTop(element: Element) {
   const document = element.ownerDocument
   const view = document.defaultView ?? window
@@ -126,46 +127,15 @@ function scrollNearTop(element: Element) {
   }
 }
 
-// From here the page is wide enough to give a block room beside the drawer.
-const ROOM_FROM = 1280
-
-/**
- * Pads the editor's end by as much as the drawer covers it, so a block at
- * page width sits beside the drawer rather than under it. The editor's own
- * box, not ProseMirror's, so the selection never sees it.
- */
-function makeRoomBeside(
-  editor: TiptapEditor,
-  drawer: HTMLElement | null,
-  kept: Element | null
-) {
-  const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
-  const page = root?.ownerDocument.documentElement
-  const view = root?.ownerDocument.defaultView ?? window
-  if (!root || !drawer || !page) return
-  const covered =
-    root.getBoundingClientRect().right -
-    (page.clientWidth - drawer.offsetWidth) +
-    DRAWER_GAP
-  const before = kept?.getBoundingClientRect().top
-  // The drawer is on the right whatever the direction, so the padding is too.
-  // The window's width, as a page scrollbar narrows the document's.
-  root.style.paddingRight =
-    covered > 0 && view.innerWidth >= ROOM_FROM ? `${covered}px` : ''
-  // The narrower page reflows, so what was edited goes back where it was,
-  // under the pointer, rather than jumping.
-  if (kept && before !== undefined) {
-    const moved = kept.getBoundingClientRect().top - before
-    if (moved) (page.ownerDocument.scrollingElement ?? page).scrollBy(0, moved)
-  }
-}
-
 // Clear of the drawer, so a block's ring never touches its edge.
 const DRAWER_GAP = 16
 
+const editorRoot = (editor: TiptapEditor) =>
+  editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
+
 /** Pads the editor's end by the sheet's height, so its last block can rise above it. */
 function makeRoomBelow(editor: TiptapEditor, sheet: HTMLElement | null) {
-  const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
+  const root = editorRoot(editor)
   if (root && sheet) root.style.paddingBottom = `${sheet.offsetHeight}px`
 }
 
@@ -239,17 +209,25 @@ export function EditorBlockSettings({
       focusElement && dom.contains(focusElement) ? focusElement : dom
     )
   }, [editor, from, phone, focusElement])
-  // The block the room around the drawer was last made for.
+  const beside = useRoomBeside() && !phone
+  // The block the room below the sheet was last made for.
   const roomRef = useRef<number | null>(null)
+  const unmakeRoomRef = useRef<(() => void) | null>(null)
+  // Narrowed while open, it covers the page as it would have opened there.
+  // Widened again, the popup's next ref makes the room anew.
+  useEffect(() => {
+    if (beside) return
+    unmakeRoomRef.current?.()
+    unmakeRoomRef.current = null
+  }, [beside])
   useEffect(() => {
     if (!open || !editor) return
     return () => {
       roomRef.current = null
-      const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
-      if (root) {
-        root.style.paddingRight = ''
-        root.style.paddingBottom = ''
-      }
+      unmakeRoomRef.current?.()
+      unmakeRoomRef.current = null
+      const root = editorRoot(editor)
+      if (root) root.style.paddingBottom = ''
     }
   }, [editor, open])
   // A phone's sheet starts at the item tapped, scrolled to rather than
@@ -378,17 +356,17 @@ export function EditorBlockSettings({
           <Drawer.Viewport className='pointer-events-none'>
             <Drawer.Popup
               data-editor-popup=''
-              // Once it's there to measure, before its block scrolls in.
+              // Once it's there to measure, before its block scrolls in. The
+              // room doesn't depend on the block, so it's made once per visit.
               ref={(popup) => {
-                if (popup && roomRef.current !== selection.from) {
-                  roomRef.current = selection.from
-                  makeRoomBeside(
-                    editor,
-                    popup,
+                const root = editorRoot(editor)
+                if (!popup || !root || !beside || unmakeRoomRef.current) return
+                unmakeRoomRef.current = makeRoomBeside(root, popup, {
+                  gap: DRAWER_GAP,
+                  kept:
                     focusElement ??
-                      (editor.view.nodeDOM(selection.from) as Element | null)
-                  )
-                }
+                    (editor.view.nodeDOM(selection.from) as Element | null)
+                })
               }}
               size='sm'
               className='pointer-events-auto'

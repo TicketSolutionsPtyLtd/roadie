@@ -9,8 +9,8 @@ import { BlockHeading, descriptionClass } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  SPOT_ILLUSTRATIONS,
-  type SpotIllustrationName
+  type SpotIllustrationName,
+  spotIllustration
 } from '../_shared/illustrations'
 import {
   type BlockAlign,
@@ -59,9 +59,9 @@ export type RichTextProps = {
    * Without one, the highlight is brand-secondary and the action accent.
    */
   intent?: BlockIntent
-  /** The surface behind the block: a band, full width and rounded once the block is wide, or a panel with `contained`. None by default. */
+  /** The surface behind the block: a band across the window, or a panel with `contained`. None by default. */
   emphasis?: BlockEmphasis
-  /** Draws the `emphasis` as a panel inside the page padding instead of a band. */
+  /** Draws the `emphasis` as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. */
   contained?: boolean
   /**
    * The heading's and text's alignment.
@@ -116,7 +116,7 @@ function Statement({
   illustration = 'Heart'
 }: PresetProps) {
   const { align, emphasis } = block
-  const Illustration = SPOT_ILLUSTRATIONS[illustration]
+  const Illustration = spotIllustration(illustration, 'Heart')
   const onSurface = emphasis != null
   return (
     <BlockSurface

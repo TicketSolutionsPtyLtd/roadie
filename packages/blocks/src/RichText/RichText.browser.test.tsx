@@ -178,22 +178,19 @@ const INTENTS = [
 ] as const
 
 describe('RichText statement band shape', () => {
-  it('rounds the band once the block is wide', async () => {
-    await atWidth(1440, 900)
-    const { container } = render(<RichText {...statement} emphasis='subtle' />)
-    const band = container.querySelector('[data-slot=block-surface]')!
+  it.each([PHONE.width, 1920])(
+    'runs square to the edges at %ipx',
+    async (width) => {
+      await atWidth(width, 900)
+      const { container } = render(
+        <RichText {...statement} emphasis='subtle' />
+      )
+      const band = container.querySelector('[data-slot=block-surface]')!
 
-    expect(getComputedStyle(band).borderTopLeftRadius).not.toBe('0px')
-  })
-
-  it('runs square to the edges on a phone', async () => {
-    await atWidth(PHONE.width, PHONE.height)
-    const { container } = render(<RichText {...statement} emphasis='subtle' />)
-    const band = container.querySelector('[data-slot=block-surface]')!
-
-    expect(band.getBoundingClientRect().width).toBe(PHONE.width)
-    expect(getComputedStyle(band).borderTopLeftRadius).toBe('0px')
-  })
+      expect(band.getBoundingClientRect().width).toBe(width)
+      expect(getComputedStyle(band).borderTopLeftRadius).toBe('0px')
+    }
+  )
 
   it('keeps its breathing room on a band once wide', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
