@@ -22,11 +22,11 @@ import {
   type RenderContext,
   type SavedAttrs,
   VOID_TAGS,
-  outermostMarksLast,
   presetElementsFor,
   withButtonsAsLinks,
   withImageFigures,
-  withTableSections
+  withTableSections,
+  withVariablesAsText
 } from './elements'
 
 /** Renders one of an app's own blocks from its stored attrs. */
@@ -110,7 +110,9 @@ function renderDoc(
   }
   nodeMapping.text = ({ node }) =>
     typeof node.text === 'string' ? node.text : null
-  const content = withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+  const content = withTableSections(
+    withButtonsAsLinks(withVariablesAsText(doc))
+  )
   return renderJSONContentToReactElement({
     nodeMapping,
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),

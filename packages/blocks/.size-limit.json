@@ -7,6 +7,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "react",
       "react-dom"
     ]
@@ -21,10 +22,11 @@
     "name": "catalogue/sections",
     "path": "dist/catalogue/sections.js",
     "import": "*",
-    "limit": "5.45 kB",
+    "limit": "6.1 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -38,6 +40,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -51,6 +54,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -60,10 +64,11 @@
     "name": "cards",
     "path": "dist/Cards/index.js",
     "import": "*",
-    "limit": "5.65 kB",
+    "limit": "6.25 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -73,10 +78,11 @@
     "name": "side-by-side",
     "path": "dist/SideBySide/index.js",
     "import": "*",
-    "limit": "4.75 kB",
+    "limit": "5.2 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -86,10 +92,11 @@
     "name": "alternating-rows",
     "path": "dist/AlternatingRows/index.js",
     "import": "*",
-    "limit": "5.2 kB",
+    "limit": "4.35 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -103,6 +110,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -112,10 +120,11 @@
     "name": "mosaic",
     "path": "dist/Mosaic/index.js",
     "import": "*",
-    "limit": "4.35 kB",
+    "limit": "4.8 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -129,6 +138,7 @@
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -138,10 +148,11 @@
     "name": "call-to-action",
     "path": "dist/CallToAction/index.js",
     "import": "*",
-    "limit": "4.3 kB",
+    "limit": "4.75 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -151,10 +162,11 @@
     "name": "faq",
     "path": "dist/FAQ/index.js",
     "import": "*",
-    "limit": "3.45 kB",
+    "limit": "3.8 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"
@@ -164,10 +176,11 @@
     "name": "gallery",
     "path": "dist/Gallery/index.js",
     "import": "*",
-    "limit": "5.5 kB",
+    "limit": "5.95 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
+      "@oztix/roadie-illustrations",
       "@phosphor-icons/react",
       "react",
       "react-dom"

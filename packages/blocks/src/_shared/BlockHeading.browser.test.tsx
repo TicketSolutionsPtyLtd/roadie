@@ -7,6 +7,33 @@ import { BlockHeading } from './BlockHeading'
 withBrowserPage()
 
 describe('BlockHeading', () => {
+  it.each([
+    ['h1', 1, undefined],
+    ['h2', 2, undefined],
+    ['h2', 2, 'md'],
+    ['h2', 2, 'sm']
+  ] as const)(
+    'sets the %s title black (900) at level %i, size %s, and leaves the eyebrow and description be',
+    (tag, level, size) => {
+      const { container } = render(
+        <BlockHeading
+          level={level}
+          size={size}
+          eyebrow='Partners'
+          title='Why Oztix'
+          description='We help event organisers sell more tickets.'
+        />
+      )
+      const weightOf = (element: Element) =>
+        getComputedStyle(element).fontWeight
+
+      expect(weightOf(container.querySelector(tag)!)).toBe('900')
+      const [eyebrow, description] = container.querySelectorAll('p')
+      expect(weightOf(eyebrow!)).toBe('700')
+      expect(weightOf(description!)).not.toBe('900')
+    }
+  )
+
   it('breaks a long word rather than widening an auto grid track', () => {
     const { container } = render(
       <div className='grid w-[320px]'>

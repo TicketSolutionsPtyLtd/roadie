@@ -129,13 +129,13 @@ git -C "${repo}" worktree lock --reason "claude session y (pid ${pid})" "${path}
     merge(branch, headRefOid = git(repo, 'rev-parse', branch)) {
       prs.push({ headRefName: branch, headRefOid })
     },
-    cleanup(args, extraEnv = {}) {
+    cleanup(args, extraEnv = {}, cwd = repo) {
       const base = gitFreeEnv()
       const result = spawnSync(
         process.execPath,
-        ['scripts/cleanup.mjs', ...args],
+        [join(repo, 'scripts', 'cleanup.mjs'), ...args],
         {
-          cwd: repo,
+          cwd,
           encoding: 'utf8',
           env: {
             ...base,
@@ -216,6 +216,24 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     assert.equal(status, 0, output)
     assert.equal(existsSync(path), false)
     assert.deepEqual(f.branches(), ['main'])
+  })
+
+  test('keeps the merged worktree it runs in, though its lock is stale', () => {
+    const f = fixture()
+    const path = f.worktree('claude/here')
+    f.merge('claude/here')
+    f.lock(path, spawnSync('true').pid)
+
+    const { status, output } = f.cleanup(
+      ['--delete', '--branch', 'claude/here'],
+      {},
+      path
+    )
+
+    assert.equal(status, 0, output)
+    assert.match(output, /claude-here \(current directory\)/)
+    assert.equal(existsSync(path), true)
+    assert.deepEqual(f.branches(), ['claude/here', 'main'])
   })
 
   test('keeps a merged worktree while its locking session runs', () => {

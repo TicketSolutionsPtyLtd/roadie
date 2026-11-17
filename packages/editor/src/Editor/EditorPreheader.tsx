@@ -35,7 +35,8 @@ export function EditorPreheader({ editor, className }: EditorPreheaderProps) {
   // phone, so the field keeps its width.
   return (
     // The row keeps the email's gutter, as the canvas does, so the two line up.
-    <div data-slot='editor-preheader-row'>
+    // Out of a host page's prose, whose flow would space its hint off the field.
+    <div data-slot='editor-preheader-row' data-not-prose=''>
       <div className={cn('@container mx-auto w-full max-w-[600px]', className)}>
         <Field
           data-slot='editor-preheader'

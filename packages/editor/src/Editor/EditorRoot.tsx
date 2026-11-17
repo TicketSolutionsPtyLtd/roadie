@@ -105,6 +105,8 @@ export type EditorRootProps = {
    * `blocks` preset. Each saves its attrs, shows in the insert menu, and
    * renders with `/render`'s matching `nodeMapping` entry. Read once, when
    * the editor is created.
+   * @experimental It exposes Tiptap's types, so it may change in a minor
+   * release. Prefer `sections`.
    */
   extensions?: readonly EditorBlock[]
   /**

@@ -277,6 +277,16 @@ describe('Editor sections', () => {
     ).toEqual(['Calm promo', 'Loud promo'])
   })
 
+  it('leaves out a section named for one of the preset’s own nodes', async () => {
+    renderPage(page(intro), { sections: [{ ...promo, name: 'image' }] })
+    await clickInto('Doors 7pm')
+
+    await userEvent.keyboard('{End}{Enter}/')
+
+    await screen.findByRole('listbox', { name: 'Insert' })
+    expect(screen.queryByRole('group', { name: 'Sections' })).toBe(null)
+  })
+
   it('renders a saved section through /render with its own renderer', () => {
     const value = page({
       type: 'promo',
@@ -309,8 +319,12 @@ describe('Editor sections', () => {
 
     // Tiptap mounts a node view's React tree again once the view is ready.
     await waitFor(() =>
-      expect(screen.getByText('This section can’t be shown.')).toBeVisible()
+      expect(screen.getByText('This section can’t be shown')).toBeVisible()
     )
+    const message = screen.getByText('This section can’t be shown')
+    expect(message.closest('.intent-danger')).not.toBe(null)
+    // Out of what the section draws inert, so a screen reader reads it.
+    expect(message.closest('[inert]')).toBe(null)
     expect(screen.getByText('Doors 7pm')).toBeVisible()
     consoleError.mockRestore()
   })

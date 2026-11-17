@@ -15,7 +15,13 @@ import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
-import { BLEED, BlockSurface, PAGE_GUTTER } from '../_shared/BlockSurface'
+import {
+  BLEED,
+  BLEED_PADDING,
+  BlockSurface,
+  PAGE_GUTTER
+} from '../_shared/BlockSurface'
+import { isOwnKey } from '../_shared/ownKey'
 import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
@@ -67,7 +73,7 @@ export type GalleryProps = {
   intent?: BlockIntent
   /** The surface behind the block. Without one, the photos sit on the page and the marquee runs its full width. */
   emphasis?: BlockEmphasis
-  /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
+  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. */
   contained?: boolean
   /**
    * Where the heading and actions line up: `center` for every preset.
@@ -116,7 +122,9 @@ export function Gallery(props: GalleryProps) {
   const preset = presetOf(galleryDefinition, name)
   const readsRatio = (preset.fields as readonly string[]).includes('ratio')
   const ratio: TileRatio =
-    (readsRatio ? props.ratio : undefined) ?? preset.defaults.ratio
+    readsRatio && isOwnKey(CROPPED, props.ratio)
+      ? props.ratio
+      : preset.defaults.ratio
   const headingId = block.heading.id
   const gap = gapOf(size, 'loose')
   const heading = <BlockHeading {...block.heading} />
@@ -154,7 +162,7 @@ export function Gallery(props: GalleryProps) {
                 with the heading, and clip there rather than fade to the page. */}
             <Carousel.Content
               overflow={onPage ? undefined : 'hidden'}
-              className={onPage ? undefined : cn(BLEED, 'px-(--block-gutter)')}
+              className={onPage ? undefined : cn(BLEED, BLEED_PADDING)}
             >
               {tiles.map(({ key, tile }) => (
                 <Carousel.Item key={key} className='basis-auto'>
