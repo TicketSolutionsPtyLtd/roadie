@@ -6,6 +6,7 @@ import {
   catalogueToMarkdown,
   dashboardExampleToMarkdown,
   llmsIndex,
+  pageComponents,
   pageToMarkdown,
   tokenFamilyToMarkdown
 } from './llms'
@@ -482,6 +483,59 @@ describe('pageToMarkdown', () => {
     expect(page("<PropsDefinitions component='x' />\n\nEnd.")).toBe(
       '# Badge\n\nEnd.\n'
     )
+  })
+})
+
+describe('pageComponents', () => {
+  const site = 'https://ticketsolutionsptyltd.github.io/roadie'
+  const component = (name: string, from: string, docs: string) => ({
+    name,
+    import: from,
+    docs: `${site}${docs}`,
+    props: []
+  })
+
+  it('lists a name two manifests share once, from the later manifest, as the page does', () => {
+    const components = pageComponents(
+      [
+        {
+          components: [
+            component(
+              'SpotIllustration',
+              'old',
+              '/components/spot-illustration/'
+            )
+          ]
+        },
+        {
+          components: [
+            component(
+              'SpotIllustration',
+              'new',
+              '/components/spot-illustration/'
+            )
+          ]
+        }
+      ],
+      '/components/spot-illustration'
+    )
+    expect(components.map((c) => c.import)).toEqual(['new'])
+  })
+
+  it('lists only the components documented on the page itself', () => {
+    const components = pageComponents(
+      [
+        {
+          components: [
+            component('Badge', 'a', '/components/badge/'),
+            component('Heart', 'a', '/components/badge/#icons'),
+            component('Button', 'a', '/components/button/')
+          ]
+        }
+      ],
+      '/components/badge'
+    )
+    expect(components.map((c) => c.name)).toEqual(['Badge'])
   })
 })
 

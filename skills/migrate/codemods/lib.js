@@ -334,7 +334,15 @@ const PROLOGUE = /^(?:\s*(['"])use [a-z ]+\1;?[ \t]*\r?\n)+\s*/
 // Recast reprints the whole program when a statement is added, which drops
 // the blank line after a 'use client' directive. It also ends lines the OS
 // way unless told, so a file keeps its own line endings.
+// Recast splits lines on these and joins them back with a newline, which
+// would change a string, JSX text, or comment that holds one.
+const LINE_SEPARATORS = /[\u2028\u2029]/
+
 export function print(root, source) {
+  if (LINE_SEPARATORS.test(source))
+    throw new Error(
+      'This file has a raw U+2028 or U+2029, which the codemod would turn into a line break. Write it as \\u2028 or \\u2029, then run the codemod again.'
+    )
   const output = root.toSource({
     quote: 'single',
     lineTerminator: source.includes('\r\n') ? '\r\n' : '\n'
@@ -342,4 +350,66 @@ export function print(root, source) {
   const before = PROLOGUE.exec(source)
   const after = PROLOGUE.exec(output)
   return before && after ? before[0] + output.slice(after[0].length) : output
+}
+
+function isReference(path) {
+  if (path.node.type !== 'Identifier') return false
+  const parent = path.parent.node
+  if (parent.type === 'ImportSpecifier') return false
+  if (isReExportName(path)) return false
+  if (parent.type === 'ExportSpecifier' && parent.exported === path.node) {
+    return false
+  }
+  if (isLabel(parent, path.node)) return false
+  return true
+}
+
+// A re-export or shorthand key is a public name, so it keeps the old one.
+// Recast prints an edited shorthand node without its alias, so replace it.
+function keepPublicName(j, path, from, to, report) {
+  const parent = path.parent.node
+  if (parent.type === 'ExportSpecifier' && parent.local === path.node) {
+    if (parent.exported.name === from) {
+      report(
+        parent,
+        `export { ${from} } keeps the deprecated name as this module's public export. Rename it by hand once its importers move.`
+      )
+    }
+    path.parent.replace(
+      j.exportSpecifier.from({
+        local: j.identifier(to),
+        exported: j.identifier(parent.exported.name)
+      })
+    )
+    return true
+  }
+  if (
+    (parent.type === 'ObjectProperty' || parent.type === 'Property') &&
+    parent.shorthand
+  ) {
+    path.parent.replace(j.objectProperty(j.identifier(from), j.identifier(to)))
+    return true
+  }
+  return false
+}
+
+export function renameReferences(j, root, from, to, report) {
+  root
+    .find(j.Identifier, { name: from })
+    .filter((path) => isReference(path) && readsImport(path, from))
+    .forEach((path) => {
+      if (!keepPublicName(j, path, from, to, report)) path.node.name = to
+    })
+  root.find(j.JSXIdentifier, { name: from }).forEach((path) => {
+    const parent = path.parent.node
+    if (parent.type === 'JSXAttribute') return
+    if (!readsImport(path, from)) return
+    if (
+      parent.type === 'JSXMemberExpression' &&
+      parent.property === path.node
+    ) {
+      return
+    }
+    path.node.name = to
+  })
 }

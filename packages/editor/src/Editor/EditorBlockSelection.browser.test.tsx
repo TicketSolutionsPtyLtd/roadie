@@ -93,6 +93,19 @@ describe('Editor block selection', () => {
     )
   })
 
+  it('shrinks a selection grown upward with Shift+ArrowDown', async () => {
+    renderLineup()
+    await clickIntoEditor(await row('Support 8pm'))
+
+    await userEvent.keyboard('{Escape}{Shift>}{ArrowUp}{/Shift}')
+    await waitFor(async () =>
+      expect(await tinted()).toEqual(['Doors 7pm', 'Support 8pm'])
+    )
+    await userEvent.keyboard('{Shift>}{ArrowDown}{/Shift}')
+
+    await waitFor(async () => expect(await tinted()).toEqual(['Support 8pm']))
+  })
+
   it('rings a selected block, as a selected node is, with no tint', async () => {
     renderLineup()
     await clickIntoEditor(await row('Support 8pm'))

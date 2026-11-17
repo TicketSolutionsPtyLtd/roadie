@@ -19,6 +19,7 @@ const PACKAGES = [
   'charts',
   'editor',
   'blocks',
+  'illustrations',
   'widgets',
   'lint-plugin',
   'docs'

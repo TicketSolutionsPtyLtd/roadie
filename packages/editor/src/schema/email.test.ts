@@ -504,6 +504,88 @@ describe('presets.email', () => {
     ])
   })
 
+  it('trims a link variable, as a merge tag’s key is', () => {
+    const linked = (attrs: Record<string, unknown>) => ({
+      type: 'paragraph',
+      content: [
+        { type: 'text', text: 'Unsubscribe', marks: [{ type: 'link', attrs }] }
+      ]
+    })
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc(
+        linked({ variable: ' unsubscribe_url ' }),
+        {
+          type: 'button',
+          attrs: { variable: ' view_url ' },
+          content: [text('View in your browser')]
+        },
+        {
+          type: 'image',
+          attrs: { src: poster, alt: '', variable: ' view_url ' }
+        }
+      )
+    })
+    expect(saved.doc.content).toEqual([
+      linked({ variable: 'unsubscribe_url' }),
+      {
+        type: 'button',
+        attrs: { variable: 'view_url' },
+        content: [text('View in your browser')]
+      },
+      {
+        type: 'image',
+        attrs: { src: poster, alt: '', width: null, variable: 'view_url' }
+      }
+    ])
+  })
+
+  it('reads a blank link variable as none, keeping the href', () => {
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc(
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Tickets',
+              marks: [
+                { type: 'link', attrs: { href: tickets, variable: '  ' } }
+              ]
+            }
+          ]
+        },
+        {
+          type: 'button',
+          attrs: { href: tickets, variable: '  ' },
+          content: [text('Get tickets')]
+        },
+        {
+          type: 'button',
+          attrs: { variable: '  ' },
+          content: [text('Nowhere')]
+        }
+      )
+    })
+    expect(saved.doc.content).toEqual([
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Tickets',
+            marks: [{ type: 'link', attrs: { href: tickets } }]
+          }
+        ]
+      },
+      button(tickets),
+      p('Nowhere')
+    ])
+  })
+
   it('drops a link variable outside the email preset', () => {
     const saved = migrate({
       version: 1,

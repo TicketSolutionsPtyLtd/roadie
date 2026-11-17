@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { PropsDefinitions, PropsList } from './PropsDefinitions'
@@ -22,6 +22,44 @@ describe('PropsList', () => {
     const terms = container.querySelectorAll('dt, dd')
     expect(terms).toHaveLength(2)
     for (const term of terms) expect(term.closest('dl')).not.toBeNull()
+  })
+
+  it('shows a long union’s first members, and the rest on request', () => {
+    const names = Array.from({ length: 30 }, (_, index) => `"Name${index}"`)
+    render(
+      <PropsList props={[{ name: 'illustration', type: names.join(' | ') }]} />
+    )
+
+    const rest = screen.getByText('Show all 30').closest('details')!
+    expect(rest.open).toBe(false)
+    expect(
+      screen.getByText(names.slice(0, 8).join(' | ') + ' | …')
+    ).not.toBeNull()
+    expect(rest.textContent).toContain(names.join(' | '))
+  })
+
+  it('shows a short union whole', () => {
+    const type = Array.from({ length: 13 }, (_, index) => `"N${index}"`).join(
+      ' | '
+    )
+    const { container } = render(
+      <PropsList props={[{ name: 'intent', type }]} />
+    )
+
+    expect(within(container).getByText(type)).not.toBeNull()
+    expect(container.querySelector('details')).toBeNull()
+  })
+
+  it('shows an object type whole, however many unions its fields hold', () => {
+    const field = (index: number) =>
+      `kind${index}: "number" | "text" | "status"`
+    const type = `readonly { ${Array.from({ length: 12 }, (_, index) => field(index)).join('; ')} }[]`
+    const { container } = render(
+      <PropsList props={[{ name: 'columns', type }]} />
+    )
+
+    expect(within(container).getByText(type)).not.toBeNull()
+    expect(container.querySelector('details')).toBeNull()
   })
 })
 

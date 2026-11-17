@@ -12,11 +12,27 @@ import { type Editor, Node } from '@tiptap/core'
 import { type ReactNodeViewProps, ReactNodeViewRenderer } from '@tiptap/react'
 
 // Roadie's own Tiptap, so an app's blocks never install or drift from it.
+/**
+ * @experimental Tiptap's own, so it may change in a minor release. Prefer
+ * `EditorSection`.
+ */
 export { mergeAttributes } from '@tiptap/core'
+/**
+ * @experimental Tiptap's own, so it may change in a minor release. Prefer
+ * `EditorSection`.
+ */
 export { Node }
+/**
+ * @experimental Tiptap's own, so it may change in a minor release. Prefer
+ * `EditorSection`.
+ */
 export { NodeViewWrapper } from '@tiptap/react'
 
-/** What an app block's React view gets: its node, `updateAttributes`, and `selected`. */
+/**
+ * What an app block's React view gets: its node, `updateAttributes`, and `selected`.
+ * @experimental It exposes Tiptap's types, so it may change in a minor
+ * release. Prefer `EditorSection`.
+ */
 export type EditorNodeViewProps = ReactNodeViewProps
 
 const MAC =
@@ -66,6 +82,8 @@ function listenForHistoryKeys(editor: Editor) {
  * node's `addNodeView`, and wrap the component's output in `NodeViewWrapper`.
  * A read-only or disabled editor ignores its `updateAttributes` and
  * `deleteNode`.
+ * @experimental It exposes Tiptap's types, so it may change in a minor
+ * release. Prefer `EditorSection`.
  */
 export function reactNodeView(component: ComponentType<EditorNodeViewProps>) {
   // Tiptap runs a view's commands even when the editor isn't editable.
@@ -138,7 +156,11 @@ export type EditorSetting = {
     }
 )
 
-/** An app's own block, for the `blocks` editor's `extensions`. */
+/**
+ * An app's own block, for the `blocks` editor's `extensions`.
+ * @experimental It exposes Tiptap's types, so it may change in a minor
+ * release. Prefer `EditorSection`.
+ */
 export type EditorBlock = {
   /**
    * A block atom (`group: 'block'`, `atom: true`). Its attrs are what it

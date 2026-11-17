@@ -103,6 +103,8 @@ export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
         ? values[variable.key]
         : undefined
     const preview = value || shownFallback
+    // Nothing to hold, so a label of only this tag reads as empty.
+    if (values && !preview) return ''
     return hold(
       values
         ? { html: escapeHtml(preview), text: untokenedText(preview) }
