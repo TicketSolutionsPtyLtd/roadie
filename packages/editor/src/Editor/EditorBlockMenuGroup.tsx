@@ -10,7 +10,7 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 import { BlockMenuRadioGroup, type ControlState } from './EditorToolbarEngine'
 import type { EditorBlockMenu } from './controls'
-import { focusEditor } from './focusEditor'
+import { useEditorFinalFocus } from './focusEditor'
 
 type EditorBlockMenuGroupProps = {
   label: string
@@ -29,9 +29,11 @@ export function EditorBlockMenuGroup({
   states,
   editor
 }: EditorBlockMenuGroupProps) {
+  const { triggerRef, popupRef, finalFocus } = useEditorFinalFocus(editor)
   return (
     <Menu>
       <Menu.Trigger
+        ref={triggerRef}
         render={
           <Toolbar.Button disabled={!states.some((state) => state?.enabled)}>
             {label}
@@ -39,12 +41,7 @@ export function EditorBlockMenuGroup({
           </Toolbar.Button>
         }
       />
-      <Menu.Content
-        finalFocus={() => {
-          focusEditor(editor)
-          return false
-        }}
-      >
+      <Menu.Content ref={popupRef} finalFocus={finalFocus}>
         {menus.map((menu, index) => (
           <Fragment key={menu.label}>
             {index > 0 ? <Menu.Separator /> : null}

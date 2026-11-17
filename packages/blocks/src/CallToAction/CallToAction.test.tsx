@@ -95,14 +95,27 @@ describe('CallToAction', () => {
     )
   })
 
-  it('draws a band by default, and a contained panel when asked', () => {
+  it('draws photo on a contained panel by default, and on a band when asked', () => {
     const { container, rerender } = render(
       <CallToAction title='Talk to our team' />
     )
     const surface = () => container.querySelector('[data-slot=block-surface]')
+    expect(surface()).toHaveAttribute('data-shape', 'panel')
+
+    rerender(<CallToAction title='Talk to our team' contained={false} />)
+    expect(surface()).toHaveAttribute('data-shape', 'band')
+  })
+
+  it('draws centred on a band by default, and a contained panel when asked', () => {
+    const { container, rerender } = render(
+      <CallToAction preset='centred' title='Talk to our team' />
+    )
+    const surface = () => container.querySelector('[data-slot=block-surface]')
     expect(surface()).toHaveAttribute('data-shape', 'band')
 
-    rerender(<CallToAction title='Talk to our team' contained />)
+    rerender(
+      <CallToAction preset='centred' title='Talk to our team' contained />
+    )
     expect(surface()).toHaveAttribute('data-shape', 'panel')
   })
 

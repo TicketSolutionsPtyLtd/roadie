@@ -264,10 +264,112 @@ render(
 
 ### Custom blocks
 
-An app adds its own blocks, such as a call to action or an event feed, with
-`extensions`. Build each from `@oztix/roadie-editor/extensions`, which
-re-exports Tiptap's `Node` and `mergeAttributes`, so the app never installs
-Tiptap or drifts from Roadie's version:
+An app adds its own blocks, such as a call to action or an event feed, as
+sections in `sections`, beside any from the catalogue. An `EditorSection` is
+plain data, so the app needs no Tiptap: the editor makes its block, draws it
+with `render`, and edits it with `settings`.
+
+```tsx
+import type { EditorSection } from '@oztix/roadie-editor/extensions'
+```
+
+- `name` is its node's name, which saved pages hold, so it can't change once
+  they do. It can't be one of the preset's own nodes.
+- `attrs` holds every attr it saves, with the value a new one starts from.
+  Keep them to its inputs, such as `{ label, href }`, never rendered content.
+- `render` draws it from its attrs as the page does, and doubles as its
+  `nodeMapping` entry in `renderEditorValue`. Read each attr as untrusted
+  input. A block with no entry is dropped, never shown raw, and so is every
+  custom block in `renderEditorHtml`.
+- `settings` edit it, so it shows as the page will, not as a form, with a
+  field for each:
+  - `text`: a line, or a few with `multiline`.
+  - `choice`: its `options` as buttons, or a select past three, with
+    `defaultValue` chosen while its attr is unset.
+  - `image`: `{ src, alt }`, from a link or, with `onUploadImage`, an upload.
+  - `action`: `{ label, href }`, such as a button.
+  - `list`: items to add, remove, and drag or move to reorder, each in its
+    own fold, of `fields`, or of an `item` that's an `image` or an `action`.
+
+  A setting's `available` shows it only while the attrs call for it. Each
+  change shows as it's made. Done, Escape, Enter in a text setting, or a
+  click or tap away keeps the changes, and Undo takes the visit back in one
+  step. Removing an item is a step of its own, and focus moves to the next
+  item, the one before, or Add. While they're open, `Mod+Z` and
+  `Mod+Shift+Z` step the editor's history, never a field's own, and only
+  through the visit's steps, so Undo brings an item back without taking the
+  block away. The caret goes back where it was before the block was
+  selected, or after the block, so the next key types rather than replacing
+  it. Opened from the keyboard with Enter, the block stays selected.
+- `templates` offer it more than one way, each a tile with the `attrs` it
+  changes. Without them, it has one, named by its `label`.
+- `migrate(value, 'blocks', { customBlocks: ['callToAction'] })` keeps them
+  in a stored value. The editor and `renderEditorValue` pass these for you.
+
+```tsx-live-prose-noinline
+// Stored attrs are untrusted, so the link is kept only when it's a site path.
+const sitePath = (href) =>
+  typeof href === 'string' && /^\/(?!\/)/.test(href) ? href : undefined
+
+const callToAction = {
+  name: 'callToAction',
+  label: 'Call to action',
+  attrs: { label: 'Get tickets', href: '/events/ochre-kite-weekender' },
+  settings: [
+    { name: 'label', label: 'Button', type: 'text' },
+    { name: 'href', label: 'Link', type: 'text', helperText: 'A page on this site, such as /events.' }
+  ],
+  templates: [{ label: 'Call to action', keywords: ['button', 'cta'] }],
+  render: ({ attrs }) => (
+    <div className='grid justify-items-start'>
+      <Button href={sitePath(attrs.href)} intent='brand' emphasis='strong'>
+        {String(attrs.label)}
+      </Button>
+    </div>
+  )
+}
+
+const nodeMapping = { callToAction: callToAction.render }
+
+function Page() {
+  const [value, setValue] = useState({
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'callToAction', attrs: { label: 'Get tickets', href: '/events/ochre-kite-weekender' } },
+        { type: 'paragraph' }
+      ]
+    }
+  })
+  return (
+    <>
+      <Editor
+        aria-label='Page'
+        sections={[callToAction]}
+        value={value}
+        onValueChange={setValue}
+      />
+      {renderEditorValue(value, { nodeMapping })}
+    </>
+  )
+}
+
+render(<Page />)
+```
+
+### Blocks edited in place
+
+`extensions` takes Tiptap nodes, for a block that needs an interactive view
+of its own in the editor. It's experimental: it exposes Tiptap's types, so it
+may change in a minor release. Use a section whenever `render` and
+`settings` can do the job.
+
+Build each from `@oztix/roadie-editor/extensions`, which re-exports Tiptap's
+`Node` and `mergeAttributes`, so the app never installs Tiptap or drifts from
+Roadie's version:
 
 ```tsx
 import {
@@ -278,49 +380,25 @@ import {
 ```
 
 - A block is an atom (`group: 'block'`, `atom: true`). Its attrs are all it
-  saves, so keep them to its inputs, such as `{ label, href }`, never
-  rendered content.
-- Give it `settings`, and its view can show it as the page will, not as a
-  form. With a mouse, a click on the block opens them at the text clicked,
-  such as a card's title; on a touch screen a tap selects it. Settings also
-  leads its block menu, and Enter on the selected block opens them. They
-  open in a drawer from the side that leaves the page usable, and makes room
-  for the block beside it on a wide page, or a sheet under half the screen
-  on a phone, with a field for each:
-  - `text`: a line, or a few with `multiline`.
-  - `choice`: its `options` as buttons, or a select past three, with
-    `defaultValue` chosen while its attr is unset.
-  - `image`: `{ src, alt }`, from a link or, with `onUploadImage`, an upload.
-  - `action`: `{ label, href }`, such as a button.
-  - `list`: items to add, remove, and drag or move to reorder, each in its
-    own fold, of `fields`, or of an `item` that's an `image` or an `action`.
-
-  Each change shows as it's made. Done, Escape, Enter in a text setting, or
-  a click or tap away keeps the changes, and Undo takes the visit back in
-  one step. Removing an item is a step of its own, and focus moves to the
-  next item, the one before, or Add. While they're open, `Mod+Z` and
-  `Mod+Shift+Z` step the editor's history, never a field's own, and only
-  through the visit's steps, so Undo brings an item back without taking the
-  block away. The caret goes back where it was before the block was
-  selected, or after the block, so the next key types rather than replacing
-  it. Opened from the keyboard with Enter, the block stays selected.
+  saves, so keep them to its inputs, never rendered content.
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
   them, not the text around the block, and `Mod+Z` and `Mod+Shift+Z` there
   step the editor's history, so each edit undoes as text does. A read-only
   or disabled editor ignores its `updateAttributes` and `deleteNode`.
+- `settings` work as a section's do. With a mouse, a click on the block
+  opens them at the text clicked; on a touch screen a tap selects it.
+  Settings also leads its block menu, and Enter on the selected block opens
+  them.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
   insert menu, under More and only where it fits. Add `group` to list it
   under one of the preset's headings, such as Media, or a heading of its
   own. The editor reads `extensions` once, when it's created, so give it a
   new `key` to change them.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
-  block that gets its `attrs`. Read each as untrusted input. A block with no
-  entry is dropped, never shown raw, and so is every custom block in
-  `renderEditorHtml`.
-- `migrate(value, 'blocks', { customBlocks: ['callToAction'] })` keeps them
-  in a stored value. The editor and `renderEditorValue` pass these for you.
+  block that gets its `attrs`, as a section's `render` does.
+- `migrate` keeps them by name in `customBlocks`, as it does a section.
 - A block can't take the name of one of the preset's own nodes or marks;
   the editor leaves it out.
 - `/extensions` brings Tiptap with it, so import your blocks where the

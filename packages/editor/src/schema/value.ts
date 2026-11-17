@@ -10,6 +10,7 @@ import {
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
+  linkVariable,
   sectionLook,
   spacerHeight,
   textAlign
@@ -18,7 +19,6 @@ import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
 import { pageImageLook } from './imageAttrs'
 import { isSafeImageSrc } from './imageSrc'
-import { isText } from './isText'
 import { preheaderOf } from './preheader'
 import {
   BLOCK_ID,
@@ -68,7 +68,7 @@ function isKeptMark(mark: unknown, shape: PresetShape): mark is StoredMark {
   if (!Object.hasOwn(shape.marks, mark.type)) return false
   if (mark.type !== 'link') return true
   const { href, variable } = (mark as StoredMark).attrs ?? {}
-  if (isText(variable) && savesLinkVariable(shape)) return true
+  if (linkVariable(variable) && savesLinkVariable(shape)) return true
   return typeof href === 'string' && !isUnsafeHref(href)
 }
 
@@ -79,8 +79,9 @@ const savesLinkVariable = (shape: PresetShape) =>
 // variable wins over any href, which goes unchecked.
 function linkAttrs({ type, attrs }: StoredMark, shape: PresetShape) {
   if (type !== 'link' || !isObject(attrs)) return attrs
-  const { href, variable, ...rest } = attrs
-  if (isText(variable) && savesLinkVariable(shape)) return { ...rest, variable }
+  const { href, variable: saved, ...rest } = attrs
+  const variable = linkVariable(saved)
+  if (variable && savesLinkVariable(shape)) return { ...rest, variable }
   return { ...rest, ...(typeof href === 'string' && { href }) }
 }
 
@@ -134,9 +135,9 @@ function cleanedAttrs({ type, attrs }: JSONContent, email: boolean) {
   if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
   if (type === 'section') return sectionLook(attrs)
   if (type === 'button') {
-    const variable: unknown = attrs?.variable
+    const variable = linkVariable(attrs?.variable)
     return {
-      ...(isText(variable) ? { variable } : { href: attrs?.href }),
+      ...(variable ? { variable } : { href: attrs?.href }),
       ...buttonLook(attrs)
     }
   }
@@ -444,7 +445,7 @@ function cleaned(
     if (
       type === 'button' &&
       !isEmailHref(stored?.href) &&
-      !isText(stored?.variable)
+      !linkVariable(stored?.variable)
     ) {
       return buttonText({ content: held })
     }
@@ -527,7 +528,9 @@ function withCustomBlocks(
  * https images, a width from 1 to 600 (none fills the column), and a
  * spacer's height rounded into 8 to 160 pixels. Gives an empty column a
  * paragraph. Keeps a variable only with a key, and its fallback only when
- * it's text; a button's label keeps its variables, unmarked. Keeps a
+ * it's text; a button's label keeps its variables, unmarked. Trims a
+ * link's, button's or image's link variable, reading a blank one as none.
+ * Keeps a
  * section's or an email block's `showWhen` only when it's a whole rule,
  * dropping a malformed one and keeping its block.
  */

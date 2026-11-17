@@ -47,7 +47,7 @@ export type StatsProps = {
   /** The surface behind the heading and figures. None by default. */
   emphasis?: BlockEmphasis
   /**
-   * Draws the `emphasis` as a panel inside the page padding; `false` runs it full width as a band.
+   * Draws the `emphasis` as a rounded panel within the page's frame, in line with the hero; `false` runs it across the window as a band.
    * @default true
    */
   contained?: boolean

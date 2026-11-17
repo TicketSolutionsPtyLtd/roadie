@@ -12,7 +12,7 @@ import {
 export type BlockSurfaceProps = {
   /** The surface behind the content. Without one, the content sits on the page. */
   emphasis?: SurfaceEmphasis
-  /** Keeps the surface inside the page's padding as a panel, rounded at every width, instead of a band. */
+  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. */
   contained?: boolean
   /** The content's measure. */
   width?: BlockWidth
@@ -30,6 +30,8 @@ export type BlockWidth = '3xl' | '4xl' | '8xl'
 export const PAGE_GUTTER =
   '[--block-gutter:--spacing(6)] @3xl:[--block-gutter:--spacing(8)] @5xl:[--block-gutter:--spacing(12)]'
 const PAGE_PADDING = `px-(--block-gutter) ${PAGE_GUTTER}`
+/** Where the page's frame stops: the hero's panels and a contained surface share it, so they line up. */
+export const FRAME_EDGE = 'px-4 @xl:px-6 @7xl:px-2'
 const PANEL_PADDING =
   'px-(--block-gutter) py-8 [--block-gutter:--spacing(6)] @3xl:py-12 @3xl:[--block-gutter:--spacing(10)]'
 
@@ -48,15 +50,19 @@ function surfaceClass(emphasis: SurfaceEmphasis | undefined) {
   return cn(emphasisClass(emphasis), isFilled(emphasis) && FILLED[emphasis])
 }
 
-/** Runs a child to the surface's edges, past the padding the frame gives its content, such as a marquee. */
-export const BLEED = '-mx-(--block-gutter)'
+/** Runs a child to the surface's edges, past the padding the frame gives its content, such as a marquee. Pad it by `BLEED_PADDING` to line it up with the content again. */
+export const BLEED = '-mx-(--block-bleed)'
+export const BLEED_PADDING = 'px-(--block-bleed)'
+// A band runs the window's width, so its content's edge is past its own measure, not just its padding.
+const BAND_BLEED = '[--block-bleed:calc(50cqw_-_50%)]'
+const PANEL_BLEED = '[--block-bleed:var(--block-gutter)]'
 const MEASURE: Record<BlockWidth, string> = {
   '3xl': 'mx-auto w-full max-w-3xl',
   '4xl': 'mx-auto w-full max-w-4xl',
   '8xl': 'mx-auto w-full max-w-8xl'
 }
 
-/** The frame every block draws its content in: on the page, on a full-width band, or on a contained panel. */
+/** The frame every block draws its content in: on the page, on a band across the window, or on a contained panel. */
 export function BlockSurface({
   emphasis,
   contained = false,
@@ -75,7 +81,7 @@ export function BlockSurface({
   }
   if (contained) {
     return (
-      <div className={cn(MEASURE['8xl'], PAGE_PADDING)}>
+      <div className={cn(MEASURE['8xl'], FRAME_EDGE)}>
         <div
           data-slot='block-surface'
           data-shape='panel'
@@ -87,26 +93,34 @@ export function BlockSurface({
           )}
         >
           {backdrop}
-          <div className={cn(MEASURE[width], className)}>{children}</div>
+          <div className={cn(MEASURE[width], PANEL_BLEED, className)}>
+            {children}
+          </div>
         </div>
       </div>
     )
   }
   return (
-    <div className='@7xl:px-2'>
+    <div
+      data-slot='block-surface'
+      data-shape='band'
+      className={cn(
+        'relative isolate grid',
+        backdrop && 'overflow-clip',
+        surfaceClass(emphasis)
+      )}
+    >
+      {backdrop}
+      {/* The content's box, not the band's, holds what a block places absolutely, such as a photo, so it stays within the page's measure. */}
       <div
-        data-slot='block-surface'
-        data-shape='band'
         className={cn(
-          'relative isolate mx-auto grid w-full max-w-8xl py-12 @xl:py-16 @5xl:py-20 @7xl:rounded-3xl',
-          backdrop && 'overflow-clip',
-          surfaceClass(emphasis)
+          'relative py-12 @xl:py-16 @5xl:py-20',
+          MEASURE[width],
+          PAGE_PADDING,
+          BAND_BLEED
         )}
       >
-        {backdrop}
-        <div className={cn(MEASURE[width], PAGE_PADDING, className)}>
-          {children}
-        </div>
+        <div className={className}>{children}</div>
       </div>
     </div>
   )

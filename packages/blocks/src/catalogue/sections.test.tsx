@@ -146,6 +146,67 @@ describe('catalogueSections', () => {
     })
   })
 
+  it.each([
+    ['Cards', 'plain', 'align', 'center'],
+    ['Cards', 'photo', 'align', 'start'],
+    ['Cards', 'photo', 'emphasis', 'raised'],
+    ['Gallery', 'carousel', 'align', 'center'],
+    ['Testimonial', 'quote', 'align', 'center'],
+    ['Rich text', 'statement', 'align', 'center'],
+    ['Rich text', 'long-form', 'align', 'start'],
+    ['Call to action', 'centred', 'align', 'center'],
+    ['Call to action', 'photo', 'emphasis', 'raised'],
+    ['Stats', 'figures', 'emphasis', 'none']
+  ])(
+    'shows %s %s’s own %s, %s, while it’s unset',
+    (label, preset, name, shown) => {
+      const setting = everyBlock()
+        .find((section) => section.label === label)!
+        .settings.find(
+          (each) => each.name === name && (each.available?.({ preset }) ?? true)
+        )
+
+      expect(setting).toMatchObject({ type: 'choice', defaultValue: shown })
+    }
+  )
+
+  it.each(
+    everyBlock().flatMap((section) =>
+      section.templates.map((template) => [template.label, section, template])
+    )
+  )(
+    'offers only Align and Surface choices that change what %s draws',
+    (_, section, template) => {
+      const { render, attrs, settings } = section as ReturnType<
+        typeof everyBlock
+      >[number]
+      const unset = Object.fromEntries(
+        Object.entries({
+          ...attrs,
+          ...(template as { attrs: object }).attrs
+        }).filter(([name]) => name !== 'align' && name !== 'emphasis')
+      )
+      const draw = (chosen: object) =>
+        renderToStaticMarkup(render({ attrs: { ...unset, ...chosen } }))
+
+      for (const setting of settings) {
+        if (
+          setting.type !== 'choice' ||
+          !['align', 'emphasis'].includes(setting.name) ||
+          !(setting.available?.(unset) ?? true)
+        ) {
+          continue
+        }
+        for (const { value } of setting.options) {
+          expect(
+            draw({ [setting.name]: value }) === draw({}),
+            `${setting.name}: ${value}`
+          ).toBe(value === setting.defaultValue)
+        }
+      }
+    }
+  )
+
   it('names a section’s alignment as an image’s and a button’s are', () => {
     const align = hero().settings.find((setting) => setting.name === 'align')
 
@@ -294,6 +355,195 @@ describe('catalogueSections', () => {
     expect(editing).toContain('>Card<')
     expect(editing).toContain('data-slot="block-image-placeholder"')
     expect(page).not.toContain('>Card<')
+    expect(page).not.toContain('block-image-placeholder')
+  })
+
+  // Saved attrs are untrusted, and a public page renders them.
+  describe.each([false, true])(
+    'with editing %s, from saved JSON',
+    (editing) => {
+      const hero = () => everyBlock().find(({ label }) => label === 'Hero')!
+      const draw = (attrs: Record<string, unknown>) =>
+        renderToStaticMarkup(
+          hero().render({
+            attrs: { ...hero().attrs, title: 'Kazoo Hollow', ...attrs },
+            editing
+          })
+        )
+
+      it('draws a button whose icon names a prototype key', () => {
+        const html = draw({
+          preset: 'title',
+          actions: [{ label: 'Tickets', href: '/tickets', icon: 'constructor' }]
+        })
+
+        expect(html).toContain('>Tickets<')
+      })
+
+      it('draws a button with no object for its label', () => {
+        expect(() =>
+          draw({
+            preset: 'title',
+            actions: [{ label: { text: 'Tickets' }, href: '/tickets' }]
+          })
+        ).not.toThrow()
+      })
+
+      it('draws an image with a string style, without passing it on', () => {
+        const html = draw({
+          preset: 'image',
+          image: { src: '/photo.webp', alt: 'A crowd', style: 'color: red' }
+        })
+
+        expect(html).toContain('/photo.webp')
+      })
+
+      const photo = { src: '/photo.webp', alt: 'A crowd' }
+      it.each([
+        ['Hero', { preset: 'bento' }],
+        ['Call to action', { preset: 'photo', image: photo }],
+        ['Rich text', { preset: 'statement' }],
+        ['Cards', { preset: 'plain', cards: [{ title: 'Camping' }] }],
+        ['Stats', { stats: [{ value: '40', label: 'Stalls' }] }]
+      ])(
+        'draws %s with an illustration named after a prototype key',
+        (label, attrs: Record<string, unknown>) => {
+          const section = everyBlock().find((entry) => entry.label === label)!
+          const named = (list: string) =>
+            Array.isArray(attrs[list])
+              ? {
+                  [list]: (attrs[list] as object[]).map((item) => ({
+                    ...item,
+                    illustration: 'constructor'
+                  }))
+                }
+              : {}
+
+          expect(() =>
+            renderToStaticMarkup(
+              section.render({
+                attrs: {
+                  ...section.attrs,
+                  ...attrs,
+                  illustration: 'constructor',
+                  ...named('cards'),
+                  ...named('stats')
+                },
+                editing
+              })
+            )
+          ).not.toThrow()
+        }
+      )
+
+      const photos = [{ src: '/photo.webp', alt: 'A crowd' }]
+      it.each([
+        [
+          'Mosaic',
+          'tile size',
+          { tiles: [{ title: 'Camping', size: 'NAME' }] },
+          { tiles: [{ title: 'Camping' }] }
+        ],
+        [
+          'Gallery',
+          'ratio',
+          { images: photos, ratio: 'NAME' },
+          { images: photos }
+        ],
+        [
+          'Call to action',
+          'ratio',
+          { preset: 'photo', image: photos[0], ratio: 'NAME' },
+          { preset: 'photo', image: photos[0] }
+        ],
+        [
+          'Hero',
+          'size',
+          { preset: 'image', image: photos[0], size: 'NAME' },
+          { preset: 'image', image: photos[0] }
+        ]
+      ] as const)(
+        'draws %s with an unknown %s as its default',
+        (label, _part, named, plain) => {
+          const section = everyBlock().find((entry) => entry.label === label)!
+          const draw = (attrs: object) =>
+            renderToStaticMarkup(
+              section.render({ attrs: { ...section.attrs, ...attrs }, editing })
+            )
+          const withName = (name: string) =>
+            JSON.parse(JSON.stringify(named).replaceAll('NAME', name))
+
+          for (const name of ['constructor', 'huge']) {
+            expect(draw(withName(name)), name).toBe(draw(plain))
+          }
+        }
+      )
+
+      it('draws a section whose choices name prototype keys', () => {
+        expect(() =>
+          draw({
+            preset: 'constructor',
+            align: 'constructor',
+            size: '__proto__',
+            emphasis: 'toString',
+            intent: 'constructor'
+          })
+        ).not.toThrow()
+      })
+
+      it('draws a card whose title is an object', () => {
+        const cards = everyBlock().find(({ label }) => label === 'Cards')!
+
+        expect(() =>
+          renderToStaticMarkup(
+            cards.render({
+              attrs: {
+                ...cards.attrs,
+                preset: 'plain',
+                cards: [
+                  { title: { text: 'Camping' }, description: 'By the stage' }
+                ]
+              },
+              editing
+            })
+          )
+        ).not.toThrow()
+      })
+    }
+  )
+
+  it.each(['carousel', 'logos'])(
+    'shows a placeholder for a %s image added without a link, only while editing',
+    (preset) => {
+      const gallery = everyBlock().find(({ label }) => label === 'Gallery')!
+      const attrs = {
+        ...gallery.attrs,
+        preset,
+        images: [
+          { src: '/photo.webp', alt: 'A crowd' },
+          { src: '', alt: '' }
+        ]
+      }
+
+      const editing = renderToStaticMarkup(
+        gallery.render({ attrs, editing: true })
+      )
+      const page = renderToStaticMarkup(gallery.render({ attrs }))
+
+      expect(editing).toContain('/photo.webp')
+      expect(editing).toContain('data-slot="block-image-placeholder"')
+      expect(page).not.toContain('block-image-placeholder')
+    }
+  )
+
+  it('shows a placeholder for a section’s own photo only while editing', () => {
+    const hero = everyBlock().find(({ label }) => label === 'Hero')!
+    const attrs = { ...hero.attrs, preset: 'image', title: 'Kazoo Hollow' }
+
+    const editing = renderToStaticMarkup(hero.render({ attrs, editing: true }))
+    const page = renderToStaticMarkup(hero.render({ attrs }))
+
+    expect(editing).toContain('data-slot="block-image-placeholder"')
     expect(page).not.toContain('block-image-placeholder')
   })
 

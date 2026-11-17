@@ -7,6 +7,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
 import { page as browserPage, page, userEvent } from 'vitest/browser'
@@ -579,6 +580,20 @@ describe('Editor blocks drawer finding and moving', () => {
     )
   })
 
+  it('says when no block matches the filter', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      'zzz'
+    )
+
+    expect(tileNames(drawer)).toEqual([])
+    expect(within(drawer).getByText('No blocks match')).toBeVisible()
+  })
+
   // The phone toolbar stays docked above the keyboard while a popup is open.
   it('marks itself as one of the editor’s popups', async () => {
     renderEmail()
@@ -828,6 +843,26 @@ describe('Editor blocks drawer in the blocks preset', () => {
       ['Media', ['Image', 'Embed']],
       ['Layout', ['Divider', 'Table']]
     ])
+  })
+
+  it('shows an app’s block named as one of the preset’s beside it', async () => {
+    const errors = vi.spyOn(console, 'error')
+    onTestFinished(() => errors.mockRestore())
+    renderPage({
+      toolbar: 'docked',
+      extensions: [{ ...hero, label: 'Divider', group: 'Layout' }]
+    })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(tileGroups(drawer).at(-1)).toEqual([
+      'Layout',
+      ['Divider', 'Table', 'Divider']
+    ])
+    expect(errors.mock.calls.flat().map(String).join('\n')).not.toContain(
+      'same key'
+    )
   })
 
   it('adds a block after the caret’s block', async () => {
