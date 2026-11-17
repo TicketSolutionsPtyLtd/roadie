@@ -11,6 +11,7 @@ pnpm add @oztix/roadie-blocks @oztix/roadie-components @oztix/roadie-core @phosp
 ```css
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-components/css';
+@import '@oztix/roadie-illustrations/css';
 @import '@oztix/roadie-blocks/css';
 ```
 
@@ -53,7 +54,9 @@ Run `pnpm generate:exports` after adding the folder.
   inside a surface it draws, such as a raised panel. The one exception is RichText's
   `statement`, whose generous space above and below is its look.
 - **Shared names.** Illustrations take `SpotIllustrationName` from `src/_shared/illustrations.ts`
-  (re-exported from `/provider`), headings go through `BlockHeading` (its `size` sets a
+  (re-exported from `/provider`), which is every export of `@oztix/roadie-illustrations/spot`
+  but its base, so a new illustration reaches blocks with no change here. Draw one by name
+  only through `spotIllustration`, which ignores prototype keys. Headings go through `BlockHeading` (its `size` sets a
   preset's title step), and images through `BlockImg` with the `sizes` the layout needs.
 - **Prop shapes.** Array props are `readonly`, `actions` is optional, `preset` has a
   `@default`, and `position` and `id` keep the wording: "The block's place on the page,
@@ -107,8 +110,9 @@ Run `pnpm generate:exports` after adding the folder.
   on a `strong` or `inverted` panel, or over a photo scrim, and it picks an intent that
   stands out (`strongActionIntent`, tested against every intent in both modes).
 - **One surface frame.** Every block draws its surface with `BlockSurface`,
-  never its own markup. A band runs full width and rounds at `@7xl:rounded-3xl`;
-  with `contained`, it's a panel inside the page padding, rounded at every width.
+  never its own markup. A band runs square across the window, and its content keeps
+  the page's measure; with `contained`, it's a rounded panel in line with the hero
+  (`FRAME_EDGE`).
 - **Keys.** List keys use the item's index with its content, so repeated content stays
   distinct.
 - **Room for an overhang.** A Call to action `photo` keeps a top margin for the photo that

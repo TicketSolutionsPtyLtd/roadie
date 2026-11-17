@@ -35,7 +35,12 @@ export const callToActionDefinition = {
         'size'
       ],
       limits: ACTIONS,
-      defaults: { emphasis: 'raised', align: 'start', ratio: 'portrait' }
+      defaults: {
+        emphasis: 'raised',
+        align: 'start',
+        ratio: 'portrait',
+        contained: true
+      }
     },
     {
       name: 'centred',

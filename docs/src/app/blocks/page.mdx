@@ -27,11 +27,12 @@ action.
 ## Setup
 
 Blocks ship from `@oztix/roadie-blocks`, one subpath per block.
-Import its stylesheet after the components' stylesheet:
+Import its stylesheet after the components' and the illustrations':
 
 ```css
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-components/css';
+@import '@oztix/roadie-illustrations/css';
 @import '@oztix/roadie-blocks/css';
 ```
 
@@ -75,6 +76,15 @@ CMS's type name is the block's `name`, its field names are the props, and its
 stored options are the prop values. The site passes a block's data straight
 in, with nothing to map.
 
+An `illustration` stores a [spot illustration](/components/spot-illustration)'s
+name, such as `Ticket` or `Number1`, and takes any of them. Build its picker
+from `SPOT_ILLUSTRATIONS` in `@oztix/roadie-illustrations/spot/catalogue`,
+which gives each name a label and tags to search. A name that isn't one shows
+the block's default illustration, or none. Since the name arrives with the
+content, a block that draws one brings the whole set, about 100 kB gzipped.
+Render blocks on the server, as a React Server Component does by default, and
+none of it reaches the browser.
+
 ## Shared props
 
 Every block takes the same props for colour, surface, and scale where they
@@ -85,7 +95,7 @@ page looks right without any of them.
 | --- | --- | --- |
 | `intent` | Roadie's intents | Highlighted words, marks, tints, and the strong action |
 | `emphasis` | `subtler`, `subtle`, `normal`, `raised`, `strong`, `inverted` | The surface behind the block. On `strong` and `inverted`, the text takes the fill's own colour |
-| `contained` | `true` or `false` | The surface as a panel inside the page padding, not a full-width band |
+| `contained` | `true` or `false` | The surface as a rounded panel in line with the hero, not a band across the window |
 | `itemEmphasis` | `subtler`, `subtle`, `normal`, `raised` | Every card's, row's, or question's surface, in Cards, Alternating rows, and FAQ. FAQ has no `raised` |
 | `align` | `start`, `center` | Where the heading and text line up |
 | `size` | `sm`, `md`, `lg` | Each step down from `lg` sets the title a step smaller, with smaller descriptions and body text, tighter spacing, and a smaller share of the width for media. It never changes colour or an image's shape |
@@ -120,8 +130,9 @@ an image.
 `catalogueSections()` from `@oztix/roadie-blocks/catalogue/sections` offers
 the blocks you pass as sections in the
 [blocks editor](/components/editor/blocks#sections), drawn as the page draws
-them, with a tile per preset from `thumbnailUrl` and their plain fields as
-settings.
+them, with a tile per preset from `thumbnailUrl`. Their settings cover every
+part of a block: its text, layout, and look, its images and buttons, and its
+items, such as cards or questions.
 
 ## Tracking
 

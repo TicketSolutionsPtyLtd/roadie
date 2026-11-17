@@ -7,6 +7,13 @@ import { page } from 'vitest/browser'
 import { DESKTOP, centreOf } from './browser'
 
 const TITLE = 'Why Oztix'
+const WIDE = { width: 1920, height: 1080 } as const
+const MEASURE = 1440
+
+function measureAt(width: number) {
+  const inset = (width - MEASURE) / 2
+  return { left: inset, right: width - inset }
+}
 const actions = [{ label: 'Talk to us', href: '/contact' }]
 
 /** Checks the frame every block shares: its section named by its heading, its block and preset, and its actions lined up with the heading. */
@@ -21,6 +28,28 @@ export function describeBlockFrame(
     render(<Rendered title={TITLE} actions={actions} {...props} {...extra} />)
 
   describe(`The ${block} block frame`, () => {
+    it('keeps its content within the page’s measure on a band across a wide window', async () => {
+      await page.viewport(WIDE.width, WIDE.height)
+      const { container } = renderBlock({ emphasis: 'subtle' })
+
+      const { left, right } = measureAt(WIDE.width)
+      // A marquee or carousel runs past the measure on purpose; everything else stays inside it.
+      const content = [
+        ...container.querySelectorAll('h1, h2, h3, p, li, a, button')
+      ].filter(
+        (element) =>
+          !element.closest(
+            '[data-slot=marquee], [data-slot=carousel-content]'
+          ) && element.getBoundingClientRect().width > 0
+      )
+      expect(content.length).toBeGreaterThan(0)
+      for (const element of content) {
+        const box = element.getBoundingClientRect()
+        expect(box.left).toBeGreaterThanOrEqual(left - 0.5)
+        expect(box.right).toBeLessThanOrEqual(right + 0.5)
+      }
+    })
+
     it('names its section by its heading, with its block and preset', () => {
       renderBlock()
 
