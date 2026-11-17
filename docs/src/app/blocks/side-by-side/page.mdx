@@ -145,7 +145,7 @@ same way as the [Stats](/blocks/stats) block.
 behind the block: `subtle`, `subtler`, `normal`, `raised`, `strong`, or
 `inverted`. On a surface, the title takes the intent and the rest of the text
 stays neutral. On `strong` or `inverted`, all of it takes the fill's own colour. Side by side draws its
-surface as a panel inside the page's padding.
+surface as a rounded panel in line with the hero.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, subtle panel */}
@@ -186,7 +186,7 @@ surface as a panel inside the page's padding.
 `size='md'` or `'sm'` sets the title one or two steps smaller and the text a
 step smaller, and tightens the gaps. Beside a photo, it narrows the photo to two fifths or a third of the
 width, without changing its shape. `align` centres the heading, text, and actions, and
-`contained={false}` runs a surface full width as a band.
+`contained={false}` runs a surface across the window as a band.
 
 ```tsx-live-expand id=align-size-contained layout=stack gap=8
 {/* Medium, subtle info panel */}

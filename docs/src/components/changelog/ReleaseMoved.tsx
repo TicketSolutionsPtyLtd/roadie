@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 import { getAssetPath } from '@/utils/getAssetPath'
 
-// Not `permanentRedirect()`, so the URL keeps the trailing slash Pages serves and gets a canonical and noindex.
+// Not `permanentRedirect()`, so the URL keeps the trailing slash Pages serves and gets a noindex.
 export function ReleaseMoved({ href }: { href: string }) {
   return (
     <>

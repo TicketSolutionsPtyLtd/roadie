@@ -3,6 +3,17 @@ import type { ReactNode } from 'react'
 import { Card } from '@oztix/roadie-components/card'
 import { Mark } from '@oztix/roadie-components/mark'
 import { cn } from '@oztix/roadie-core/utils'
+import {
+  Number1,
+  Number2,
+  Number3,
+  Number4,
+  Number5,
+  Number6,
+  Number7,
+  Number8,
+  Number9
+} from '@oztix/roadie-illustrations/spot'
 
 import type { BlockAction, BlockImage } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
@@ -11,8 +22,8 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  SPOT_ILLUSTRATIONS,
-  type SpotIllustrationName
+  type SpotIllustrationName,
+  spotIllustration
 } from '../_shared/illustrations'
 import {
   cycledMarkIntent,
@@ -52,14 +63,14 @@ export type CardsItem = {
   /** The item's own page. Its title becomes the link, and the whole card the place to click. */
   href?: string
   /**
-   * This item's intent, in place of the block's. It tints the card in `plain`, `steps`, `text-blocks`, and `lists`, and sets the mark that carries the preset's colour: the title in `text-blocks` and `overlap`, the number in `steps`, and the subtitle in `photo`.
+   * This item's intent, in place of the block's. It tints the card in `plain`, `steps`, `text-blocks`, and `lists`, and sets the mark that carries the preset's colour: the title in `text-blocks` and `overlap`, the subtitle in `photo`, and in `steps`, a number past 9. Steps 1 to 9 are number illustrations, whose colours are fixed.
    */
   intent?: BlockIntent
 }
 
 export type CardsProps = {
   /**
-   * The look. Every preset is a grid of cards. `plain` shows what each item has: an image, and an illustration over it or above the title. `steps` numbers the cards in order.
+   * The look. Every preset sets cards in columns. `plain` shows what each item has: an image, and an illustration over it or above the title. `steps` numbers the cards in order, with number illustrations up to 9.
    * @default 'plain'
    */
   preset?: CardsPreset
@@ -68,12 +79,12 @@ export type CardsProps = {
   /** An id for linking to the block. */
   id?: string
   /**
-   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `text-blocks` and `overlap`, the number in `steps`, and the subtitle in `photo`. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
+   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `text-blocks` and `overlap`, the subtitle in `photo`, and in `steps`, a number past 9, since steps 1 to 9 are number illustrations in fixed colours. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
    */
   intent?: BlockIntent
   /** The surface behind the block. Unset, `photo` sits on `raised` and the other presets have none. */
   emphasis?: BlockEmphasis
-  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `photo` is contained and the other presets are bands. */
+  /** Draws the surface as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. Unset, `photo` is contained and the other presets are bands. */
   contained?: boolean
   /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap` and `photo` ignore it, since they draw an inverted panel or a photo. */
   itemEmphasis?: ItemEmphasis
@@ -148,9 +159,8 @@ function Illustration({
   name: SpotIllustrationName | undefined
   className: string
 }) {
-  if (!name) return null
-  const Drawing = SPOT_ILLUSTRATIONS[name]
-  return <Drawing outline className={className} />
+  const Drawing = spotIllustration(name)
+  return Drawing ? <Drawing outline className={className} /> : null
 }
 
 // A tile that draws its own photo has no surface to tint, so a linked one grows its photo instead.
@@ -242,6 +252,34 @@ function PlainCard(props: CardProps) {
   )
 }
 
+const NUMBERS = [
+  Number1,
+  Number2,
+  Number3,
+  Number4,
+  Number5,
+  Number6,
+  Number7,
+  Number8,
+  Number9
+]
+
+// The list's own numbering tells assistive tech each step's place, so the number is decoration.
+function StepNumber({ step, intent }: { step: number; intent: BlockIntent }) {
+  const Drawing = NUMBERS[step - 1]
+  if (Drawing) return <Drawing outline className='size-16' />
+  return (
+    <Mark
+      aria-hidden
+      render={<span />}
+      intent={intent}
+      className='px-3 py-1 text-display-prose-2 tabular-nums'
+    >
+      {step}
+    </Mark>
+  )
+}
+
 function StepCard(props: CardProps) {
   const { item, index, itemEmphasis, centred } = props
   return (
@@ -261,14 +299,10 @@ function StepCard(props: CardProps) {
           className={cn(ratioClass.banner, 'w-full rounded-2xl')}
         />
       )}
-      <Mark
-        aria-hidden
-        render={<span />}
+      <StepNumber
+        step={index + 1}
         intent={markIntent(item, props.blockIntent, 'brand-secondary')}
-        className='px-3 py-1 text-display-prose-2 tabular-nums'
-      >
-        {index + 1}
-      </Mark>
+      />
       <div className='grid gap-2'>
         <h3 className='text-display-prose-4 text-strong'>
           <CardTitle item={item} />
@@ -412,18 +446,20 @@ type Look = {
 }
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
+// Four 15rem cards with gap-12 fit a band from 76rem, so a 1280px window with a classic scrollbar still sets four across.
 const LOOKS: Record<CardsPreset, Look> = {
   plain: {
     Item: PlainCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @4xl:grid-cols-3'
   },
+  // Steps share one width, up to 24rem, so a short row or a short last row centres under a centred heading.
   steps: {
     Item: StepCard,
-    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4'
+    list: 'flex flex-wrap gap-6 *:max-w-96'
   },
   'text-blocks': {
     Item: ServiceCard,
-    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @7xl:grid-cols-4'
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @[76rem]:grid-cols-4'
   },
   overlap: {
     Item: IndustryCard,
@@ -442,10 +478,31 @@ const LOOKS: Record<CardsPreset, Look> = {
 // Compact cards with no images fit two from a narrower width.
 const COMPACT_LIST = 'grid grid-cols-1 gap-6 @xl:grid-cols-2 @4xl:grid-cols-3'
 
+// As many 15rem steps as fit with 1.5rem gaps, and never more than there are, measured on the list's own width.
+const STEP_COLUMNS = [
+  '*:basis-full',
+  '@[31.5rem]:*:basis-[calc((100%-1.5rem)/2)]',
+  '@[48rem]:*:basis-[calc((100%-3rem)/3)]',
+  '@[64.5rem]:*:basis-[calc((100%-4.5rem)/4)]'
+]
+
 function listOf(name: CardsPreset, cards: readonly CardsItem[]) {
+  if (name === 'steps')
+    return cn(LOOKS.steps.list, STEP_COLUMNS.slice(0, cards.length))
   if (name !== 'plain' || cards.some((card) => card.image))
     return LOOKS[name].list
   return COMPACT_LIST
+}
+
+// Steps measure their columns on the list's width, not the block's, whose padding varies with its surface.
+function StepsFrame({
+  steps,
+  children
+}: {
+  steps: boolean
+  children: ReactNode
+}) {
+  return steps ? <div className='@container'>{children}</div> : children
 }
 
 /** Like items, such as benefits, services, steps, contact options, values, or people, as cards in columns. */
@@ -488,19 +545,27 @@ export function Cards(props: CardsProps) {
             className='w-full'
           />
         </div>
-        <List className={listOf(name, cards)}>
-          {cards.map((item, index) => (
-            <Item
-              key={`${index}-${item.title}`}
-              item={item}
-              index={index}
-              itemEmphasis={itemEmphasis}
-              blockIntent={intent}
-              filled={filledIntent(intent, block.emphasis)}
-              centred={align === 'center'}
-            />
-          ))}
-        </List>
+        <StepsFrame steps={name === 'steps'}>
+          <List
+            className={cn(
+              listOf(name, cards),
+              name === 'steps' &&
+                (headingAlign === 'center' ? 'justify-center' : 'justify-start')
+            )}
+          >
+            {cards.map((item, index) => (
+              <Item
+                key={`${index}-${item.title}`}
+                item={item}
+                index={index}
+                itemEmphasis={itemEmphasis}
+                blockIntent={intent}
+                filled={filledIntent(intent, block.emphasis)}
+                centred={align === 'center'}
+              />
+            ))}
+          </List>
+        </StepsFrame>
         <BlockActions {...block.actions} />
       </BlockSurface>
     </BlockRoot>

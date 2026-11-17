@@ -111,6 +111,8 @@ function ImportForm({
       className='grid gap-6'
       onSubmit={(event) => {
         event.preventDefault()
+        // React bubbles a portalled submit to the form around the editor.
+        event.stopPropagation()
         confirm()
       }}
     >

@@ -189,21 +189,6 @@ export function presetElementsFor(preset: Preset): Elements {
   return elements
 }
 
-/**
- * Saved marks list the outermost first, as ProseMirror writes them, but the
- * static renderer wraps the first innermost, so this flips them to match the
- * editor's nesting.
- */
-export function outermostMarksLast(node: JSONContent): JSONContent {
-  return {
-    ...node,
-    ...(Array.isArray(node.marks) && { marks: [...node.marks].reverse() }),
-    ...(Array.isArray(node.content) && {
-      content: node.content.map(outermostMarksLast)
-    })
-  }
-}
-
 // A thead clips a rowspan at its end, so a row that spans down stays in the
 // tbody.
 const isHeaderRow = (row: JSONContent | undefined) =>
@@ -277,5 +262,30 @@ export function withButtonsAsLinks(node: JSONContent): JSONContent {
   return {
     type: 'paragraph',
     content: content?.map((label) => ({ ...label, marks }))
+  }
+}
+
+/**
+ * Renders an email's merge tag on a page as its fallback, which a recipient
+ * with no value reads, or as nothing without one. A page has no recipient,
+ * and its key or label would show a reader the template's insides.
+ */
+export function withVariablesAsText(node: JSONContent): JSONContent {
+  if (!node.content) return node
+  return {
+    ...node,
+    content: node.content.flatMap((child): JSONContent[] => {
+      if (child.type !== 'variable') return [withVariablesAsText(child)]
+      const fallback: unknown = child.attrs?.fallback
+      return typeof fallback === 'string' && fallback !== ''
+        ? [
+            {
+              type: 'text',
+              text: fallback,
+              ...(child.marks && { marks: child.marks })
+            }
+          ]
+        : []
+    })
   }
 }

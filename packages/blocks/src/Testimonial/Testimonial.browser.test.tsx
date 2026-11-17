@@ -305,24 +305,20 @@ describe('Testimonial contrast', () => {
     }
   )
 
-  it.each([
-    { ...widths[0], radius: '0px' },
-    { name: 'wide', width: 1440, height: 900, radius: '24px' }
-  ])(
-    'runs the band to the block’s edges, rounding only once the block is wide ($name)',
-    async ({ width, height, radius }) => {
+  it.each([widths[0], { name: 'wide', width: 1920, height: 900 }])(
+    'runs the band square to the block’s edges ($name)',
+    async ({ width, height }) => {
       await atWidth(width, height)
       const { container } = render(<Testimonial {...quote} emphasis='subtle' />)
 
       const band = container.querySelector('[data-slot=block-surface]')!
       expect(band).toHaveAttribute('data-shape', 'band')
-      expect(getComputedStyle(band).borderTopLeftRadius).toBe(radius)
-      if (radius === '0px')
-        expect(band.getBoundingClientRect().width).toBeCloseTo(width, 0)
+      expect(getComputedStyle(band).borderTopLeftRadius).toBe('0px')
+      expect(band.getBoundingClientRect().width).toBeCloseTo(width, 0)
     }
   )
 
-  it('keeps a contained panel inside the page padding, rounded on a phone', async () => {
+  it('keeps a contained panel within the page’s frame, rounded on a phone', async () => {
     await atWidth(widths[0].width, widths[0].height)
     const { container } = render(
       <Testimonial {...quote} emphasis='subtle' contained />

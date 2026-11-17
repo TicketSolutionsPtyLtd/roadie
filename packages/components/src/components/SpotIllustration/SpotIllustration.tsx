@@ -59,6 +59,10 @@ const outlineHiddenStyle: React.CSSProperties = {
 
 const svgStyle: React.CSSProperties = { fill: 'none' }
 
+/**
+ * @deprecated Use `SpotIllustration` from `@oztix/roadie-illustrations/spot`,
+ * which takes `layers` in place of `illustration`.
+ */
 export function SpotIllustration({
   illustration,
   outline = false,

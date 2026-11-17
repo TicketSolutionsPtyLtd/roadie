@@ -8,8 +8,8 @@ export const metadata = {
 
 import { PairTable } from '@/components/PairTable'
 import { BrandFigure } from '@/components/brand/BrandFigure'
-import { DownloadCard } from '@/components/brand/DownloadCard'
 import { IllustrationLibrary } from '@/components/brand/IllustrationLibrary'
+import { IllustrationPackCard } from '@/components/brand/IllustrationPackCard'
 
 <BrandFigure
   src='/brand/illustration/feature-partnership.webp'
@@ -42,9 +42,9 @@ feature does. In marketing, lean into the benefit and the excitement.
 
 ## Library
 
-Every spot illustration, searchable by name or tag. Copy its SVG into a design,
-or download it as an SVG or a 1024px PNG from its menu. Each keeps its brand
-colours on any background.
+Every spot illustration, searchable by name or tag. Copy its component name
+for an app, copy its SVG into a design, or download it as an SVG or a 1024px
+PNG from its menu. Each keeps its brand colours on any background.
 
 <IllustrationLibrary />
 
@@ -85,13 +85,7 @@ Change what an illustration shows for each market, never its style.
 
 ## Downloads
 
-<DownloadCard
-  title='Illustration pack'
-  href='/brand/illustration/oztix-illustration-pack.zip'
-  formats='PNG and SVG'
-  size='249 KB'
-  description='The key illustrations as PNG files and every spot illustration in the library as an SVG.'
-/>
+<IllustrationPackCard />
 
 ## In Roadie
 

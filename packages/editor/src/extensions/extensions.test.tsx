@@ -1,7 +1,7 @@
 // Imports nothing from @tiptap/*: an app's block is built from this subpath
 // alone, and `pnpm typecheck` checks this file as that app would.
 import { StarIcon } from '@phosphor-icons/react'
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expectTypeOf, it } from 'vitest'
 
 import {
   type EditorBlock,
@@ -28,28 +28,20 @@ const CallToAction = Node.create({
   addNodeView: () => reactNodeView(CallToActionView)
 })
 
+// The behaviour, read-only views and undo keys included, is covered through
+// the Editor in EditorCustomBlocks.browser.test.tsx.
 describe('@oztix/roadie-editor/extensions', () => {
-  it('builds an app’s block, ready for the editor’s extensions', () => {
-    const block = {
+  it('types an app’s block, built from this subpath alone, as an EditorBlock', () => {
+    expectTypeOf({
       node: CallToAction,
       label: 'Call to action',
       icon: StarIcon
-    } satisfies EditorBlock
-
-    expect(block.node.name).toBe('callToAction')
-    expect(block.node.config.atom).toBe(true)
+    }).toExtend<EditorBlock>()
   })
 
   it('gives a view its node, updateAttributes, and selected', () => {
     expectTypeOf<EditorNodeViewProps>().toHaveProperty('node')
     expectTypeOf<EditorNodeViewProps>().toHaveProperty('updateAttributes')
     expectTypeOf<EditorNodeViewProps>().toHaveProperty('selected')
-  })
-
-  it('re-exports Tiptap’s Node builder', () => {
-    expect(Node.create({ name: 'x' }).name).toBe('x')
-    expect(mergeAttributes({ class: 'a' }, { class: 'b' })).toEqual({
-      class: 'a b'
-    })
   })
 })
