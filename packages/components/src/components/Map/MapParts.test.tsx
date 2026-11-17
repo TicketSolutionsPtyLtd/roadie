@@ -10,6 +10,159 @@ import { Map } from './index'
 import { fakeEngine, renderMap, venue } from './mapTestUtils'
 
 const east = { lat: venue.lat, lng: venue.lng + 0.05 }
+const marker = (name: string) =>
+  screen.getByRole('button', { name }).closest('[data-slot=map-marker]')!
+
+describe('Map.Marker', () => {
+  it('sits at its place in the frame and follows the map', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <Map.Marker
+        position={east}
+        label='Kazoo Hollow Room'
+        onClick={() => {}}
+      />
+    )
+    expect(marker('Kazoo Hollow Room')).toHaveStyle({
+      transform: 'translate(250px, 150px)'
+    })
+
+    await fake.pan(east)
+    expect(marker('Kazoo Hollow Room')).toHaveStyle({
+      transform: 'translate(200px, 150px)'
+    })
+  })
+
+  it('is a named picture when it does nothing', async () => {
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Marker position={venue} label='Kazoo Hollow Room' />
+    )
+    expect(
+      screen.getByRole('img', { name: 'Kazoo Hollow Room' })
+    ).toBeInTheDocument()
+  })
+
+  it('links to its href', async () => {
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Marker
+        position={venue}
+        label='Kazoo Hollow Room'
+        href='/venues/kazoo-hollow-room'
+      />
+    )
+    expect(
+      screen.getByRole('link', { name: 'Kazoo Hollow Room' })
+    ).toHaveAttribute('href', '/venues/kazoo-hollow-room')
+  })
+
+  it('runs onClick', async () => {
+    const onClick = vi.fn()
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Marker
+        position={venue}
+        label='Kazoo Hollow Room'
+        onClick={onClick}
+      />
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Kazoo Hollow Room' })
+    )
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('previews the place on focus, and closes when the map moves', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <Map.Marker position={venue} label='Kazoo Hollow Room'>
+        <p>Doors open 7pm</p>
+      </Map.Marker>
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Kazoo Hollow Room' })
+    )
+    expect(await screen.findByText('Doors open 7pm')).toBeVisible()
+
+    await fake.pan(east)
+    await waitFor(() =>
+      expect(screen.queryByText('Doors open 7pm')).not.toBeInTheDocument()
+    )
+  })
+
+  it('closes the preview when something in it is used', async () => {
+    const onDetails = vi.fn()
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Marker position={venue} label='Kazoo Hollow Room'>
+        <p>Doors open 7pm</p>
+        <button type='button' onClick={onDetails}>
+          Venue details
+        </button>
+      </Map.Marker>
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Kazoo Hollow Room' })
+    )
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Venue details' })
+    )
+
+    expect(onDetails).toHaveBeenCalledTimes(1)
+    await waitFor(() =>
+      expect(screen.queryByText('Doors open 7pm')).not.toBeInTheDocument()
+    )
+  })
+
+  it('takes a custom icon in the pin', async () => {
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Marker
+        position={venue}
+        label='Kazoo Hollow Room'
+        icon={<svg data-testid='ticket' />}
+      />
+    )
+    expect(
+      within(
+        screen.getByRole('img', { name: 'Kazoo Hollow Room' })
+      ).getByTestId('ticket')
+    ).toBeInTheDocument()
+  })
+
+  it('draws a custom pin in place of the drop', async () => {
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Marker
+        position={venue}
+        label='Kazoo Hollow Room'
+        intent='brand'
+        icon={<svg data-testid='ticket' />}
+        pin={<svg data-testid='spot' />}
+      />
+    )
+    const pin = screen.getByRole('img', { name: 'Kazoo Hollow Room' })
+    expect(within(pin).getByTestId('spot')).toBeInTheDocument()
+    expect(within(pin).queryByTestId('ticket')).not.toBeInTheDocument()
+    expect(pin.querySelector('[data-slot=map-pin]')).toBeNull()
+  })
+
+  it.each([false, null])(
+    'keeps the drop when pin is %s, as a conditional pin passes',
+    async (pin) => {
+      await renderMap(
+        fakeEngine().engine,
+        <Map.Marker position={venue} label='Kazoo Hollow Room' pin={pin} />
+      )
+      const marker = screen.getByRole('img', { name: 'Kazoo Hollow Room' })
+      expect(marker.querySelector('[data-slot=map-pin]')).not.toBeNull()
+      expect(marker.querySelector('[data-slot=map-pin-graphic]')).toBeNull()
+    }
+  )
+})
 
 describe('Map.Toolbar', () => {
   const geolocation = navigator.geolocation
@@ -340,6 +493,33 @@ describe('Map full screen', () => {
 
     await waitFor(() => expect(layer()).not.toBeInTheDocument())
     expect(fullScreen()).toHaveFocus()
+  })
+
+  it('closes an open preview on Escape before it exits', async () => {
+    await renderMap(
+      fakeEngine().engine,
+      <>
+        <Map.Toolbar expand />
+        <Map.Marker position={venue} label='Kazoo Hollow Room'>
+          <p>Doors open 7pm</p>
+        </Map.Marker>
+      </>
+    )
+    await userEvent.click(fullScreen())
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Kazoo Hollow Room' })
+    )
+    const preview = await screen.findByText('Doors open 7pm')
+    expect(layer()).toContainElement(preview)
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(screen.queryByText('Doors open 7pm')).not.toBeInTheDocument()
+    )
+    expect(layer()).toBeInTheDocument()
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(layer()).not.toBeInTheDocument())
   })
 
   it('says when it changes, and waits for a controlled prop', async () => {
