@@ -38,6 +38,12 @@ export function imageWidth(width: unknown): number | null {
     : null
 }
 
+/** A link variable's key, trimmed as a merge tag's is, or undefined when blank. */
+export function linkVariable(variable: unknown): string | undefined {
+  const key = typeof variable === 'string' ? variable.trim() : ''
+  return key === '' ? undefined : key
+}
+
 /** A spacer's height, in whole pixels within its range. */
 export function spacerHeight(height: unknown): number {
   if (typeof height !== 'number' || !Number.isFinite(height)) {
@@ -86,13 +92,9 @@ export type ImageLook = {
 /** The saved parts of an image's look, dropping defaults and anything unknown. */
 export function imageLook(attrs: unknown): ImageLook {
   if (typeof attrs !== 'object' || attrs === null) return {}
-  const { align, href, variable } = attrs as Record<string, unknown>
-  const linked =
-    typeof variable === 'string' && variable.trim() !== ''
-      ? { variable }
-      : isEmailHref(href)
-        ? { href }
-        : {}
+  const { align, href, variable: saved } = attrs as Record<string, unknown>
+  const variable = linkVariable(saved)
+  const linked = variable ? { variable } : isEmailHref(href) ? { href } : {}
   return {
     ...((align === 'left' || align === 'right') && { align }),
     ...linked

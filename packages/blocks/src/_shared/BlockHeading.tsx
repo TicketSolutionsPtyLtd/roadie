@@ -81,7 +81,9 @@ export function BlockHeading({
         id={id}
         className={cn(
           'max-w-5xl text-balance wrap-anywhere text-strong',
-          TITLE_STEP[titleStep(step, size)]
+          TITLE_STEP[titleStep(step, size)],
+          // A block's title is set black at every step, heavier than a prose heading at the same size.
+          'font-black'
         )}
       >
         {highlight ? (

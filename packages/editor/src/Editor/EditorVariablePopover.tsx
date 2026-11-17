@@ -13,6 +13,7 @@ import { Select } from '@oztix/roadie-components/select'
 import { textVariables } from '../schema/variables'
 import { EditorContext } from './EditorContext'
 import { focusEditor } from './focusEditor'
+import { isImeEnter } from './imeEnter'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
 type Tag = { key: string; fallback: string }
@@ -98,10 +99,8 @@ function TagForm({ tag, fallbackRef, apply, onDone }: TagFormProps) {
           onKeyDown={(event) => {
             if (event.key !== 'Enter') return
             event.preventDefault()
-            // The Enter that picks an IME candidate only ends the composition.
-            const composing =
-              event.nativeEvent.isComposing || event.keyCode === 229
-            if (!composing) event.currentTarget.form?.requestSubmit()
+            if (!isImeEnter(event.nativeEvent))
+              event.currentTarget.form?.requestSubmit()
           }}
           placeholder='Leave empty to show nothing'
         />

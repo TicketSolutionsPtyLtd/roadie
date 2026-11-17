@@ -1,5 +1,23 @@
 # @oztix/roadie-components
 
+## 2.20.0
+
+### Minor Changes
+
+- c049835: Deprecate `@oztix/roadie-components/spot-illustrations` in favour of `@oztix/roadie-illustrations/spot`, which has every spot illustration rather than 12, with updated art. The named illustrations take the same props. Their `…Props` types, such as `HeartProps`, aren't exported there, so use `SpotIllustrationComponentProps`. `SpotIllustration` there takes `layers` in place of `illustration`, and `createSpotIllustration` isn't exported. The old subpath still works and will be removed in a future major. `/roadie:migrate` moves the imports for you.
+
+## 2.19.0
+
+### Minor Changes
+
+- 52bbc17: Add `flush` to `Toolbar`, for a bar docked along an edge. A flush toolbar drops its border, shadow, and pill shape, and `emphasis` sets only its fill. Its controls keep the inset every toolbar has, so a hover or focus ring never meets the edge. Draw a divider with `className`, such as `border-b border-subtler`, and clip the parent's corners with `overflow-clip`.
+
+### Patch Changes
+
+- 385608b: Update dependencies: Tiptap 3.33.0 in `@oztix/roadie-editor`, `@tanstack/react-virtual` 3.14.26 in `@oztix/roadie-components`, and `@tanstack/charts` and `@tanstack/react-charts` 1.4.0 in `@oztix/roadie-charts`. Tiptap's static renderer now nests saved marks in the order the editor does, so `renderEditorValue` and `renderEditorHtml` drop their own reordering and render the same HTML as before.
+- 52bbc17: A `Toolbar.Separator`'s line stops 6px short of the controls at each end, so it sits between them instead of running their full height.
+- 52bbc17: A single-value `Toolbar.ToggleGroup` slides its fill to a toggle that's also a `Tooltip.Trigger`. The trigger's own `data-slot` had hidden the pressed toggle from it.
+
 ## 2.18.0
 
 ### Minor Changes

@@ -1,4 +1,5 @@
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-components/css';
+@import '@oztix/roadie-illustrations/css';
 @import './src/css/blocks.css';
 @source './src';

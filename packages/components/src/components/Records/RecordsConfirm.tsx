@@ -13,7 +13,7 @@ export const needsConfirm = ({ intent, confirm }: Confirmable) =>
 // onClick discards an action's promise, so a rejection can't reach a caller's
 // own catch. reportError surfaces it instead of swallowing it.
 export const reportActionError = (error: unknown) =>
-  // jsdom has no reportError.
+  // Older browsers and jsdom before 31 have no reportError.
   (window.reportError ?? console.error)(error)
 
 export type RecordsConfirmProps = {

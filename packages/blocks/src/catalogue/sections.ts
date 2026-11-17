@@ -251,6 +251,11 @@ function hinted(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
           : item
       )
     }
+    if (setting.item === 'image') {
+      shown[setting.name] = value.map((item) =>
+        hasNoImage(item) ? PLACEHOLDER_IMAGE : item
+      )
+    }
     if (!setting.fields) continue
     const { fields, itemLabel } = setting
     const texts = fields.filter(({ type }) => type === 'text')
@@ -267,6 +272,79 @@ function hinted(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
       }
       return filled
     })
+  }
+  return shown
+}
+
+const isString = (value: unknown): value is string => typeof value === 'string'
+
+const isNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value)
+
+// Only an image's own fields, so a saved `style` or `ref` never reaches it.
+function imageOf(value: unknown): Attrs | undefined {
+  if (!isAttrs(value) || !isString(value.src)) return undefined
+  const { src, alt, width, height, blurDataURL } = value
+  return {
+    src,
+    alt: isString(alt) ? alt : '',
+    ...(isNumber(width) && { width }),
+    ...(isNumber(height) && { height }),
+    ...(isString(blurDataURL) && { blurDataURL })
+  }
+}
+
+function actionOf(value: unknown): Attrs | undefined {
+  if (!isAttrs(value)) return undefined
+  const { label, href, icon } = value
+  return {
+    label: isString(label) ? label : '',
+    href: isString(href) ? href : '',
+    ...(isString(icon) && { icon })
+  }
+}
+
+function settingValue(setting: CatalogueSetting, value: unknown): unknown {
+  switch (setting.type) {
+    case 'text':
+    case 'choice':
+      return isString(value) ? value : undefined
+    case 'image':
+      return imageOf(value)
+    case 'action':
+      return actionOf(value)
+    case 'list': {
+      if (!Array.isArray(value)) return undefined
+      const { item, fields } = setting
+      const itemOf = (entry: unknown) => {
+        if (item === 'image') return imageOf(entry)
+        if (item === 'action') return actionOf(entry)
+        return isAttrs(entry) && fields ? shaped(fields, entry) : entry
+      }
+      return value.map(itemOf).filter((entry) => entry !== undefined)
+    }
+  }
+}
+
+/**
+ * Saved attrs as their settings describe them, as a page renders whatever
+ * was saved: text and choices as strings, and images and buttons with only
+ * their own fields.
+ */
+function shaped(settings: readonly CatalogueSetting[], attrs: Attrs): Attrs {
+  const shown: Attrs = { ...attrs }
+  const done = new Set<string>()
+  // A list's fields differ by preset, so the setting its preset reads wins.
+  const ordered = [
+    ...settings.filter((setting) => setting.available?.(attrs) ?? true),
+    ...settings
+  ]
+  for (const setting of ordered) {
+    if (done.has(setting.name)) continue
+    done.add(setting.name)
+    if (setting.name in attrs) {
+      shown[setting.name] = settingValue(setting, attrs[setting.name])
+    }
   }
   return shown
 }
@@ -396,11 +474,45 @@ function partsOf(block: CatalogueBlock, fields: Set<string>) {
   return parts
 }
 
+// A choice shows what the block draws while it's unset, which can differ by
+// preset, such as Cards' centred plain cards and left-aligned photo cards. So
+// it's one setting for each set of presets that agree, shown only for those.
+function byOwnDefault(
+  block: CatalogueBlock,
+  name: string,
+  field: Field
+): CatalogueSetting[] {
+  const groups = new Map<string | undefined, string[]>()
+  for (const preset of block.presets) {
+    if (!preset.fields.includes(name)) continue
+    const own = (preset.defaults as Readonly<Attrs> | undefined)?.[name]
+    const shown =
+      field.type !== 'choice'
+        ? undefined
+        : isString(own)
+          ? own
+          : field.defaultValue
+    groups.set(shown, [...(groups.get(shown) ?? []), preset.name])
+  }
+  return [...groups].map(
+    ([defaultValue, presets]) =>
+      ({
+        ...field,
+        ...(defaultValue !== undefined && { defaultValue }),
+        // `propOf` reads `none` as unset, so a raised preset can't draw it.
+        ...(field.type === 'choice' &&
+          name === 'emphasis' &&
+          defaultValue !== 'none' && {
+            options: field.options.filter(({ value }) => value !== 'none')
+          }),
+        name,
+        available: (attrs: Readonly<Attrs>) =>
+          presets.includes(String(attrs.preset))
+      }) as CatalogueSetting
+  )
+}
+
 function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
-  const reads = (name: string) => (attrs: Readonly<Attrs>) =>
-    block.presets
-      .find((preset) => preset.name === attrs.preset)
-      ?.fields.includes(name) ?? false
   const layout: CatalogueSetting[] =
     block.presets.length > 1
       ? [
@@ -420,7 +532,7 @@ function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
     ...layout,
     ...Object.entries(FIELDS)
       .filter(([name]) => fields.has(name))
-      .map(([name, field]) => ({ ...field, name, available: reads(name) })),
+      .flatMap(([name, field]) => byOwnDefault(block, name, field)),
     ...partsOf(block, fields).map(
       ([name, part, presets]) =>
         ({
@@ -436,7 +548,8 @@ function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
 /**
  * The catalogue's blocks as the editor's `sections`, for
  * `<Editor sections={…}>`: a section per block, a template per preset with
- * its thumbnail, and its plain fields as settings.
+ * its thumbnail, and every part of it as settings: its plain fields, images,
+ * buttons, and items.
  */
 export function catalogueSections({
   components,
@@ -463,17 +576,18 @@ export function catalogueSections({
         settings,
         // Its attrs are its props by name, as saved, so lists are checked.
         render: ({ attrs, editing, editingItem }) => {
+          const saved = shaped(settings, attrs)
           if (!editing) {
             return createElement(
               component as ComponentType<Attrs>,
-              propsOf(block.name, attrs)
+              propsOf(block.name, saved)
             )
           }
           return createElement(
             EditingImages,
             null,
             createElement(component as ComponentType<Attrs>, {
-              ...propsOf(block.name, hinted(settings, attrs), true),
+              ...propsOf(block.name, hinted(settings, saved), true),
               ...openedBy(block.name, editingItem)
             })
           )
