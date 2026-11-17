@@ -100,7 +100,6 @@ import * as RoadieCharts from '@oztix/roadie-charts'
 import { LegendKey } from '@oztix/roadie-charts/chart-legend'
 import { lineChartTable } from '@oztix/roadie-charts/tables'
 import * as RoadieComponents from '@oztix/roadie-components'
-import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import {
   addDays,
   plainDateOf,
@@ -128,6 +127,7 @@ import {
 } from '@oztix/roadie-editor/extensions'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
 import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
+import * as SpotIllustrations from '@oztix/roadie-illustrations/spot'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 

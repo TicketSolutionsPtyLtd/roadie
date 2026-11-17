@@ -1,5 +1,24 @@
 # roadie-skills
 
+## 0.7.0
+
+### Minor Changes
+
+- d6673b3: `/roadie:migrate` has a `spot-illustrations` codemod, which moves imports from the deprecated `@oztix/roadie-components/spot-illustrations` to `@oztix/roadie-illustrations/spot` and reports what it can't move. `/roadie:setup`, `/roadie:build`, and `/roadie:audit` add `@oztix/roadie-illustrations` and its CSS, and `/roadie:build` gives a medium `EmptyState` a spot illustration.
+
+### Patch Changes
+
+- 17722ed: Update `/roadie:build` to give an `md` empty state a spot illustration from `@oztix/roadie-illustrations`, picked by its message, and an `sm` one an IconTile.
+- 12e98f9: Update `/roadie:migrate`'s description to name its `spot-illustrations` codemod, so a request to move off the deprecated spot illustrations loads it.
+
+## 0.6.1
+
+### Patch Changes
+
+- 2d83fd3: `/roadie:shepherd` and `/roadie:release` wait on CI and npm without foreground polling: end the turn and let Auto-fix or `ci-monitor-event` messages wake the session, or run one watch command in the background. `/roadie:release` gives up waiting for npm after 20 minutes.
+- daf6776: `/roadie:shepherd` cleans up after a merge with `pnpm cleanup --delete --branch <branch>`, and `/roadie:demo` deletes its local screenshots branch once it's pushed.
+- 2ef95fc: `/roadie:implement` and `/roadie:test` point to Roadie's pre-push hook, which now runs the touched browser tests in Chromium, Firefox, and WebKit, instead of a manual `--all-browsers` run.
+
 ## 0.6.0
 
 ### Minor Changes

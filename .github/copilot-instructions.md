@@ -23,8 +23,9 @@ linters already enforce.
 
 - Colours only through Roadie utilities and intents (`bg-subtle`,
   `text-strong`, `intent-accent`, `emphasis-*`). No Tailwind palette colours,
-  hex or `rgb()`, no `dark:` variants. Exception: SpotIllustration source
-  SVGs keep exact hex fills for the conversion script (see its README).
+  hex or `rgb()`, no `dark:` variants. Exception: the spot illustration
+  sources in `packages/illustrations` keep exact hex fills, one per layer
+  (see its README).
 - Layout: `grid gap-*` for stacks, `flex` only when children size
   themselves, `gap` not margin between siblings.
 - Interactive elements use `is-interactive` (fields `is-interactive-field`);

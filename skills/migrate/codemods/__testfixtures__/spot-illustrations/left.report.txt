@@ -1,0 +1,2 @@
+line 3: SpotIllustration takes `layers` in place of `illustration` in @oztix/roadie-illustrations/spot. Move it by hand.
+line 4: createSpotIllustration isn't in @oztix/roadie-illustrations. Draw the art as a source in that package, or keep this import until the next major.
