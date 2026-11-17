@@ -434,6 +434,49 @@ describe('MapAreas', () => {
     expect(bounds.northEast.lat).toBeCloseTo(-28)
   })
 
+  it('opens a map with defaultFit on its areas, as Show all would', async () => {
+    const fake = fakeEngine()
+    await renderMap(
+      fake.engine,
+      <>
+        <Map.Toolbar fit />
+        <MapAreas {...squares} />
+      </>,
+      { defaultFit: true }
+    )
+
+    const fitBounds = vi.mocked(fake.instance.fitBounds)
+    expect(fitBounds).toHaveBeenCalledTimes(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(fitBounds).toHaveBeenCalledTimes(2)
+    const [opened] = fitBounds.mock.calls[0]!
+    const [shown] = fitBounds.mock.calls[1]!
+    expect(opened).toEqual(shown)
+    expect(opened.southWest.lng).toBeLessThan(left.lng)
+    expect(opened.northEast.lng).toBeGreaterThan(left.lng)
+  })
+
+  it('eases a map with defaultFit to areas that come after it has loaded, unless the reader used the map first', async () => {
+    const waited = fakeEngine()
+    const waiting = await renderMap(waited.engine, null, { defaultFit: true })
+    await waiting.rerenderMap(<MapAreas {...squares} />)
+    expect(waited.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(waited.instance.fitBounds).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ animate: true })
+    )
+    waiting.unmount()
+
+    // Areas register with none drawn until they've read their colours, which
+    // mustn't start the wait again once the reader has used the map.
+    const used = fakeEngine()
+    const view = await renderMap(used.engine, null, { defaultFit: true })
+    fireEvent.pointerDown(surface())
+    await view.rerenderMap(<MapAreas {...squares} />)
+    expect(drawn(vi.mocked(used.instance.setAreas))).toHaveLength(2)
+    expect(used.instance.fitBounds).not.toHaveBeenCalled()
+  })
+
   it('lights the area under the pointer once, however far the pointer moves in it', async () => {
     const fake = fakeEngine()
     const setActiveAreas = vi.fn()

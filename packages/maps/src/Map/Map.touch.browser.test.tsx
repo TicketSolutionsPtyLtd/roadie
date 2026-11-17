@@ -1,5 +1,13 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { commands, server } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
@@ -52,6 +60,45 @@ async function renderMap(expanded: boolean) {
   return { canvas, instance: instance! }
 }
 
+// A map with `defaultFit` and nothing on it yet, on a page long enough to
+// scroll. `addPin` puts a pin on it a continent away, which the map jumps
+// to, for reduced motion, unless the reader has used it.
+const far = { lat: -31.95, lng: 115.86 }
+async function renderWaiting() {
+  await commands.reduceMotion(true)
+  onTestFinished(() => commands.reduceMotion(false))
+  // A test before this one may have left the page scrolled.
+  scrollTo(0, 0)
+  const base = maplibreEngine({
+    tiles: { light: blankStyle, attribution: [] }
+  })
+  let instance: MapEngineInstance | undefined
+  const engine: MapEngine = {
+    attribution: [],
+    mount: async (...args) => (instance = await base.mount(...args))
+  }
+  const page = (pinned: boolean) => (
+    <div style={{ width: 480, height: 3000 }}>
+      <MapEngineContext value={engine}>
+        <Map defaultCenter={venue} defaultFit>
+          {pinned && <Map.Marker position={far} label='Tin Whistle Wharf' />}
+        </Map>
+      </MapEngineContext>
+    </div>
+  )
+  const view = render(page(false))
+  const frame = screen.getByRole('region', { name: 'Map' })
+  await waitFor(() => expect(frame).toHaveAttribute('data-status', 'ready'), {
+    timeout: 10_000
+  })
+  const box = frame.getBoundingClientRect()
+  return {
+    instance: instance!,
+    middle: { x: box.left + box.width / 2, y: box.top + box.height / 2 },
+    addPin: () => view.rerender(page(true))
+  }
+}
+
 // A one-finger drag across the middle of the canvas.
 async function drag(canvas: HTMLElement) {
   const box = canvas.getBoundingClientRect()
@@ -98,6 +145,36 @@ describe('Map on a touch screen', () => {
       await flagged
 
       expect(instance.getView().center).toEqual(before)
+    }
+  )
+
+  it.runIf(swipes)(
+    'still opens on a pin that comes late after one finger scrolls the page across it',
+    { timeout: 15_000 },
+    async () => {
+      const { instance, middle, addPin } = await renderWaiting()
+      await commands.swipe(
+        { x: middle.x, y: middle.y + 60 },
+        { x: middle.x, y: middle.y - 60 }
+      )
+      await waitFor(() => expect(scrollY).toBeGreaterThan(0))
+      expect(instance.getView().center.lng).toBeCloseTo(venue.lng, 3)
+
+      addPin()
+      expect(instance.getView().center.lng).toBeCloseTo(far.lng, 3)
+    }
+  )
+
+  it(
+    'stays where it is for a pin that comes late after a tap on it',
+    { timeout: 15_000 },
+    async () => {
+      const { instance, middle, addPin } = await renderWaiting()
+      await commands.tap(middle.x, middle.y)
+      const before = instance.getView()
+
+      addPin()
+      expect(instance.getView()).toEqual(before)
     }
   )
 })

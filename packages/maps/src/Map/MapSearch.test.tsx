@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -259,6 +261,33 @@ describe('Map.Search', () => {
     await wait(1_000)
     expect(suggest).toHaveBeenCalledTimes(1)
     expect(status()).toHaveTextContent('2 places found')
+  })
+
+  it('leaves a map with defaultFit where the search sent it, when the place drops a pin', async () => {
+    const fake = fakeEngine()
+    const suburb: Place = { ...kazoo, label: 'Fortitude Valley' }
+    function Chosen() {
+      const [value, setValue] = useState<Place | null>(null)
+      return (
+        <>
+          <Map.Search suggest={() => [suburb]} onPlaceSelect={setValue} />
+          <Map.Picker value={value} onValueChange={setValue} />
+        </>
+      )
+    }
+    await renderMap(fake.engine, <Chosen />, { defaultFit: true })
+    const user = fakeTimers()
+    // Tabbed to, so typing is the first use of the map.
+    act(() => input().focus())
+    await user.keyboard('Valley')
+    await wait(250)
+    await user.click(screen.getByRole('option', { name: /Fortitude Valley/ }))
+
+    // The pin is the first thing on the map, which mustn't fit to it.
+    expect(
+      screen.getByRole('button', { name: 'Chosen place' })
+    ).toBeInTheDocument()
+    expect(fake.instance.fitBounds).not.toHaveBeenCalled()
   })
 
   it('takes the first place on Enter, at its own zoom', async () => {
