@@ -104,9 +104,22 @@ type ShowToProps = {
   onRuleChange: (rule: ShowWhen | undefined) => void
 }
 
+const ruleKey = (rule: ShowWhen | undefined) => JSON.stringify(rule ?? null)
+
 /** Who sees a section: everyone, or those whose variable passes a rule. */
 function ShowTo({ rule, variables, onRuleChange }: ShowToProps) {
   const [draft, setDraft] = useState(() => draftOf(rule))
+  // The rule last sent or read, so one changed from outside, as by Undo,
+  // resets the draft, but one sent keeps a value still being typed.
+  const [seen, setSeen] = useState(() => ruleKey(rule))
+  if (ruleKey(rule) !== seen) {
+    setSeen(ruleKey(rule))
+    setDraft(draftOf(rule))
+  }
+  const send = (next: ShowWhen | undefined) => {
+    setSeen(ruleKey(next))
+    onRuleChange(next)
+  }
   // A rule can name a key the editor no longer lists, which stays choosable.
   const listed = textVariables(variables)
   const keys = [
@@ -120,12 +133,12 @@ function ShowTo({ rule, variables, onRuleChange }: ShowToProps) {
     const changed = { ...draft, ...next }
     setDraft(changed)
     if (changed.key === EVERYONE) {
-      onRuleChange(undefined)
+      send(undefined)
       return
     }
     // Applies once whole, so a half-typed value leaves the last rule.
     const whole = ruleOf(changed)
-    if (whole) onRuleChange(whole)
+    if (whole) send(whole)
   }
   const ruled = draft.key !== EVERYONE
   return (

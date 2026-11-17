@@ -19,6 +19,7 @@ import { type EmbedAttrs, embedAttrs } from '../schema/embedAttrs'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { EditorSettingsPopup } from './EditorSettingsPopup'
 import { focusEditor } from './focusEditor'
+import { isImeEnter } from './imeEnter'
 import { useOnPhone } from './toolbarMode'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
@@ -184,10 +185,8 @@ function EmbedSettingsForm({
           onKeyDown={(event) => {
             if (event.key !== 'Enter') return
             event.preventDefault()
-            // The Enter that picks an IME candidate only ends the composition.
-            const composing =
-              event.nativeEvent.isComposing || event.keyCode === 229
-            if (!composing) event.currentTarget.form?.requestSubmit()
+            if (!isImeEnter(event.nativeEvent))
+              event.currentTarget.form?.requestSubmit()
           }}
           // Selected, so typing replaces it; backward, so a long link shows
           // its start.

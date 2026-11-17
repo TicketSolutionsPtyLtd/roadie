@@ -1,3 +1,5 @@
+> **Deprecated.** Spot illustrations now live in [`@oztix/roadie-illustrations`](../../../../illustrations), with the whole set and a code-first workflow for adding more. This folder stays until a future major removes `@oztix/roadie-components/spot-illustrations`.
+
 # SpotIllustration System
 
 A fully automated system for creating themed SVG illustrations that adapt to the design system's color palette.

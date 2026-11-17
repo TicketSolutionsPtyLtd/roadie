@@ -256,6 +256,39 @@ describe('EmailHtmlField', () => {
       expect(screen.getAllByRole('alert')).toHaveLength(1)
     })
 
+    it('names a javascript: link with a tab or newline inside its scheme', async () => {
+      render(
+        <InField defaultValue={'<a href="java\tscr\nipt:alert(1)">x</a>'} />
+      )
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'This HTML has a javascript: link.'
+      )
+    })
+
+    it.each([
+      [
+        'a link with a space inside its scheme',
+        '<a href="java script:a()">x</a>'
+      ],
+      [
+        'attributes named like a handler that aren’t one',
+        '<table><tr><td one="1" only="x" on="y" onboarding-step="2">x</td></tr></table>'
+      ]
+    ])('shows none for %s', async (_, html) => {
+      render(
+        <>
+          <InField defaultValue={`${EMAIL}${html}`} />
+          <EmailHtmlField
+            aria-label='Control'
+            defaultValue='<script></script>'
+          />
+        </>
+      )
+      // The control's warning shows the warnings have run.
+      await screen.findByRole('alert')
+      expect(screen.getAllByRole('alert')).toHaveLength(1)
+    })
+
     it('never rewrites the HTML it warns about', async () => {
       const onValueChange = vi.fn()
       const html = '<a href="javascript:void(0)" onclick="go()">Go</a>'

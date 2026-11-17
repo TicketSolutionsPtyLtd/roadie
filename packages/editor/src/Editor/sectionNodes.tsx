@@ -7,6 +7,8 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import { NodeViewWrapper } from '@tiptap/react'
 
 import { Badge } from '@oztix/roadie-components/badge'
+import { Card } from '@oztix/roadie-components/card'
+import { EmptyState } from '@oztix/roadie-components/empty-state'
 
 import {
   type EditorBlock,
@@ -50,9 +52,15 @@ class SectionBoundary extends Component<
   render() {
     if (!this.state.failed) return this.props.children
     return (
-      <p className='m-0 rounded-lg bg-subtle p-4 text-sm text-subtle'>
-        This section can’t be shown.
-      </p>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <EmptyState size='sm' intent='danger'>
+            <EmptyState.Title render={<p />}>
+              This section can’t be shown
+            </EmptyState.Title>
+          </EmptyState>
+        </Card.Content>
+      </Card>
     )
   }
 }
@@ -108,15 +116,16 @@ export function sectionBlock(section: EditorSection): EditorBlock {
         >
           {section.label}
         </Badge>
-        <div inert>
-          <SectionBoundary attrs={node.attrs}>
+        {/* Its fallback replaces the inert box, so a screen reader reads it. */}
+        <SectionBoundary attrs={node.attrs}>
+          <div inert>
             <Drawn
               render={section.render}
               attrs={attrs}
               editingItem={selected ? editingItem : undefined}
             />
-          </SectionBoundary>
-        </div>
+          </div>
+        </SectionBoundary>
       </NodeViewWrapper>
     )
   }

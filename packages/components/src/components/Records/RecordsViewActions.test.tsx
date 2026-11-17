@@ -296,7 +296,7 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
   })
 
   it('keeps a failure it shows to the dialog, not the console', async () => {
-    const report = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const report = vi.spyOn(window, 'reportError').mockImplementation(() => {})
     const onSaveAs = vi.fn().mockRejectedValue(new Error('Name taken'))
     render(<Harness baseline={upcoming} onSaveAs={onSaveAs} />)
     const { user, menu } = await openMenu()
@@ -415,7 +415,7 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
     const onSave = vi.fn(
       () => new Promise<void>((_, reject) => (fail = reject))
     )
-    const report = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const report = vi.spyOn(window, 'reportError').mockImplementation(() => {})
     render(
       <Harness
         baseline={upcoming}
