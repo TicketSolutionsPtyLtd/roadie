@@ -814,4 +814,25 @@ describe('Map full screen', () => {
     await userEvent.click(exitFullScreen())
     expect(onExpandedChange).toHaveBeenLastCalledWith(false)
   })
+
+  it('places a dragged pin from the pointer while full screen', async () => {
+    const onValueChange = vi.fn()
+    await renderMap(
+      fakeEngine().engine,
+      <Map.Picker
+        defaultValue={{ label: 'Kazoo Hollow Room', position: venue }}
+        onValueChange={onValueChange}
+      />,
+      { defaultExpanded: true }
+    )
+    const pin = screen.getByRole('button', { name: 'Chosen place' })
+    // jsdom has no pointer capture, and lays everything out at 0,0.
+    pin.setPointerCapture = () => {}
+
+    fireEvent.pointerDown(pin, { pointerId: 1 })
+    fireEvent.pointerMove(pin, { pointerId: 1, clientX: 250, clientY: 150 })
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ position: east })
+    )
+  })
 })
