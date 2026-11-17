@@ -1,7 +1,8 @@
 import {
   CalendarBlankIcon,
   CheckIcon,
-  DotsSixVerticalIcon
+  DotsSixVerticalIcon,
+  MapPinIcon
 } from '@phosphor-icons/react/ssr'
 
 import { Avatar } from '@oztix/roadie-components/avatar'
@@ -548,6 +549,17 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
           <div className='grid size-8 place-content-center rounded-full emphasis-subtle'>
             <Skel className='size-3.5 rounded-full' />
+          </div>
+        </div>
+      )
+    case 'map':
+      return (
+        <div className='relative h-24 w-44 overflow-hidden rounded-lg bg-sunken'>
+          <Skel className='absolute top-9 -left-2 h-1.5 w-52 rotate-12 rounded-full' />
+          <Skel className='absolute -top-2 left-28 h-28 w-1.5 -rotate-6 rounded-full' />
+          <Skel className='absolute top-16 left-4 h-1 w-20 -rotate-3 rounded-full opacity-60' />
+          <div className='absolute top-5 left-16 grid size-7 emphasis-strong place-content-center rounded-full intent-accent'>
+            <MapPinIcon weight='bold' className='size-4' />
           </div>
         </div>
       )

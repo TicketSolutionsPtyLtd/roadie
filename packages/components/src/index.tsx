@@ -170,6 +170,31 @@ export {
 } from './components/Carousel'
 
 export {
+  Map,
+  MapProvider,
+  maplibreEngine,
+  type MapProps,
+  type MapActions,
+  type MapToolbarProps,
+  type MapProviderProps,
+  type MaplibreEngineOptions,
+  type MaplibreEngineTiles,
+  type LatLng,
+  type MapAreaGeometry,
+  type MapAreaLayer,
+  type MapAttribution,
+  type MapBounds,
+  type MapEngine,
+  type MapEngineInstance,
+  type MapMountOptions,
+  type MapPalette,
+  type MapPixel,
+  type MapTone,
+  type MapView,
+  type MapViewOptions
+} from './components/Map'
+
+export {
   Separator,
   separatorVariants,
   type SeparatorProps
