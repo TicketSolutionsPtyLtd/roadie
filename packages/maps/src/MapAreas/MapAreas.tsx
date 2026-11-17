@@ -4,6 +4,7 @@ import {
   useEffect,
   useEffectEvent,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState
@@ -12,9 +13,16 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useMapContext } from '../Map/MapContext'
-import type { LatLng, MapAreaLayer, MapBounds, MapPixel } from '../Map/engine'
-import { type AreaBox, areaBox, areaContains } from '../Map/geometry'
+import type {
+  LatLng,
+  MapAreaLayer,
+  MapBounds,
+  MapEngineInstance,
+  MapPixel
+} from '../Map/engine'
+import { type AreaBox, areaBox, areaContains, wrapLng } from '../Map/geometry'
 import { readColor } from '../Map/palette'
+import { LEVELS, classStarts, levelOf, rangesOf } from './steps'
 import {
   type MapAreaCollection,
   type MapAreaFeature,
@@ -49,14 +57,15 @@ export type MapAreasProps = {
    */
   areas: MapAreaCollection | MapAreaTopology
   /**
-   * The property that holds a GeoJSON feature's id, when it isn't the
-   * feature's own `id`, such as `POA_CODE21`.
+   * The property that holds each area's id, when it isn't the area's own
+   * `id`, such as `POA_CODE21`.
    */
   idProperty?: string
   /**
-   * The areas' values. Areas with none, or with nothing, aren't drawn, so
-   * the map shows through. Send totals per area, never a row per person.
-   * The same values in a new array draw nothing again.
+   * The areas' values. Areas with no value, or a value of 0 or less, aren't
+   * drawn, so the map shows through. Rows with the same id add up. Send
+   * totals per area, never a row per person. The same values in a new array
+   * draw nothing again.
    */
   data: readonly MapAreaValue[]
   /** Says what the values count, such as "Total". */
@@ -86,22 +95,23 @@ export type MapAreasProps = {
   className?: string
 }
 
-// Five steps, each holding a fifth of the areas with values. Totals per
-// area are skewed, so even steps would leave most areas in the first.
-const LEVELS = [0, 1, 2, 3, 4] as const
 const FILL = 0.62
 const FILL_ACTIVE = 0.88
 const LINE = 0.5
 const LINE_ACTIVE = 2.5
+// Between the pointer and the label beside it.
+const TIP_GAP = 12
 
 const formatNumber = (value: number) => value.toLocaleString()
 
 type Shape = MapAreaFeature & { box: AreaBox }
 
+const NONE: readonly string[] = []
+
 /**
- * Areas, such as postcodes, filled in heat colours by their values. An
- * alternative to `MapClusters` when values belong to areas rather than
- * points: each area shows where its value comes from, at every zoom.
+ * Areas, such as postcodes, filled in heat colours by their values. Use it
+ * in place of `MapClusters` when values belong to areas rather than points.
+ * Each area shows where its value comes from, at every zoom.
  */
 export function MapAreas({
   areas,
@@ -115,7 +125,8 @@ export function MapAreas({
   className
 }: MapAreasProps) {
   const uid = useId()
-  const { instance, frame, setArea } = useMapContext('MapAreas')
+  const { instance, frame, setArea, setActiveAreas, onMapClick } =
+    useMapContext('MapAreas')
   const data = useSameValues(given)
 
   const shapes = useMemo(
@@ -123,11 +134,29 @@ export function MapAreas({
     [areas, idProperty]
   )
   const values = useMemo(() => {
-    const drawn = data.filter(({ id, value }) => value > 0 && shapes.has(id))
-    const total = drawn.reduce((sum, { value }) => sum + value, 0)
-    const all = drawn.map((d) => d.value)
+    // Rows with the same id add up. The total is of every value given, so a
+    // share matches a list that also holds ids with no boundary.
+    const byId = new Map<string, MapAreaValue>()
+    let total = 0
+    for (const row of data) {
+      if (!(row.value > 0) || !Number.isFinite(row.value)) continue
+      total += row.value
+      if (!shapes.has(row.id)) continue
+      const known = byId.get(row.id)
+      byId.set(
+        row.id,
+        known
+          ? {
+              ...known,
+              value: known.value + row.value,
+              label: known.label ?? row.label
+            }
+          : row
+      )
+    }
+    const all = [...byId.values()].map(({ value }) => value)
     return {
-      drawn,
+      byId,
       total,
       all,
       starts: classStarts(all),
@@ -156,28 +185,33 @@ export function MapAreas({
     id: string
     at: MapPixel
   } | null>(null)
-  // By id, so a pointer moving inside one area lights it once.
+  // By id, so a pointer moving inside one area lights it once, and as a
+  // key, so the same ids in a new array light nothing again.
   const hoveredId = hovered?.id
-  const lit = useMemo(() => {
-    const ids = new Set(
-      typeof highlight === 'string' ? [highlight] : (highlight ?? [])
+  const litKey = JSON.stringify(
+    [...new Set([highlight ?? [], hoveredId ?? []].flat())].filter((id) =>
+      values.byId.has(id)
     )
-    if (hoveredId) ids.add(hoveredId)
-    return [...ids].filter((id) => shapes.has(id))
-  }, [highlight, hoveredId, shapes])
-  const showsActive = instance?.setActiveAreas !== undefined
+  )
+  const lit = useMemo(
+    () => (JSON.parse(litKey) as string[]).map((id) => `${uid}${id}`),
+    [litKey, uid]
+  )
+  useEffect(() => {
+    setActiveAreas(uid, lit)
+  }, [uid, lit, setActiveAreas])
+  useEffect(() => () => setActiveAreas(uid, null), [uid, setActiveAreas])
 
   // Every area with a value, as one set, so the engine draws them together.
   // An engine that can't restyle one area gets them all again with the
   // active ones changed.
-  // A key, so lighting an area through the engine never redraws the rest.
-  const redrawnLit = showsActive ? '' : lit.join('\n')
+  const redrawn = instance?.setActiveAreas ? NONE : lit
   const layers = useMemo((): MapAreaLayer[] => {
     if (colours.length === 0) return []
-    const active = new Set(redrawnLit.split('\n'))
-    return values.drawn.map(({ id, value }) => {
+    const active = new Set(redrawn)
+    return [...values.byId.values()].map(({ id, value }) => {
       const { rest, hover } = colours[levelOf(value, values.starts)]!
-      const on = active.has(id)
+      const on = active.has(`${uid}${id}`)
       return {
         id: `${uid}${id}`,
         geometry: shapes.get(id)!.geometry,
@@ -189,20 +223,13 @@ export function MapAreas({
         lineWidthActive: LINE_ACTIVE
       }
     })
-  }, [colours, values, shapes, uid, redrawnLit])
+  }, [colours, values, shapes, uid, redrawn])
   useEffect(() => {
     setArea(uid, layers)
   }, [uid, layers, setArea])
   useEffect(() => () => setArea(uid, null), [uid, setArea])
-  useEffect(() => {
-    instance?.setActiveAreas?.(lit.map((id) => `${uid}${id}`))
-  }, [instance, lit, uid, layers])
 
-  // The area under the pointer, checked against its box first.
-  const valueOf = useMemo(
-    () => new Map(values.drawn.map((d) => [d.id, d])),
-    [values]
-  )
+  // The area under the pointer, a frame after it moves.
   useEffect(() => {
     const element = frame.current
     if (!instance || !element) return
@@ -210,10 +237,15 @@ export function MapAreas({
     const track = (event: PointerEvent) => {
       if (event.pointerType === 'touch') return
       cancelAnimationFrame(frameRequest)
+      // Over a control or a pin, the pointer isn't on the map.
+      const onMap =
+        event.target instanceof Element &&
+        event.target.closest('[data-slot=map-surface]')
+      if (!onMap) return setHovered(null)
       frameRequest = requestAnimationFrame(() => {
         const box = element.getBoundingClientRect()
         const at = { x: event.clientX - box.left, y: event.clientY - box.top }
-        const id = areaAt(instance.unproject(at), valueOf, shapes)
+        const id = areaAt(instance.unproject(at), values.byId, shapes)
         setHovered(id ? { id, at } : null)
       })
     }
@@ -228,9 +260,35 @@ export function MapAreas({
       element.removeEventListener('pointermove', track)
       element.removeEventListener('pointerleave', leave)
     }
-  }, [instance, frame, valueOf, shapes])
+  }, [instance, frame, values, shapes])
+  // A finger can't hover, so a tap shows an area's label, and a tap
+  // elsewhere takes it away.
+  useEffect(
+    () =>
+      onMapClick((place) => {
+        const id = areaAt(place, values.byId, shapes)
+        setHovered(id && instance ? { id, at: instance.project(place) } : null)
+      }),
+    [onMapClick, instance, values, shapes]
+  )
   // A moving map takes the area away from under the label.
   useEffect(() => instance?.on('move', () => setHovered(null)), [instance])
+
+  // Beside the pointer, on the side with room, so the map's edge never cuts
+  // the label off.
+  const tipElement = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const element = tipElement.current
+    const viewport = frame.current
+    if (!element || !viewport || !hovered) return
+    const beside = (pointer: number, size: number, room: number) =>
+      pointer + TIP_GAP + size > room
+        ? Math.max(0, pointer - TIP_GAP - size)
+        : pointer + TIP_GAP
+    const x = beside(hovered.at.x, element.offsetWidth, viewport.clientWidth)
+    const y = beside(hovered.at.y, element.offsetHeight, viewport.clientHeight)
+    element.style.transform = `translate(${x}px, ${y}px)`
+  })
 
   // The areas in view, as the map settles. Only a changed list is reported:
   // an app that keeps it in state renders again, and would otherwise be told
@@ -239,14 +297,14 @@ export function MapAreas({
   const report = useEffectEvent(() => {
     const element = frame.current
     if (!onAreasChange || !instance || !element) return
-    const view = viewBounds(instance.unproject, element)
-    const inView = values.drawn
+    const view = viewBounds(instance, element)
+    const inView = [...values.byId.values()]
       .filter(({ id }) => overlaps(shapes.get(id)!.box, view))
       .map(({ id, value, label: name }) => ({
         id,
         label: name ?? id,
         value,
-        share: values.total > 0 ? value / values.total : 0
+        share: value / values.total
       }))
       .sort((a, b) => b.value - a.value)
     if (reported.current && sameAreas(reported.current, inView)) return
@@ -259,17 +317,15 @@ export function MapAreas({
     return instance.on('moveend', report)
   }, [instance, values])
 
-  const tip = hovered && valueOf.get(hovered.id)
+  const tip = hovered && values.byId.get(hovered.id)
   return (
     <div data-slot='map-areas' className={cn('contents', className)}>
       {tip && (
         <div
+          ref={tipElement}
           data-slot='map-areas-tip'
           aria-hidden
           className='pointer-events-none absolute top-0 left-0 z-10 grid gap-0.5 rounded-lg emphasis-floating px-2 py-1.5 text-xs whitespace-nowrap tabular-nums'
-          style={{
-            transform: `translate(${hovered.at.x + 12}px, ${hovered.at.y + 12}px)`
-          }}
         >
           <p className='font-medium text-strong'>{tip.label ?? tip.id}</p>
           <p className='text-subtle'>
@@ -278,7 +334,7 @@ export function MapAreas({
           </p>
         </div>
       )}
-      {legend && values.drawn.length > 0 && (
+      {legend && values.all.length > 0 && (
         <AreasLegend
           label={label}
           ranges={rangesOf(values.starts, values.all, formatValue)}
@@ -378,49 +434,6 @@ function withBox(feature: MapAreaFeature): [string, Shape] {
   return [feature.id, { ...feature, box: areaBox(feature.geometry) }]
 }
 
-/**
- * Where each step after the first starts: the values a fifth, two fifths,
- * three and four fifths of the way through the areas, smallest first.
- */
-export function classStarts(values: readonly number[]): number[] {
-  if (values.length === 0) return []
-  const sorted = values.toSorted((a, b) => a - b)
-  return LEVELS.map(
-    (level) => sorted[Math.floor((level / LEVELS.length) * sorted.length)]!
-  )
-}
-
-/**
- * Each step's range, from where it starts to the largest value in it, so no
- * two ranges share a value. A step with no values is left out.
- */
-export function rangesOf(
-  starts: readonly number[],
-  values: readonly number[],
-  format: (value: number) => string
-): { level: number; range: string }[] {
-  const ends = starts.map(() => -Infinity)
-  for (const value of values) {
-    const level = levelOf(value, starts)
-    ends[level] = Math.max(ends[level]!, value)
-  }
-  return starts
-    .map((start, level) => ({ level, start, end: ends[level]! }))
-    .filter(({ end }) => end !== -Infinity)
-    .map(({ level, start, end }) => ({
-      level,
-      range: end === start ? format(start) : `${format(start)}–${format(end)}`
-    }))
-    .toReversed()
-}
-
-/** The step a value falls in, from 0 to 4. */
-export function levelOf(value: number, starts: readonly number[]): number {
-  let level = 0
-  for (let i = 1; i < starts.length; i++) if (value >= starts[i]!) level = i
-  return level
-}
-
 function levelColours(element: HTMLElement) {
   return LEVELS.map((level) => {
     const probe = document.createElement('span')
@@ -437,32 +450,33 @@ function levelColours(element: HTMLElement) {
   })
 }
 
+/** The area with a value at a place, checked against its box first. */
 function areaAt(
-  place: LatLng,
+  { lat, lng: counted }: LatLng,
   values: ReadonlyMap<string, MapAreaValue>,
   shapes: ReadonlyMap<string, Shape>
 ): string | undefined {
-  const { lat, lng } = place
+  const lng = wrapLng(counted)
   for (const id of values.keys()) {
     const shape = shapes.get(id)!
     const [west, south, east, north] = shape.box
     if (lng < west || lng > east || lat < south || lat > north) continue
-    if (areaContains(shape.geometry, place)) return id
+    if (areaContains(shape.geometry, { lat, lng })) return id
   }
   return undefined
 }
 
 function viewBounds(
-  unproject: (pixel: MapPixel) => LatLng,
+  instance: MapEngineInstance,
   element: HTMLElement
 ): MapBounds {
   const { width, height } = element.getBoundingClientRect()
   // All four corners, as a turned map's north isn't along its top edge.
   const corners = [
-    unproject({ x: 0, y: 0 }),
-    unproject({ x: width, y: 0 }),
-    unproject({ x: 0, y: height }),
-    unproject({ x: width, y: height })
+    instance.unproject({ x: 0, y: 0 }),
+    instance.unproject({ x: width, y: 0 }),
+    instance.unproject({ x: 0, y: height }),
+    instance.unproject({ x: width, y: height })
   ]
   const lats = corners.map(({ lat }) => lat)
   const lngs = corners.map(({ lng }) => lng)
@@ -473,16 +487,15 @@ function viewBounds(
 }
 
 function overlaps(box: Shape['box'], { southWest, northEast }: MapBounds) {
-  return (
-    box[0] <= northEast.lng &&
-    box[2] >= southWest.lng &&
-    box[1] <= northEast.lat &&
-    box[3] >= southWest.lat
-  )
+  if (box[1] > northEast.lat || box[3] < southWest.lat) return false
+  // A view panned across the date line counts on past 180, so the area is
+  // tried there too.
+  const west = wrapLng(southWest.lng)
+  const east = west + (northEast.lng - southWest.lng)
+  return [0, 360].some((turn) => box[0] + turn <= east && box[2] + turn >= west)
 }
 
 function shareOf(value: number, total: number) {
-  if (total <= 0) return '0%'
   const percent = (value / total) * 100
   if (percent > 0 && percent < 0.5) return '<1%'
   return `${Math.round(percent)}%`

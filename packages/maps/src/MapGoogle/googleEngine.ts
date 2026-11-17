@@ -160,12 +160,14 @@ const googleStyles = (colors: MapPalette) => {
 
 const areaCollection = (areas: readonly MapAreaLayer[]) => ({
   type: 'FeatureCollection',
-  features: areas.map(({ id, geometry, fill, fillOpacity, line }) => ({
-    type: 'Feature',
-    id,
-    geometry,
-    properties: { fill, fillOpacity, line }
-  }))
+  features: areas.map(
+    ({ id, geometry, fill, fillOpacity, line, lineWidth = 2 }) => ({
+      type: 'Feature',
+      id,
+      geometry,
+      properties: { fill, fillOpacity, line, lineWidth }
+    })
+  )
 })
 
 const toLatLng = (place: GoogleLatLng | null | undefined): LatLng =>
@@ -212,7 +214,7 @@ export function googleEngine({
         fillColor: feature.getProperty('fill'),
         fillOpacity: feature.getProperty('fillOpacity'),
         strokeColor: feature.getProperty('line'),
-        strokeWeight: 2,
+        strokeWeight: feature.getProperty('lineWidth'),
         clickable: false
       }))
 

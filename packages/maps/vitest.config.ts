@@ -30,6 +30,21 @@ const TOUCH_TESTS = 'src/**/*.touch.browser.test.{ts,tsx}'
 const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
   page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
 
+// A real touch tap, which the engine turns into pointer, touch and mouse
+// events as a phone does. Needs a context with touch.
+const tap: BrowserCommand<[x: number, y: number]> = async (
+  { page, frame },
+  x,
+  y
+) => {
+  const testFrame = await frame()
+  const box = await (await testFrame.frameElement()).boundingBox()
+  if (!box) throw new Error('The test frame has no box')
+  const width = await testFrame.evaluate(() => window.innerWidth)
+  const scale = box.width / width
+  await page.touchscreen.tap(box.x + x * scale, box.y + y * scale)
+}
+
 // A finger drag, as real touch events. Points are in the test frame's CSS
 // pixels; the frame may sit offset and scaled. Chromium only.
 const swipe: BrowserCommand<
@@ -114,7 +129,7 @@ function importedPackages() {
   return [...packages]
 }
 
-const commands = { reduceMotion, swipe }
+const commands = { reduceMotion, tap, swipe }
 
 const optimizeDeps = {
   include: [

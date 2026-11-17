@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { MapEngineInstance } from './engine'
 import blankStyle from './fixtures/blank-style.json?url'
+import labelsStyle from './fixtures/labels-style.json?url'
 import { testPalette } from './mapTestUtils'
 import { maplibreEngine } from './maplibreEngine'
 
@@ -33,47 +34,140 @@ describe('maplibreEngine', () => {
       { center: venue, zoom: 14, label: 'Map', palette: testPalette }
     )
 
+  // The engine keeps its map to itself, so a spy hands it over.
+  const mapOf = async (mounting: () => Promise<MapEngineInstance>) => {
+    const { Map: MaplibreMap } = await import('maplibre-gl')
+    const made = vi.spyOn(MaplibreMap.prototype, 'getCanvas')
+    try {
+      instance = await mounting()
+      return {
+        engine: instance,
+        map: made.mock.contexts[0] as InstanceType<typeof MaplibreMap>
+      }
+    } finally {
+      made.mockRestore()
+    }
+  }
+
   it(
-    'gives an area its active look, and keeps it when the style loads again',
+    'gives an area its active look and takes it away, and keeps it when the style loads again',
     { timeout: 15_000 },
     async () => {
-      const { Map: MaplibreMap } = await import('maplibre-gl')
-      // The engine keeps its map to itself, so the spy hands it over.
-      const lit = vi.spyOn(MaplibreMap.prototype, 'setFeatureState')
-      try {
-        const engine = (instance = await mount(blankStyle))
-        engine.setAreas([
-          {
-            id: 'valley',
-            geometry: {
-              type: 'Polygon',
-              coordinates: [
-                [
-                  [153.03, -27.46],
-                  [153.04, -27.46],
-                  [153.04, -27.45],
-                  [153.03, -27.46]
-                ]
+      const { engine, map } = await mapOf(() => mount(blankStyle))
+      engine.setAreas([
+        {
+          id: 'valley',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [153.03, -27.46],
+                [153.04, -27.46],
+                [153.04, -27.45],
+                [153.03, -27.46]
               ]
-            },
-            fill: 'rgb(0, 0, 0)',
-            fillOpacity: 0.5,
-            line: 'rgb(0, 0, 0)'
-          }
+            ]
+          },
+          fill: 'rgb(0, 0, 0)',
+          fillOpacity: 0.5,
+          fillOpacityActive: 0.9,
+          line: 'rgb(0, 0, 0)',
+          lineWidthActive: 3
+        }
+      ])
+      // The area as the map draws it, with the look it has now.
+      const drawn = (layer: 'fill' | 'line') => {
+        const [area] = map.queryRenderedFeatures({
+          layers: [`roadie-areas-${layer}`]
+        })
+        const paint: Record<string, unknown> = area?.layer.paint ?? {}
+        return {
+          id: area?.id,
+          state: area?.state,
+          look: paint[layer === 'fill' ? 'fill-opacity' : 'line-width']
+        }
+      }
+
+      engine.setActiveAreas!(['valley'])
+      await vi.waitFor(() =>
+        expect(drawn('fill')).toEqual({
+          id: 'valley',
+          state: { active: true },
+          look: 0.9
+        })
+      )
+      expect(drawn('line').look).toBe(3)
+
+      const loaded = new Promise((resolve) => map.once('style.load', resolve))
+      map.setStyle(blankStyle, { diff: false })
+      await loaded
+      await vi.waitFor(() =>
+        expect(drawn('fill')).toEqual({
+          id: 'valley',
+          state: { active: true },
+          look: 0.9
+        })
+      )
+
+      engine.setActiveAreas!([])
+      expect(drawn('fill')).toEqual({
+        id: 'valley',
+        state: { active: false },
+        look: 0.5
+      })
+      // An area that gives no width has a 2px outline.
+      expect(drawn('line').look).toBe(2)
+    }
+  )
+
+  it(
+    'draws areas under the place names of a style of the app’s own',
+    { timeout: 15_000 },
+    async () => {
+      const { map } = await mapOf(() => mount(labelsStyle))
+
+      expect(map.getStyle().layers.map(({ id }) => id)).toEqual([
+        'background',
+        'roadie-areas-fill',
+        'roadie-areas-line',
+        'place-names'
+      ])
+    }
+  )
+
+  it(
+    'draws areas under the place names of Roadie’s own style',
+    { timeout: 15_000 },
+    async () => {
+      // Roadie's style asks OpenFreeMap for its tiles, which never answer
+      // here, so the suite stays off the network.
+      const request = globalThis.fetch
+      vi.stubGlobal('fetch', (...asked: Parameters<typeof fetch>) => {
+        const [resource] = asked
+        const url = resource instanceof Request ? resource.url : `${resource}`
+        return url.startsWith('https://tiles.openfreemap.org/')
+          ? new Promise<Response>(() => {})
+          : request(...asked)
+      })
+      try {
+        const { map } = await mapOf(() =>
+          maplibreEngine().mount(container, {
+            center: venue,
+            zoom: 14,
+            label: 'Map',
+            palette: testPalette
+          })
+        )
+
+        const { layers } = map.getStyle()
+        const labels = layers.findIndex(({ type }) => type === 'symbol')
+        expect(labels).toBeGreaterThan(2)
+        expect(layers.slice(labels - 2, labels).map(({ id }) => id)).toEqual([
+          'roadie-areas-fill',
+          'roadie-areas-line'
         ])
-        engine.setActiveAreas!(['valley'])
-        const map = lit.mock.contexts[0] as InstanceType<typeof MaplibreMap>
-        const state = () =>
-          map.getFeatureState({ source: 'roadie-areas', id: 'valley' })
-        expect(state()).toEqual({ active: true })
-
-        const loaded = new Promise((resolve) => map.once('style.load', resolve))
-        map.setStyle(blankStyle, { diff: false })
-        await loaded
-
-        expect(state()).toEqual({ active: true })
       } finally {
-        lit.mockRestore()
+        vi.unstubAllGlobals()
       }
     }
   )

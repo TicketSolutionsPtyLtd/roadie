@@ -197,6 +197,21 @@ export function MapRoot({
     []
   )
   const areas = useMemo(() => Object.values(areaSets).flat(), [areaSets])
+  const [activeSets, setActiveSets] = useState<
+    Record<string, readonly string[]>
+  >({})
+  const setActiveAreas = useCallback(
+    (id: string, active: readonly string[] | null) => {
+      setActiveSets(({ [id]: _old, ...others }) =>
+        active ? { ...others, [id]: active } : others
+      )
+    },
+    []
+  )
+  const activeAreas = useMemo(
+    () => Object.values(activeSets).flat(),
+    [activeSets]
+  )
   const [places, setPlaces] = useState<Record<string, LatLng>>({})
   const setPlace = useCallback((id: string, place: LatLng | null) => {
     setPlaces(({ [id]: _old, ...others }) =>
@@ -322,6 +337,7 @@ export function MapRoot({
       instance,
       frame: viewport,
       setArea,
+      setActiveAreas,
       setPlace,
       fitTo,
       canFit: content.length > 0,
@@ -337,6 +353,7 @@ export function MapRoot({
     [
       instance,
       setArea,
+      setActiveAreas,
       setPlace,
       fitTo,
       content.length,
@@ -400,6 +417,9 @@ export function MapRoot({
   useEffect(() => {
     instance?.setAreas(areas)
   }, [instance, areas])
+  useEffect(() => {
+    instance?.setActiveAreas?.(activeAreas)
+  }, [instance, activeAreas])
 
   useEffect(() => {
     const container = surface.current
@@ -529,14 +549,31 @@ const SAME_ZOOM = 1e-3
 // otherwise walk every point each time one changes.
 const cornersOf = new WeakMap<MapAreaLayer['geometry'], LatLng[]>()
 
-/** The south-west and north-east corners of an area's bounds, as places. */
+/**
+ * Places along an area's bounds, from its south-west corner to its
+ * north-east, no more than a quarter turn apart, so the bounds of them never
+ * run round the far side of a wide area.
+ */
 function areaCorners(geometry: MapAreaLayer['geometry']): LatLng[] {
   const known = cornersOf.get(geometry)
   if (known) return known
   const polygons =
     geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
-  const places = boundsOf(polygons.flat(2).map(([lng, lat]) => ({ lat, lng })))
-  const corners = places ? [places.southWest, places.northEast] : []
+  const bounds = boundsOf(polygons.flat(2).map(([lng, lat]) => ({ lat, lng })))
+  const corners: LatLng[] = []
+  if (bounds) {
+    const { southWest, northEast } = bounds
+    const width = northEast.lng - southWest.lng
+    const steps = Math.max(1, Math.ceil(width / 90))
+    for (let step = 0; step <= steps; step++) {
+      const lng = southWest.lng + (width * step) / steps
+      corners.push({
+        lat: step === 0 ? southWest.lat : northEast.lat,
+        // An area across the date line has its east counted on past 180.
+        lng: lng > 180 ? lng - 360 : lng
+      })
+    }
+  }
   cornersOf.set(geometry, corners)
   return corners
 }
