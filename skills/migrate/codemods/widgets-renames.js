@@ -1,12 +1,10 @@
 import {
   dynamicImports,
-  isLabel,
-  isReExportName,
   namespaceLocals,
   namespaceUses,
   print,
   readWhole,
-  readsImport,
+  renameReferences,
   reportDynamicImports,
   reportReExports,
   reporter
@@ -30,68 +28,6 @@ const RENAMED_EXPORTS = {
 
 function exactly(source) {
   return { test: (value) => value === source }
-}
-
-function isReference(path) {
-  if (path.node.type !== 'Identifier') return false
-  const parent = path.parent.node
-  if (parent.type === 'ImportSpecifier') return false
-  if (isReExportName(path)) return false
-  if (parent.type === 'ExportSpecifier' && parent.exported === path.node) {
-    return false
-  }
-  if (isLabel(parent, path.node)) return false
-  return true
-}
-
-// A re-export or shorthand key is a public name, so it keeps the old one.
-// Recast prints an edited shorthand node without its alias, so replace it.
-function keepPublicName(j, path, from, to, report) {
-  const parent = path.parent.node
-  if (parent.type === 'ExportSpecifier' && parent.local === path.node) {
-    if (parent.exported.name === from) {
-      report(
-        parent,
-        `export { ${from} } keeps the deprecated name as this module's public export. Rename it by hand once its importers move.`
-      )
-    }
-    path.parent.replace(
-      j.exportSpecifier.from({
-        local: j.identifier(to),
-        exported: j.identifier(parent.exported.name)
-      })
-    )
-    return true
-  }
-  if (
-    (parent.type === 'ObjectProperty' || parent.type === 'Property') &&
-    parent.shorthand
-  ) {
-    path.parent.replace(j.objectProperty(j.identifier(from), j.identifier(to)))
-    return true
-  }
-  return false
-}
-
-function renameReferences(j, root, from, to, report) {
-  root
-    .find(j.Identifier, { name: from })
-    .filter((path) => isReference(path) && readsImport(path, from))
-    .forEach((path) => {
-      if (!keepPublicName(j, path, from, to, report)) path.node.name = to
-    })
-  root.find(j.JSXIdentifier, { name: from }).forEach((path) => {
-    const parent = path.parent.node
-    if (parent.type === 'JSXAttribute') return
-    if (!readsImport(path, from)) return
-    if (
-      parent.type === 'JSXMemberExpression' &&
-      parent.property === path.node
-    ) {
-      return
-    }
-    path.node.name = to
-  })
 }
 
 export default function transform(file, api) {

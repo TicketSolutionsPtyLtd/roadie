@@ -130,20 +130,17 @@ function image(reading: Reading, element: Element): Node[] {
     reading.dropped.push(report('image', src))
     return []
   }
-  const href = element.getAttribute('href')
-  const linked = isEmailHref(href)
-  if (href && !linked) reading.dropped.push(report('link', href))
   const align = element.getAttribute('align')
   const width = /^(\d+)(?:px)?$/.exec(element.getAttribute('width') ?? '')?.[1]
-  return [
-    created(reading, 'img', {
-      src,
-      alt: element.getAttribute('alt') ?? '',
-      width,
-      'data-href': linked ? href : undefined,
-      'data-align': align === 'left' || align === 'right' ? align : undefined
-    })
-  ]
+  const img = created(reading, 'img', {
+    src,
+    alt: element.getAttribute('alt') ?? '',
+    width,
+    'data-align': align === 'left' || align === 'right' ? align : undefined
+  })
+  // Linked as HTML links an image, so a link variable's token reads alike.
+  const href = element.getAttribute('href')
+  return [href ? created(reading, 'a', { href }, [img]) : img]
 }
 
 function button(reading: Reading, element: Element) {
@@ -552,18 +549,18 @@ function isButtonTable(table: Element | null) {
 
 // A filled, padded shape: the link's own, or a bulletproof button's cell.
 // Padding alone is a nav link or a footer's.
-function looksLikeButton(link: Element, line: Element) {
+function buttonShape(link: Element, line: Element): Element | null {
   const style = styleOf(link)
   if ((PADDED.test(style) || INLINE_BLOCK.test(style)) && isFilled(link)) {
-    return true
+    return link
   }
   const isCell = ['td', 'th'].includes(tagOf(line))
-  return (
-    isCell &&
+  return isCell &&
     isFilled(line) &&
     PADDED.test(styleOf(line)) &&
     isButtonTable(line.closest('table'))
-  )
+    ? line
+    : null
 }
 
 function alignmentOf(line: Element) {
@@ -589,12 +586,14 @@ function htmlButtons(container: HTMLElement) {
     const variable = link.getAttribute('data-variable')
     if (!variable && !isEmailHref(href)) continue
     const line = lineHolding(link)
-    if (!line || !looksLikeButton(link, line)) continue
+    const shape = line && buttonShape(link, line)
+    if (!line || !shape) continue
     const button = link.ownerDocument.createElement('a')
     button.dataset.type = 'button'
     if (variable) button.dataset.variable = variable
     else button.setAttribute('href', href!)
-    const align = alignmentOf(line)
+    // A bulletproof cell's own alignment centres its label, not the button.
+    const align = alignmentOf(shape === link ? line : line.closest('table')!)
     if (align) button.dataset.align = align
     button.append(...link.childNodes)
     // A cell or column keeps its place in the layout.
@@ -643,6 +642,22 @@ function readTokens(
   return [...unknown]
 }
 
+// An image can't hold the link mark, so the link around it becomes its own,
+// as an MJML image's `href` does.
+function linkedImages(container: HTMLElement, dropped: DroppedContent[]) {
+  for (const image of container.querySelectorAll('a img')) {
+    const link = image.closest('a')!
+    const variable = link.getAttribute('data-variable')
+    // Trimmed, as a browser reads an href.
+    const href = link.getAttribute('href')?.trim() ?? null
+    if (!variable && href === null) continue
+    if (!isEmailImageSrc(absoluteSrc(image))) continue
+    if (variable) image.setAttribute('data-variable', variable)
+    else if (isEmailHref(href)) image.setAttribute('data-href', href)
+    else dropped.push(report('link', href))
+  }
+}
+
 /**
  * Reads an email's source, MJML or HTML, as a whole page or part of one, into
  * an email preset value, through `migrate`. MJML sections, columns, buttons,
@@ -650,7 +665,8 @@ function readTokens(
  * as HTML. In HTML, a filled or bordered link alone on its line, padded or
  * inline-block, or in a padded one-cell table, is a button; a row of two to
  * four cells of blocks whose widths share 100% is columns; and any other
- * layout table gives way to its text and images.
+ * layout table gives way to its text and images. A link around an image
+ * becomes the image's link.
  * Hidden text before any the email shows, or `mj-preview`, becomes the
  * preheader, and any other hidden text is dropped. Each token of a `variables`
  * entry becomes a merge tag, or a link variable as a link's or button's
@@ -687,12 +703,6 @@ export function importEmail(
     else if (text) dropped.push({ kind: 'hidden' })
     hidden.remove()
   }
-  // An HTML image block takes no link from around it, so that one is lost.
-  for (const image of container.querySelectorAll('a[href] img')) {
-    if (!isEmailImageSrc(absoluteSrc(image))) continue
-    const href = image.closest('a')!.getAttribute('href')
-    dropped.push(report('link', href))
-  }
   if (format === 'html') layoutColumns(container)
   const styled = container.matches(STYLED) ? 1 : 0
   const styles =
@@ -700,6 +710,7 @@ export function importEmail(
   const tables = outermost(container, 'table').length
   withoutOwnLook(container)
   const unknownMergeTags = readTokens(container, variables)
+  linkedImages(container, dropped)
   if (format === 'html') htmlButtons(container)
   // A button holds only an address a mail client opens, so any other is a
   // link on a line of its own, not run into the text beside it.

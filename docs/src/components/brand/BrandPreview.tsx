@@ -3,7 +3,7 @@ import { Image } from '@/components/Image'
 import { Logo } from '@oztix/roadie-components/logo'
 import { Mark } from '@oztix/roadie-components/mark'
 import { Pattern } from '@oztix/roadie-components/pattern'
-import { Hand, Heart } from '@oztix/roadie-components/spot-illustrations'
+import { Hand, Heart } from '@oztix/roadie-illustrations/spot'
 
 const HOUSE_INTENTS = [
   'intent-brand-blue',

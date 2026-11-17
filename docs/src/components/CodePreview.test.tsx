@@ -249,7 +249,7 @@ describe('CodePreview', () => {
 
     await act(async () => fireEvent.click(button))
 
-    await screen.findByText("We couldn't copy the code")
+    await screen.findByText('Couldn’t copy the code')
     screen.getByText('Select the code and copy it yourself.')
     expect(button.innerHTML).toBe(icon)
   })

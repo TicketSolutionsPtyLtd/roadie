@@ -408,7 +408,7 @@ describe('Stats align and size', () => {
 })
 
 describe('Stats panel', () => {
-  it('pads the figures inside a rounded panel within the page padding', async () => {
+  it('pads the figures inside a rounded panel within the page’s frame', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { container } = render(<Stats {...facts} emphasis='subtle' />)
     const section = container.querySelector('section')!.getBoundingClientRect()
