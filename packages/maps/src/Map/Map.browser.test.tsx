@@ -937,7 +937,13 @@ describe('Map full screen in the browser', () => {
       await userEvent.click(
         await screen.findByRole('button', { name: 'Venue details' })
       )
-      await screen.findByText('Doors at 7pm')
+      // The dialog takes focus a moment after its title shows. Until then
+      // focus is still on the button in the map, and Escape is the map's.
+      const title = await screen.findByText('Doors at 7pm')
+      const dialog = title.closest<HTMLElement>('[role="dialog"]')!
+      await waitFor(() =>
+        expect(dialog).toContainElement(document.activeElement as HTMLElement)
+      )
       await userEvent.keyboard('{Escape}')
       await waitFor(() =>
         expect(screen.queryByText('Doors at 7pm')).not.toBeInTheDocument()
