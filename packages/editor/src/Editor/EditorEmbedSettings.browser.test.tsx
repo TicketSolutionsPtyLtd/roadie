@@ -24,7 +24,7 @@ import {
   type EmbedProvider,
   defaultEmbedProviders
 } from '../schema'
-import { MOD, clickIntoEditor } from './testUtils'
+import { MOD, clickIntoEditor, enterEndingComposition } from './testUtils'
 
 const LABEL = 'Event page'
 const SPOTIFY = 'https://open.spotify.com/track/exampleTrack0000000001'
@@ -184,6 +184,27 @@ describe('Editor embed settings', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     expect(savedEmbed(onValueChange)).toMatchObject({ provider: 'spotify' })
+  })
+
+  it('stays open on the Enter that ends an IME composition', async () => {
+    const onValueChange = renderPage()
+    const dialog = await openSettings()
+    const field = within(dialog).getByRole('textbox', {
+      name: 'Video or audio link'
+    })
+    await userEvent.clear(field)
+    await userEvent.type(field, SPOTIFY)
+    await waitFor(() =>
+      expect(savedEmbed(onValueChange)).toMatchObject({ provider: 'spotify' })
+    )
+    // Closing keeps the change as one undo step, which writes the value again.
+    const changes = onValueChange.mock.calls.length
+
+    enterEndingComposition(field)
+
+    expect(onValueChange).toHaveBeenCalledTimes(changes)
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
 
   it('puts the player back once what’s typed stops embedding', async () => {

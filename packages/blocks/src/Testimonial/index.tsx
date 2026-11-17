@@ -74,9 +74,9 @@ export type TestimonialProps = {
   actions?: readonly BlockAction[]
   /** The block's intent: it tints the quote mark, the portrait's border, and highlighted words. Info for the quote mark and portrait without one. */
   intent?: BlockIntent
-  /** The surface behind the whole block: a band, full width and rounded once the block is wide, or a panel with `contained`. None by default. */
+  /** The surface behind the whole block: a band across the window, or a panel with `contained`. None by default. */
   emphasis?: BlockEmphasis
-  /** Draws the `emphasis` or `image` as a panel inside the page padding instead of a band. Read only when there's an `emphasis` or `image`. */
+  /** Draws the `emphasis` or `image` as a rounded panel within the page's frame, in line with the hero, instead of a band across the window. Read only when there's an `emphasis` or `image`. */
   contained?: boolean
   /**
    * The heading's, quote's and citation's alignment.

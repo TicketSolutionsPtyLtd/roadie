@@ -209,6 +209,46 @@ describe('importEmail from MJML', () => {
     ])
   })
 
+  it('reads an image’s link to a link variable’s token as that variable', () => {
+    const imported = importEmail(
+      mjml(
+        '<mj-section><mj-column><mj-image src="https://cdn.oztix.com.au/a.jpg" href="{{ unsubscribe_url }}" /></mj-column></mj-section>'
+      ),
+      { variables }
+    )
+
+    expect(imported.dropped).toEqual([])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/a.jpg',
+          alt: '',
+          width: null,
+          variable: 'unsubscribe_url'
+        }
+      }
+    ])
+  })
+
+  it('reports an image’s link an email can’t open once, keeping the image', () => {
+    const imported = importEmail(
+      mjml(
+        '<mj-section><mj-column><mj-image src="https://cdn.oztix.com.au/a.jpg" href="javascript:alert(1)" /></mj-column></mj-section>'
+      )
+    )
+
+    expect(imported.dropped).toEqual([
+      { kind: 'link', src: 'javascript:alert(1)' }
+    ])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: { src: 'https://cdn.oztix.com.au/a.jpg', alt: '', width: null }
+      }
+    ])
+  })
+
   it('reads a protocol-relative image as https, as HTML does', () => {
     const imported = importEmail(
       mjml(
@@ -492,34 +532,83 @@ describe('importEmail from HTML', () => {
     ])
   })
 
-  it('reports a link around an image, keeping the image', () => {
+  it.each([
+    ['an image', 'https://cdn.oztix.com.au/hero.jpg'],
+    ['a protocol-relative image', '//cdn.oztix.com.au/hero.jpg']
+  ])('keeps a link around %s as its link', (_, src) => {
     const imported = importEmail(
-      '<a href="https://www.oztix.com.au"><img src="https://cdn.oztix.com.au/hero.jpg" alt="Hero"></a>'
+      `<a href="https://www.oztix.com.au"><img src="${src}" alt="Hero"></a>`
     )
 
-    expect(imported.dropped).toEqual([
-      { kind: 'link', src: 'https://www.oztix.com.au' }
-    ])
+    expect(imported.dropped).toEqual([])
     expect(imported.value.doc.content).toEqual([
       {
         type: 'image',
         attrs: {
           src: 'https://cdn.oztix.com.au/hero.jpg',
           alt: 'Hero',
-          width: null
+          width: null,
+          href: 'https://www.oztix.com.au'
         }
       }
     ])
   })
 
-  it('reports a link around a protocol-relative image it keeps', () => {
+  it('keeps a link around an image with spaces around its address', () => {
     const imported = importEmail(
-      '<a href="https://www.oztix.com.au"><img src="//cdn.oztix.com.au/hero.jpg" alt=""></a>'
+      '<a href=" https://www.oztix.com.au "><img src="https://cdn.oztix.com.au/hero.jpg" alt=""></a>'
+    )
+
+    expect(imported.dropped).toEqual([])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/hero.jpg',
+          alt: '',
+          width: null,
+          href: 'https://www.oztix.com.au'
+        }
+      }
+    ])
+  })
+
+  it('reports only the image when it drops a linked image', () => {
+    const imported = importEmail(
+      '<p>Doors</p><a href="/tickets"><img src="http://cdn.oztix.com.au/old.jpg" alt=""></a>'
     )
 
     expect(imported.dropped).toEqual([
-      { kind: 'link', src: 'https://www.oztix.com.au' }
+      { kind: 'image', src: 'http://cdn.oztix.com.au/old.jpg' }
     ])
+  })
+
+  it('keeps a link variable around an image as its link', () => {
+    const imported = importEmail(
+      '<a href="{{ unsubscribe_url }}"><img src="https://cdn.oztix.com.au/hero.jpg" alt=""></a>',
+      { variables }
+    )
+
+    expect(imported.dropped).toEqual([])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/hero.jpg',
+          alt: '',
+          width: null,
+          variable: 'unsubscribe_url'
+        }
+      }
+    ])
+  })
+
+  it('reports a link around an image that an email can’t open, keeping the image', () => {
+    const imported = importEmail(
+      '<a href="/tickets"><img src="https://cdn.oztix.com.au/hero.jpg" alt=""></a>'
+    )
+
+    expect(imported.dropped).toEqual([{ kind: 'link', src: '/tickets' }])
     expect(imported.value.doc.content).toEqual([
       {
         type: 'image',
@@ -636,7 +725,7 @@ describe('importEmail reads an HTML email’s buttons', () => {
     ).toBe(false)
   })
 
-  it('keeps a linked image an image', () => {
+  it('keeps a linked image an image, with its link', () => {
     expect(
       blocks(
         '<p><a href="https://www.oztix.com.au" style="display:inline-block;background:#000"><img src="https://cdn.oztix.com.au/logo.png" alt="Oztix"></a></p>'
@@ -647,7 +736,8 @@ describe('importEmail reads an HTML email’s buttons', () => {
         attrs: {
           src: 'https://cdn.oztix.com.au/logo.png',
           alt: 'Oztix',
-          width: null
+          width: null,
+          href: 'https://www.oztix.com.au'
         }
       }
     ])
@@ -660,6 +750,20 @@ describe('importEmail reads an HTML email’s buttons', () => {
       )
     ).toEqual([buttonOf({ align: 'center' })])
   })
+
+  it.each([
+    ['align', 'align="center" style="padding:12px 24px"'],
+    ['text-align', 'style="padding:12px 24px;text-align:center"']
+  ])(
+    'places a bulletproof button by its table, not by its label’s %s',
+    (_, cellAttrs) => {
+      expect(
+        blocks(
+          `<table width="100%"><tr><td align="left"><table><tr><td ${cellAttrs} bgcolor="#5f270f"><a href="${TICKETS}">Get tickets</a></td></tr></table></td></tr></table>`
+        )
+      ).toEqual([buttonOf()])
+    }
+  )
 
   it.each([
     ['after a paragraph', ''],

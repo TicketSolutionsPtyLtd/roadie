@@ -157,5 +157,6 @@ minutes to show a large package's new version (components 2.16.0 took about
 treating a missing version as a failed publish. Wait in the background, never
 in the foreground (a Roadie hook denies `sleep` over 10 seconds): end your
 turn and check again later, or run
-`until npm view <pkg>@<version> version; do sleep 30; done` with
-`run_in_background`, which wakes you when it exits.
+`for i in $(seq 40); do npm view <pkg>@<version> version && break; sleep 30; done`
+with `run_in_background`, which wakes you when the version shows or after 20
+minutes, and treat no version printed by then as a failed publish.

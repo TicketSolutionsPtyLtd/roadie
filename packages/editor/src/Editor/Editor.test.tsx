@@ -2,7 +2,8 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Editor, type EditorProps } from '.'
-import type { EditorValue } from '../schema'
+import type { EditorSection } from '../extensions'
+import type { EditorValue, JSONContent } from '../schema'
 
 // Any of these loading means the server pays for Tiptap, so each throws.
 vi.mock('@tiptap/core', () => {
@@ -16,6 +17,19 @@ vi.mock('@tiptap/starter-kit', () => {
 })
 vi.mock('@tiptap/extensions', () => {
   throw new Error('@tiptap/extensions loaded with the editor shell')
+})
+
+const callToAction: EditorSection = {
+  name: 'callToAction',
+  label: 'Call to action',
+  attrs: { label: 'Get tickets' },
+  render: () => null
+}
+
+const page = (content: JSONContent[]): EditorValue => ({
+  version: 1,
+  preset: 'blocks',
+  doc: { type: 'doc', content }
 })
 
 describe('Editor on the server', () => {
@@ -96,6 +110,45 @@ describe('Editor on the server', () => {
               type: 'paragraph',
               content: [{ type: 'text', marks: [], text: 'Lineup' }]
             }
+          ]
+        }
+      }
+    ],
+    [
+      'a page’s sections',
+      {
+        sections: [callToAction],
+        value: page([{ type: 'callToAction', attrs: { label: 'Get tickets' } }])
+      },
+      page([{ type: 'callToAction', attrs: { label: 'Get tickets' } }])
+    ],
+    [
+      'a section named as a preset’s own node, read as that node',
+      {
+        sections: [{ ...callToAction, name: 'horizontalRule' }],
+        value: page([
+          { type: 'horizontalRule', attrs: { label: 'Get tickets' } }
+        ])
+      },
+      page([{ type: 'horizontalRule' }])
+    ],
+    [
+      'no sections in a preset that doesn’t take them',
+      {
+        preset: 'rich',
+        sections: [callToAction],
+        value: page([
+          { type: 'callToAction', attrs: { label: 'Get tickets' } },
+          { type: 'paragraph', content: [{ type: 'text', text: 'Lineup' }] }
+        ])
+      },
+      {
+        version: 1,
+        preset: 'rich',
+        doc: {
+          type: 'doc',
+          content: [
+            { type: 'paragraph', content: [{ type: 'text', text: 'Lineup' }] }
           ]
         }
       }

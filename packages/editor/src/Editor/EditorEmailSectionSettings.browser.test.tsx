@@ -162,6 +162,51 @@ describe('Editor email section settings', () => {
     expect(await screen.findByText('Only when Tickets left < 50')).toBeVisible()
   })
 
+  it('shows who a section is for again after Undo in its settings', async () => {
+    const onValueChange = renderEmail(email(section()))
+    const drawer = await openSettings()
+    const showTo = within(drawer).getByRole('combobox', { name: 'Show to' })
+    await userEvent.click(showTo)
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Tickets left' })
+    )
+    await waitFor(() =>
+      expect(savedSection(onValueChange).attrs).toEqual({
+        showWhen: { key: 'tickets_left', op: 'exists' }
+      })
+    )
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(savedSection(onValueChange).attrs).toBeUndefined()
+    )
+    expect(showTo).toHaveTextContent('Everyone')
+    expect(within(drawer).queryByRole('combobox', { name: 'When' })).toBe(null)
+  })
+
+  it('keeps a pasted number that’s still being typed, such as 5.', async () => {
+    const onValueChange = renderEmail(
+      email(
+        section({
+          showWhen: { key: 'tickets_left', op: 'lessThan', value: 50 }
+        })
+      )
+    )
+    const drawer = await openSettings()
+    const value = within(drawer).getByRole('textbox', { name: 'Value' })
+
+    await userEvent.fill(value, '5.')
+    await userEvent.keyboard('{End}5')
+
+    await waitFor(() =>
+      expect(savedSection(onValueChange).attrs).toEqual({
+        showWhen: { key: 'tickets_left', op: 'lessThan', value: 5.5 }
+      })
+    )
+    expect(value).toHaveValue('5.5')
+  })
+
   it('badges a section that loads with a rule, and takes it off for everyone', async () => {
     const onValueChange = renderEmail(
       email(section({ showWhen: { key: 'tickets_left', op: 'exists' } }))
@@ -416,6 +461,110 @@ describe('Editor email section settings', () => {
 
     const drawer = await openSettings()
 
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-type="section"]')!.getBoundingClientRect()
+          .right
+      ).toBeLessThanOrEqual(drawer.getBoundingClientRect().left)
+    )
+  })
+
+  it('keeps the editor’s own end padding as well as the room it makes', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        className='pe-8'
+        variables={variables}
+        defaultValue={email(section())}
+      />
+    )
+    const root = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).closest<HTMLElement>('[data-slot="editor"]')!
+    const drawer = await openSettings()
+
+    // The editor's 32px, then the drawer's 16px gap.
+    await waitFor(() => {
+      const end =
+        root.getBoundingClientRect().right -
+        parseFloat(getComputedStyle(root).paddingRight)
+      expect(end).toBeLessThanOrEqual(drawer.getBoundingClientRect().left - 47)
+    })
+  })
+
+  it('makes room for the wider of it and the Blocks drawer, not both', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        toolbar='docked'
+        variables={variables}
+        defaultValue={email(
+          { type: 'paragraph', content: [{ type: 'text', text: 'Doors 7pm' }] },
+          section()
+        )}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const root = textbox.closest<HTMLElement>('[data-slot="editor"]')!
+    const contentEnd = () =>
+      root.getBoundingClientRect().right -
+      parseFloat(getComputedStyle(root).paddingRight)
+    await clickIntoEditor(within(textbox).getByText('Doors 7pm'))
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    await userEvent.click(within(bar).getByRole('button', { name: 'Blocks' }))
+    const blocks = await screen.findByRole('dialog', { name: 'Blocks' })
+
+    await userEvent.hover(within(textbox).getByText('Gates 6pm'))
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Block actions' })
+    )
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Select section' })
+    )
+    await waitFor(() =>
+      expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Settings')
+    )
+    await userEvent.click(screen.getAllByRole('menuitem')[0]!)
+    const settings = await screen.findByRole('dialog', {
+      name: 'Section settings'
+    })
+
+    // Its 16px gap, and no more.
+    await waitFor(() =>
+      expect(contentEnd()).toBeCloseTo(
+        Math.min(
+          settings.getBoundingClientRect().left - 16,
+          blocks.getBoundingClientRect().left
+        ),
+        0
+      )
+    )
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryAllByRole('dialog')).toHaveLength(1))
+    await waitFor(() =>
+      expect(contentEnd()).toBeCloseTo(blocks.getBoundingClientRect().left, 0)
+    )
+  })
+
+  it('gives up the room beside it below 1280px wide, and makes it again above', async () => {
+    await page.viewport(1280, 800)
+    onTestFinished(() => page.viewport(1280, 800))
+    renderEmail(email(section()))
+    const root = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).closest<HTMLElement>('[data-slot="editor"]')!
+    const drawer = await openSettings()
+    await waitFor(() => expect(root.style.paddingRight).not.toBe(''))
+
+    // As it opens there, with no room made.
+    await page.viewport(1100, 800)
+    await waitFor(() => expect(root.style.paddingRight).toBe(''))
+
+    await page.viewport(1280, 800)
     await waitFor(() =>
       expect(
         document.querySelector('[data-type="section"]')!.getBoundingClientRect()
