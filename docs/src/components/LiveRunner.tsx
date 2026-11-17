@@ -242,6 +242,8 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 // Where the docs serve the package's thumbnails, as an app would.
 const blockThumbnailUrl = (file: string) =>
   `${BASE_PATH}/blocks/thumbnails/${file}`
+// Where the docs serve the map examples' boundaries and invented sales.
+const mapDataUrl = (file: string) => `${BASE_PATH}/maps/${file}`
 // MJML loads only once an example previews an email, in the browser.
 const renderEmail: typeof RenderEmail = async (...args) =>
   (await import('@oztix/roadie-editor/email')).renderEmail(...args)
@@ -262,6 +264,7 @@ const scope = {
   BlocksProvider,
   catalogueSections,
   blockThumbnailUrl,
+  mapDataUrl,
   Hero,
   RichText,
   Cards,

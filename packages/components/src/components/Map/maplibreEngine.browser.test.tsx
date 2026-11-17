@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { MapEngineInstance } from './engine'
 import blankStyle from './fixtures/blank-style.json?url'
@@ -32,6 +32,51 @@ describe('maplibreEngine', () => {
       container,
       { center: venue, zoom: 14, label: 'Map', palette: testPalette }
     )
+
+  it(
+    'gives an area its active look, and keeps it when the style loads again',
+    { timeout: 15_000 },
+    async () => {
+      const { Map: MaplibreMap } = await import('maplibre-gl')
+      // The engine keeps its map to itself, so the spy hands it over.
+      const lit = vi.spyOn(MaplibreMap.prototype, 'setFeatureState')
+      try {
+        const engine = (instance = await mount(blankStyle))
+        engine.setAreas([
+          {
+            id: 'valley',
+            geometry: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [153.03, -27.46],
+                  [153.04, -27.46],
+                  [153.04, -27.45],
+                  [153.03, -27.46]
+                ]
+              ]
+            },
+            fill: 'rgb(0, 0, 0)',
+            fillOpacity: 0.5,
+            line: 'rgb(0, 0, 0)'
+          }
+        ])
+        engine.setActiveAreas!(['valley'])
+        const map = lit.mock.contexts[0] as InstanceType<typeof MaplibreMap>
+        const state = () =>
+          map.getFeatureState({ source: 'roadie-areas', id: 'valley' })
+        expect(state()).toEqual({ active: true })
+
+        const loaded = new Promise((resolve) => map.once('style.load', resolve))
+        map.setStyle(blankStyle, { diff: false })
+        await loaded
+
+        expect(state()).toEqual({ active: true })
+      } finally {
+        lit.mockRestore()
+      }
+    }
+  )
 
   // Ready means drivable: the style is in. Tiles arrive when they arrive,
   // and waiting on them also waits on a rendered frame, which an idle page
