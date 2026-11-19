@@ -16,7 +16,8 @@ Sortable.Handle = SortableHandle
 export { Sortable }
 export type {
   SortableRootProps as SortableProps,
-  SortableMove
+  SortableMove,
+  SortableTransfer
 } from './SortableRoot'
 export type { SortableItemProps } from './SortableItem'
 export type { SortableHandleProps } from './SortableHandle'

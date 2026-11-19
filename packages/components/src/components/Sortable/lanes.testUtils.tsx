@@ -1,0 +1,69 @@
+import { useState } from 'react'
+
+import { screen } from '@testing-library/react'
+
+import { Sortable, type SortableProps, type SortableTransfer } from '.'
+import { List } from '../List'
+
+export type Transfer = (transfer: SortableTransfer) => void
+type Lists = Record<string, string[]>
+
+export function Lanes({
+  initial = { todo: ['Date', 'Event'], done: ['SKU'] },
+  onTransfer,
+  canDrop,
+  done
+}: {
+  initial?: Lists
+  onTransfer?: Transfer
+  canDrop?: SortableProps['canDrop']
+  done?: Partial<Pick<SortableProps, 'disabled' | 'onTransfer'>>
+}) {
+  const [lists, setLists] = useState(initial)
+  return (
+    <div className='grid grid-cols-2 gap-4'>
+      {Object.entries(lists).map(([list, items]) => (
+        <Sortable
+          key={list}
+          group='lanes'
+          value={list}
+          label={list}
+          items={items}
+          onReorder={(next) => setLists((all) => ({ ...all, [list]: next }))}
+          onTransfer={(transfer) => {
+            setLists((all) => applyTransfer(all, transfer))
+            onTransfer?.(transfer)
+          }}
+          canDrop={list === 'done' ? canDrop : undefined}
+          {...(list === 'done' ? done : undefined)}
+        >
+          <div data-testid={list}>
+            <List>
+              {items.map((value) => (
+                <List.Item key={value} value={value} title={value} />
+              ))}
+            </List>
+          </div>
+        </Sortable>
+      ))}
+    </div>
+  )
+}
+
+function applyTransfer(
+  lists: Lists,
+  { value, from, to, index }: SortableTransfer
+) {
+  const target = lists[to]!.filter((item) => item !== value)
+  target.splice(index, 0, value)
+  return {
+    ...lists,
+    [from]: lists[from]!.filter((item) => item !== value),
+    [to]: target
+  }
+}
+
+export const listed = (list: string) =>
+  Array.from(
+    screen.getByTestId(list).querySelectorAll('[data-slot="sortable-item"]')
+  ).map((element) => element.textContent)

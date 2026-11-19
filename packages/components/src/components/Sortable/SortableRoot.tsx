@@ -4,13 +4,19 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useDirection } from '@base-ui/react/direction-provider'
 
+import { useDevWarning } from '../../utils/useDevWarning'
 import {
   SortableRootContext,
   type SortableRootContextValue
 } from './SortableContext'
 import { SortableHandle } from './SortableHandle'
 import { SortableItem } from './SortableItem'
-import { type SortableDrop, createSortableGroup, sortableMonitor } from './dnd'
+import {
+  type SortableDrop,
+  type SortableSource,
+  createSortableGroup,
+  sortableMonitor
+} from './dnd'
 import { dropIndex, moveAnnouncement, moveItem } from './order'
 
 export type SortableMove = {
@@ -20,6 +26,17 @@ export type SortableMove = {
   from: number
   /** Its index after the move. */
   to: number
+}
+
+export type SortableTransfer = {
+  /** The moved item's value. */
+  value: string
+  /** The `value` of the list it left. */
+  from: string
+  /** The `value` of the list it joins. */
+  to: string
+  /** Its index in that list. */
+  index: number
 }
 
 export type SortableRootProps = {
@@ -33,44 +50,82 @@ export type SortableRootProps = {
   disabled?: boolean
   /** Names the collection in announcements, as in "SKU moved to position 3 of 7 columns". */
   label?: string
+  /** Connects lists: roots that share a `group` take each other's items by drag. Needs `value`. */
+  group?: string
+  /** Identifies this list in its `group`, as the transfer's `from` and `to`. */
+  value?: string
+  /** Called on the list an item from another list in its group is dropped into. Without it, the list takes no items from others. */
+  onTransfer?: (transfer: SortableTransfer) => void
+  /** Return false to refuse an item from another list. Called while it is dragged over this one. */
+  canDrop?: (item: Pick<SortableTransfer, 'value' | 'from'>) => boolean
   children?: ReactNode
 }
 
-/** Drag-to-reorder for a run of `Sortable.Item`s, with a Move menu on each handle. */
+/**
+ * Drag-to-reorder for a run of `Sortable.Item`s, with a Move menu on each
+ * handle. Roots that share a `group` also drag items between each other.
+ */
 export function SortableRoot({
   items,
   onReorder,
   orientation: axis = 'vertical',
   disabled = false,
   label,
+  group: shared,
+  value: list,
+  onTransfer,
+  canDrop,
   children
 }: SortableRootProps) {
   const dir = useDirection()
-  const [group] = useState(createSortableGroup)
+  const [locked] = useState(() => new Set<string>())
+  const group = useMemo(
+    () => createSortableGroup(shared, list, locked),
+    [shared, list, locked]
+  )
   const [announcement, setAnnouncement] = useState('')
-  const latest = useRef({ items, onReorder, axis, dir, label })
+  const props = {
+    items,
+    onReorder,
+    axis,
+    dir,
+    label,
+    disabled,
+    list,
+    onTransfer,
+    canDrop
+  }
+  const latest = useRef(props)
 
   useEffect(() => {
-    latest.current = { items, onReorder, axis, dir, label }
+    latest.current = props
   })
+
+  useDevWarning(
+    shared !== undefined &&
+      list === undefined &&
+      `Roadie: a Sortable in the "${shared}" group needs a value, or it can't take items from other lists.`
+  )
 
   // Stable, so a re-render mid-drag never tears down the monitor.
   const [actions] = useState(() => {
     const names = new Map<string, string | undefined>()
-    const locked = new Set<string>()
     let focusTarget: string | null = null
     let frame = 0
     function move(itemValue: string, to: number, focus: boolean) {
-      const { items, onReorder, label } = latest.current
+      const { items, onReorder } = latest.current
       const from = items.indexOf(itemValue)
       if (from === -1 || from === to || to < 0 || to >= items.length) return
       focusTarget = focus ? itemValue : null
       onReorder(moveItem(items, from, to), { value: itemValue, from, to })
+      announce(names.get(itemValue), to, items.length)
+    }
+    function announce(name: string | undefined, to: number, total: number) {
       const text = moveAnnouncement({
-        name: names.get(itemValue),
+        name,
         to,
-        total: items.length,
-        collection: label
+        total,
+        collection: latest.current.label
       })
       // Emptied first, so the same message twice is still read twice. The
       // focus claim lapses with it, in case the move was never applied.
@@ -81,22 +136,41 @@ export function SortableRoot({
         setAnnouncement(text)
       })
     }
-    function drop({ value: dragged, target, edge }: SortableDrop) {
+    function transferFrom(source: SortableSource) {
+      const { disabled, list, onTransfer, canDrop } = latest.current
+      if (disabled || !onTransfer || list === undefined) return null
+      if (source.list === undefined) return null
+      const item = { value: source.value, from: source.list }
+      return (canDrop?.(item) ?? true)
+        ? { ...item, to: list, onTransfer }
+        : null
+    }
+    function accepts(source: SortableSource) {
+      return source.sameList || transferFrom(source) !== null
+    }
+    function drop({ source, target, edge }: SortableDrop) {
       // An item disabled mid-drag loses its draggable, but the drag in flight still lands here.
-      if (locked.has(dragged)) return
+      if (source.locked) return
       const { items, axis, dir } = latest.current
+      const from = source.sameList ? items.indexOf(source.value) : -1
       const to = dropIndex({
-        from: items.indexOf(dragged),
+        from,
         target: items.indexOf(target),
         edge,
         axis,
         dir
       })
-      move(dragged, to, false)
+      if (source.sameList) return move(source.value, to, false)
+      const transfer = transferFrom(source)
+      if (!transfer) return
+      const { onTransfer, ...item } = transfer
+      onTransfer({ ...item, index: to })
+      announce(source.label, to, items.length + 1)
     }
     return {
       move,
       drop,
+      accepts,
       nameItem: (itemValue: string, name: string | undefined) => {
         names.set(itemValue, name)
         return () => {
@@ -125,6 +199,7 @@ export function SortableRoot({
       disabled,
       group,
       move: actions.move,
+      accepts: actions.accepts,
       nameItem: actions.nameItem,
       lockItem: actions.lockItem,
       takeFocus: actions.takeFocus,

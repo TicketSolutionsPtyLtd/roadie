@@ -18,27 +18,74 @@ import {
 
 import type { SortableAxis, SortableEdge } from '../order'
 
-/** Ties items to one sortable, so a drag never lands in another. */
-export type SortableGroup = object
+/**
+ * Ties items to their list, and lists that share a group to each other, so a
+ * drag never lands in a list outside its group.
+ */
+export type SortableGroup = {
+  shared: object | string
+  /** Holds the items its list has disabled, which other lists read too. */
+  list: { locked: ReadonlySet<string> }
+  value?: string
+}
 
 type Cleanup = () => void
 
 const GROUP = 'roadieSortableGroup'
+const LIST = 'roadieSortableList'
+const LIST_VALUE = 'roadieSortableListValue'
 const VALUE = 'roadieSortableValue'
+const LABEL = 'roadieSortableLabel'
 
 type Payload = Record<string | symbol, unknown>
 
-const inGroup = (data: Payload, group: SortableGroup) => data[GROUP] === group
+/** The dragged item, as a list sees it. */
+export type SortableSource = {
+  value: string
+  label?: string
+  /** The value of the list it comes from. */
+  list?: string
+  sameList: boolean
+  /** Disabled since the drag began, so its drop is ignored. */
+  locked?: boolean
+}
+
+const inGroup = (data: Payload, group: SortableGroup) =>
+  data[GROUP] === group.shared
+
+const sourceOf = (data: Payload, group: SortableGroup): SortableSource => ({
+  value: data[VALUE] as string,
+  label: data[LABEL] as string | undefined,
+  list: data[LIST_VALUE] as string | undefined,
+  sameList: data[LIST] === group.list,
+  locked: (data[LIST] as SortableGroup['list']).locked.has(
+    data[VALUE] as string
+  )
+})
 
 const edgesFor = (axis: SortableAxis): Edge[] =>
   axis === 'vertical' ? ['top', 'bottom'] : ['left', 'right']
 
-export function createSortableGroup(): SortableGroup {
-  return {}
+export function createSortableGroup(
+  shared?: string,
+  value?: string,
+  locked: ReadonlySet<string> = new Set()
+): SortableGroup {
+  return { shared: shared ?? {}, list: { locked }, value }
 }
 
-export function sortableItemData(group: SortableGroup, value: string): Payload {
-  return { [GROUP]: group, [VALUE]: value }
+export function sortableItemData(
+  group: SortableGroup,
+  value: string,
+  label?: string
+): Payload {
+  return {
+    [GROUP]: group.shared,
+    [LIST]: group.list,
+    [LIST_VALUE]: group.value,
+    [VALUE]: value,
+    [LABEL]: label
+  }
 }
 
 export type SortableDropTargetOptions = {
@@ -48,7 +95,9 @@ export type SortableDropTargetOptions = {
   axis: SortableAxis
   onDropEdgeChange: (edge: SortableEdge | null) => void
   /** False hides an edge whose drop would leave the order as it is. */
-  movesTo: (source: string, edge: SortableEdge) => boolean
+  movesTo: (source: SortableSource, edge: SortableEdge) => boolean
+  /** False refuses an item, such as one from a list this one turns down. */
+  accepts: (source: SortableSource) => boolean
 }
 
 /** Takes drops from the group's items, whether or not this one can drag. */
@@ -58,7 +107,8 @@ export function sortableDropTarget({
   value,
   axis,
   onDropEdgeChange,
-  movesTo
+  movesTo,
+  accepts
 }: SortableDropTargetOptions): Cleanup {
   const data = sortableItemData(group, value)
   const showEdge = ({
@@ -69,14 +119,17 @@ export function sortableDropTarget({
     source: { data: Payload }
   }) => {
     const edge = extractClosestEdge(self.data)
-    const sourceValue = source.data[VALUE] as string
+    const from = sourceOf(source.data, group)
     onDropEdgeChange(
-      edge && sourceValue !== value && movesTo(sourceValue, edge) ? edge : null
+      edge && (!from.sameList || from.value !== value) && movesTo(from, edge)
+        ? edge
+        : null
     )
   }
   return dropTargetForElements({
     element,
-    canDrop: ({ source }) => inGroup(source.data, group),
+    canDrop: ({ source }) =>
+      inGroup(source.data, group) && accepts(sourceOf(source.data, group)),
     getData: ({ input }) =>
       attachClosestEdge(data, { input, element, allowedEdges: edgesFor(axis) }),
     onDragEnter: showEdge,
@@ -91,6 +144,7 @@ export type SortableDraggableOptions = {
   handle: HTMLElement
   group: SortableGroup
   value: string
+  label?: string
   onDraggingChange: (dragging: boolean) => void
 }
 
@@ -100,9 +154,10 @@ export function sortableDraggable({
   handle,
   group,
   value,
+  label,
   onDraggingChange
 }: SortableDraggableOptions): Cleanup {
-  const data = sortableItemData(group, value)
+  const data = sortableItemData(group, value, label)
   return draggable({
     element,
     dragHandle: handle,
@@ -112,7 +167,11 @@ export function sortableDraggable({
   })
 }
 
-export type SortableDrop = { value: string; target: string; edge: SortableEdge }
+export type SortableDrop = {
+  source: SortableSource
+  target: string
+  edge: SortableEdge
+}
 
 export type SortableMonitorOptions = {
   group: SortableGroup
@@ -132,6 +191,8 @@ export function sortableMonitor({
     monitorForElements({
       canMonitor: ({ source }) => inGroup(source.data, group),
       onDragStart: ({ source }) => {
+        // Every list in a shared group sees the drag; one scrolls for it.
+        if (!sourceOf(source.data, group).sameList) return
         stopScrolling = autoScrollAncestors(source.element, group, axis)
         onDragStart?.()
       },
@@ -150,8 +211,9 @@ export function sortableMonitor({
 }
 
 /**
- * The drop for this group. Targets run innermost first, and the innermost can
- * belong to another drag feature or a nested Sortable, so it may not be ours.
+ * The drop for this list. Targets run innermost first, and the innermost can
+ * belong to another drag feature, a nested Sortable or another list in the
+ * group, so it may not be ours.
  */
 export function sortableDropFrom(
   targets: readonly { data: Payload }[],
@@ -159,10 +221,11 @@ export function sortableDropFrom(
   group: SortableGroup
 ): SortableDrop | null {
   const target = targets.find(({ data }) => inGroup(data, group))
-  const edge = target ? extractClosestEdge(target.data) : null
-  if (!target || !edge) return null
+  if (!target || target.data[LIST] !== group.list) return null
+  const edge = extractClosestEdge(target.data)
+  if (!edge) return null
   return {
-    value: source.data[VALUE] as string,
+    source: sourceOf(source.data, group),
     target: target.data[VALUE] as string,
     edge
   }

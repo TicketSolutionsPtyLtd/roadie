@@ -231,11 +231,25 @@ describe('Sortable disabled items', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { rerender } = render(view([]))
     await waitFor(() => expect(dnd.sortableMonitor).toHaveBeenCalled())
-    const { onDrop } = vi.mocked(dnd.sortableMonitor).mock.calls[0]![0]
+    const { onDrop, group } = vi.mocked(dnd.sortableMonitor).mock.calls[0]![0]
     rerender(view(['A']))
-    act(() => onDrop({ value: 'A', target: 'B', edge: 'bottom' }))
+    const locked = group.list.locked.has('A')
+    expect(locked).toBe(true)
+    act(() =>
+      onDrop({
+        source: { value: 'A', sameList: true, locked },
+        target: 'B',
+        edge: 'bottom'
+      })
+    )
     expect(onReorder).not.toHaveBeenCalled()
-    act(() => onDrop({ value: 'B', target: 'A', edge: 'top' }))
+    act(() =>
+      onDrop({
+        source: { value: 'B', sameList: true },
+        target: 'A',
+        edge: 'top'
+      })
+    )
     expect(onReorder).toHaveBeenCalledWith(['B', 'A'], {
       value: 'B',
       from: 1,
@@ -248,6 +262,47 @@ describe('Sortable disabled items', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(view([]))
     expect(screen.getByRole('button', { name: 'Reorder Z' })).toBeDisabled()
+    warn.mockRestore()
+  })
+})
+
+describe('Sortable connected lists', () => {
+  it('ignores an item its own list disabled mid-drag', async () => {
+    vi.mocked(dnd.sortableMonitor).mockClear()
+    const onTransfer = vi.fn()
+    render(
+      <Sortable
+        group='lanes'
+        value='done'
+        items={['B']}
+        onReorder={() => {}}
+        onTransfer={onTransfer}
+      />
+    )
+    await waitFor(() => expect(dnd.sortableMonitor).toHaveBeenCalled())
+    const { onDrop } = vi.mocked(dnd.sortableMonitor).mock.calls[0]![0]
+    const source = { value: 'A', list: 'todo', sameList: false }
+    act(() =>
+      onDrop({ source: { ...source, locked: true }, target: 'B', edge: 'top' })
+    )
+    expect(onTransfer).not.toHaveBeenCalled()
+    act(() =>
+      onDrop({ source: { ...source, locked: false }, target: 'B', edge: 'top' })
+    )
+    expect(onTransfer).toHaveBeenCalledWith({
+      value: 'A',
+      from: 'todo',
+      to: 'done',
+      index: 0
+    })
+  })
+
+  it('warns about a group with no value', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<Sortable group='lanes' items={[]} onReorder={() => {}} />)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('"lanes" group needs a value')
+    )
     warn.mockRestore()
   })
 })
