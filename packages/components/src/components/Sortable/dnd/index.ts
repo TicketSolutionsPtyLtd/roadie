@@ -76,7 +76,7 @@ export function createSortableGroup(
 
 export function sortableItemData(
   group: SortableGroup,
-  value: string,
+  value?: string,
   label?: string
 ): Payload {
   return {
@@ -139,6 +139,55 @@ export function sortableDropTarget({
   })
 }
 
+export type SortableDropZoneOptions = {
+  element: HTMLElement
+  group: SortableGroup
+  axis: SortableAxis
+  accepts: (source: SortableSource) => boolean
+  onActiveChange: (active: boolean) => void
+}
+
+/** Takes items from other lists past or without this list's own items. */
+export function sortableDropZone({
+  element,
+  group,
+  axis,
+  accepts,
+  onActiveChange
+}: SortableDropZoneOptions): Cleanup {
+  const data = sortableItemData(group)
+  const takes = (source: { data: Payload }) => {
+    if (!inGroup(source.data, group)) return false
+    const from = sourceOf(source.data, group)
+    return !from.sameList && accepts(from)
+  }
+  let stopScrolling: Cleanup = () => {}
+  return combine(
+    // The list the drag started in scrolls the containers they share.
+    monitorForElements({
+      canMonitor: ({ source }) => takes(source),
+      onDragStart: ({ source }) => {
+        stopScrolling = autoScrollAncestors(
+          element,
+          group,
+          axis,
+          source.element
+        )
+      },
+      onDrop: () => stopScrolling()
+    }),
+    () => stopScrolling(),
+    dropTargetForElements({
+      element,
+      canDrop: ({ source }) => takes(source),
+      getData: () => data,
+      onDragEnter: () => onActiveChange(true),
+      onDragLeave: () => onActiveChange(false),
+      onDrop: () => onActiveChange(false)
+    })
+  )
+}
+
 export type SortableDraggableOptions = {
   element: HTMLElement
   handle: HTMLElement
@@ -167,11 +216,10 @@ export function sortableDraggable({
   })
 }
 
-export type SortableDrop = {
-  source: SortableSource
-  target: string
-  edge: SortableEdge
-}
+/** A drop on one of this list's items, or on its drop zone (`target: null`). */
+export type SortableDrop =
+  | { source: SortableSource; target: string; edge: SortableEdge }
+  | { source: SortableSource; target: null; edge: null }
 
 export type SortableMonitorOptions = {
   group: SortableGroup
@@ -193,7 +241,13 @@ export function sortableMonitor({
       onDragStart: ({ source }) => {
         // Every list in a shared group sees the drag; one scrolls for it.
         if (!sourceOf(source.data, group).sameList) return
-        stopScrolling = autoScrollAncestors(source.element, group, axis)
+        stopScrolling = combine(
+          autoScrollWindowForElements({
+            canScroll: ({ source }) => inGroup(source.data, group),
+            getAllowedAxis: () => axis
+          }),
+          autoScrollAncestors(source.element.parentElement, group, axis)
+        )
         onDragStart?.()
       },
       onDrop: ({ source, location }) => {
@@ -222,31 +276,28 @@ export function sortableDropFrom(
 ): SortableDrop | null {
   const target = targets.find(({ data }) => inGroup(data, group))
   if (!target || target.data[LIST] !== group.list) return null
+  const from = sourceOf(source.data, group)
+  const value = target.data[VALUE] as string | undefined
+  if (value === undefined) return { source: from, target: null, edge: null }
   const edge = extractClosestEdge(target.data)
-  if (!edge) return null
-  return {
-    source: sourceOf(source.data, group),
-    target: target.data[VALUE] as string,
-    edge
-  }
+  return edge ? { source: from, target: value, edge } : null
 }
 
 // Registered when a drag starts, so containers that became scrollable after
 // mount (a popover that opened, a list that grew) still scroll.
 function autoScrollAncestors(
-  element: Element,
+  first: Element | null,
   group: SortableGroup,
-  axis: SortableAxis
+  axis: SortableAxis,
+  until?: Element
 ): Cleanup {
   const overflow = axis === 'vertical' ? 'overflowY' : 'overflowX'
   const canScroll = ({ source }: { source: { data: Payload } }) =>
     inGroup(source.data, group)
-  const cleanups: Cleanup[] = [
-    autoScrollWindowForElements({ canScroll, getAllowedAxis: () => axis })
-  ]
+  const cleanups: Cleanup[] = []
   for (
-    let node = element.parentElement;
-    node && node !== document.documentElement;
+    let node = first;
+    node && node !== document.documentElement && !node.contains(until ?? null);
     node = node.parentElement
   ) {
     const style = getComputedStyle(node)

@@ -56,7 +56,7 @@ export type SortableRootProps = {
   value?: string
   /** Called on the list an item from another list in its group is dropped into. Without it, the list takes no items from others. */
   onTransfer?: (transfer: SortableTransfer) => void
-  /** Return false to refuse an item from another list. Called while it is dragged over this one. */
+  /** Return false to refuse an item from another list. Called when a drag starts and while the item is over this list. */
   canDrop?: (item: Pick<SortableTransfer, 'value' | 'from'>) => boolean
   children?: ReactNode
 }
@@ -155,13 +155,11 @@ export function SortableRoot({
       if (source.locked) return
       const { items, axis, dir } = latest.current
       const from = source.sameList ? items.indexOf(source.value) : -1
-      const to = dropIndex({
-        from,
-        target: items.indexOf(target),
-        edge,
-        axis,
-        dir
-      })
+      // Only an item from another list lands on the drop zone.
+      const to =
+        target === null
+          ? items.length
+          : dropIndex({ from, target: items.indexOf(target), edge, axis, dir })
       if (source.sameList) return move(source.value, to, false)
       const transfer = transferFrom(source)
       if (!transfer) return
