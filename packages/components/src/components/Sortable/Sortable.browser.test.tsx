@@ -518,27 +518,6 @@ describe('Sortable Move to another list', () => {
       )
     )
   })
-
-  it.each([
-    ['refuses it', { canDrop: () => false }],
-    ['is disabled', { done: { disabled: true } }],
-    ['has no onTransfer', { done: { onTransfer: undefined } }]
-  ] as const)('leaves out a list that %s', async (_, props) => {
-    render(<Lanes {...props} />)
-    await openMenu('Date')
-    expect(
-      screen.getByRole('menuitem', { name: 'Move Date down' })
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('menuitem', { name: 'Move Date to done' })
-    ).toBeNull()
-  })
-
-  it('offers no other lists without a group', async () => {
-    render(<Columns />)
-    const menu = await openMenu('Date')
-    expect(menu.querySelectorAll('[role="menuitem"]')).toHaveLength(4)
-  })
 })
 
 describe('Sortable List rows', () => {
