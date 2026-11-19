@@ -84,7 +84,6 @@ export function useRecordsLayout({
       onKeyDown: leaveSelect
     },
     rowsSurvivor,
-    /** The rows' scroller, which takes focus when a record holding it goes. */
     scrollerClass: cn(
       'isolate outline-none',
       boxed && 'grid grow items-start',
