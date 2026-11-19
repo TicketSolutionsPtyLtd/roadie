@@ -62,7 +62,7 @@ export type {
   RecordsRequestOptions,
   RecordsRequestPaging
 } from './request'
-export { compileRecordQuery, matchesRecordQuery } from './match'
+export { compileRecordQuery, matchesRecordQuery, recordDates } from './match'
 export { parseRecordQuery } from './parse'
 export {
   describeRecordFilter,
