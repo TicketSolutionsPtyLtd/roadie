@@ -22,6 +22,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { Button, IconButton } from '../Button'
 import { dayLabel, weekCaption, weekdayNames } from '../Calendar/labels'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
+import { Popover } from '../Popover'
 import { knowsNow } from '../Records/clock'
 import type { RecordsContentProps } from '../Records/layouts'
 import type { RecordsRow } from '../Records/types'
@@ -32,6 +33,8 @@ import {
 } from '../Records/useRecordsLayout'
 import type { CalendarLayoutConfig } from './types'
 
+// A day shows this many chips, or one fewer and "+N more".
+const CHIPS = 3
 const PLACEHOLDER_WEEKS = 5
 
 type Day = readonly RecordsRow<object>[]
@@ -213,6 +216,8 @@ function CalendarDay({
   records: Day
   chip: Chip
 }) {
+  const overflow = records.length > CHIPS
+  const shown = overflow ? records.slice(0, CHIPS - 1) : records
   const label = dayLabel(date, locale)
   return (
     <td
@@ -223,7 +228,7 @@ function CalendarDay({
       tabIndex={-1}
       className={cn(dayClass, 'is-focusable', outside && 'bg-subtler')}
     >
-      <div className='grid min-w-0 content-start gap-1'>
+      <div className='@container grid min-w-0 content-start gap-1'>
         <span className='sr-only'>{today ? `Today, ${label}` : label}</span>
         <span
           aria-hidden
@@ -238,17 +243,63 @@ function CalendarDay({
         >
           {plainDateParts(date).day}
         </span>
-        {records.length > 0 && (
+        {shown.length > 0 && (
           <ul role='list' className='grid min-w-0 gap-0.5'>
-            {records.map((record) => (
+            {shown.map((record) => (
               <li key={record.id} className='grid min-w-0'>
                 <RecordChip record={record} chip={chip} />
               </li>
             ))}
           </ul>
         )}
+        {overflow && (
+          <DayOverflow label={label} records={records} chip={chip} />
+        )}
       </div>
     </td>
+  )
+}
+
+function DayOverflow({
+  label,
+  records,
+  chip
+}: {
+  label: string
+  records: Day
+  chip: Chip
+}) {
+  const more = records.length - (CHIPS - 1)
+  return (
+    <Popover>
+      <Popover.Trigger
+        render={
+          <Button
+            size='xs'
+            emphasis='subtler'
+            aria-label={`+${more} more on ${label}`}
+            className='max-w-full justify-self-start'
+          >
+            +{more}
+            <span className='@max-[5rem]:sr-only'> more</span>
+          </Button>
+        }
+      />
+      <Popover.Content side='bottom' align='start' className='w-64'>
+        <Popover.Header>
+          <Popover.Title>{label}</Popover.Title>
+        </Popover.Header>
+        <Popover.Body>
+          <ul role='list' className='grid gap-1'>
+            {records.map((record) => (
+              <li key={record.id} className='grid min-w-0'>
+                <RecordChip record={record} chip={chip} />
+              </li>
+            ))}
+          </ul>
+        </Popover.Body>
+      </Popover.Content>
+    </Popover>
   )
 }
 

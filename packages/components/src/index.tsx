@@ -562,9 +562,11 @@ export {
   type RecordsViewHandler
 } from './components/Records'
 export {
+  RecordCalendar,
   calendarLayout,
   type CalendarLayoutConfig,
-  type CalendarLayoutDefinition
+  type CalendarLayoutDefinition,
+  type RecordCalendarProps
 } from './components/RecordCalendar'
 export {
   RecordGrid,
