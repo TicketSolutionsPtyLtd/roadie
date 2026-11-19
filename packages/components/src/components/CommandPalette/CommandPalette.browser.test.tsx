@@ -122,10 +122,11 @@ describe('CommandPalette in a browser', () => {
   it('floats as a panel on a desktop, with no Close button', async () => {
     await page.viewport(1280, 800)
     await openPalette()
-    const dialog = box(screen.getByRole('dialog'))
+    const popup = screen.getByRole('dialog')
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
-    expect(dialog.width).toBeCloseTo(36 * rem, 0)
-    expect(dialog.top).toBeCloseTo(6 * rem, 0)
+    // WebKit is still sliding the popup in when it reaches the viewport.
+    await expect.poll(() => box(popup).top).toBeCloseTo(6 * rem, 0)
+    expect(box(popup).width).toBeCloseTo(36 * rem, 0)
     const close = document.querySelector('[data-slot="command-palette-close"]')
     expect(close).not.toBeVisible()
   })
