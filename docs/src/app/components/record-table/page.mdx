@@ -134,7 +134,7 @@ function Shows() {
 }
 ```
 
-`Records.Header` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its header, never in `Pane.Search`.
+`Records.Header` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, the Configure button, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its header, never in `Pane.Search`.
 
 In a header under 40rem, the search takes the whole row while it has focus. The other controls hide from sight and screen readers, and come back once focus leaves the search. Tab out of the search shows them first, so it lands on the next one.
 
@@ -562,7 +562,7 @@ render(<Controlled />)
 
 ### Options
 
-`Records.Options` is the Configure button in the header, after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
+The standard header's Configure button sits after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
 
 - **Sort** lists each level the view sorts by: a field, then its direction in the field's own terms, such as A to Z, Low to high, or Earliest first. Add sort starts with the first sortable field, its natural way, and Add another sort breaks ties with a field not sorted yet. A header click still sorts by that column alone. A level on a field that doesn't sort isn't listed, and changes here leave it in the view. A level that repeats a field sorts nothing, so changes here drop it.
 - **Columns** lists the table's columns in their order. Drag a handle to move a column, or click it, or press Enter on it, for a Move menu. The eye beside each column shows or hides it, and a hidden column stays in the list, dimmed, in its place. Pinned columns always come first and always show, so the list names them rather than offering them. The last shown column can't be hidden.
@@ -671,7 +671,7 @@ function Viewed() {
 render(<Viewed />)
 ```
 
-`Records.Options` is deprecated: it still opens the popover, warns once in development, and goes in a major release. Use `Records.View` in its place.
+`Records.Options` is deprecated: it still works as the standard header's Configure button, warns once in development, and goes in a major release. Use `Records.View` in its place.
 
 #### Layouts
 
