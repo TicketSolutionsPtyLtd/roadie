@@ -213,4 +213,62 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
       'Cancelled 1'
     ])
   })
+
+  it('groups from Configure, keeps the row fields, and restores from the URL', async () => {
+    const user = userEvent.setup()
+    const onViewChange = vi.fn()
+    const props = { data: testShows(4), fields: showFields }
+    const { unmount } = render(
+      <ShowList
+        {...props}
+        defaultView={{ layout: { type: 'list', fields: ['gross'] } }}
+        onViewChange={onViewChange}
+      />
+    )
+    expect(document.querySelector('[data-slot="list-group"]')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
+    await user.click(await screen.findByRole('option', { name: 'Status' }))
+    const written: RecordView = onViewChange.mock.lastCall![0]
+    expect(written.layout).toEqual({
+      type: 'list',
+      fields: ['gross'],
+      groupBy: 'status'
+    })
+    await user.click(
+      await within(panel).findByRole(
+        'button',
+        { name: 'Show Sold' },
+        { timeout: 5000 }
+      )
+    )
+    expect(onViewChange.mock.lastCall![0].layout).toMatchObject({
+      groupBy: 'status'
+    })
+    unmount()
+
+    const read = recordViewFromSearchParams(
+      recordViewToSearchParams(written),
+      showFields
+    )
+    render(<ShowList {...props} defaultView={read.view} />)
+    expect(groupsShown().map(([title]) => title)).toEqual([
+      'On sale 2',
+      'Sold out 1',
+      'Cancelled 1'
+    ])
+  })
+
+  it("offers no ungrouped option when the definition groups, as a view can't save one", async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowList data={testShows(3)} fields={showFields} groupBy='status' />
+    )
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
+    const options = await screen.findAllByRole('option')
+    expect(options.map((option) => option.textContent)).toEqual(['Status'])
+  })
 })
