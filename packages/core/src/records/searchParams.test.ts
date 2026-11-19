@@ -337,6 +337,16 @@ describe('recordViewFromSearchParams', () => {
     })
   })
 
+  it('writes a layout type this release does not know, for the reader to reject', () => {
+    const view = { ...empty, layout: { type: 'timeline' } } as RecordView
+    const url = recordViewToSearchParams(view).toString()
+    expect(url).toBe('v=1&layout=timeline')
+    expect(recordViewFromSearchParams(url, eventFields)).toMatchObject({
+      source: 'fallback',
+      problems: [{ path: 'layout', message: 'Unknown layout "timeline"' }]
+    })
+  })
+
   it.each([
     ['page=0', {}],
     ['page=x', {}],

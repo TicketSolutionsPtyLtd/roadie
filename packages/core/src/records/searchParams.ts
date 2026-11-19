@@ -120,6 +120,10 @@ function layoutEntries(layout: RecordLayout): [string, string][] {
       ]
     case 'map':
       return [['layout', 'map']]
+    // A view from a newer release keeps its type, so a reader rejects it
+    // rather than reading it as a table.
+    default:
+      return [['layout', String((layout as { type: unknown }).type)]]
   }
 }
 
