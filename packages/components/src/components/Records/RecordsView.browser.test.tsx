@@ -70,6 +70,8 @@ async function openView() {
   const drawer = await screen.findByRole('dialog', { name: 'View' })
   // A drawer, with its own title, not a popover lined up with the button.
   expect(within(drawer).getByRole('heading', { name: 'View' })).toBeVisible()
+  // The table's settings load lazily, and the drawer grows upward when they do.
+  await within(drawer).findByRole('region', { name: 'Columns' }, TIMEOUT)
   return drawer
 }
 
