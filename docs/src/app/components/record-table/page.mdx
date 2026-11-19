@@ -134,7 +134,7 @@ function Shows() {
 }
 ```
 
-`Records.Header` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its header, never in `Pane.Search`.
+`Records.Header` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, the Configure button, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its header, never in `Pane.Search`.
 
 In a header under 40rem, the search takes the whole row while it has focus. The other controls hide from sight and screen readers, and come back once focus leaves the search. Tab out of the search shows them first, so it lands on the next one.
 
@@ -562,7 +562,7 @@ render(<Controlled />)
 
 ### Options
 
-`Records.Options` is the Configure button in the header, after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
+The standard header's Configure button sits after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
 
 - **Sort** lists each level the view sorts by: a field, then its direction in the field's own terms, such as A to Z, Low to high, or Earliest first. Add sort starts with the first sortable field, its natural way, and Add another sort breaks ties with a field not sorted yet. A header click still sorts by that column alone. A level on a field that doesn't sort isn't listed, and changes here leave it in the view. A level that repeats a field sorts nothing, so changes here drop it.
 - **Columns** lists the table's columns in their order. Drag a handle to move a column, or click it, or press Enter on it, for a Move menu. The eye beside each column shows or hides it, and a hidden column stays in the list, dimmed, in its place. Pinned columns always come first and always show, so the list names them rather than offering them. The last shown column can't be hidden.
@@ -621,7 +621,57 @@ function Configured() {
 render(<Configured />)
 ```
 
-`label` renames the button, its tooltip, and the panel, which are "Configure table" for the table. In your own header, put `Records.Options` after the search and any `Records.ViewActions`, and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
+The button and panel are named "Configure table" for the table. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which is called once the page is idle or the button is reached.
+
+#### View drawer
+
+In your own header, put `Records.View` after the search and any `Records.ViewActions`, and before `Records.Actions`. It's an icon button, named View with a tooltip, that opens the same settings in a bottom drawer at every size: the Layout switcher when there's more than one layout, the sort, and the shown layout's own settings, such as the table's columns or the grid's card fields. Every change applies at once, and the button shows only when there's something to set. `label` renames the button, its tooltip, and the drawer.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.location('location', { label: 'Location' }),
+  field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+const column = tableColumns(fields)
+const layouts = [
+  tableLayout([
+    column.field('name', { pin: true }),
+    column.field('location'),
+    column.field('sold'),
+    column.field('gross')
+  ]),
+  gridLayout({ title: 'name', description: 'location', details: ['sold', 'gross'] })
+]
+const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship']
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const events = Array.from({ length: 8 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${index + 1}`,
+  location: cities[index % cities.length],
+  sold: (index * 37) % 2400,
+  gross: (index * 7919) % 250000
+}))
+
+function Viewed() {
+  const records = useRecords({ data: events, fields, getRowId: (row) => row.id })
+  return (
+    <Records records={records} layouts={layouts} caption='Events'>
+      <Records.Header>
+        <Records.Search placeholder='Search events' className='min-w-40 grow basis-0' />
+        <Records.View />
+      </Records.Header>
+      <Records.Content />
+    </Records>
+  )
+}
+
+render(<Viewed />)
+```
+
+`Records.Options` is deprecated: it still works as the standard header's Configure button, warns once in development, and goes in a major release. Use `Records.View` in its place.
 
 #### Layouts
 
@@ -1599,7 +1649,7 @@ column.field('location', { pin: true })`}
   <Guideline.Do
     code={`<Records.Header searchPlaceholder='Search events' />`}
   >
-    Keep the standard header, or put `Records.Options` after the search in
+    Keep the standard header, or put `Records.View` after the search in
     your own. People sort, move, and hide columns there, and the view keeps
     it.
   </Guideline.Do>
@@ -1681,6 +1731,7 @@ column.field('location', { pin: true })`}
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
 - Each row's actions menu is named "More actions for" the record's title. Table actions past the first sit behind a button named "More actions". A running action's control stays focusable but disabled, with `aria-busy`. A confirmation is an alert dialog.
 - The view button is named "View:" and the view's name, with ", unsaved changes" once the view has changed, as its tooltip shows, and opens a menu. Save view and Reset view sit in a group named "Unsaved changes". Save as new view and Rename view open a dialog of that name with focus in its Name field, the whole name selected to rename, and an empty name says "Enter a name". Delete view asks in an alert dialog. Focus returns to the view button as each closes. While a handler runs, its control stays focusable but disabled, with `aria-busy`.
+- `Records.View` is an icon button named "View", with a tooltip that says so. The drawer it opens is a dialog named "View", with a Close button first and the same controls as Configure; Escape closes it and returns focus to the button.
 - The Configure button is named "Configure table", as is the dialog it opens. Given more than one layout, its Layout switcher is a group named "Layout" of toggle buttons, with the shown layout pressed. Its sort controls are named "Sort by", then "Then by, level 2" and so on, and for each level the field's order, such as "Sold order". Adding a level moves focus to its field, and removing one moves focus to the Remove of the level that takes its place, or of the one before it, or to Add sort. Each column's handle is named "Reorder" and the column, its eye is a toggle button named "Show" and the column, pressed while the column shows (the last shown column's is disabled and says why), and each move is announced, such as "Gross moved to position 1 of 4 columns".
 - In Select mode, each record's checkbox covers the record, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. Select mode's controls are a group named "Select mode", and the floating bulk actions a group named "Bulk actions", where Escape leaves Select mode. When the bar goes, focus lands on Select, or on the records.
 - Focus follows the record across a switch between the table and the list, onto the same record's link or first control.

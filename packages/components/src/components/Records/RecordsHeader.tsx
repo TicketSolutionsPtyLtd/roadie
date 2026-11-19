@@ -6,7 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { surfaceClass, useSurface } from '../../utils/surface'
 import { RecordsActions } from './RecordsActions'
-import { RecordsOptions } from './RecordsOptions'
+import { RecordsConfigure } from './RecordsOptions'
 import { RecordsSearch } from './RecordsSearch'
 import { RecordsSelect } from './RecordsSelect'
 import {
@@ -110,7 +110,7 @@ export function RecordsHeader<Row extends object>({
             />
             <RecordsSelect />
             {viewActions && <RecordsViewActions {...viewActions} />}
-            <RecordsOptions />
+            <RecordsConfigure />
             {actions && (
               <RecordsActions actions={actions} className='ms-auto' />
             )}
