@@ -24,7 +24,14 @@ import type { GridLayoutConfig } from './types'
  * by drag and shown or hidden. A view keeps only the shown fields in order,
  * so hidden ones are listed apart, in the fields' own order.
  */
-export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
+export function RecordGridSettings({
+  config,
+  type = 'grid'
+}: {
+  config: GridLayoutConfig
+  /** Which layout these are for: the view can still name another, such as the default table. */
+  type?: 'grid' | 'list'
+}) {
   const { records } = useRecordsContext()
   const headingId = useId()
   const hiddenId = useId()
@@ -33,7 +40,7 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
   // The toggle used moves between the lists; focus follows its field there.
   const focusField = useRef<{ key: string; shown: boolean } | null>(null)
   const { fields, view } = records
-  const item = view.layout.type === 'list' ? 'row' : 'card'
+  const item = type === 'list' ? 'row' : 'card'
   const candidates = detailCandidates(config, fields)
   const shown = shownDetails(config, fields, view.layout)
 
@@ -63,7 +70,9 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
     focus?: { key: string; shown: boolean }
   ) => {
     focusField.current = focus ?? null
-    records.setLayout(gridDetailsLayout(config, fields, next, view.layout))
+    records.setLayout(
+      gridDetailsLayout(config, fields, next, view.layout, type)
+    )
   }
   const toggle = (field: RecordField, show: boolean) => {
     const locked = show && lastLocked

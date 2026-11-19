@@ -95,7 +95,7 @@ export function gridParts(
 }
 
 /**
- * The grid layout after a change to the card's details. Each key for a field
+ * The grid or list layout after a change to its details. Each key for a field
  * this grid doesn't have, such as one only some people see, keeps its slot.
  * `fields` is left out when the details are back to the definition's.
  */
@@ -103,7 +103,8 @@ export function gridDetailsLayout(
   config: GridLayoutConfig,
   fields: readonly RecordField[],
   shown: readonly string[],
-  current: RecordLayout
+  current: RecordLayout,
+  type: 'grid' | 'list' = 'grid'
 ): RecordLayout {
   const known = new Set(
     detailCandidates(config, fields).map((field) => field.key)
@@ -118,6 +119,5 @@ export function gridDetailsLayout(
   const backToDefinition =
     merged.length === defined.length &&
     merged.every((key, index) => key === defined[index])
-  const type = current.type === 'list' ? 'list' : 'grid'
   return backToDefinition ? { type } : { type, fields: merged }
 }

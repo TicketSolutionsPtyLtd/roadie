@@ -155,18 +155,6 @@ describe('gridDetailsLayout', () => {
       { type: 'grid', fields: ['city', 'fees', 'sold'] }
     ],
     [
-      'keeps a list view a list',
-      ['sold'],
-      { type: 'list' },
-      { type: 'list', fields: ['sold'] }
-    ],
-    [
-      'leaves out a list view’s fields back to the definition',
-      ['city', 'sold'],
-      { type: 'list', fields: ['sold'] },
-      { type: 'list' }
-    ],
-    [
       'drops placed, unknown-to-the-row and repeated keys from the change',
       ['name', 'sold', 'sold', 'nope'],
       { type: 'grid' },
@@ -174,6 +162,25 @@ describe('gridDetailsLayout', () => {
     ]
   ])('%s', (_, shown, current, expected) => {
     expect(gridDetailsLayout(config, fields, shown, current)).toEqual(expected)
+  })
+
+  it.each<[string, string[], RecordLayout, RecordLayout]>([
+    [
+      'writes a list from the default table view',
+      ['sold'],
+      { type: 'table' },
+      { type: 'list', fields: ['sold'] }
+    ],
+    [
+      'leaves out a list view’s fields back to the definition',
+      ['city', 'sold'],
+      { type: 'list', fields: ['sold'] },
+      { type: 'list' }
+    ]
+  ])('for a list, %s', (_, shown, current, expected) => {
+    expect(gridDetailsLayout(config, fields, shown, current, 'list')).toEqual(
+      expected
+    )
   })
 
   it('round-trips through gridParts', () => {
