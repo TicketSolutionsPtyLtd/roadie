@@ -1,18 +1,11 @@
+import { normalise } from '../Kbd/keys'
 import type { KeyPlatform } from '../Kbd/platform'
 
 type Modifiers = { ctrl: boolean; meta: boolean; alt: boolean; shift: boolean }
 
-const MODIFIER_OF: Record<string, keyof Modifiers | 'mod'> = {
-  mod: 'mod',
-  cmd: 'mod',
-  command: 'mod',
-  ctrl: 'ctrl',
-  control: 'ctrl',
-  meta: 'meta',
-  alt: 'alt',
-  option: 'alt',
-  shift: 'shift'
-}
+// One printable character stays as it is: normalise would drop `-` and `_`.
+const keyId = (key: string) =>
+  /^\S$/.test(key) ? key.toLowerCase() : normalise(key)
 
 function parse(keys: readonly string[], platform: KeyPlatform | null) {
   const modifiers: Modifiers = {
@@ -23,11 +16,10 @@ function parse(keys: readonly string[], platform: KeyPlatform | null) {
   }
   let key = ''
   for (const part of keys) {
-    const modifier = MODIFIER_OF[part.toLowerCase()]
-    if (modifier === 'mod')
-      modifiers[platform === 'apple' ? 'meta' : 'ctrl'] = true
-    else if (modifier) modifiers[modifier] = true
-    else key = part.toLowerCase()
+    const id = keyId(part)
+    if (id === 'mod') modifiers[platform === 'apple' ? 'meta' : 'ctrl'] = true
+    else if (id in modifiers) modifiers[id as keyof Modifiers] = true
+    else key = id
   }
   return { modifiers, key }
 }
@@ -37,9 +29,11 @@ export function matchesShortcut(
   keys: readonly string[],
   platform: KeyPlatform | null
 ) {
+  // Chrome's autofill sends a keydown with no key.
+  if (typeof event.key !== 'string') return false
   const { modifiers, key } = parse(keys, platform)
   return (
-    event.key.toLowerCase() === key &&
+    keyId(event.key) === key &&
     event.ctrlKey === modifiers.ctrl &&
     event.metaKey === modifiers.meta &&
     event.altKey === modifiers.alt &&

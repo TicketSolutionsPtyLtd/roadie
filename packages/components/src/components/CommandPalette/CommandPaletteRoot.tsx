@@ -17,7 +17,7 @@ import { Autocomplete, type AutocompleteProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
 import { useKeyPlatform } from '../Kbd/platform'
 import { CommandPaletteCloseProvider } from './CommandPaletteContext'
-import { registerPalette } from './registry'
+import { isCurrentPalette, registerPalette } from './registry'
 import { matchesShortcut } from './shortcut'
 
 export type CommandPaletteOpenChangeDetails = {
@@ -128,14 +128,17 @@ export function CommandPaletteRoot<Item>({
   const openFromOutside = useEffectEvent(() =>
     setOpen(true, { reason: 'trigger-press' })
   )
-  const keys = shortcut ? shortcut.join(' ') : ''
+  const keys = shortcut && shortcut.length > 0 ? JSON.stringify(shortcut) : ''
   useEffect(() => {
     if (!keys) return
-    const handleKeyDown = (event: KeyboardEvent) => onShortcut(event)
-    const unregister = registerPalette({
+    const palette = {
       open: () => openFromOutside(),
-      shortcut: keys.split(' ')
-    })
+      shortcut: JSON.parse(keys) as string[]
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isCurrentPalette(palette)) onShortcut(event)
+    }
+    const unregister = registerPalette(palette)
     document.addEventListener('keydown', handleKeyDown)
     return () => {
       document.removeEventListener('keydown', handleKeyDown)

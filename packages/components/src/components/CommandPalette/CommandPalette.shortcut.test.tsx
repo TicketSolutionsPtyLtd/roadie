@@ -43,11 +43,40 @@ describe('CommandPalette shortcut', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
-  it('ignores the key with another modifier held', async () => {
-    render(<Palette />)
-    await userEvent.keyboard('{Control>}{Shift>}k{/Shift}{/Control}')
-    expect(dialog()).not.toBeInTheDocument()
+  it('takes a key list that names space', async () => {
+    render(<Palette shortcut={['mod', 'space']} />)
+    await userEvent.keyboard('{Control>} {/Control}')
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
+
+  it('ignores the repeats of a held key', async () => {
+    const onOpenChange = vi.fn()
+    render(<Palette onOpenChange={onOpenChange} />)
+    await userEvent.keyboard('{Control>}{k>3/}{/Control}')
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(onOpenChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('ignores a keydown with no key, as autofill sends', async () => {
+    const errors: unknown[] = []
+    const onError = (event: ErrorEvent) => errors.push(event.error)
+    window.addEventListener('error', onError)
+    render(<Palette />)
+    document.dispatchEvent(new Event('keydown'))
+    window.removeEventListener('error', onError)
+    expect(errors).toEqual([])
+    await userEvent.keyboard('{Control>}k{/Control}')
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
+  it.each(['Shift', 'Alt'])(
+    'ignores the key with %s held too',
+    async (extra) => {
+      render(<Palette />)
+      await userEvent.keyboard(`{Control>}{${extra}>}k{/${extra}}{/Control}`)
+      expect(dialog()).not.toBeInTheDocument()
+    }
+  )
 
   it('binds nothing with shortcut={false}', async () => {
     render(<Palette shortcut={false} />)
@@ -83,6 +112,27 @@ describe('CommandPalette shortcut', () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('one CommandPalette per page a shortcut')
     )
+  })
+  it('gives the shortcut to the last palette to mount, and back when it goes', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(
+      <>
+        <Palette label='First' />
+        <Palette label='Second' />
+      </>
+    )
+    await userEvent.keyboard('{Control>}k{/Control}')
+    expect(
+      await screen.findByRole('dialog', { name: 'Second' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('dialog', { name: 'First' })
+    ).not.toBeInTheDocument()
+    rerender(<Palette label='First' />)
+    await userEvent.keyboard('{Control>}k{/Control}')
+    expect(
+      await screen.findByRole('dialog', { name: 'First' })
+    ).toBeInTheDocument()
   })
 })
 

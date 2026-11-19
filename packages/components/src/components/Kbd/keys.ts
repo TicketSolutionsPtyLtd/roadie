@@ -72,7 +72,7 @@ const ALIASES: Record<string, string> = {
   control: 'ctrl'
 }
 
-function normalise(key: string) {
+export function normalise(key: string) {
   if (key === ' ') return 'space'
   const id = key.toLowerCase().replace(/[\s_-]+/g, '')
   return ALIASES[id] ?? id

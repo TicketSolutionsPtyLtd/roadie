@@ -9,23 +9,25 @@ export type RegisteredPalette = {
   shortcut: readonly string[]
 }
 
-// The palette that binds the page's shortcut. CommandPalette.Trigger and
-// Navigator.Search reach it from outside its tree.
-let current: RegisteredPalette | null = null
+// The palettes that bind a shortcut, last mounted on top. CommandPalette.Trigger
+// and Navigator.Search reach the top one from outside its tree.
+let stack: readonly RegisteredPalette[] = []
 const listeners = new Set<() => void>()
 
 const notify = () => listeners.forEach((listener) => listener())
 
+export const isCurrentPalette = (palette: RegisteredPalette) =>
+  stack.at(-1) === palette
+
 export function registerPalette(palette: RegisteredPalette) {
-  if (current && isDev())
+  if (stack.length > 0 && isDev())
     console.warn(
       '[Roadie] Give one CommandPalette per page a shortcut, and set shortcut={false} on the others. The last one to mount takes the shortcut and the triggers.'
     )
-  current = palette
+  stack = [...stack, palette]
   notify()
   return () => {
-    if (current !== palette) return
-    current = null
+    stack = stack.filter((entry) => entry !== palette)
     notify()
   }
 }
@@ -38,7 +40,7 @@ const subscribe = (listener: () => void) => {
 export function useRegisteredPalette() {
   return useSyncExternalStore(
     subscribe,
-    () => current,
+    () => stack.at(-1) ?? null,
     () => null
   )
 }
