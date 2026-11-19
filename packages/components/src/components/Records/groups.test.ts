@@ -7,7 +7,7 @@ import { groupRecords, groupableFields } from './groups'
 type Show = { id: string; status?: string | null; tags?: string[] }
 const field = recordFields<Show>()
 const status = field.option('status', {
-  label: 'Status',
+  label: 'AU status',
   status: {
     on_sale: { intent: 'success' },
     sold_out: { intent: 'danger' },
@@ -35,7 +35,7 @@ describe('groupRecords', () => {
   it('follows the options with values that are not options, then the records with none', () => {
     expect(summary(undefined, 'postponed', null, '').slice(3)).toEqual([
       ['postponed', 'postponed', ['show-1']],
-      [null, 'No status', ['show-0', 'show-2', 'show-3']]
+      [null, 'No AU status', ['show-0', 'show-2', 'show-3']]
     ])
   })
 })

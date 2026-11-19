@@ -38,7 +38,8 @@ export function groupRecords<Row>(
   )
   const none: RecordGroup<Row> = {
     key: null,
-    label: `No ${field.label.toLowerCase()}`,
+    // Mid-sentence, so "Venue ID" reads "No venue ID".
+    label: `No ${field.label.replace(/^[A-Z](?=[a-z])/, (first) => first.toLowerCase())}`,
     rows: []
   }
   for (const record of rows) {
