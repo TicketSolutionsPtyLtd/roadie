@@ -43,11 +43,15 @@ const IMPORT_BOUNDARIES: Restriction[] = [
   },
   {
     files: ['packages/components/src/**/*.{ts,tsx}'],
-    except: ['packages/components/src/components/Records/rowWindow.ts'],
+    except: [
+      'packages/components/src/components/Records/rowWindow.ts',
+      'packages/components/src/utils/virtualRows.tsx'
+    ],
     patterns: [
       {
         group: ['@tanstack/**'],
-        message: 'Import @tanstack/react-virtual only in Records/rowWindow.ts.'
+        message:
+          'Import @tanstack/react-virtual only in Records/rowWindow.ts and utils/virtualRows.tsx.'
       }
     ]
   },
