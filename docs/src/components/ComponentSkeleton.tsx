@@ -796,6 +796,24 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'record-calendar':
+      return (
+        <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>
+          <Skel className='h-1.5 w-12' />
+          <div className='grid grid-cols-7 gap-px'>
+            {Array.from({ length: 21 }, (_, day) => (
+              <div
+                key={day}
+                className='grid h-5 content-start gap-0.5 rounded-sm border border-subtler p-0.5'
+              >
+                {[2, 8, 9, 15].includes(day) && (
+                  <div className='h-1 rounded-sm emphasis-subtle intent-accent' />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
     case 'record-grid':
       return (
         <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>

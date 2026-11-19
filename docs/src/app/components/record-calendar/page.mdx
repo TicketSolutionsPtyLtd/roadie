@@ -1,0 +1,112 @@
+export const metadata = {
+  title: 'RecordCalendar',
+  description: 'A month calendar of records, each on its day, to search and filter',
+  status: 'alpha',
+  category: 'Collections'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A month calendar of records, each on its day, to search and filter.
+
+## Import
+
+```tsx
+import { calendarLayout } from '@oztix/roadie-components/record-calendar'
+import { Records, useRecords } from '@oztix/roadie-components/records'
+import { recordFields } from '@oztix/roadie-core/records'
+```
+
+Fields can hold functions, as can `getRowId` and the `useRecords` instance, so render the calendar in a client component, a file that starts with `'use client'`.
+
+## Examples
+
+### Default
+
+Give `Records` a `calendarLayout`, naming the date field that places each record and the field each chip shows. A record sits on the day its date falls on: the venue's day for an event, the viewer's for a timestamp. A date range sits on each day it covers. Previous and next move a month, and Today comes back to this month.
+
+```tsx-live-noinline-expand
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
+const days = [3, 6, 6, 11, 14, 14, 19, 22, 27, 28]
+const events = days.map((day, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${index + 1}`,
+  startsAt: `2026-11-${String(day).padStart(2, '0')}`,
+  endsAt: index === 0 ? '2026-11-05' : undefined
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.date('startsAt', { label: 'Start date', moment: 'date', end: 'endsAt' }),
+  field.date('endsAt', { label: 'End date', moment: 'date' })
+]
+const layouts = [
+  calendarLayout({ dateField: 'startsAt', title: 'name', defaultMonth: '2026-11-01' })
+]
+
+function Events() {
+  const records = useRecords({
+    data: events,
+    fields,
+    getRowId: (row) => row.id,
+    getRowHref: (row) => `#${row.id}`,
+    recordName: { one: 'event', other: 'events' }
+  })
+  return (
+    <Records records={records} layouts={layouts} caption='Events'>
+      <Records.Header />
+      <Records.Content />
+      <Records.Status />
+    </Records>
+  )
+}
+
+render(<Events />)
+```
+
+### Layouts
+
+Give `Records` a `calendarLayout` beside the table, and people switch between them from Configure. A saved view holds `{ type: 'calendar', dateField }`, so a view can place its records by another date field. Switching to the calendar uses the layout's own `dateField` until a view picks one.
+
+```tsx
+const layouts = [
+  tableLayout(columns),
+  calendarLayout({ dateField: 'startsAt', title: 'name' })
+]
+```
+
+### Today and the first day of the week
+
+Today comes from the browser's clock, so a server render marks no day and, without `defaultMonth`, shows no month until the page hydrates. Pass `now` to `useRecords` to fix it. `weekStart` picks the first day of the week, Monday by default, and `locale` names the months and days.
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Offer a calendar where the day matters'>
+  <Guideline.Do
+    code={`
+      layouts={[
+        tableLayout(columns),
+        calendarLayout({ dateField: 'startsAt', title: 'name' })
+      ]}
+    `}
+  >
+    Offer the calendar beside the table for events and on-sales, where people
+    plan around the day.
+  </Guideline.Do>
+  <Guideline.Dont code={`calendarLayout({ dateField: 'createdAt', title: 'orderNumber' })`}>
+    Don't place records by a date nobody plans around, such as when an order
+    was placed. A table sorted by that date reads better.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- The calendar is a table named by its month, with a column header for each day of the week. Each day's cell reads its date first, then its chips, and today's reads "Today" and is marked `aria-current="date"`.
+- Each chip is a link to its record through `getRowHref`, and Tab moves through them in reading order. The arrow keys move focus from day to day, a week at a time with Up and Down.
+- The month name is announced as it changes. Previous and next are buttons named "Previous month" and "Next month".
+- On a phone the month grid stays for now; an agenda replaces it in a later release.

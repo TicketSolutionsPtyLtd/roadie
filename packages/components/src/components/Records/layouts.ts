@@ -20,6 +20,8 @@ export type RecordLayoutDefinition<Config = unknown> = {
   label: string
   icon: ReactNode
   config: Config
+  /** The layout a view switches to when it hasn't shown this one, for a type that needs settings, such as a calendar's date field. @default { type } */
+  layout?: RecordLayout
   Content: (props: RecordsContentProps & { config: Config }) => ReactNode
   /** Where `Records.BulkActions` shows: in the layout's header row, which its Content provides, or floating at the foot of the screen. @default 'floating' */
   bulkActions?: 'header' | 'floating'
