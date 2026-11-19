@@ -544,6 +544,23 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='size-2' />
         </div>
       )
+    case 'command-palette':
+      return (
+        <div className='grid w-44 gap-1.5 rounded-xl border border-subtle bg-normal p-2 shadow-lg'>
+          <div className='flex items-center gap-2 border-b border-subtler px-1 pb-1.5'>
+            <Skel className='size-2.5 rounded-full' />
+            <Skel className='h-2 w-20 opacity-50' />
+          </div>
+          <div className='flex items-center gap-2 rounded-md bg-subtle px-1 py-1'>
+            <Skel className='size-2.5' />
+            <Skel className='h-2 w-16' />
+          </div>
+          <div className='flex items-center gap-2 px-1 py-1'>
+            <Skel className='size-2.5' />
+            <Skel className='h-2 w-24 opacity-50' />
+          </div>
+        </div>
+      )
     case 'link-button':
       return (
         <div className='flex gap-2'>

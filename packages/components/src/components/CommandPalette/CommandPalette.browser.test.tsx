@@ -1,0 +1,112 @@
+import { useState } from 'react'
+
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
+import { page, userEvent } from 'vitest/browser'
+
+import { CommandPalette } from '.'
+import {
+  expectNoSeriousViolations,
+  setUpCheckPage
+} from '../../checks/testUtils'
+
+setUpCheckPage()
+afterEach(cleanup)
+
+type Command = { label: string; href?: string }
+
+const COMMANDS: Command[] = [
+  { label: 'Events', href: '/events' },
+  { label: 'Orders', href: '/orders' },
+  { label: 'Settings', href: '/settings' }
+]
+
+function Palette() {
+  const [open, setOpen] = useState(false)
+  return (
+    <main>
+      <button type='button' onClick={() => setOpen(true)}>
+        Search
+      </button>
+      <CommandPalette open={open} onOpenChange={setOpen} items={COMMANDS}>
+        <CommandPalette.Input placeholder='Search pages and actions' />
+        <CommandPalette.List>
+          {(command: Command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              href={command.href}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+      </CommandPalette>
+    </main>
+  )
+}
+
+async function openPalette() {
+  render(<Palette />)
+  const opener = screen.getByRole('button', { name: 'Search' })
+  // From the keyboard: Safari doesn't focus a button it clicks.
+  opener.focus()
+  await userEvent.keyboard('{Enter}')
+  await expect.element(page.getByRole('dialog')).toBeInViewport()
+  await expect.element(page.getByRole('combobox')).toHaveFocus()
+  return opener
+}
+
+const box = (element: Element) => element.getBoundingClientRect()
+
+describe('CommandPalette in a browser', () => {
+  it('keeps Tab inside the palette', async () => {
+    await page.viewport(390, 844)
+    await openPalette()
+    const dialog = screen.getByRole('dialog')
+    for (let step = 0; step < 4; step++) {
+      await userEvent.keyboard('{Tab}')
+      // WebKit lands on Base UI's focus guard, which sends focus back in.
+      await expect
+        .poll(() => dialog.contains(document.activeElement))
+        .toBe(true)
+    }
+  })
+
+  it('closes on Escape and gives focus back to what opened it', async () => {
+    await page.viewport(1280, 800)
+    const opener = await openPalette()
+    await userEvent.keyboard('{Escape}')
+    await expect.element(page.getByRole('dialog')).not.toBeInTheDocument()
+    await expect.element(opener).toHaveFocus()
+  })
+
+  it('fills a phone screen, with the input and Close in view', async () => {
+    await page.viewport(390, 844)
+    await openPalette()
+    const dialog = box(screen.getByRole('dialog'))
+    expect(dialog.width).toBeCloseTo(390, 0)
+    expect(dialog.height).toBeCloseTo(844, 0)
+    await expect.element(page.getByRole('combobox')).toBeInViewport()
+    await expect
+      .element(page.getByRole('button', { name: 'Close' }))
+      .toBeInViewport()
+  })
+
+  it('floats as a panel on a desktop, with no Close button', async () => {
+    await page.viewport(1280, 800)
+    await openPalette()
+    const dialog = box(screen.getByRole('dialog'))
+    expect(dialog.width).toBeLessThan(700)
+    expect(dialog.top).toBeGreaterThan(0)
+    const close = document.querySelector('[data-slot="command-palette-close"]')
+    expect(close).not.toBeVisible()
+  })
+
+  it('has no serious accessibility violations while open', async () => {
+    await page.viewport(1280, 800)
+    await openPalette()
+    await expectNoSeriousViolations()
+  })
+})

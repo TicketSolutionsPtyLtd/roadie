@@ -23,6 +23,17 @@ export {
   type AccordionProps
 } from './components/Accordion'
 export {
+  CommandPalette,
+  type CommandPaletteProps,
+  type CommandPaletteInputProps,
+  type CommandPaletteListProps,
+  type CommandPaletteGroupProps,
+  type CommandPaletteGroupLabelProps,
+  type CommandPaletteCollectionProps,
+  type CommandPaletteItemProps,
+  type CommandPaletteEmptyProps
+} from './components/CommandPalette'
+export {
   Collapsible,
   type CollapsiblePanelProps,
   type CollapsibleProps,

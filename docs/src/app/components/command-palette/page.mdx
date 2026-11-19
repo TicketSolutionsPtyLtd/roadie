@@ -1,0 +1,178 @@
+export const metadata = {
+  title: 'CommandPalette',
+  description: 'A searchable list of pages and actions in a dialog',
+  status: 'alpha',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A searchable list of pages and actions in a dialog.
+
+## Import
+
+```tsx
+import { CommandPalette } from '@oztix/roadie-components/command-palette'
+```
+
+## Examples
+
+### Default
+
+Pass the commands as `items`, and render each one in the list's child
+function. A command with `href` is a link; one with `onSelect` runs it.
+Either way, picking it closes the palette.
+
+```tsx-live-noinline
+function Search() {
+  const [open, setOpen] = useState(false)
+  const commands = [
+    { label: 'Events', href: '#events' },
+    { label: 'Orders', href: '#orders' },
+    { label: 'Settings', href: '#settings', keywords: ['preferences'] },
+    { label: 'New event', onSelect: () => {} },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} items={commands}>
+        <CommandPalette.Input placeholder='Search pages and actions' />
+        <CommandPalette.List>
+          {(command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              href={command.href}
+              onSelect={command.onSelect}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<Search />)
+```
+
+### Composition
+
+#### With groups, icons and shortcuts
+
+Pass groups as `items`, each with its own `items`, and render each group's
+commands through `CommandPalette.Collection`. `icon` goes before a label and
+`shortcut` after it, as a hint.
+
+```tsx-live-noinline
+function GroupedSearch() {
+  const [open, setOpen] = useState(false)
+  const groups = [
+    {
+      label: 'Go to',
+      items: [
+        { label: 'Events', href: '#events', icon: <TicketIcon weight='bold' className='size-4' /> },
+        { label: 'Orders', href: '#orders', icon: <ShoppingCartIcon weight='bold' className='size-4' /> },
+      ],
+    },
+    {
+      label: 'Actions',
+      items: [
+        { label: 'New event', shortcut: 'mod+e', icon: <PlusIcon weight='bold' className='size-4' /> },
+        { label: 'Invite teammate', icon: <UsersIcon weight='bold' className='size-4' /> },
+      ],
+    },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} items={groups}>
+        <CommandPalette.Input placeholder='Search pages and actions' />
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(command) => (
+                  <CommandPalette.Item
+                    key={command.label}
+                    value={command}
+                    href={command.href}
+                    icon={command.icon}
+                    shortcut={command.shortcut}
+                  >
+                    {command.label}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<GroupedSearch />)
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Name commands as places or actions'>
+  <Guideline.Do>
+    Use the page's name for a place, such as "Orders", and a verb for an
+    action, such as "Invite teammate".
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't add "Go to" or "Open" to every command. A group label says it once.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Match what people type'>
+  <Guideline.Do>
+    Add `keywords` for the other words people use, such as "preferences" for
+    Settings.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put keywords in the label to make it match.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### Matching
+
+Typing ranks the commands: an exact match first, then labels that start with
+the text, then labels with a word that starts with it, then labels that
+contain it. A command that matches only through its `keywords` comes after
+those. Case and accents don't count. Groups keep their order, and their
+commands are ranked within them. Each opening starts with an empty search.
+
+### On a phone
+
+Below the `sm` breakpoint the palette fills the screen, with the input at the
+top and a Close button beside it. It's the same list, keys and screen reader
+flow at every size.
+
+## Accessibility
+
+- The palette is a modal dialog named "Search and commands"; set `label` to
+  name it otherwise. Focus starts in the input and stays in the dialog.
+- The input is a combobox named "Search" (`aria-label` overrides it). It
+  points `aria-activedescendant` at the highlighted command, so screen readers
+  read it as the arrows move.
+- The first command is highlighted, so **Enter** picks it straight away. The
+  **arrow keys** move the highlight and wrap at either end.
+- **Escape** closes the palette, and focus goes back to what opened it.
+- A command with `href` is a link, so it opens in a new tab with a modified
+  click, as any link does.
+
+<PropsDefinitions component='CommandPalette' />

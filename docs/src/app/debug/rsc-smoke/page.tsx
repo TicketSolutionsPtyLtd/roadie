@@ -52,6 +52,7 @@ import { Checkbox } from '@oztix/roadie-components/checkbox'
 import { CheckboxGroup } from '@oztix/roadie-components/checkbox-group'
 import { Collapsible } from '@oztix/roadie-components/collapsible'
 import { Combobox } from '@oztix/roadie-components/combobox'
+import { CommandPalette } from '@oztix/roadie-components/command-palette'
 import { Dialog } from '@oztix/roadie-components/dialog'
 import { Drawer } from '@oztix/roadie-components/drawer'
 import { Field } from '@oztix/roadie-components/field'
@@ -440,6 +441,23 @@ export default function RscSmokePage() {
             <Combobox.Trigger />
           </Combobox.InputGroup>
         </Combobox>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>CommandPalette</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; CommandPalette &#125; from
+            &apos;@oztix/roadie-components/command-palette&apos;
+          </code>
+        </p>
+        <CommandPalette items={['Events', 'Orders']}>
+          <CommandPalette.Input placeholder='Search pages and actions' />
+          <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+        </CommandPalette>
+        <CommandPalette.Root items={[]}>
+          <CommandPalette.Input />
+        </CommandPalette.Root>
       </section>
 
       <section className='grid gap-4'>

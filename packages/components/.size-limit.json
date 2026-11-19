@@ -20,6 +20,13 @@
     "ignore": ["@oztix/roadie-core"]
   },
   {
+    "name": "CommandPalette",
+    "path": "dist/components/CommandPalette/index.js",
+    "import": "*",
+    "limit": "12.4 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
     "name": "Menu",
     "path": "dist/components/Menu/index.js",
     "import": "*",
