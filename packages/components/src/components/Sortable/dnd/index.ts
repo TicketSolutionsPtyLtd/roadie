@@ -157,8 +157,9 @@ export function sortableDropZone({
 }: SortableDropZoneOptions): Cleanup {
   const data = sortableItemData(group)
   const takes = (source: { data: Payload }) => {
+    if (!inGroup(source.data, group)) return false
     const from = sourceOf(source.data, group)
-    return inGroup(source.data, group) && !from.sameList && accepts(from)
+    return !from.sameList && accepts(from)
   }
   let stopScrolling: Cleanup = () => {}
   return combine(
