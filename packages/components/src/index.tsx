@@ -281,6 +281,7 @@ export {
   sortableHandleVariants,
   type SortableProps,
   type SortableMove,
+  type SortableTransfer,
   type SortableItemProps,
   type SortableHandleProps
 } from './components/Sortable'
