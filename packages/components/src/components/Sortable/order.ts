@@ -85,6 +85,10 @@ export function reorderLabel(direction: MoveDirection, name?: string) {
   return name ? `Move ${name} ${where}` : `Move ${where}`
 }
 
+export function transferLabel(list: string, name?: string) {
+  return name ? `Move ${name} to ${list}` : `Move to ${list}`
+}
+
 export function handleLabel(name?: string) {
   return name ? `Reorder ${name}` : 'Reorder'
 }

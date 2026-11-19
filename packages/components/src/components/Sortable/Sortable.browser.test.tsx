@@ -480,6 +480,67 @@ describe('Sortable connected lists', () => {
   })
 })
 
+describe('Sortable Move to another list', () => {
+  async function openMenu(name: string) {
+    handle(name).focus()
+    await userEvent.keyboard('{Enter}')
+    return screen.findByRole('menu')
+  }
+
+  it('moves an item to the end of another list by keyboard', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(
+      <Lanes
+        initial={{ todo: ['Date', 'Event'], done: ['SKU'] }}
+        onTransfer={onTransfer}
+      />
+    )
+    await openMenu('Date')
+    await userEvent.keyboard('{End}')
+    await waitFor(() =>
+      expect(
+        screen.getByRole('menuitem', { name: 'Move Date to done' })
+      ).toHaveFocus()
+    )
+    await userEvent.keyboard('{Enter}')
+    expect(onTransfer).toHaveBeenCalledWith({
+      value: 'Date',
+      from: 'todo',
+      to: 'done',
+      index: 1
+    })
+    expect(listed('todo')).toEqual(['Event'])
+    expect(listed('done')).toEqual(['SKU', 'Date'])
+    await waitFor(() => expect(handle('Date')).toHaveFocus())
+    await waitFor(() =>
+      expect(screen.getAllByRole('status')[1]).toHaveTextContent(
+        'Date moved to position 2 of 2 done'
+      )
+    )
+  })
+
+  it.each([
+    ['refuses it', { canDrop: () => false }],
+    ['is disabled', { done: { disabled: true } }],
+    ['has no onTransfer', { done: { onTransfer: undefined } }]
+  ] as const)('leaves out a list that %s', async (_, props) => {
+    render(<Lanes {...props} />)
+    await openMenu('Date')
+    expect(
+      screen.getByRole('menuitem', { name: 'Move Date down' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('menuitem', { name: 'Move Date to done' })
+    ).toBeNull()
+  })
+
+  it('offers no other lists without a group', async () => {
+    render(<Columns />)
+    const menu = await openMenu('Date')
+    expect(menu.querySelectorAll('[role="menuitem"]')).toHaveLength(4)
+  })
+})
+
 describe('Sortable List rows', () => {
   const background = (name: string) =>
     getComputedStyle(
