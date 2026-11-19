@@ -1,4 +1,4 @@
-import { type ReactNode, memo, useRef } from 'react'
+import { Fragment, type ReactNode, memo, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -38,6 +38,13 @@ export type RecordTableListRowProps = {
   bleed: boolean
 }
 
+// A blank detail would leave a stray separator; a custom cell decides for itself.
+const hasValue = (part: RecordPart, row: object) => {
+  if (part.cell) return true
+  const value = (row as Record<string, unknown>)[part.key]
+  return value != null && value !== ''
+}
+
 /** A record as one line of a list: leading, title and description, trailing. */
 export const RecordTableListRow = memo(function RecordTableListRow({
   id,
@@ -68,6 +75,10 @@ export const RecordTableListRow = memo(function RecordTableListRow({
       />
     )
   const title = parts.title ? value(parts.title) : id
+  const subline = [
+    parts.description,
+    ...parts.details.filter((part) => hasValue(part, row))
+  ].flatMap((part) => (part ? [part] : []))
   const leading = value(parts.leading)
   return (
     <li
@@ -108,7 +119,15 @@ export const RecordTableListRow = memo(function RecordTableListRow({
               </RoadieRoutedLink>
             )
           }
-          description={value(parts.description)}
+          description={
+            subline.length > 0 &&
+            subline.map((part, index) => (
+              <Fragment key={part.key}>
+                {index > 0 && ' · '}
+                {value(part)}
+              </Fragment>
+            ))
+          }
           leading={
             selecting ? (
               // Takes the leading slot's place, at its size, so titles don't shift.

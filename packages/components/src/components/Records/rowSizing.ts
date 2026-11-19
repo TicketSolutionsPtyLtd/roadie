@@ -16,8 +16,12 @@ export type RowSize = {
 
 export const tableRowSize: RowSize = { estimateRem: 3, heightClass: 'h-12' }
 
+/** A list row's second line: the description, then any details. */
+export const hasSubline = (parts: RecordCardParts) =>
+  parts.description !== undefined || parts.details.length > 0
+
 export const listRowSize = (parts: RecordCardParts): RowSize =>
-  parts.description
+  hasSubline(parts)
     ? { estimateRem: 4, heightClass: 'h-16' }
     : { estimateRem: 3, heightClass: 'h-12' }
 

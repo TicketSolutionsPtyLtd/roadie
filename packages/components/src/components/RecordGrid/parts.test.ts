@@ -54,6 +54,11 @@ describe('gridParts', () => {
       ['gross', 'city']
     ],
     [
+      'a list view’s fields in order',
+      { type: 'list', fields: ['gross', 'city'] },
+      ['gross', 'city']
+    ],
+    [
       'no unknown, placed or repeated keys',
       { type: 'grid', fields: ['fees', 'name', 'sold', 'sold'] },
       ['sold']
@@ -148,6 +153,18 @@ describe('gridDetailsLayout', () => {
       ['city', 'sold'],
       { type: 'grid', fields: ['city', 'fees'] },
       { type: 'grid', fields: ['city', 'fees', 'sold'] }
+    ],
+    [
+      'keeps a list view a list',
+      ['sold'],
+      { type: 'list' },
+      { type: 'list', fields: ['sold'] }
+    ],
+    [
+      'leaves out a list view’s fields back to the definition',
+      ['city', 'sold'],
+      { type: 'list', fields: ['sold'] },
+      { type: 'list' }
     ],
     [
       'drops placed, unknown-to-the-row and repeated keys from the change',

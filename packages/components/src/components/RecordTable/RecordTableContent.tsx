@@ -154,7 +154,8 @@ export function RecordTableContent({
   const narrow = isNarrow ? (config.narrow ?? narrowLayout(columns)) : undefined
   const parts = useMemo(() => {
     const roles = narrowParts(columns)
-    return narrow === 'cards' ? cardParts(roles) : roles
+    // A row lists details on its second line; a table's detail columns are for cards only.
+    return narrow === 'cards' ? cardParts(roles) : { ...roles, details: [] }
   }, [columns, narrow])
   useKeepFocusShown(frameRef, boxed)
   useLayoutFocus(frameRef, narrow ?? 'wide', boxed)

@@ -54,9 +54,9 @@ export function definedDetails(
 const unique = (keys: readonly string[]) => [...new Set(keys)]
 
 const gridFields = (layout: RecordLayout) =>
-  layout.type === 'grid' ? layout.fields : undefined
+  layout.type === 'grid' || layout.type === 'list' ? layout.fields : undefined
 
-/** The detail keys a view shows, in order: its own `fields`, else the definition's. Keys this grid can't show are skipped. */
+/** The detail keys a grid or list view shows, in order: its own `fields`, else the definition's. Keys it can't show are skipped. */
 export function shownDetails(
   config: GridLayoutConfig,
   fields: readonly RecordField[],
@@ -118,5 +118,6 @@ export function gridDetailsLayout(
   const backToDefinition =
     merged.length === defined.length &&
     merged.every((key, index) => key === defined[index])
-  return backToDefinition ? { type: 'grid' } : { type: 'grid', fields: merged }
+  const type = current.type === 'list' ? 'list' : 'grid'
+  return backToDefinition ? { type } : { type, fields: merged }
 }
