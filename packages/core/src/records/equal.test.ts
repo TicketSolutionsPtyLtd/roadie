@@ -164,6 +164,15 @@ describe('equalRecordViews', () => {
     ).toBe(false)
   })
 
+  it('tells a layout type this release does not know from every type', () => {
+    const unknown = { type: 'timeline' } as unknown as RecordLayout
+    for (const layout of [...layouts, unknown]) {
+      expect(
+        equalRecordViews({ ...base, layout: unknown }, { ...base, layout })
+      ).toBe(false)
+    }
+  })
+
   it('treats missing and empty list fields as the same', () => {
     expect(
       equalRecordViews(

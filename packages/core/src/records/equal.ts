@@ -50,6 +50,8 @@ function sameLayout(a: RecordLayout, b: RecordLayout): boolean {
       return b.type === 'calendar' && a.dateField === b.dateField
     case 'map':
       return b.type === 'map'
+    default:
+      return false
   }
 }
 
