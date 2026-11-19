@@ -551,6 +551,7 @@ export {
   type RecordsField,
   type RecordsGivenTotals,
   type RecordsOptionsProps,
+  type RecordsViewProps,
   type RecordsRange,
   type RecordsRangeResult,
   type RecordsResolvedTotals,

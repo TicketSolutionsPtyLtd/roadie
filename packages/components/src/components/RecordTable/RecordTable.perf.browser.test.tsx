@@ -130,7 +130,7 @@ describe('RecordTable performance', () => {
     const button = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Configure table"]'
     )!
-    // As a page a moment after it loads, once Options has preloaded the columns.
+    // As a page a moment after it loads, once Configure has preloaded the columns.
     await RecordTableSettingsLazy.preload()
     await frame()
     let renders: Record<string, number> = {}
@@ -149,8 +149,8 @@ describe('RecordTable performance', () => {
     expect(latency).toBeLessThanOrEqual(300)
     expect(opening).toBeLessThanOrEqual(150)
     expect(closing).toBeLessThanOrEqual(150)
-    // Options rendering proves the counter is wired, so zero rows means zero.
-    expect(renders['Records.Options']).toBeGreaterThan(0)
+    // Configure rendering proves the counter is wired, so zero rows means zero.
+    expect(renders['Records.Configure']).toBeGreaterThan(0)
     expect(renders.RecordTableRow ?? 0).toBe(0)
   })
 })

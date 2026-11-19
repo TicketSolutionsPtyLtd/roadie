@@ -668,6 +668,29 @@ describe('RecordTable narrow list rows by role in a browser', () => {
   })
 
   it.each([
+    ['the rows', testShows(6)],
+    ['the empty state', []]
+  ])('keeps focus in the records when Retry brings %s', async (_, data) => {
+    function Retrying() {
+      const [error, setError] = useState(true)
+      return (
+        <RecordTable
+          {...six}
+          data={data}
+          error={error}
+          onRetry={() => setError(false)}
+        />
+      )
+    }
+    const user = userEvent.setup()
+    inBox(<Retrying />)
+    screen.getByRole('button', { name: 'Retry' }).focus()
+    await user.keyboard('{Enter}')
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+    expect(document.activeElement).toBe(scroller())
+  })
+
+  it.each([
     ['cards', cardColumns],
     ['list rows', statusColumns]
   ])('keeps only the title strong in %s', (_, columns) => {
@@ -953,6 +976,32 @@ describe('RecordTable Select mode in a browser', () => {
     await user.keyboard('{Escape}')
     expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
     expect(document.activeElement).toBe(scroller())
+  })
+
+  it('leaves Select mode with Escape when composed with Records.Provider', async () => {
+    function Provided() {
+      const records = useRecords({
+        ...six,
+        selectable: true,
+        defaultSelection: { ids: ['show-0'] }
+      })
+      return (
+        <Records.Provider
+          records={records}
+          layouts={[tableLayout(statusColumns)]}
+          caption='Shows'
+        >
+          <Records.Content />
+        </Records.Provider>
+      )
+    }
+    const user = userEvent.setup()
+    inBox(<Provided />)
+    within(listOf())
+      .getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+      .focus()
+    await user.keyboard('{Escape}')
+    expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
   })
 
   it('settles with one narrow and one wide Content under one Root', () => {
