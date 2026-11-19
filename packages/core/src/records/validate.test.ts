@@ -379,6 +379,24 @@ describe('validateRecordView', () => {
     })
   })
 
+  it('rejects a calendar on a list of dates', () => {
+    const fields = [
+      ...eventFields,
+      { key: 'shows', label: 'Shows', type: 'date', multiple: true } as const
+    ]
+    const layout = { type: 'calendar', dateField: 'shows' }
+    expect(validateRecordView(view([], { layout }), fields)).toMatchObject({
+      ok: false,
+      problems: [
+        {
+          path: 'layout.dateField',
+          message:
+            '"Shows" holds a list of dates, which a calendar cannot place yet'
+        }
+      ]
+    })
+  })
+
   it('rejects unknown keys on the view, such as the retired group', () => {
     expect(errors(view([], { page: 2 } as never))[0]!.message).toMatch(
       /Unrecognized key/
