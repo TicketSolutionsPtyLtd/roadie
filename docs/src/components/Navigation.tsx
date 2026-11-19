@@ -39,9 +39,11 @@ import { relatedLinks } from '@/lib/token-families'
 import { getAssetPath } from '@/utils/getAssetPath'
 
 import { Navigator, Pane } from '@oztix/roadie-components'
+import { CommandPalette } from '@oztix/roadie-components/command-palette'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { AgentMenu } from './AgentMenu'
+import { DocsCommandPalette } from './DocsCommandPalette'
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
 import { InspectorSlotContext } from './InspectorSlot'
@@ -213,6 +215,7 @@ export function DocsNavigator({
       <Suspense fallback={null}>
         <NavQueryFlags onChange={reportQuery} />
       </Suspense>
+      <DocsCommandPalette items={items} />
       <Navigator
         value={route}
         onExpandedChange={persistExpanded}
@@ -321,6 +324,12 @@ export function DocsNavigator({
         <Pane className='@container/docs-pane scroll-pt-6'>
           <Pane.Header>
             <Pane.Actions>
+              <CommandPalette.Trigger
+                emphasis='subtle'
+                className='max-sm:**:data-[slot=command-palette-trigger-shortcut]:hidden'
+              >
+                <span className='max-sm:sr-only'>Search</span>
+              </CommandPalette.Trigger>
               {sourceLinks[route] ? (
                 <SourceMenu {...sourceLinks[route]} />
               ) : null}

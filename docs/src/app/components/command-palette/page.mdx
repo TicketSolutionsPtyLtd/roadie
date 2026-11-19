@@ -22,12 +22,13 @@ import { CommandPalette } from '@oztix/roadie-components/command-palette'
 
 Pass the commands as `items`, and render each one in the list's child
 function. A command with `href` is a link; one with `onSelect` runs it.
-Either way, picking it closes the palette. ⌘K on a Mac, or Ctrl+K elsewhere,
-opens it from anywhere on the page, and `CommandPalette.Trigger` opens it from
-a button that shows that shortcut.
+Either way, picking it closes the palette. This example opens from its own
+button, as this site's palette has the shortcut: press ⌘K, or Ctrl+K, to try
+that one.
 
-```tsx-live
+```tsx-live-noinline
 function Search() {
+  const [open, setOpen] = useState(false)
   const commands = [
     { label: 'Events', href: '#events' },
     { label: 'Orders', href: '#orders' },
@@ -37,8 +38,8 @@ function Search() {
 
   return (
     <>
-      <CommandPalette.Trigger />
-      <CommandPalette items={commands}>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={commands}>
         <CommandPalette.Input placeholder='Search pages and actions' />
         <CommandPalette.List>
           {(command) => (
@@ -57,6 +58,25 @@ function Search() {
     </>
   )
 }
+
+render(<Search />)
+```
+
+### With the shortcut and a trigger
+
+Left uncontrolled, a palette opens with ⌘K on a Mac, or Ctrl+K elsewhere, from
+anywhere on the page. `CommandPalette.Trigger` opens it from a button that
+shows that shortcut, and can sit anywhere, such as an app's header. This
+site's Search button is one.
+
+```tsx
+<>
+  <CommandPalette.Trigger />
+  <CommandPalette items={commands}>
+    <CommandPalette.Input placeholder='Search pages and actions' />
+    <CommandPalette.List>{(command) => …}</CommandPalette.List>
+  </CommandPalette>
+</>
 ```
 
 ### Opened by your own control
