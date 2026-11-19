@@ -11,6 +11,7 @@ import {
   PointerHighlightContext,
   optionHighlightClass
 } from '../../utils/optionHighlight'
+import { useVirtualItem } from '../../utils/virtualList'
 
 export type AutocompleteItemProps = AutocompletePrimitive.Item.Props &
   RefAttributes<HTMLDivElement>
@@ -23,9 +24,11 @@ export function AutocompleteItem({
   onPointerCancel,
   onMouseUp,
   onClickCapture,
+  ref,
   ...props
 }: AutocompleteItemProps) {
   const byPointer = use(PointerHighlightContext)
+  const virtualItem = useVirtualItem(ref)
   return (
     <AutocompletePrimitive.Item
       data-slot='autocomplete-item'
@@ -43,6 +46,7 @@ export function AutocompleteItem({
         onClickCapture
       })}
       {...props}
+      {...virtualItem}
     />
   )
 }
