@@ -271,4 +271,37 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     const options = await screen.findAllByRole('option')
     expect(options.map((option) => option.textContent)).toEqual(['Status'])
   })
+
+  it("ungroups from None when the definition doesn't group", async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowList
+        data={testShows(3)}
+        fields={showFields}
+        defaultView={{ layout: { type: 'list', groupBy: 'status' } }}
+      />
+    )
+    expect(groupsShown()).toHaveLength(3)
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
+    await user.click(await screen.findByRole('option', { name: 'None' }))
+    await expect.poll(() => groupsShown()).toHaveLength(0)
+    expect(rows()).toHaveLength(3)
+  })
+
+  it('stays ungrouped when it loads by range', async () => {
+    render(
+      <ShowList
+        fields={showFields}
+        groupBy='status'
+        loadRange={async ({ start, end }) => ({
+          rows: testShows(end).slice(start),
+          rowCount: 6
+        })}
+      />
+    )
+    await expect.poll(() => rows().length).toBeGreaterThan(0)
+    expect(groupsShown()).toHaveLength(0)
+  })
 })
