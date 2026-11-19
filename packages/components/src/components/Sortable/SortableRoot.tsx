@@ -56,7 +56,7 @@ export type SortableRootProps = {
   value?: string
   /** Called on the list an item from another list in its group is dropped into. Without it, the list takes no items from others. */
   onTransfer?: (transfer: SortableTransfer) => void
-  /** Return false to refuse an item from another list. Called while it is dragged over this one. */
+  /** Return false to refuse an item from another list. Called when a drag starts and while the item is over this list. */
   canDrop?: (item: Pick<SortableTransfer, 'value' | 'from'>) => boolean
   children?: ReactNode
 }

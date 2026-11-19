@@ -21,7 +21,8 @@ export type SortableDropZoneProps = ComponentProps<'div'> & {
 
 /**
  * The list's area, so an item from another list can land past its last item
- * or in it while it is empty. Sets `data-drop-target` while one is over it.
+ * or in it while it is empty. A drop outside every item, such as in a gap
+ * between rows, lands at the end. Sets `data-drop-target` while one is over it.
  */
 export function SortableDropZone({
   render,
