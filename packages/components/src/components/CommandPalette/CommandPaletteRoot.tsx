@@ -1,6 +1,12 @@
 'use client'
 
-import { type ReactNode, useMemo, useState } from 'react'
+import {
+  type ReactNode,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useState
+} from 'react'
 
 import type { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 
@@ -9,10 +15,13 @@ import { cn } from '@oztix/roadie-core/utils'
 import { collatorContains, rankMatches } from '../../utils/rankMatches'
 import { Autocomplete, type AutocompleteProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
+import { useKeyPlatform } from '../Kbd/platform'
 import { CommandPaletteCloseProvider } from './CommandPaletteContext'
+import { registerPalette } from './registry'
+import { matchesShortcut } from './shortcut'
 
 export type CommandPaletteOpenChangeDetails = {
-  reason: DialogPrimitive.Root.ChangeEventReason | 'item-press'
+  reason: DialogPrimitive.Root.ChangeEventReason | 'item-press' | 'shortcut'
 }
 
 /** A command, or the commands inside a group of them. */
@@ -40,6 +49,14 @@ export type CommandPaletteRootProps<Item = unknown> = {
   items: readonly Item[]
   /** The text a command is matched and ranked by. Defaults to its `label`, then `value`. */
   itemToStringValue?: (item: CommandPaletteCommand<Item>) => string
+  /**
+   * The keys that open and close the palette from anywhere on the page, as a
+   * key list. `mod` is ⌘ on Apple platforms and Ctrl elsewhere. `false` binds
+   * nothing. A field that handles the same keys first, calling
+   * `preventDefault`, keeps them.
+   * @default ['mod', 'k']
+   */
+  shortcut?: readonly string[] | false
   /** The dialog's accessible name. @default 'Search and commands' */
   label?: string
   /** Matching locale. Defaults to the page's. */
@@ -68,10 +85,13 @@ function useCommandFilter(locale?: Intl.LocalesArgument) {
   }, [locale])
 }
 
+const DEFAULT_SHORTCUT = ['mod', 'k'] as const
+
 export function CommandPaletteRoot<Item>({
   open: openProp,
   defaultOpen = false,
   onOpenChange,
+  shortcut = DEFAULT_SHORTCUT,
   items,
   itemToStringValue,
   label = 'Search and commands',
@@ -97,6 +117,31 @@ export function CommandPaletteRoot<Item>({
     setOpenState(next)
     onOpenChange?.(next, { reason: details.reason })
   }
+
+  const platform = useKeyPlatform()
+  const onShortcut = useEffectEvent((event: KeyboardEvent) => {
+    if (!shortcut || event.defaultPrevented || event.repeat) return
+    if (!matchesShortcut(event, shortcut, platform)) return
+    event.preventDefault()
+    setOpen(!open, { reason: 'shortcut' })
+  })
+  const openFromOutside = useEffectEvent(() =>
+    setOpen(true, { reason: 'trigger-press' })
+  )
+  const keys = shortcut ? shortcut.join(' ') : ''
+  useEffect(() => {
+    if (!keys) return
+    const handleKeyDown = (event: KeyboardEvent) => onShortcut(event)
+    const unregister = registerPalette({
+      open: () => openFromOutside(),
+      shortcut: keys.split(' ')
+    })
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      unregister()
+    }
+  }, [keys])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

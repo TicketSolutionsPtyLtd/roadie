@@ -27,6 +27,7 @@ export {
   type CommandPaletteProps,
   type CommandPaletteOpenChangeDetails,
   type CommandPaletteCommand,
+  type CommandPaletteTriggerProps,
   type CommandPaletteInputProps,
   type CommandPaletteListProps,
   type CommandPaletteGroupProps,

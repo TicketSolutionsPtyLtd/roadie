@@ -8,9 +8,11 @@ import { CommandPaletteInput } from './CommandPaletteInput'
 import { CommandPaletteItem } from './CommandPaletteItem'
 import { CommandPaletteList } from './CommandPaletteList'
 import { CommandPaletteRoot } from './CommandPaletteRoot'
+import { CommandPaletteTrigger } from './CommandPaletteTrigger'
 
 const CommandPalette = CommandPaletteRoot as typeof CommandPaletteRoot & {
   Root: typeof CommandPaletteRoot
+  Trigger: typeof CommandPaletteTrigger
   Input: typeof CommandPaletteInput
   List: typeof CommandPaletteList
   Group: typeof CommandPaletteGroup
@@ -21,6 +23,7 @@ const CommandPalette = CommandPaletteRoot as typeof CommandPaletteRoot & {
 }
 
 CommandPalette.Root = CommandPaletteRoot
+CommandPalette.Trigger = CommandPaletteTrigger
 CommandPalette.Input = CommandPaletteInput
 CommandPalette.List = CommandPaletteList
 CommandPalette.Group = CommandPaletteGroup
@@ -35,6 +38,7 @@ export type {
   CommandPaletteOpenChangeDetails,
   CommandPaletteCommand
 } from './CommandPaletteRoot'
+export type { CommandPaletteTriggerProps } from './CommandPaletteTrigger'
 export type { CommandPaletteInputProps } from './CommandPaletteInput'
 export type { CommandPaletteListProps } from './CommandPaletteList'
 export type { CommandPaletteGroupProps } from './CommandPaletteGroup'

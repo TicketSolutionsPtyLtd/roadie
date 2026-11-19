@@ -22,11 +22,12 @@ import { CommandPalette } from '@oztix/roadie-components/command-palette'
 
 Pass the commands as `items`, and render each one in the list's child
 function. A command with `href` is a link; one with `onSelect` runs it.
-Either way, picking it closes the palette.
+Either way, picking it closes the palette. ⌘K on a Mac, or Ctrl+K elsewhere,
+opens it from anywhere on the page, and `CommandPalette.Trigger` opens it from
+a button that shows that shortcut.
 
-```tsx-live-noinline
+```tsx-live
 function Search() {
-  const [open, setOpen] = useState(false)
   const commands = [
     { label: 'Events', href: '#events' },
     { label: 'Orders', href: '#orders' },
@@ -36,8 +37,8 @@ function Search() {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Search</Button>
-      <CommandPalette open={open} onOpenChange={setOpen} items={commands}>
+      <CommandPalette.Trigger />
+      <CommandPalette items={commands}>
         <CommandPalette.Input placeholder='Search pages and actions' />
         <CommandPalette.List>
           {(command) => (
@@ -56,8 +57,47 @@ function Search() {
     </>
   )
 }
+```
 
-render(<Search />)
+### Opened by your own control
+
+Pass `open` and `onOpenChange` to open the palette from state you hold, and
+`shortcut={false}` when another palette on the page has the shortcut.
+`onOpenChange` says why it changed: `'item-press'` when a command was picked,
+`'shortcut'` for the keys, and Base UI's reasons, such as `'escape-key'`,
+otherwise.
+
+```tsx-live-noinline
+function OwnButton() {
+  const [open, setOpen] = useState(false)
+  const commands = [
+    { label: 'Events', href: '#events' },
+    { label: 'Orders', href: '#orders' },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Find a page</Button>
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        shortcut={false}
+        items={commands}
+      >
+        <CommandPalette.Input placeholder='Search pages' />
+        <CommandPalette.List>
+          {(command) => (
+            <CommandPalette.Item key={command.label} value={command} href={command.href}>
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<OwnButton />)
 ```
 
 ### States
@@ -76,7 +116,7 @@ function SearchStates() {
   return (
     <>
       <Button onClick={() => setOpen(true)}>Search</Button>
-      <CommandPalette open={open} onOpenChange={setOpen} items={commands}>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={commands}>
         <CommandPalette.Input placeholder='Search pages and actions' />
         <CommandPalette.List>
           {(command) => (
@@ -130,7 +170,7 @@ function GroupedSearch() {
   return (
     <>
       <Button onClick={() => setOpen(true)}>Search</Button>
-      <CommandPalette open={open} onOpenChange={setOpen} items={groups}>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={groups}>
         <CommandPalette.Input placeholder='Search pages and actions' />
         <CommandPalette.List>
           {(group) => (
@@ -187,6 +227,15 @@ render(<GroupedSearch />)
 
 </Guidelines>
 
+### Shortcut
+
+The palette binds ⌘K on Apple platforms and Ctrl+K elsewhere. Pass another key
+list to `shortcut`, such as `['mod', 'p']`, or `false` for none. Give one
+palette per page a shortcut: `CommandPalette.Trigger` opens that one, and a
+second palette with a shortcut takes it over, with a warning in development.
+A field that handles the same keys itself, such as the editor's link
+shortcut, calls `preventDefault`, and the palette leaves the key to it.
+
 ### Matching
 
 Typing ranks the commands: an exact match first, then labels that start with
@@ -211,7 +260,10 @@ flow at every size.
   read it as the arrows move.
 - The first command is highlighted, so **Enter** picks it straight away. The
   **arrow keys** move the highlight and wrap at either end.
-- **Escape** closes the palette, and focus goes back to what opened it.
+- **Escape** closes the palette, and focus goes back to what opened it. The
+  shortcut closes it too.
+- `CommandPalette.Trigger` carries the shortcut in `aria-keyshortcuts`, so
+  screen readers announce it; the keycaps are visual.
 - A command with `href` is a link, so it opens in a new tab with a modified
   click, as any link does.
 
