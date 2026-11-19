@@ -78,6 +78,19 @@ describe('CommandPalette shortcut', () => {
     }
   )
 
+  it('finds the K key on a layout that types another letter there', async () => {
+    render(<Palette />)
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'л',
+        code: 'KeyK',
+        ctrlKey: true,
+        bubbles: true
+      })
+    )
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
   it('binds nothing with shortcut={false}', async () => {
     render(<Palette shortcut={false} />)
     await userEvent.keyboard('{Control>}k{/Control}')
@@ -137,6 +150,19 @@ describe('CommandPalette shortcut', () => {
 })
 
 describe('CommandPalette.Trigger', () => {
+  it('names a named key as aria-keyshortcuts does', () => {
+    render(
+      <>
+        <CommandPalette.Trigger />
+        <Palette shortcut={['mod', 'space']} />
+      </>
+    )
+    expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute(
+      'aria-keyshortcuts',
+      'Control+Space'
+    )
+  })
+
   it('opens the palette and shows its shortcut', async () => {
     render(
       <>

@@ -24,6 +24,14 @@ function parse(keys: readonly string[], platform: KeyPlatform | null) {
   return { modifiers, key }
 }
 
+// A layout that types another script, such as Russian, still has the Latin
+// letter's physical key; a Latin layout keeps the letter it shows (Dvorak).
+const keyMatches = (event: KeyboardEvent, key: string) =>
+  keyId(event.key) === key ||
+  (/^[a-z]$/.test(key) &&
+    !/^[\x20-\x7e]$/.test(event.key) &&
+    event.code === `Key${key.toUpperCase()}`)
+
 export function matchesShortcut(
   event: KeyboardEvent,
   keys: readonly string[],
@@ -33,12 +41,25 @@ export function matchesShortcut(
   if (typeof event.key !== 'string') return false
   const { modifiers, key } = parse(keys, platform)
   return (
-    keyId(event.key) === key &&
+    keyMatches(event, key) &&
     event.ctrlKey === modifiers.ctrl &&
     event.metaKey === modifiers.meta &&
     event.altKey === modifiers.alt &&
     event.shiftKey === modifiers.shift
   )
+}
+
+const ARIA_KEY_NAMES: Record<string, string> = {
+  space: 'Space',
+  enter: 'Enter',
+  escape: 'Escape',
+  tab: 'Tab',
+  backspace: 'Backspace',
+  delete: 'Delete',
+  arrowup: 'ArrowUp',
+  arrowdown: 'ArrowDown',
+  arrowleft: 'ArrowLeft',
+  arrowright: 'ArrowRight'
 }
 
 /** The shortcut as `aria-keyshortcuts` writes it, such as `Meta+K`. */
@@ -52,7 +73,7 @@ export function ariaKeyShortcuts(
     modifiers.meta && 'Meta',
     modifiers.alt && 'Alt',
     modifiers.shift && 'Shift',
-    key.length === 1 ? key.toUpperCase() : key
+    ARIA_KEY_NAMES[key] ?? (key.length === 1 ? key.toUpperCase() : key)
   ]
   return names.filter(Boolean).join('+')
 }
