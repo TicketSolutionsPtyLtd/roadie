@@ -116,6 +116,35 @@ describe('CommandPalette', () => {
     )
   })
 
+  it('tells onOpenChange whether a pick or Escape closed it', async () => {
+    const onOpenChange = vi.fn()
+    const { rerender } = render(
+      <CommandPalette open onOpenChange={onOpenChange} items={['Events']}>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(label: string) => (
+            <CommandPalette.Item key={label} value={label}>
+              {label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await userEvent.click(await screen.findByRole('option', { name: 'Events' }))
+    expect(onOpenChange).toHaveBeenLastCalledWith(false, {
+      reason: 'item-press'
+    })
+    rerender(
+      <CommandPalette open onOpenChange={onOpenChange} items={['Events']}>
+        <CommandPalette.Input />
+      </CommandPalette>
+    )
+    await userEvent.keyboard('{Escape}')
+    expect(onOpenChange).toHaveBeenLastCalledWith(false, {
+      reason: 'escape-key'
+    })
+  })
+
   it('moves the highlight with the arrow keys', async () => {
     const newEvent = vi.fn()
     render(

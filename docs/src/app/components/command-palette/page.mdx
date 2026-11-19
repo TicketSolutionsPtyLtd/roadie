@@ -60,6 +60,45 @@ function Search() {
 render(<Search />)
 ```
 
+### States
+
+A command with `disabled` stays in the list, dimmed, and can't be picked.
+When nothing matches, `CommandPalette.Empty` shows its text.
+
+```tsx-live-noinline
+function SearchStates() {
+  const [open, setOpen] = useState(false)
+  const commands = [
+    { label: 'Events', href: '#events' },
+    { label: 'Payouts', disabled: true },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} items={commands}>
+        <CommandPalette.Input placeholder='Search pages and actions' />
+        <CommandPalette.List>
+          {(command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              href={command.href}
+              disabled={command.disabled}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<SearchStates />)
+```
+
 ### Composition
 
 #### With groups, icons and shortcuts
@@ -159,7 +198,8 @@ commands are ranked within them. Each opening starts with an empty search.
 ### On a phone
 
 Below the `sm` breakpoint the palette fills the screen, with the input at the
-top and a Close button beside it. It's the same list, keys and screen reader
+top and a Close button beside it. `CommandPalette.Input` draws that Close, so
+keep it as the palette's input. It's the same list, keys and screen reader
 flow at every size.
 
 ## Accessibility

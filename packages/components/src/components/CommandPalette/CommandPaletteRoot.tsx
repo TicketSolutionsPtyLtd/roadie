@@ -2,6 +2,8 @@
 
 import { type ReactNode, useMemo, useState } from 'react'
 
+import type { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
+
 import { cn } from '@oztix/roadie-core/utils'
 
 import { collatorContains, rankMatches } from '../../utils/rankMatches'
@@ -9,13 +11,20 @@ import { Autocomplete, type AutocompleteProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
 import { CommandPaletteCloseProvider } from './CommandPaletteContext'
 
+export type CommandPaletteOpenChangeDetails = {
+  reason: DialogPrimitive.Root.ChangeEventReason | 'item-press'
+}
+
 export type CommandPaletteRootProps = {
   /** Whether the palette is open. */
   open?: boolean
   /** Whether the palette is open at first, when uncontrolled. */
   defaultOpen?: boolean
-  /** Called as the palette opens or closes. */
-  onOpenChange?: (open: boolean) => void
+  /** Called as the palette opens or closes, with why: `'item-press'` when a command was picked. */
+  onOpenChange?: (
+    open: boolean,
+    details: CommandPaletteOpenChangeDetails
+  ) => void
   /**
    * The commands, or groups of them (`{ items }`), that the list renders
    * through its child function. An object item's `keywords` array is
@@ -77,9 +86,9 @@ export function CommandPaletteRoot({
     [items, query, itemToStringValue, locale]
   )
 
-  function setOpen(next: boolean) {
+  function setOpen(next: boolean, details: CommandPaletteOpenChangeDetails) {
     setOpenState(next)
-    onOpenChange?.(next)
+    onOpenChange?.(next, { reason: details.reason })
   }
 
   return (
@@ -99,7 +108,9 @@ export function CommandPaletteRoot({
               className
             )}
           >
-            <CommandPaletteCloseProvider value={() => setOpen(false)}>
+            <CommandPaletteCloseProvider
+              value={() => setOpen(false, { reason: 'item-press' })}
+            >
               <Autocomplete
                 inline
                 open
