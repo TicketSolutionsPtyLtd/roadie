@@ -9,12 +9,14 @@ import {
   isFilterable,
   isSortable,
   momentOf,
+  recordFieldOptions,
   recordFilterOperators
 } from './fields'
 import { recordViewSchema } from './schema'
 import type {
   RecordField,
   RecordFilter,
+  RecordLayout,
   RecordView,
   RecordViewProblem
 } from './types'
@@ -200,22 +202,76 @@ function unquotableAt(filter: RecordFilter): string | null {
     : null
 }
 
+function layoutLists(layout: RecordLayout): [string, string[] | undefined][] {
+  switch (layout.type) {
+    case 'table':
+      return [
+        ['layout.columns.order', layout.columns?.order],
+        ['layout.columns.hidden', layout.columns?.hidden]
+      ]
+    case 'grid':
+    case 'list':
+      return [['layout.fields', layout.fields]]
+    case 'board':
+    case 'calendar':
+    case 'map':
+      return []
+  }
+}
+
+function groupByProblem(field: RecordField): string | null {
+  if (field.multiple) {
+    return `"${field.label}" holds a list, so a record would sit in more than one group`
+  }
+  return recordFieldOptions(field).length
+    ? null
+    : `"${field.label}" has no options to group by`
+}
+
+function dateFieldProblem(field: RecordField): string | null {
+  if (field.type !== 'date') return `"${field.label}" is not a date field`
+  return isDateList(field)
+    ? `"${field.label}" holds a list of dates, which a calendar cannot place yet`
+    : null
+}
+
+// The field a layout arranges records by has to exist and fit, or the layout
+// has nothing to draw, so these are errors rather than warnings.
+function arrangedBy(
+  layout: RecordLayout
+): [string, string, (field: RecordField) => string | null] | null {
+  switch (layout.type) {
+    case 'list':
+      return layout.groupBy === undefined
+        ? null
+        : ['layout.groupBy', layout.groupBy, groupByProblem]
+    case 'board':
+      return ['layout.groupBy', layout.groupBy, groupByProblem]
+    case 'calendar':
+      return ['layout.dateField', layout.dateField, dateFieldProblem]
+    case 'table':
+    case 'grid':
+    case 'map':
+      return null
+  }
+}
+
 function layoutProblems(
   view: RecordView,
+  fields: readonly RecordField[],
   byKey: Map<string, RecordField>
 ): RecordViewProblem[] {
-  const lists: [string, string[] | undefined][] =
-    view.layout.type === 'table'
-      ? [
-          ['layout.columns.order', view.layout.columns?.order],
-          ['layout.columns.hidden', view.layout.columns?.hidden]
-        ]
-      : [['layout.fields', view.layout.fields]]
-  return lists.flatMap(([path, keys = []]) =>
+  const unknownKeys = layoutLists(view.layout).flatMap(([path, keys = []]) =>
     keys.flatMap((key, i) =>
       byKey.has(key) ? [] : [warning(`${path}[${i}]`, `Unknown field "${key}"`)]
     )
   )
+  const arranged = arrangedBy(view.layout)
+  if (!arranged) return unknownKeys
+  const [path, key, fits] = arranged
+  const field = byKey.get(key)
+  const problem = field ? fits(field) : unknownField(key, fields)
+  return problem ? [...unknownKeys, error(path, problem)] : unknownKeys
 }
 
 function schemaProblems(issues: readonly core.$ZodIssue[]) {
@@ -235,7 +291,9 @@ function withCanonicalRanges(view: RecordView): RecordView {
  * Checks a view against an entity's fields: its shape, that every field it
  * names exists, and that each filter's operator and value fit the field.
  * Layout keys a field list does not know are warnings, since a layout may
- * show columns, such as actions, that are not fields. The view it returns
+ * show columns, such as actions, that are not fields. A list or board's
+ * `groupBy` must be a single-valued field with options, and a calendar's
+ * `dateField` a date field. The view it returns
  * writes each relative date range in its one form (`canonicalDateRange`).
  */
 export function validateRecordView(
@@ -263,7 +321,7 @@ export function validateRecordView(
       problems.push(error(path, `"${field.label}" is not sortable`))
     }
   })
-  problems.push(...layoutProblems(view, byKey))
+  problems.push(...layoutProblems(view, fields, byKey))
 
   return problems.some((p) => p.severity === 'error')
     ? { ok: false, problems }

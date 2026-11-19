@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { equalRecordViews } from './equal'
-import type { RecordView } from './types'
+import type { RecordLayout, RecordView } from './types'
 
 const base: RecordView = {
   id: 'upcoming',
@@ -116,6 +116,59 @@ describe('equalRecordViews', () => {
       equalRecordViews(
         { ...base, layout: { type: 'grid' } },
         { ...base, layout: { type: 'grid', fields: [] } }
+      )
+    ).toBe(true)
+  })
+
+  const layouts: RecordLayout[] = [
+    { type: 'table' },
+    { type: 'grid' },
+    { type: 'list' },
+    { type: 'board', groupBy: 'status' },
+    { type: 'calendar', dateField: 'starts' },
+    { type: 'map' }
+  ]
+
+  it.each(layouts.map((layout) => [layout.type, layout]))(
+    'tells a %s layout from every other type',
+    (_, layout) => {
+      for (const other of layouts) {
+        expect(
+          equalRecordViews({ ...base, layout }, { ...base, layout: other })
+        ).toBe(other === layout)
+      }
+    }
+  )
+
+  it.each<[string, RecordLayout, RecordLayout]>([
+    ['list fields', { type: 'list', fields: ['name'] }, { type: 'list' }],
+    [
+      'list field order',
+      { type: 'list', fields: ['name', 'starts'] },
+      { type: 'list', fields: ['starts', 'name'] }
+    ],
+    ['list grouping', { type: 'list', groupBy: 'venue' }, { type: 'list' }],
+    [
+      'board grouping',
+      { type: 'board', groupBy: 'status' },
+      { type: 'board', groupBy: 'venue' }
+    ],
+    [
+      'calendar date field',
+      { type: 'calendar', dateField: 'starts' },
+      { type: 'calendar', dateField: 'onSale' }
+    ]
+  ])('tells apart a change of %s', (_, a, b) => {
+    expect(
+      equalRecordViews({ ...base, layout: a }, { ...base, layout: b })
+    ).toBe(false)
+  })
+
+  it('treats missing and empty list fields as the same', () => {
+    expect(
+      equalRecordViews(
+        { ...base, layout: { type: 'list', groupBy: 'venue' } },
+        { ...base, layout: { type: 'list', fields: [], groupBy: 'venue' } }
       )
     ).toBe(true)
   })

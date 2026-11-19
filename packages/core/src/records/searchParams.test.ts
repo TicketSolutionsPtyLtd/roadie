@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
+import { equalRecordViews } from './equal'
 import {
   recordViewFromSearchParams,
   recordViewToSearchParams
 } from './searchParams'
 import { eventFields } from './testFields'
-import type { RecordView } from './types'
+import type { RecordLayout, RecordView } from './types'
 
 const full: RecordView = {
   id: 'upcoming',
@@ -260,6 +261,38 @@ describe('recordViewFromSearchParams', () => {
     ).toEqual({ type: 'grid', fields: ['starts', 'name'] })
   })
 
+  it.each<[string, RecordLayout]>([
+    ['', { type: 'table' }],
+    [
+      'layout=table&columns=name%2Cstarts&hidden=gross',
+      {
+        type: 'table',
+        columns: { order: ['name', 'starts'], hidden: ['gross'] }
+      }
+    ],
+    ['layout=grid', { type: 'grid' }],
+    [
+      'layout=grid&fields=starts%2Cname',
+      { type: 'grid', fields: ['starts', 'name'] }
+    ],
+    ['layout=list', { type: 'list' }],
+    [
+      'layout=list&fields=starts%2Cname&group=venue',
+      { type: 'list', fields: ['starts', 'name'], groupBy: 'venue' }
+    ],
+    ['layout=board&group=status', { type: 'board', groupBy: 'status' }],
+    ['layout=calendar&date=starts', { type: 'calendar', dateField: 'starts' }],
+    ['layout=map', { type: 'map' }]
+  ])('round-trips the layout "%s"', (text, layout) => {
+    const url = `v=1${text && `&${text}`}`
+    const view = { ...empty, layout }
+    expect(recordViewToSearchParams(view).toString()).toBe(url)
+    const read = recordViewFromSearchParams(url, eventFields)
+    expect(read).toMatchObject({ source: 'url', problems: [] })
+    expect(read.view.layout).toEqual(layout)
+    expect(equalRecordViews(read.view, view)).toBe(true)
+  })
+
   it('falls back with no view in the URL, quietly', () => {
     const fallback = { ...empty, id: 'all' }
     expect(
@@ -287,7 +320,11 @@ describe('recordViewFromSearchParams', () => {
       'query.filters[0].value',
       'takes no value'
     ],
-    ['v=1&layout=board', 'layout', 'Unknown layout "board"']
+    ['v=1&layout=timeline', 'layout', 'Unknown layout "timeline"'],
+    ['v=1&layout=board', 'layout.groupBy', ''],
+    ['v=1&layout=board&group=nope', 'layout.groupBy', 'Unknown field'],
+    ['v=1&layout=calendar', 'layout.dateField', ''],
+    ['v=1&layout=calendar&date=name', 'layout.dateField', 'not a date']
   ])('rejects %s and falls back', (text, path, message) => {
     const result = recordViewFromSearchParams(text, eventFields, {
       fallback: { ...empty, id: 'all' }

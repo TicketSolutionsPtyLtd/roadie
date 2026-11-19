@@ -85,20 +85,42 @@ function decodeFilter(text: string, byKey: Map<string, RecordField>): Decoded {
   }
 }
 
+function listEntry(key: string, items?: string[]): [string, string][] {
+  return items?.length ? [[key, joinItems(items)]] : []
+}
+
 function layoutEntries(layout: RecordLayout): [string, string][] {
-  if (layout.type === 'grid') {
-    return [
-      ['layout', 'grid'],
-      ...(layout.fields?.length
-        ? [['fields', joinItems(layout.fields)] as [string, string]]
-        : [])
-    ]
+  switch (layout.type) {
+    case 'table': {
+      const entries = [
+        ...listEntry('columns', layout.columns?.order),
+        ...listEntry('hidden', layout.columns?.hidden)
+      ]
+      return entries.length ? [['layout', 'table'], ...entries] : []
+    }
+    case 'grid':
+      return [['layout', 'grid'], ...listEntry('fields', layout.fields)]
+    case 'list':
+      return [
+        ['layout', 'list'],
+        ...listEntry('fields', layout.fields),
+        ...(layout.groupBy
+          ? [['group', layout.groupBy] as [string, string]]
+          : [])
+      ]
+    case 'board':
+      return [
+        ['layout', 'board'],
+        ['group', layout.groupBy]
+      ]
+    case 'calendar':
+      return [
+        ['layout', 'calendar'],
+        ['date', layout.dateField]
+      ]
+    case 'map':
+      return [['layout', 'map']]
   }
-  const { order, hidden } = layout.columns ?? {}
-  const entries: [string, string][] = []
-  if (order?.length) entries.push(['columns', joinItems(order)])
-  if (hidden?.length) entries.push(['hidden', joinItems(hidden)])
-  return entries.length ? [['layout', 'table'], ...entries] : []
 }
 
 /**
@@ -160,24 +182,45 @@ function readPosition(params: URLSearchParams): RecordPosition {
   }
 }
 
-function readLayout(
-  params: URLSearchParams
-): RecordLayout | { problem: string } {
+type ReadLayout = { problem: string } | { type: string; [key: string]: unknown }
+
+// A missing key is left out for validation to name, never read as empty.
+function readLayout(params: URLSearchParams): ReadLayout {
+  const items = (key: string) => {
+    const list = splitItems(params.get(key) ?? '')
+    return list.length ? list : undefined
+  }
+  const one = (key: string) => params.get(key) || undefined
   const type = params.get('layout') ?? 'table'
-  if (type === 'grid') {
-    const fields = splitItems(params.get('fields') ?? '')
-    return { type: 'grid', ...(fields.length && { fields }) }
-  }
-  if (type !== 'table') return { problem: `Unknown layout "${type}"` }
-  const order = splitItems(params.get('columns') ?? '')
-  const hidden = splitItems(params.get('hidden') ?? '')
-  const columns = {
-    ...(order.length && { order }),
-    ...(hidden.length && { hidden })
-  }
-  return {
-    type: 'table',
-    ...(Object.keys(columns).length && { columns })
+  switch (type) {
+    case 'table': {
+      const order = items('columns')
+      const hidden = items('hidden')
+      return order || hidden
+        ? {
+            type,
+            columns: { ...(order && { order }), ...(hidden && { hidden }) }
+          }
+        : { type }
+    }
+    case 'grid':
+    case 'list': {
+      const fields = items('fields')
+      const groupBy = type === 'list' ? one('group') : undefined
+      return { type, ...(fields && { fields }), ...(groupBy && { groupBy }) }
+    }
+    case 'board': {
+      const groupBy = one('group')
+      return { type, ...(groupBy && { groupBy }) }
+    }
+    case 'calendar': {
+      const dateField = one('date')
+      return { type, ...(dateField && { dateField }) }
+    }
+    case 'map':
+      return { type }
+    default:
+      return { problem: `Unknown layout "${type}"` }
   }
 }
 
@@ -223,8 +266,9 @@ export function recordViewFromSearchParams(
     filters.push('filter' in decoded ? decoded.filter : null)
   })
   const layout = readLayout(params)
-  if ('problem' in layout)
+  if (typeof layout.problem === 'string') {
     decodeProblems.push(problem('layout', layout.problem))
+  }
   if (decodeProblems.length) return fail(decodeProblems)
 
   const view = {
