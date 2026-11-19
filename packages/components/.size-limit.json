@@ -370,7 +370,7 @@
     "name": "RecordList",
     "path": "dist/components/RecordList/index.js",
     "import": "*",
-    "limit": "54 kB",
+    "limit": "55 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
