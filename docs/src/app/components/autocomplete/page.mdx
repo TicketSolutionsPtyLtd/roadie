@@ -305,7 +305,7 @@ stay smooth.
 
 ```tsx-live
 function AutocompleteLongList() {
-  const names = ['Iguana Teapot Hall', 'Kazoo Hollow Room', 'Wombat Lantern Bar']
+  const names = ['Iguana Teapot Hall', 'Kazoo Hollow Room', 'Wobbly Teacup Room']
   const venues = Array.from(
     { length: 2000 },
     (_, index) => `${names[index % names.length]} ${index + 1}`
@@ -416,12 +416,12 @@ For server-side search, update the `items` prop as results arrive, and pass
 
 ### Long lists
 
-With `virtualized` on the root, `Autocomplete.List` draws only the rows near the
-scroll position, plus a few either side. It works on a flat `items` array
-with a render function child, so leave it off for grouped items.
-Rows can differ in height, since each is measured as it appears. Give the
-popup a `max-h-*` class so the list scrolls inside it. Use it for long lists,
-from a few hundred items up; short lists don't need it.
+With `virtualized` on the root, `Autocomplete.List` draws only the rows near
+the scroll position, plus a few either side. Use it for long lists, from a few
+hundred items up; short lists don't need it. It works on a flat `items` array
+with a render function child, so leave it off for grouped items. Rows can
+differ in height, since each is measured as it appears. The popup scrolls
+within the space it has, and a `max-h-*` class keeps it shorter.
 
 ### Mode
 
