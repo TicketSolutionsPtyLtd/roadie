@@ -66,6 +66,8 @@ const viewButton = () => screen.getByRole('button', { name: 'View' })
 const rect = (element: Element) => element.getBoundingClientRect()
 
 async function openView() {
+  // An icon button: the name is its label, with no visible text.
+  expect(viewButton().textContent).toBe('')
   await userEvent.click(viewButton())
   const drawer = await screen.findByRole('dialog', { name: 'View' })
   // A drawer, with its own title, not a popover lined up with the button.

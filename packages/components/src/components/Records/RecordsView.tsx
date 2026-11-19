@@ -3,39 +3,52 @@
 import { SlidersHorizontalIcon } from '@phosphor-icons/react'
 
 import { PickerDrawerHeader } from '../../pickers/PickerShell'
-import { Button } from '../Button'
+import { IconButton } from '../Button'
 import { Drawer } from '../Drawer'
+import { Tooltip } from '../Tooltip'
 import { useViewSettings } from './RecordsViewSettings'
 
 export type RecordsViewProps = {
-  /** Names the button and the drawer. @default 'View' */
+  /** Names the button, its tooltip and the drawer. @default 'View' */
   label?: string
   className?: string
 }
 
 /**
- * A View button that opens the view's settings in a bottom drawer at every
- * size: the layout, the sort, and the shown layout's own settings, such as
- * the table's columns. Renders nothing when there is nothing to set.
+ * An icon button, named View, that opens the view's settings in a bottom
+ * drawer at every size: the layout, the sort, and the shown layout's own
+ * settings, such as the table's columns. Renders nothing when there is
+ * nothing to set.
  */
 export function RecordsView({ label = 'View', className }: RecordsViewProps) {
   const { preloadNow, settings } = useViewSettings()
   if (!settings) return null
   return (
     <Drawer>
-      <Drawer.Trigger
-        render={
-          <Button
-            emphasis='normal'
-            className={className}
-            onPointerEnter={preloadNow}
-            onFocus={preloadNow}
-          >
-            <SlidersHorizontalIcon weight='bold' className='size-4' />
-            {label}
-          </Button>
-        }
-      />
+      <Tooltip>
+        <Tooltip.Trigger
+          render={
+            <Drawer.Trigger
+              render={
+                <IconButton
+                  aria-label={label}
+                  emphasis='normal'
+                  className={className}
+                  onPointerEnter={preloadNow}
+                  onFocus={preloadNow}
+                >
+                  <SlidersHorizontalIcon
+                    weight='bold'
+                    className='size-4'
+                    aria-hidden
+                  />
+                </IconButton>
+              }
+            />
+          }
+        />
+        <Tooltip.Content>{label}</Tooltip.Content>
+      </Tooltip>
       <Drawer.Content>
         <PickerDrawerHeader labelSource={undefined} action={label} />
         {/* With no footer, the body clears the home indicator. */}
