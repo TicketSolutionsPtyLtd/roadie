@@ -282,6 +282,37 @@ const loaded = ref(false)
 
 A hero is above the fold, so it loads eagerly with `fetchpriority='high'`. A cached image may fire `@load` before hydration. Guard it on mount with `if ((e.target as HTMLImageElement).complete) loaded = true` if that matters for your app.
 
+### Crop geometry
+
+The maths behind cropping an image under a frame ships as pure functions, so a crop can be checked or rebuilt on a server. An `ImageCropValue` holds the `area` in the image's natural pixels and the same `percent` (0 to 100), both measured from the top left of the image once it's turned. It also holds the `zoom` (screen pixels per natural pixel) and the `rotation` in degrees: quarter turns plus a straighten of up to 45° either way.
+
+```ts
+import {
+  clampCrop,
+  coverZoom,
+  cropValueAt,
+  rubberBand
+} from '@oztix/roadie-core/image'
+
+const frame = { width: 600, height: 300 }
+const image = { width: 2400, height: 1600 }
+
+coverZoom(frame, image) // 0.25: the least zoom that leaves no empty corners
+coverZoom(frame, image, 4) // 0.258: straightening needs more
+
+// Fill in the other half from an area or a saved percent.
+const value = cropValueAt({ percent: saved }, frame, image, rotation)
+
+// Zoom to cover, cap the zoom so the crop stays at least 1200 × 600,
+// and move the area so the frame stays inside the turned image.
+clampCrop(value, frame, image, { min: { width: 1200, height: 600 } })
+
+// Resist a drag past the edge, as a scroll view does.
+rubberBand(overshoot, 0, frame.width)
+```
+
+When the image is smaller than `min`, covering the frame wins, so check an image's size before you crop it.
+
 ## Guidelines
 
 <Guidelines>
