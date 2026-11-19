@@ -1,7 +1,8 @@
 import {
   CalendarBlankIcon,
   CheckIcon,
-  DotsSixVerticalIcon
+  DotsSixVerticalIcon,
+  UploadSimpleIcon
 } from '@phosphor-icons/react/ssr'
 
 import { Avatar } from '@oztix/roadie-components/avatar'
@@ -152,6 +153,16 @@ export function ComponentSkeleton({ name }: { name: string }) {
       return (
         <div className='w-40 rounded-lg border border-subtle bg-normal px-3 py-2'>
           <Skel className='h-2 w-16 opacity-50' />
+        </div>
+      )
+    case 'file-upload':
+      return (
+        <div className='grid justify-items-start gap-2'>
+          <Skel className='h-2 w-16' />
+          <div className='flex h-7 emphasis-normal items-center gap-2 rounded-full px-3'>
+            <UploadSimpleIcon weight='bold' className='size-3.5 text-subtle' />
+            <Skel className='h-2 w-14' />
+          </div>
         </div>
       )
     case 'number-field':
