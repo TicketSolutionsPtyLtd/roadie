@@ -256,6 +256,10 @@
       "types": "./dist/components/RecordGrid/index.d.ts",
       "import": "./dist/components/RecordGrid/index.js"
     },
+    "./record-list": {
+      "types": "./dist/components/RecordList/index.d.ts",
+      "import": "./dist/components/RecordList/index.js"
+    },
     "./record-table": {
       "types": "./dist/components/RecordTable/index.d.ts",
       "import": "./dist/components/RecordTable/index.js"
