@@ -153,8 +153,9 @@ const groupsShown = () =>
   ])
 
 describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
-  it('groups rows under a title and count per option, in option order, with no-value records last', () => {
+  it('groups rows under a title and count per option, in option order, leaving out empty options, with no-value records last', () => {
     const shows = testShows(6)
+    shows[2]!.status = 'sold_out'
     shows[5]!.status = null as unknown as string
     render(
       <ShowList
@@ -167,8 +168,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     )
     expect(groupsShown()).toEqual([
       ['On sale 2', ['Ocean Alley 1', 'angie McMahon 1']],
-      ['Sold out 2', ['Ball Park Music 1', 'Alex Lahey 1']],
-      ['Cancelled 1', ['Julia Jacklin 1']],
+      ['Sold out 3', ['Ball Park Music 1', 'Julia Jacklin 1', 'Alex Lahey 1']],
       ['No status 1', ['Middle Kids 1']]
     ])
     const onSale = screen.getByRole('list', { name: 'On sale 2' })
