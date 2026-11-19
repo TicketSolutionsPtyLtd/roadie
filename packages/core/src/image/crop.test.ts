@@ -21,6 +21,10 @@ describe('coverZoom when straightened', () => {
   it('needs more zoom at 4° to keep the corners covered', () => {
     expect(coverZoom(frame, image, 4)).toBeCloseTo(0.2581, 4)
   })
+
+  it('covers the frame with the image on its side at a quarter turn', () => {
+    expect(coverZoom(frame, image, 90)).toBe(0.375)
+  })
 })
 
 describe('cropValueAt', () => {
@@ -47,6 +51,11 @@ describe('cropValueAt', () => {
       }
     }
   )
+
+  it('fits an area of another shape inside the frame', () => {
+    const whole = { x: 0, y: 0, width: 2400, height: 1600 }
+    expect(cropValueAt({ area: whole }, frame, image).zoom).toBe(0.1875)
+  })
 })
 
 const area = (x: number, y: number, width = 1200, height = 600) => ({
@@ -93,6 +102,20 @@ describe('clampCrop', () => {
       expect(Math.abs(local.y)).toBeLessThanOrEqual(800.001)
     }
     expect(clamped.area.x).toBeGreaterThan(0)
+  })
+
+  it('leaves a crop that already fits alone at a quarter turn', () => {
+    const value = cropValueAt({ area: area(100, 200) }, frame, image, 90)
+    expect(clampCrop(value, frame, image).area).toEqual(area(100, 200))
+  })
+
+  it('keeps both sides of the crop at or above a minimum of another shape', () => {
+    const value = cropValueAt({ area: area(900, 500, 600, 300) }, frame, image)
+    const capped = clampCrop(value, frame, image, {
+      min: { width: 1000, height: 1000 }
+    })
+    expect(capped.zoom).toBe(0.3)
+    expect(capped.area.height).toBe(1000)
   })
 
   it('stops zooming in once the crop would fall below 1200 × 600', () => {
