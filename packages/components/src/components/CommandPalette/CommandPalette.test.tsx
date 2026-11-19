@@ -163,6 +163,105 @@ describe('CommandPalette', () => {
     expect(screen.getByText('No pages or actions match')).toBeVisible()
   })
 
+  it('names the dialog with label and the input "Search" by default', async () => {
+    render(
+      <CommandPalette defaultOpen items={['Events']} label='Jump to'>
+        <CommandPalette.Input />
+      </CommandPalette>
+    )
+    expect(
+      await screen.findByRole('dialog', { name: 'Jump to' })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Search' })).toBeInTheDocument()
+  })
+
+  it('matches and ranks by itemToStringValue when given', async () => {
+    type Page = { id: string; name: string }
+    render(
+      <CommandPalette
+        defaultOpen
+        items={[
+          { id: 'order-1', name: 'Reorder seats' },
+          { id: 'o', name: 'Orders' }
+        ]}
+        itemToStringValue={(page: Page) => page.name}
+      >
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(page: Page) => (
+            <CommandPalette.Item key={page.name} value={page}>
+              {page.name}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await userEvent.type(await screen.findByRole('combobox'), 'order')
+    expect(options()).toEqual(['Orders', 'Reorder seats'])
+  })
+
+  it.each([
+    ['tr', ['Izmir office']],
+    ['en', []]
+  ])(
+    'matches letters as the %s locale reads them',
+    async (locale, expected) => {
+      render(
+        <CommandPalette defaultOpen items={['Izmir office']} locale={locale}>
+          <CommandPalette.Input />
+          <CommandPalette.List>
+            {(label: string) => (
+              <CommandPalette.Item key={label} value={label}>
+                {label}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+        </CommandPalette>
+      )
+      await userEvent.type(await screen.findByRole('combobox'), 'ız')
+      expect(screen.queryAllByRole('option').map((o) => o.textContent)).toEqual(
+        expected
+      )
+    }
+  )
+
+  it('stays open, with the search kept, when onClick prevents the default', async () => {
+    const onSelect = vi.fn()
+    render(
+      <CommandPalette defaultOpen items={['Invite teammate']}>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(label: string) => (
+            <CommandPalette.Item
+              key={label}
+              value={label}
+              onSelect={onSelect}
+              onClick={(event) => event.preventDefault()}
+            >
+              {label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    const input = await screen.findByRole('combobox')
+    await userEvent.type(input, 'inv')
+    await userEvent.keyboard('{Enter}')
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(input).toHaveValue('inv')
+  })
+
+  it('keeps the search in the input while a picked command closes', async () => {
+    render(
+      <Palette commands={[{ label: 'Invite teammate', onSelect: vi.fn() }]} />
+    )
+    const input = await screen.findByRole('combobox')
+    await userEvent.type(input, 'inv')
+    await userEvent.keyboard('{Enter}')
+    expect(input).toHaveValue('inv')
+  })
+
   it('starts each opening with an empty search', async () => {
     render(<Palette commands={[{ label: 'Events', href: '/events' }]} />)
     await userEvent.type(await screen.findByRole('combobox'), 'zzz')

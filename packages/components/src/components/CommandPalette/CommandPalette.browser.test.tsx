@@ -122,10 +122,23 @@ describe('CommandPalette in a browser', () => {
     await page.viewport(1280, 800)
     await openPalette()
     const dialog = box(screen.getByRole('dialog'))
-    expect(dialog.width).toBeLessThan(700)
-    expect(dialog.top).toBeGreaterThan(0)
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    expect(dialog.width).toBeCloseTo(36 * rem, 0)
+    expect(dialog.top).toBeCloseTo(6 * rem, 0)
     const close = document.querySelector('[data-slot="command-palette-close"]')
     expect(close).not.toBeVisible()
+  })
+
+  it('drops the list, padding and all, when nothing matches', async () => {
+    await page.viewport(1280, 800)
+    await openPalette()
+    await userEvent.keyboard('zzz')
+    await expect
+      .element(page.getByText('No pages or actions match'))
+      .toBeVisible()
+    const list = document.querySelector('[data-slot="command-palette-list"]')
+    expect(list).toBeInTheDocument()
+    expect(list).not.toBeVisible()
   })
 
   it('has no serious accessibility violations while open', async () => {
