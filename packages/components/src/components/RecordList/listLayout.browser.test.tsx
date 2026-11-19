@@ -260,19 +260,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     ])
   })
 
-  it("offers no ungrouped option when the definition groups, as a view can't save one", async () => {
-    const user = userEvent.setup()
-    render(
-      <ShowList data={testShows(3)} fields={showFields} groupBy='status' />
-    )
-    await user.click(screen.getByRole('button', { name: 'Configure list' }))
-    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
-    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
-    const options = await screen.findAllByRole('option')
-    expect(options.map((option) => option.textContent)).toEqual(['Status'])
-  })
-
-  it("ungroups from None when the definition doesn't group", async () => {
+  it('ungroups from None', async () => {
     const user = userEvent.setup()
     render(
       <ShowList
@@ -294,7 +282,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     render(
       <ShowList
         fields={showFields}
-        groupBy='status'
+        defaultView={grouped}
         loadRange={async ({ start, end }) => ({
           rows: testShows(end).slice(start),
           rowCount: 6

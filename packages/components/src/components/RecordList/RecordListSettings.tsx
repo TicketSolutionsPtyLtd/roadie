@@ -14,22 +14,19 @@ export function RecordListSettings({ config }: { config: ListLayoutConfig }) {
   return (
     <>
       <RecordGridSettingsLazy config={config} type='list' />
-      <RecordListGroupSettings config={config} />
+      <RecordListGroupSettings />
     </>
   )
 }
 RecordListSettings.preload = RecordGridSettingsLazy.preload
 
-function RecordListGroupSettings({ config }: { config: ListLayoutConfig }) {
+function RecordListGroupSettings() {
   const { records } = useRecordsContext()
   const headingId = useId()
   const { fields, view } = records
   const groupable = groupableFields(fields)
   if (groupable.length === 0) return null
-  const current = listGroupField(config, fields, view.layout)
-  // A view can't save "ungrouped" apart from a definition that groups.
-  const ungroupable =
-    listGroupField(config, fields, { type: 'list' }) === undefined
+  const current = listGroupField(fields, view.layout)
   return (
     <section aria-labelledby={headingId} className='grid gap-2'>
       <h3 id={headingId} className='text-display-ui-6 text-strong'>
@@ -39,11 +36,7 @@ function RecordListGroupSettings({ config }: { config: ListLayoutConfig }) {
         value={current?.key ?? null}
         onValueChange={(key) =>
           records.setLayout(
-            listGroupLayout(
-              config,
-              view.layout,
-              (key as string | null) ?? undefined
-            )
+            listGroupLayout(view.layout, (key as string | null) ?? undefined)
           )
         }
       >
@@ -52,7 +45,7 @@ function RecordListGroupSettings({ config }: { config: ListLayoutConfig }) {
           <Select.Icon />
         </Select.Trigger>
         <Select.Content>
-          {ungroupable && <Select.Item value={null}>None</Select.Item>}
+          <Select.Item value={null}>None</Select.Item>
           {groupable.map(({ key, label }) => (
             <Select.Item key={key} value={key}>
               {label}

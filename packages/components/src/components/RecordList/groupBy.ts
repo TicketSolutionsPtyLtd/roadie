@@ -11,9 +11,8 @@ export function listGroupField(
   return groupableFields(fields).find((field) => field.key === layout.groupBy)
 }
 
-/** The list layout grouped by `groupBy`, keeping its fields. It's left out when it matches the definition's. */
+/** The list layout grouped by `groupBy`, or not at all, keeping its fields. */
 export function listGroupLayout(
-  config: ListLayoutConfig,
   current: RecordLayout,
   groupBy: string | undefined
 ): RecordLayout {
@@ -21,6 +20,6 @@ export function listGroupLayout(
   return {
     type: 'list',
     ...(fields && { fields }),
-    ...(groupBy && groupBy !== config.groupBy && { groupBy })
+    ...(groupBy && { groupBy })
   }
 }

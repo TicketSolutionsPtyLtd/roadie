@@ -4,45 +4,39 @@ import { recordFields } from '@oztix/roadie-core/records'
 
 import { listGroupField, listGroupLayout } from './groupBy'
 
-type Show = { name: string; status: string; city: string }
+type Show = { name: string; status: string }
 const field = recordFields<Show>()
-const options = [{ value: 'a', label: 'A' }]
 const fields = [
   field.text('name', { label: 'Name' }),
-  field.option('status', { label: 'Status', options }),
-  field.option('city', { label: 'City', options })
+  field.option('status', {
+    label: 'Status',
+    options: [{ value: 'a', label: 'A' }]
+  })
 ]
-const config = { title: 'name', groupBy: 'status' } as const
 
 describe('listGroupField', () => {
-  it("groups by the view's field over the definition's", () => {
+  it("groups by the view's field only when it can group", () => {
     expect(
-      listGroupField(config, fields, { type: 'list', groupBy: 'city' })?.key
-    ).toBe('city')
-  })
-
-  it("falls back to the definition's when the view's field can't group", () => {
-    expect(
-      listGroupField(config, fields, { type: 'list', groupBy: 'name' })?.key
+      listGroupField(fields, { type: 'list', groupBy: 'status' })?.key
     ).toBe('status')
+    expect(
+      listGroupField(fields, { type: 'list', groupBy: 'name' })
+    ).toBeUndefined()
+    expect(listGroupField(fields, { type: 'grid' })).toBeUndefined()
   })
 })
 
 describe('listGroupLayout', () => {
-  it("saves no groupBy for the definition's own field, keeping the fields", () => {
+  it('saves the field picked, or none, keeping the fields', () => {
     expect(
-      listGroupLayout(config, { type: 'list', fields: ['city'] }, 'status')
-    ).toEqual({ type: 'list', fields: ['city'] })
-  })
-
-  it('saves another field, or none, as the view picks', () => {
-    const ungrouped = { title: 'name' } as const
-    expect(listGroupLayout(ungrouped, { type: 'list' }, 'city')).toEqual({
+      listGroupLayout({ type: 'list', fields: ['name'] }, 'status')
+    ).toEqual({
       type: 'list',
-      groupBy: 'city'
+      fields: ['name'],
+      groupBy: 'status'
     })
     expect(
-      listGroupLayout(ungrouped, { type: 'list', groupBy: 'city' }, undefined)
+      listGroupLayout({ type: 'list', groupBy: 'status' }, undefined)
     ).toEqual({ type: 'list' })
   })
 })
