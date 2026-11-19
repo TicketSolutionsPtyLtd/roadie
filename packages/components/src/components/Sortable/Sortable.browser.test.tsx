@@ -14,12 +14,13 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
-import { Sortable, type SortableMove } from '.'
+import { Sortable, type SortableMove, type SortableProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { keepFramesRunning, releaseDragPointer } from '../../css/testUtils'
 import { List } from '../List'
 import { useStylesheet } from '../Pane/testUtils'
 import { Popover } from '../Popover'
+import { Lanes, type Transfer, listed } from './lanes.testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
@@ -280,6 +281,89 @@ describe('Sortable drag and drop', () => {
   it('shows a grab cursor on the handle', () => {
     render(<Columns />)
     expect(getComputedStyle(handle('Date')).cursor).toBe('grab')
+  })
+})
+
+describe('Sortable connected lists', () => {
+  it('moves an item into another list at the edge it is dropped on', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(<Lanes onTransfer={onTransfer} />)
+    await startDrag('Date')
+    await hover(item('Event'), 0.5)
+    await hover(item('SKU'), 0.2)
+    await waitFor(() =>
+      expect(item('SKU')).toHaveAttribute('data-drop-edge', 'top')
+    )
+    await drop()
+    await waitFor(() =>
+      expect(onTransfer).toHaveBeenCalledWith({
+        value: 'Date',
+        from: 'todo',
+        to: 'done',
+        index: 0
+      })
+    )
+    expect(listed('todo')).toEqual(['Event'])
+    expect(listed('done')).toEqual(['Date', 'SKU'])
+    await waitFor(() =>
+      expect(screen.getAllByRole('status')[1]).toHaveTextContent(
+        'Date moved to position 1 of 2 done'
+      )
+    )
+  })
+
+  it('refuses a drop the target list turns down', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    const canDrop = vi.fn<NonNullable<SortableProps['canDrop']>>(() => false)
+    render(<Lanes onTransfer={onTransfer} canDrop={canDrop} />)
+    await startDrag('Date')
+    await hover(item('Event'), 0.5)
+    await hover(item('SKU'), 0.2)
+    await waitFor(() =>
+      expect(canDrop).toHaveBeenCalledWith({ value: 'Date', from: 'todo' })
+    )
+    expect(item('SKU')).not.toHaveAttribute('data-drop-edge')
+    await drop()
+    await waitFor(() =>
+      expect(item('Date')).not.toHaveAttribute('data-dragging')
+    )
+    expect(onTransfer).not.toHaveBeenCalled()
+    expect(listed('todo')).toEqual(['Date', 'Event'])
+  })
+
+  it.each([
+    ['is disabled', { disabled: true }],
+    ['has no onTransfer', { onTransfer: undefined }]
+  ] as const)('takes nothing into a list that %s', async (_, done) => {
+    const onTransfer = vi.fn<Transfer>()
+    render(<Lanes onTransfer={onTransfer} done={done} />)
+    await startDrag('Date')
+    await hover(item('Event'), 0.5)
+    await hover(item('SKU'), 0.2)
+    await waitFor(() => expect(item('Date')).toHaveAttribute('data-dragging'))
+    expect(item('SKU')).not.toHaveAttribute('data-drop-edge')
+    await drop()
+    await waitFor(() =>
+      expect(item('Date')).not.toHaveAttribute('data-dragging')
+    )
+    expect(onTransfer).not.toHaveBeenCalled()
+    expect(listed('todo')).toEqual(['Date', 'Event'])
+  })
+
+  it('shows the edge on an item with the same value in the other list', async () => {
+    render(<Lanes initial={{ todo: ['Date'], done: ['Date', 'SKU'] }} />)
+    const [from, onto] = screen.getAllByRole('button', { name: 'Reorder Date' })
+    const box = from!.getBoundingClientRect()
+    await commands.pointer([
+      { type: 'move', x: box.left + 12, y: box.top + 12 },
+      { type: 'down' },
+      { type: 'move', x: box.left + 12, y: box.top + 30, steps: 4 }
+    ])
+    await hover(item('SKU'), 0.5)
+    const target = onto!.closest('[data-slot="sortable-item"]')!
+    await hover(target, 0.2)
+    await waitFor(() => expect(target).toHaveAttribute('data-drop-edge', 'top'))
+    await drop()
   })
 })
 

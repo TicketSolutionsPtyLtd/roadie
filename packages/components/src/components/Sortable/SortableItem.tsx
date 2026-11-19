@@ -50,7 +50,7 @@ export function SortableItem({
   ...props
 }: SortableItemProps) {
   const root = useSortableRoot('Sortable.Item')
-  const { items, axis, dir, group, nameItem, lockItem } = root
+  const { items, axis, dir, group, accepts, nameItem, lockItem } = root
   const index = items.indexOf(value)
   // An unlisted item would take drops at index -1, so it isn't registered.
   const listed = index !== -1
@@ -86,9 +86,11 @@ export function SortableItem({
       value,
       axis,
       onDropEdgeChange: setDropEdge,
+      accepts,
       movesTo: (source, edge) => {
+        if (!source.sameList) return true
         const { items, index, dir } = position.current
-        const from = items.indexOf(source)
+        const from = items.indexOf(source.value)
         return dropIndex({ from, target: index, edge, axis, dir }) !== from
       }
     })
@@ -96,7 +98,7 @@ export function SortableItem({
       cleanup()
       setDropEdge(null)
     }
-  }, [element, group, value, axis, listed])
+  }, [element, group, value, axis, listed, accepts])
 
   useEffect(() => {
     if (!element || !handle || disabled) return
@@ -105,6 +107,7 @@ export function SortableItem({
       handle,
       group,
       value,
+      label,
       onDraggingChange: setDragging
     })
     // A drag torn down mid-flight never gets its drop, so reset here.
@@ -112,7 +115,7 @@ export function SortableItem({
       cleanup()
       setDragging(false)
     }
-  }, [element, handle, group, value, disabled])
+  }, [element, handle, group, value, label, disabled])
 
   useDevWarning(
     !listed &&

@@ -4,7 +4,7 @@ import { type ComponentType, createContext, use } from 'react'
 
 import type { SortableHandleProps } from './SortableHandle'
 import type { SortableItemProps } from './SortableItem'
-import type { SortableGroup } from './dnd'
+import type { SortableGroup, SortableSource } from './dnd'
 import type { SortableAxis, TextDirection } from './order'
 
 export type SortableRootContextValue = {
@@ -14,6 +14,8 @@ export type SortableRootContextValue = {
   disabled: boolean
   group: SortableGroup
   move: (value: string, to: number, focus: boolean) => void
+  /** Whether a drop of this item lands here: its own, or one this list takes. */
+  accepts: (source: SortableSource) => boolean
   /** Records the item's name for announcements; returns its cleanup. */
   nameItem: (value: string, name: string | undefined) => () => void
   /** Marks a disabled item, so a drop from it is ignored; returns its cleanup. */
