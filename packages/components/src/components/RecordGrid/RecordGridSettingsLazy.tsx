@@ -19,7 +19,10 @@ const Suspending = lazy(() =>
  * stays out of the grid's first load. Once loaded they render at once, as
  * the table's do.
  */
-export function RecordGridSettingsLazy(props: { config: GridLayoutConfig }) {
+export function RecordGridSettingsLazy(props: {
+  config: GridLayoutConfig
+  type?: 'grid' | 'list'
+}) {
   const Loaded = loaded?.RecordGridSettings
   return Loaded ? <Loaded {...props} /> : <Suspending {...props} />
 }
@@ -29,3 +32,9 @@ RecordGridSettingsLazy.preload = () =>
     () => {},
     () => {}
   )
+
+/** The same settings for a list's rows. */
+export function RecordListSettingsLazy(props: { config: GridLayoutConfig }) {
+  return <RecordGridSettingsLazy {...props} type='list' />
+}
+RecordListSettingsLazy.preload = RecordGridSettingsLazy.preload

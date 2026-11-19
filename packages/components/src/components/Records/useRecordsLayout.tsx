@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { type ReactNode, useCallback, useLayoutEffect, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Progress } from '../Progress'
+import { ScrollArea } from '../ScrollArea'
 import { RecordsEmpty, RecordsError } from './RecordsStates'
 import { useRecordsContext } from './context'
 import type { RecordsContentProps } from './layouts'
@@ -153,5 +154,70 @@ export function RecordsStickyProgress({
         <RecordsProgress />
       </div>
     </div>
+  )
+}
+
+/**
+ * A layout's records under the frame: a progress bar while they refresh, and
+ * with `fill` or `maxHeight`, a box of their own that scrolls. Each part's
+ * slot starts with `slot`, such as `record-grid-scroller`.
+ */
+export function RecordsLayoutFrame({
+  frame,
+  slot,
+  fill,
+  maxHeight,
+  className,
+  children
+}: Pick<RecordsContentProps, 'maxHeight' | 'className'> & {
+  frame: ReturnType<typeof useRecordsLayout>
+  slot: string
+  fill: boolean
+  children: ReactNode
+}) {
+  const { boxed, caption } = frame
+  const content = (
+    <div
+      {...frame.frameProps}
+      data-slot={slot}
+      // In a box, it fills the box, so a state can centre in what's left.
+      className={cn('w-full', boxed ? 'flex min-h-full flex-col' : className)}
+    >
+      {frame.dimmed && (
+        <RecordsStickyProgress
+          slot={`${slot}-progress`}
+          top={frame.stickyTop}
+        />
+      )}
+      <div
+        data-slot={`${slot}-scroller`}
+        {...frame.rowsSurvivor}
+        tabIndex={-1}
+        className={frame.scrollerClass}
+      >
+        {children}
+      </div>
+    </div>
+  )
+  if (!boxed) return content
+  return (
+    <ScrollArea
+      data-slot={`${slot}-box`}
+      data-pane-fill={fill || undefined}
+      // basis-0, not flex-1: a percentage basis in a column of unknown height falls back to content.
+      className={cn(fill && 'h-full min-h-0 grow basis-0', className)}
+    >
+      <ScrollArea.Viewport
+        data-slot={`${slot}-viewport`}
+        role='region'
+        aria-label={`${caption ?? 'Records'}, scrolls`}
+        style={fill ? undefined : { maxHeight }}
+      >
+        {content}
+      </ScrollArea.Viewport>
+      <ScrollArea.Scrollbar keepMounted>
+        <ScrollArea.Thumb />
+      </ScrollArea.Scrollbar>
+    </ScrollArea>
   )
 }

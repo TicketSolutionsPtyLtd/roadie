@@ -10,7 +10,7 @@ import { Button } from '../Button'
 import { listItemContentClass, listItemLeadingClass } from '../List/variants'
 import { rangeErrorMessage } from './RecordsStates'
 import { useRecordsContext } from './context'
-import { cardSize, listRowSize } from './rowSizing'
+import { cardSize, hasSubline, listRowSize } from './rowSizing'
 import { tableFocusTarget, useKeepFocusInTable } from './tableFocus'
 import type { RecordCardParts } from './types'
 
@@ -31,8 +31,8 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
   /** No bars: a record of a failed range, which isn't loading. */
   blank?: boolean
 }) {
-  const description = parts.description !== undefined
   if (card) {
+    const description = parts.description !== undefined
     const banner = parts.image !== undefined
     const bodyClass = cardSize(banner).heightClass
     return (
@@ -81,7 +81,7 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
           className={cn(listItemContentClass, 'grid content-center gap-2 py-0')}
         >
           {!blank && <span className='h-3 w-3/5 rounded-sm bg-subtle' />}
-          {!blank && description && (
+          {!blank && hasSubline(parts) && (
             <span className='h-2.5 w-2/5 rounded-sm bg-subtle' />
           )}
         </span>

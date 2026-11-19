@@ -12,6 +12,7 @@ import { useRecordsContext } from '../Records/context'
 import { Sortable } from '../Sortable'
 import { Toggle } from '../Toggle'
 import {
+  type DetailsLayout,
   definedDetails,
   detailCandidates,
   gridDetailsLayout,
@@ -20,11 +21,18 @@ import {
 import type { GridLayoutConfig } from './types'
 
 /**
- * The grid's part of `Records.Options`: the fields each card lists, reordered
+ * The grid's and list's part of `Records.Options`: the fields each card or row lists, reordered
  * by drag and shown or hidden. A view keeps only the shown fields in order,
  * so hidden ones are listed apart, in the fields' own order.
  */
-export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
+export function RecordGridSettings({
+  config,
+  type = 'grid'
+}: {
+  config: GridLayoutConfig
+  /** Which layout these are for: the view can still name another, such as the default table. */
+  type?: DetailsLayout
+}) {
   const { records } = useRecordsContext()
   const headingId = useId()
   const hiddenId = useId()
@@ -33,8 +41,9 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
   // The toggle used moves between the lists; focus follows its field there.
   const focusField = useRef<{ key: string; shown: boolean } | null>(null)
   const { fields, view } = records
+  const item = type === 'list' ? 'row' : 'card'
   const candidates = detailCandidates(config, fields)
-  const shown = shownDetails(config, fields, view.layout)
+  const shown = shownDetails(config, fields, view.layout, type)
 
   useLayoutEffect(() => {
     const pending = focusField.current
@@ -62,7 +71,9 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
     focus?: { key: string; shown: boolean }
   ) => {
     focusField.current = focus ?? null
-    records.setLayout(gridDetailsLayout(config, fields, next, view.layout))
+    records.setLayout(
+      gridDetailsLayout(config, fields, next, view.layout, type)
+    )
   }
   const toggle = (field: RecordField, show: boolean) => {
     const locked = show && lastLocked
@@ -100,12 +111,12 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
       className='grid gap-2'
     >
       <h3 id={headingId} className='text-display-ui-6 text-strong'>
-        Card fields
+        {item === 'row' ? 'Row fields' : 'Card fields'}
       </h3>
       {shown.length > 0 && (
         <Sortable
           items={shown}
-          label='card fields'
+          label={`${item} fields`}
           onReorder={(next) => write(next)}
         >
           <List aria-labelledby={headingId}>
@@ -147,7 +158,7 @@ export function RecordGridSettings({ config }: { config: GridLayoutConfig }) {
         </div>
       )}
       <span id={lastShownId} hidden>
-        A card shows at least one detail
+        A {item} shows at least one detail
       </span>
     </section>
   )
