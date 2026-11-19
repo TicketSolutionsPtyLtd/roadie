@@ -17,7 +17,7 @@ export type CommandPaletteItemProps = Omit<AutocompleteItemProps, 'onSelect'> &
     onSelect?: () => void
     /** Pass a bold Phosphor icon; it is sized for you. */
     icon?: ReactNode
-    /** A keyboard shortcut hint drawn after the label, as a key list such as `['mod', 'e']`. */
+    /** Keys such as `['mod', 'e']`, shown per platform, or text such as `⌘E`. Visual only; bind the keys yourself. */
     shortcut?: ReactNode
   }
 
