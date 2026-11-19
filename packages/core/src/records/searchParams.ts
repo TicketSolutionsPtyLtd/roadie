@@ -105,18 +105,18 @@ function layoutEntries(layout: RecordLayout): [string, string][] {
         ['layout', 'list'],
         ...listEntry('fields', layout.fields),
         ...(layout.groupBy
-          ? [['group', layout.groupBy] as [string, string]]
+          ? [['groupBy', layout.groupBy] as [string, string]]
           : [])
       ]
     case 'board':
       return [
         ['layout', 'board'],
-        ['group', layout.groupBy]
+        ['groupBy', layout.groupBy]
       ]
     case 'calendar':
       return [
         ['layout', 'calendar'],
-        ['date', layout.dateField]
+        ['dateField', layout.dateField]
       ]
     case 'map':
       return [['layout', 'map']]
@@ -210,15 +210,15 @@ function readLayout(params: URLSearchParams): ReadLayout {
     case 'grid':
     case 'list': {
       const fields = items('fields')
-      const groupBy = type === 'list' ? one('group') : undefined
+      const groupBy = type === 'list' ? one('groupBy') : undefined
       return { type, ...(fields && { fields }), ...(groupBy && { groupBy }) }
     }
     case 'board': {
-      const groupBy = one('group')
+      const groupBy = one('groupBy')
       return { type, ...(groupBy && { groupBy }) }
     }
     case 'calendar': {
-      const dateField = one('date')
+      const dateField = one('dateField')
       return { type, ...(dateField && { dateField }) }
     }
     case 'map':

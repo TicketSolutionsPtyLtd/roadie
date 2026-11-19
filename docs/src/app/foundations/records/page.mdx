@@ -716,7 +716,7 @@ holds something invalid.
 | `q`                                       | The search text                                                                                                                                             |
 | `f`                                       | One per chip, in order, as `field:operator:value`. Lists are comma separated                                                                                |
 | `sort`                                    | Fields in order, descending with a leading dash, such as `-starts,name`                                                                                     |
-| `layout`, `columns`, `hidden`, `fields`, `group`, `date` | The layout and its settings, as the next table shows |
+| `layout`, `columns`, `hidden`, `fields`, `groupBy`, `dateField` | The layout and its settings, as the next table shows |
 | `page`, `size`, `row`                     | Where the reader is: the page, or in a list loaded by range, the first row on screen. The URL counts pages from 1, and `position.page` counts from 0        |
 
 Each layout writes `layout` and its own settings. A table with no settings
@@ -726,9 +726,9 @@ writes nothing, since `table` is what a URL without `layout` reads as.
 | -------- | -------------------------------------------------- | ----------------------------------------------- |
 | Table    | `{ type: 'table', columns?: { order?, hidden? } }` | `layout=table&columns=name,starts&hidden=gross` |
 | Grid     | `{ type: 'grid', fields? }`                        | `layout=grid&fields=name,starts`                |
-| List     | `{ type: 'list', fields?, groupBy? }`              | `layout=list&fields=name,starts&group=venue`    |
-| Board    | `{ type: 'board', groupBy }`                       | `layout=board&group=status`                     |
-| Calendar | `{ type: 'calendar', dateField }`                  | `layout=calendar&date=starts`                   |
+| List     | `{ type: 'list', fields?, groupBy? }`              | `layout=list&fields=name,starts&groupBy=venue`  |
+| Board    | `{ type: 'board', groupBy }`                       | `layout=board&groupBy=status`                   |
+| Calendar | `{ type: 'calendar', dateField }`                  | `layout=calendar&dateField=starts`              |
 | Map      | `{ type: 'map' }`                                  | `layout=map`                                    |
 
 `groupBy` names one field with options or statuses that holds a single value,

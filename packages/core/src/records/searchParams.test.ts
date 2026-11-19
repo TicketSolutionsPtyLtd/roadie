@@ -277,11 +277,14 @@ describe('recordViewFromSearchParams', () => {
     ],
     ['layout=list', { type: 'list' }],
     [
-      'layout=list&fields=starts%2Cname&group=venue',
+      'layout=list&fields=starts%2Cname&groupBy=venue',
       { type: 'list', fields: ['starts', 'name'], groupBy: 'venue' }
     ],
-    ['layout=board&group=status', { type: 'board', groupBy: 'status' }],
-    ['layout=calendar&date=starts', { type: 'calendar', dateField: 'starts' }],
+    ['layout=board&groupBy=status', { type: 'board', groupBy: 'status' }],
+    [
+      'layout=calendar&dateField=starts',
+      { type: 'calendar', dateField: 'starts' }
+    ],
     ['layout=map', { type: 'map' }]
   ])('round-trips the layout "%s"', (text, layout) => {
     const url = `v=1${text && `&${text}`}`
@@ -322,9 +325,9 @@ describe('recordViewFromSearchParams', () => {
     ],
     ['v=1&layout=timeline', 'layout', 'Unknown layout "timeline"'],
     ['v=1&layout=board', 'layout.groupBy', ''],
-    ['v=1&layout=board&group=nope', 'layout.groupBy', 'Unknown field'],
+    ['v=1&layout=board&groupBy=nope', 'layout.groupBy', 'Unknown field'],
     ['v=1&layout=calendar', 'layout.dateField', ''],
-    ['v=1&layout=calendar&date=name', 'layout.dateField', 'not a date']
+    ['v=1&layout=calendar&dateField=name', 'layout.dateField', 'not a date']
   ])('rejects %s and falls back', (text, path, message) => {
     const result = recordViewFromSearchParams(text, eventFields, {
       fallback: { ...empty, id: 'all' }
