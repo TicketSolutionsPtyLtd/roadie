@@ -54,7 +54,8 @@ export function useViewSettings() {
       shownLayouts.current.layouts.get(type) ??
         (baseline?.layout.type === type
           ? baseline.layout
-          : ({ type } as RecordLayout))
+          : (layouts.find((each) => each.type === type)?.layout ??
+            ({ type } as RecordLayout)))
     )
   }
   const switches = new Set(layouts.map(({ type }) => type)).size > 1
