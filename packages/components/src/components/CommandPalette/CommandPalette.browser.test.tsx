@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { TicketIcon } from '@phosphor-icons/react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -139,6 +140,33 @@ describe('CommandPalette in a browser', () => {
     const list = document.querySelector('[data-slot="command-palette-list"]')
     expect(list).toBeInTheDocument()
     expect(list).not.toBeVisible()
+  })
+
+  it('sizes an icon for you and keeps it out of the name', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <CommandPalette defaultOpen items={['Events']}>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(label: string) => (
+            <CommandPalette.Item
+              key={label}
+              value={label}
+              icon={<TicketIcon weight='bold' aria-label='Ticket' />}
+            >
+              {label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await expect
+      .element(page.getByRole('option', { name: 'Events', exact: true }))
+      .toBeVisible()
+    const icon = box(screen.getByRole('option').querySelector('svg')!)
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    expect(icon.width).toBeCloseTo(rem, 0)
+    expect(icon.height).toBeCloseTo(rem, 0)
   })
 
   it('has no serious accessibility violations while open', async () => {

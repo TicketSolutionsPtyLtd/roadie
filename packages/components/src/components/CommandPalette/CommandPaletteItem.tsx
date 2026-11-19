@@ -15,7 +15,7 @@ export type CommandPaletteItemProps = Omit<AutocompleteItemProps, 'onSelect'> &
     href?: string
     /** Runs when the command is picked, before the palette closes. */
     onSelect?: () => void
-    /** An icon before the label, such as a Phosphor icon at `size-4`. */
+    /** Pass a bold Phosphor icon; it is sized for you. */
     icon?: ReactNode
     /** A keyboard shortcut hint drawn after the label, as a key list such as `['mod', 'e']`. */
     shortcut?: ReactNode
@@ -52,7 +52,15 @@ export function CommandPaletteItem({
       }}
       {...props}
     >
-      {icon}
+      {icon ? (
+        <span
+          data-slot='command-palette-item-icon'
+          aria-hidden='true'
+          className='grid shrink-0 text-subtle [&>svg]:size-4'
+        >
+          {icon}
+        </span>
+      ) : null}
       <span
         data-slot='command-palette-item-label'
         className='min-w-0 flex-1 truncate'
