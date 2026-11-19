@@ -6,13 +6,14 @@ export const metadata = {
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 A month calendar of records, each on its day, to search and filter.
 
 ## Import
 
 ```tsx
-import { calendarLayout } from '@oztix/roadie-components/record-calendar'
+import { RecordCalendar, calendarLayout } from '@oztix/roadie-components/record-calendar'
 import { Records, useRecords } from '@oztix/roadie-components/records'
 import { recordFields } from '@oztix/roadie-core/records'
 ```
@@ -23,15 +24,15 @@ Fields can hold functions, as can `getRowId` and the `useRecords` instance, so r
 
 ### Default
 
-Give `Records` a `calendarLayout`, naming the date field that places each record and the field each chip shows. A record sits on the day its date falls on: the venue's day for an event, the viewer's for a timestamp. A date range sits on each day it covers. Previous and next move a month, and Today comes back to this month.
+Name in `calendar` the date field that places each record and the field each chip shows. A record sits on the day its date falls on: the venue's day for an event, the viewer's for a timestamp. A date range sits on each day it covers. A day shows up to three chips, and "+N more" opens the rest. Previous and next move a month, and Today comes back to this month.
 
 ```tsx-live-noinline-expand
 const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
-const days = [3, 6, 6, 11, 14, 14, 19, 22, 27, 28]
+const days = ['11-03', '11-06', '11-06', '11-11', '11-14', '11-14', '11-14', '11-14', '11-14', '11-19', '11-22', '11-27', '11-28', '12-04', '12-12']
 const events = days.map((day, index) => ({
   id: `event-${index}`,
   name: `${names[index % names.length]} ${index + 1}`,
-  startsAt: `2026-11-${String(day).padStart(2, '0')}`,
+  startsAt: `2026-${day}`,
   endsAt: index === 0 ? '2026-11-05' : undefined
 }))
 
@@ -41,33 +42,23 @@ const fields = [
   field.date('startsAt', { label: 'Start date', moment: 'date', end: 'endsAt' }),
   field.date('endsAt', { label: 'End date', moment: 'date' })
 ]
-const layouts = [
-  calendarLayout({ dateField: 'startsAt', title: 'name', defaultMonth: '2026-11-01' })
-]
 
-function Events() {
-  const records = useRecords({
-    data: events,
-    fields,
-    getRowId: (row) => row.id,
-    getRowHref: (row) => `#${row.id}`,
-    recordName: { one: 'event', other: 'events' }
-  })
-  return (
-    <Records records={records} layouts={layouts} caption='Events'>
-      <Records.Header />
-      <Records.Content />
-      <Records.Status />
-    </Records>
-  )
-}
-
-render(<Events />)
+render(
+  <RecordCalendar
+    caption='Events'
+    data={events}
+    fields={fields}
+    getRowId={(row) => row.id}
+    getRowHref={(row) => `#${row.id}`}
+    recordName={{ one: 'event', other: 'events' }}
+    calendar={{ dateField: 'startsAt', title: 'name', defaultMonth: '2026-11-01' }}
+  />
+)
 ```
 
 ### Layouts
 
-Give `Records` a `calendarLayout` beside the table, and people switch between them from Configure. A saved view holds `{ type: 'calendar', dateField }`, so a view can place its records by another date field. Switching to the calendar uses the layout's own `dateField` until a view picks one.
+`RecordCalendar` is `Records` with only the calendar. Give `Records` a `calendarLayout` beside the table instead, and people switch between them from Configure. A saved view holds `{ type: 'calendar', dateField }`, so a view can place its records by another date field. Switching to the calendar uses the layout's own `dateField` until a view picks one.
 
 ```tsx
 const layouts = [
@@ -108,5 +99,8 @@ Today comes from the browser's clock, so a server render marks no day and, witho
 
 - The calendar is a table named by its month, with a column header for each day of the week. Each day's cell reads its date first, then its chips, and today's reads "Today" and is marked `aria-current="date"`.
 - Each chip is a link to its record through `getRowHref`, and Tab moves through them in reading order. The arrow keys move focus from day to day, a week at a time with Up and Down.
+- "+N more" is a button named by the count and the day, such as "+3 more on Friday, 27 November 2026". It opens a popover holding every record on the day, and Escape closes it and returns focus to the button.
 - The month name is announced as it changes. Previous and next are buttons named "Previous month" and "Next month".
 - On a phone the month grid stays for now; an agenda replaces it in a later release.
+
+<PropsDefinitions component='RecordCalendar' />

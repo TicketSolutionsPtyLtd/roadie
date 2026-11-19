@@ -8,6 +8,7 @@ import { type RecordView, recordFields } from '@oztix/roadie-core/records'
 
 import { calendarLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
@@ -35,6 +36,11 @@ const gigs: Gig[] = [
     name: 'The Extraordinarily Long Marzipan Thunderclap Farewell Tour',
     starts: '2026-11-10'
   },
+  ...['One', 'Two', 'Three'].map((name) => ({
+    id: `trio-${name}`,
+    name: `Trio ${name}`,
+    starts: '2026-11-24'
+  })),
   ...['One', 'Two', 'Three', 'Four', 'Five'].map((name) => ({
     id: name,
     name: `Busy night ${name}`,
@@ -58,7 +64,15 @@ const chips = (date: string) =>
     (chip) => chip.textContent
   )
 
-function Gigs({ weekStart, dir }: { weekStart?: number; dir?: 'rtl' }) {
+function Gigs({
+  weekStart,
+  dir,
+  width = 1100
+}: {
+  weekStart?: number
+  dir?: 'rtl'
+  width?: number
+}) {
   const records = useRecords({
     data: gigs,
     fields,
@@ -69,7 +83,7 @@ function Gigs({ weekStart, dir }: { weekStart?: number; dir?: 'rtl' }) {
     calendarLayout<Gig>({ ...calendar, weekStart })
   ])
   return (
-    <div dir={dir} style={{ width: 1100 }}>
+    <div dir={dir} style={{ width }}>
       <Records records={records} layouts={layouts} caption='Gigs'>
         <Records.Content />
       </Records>
@@ -109,13 +123,42 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     )
   })
 
-  it('shows every record on a busy day', () => {
+  it('shows "+N more" past three, which opens every record on the day', async () => {
+    const user = userEvent.setup()
     render(<Gigs />)
-    expect(chips('2026-11-27')).toEqual(
+    expect(chips('2026-11-24')).toEqual(['Trio One', 'Trio Two', 'Trio Three'])
+    expect(within(day('2026-11-24')).queryByRole('button')).toBeNull()
+    expect(chips('2026-11-27')).toEqual(['Busy night One', 'Busy night Two'])
+    const more = screen.getByRole('button', {
+      name: '+3 more on Friday, 27 November 2026'
+    })
+    await user.click(more)
+    const popup = await screen.findByRole('dialog')
+    expect(
+      within(popup)
+        .getAllByRole('link')
+        .map((link) => link.textContent)
+    ).toEqual(
       gigs
         .filter(({ starts }) => starts === '2026-11-27')
         .map(({ name }) => name)
     )
+    await user.keyboard('{Escape}')
+    // The popup stays mounted through its exit transition.
+    await withFrames(() =>
+      expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    )
+    expect(more).toHaveFocus()
+  })
+
+  it('keeps "+N more" inside its day on a phone', () => {
+    render(<Gigs width={358} />)
+    const cell = day('2026-11-27').getBoundingClientRect()
+    const more = screen
+      .getByRole('button', { name: /more on Friday, 27 November/ })
+      .getBoundingClientRect()
+    expect(more.left).toBeGreaterThanOrEqual(cell.left)
+    expect(more.right).toBeLessThanOrEqual(cell.right)
   })
 
   it('moves between months, and back with Today', async () => {
