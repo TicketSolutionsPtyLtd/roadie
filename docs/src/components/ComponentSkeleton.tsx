@@ -738,6 +738,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
         </div>
       )
     case 'list':
+    case 'record-list':
       return (
         <div className='grid w-44 divide-y divide-subtle rounded-lg border border-subtle bg-normal px-3'>
           {['w-20', 'w-16', 'w-24'].map((width) => (

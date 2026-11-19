@@ -1,0 +1,126 @@
+export const metadata = {
+  title: 'RecordList',
+  description: 'A list of records to search, filter, sort, and page through',
+  status: 'alpha',
+  category: 'Collections'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A list of records to search, filter, sort, and page through.
+
+## Import
+
+```tsx
+import { listLayout } from '@oztix/roadie-components/record-list'
+import { Records, useRecords } from '@oztix/roadie-components/records'
+import { recordFields } from '@oztix/roadie-core/records'
+```
+
+Row parts can hold a `cell` function, as can fields with a `match`, `getRowId`, and the `useRecords` instance, so render the records in a client component, a file that starts with `'use client'`.
+
+## Examples
+
+### Default
+
+Give `Records` a `listLayout`, naming in it the field each part of a row shows: `title` names the record and carries its `getRowHref` link, `description` sits under it, `leading` before it, such as an avatar, and `trailing` at the row's end. `details` follow the description on its line, in order, each after a dot, and a detail with no value is left out. The line truncates at the row's end, so keep it to one or two. A part is a field's key, or `{ key, cell }` to replace how the value shows, and a status field shows a `Badge`. Rows look the same at every width, as a table's do on a phone.
+
+Beside a table or grid, Configure shows a Layout switcher above the sort, and the view's `layout` becomes `{ type: 'list' }`, which the URL keeps as `layout=list`. Configure lists the row's details as it does a grid's [card fields](/components/record-grid#card-fields): drag to reorder, and the eye shows or hides one. They write the view's `layout.fields`, left out once back to the list's `details`.
+
+```tsx-live-noinline-expand
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
+const statuses = ['on-sale', 'selling-fast', 'sold-out']
+const events = Array.from({ length: 18 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  status: statuses[index % statuses.length],
+  sold: (index * 37) % 2400
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.text('venue', { label: 'Venue' }),
+  field.option('status', {
+    label: 'Status',
+    status: {
+      'on-sale': { intent: 'success', label: 'On sale' },
+      'selling-fast': { intent: 'warning', label: 'Selling fast' },
+      'sold-out': { intent: 'neutral', label: 'Sold out' }
+    }
+  }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+const layouts = [
+  listLayout({ title: 'name', description: 'venue', trailing: 'status', details: ['sold'] }),
+  tableLayout([column.field('name', { pin: true }), column.field('venue'), column.field('status'), column.field('sold')])
+]
+
+function Events() {
+  const [view, setView] = useState({ query: { search: '', filters: [], sort: [] }, layout: { type: 'list' } })
+  const records = useRecords({
+    data: events,
+    fields,
+    getRowId: (row) => row.id,
+    getRowHref: (row) => `#${row.id}`,
+    recordName: { one: 'event', other: 'events' },
+    view,
+    onViewChange: setView
+  })
+  return (
+    <div className='grid gap-3'>
+      <p className='text-sm text-subtle'>URL: ?{recordViewToSearchParams(view).toString()}</p>
+      <Records records={records} layouts={layouts} caption='Events'>
+        <Records.Header />
+        <Records.Content />
+        <Records.Pagination />
+        <Records.Status />
+      </Records>
+    </div>
+  )
+}
+
+render(<Events />)
+```
+
+### States, selection, and long lists
+
+These work as they do in the grid. `loading` shows placeholder rows, `error` replaces the rows, and the empty state offers to clear the search and filters; see [States](/components/record-grid#states). Rows have no checkboxes, so selectable records in a list offer Select mode, with the bulk actions floating at the foot of the screen; see [Selection and actions](/components/record-grid#selection-and-actions). Past 100 records on a page the list renders only the rows near the screen, and with a `loadRange` it loads records by range; see [Long lists](/components/record-grid#long-lists).
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Offer a list where people scan for a name'>
+  <Guideline.Do
+    code={`
+      layouts={[
+        tableLayout(columns),
+        listLayout({ title: 'name', description: 'venue', trailing: 'status' })
+      ]}
+    `}
+  >
+    Offer the list beside the table for records people find by their title,
+    such as events or contacts, and then open.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`listLayout({ title: 'orderNumber', details: ['total', 'placedAt', 'email', 'tickets'] })`}
+  >
+    Don't use a list for records people compare by their values, such as
+    orders. A table lines the values up in columns.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- `caption` names the rows: they are a list named by the caption, each row an item with its place in the whole list (`aria-posinset` and `aria-setsize`) when the list holds only some of them, such as a page of several or more than 100 rows.
+- A row's title is its name. With `getRowHref` it is a link, and the whole row takes its hover and press; it opens in a new tab with Cmd or Ctrl, like any link.
+- In Select mode, each row's checkbox is named "Select" and the row's title, and covers the row, so a tap anywhere on it toggles, and the link steps aside. Escape leaves Select mode, and focus lands on Select.
+- The Configure button is named "Configure list", as is the dialog it opens. Each shown detail's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field.
+- `Records.Status` announces Loading, the error, the result count, and the selection.
+

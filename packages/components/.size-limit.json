@@ -367,6 +367,19 @@
     "limit": "145 kB"
   },
   {
+    "name": "RecordList",
+    "path": "dist/components/RecordList/index.js",
+    "import": "*",
+    "limit": "54 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "RecordList with core",
+    "path": "dist/components/RecordList/index.js",
+    "import": "*",
+    "limit": "71 kB"
+  },
+  {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
