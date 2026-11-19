@@ -126,6 +126,28 @@ describe('buildManifest', () => {
               description: 'Space around the icon.'
             }
           ]
+        },
+        {
+          name: 'Pill.Glyph',
+          deprecated: 'Use `Pill.Icon`.',
+          props: [
+            {
+              name: 'name',
+              type: 'string',
+              required: true,
+              description: 'Phosphor icon name.'
+            },
+            {
+              name: 'theme',
+              type: '"dark" | "light"',
+              description: 'Swatch the icon is drawn for.'
+            },
+            {
+              name: 'frame',
+              type: 'PillIconFrame',
+              description: 'Space around the icon.'
+            }
+          ]
         }
       ]
     })
@@ -178,7 +200,13 @@ describe('buildManifest', () => {
       c.name,
       ...(c.parts ?? []).map((part) => part.name)
     ])
-    expect(names).toEqual(['Pill', 'Pill.Icon', 'Tag', 'Provider'])
+    expect(names).toEqual([
+      'Pill',
+      'Pill.Icon',
+      'Pill.Glyph',
+      'Tag',
+      'Provider'
+    ])
   })
 
   it('describes components exported only from the package root', () => {
@@ -196,9 +224,14 @@ describe('buildManifest', () => {
     })
   })
 
-  it('collects deprecated exports and props once per import path', () => {
+  it('collects deprecated exports, compound parts, and props once per import path', () => {
     expect(manifest.deprecations).toEqual([
       { import: '@fixture/ui/pill', export: 'Tag', reason: 'Use `Pill`.' },
+      {
+        import: '@fixture/ui/pill',
+        export: 'Pill.Glyph',
+        reason: 'Use `Pill.Icon`.'
+      },
       {
         import: '@fixture/ui/pill',
         export: 'Pill',

@@ -221,6 +221,15 @@ export function buildManifest({
           status
         })
       )
+      // A root's tag is its export's, which the exports already collect.
+      for (const part of parts) {
+        if (part.deprecated === undefined) continue
+        deprecations.push({
+          import: importName,
+          export: part.name,
+          reason: part.deprecated
+        })
+      }
       for (const part of [root, ...parts]) {
         for (const prop of part.props) {
           if (prop.deprecated === undefined) continue
