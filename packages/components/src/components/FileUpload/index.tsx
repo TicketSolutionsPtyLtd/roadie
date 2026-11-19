@@ -1,7 +1,4 @@
-// Subpath entry for `@oztix/roadie-components/file-upload`.
-//
-// No `'use client'`: server-safe property-assignment layer.
-// See docs/contributing/COMPOUND_PATTERNS.md.
+// No 'use client': dot access must work from server components.
 import { FileUploadRoot } from './FileUploadRoot'
 import { FileUploadTrigger } from './FileUploadTrigger'
 
