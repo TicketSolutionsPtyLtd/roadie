@@ -33,12 +33,11 @@ import type {
   RecordsRow
 } from '../Records/types'
 import {
+  RecordsLayoutFrame,
   RecordsLayoutState,
-  RecordsStickyProgress,
   useRecordsLayout
 } from '../Records/useRecordsLayout'
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
-import { ScrollArea } from '../ScrollArea'
 import { gridParts } from './parts'
 import type { GridLayoutConfig } from './types'
 
@@ -78,8 +77,7 @@ export function RecordGridContent({
   config
 }: RecordGridContentProps) {
   const frame = useRecordsLayout({ fill, maxHeight })
-  const { records, caption, boxed, state, windowed, firstIndex, partial } =
-    frame
+  const { records, caption, state, windowed, firstIndex, partial } = frame
   const { fields, view } = records
   const parts = useMemo(
     () => gridParts(config, fields, view.layout),
@@ -135,49 +133,16 @@ export function RecordGridContent({
       </GridList>
     )
 
-  const content = (
-    <div
-      {...frame.frameProps}
-      data-slot='record-grid'
-      // In a box, it fills the box, so a state can centre in what's left.
-      className={cn('w-full', boxed ? 'flex min-h-full flex-col' : className)}
-    >
-      {frame.dimmed && (
-        <RecordsStickyProgress
-          slot='record-grid-progress'
-          top={frame.stickyTop}
-        />
-      )}
-      <div
-        data-slot='record-grid-scroller'
-        {...frame.rowsSurvivor}
-        tabIndex={-1}
-        className={frame.scrollerClass}
-      >
-        {body}
-      </div>
-    </div>
-  )
-  if (!boxed) return content
   return (
-    <ScrollArea
-      data-slot='record-grid-box'
-      data-pane-fill={fill || undefined}
-      // basis-0, not flex-1: a percentage basis in a column of unknown height falls back to content.
-      className={cn(fill && 'h-full min-h-0 grow basis-0', className)}
+    <RecordsLayoutFrame
+      frame={frame}
+      slot='record-grid'
+      fill={fill}
+      maxHeight={maxHeight}
+      className={className}
     >
-      <ScrollArea.Viewport
-        data-slot='record-grid-viewport'
-        role='region'
-        aria-label={`${caption ?? 'Records'}, scrolls`}
-        style={fill ? undefined : { maxHeight }}
-      >
-        {content}
-      </ScrollArea.Viewport>
-      <ScrollArea.Scrollbar keepMounted>
-        <ScrollArea.Thumb />
-      </ScrollArea.Scrollbar>
-    </ScrollArea>
+      {body}
+    </RecordsLayoutFrame>
   )
 }
 RecordGridContent.displayName = 'RecordGridContent'
