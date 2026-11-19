@@ -85,6 +85,27 @@ function Boxed({ width, children }: { width: number; children: ReactNode }) {
 }
 
 describe('RecordTable narrow list rows in a browser', () => {
+  it('leaves detail columns out of a list row', async () => {
+    const { container } = render(
+      <Boxed width={360}>
+        <RecordTable
+          {...base}
+          columns={[
+            ...narrowColumns,
+            column.field('status', { narrow: 'detail' })
+          ]}
+          narrow='list'
+          data={testShows(2)}
+        />
+      </Boxed>
+    )
+    await expect.poll(() => listRows(container).length).toBe(2)
+    const description = listRows(container)[1]!.querySelector(
+      '[data-slot="list-item-description"]'
+    )
+    expect(description?.textContent).toBe('Melbourne')
+  })
+
   it('gives every list row the fixed height', async () => {
     const { container } = render(
       <Boxed width={360}>

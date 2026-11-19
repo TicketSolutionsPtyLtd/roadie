@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode, memo, useRef } from 'react'
 
+import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
@@ -39,11 +40,10 @@ export type RecordTableListRowProps = {
 }
 
 // A blank detail would leave a stray separator; a custom cell decides for itself.
-const hasValue = (part: RecordPart, row: object) => {
-  if (part.cell) return true
-  const value = (row as Record<string, unknown>)[part.key]
-  return value != null && value !== ''
-}
+// The time zone can't make a value blank.
+const hasValue = (part: RecordPart, row: object) =>
+  part.cell !== undefined ||
+  formatRecordValue(row, part.field, { timeZone: 'UTC' }) !== null
 
 /** A record as one line of a list: leading, title and description, trailing. */
 export const RecordTableListRow = memo(function RecordTableListRow({
@@ -120,13 +120,14 @@ export const RecordTableListRow = memo(function RecordTableListRow({
             )
           }
           description={
-            subline.length > 0 &&
-            subline.map((part, index) => (
-              <Fragment key={part.key}>
-                {index > 0 && ' · '}
-                {value(part)}
-              </Fragment>
-            ))
+            subline.length === 0
+              ? undefined
+              : subline.map((part, index) => (
+                  <Fragment key={part.key}>
+                    {index > 0 && ' · '}
+                    {value(part)}
+                  </Fragment>
+                ))
           }
           leading={
             selecting ? (
