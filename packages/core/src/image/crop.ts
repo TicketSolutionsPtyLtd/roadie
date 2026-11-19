@@ -132,8 +132,8 @@ export function clampCrop(
   const { cos: c, sin: s } = spread(rotation)
   const reachX = image.width / 2 - (width * c + height * s) / 2
   const reachY = image.height / 2 - (width * s + height * c) / 2
-  const localX = clamp(dx * cos + dy * sin, Math.max(0, reachX))
-  const localY = clamp(-dx * sin + dy * cos, Math.max(0, reachY))
+  const localX = clamp(dx * cos + dy * sin, reachX)
+  const localY = clamp(-dx * sin + dy * cos, reachY)
   const centreX = box.width / 2 + localX * cos - localY * sin
   const centreY = box.height / 2 + localX * sin + localY * cos
 
