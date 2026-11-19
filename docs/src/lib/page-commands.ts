@@ -35,15 +35,20 @@ function sectionPages(destination: NavigationDestination): PageCommand[] {
   )
 }
 
-/** Every docs page as a palette command, grouped by its Navigator section. */
+/**
+ * Every docs page as a palette command, grouped by its Navigator section.
+ * `pinned` pages, which Navigator shows outside the sections, join the first.
+ */
 export function pageCommands(
-  destinations: readonly NavigationDestination[]
+  destinations: readonly NavigationDestination[],
+  pinned: readonly PageCommand[] = []
 ): PageCommandGroup[] {
-  return destinations.map((destination) => ({
+  return destinations.map((destination, index) => ({
     label: destination.title,
     items: [
       command(destination.title, destination.href, destination.title),
-      ...sectionPages(destination)
+      ...sectionPages(destination),
+      ...(index === 0 ? pinned : [])
     ]
   }))
 }

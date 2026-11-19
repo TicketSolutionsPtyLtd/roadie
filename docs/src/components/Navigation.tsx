@@ -324,10 +324,7 @@ export function DocsNavigator({
         <Pane className='@container/docs-pane scroll-pt-6'>
           <Pane.Header>
             <Pane.Actions>
-              <CommandPalette.Trigger
-                emphasis='subtle'
-                className='max-sm:**:data-[slot=command-palette-trigger-shortcut]:hidden'
-              >
+              <CommandPalette.Trigger className='max-sm:w-10 max-sm:px-0 max-sm:**:data-[slot=command-palette-trigger-shortcut]:hidden'>
                 <span className='max-sm:sr-only'>Search</span>
               </CommandPalette.Trigger>
               {sourceLinks[route] ? (

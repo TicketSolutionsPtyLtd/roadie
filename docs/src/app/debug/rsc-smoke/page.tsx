@@ -451,11 +451,11 @@ export default function RscSmokePage() {
             &apos;@oztix/roadie-components/command-palette&apos;
           </code>
         </p>
-        <CommandPalette items={['Events', 'Orders']}>
+        <CommandPalette items={['Events', 'Orders']} shortcut={false}>
           <CommandPalette.Input placeholder='Search pages and actions' />
           <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
         </CommandPalette>
-        <CommandPalette.Root items={[]}>
+        <CommandPalette.Root items={[]} shortcut={false}>
           <CommandPalette.Input />
         </CommandPalette.Root>
       </section>

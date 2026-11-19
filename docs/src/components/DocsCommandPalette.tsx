@@ -12,13 +12,22 @@ import { CommandPalette } from '@oztix/roadie-components/command-palette'
 
 import type { NavigationDestination } from './Navigation'
 
+// Navigation pins Appearance outside its sections.
+const PINNED: PageCommand[] = [
+  {
+    label: 'Appearance',
+    href: '/appearance',
+    keywords: ['theme', 'dark mode', 'light mode']
+  }
+]
+
 /** Every docs page behind ⌘K, or Ctrl+K off Apple platforms. */
 export function DocsCommandPalette({
   items
 }: {
   items: readonly NavigationDestination[]
 }) {
-  const groups = useMemo(() => pageCommands(items), [items])
+  const groups = useMemo(() => pageCommands(items, PINNED), [items])
   return (
     <CommandPalette items={groups} label='Search the docs'>
       <CommandPalette.Input placeholder='Search the docs' />

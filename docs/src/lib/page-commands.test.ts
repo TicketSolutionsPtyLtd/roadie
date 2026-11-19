@@ -102,4 +102,15 @@ describe('pageCommands', () => {
     const components = pageCommands(destinations)[1]!
     expect(components.items[1]!.label).toBe('Navigation overview')
   })
+
+  it('adds pinned pages to the first section', () => {
+    const appearance = {
+      label: 'Appearance',
+      href: '/appearance',
+      keywords: ['theme']
+    }
+    const [first, second] = pageCommands(destinations, [appearance])
+    expect(first!.items.at(-1)).toEqual(appearance)
+    expect(second!.items).not.toContainEqual(appearance)
+  })
 })

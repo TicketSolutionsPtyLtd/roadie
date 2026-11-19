@@ -23,8 +23,11 @@ import { CommandPalette } from '@oztix/roadie-components/command-palette'
 Pass the commands as `items`, and render each one in the list's child
 function. A command with `href` is a link; one with `onSelect` runs it.
 Either way, picking it closes the palette. This example opens from its own
-button, as this site's palette has the shortcut: press ⌘K, or Ctrl+K, to try
-that one.
+button, with `open` and `onOpenChange`, and `shortcut={false}`, as this site's
+palette has the shortcut: press ⌘K, or Ctrl+K, to try that one.
+`onOpenChange` says why it changed: `'item-press'` when a command was picked,
+`'shortcut'` for the keys, and Base UI's reasons, such as `'escape-key'`,
+otherwise.
 
 ```tsx-live-noinline
 function Search() {
@@ -83,47 +86,6 @@ site's Search button is one.
     </CommandPalette.List>
   </CommandPalette>
 </>
-```
-
-### Opened by your own control
-
-Pass `open` and `onOpenChange` to open the palette from state you hold, and
-`shortcut={false}` when another palette on the page has the shortcut.
-`onOpenChange` says why it changed: `'item-press'` when a command was picked,
-`'shortcut'` for the keys, and Base UI's reasons, such as `'escape-key'`,
-otherwise.
-
-```tsx-live-noinline
-function OwnButton() {
-  const [open, setOpen] = useState(false)
-  const commands = [
-    { label: 'Events', href: '#events' },
-    { label: 'Orders', href: '#orders' },
-  ]
-
-  return (
-    <>
-      <Button onClick={() => setOpen(true)}>Find a page</Button>
-      <CommandPalette
-        open={open}
-        onOpenChange={setOpen}
-        shortcut={false}
-        items={commands}
-      >
-        <CommandPalette.Input placeholder='Search pages' />
-        <CommandPalette.List>
-          {(command) => (
-            <CommandPalette.Item key={command.label} value={command} href={command.href}>
-              {command.label}
-            </CommandPalette.Item>
-          )}
-        </CommandPalette.List>
-      </CommandPalette>
-    </>
-  )
-}
-
-render(<OwnButton />)
 ```
 
 ### States
