@@ -86,6 +86,56 @@ function Events() {
 render(<Events />)
 ```
 
+### Grouped
+
+`groupBy` groups the rows by a field with options, such as a status, under a title and count per option, in the options' order. Records with no value follow in a "No" group, such as "No status", and an option with no records is left out. Inside a group, rows keep the view's sort. A view saves its own `layout.groupBy`, which the URL keeps as `groupBy=status`, and it wins over the list's. A field that holds a list, or has no options, can't group.
+
+Grouping applies to one page of rows at a time, so a group can continue on the next page. A list that loads by range stays ungrouped. A Shift range in Select mode follows the order on screen, across groups.
+
+```tsx-live-noinline-expand
+const events = [
+  ['Marzipan Thunderclap', 'Kazoo Hollow Room', 'on-sale'],
+  ['Ember Galah Ball', 'Antler Kettle Hall', 'sold-out'],
+  ['Nectarine Hoedown', 'Echidna Gaslight Theatre', 'on-sale'],
+  ['Tuxedo Possum Cabaret', 'Kazoo Hollow Room', 'selling-fast'],
+  ['Lampshade Disco', 'Antler Kettle Hall', null]
+].map(([name, venue, status], index) => ({ id: `event-${index}`, name, venue, status }))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.text('venue', { label: 'Venue' }),
+  field.option('status', {
+    label: 'Status',
+    status: {
+      'on-sale': { intent: 'success', label: 'On sale' },
+      'selling-fast': { intent: 'warning', label: 'Selling fast' },
+      'sold-out': { intent: 'neutral', label: 'Sold out' }
+    }
+  })
+]
+const layouts = [listLayout({ title: 'name', description: 'venue', trailing: 'status', groupBy: 'status' })]
+
+function Events() {
+  const records = useRecords({
+    data: events,
+    fields,
+    getRowId: (row) => row.id,
+    getRowHref: (row) => `#${row.id}`,
+    recordName: { one: 'event', other: 'events' },
+    selectable: true
+  })
+  return (
+    <Records records={records} layouts={layouts} caption='Events by status'>
+      <Records.Header />
+      <Records.Content />
+    </Records>
+  )
+}
+
+render(<Events />)
+```
+
 ### States, selection, and long lists
 
 These work as they do in the grid. `loading` shows placeholder rows, `error` replaces the rows, and the empty state offers to clear the search and filters; see [States](/components/record-grid#states). Rows have no checkboxes, so selectable records in a list offer Select mode, with the bulk actions floating at the foot of the screen; see [Selection and actions](/components/record-grid#selection-and-actions). Past 100 records on a page the list renders only the rows near the screen, and with a `loadRange` it loads records by range; see [Long lists](/components/record-grid#long-lists).
@@ -122,5 +172,6 @@ These work as they do in the grid. `loading` shows placeholder rows, `error` rep
 - A row's title is its name. With `getRowHref` it is a link, and the whole row takes its hover and press; it opens in a new tab with Cmd or Ctrl, like any link.
 - In Select mode, each row's checkbox is named "Select" and the row's title, and covers the row, so a tap anywhere on it toggles, and the link steps aside. Escape leaves Select mode, and focus lands on Select.
 - The Configure button is named "Configure list", as is the dialog it opens. Each shown detail's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field.
+- Grouped, the rows are a list named by the caption holding a list per group, each named by its title and count, such as "On sale 4". Titles are `h2` headings.
 - `Records.Status` announces Loading, the error, the result count, and the selection.
 

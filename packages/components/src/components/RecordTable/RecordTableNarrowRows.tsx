@@ -1,15 +1,28 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useRef } from 'react'
+import {
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useId,
+  useMemo,
+  useRef
+} from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { listSectionClass } from '../List/variants'
+import {
+  listGroupSectionClass,
+  listGroupTitleVariants,
+  listGroupVariants,
+  listSectionClass
+} from '../List/variants'
 import { RecordCard } from '../Records/RecordCard'
 import {
   RecordPlaceholder,
   RecordRangeError
 } from '../Records/RecordPlaceholder'
+import type { RecordGroup } from '../Records/groups'
 import {
   VIRTUALISE_AFTER,
   type WindowPadding,
@@ -44,7 +57,8 @@ type NarrowShared = {
   selecting: boolean
   /** Undefined when the records can't be selected. */
   isSelected?: (id: string) => boolean
-  onToggle: (id: string, range: boolean) => void
+  /** `order` is the on-screen order a range follows, when it isn't the rows'. */
+  onToggle: (id: string, range: boolean, order?: readonly string[]) => void
   rowActions?: (row: object) => ReactNode
   getRowHref?: (row: object) => string | undefined
   /** List rows reach into the space beside the list; not in a box of their own. */
@@ -62,6 +76,8 @@ type RecordTableNarrowRowsProps = NarrowShared & {
   range?: RecordsRangeState
   row?: number
   onRow?: (row: number) => void
+  /** Rows under a title and count per group, in place of `rows`. Groups with no rows are left out. */
+  groups?: readonly RecordGroup[]
 }
 
 const sizing = ({ layout, parts }: NarrowShared): RowSize =>
@@ -76,9 +92,12 @@ export function RecordTableNarrowRows({
   range,
   row,
   onRow,
+  groups,
   ...shared
 }: RecordTableNarrowRowsProps) {
   const listProps = { caption, busy, cards: shared.layout === 'cards' }
+  if (groups)
+    return <GroupedList groups={groups} shared={shared} {...listProps} />
   if (range)
     return (
       <RangeList
@@ -216,12 +235,82 @@ const joinSelected = [
   '[&>li:has(+li[data-selected])]:[--list-divider:transparent]'
 ].join(' ')
 
+// Unwindowed: grouping applies to the rows loaded, a page at most.
+function GroupedList({
+  groups,
+  shared,
+  ...listProps
+}: {
+  groups: readonly RecordGroup[]
+  shared: NarrowShared
+  caption?: string
+  busy?: boolean
+  cards: boolean
+}) {
+  const { shown, order } = useMemo(() => {
+    const shown = groups.filter((group) => group.rows.length > 0)
+    const order = shown.flatMap((group) => group.rows.map(({ id }) => id))
+    return { shown, order }
+  }, [groups])
+  const { onToggle } = shared
+  const toggle = useCallback(
+    (id: string, range: boolean) => onToggle(id, range, order),
+    [onToggle, order]
+  )
+  const grouped = { ...shared, onToggle: toggle }
+  return (
+    <NarrowList {...listProps} grouped>
+      {shown.map((group) => (
+        <Group key={group.key ?? ''} group={group} shared={grouped} />
+      ))}
+    </NarrowList>
+  )
+}
+
+function Group({
+  group,
+  shared
+}: {
+  group: RecordGroup
+  shared: NarrowShared
+}) {
+  const titleId = useId()
+  return (
+    <li data-slot='list-group' className={listGroupVariants()}>
+      <h2
+        id={titleId}
+        data-slot='list-group-title'
+        className={cn(
+          listGroupTitleVariants(),
+          'flex gap-1.5',
+          shared.bleed && '-mx-3'
+        )}
+      >
+        {group.label}{' '}
+        <span className='font-normal tabular-nums'>{group.rows.length}</span>
+      </h2>
+      <ul
+        role='list'
+        aria-labelledby={titleId}
+        data-slot='list-section'
+        className={cn(listSectionClass, listGroupSectionClass, joinSelected)}
+      >
+        {group.rows.map((record) => (
+          <NarrowRow key={record.id} shared={shared} record={record} />
+        ))}
+      </ul>
+    </li>
+  )
+}
+
 type ListProps = {
   caption?: string
   busy?: boolean
   cards: boolean
   bodyRef?: RefObject<HTMLUListElement | null>
   padding?: WindowPadding
+  /** Holds groups, each with its own section of rows. */
+  grouped?: boolean
   children: ReactNode
 }
 
@@ -231,6 +320,7 @@ function NarrowList({
   cards,
   bodyRef,
   padding,
+  grouped = false,
   children
 }: ListProps) {
   return (
@@ -242,7 +332,11 @@ function NarrowList({
       aria-busy={busy || undefined}
       data-slot='record-table-body'
       className={cn(
-        cards ? ['grid', cardGap.gapClass] : [listSectionClass, joinSelected],
+        grouped
+          ? 'grid [&>li:first-child]:mt-0'
+          : cards
+            ? ['grid', cardGap.gapClass]
+            : [listSectionClass, joinSelected],
         'text-sm'
       )}
       style={padding}
