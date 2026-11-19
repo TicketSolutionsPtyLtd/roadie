@@ -5,7 +5,7 @@ import type { ReactNode, RefAttributes } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Autocomplete, type AutocompleteItemProps } from '../Autocomplete'
-import { KbdShortcut } from '../Kbd/KbdShortcut'
+import { KbdShortcut, hasShortcut } from '../Kbd/KbdShortcut'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { useCommandPaletteClose } from './CommandPaletteContext'
 
@@ -17,7 +17,7 @@ export type CommandPaletteItemProps = Omit<AutocompleteItemProps, 'onSelect'> &
     onSelect?: () => void
     /** An icon before the label, such as a Phosphor icon at `size-4`. */
     icon?: ReactNode
-    /** A keyboard shortcut hint drawn after the label, such as `'mod+e'`. */
+    /** A keyboard shortcut hint drawn after the label, as a key list such as `['mod', 'e']`. */
     shortcut?: ReactNode
   }
 
@@ -38,7 +38,10 @@ export function CommandPaletteItem({
       data-slot='command-palette-item'
       render={
         render ??
-        (href === undefined ? undefined : <RoadieRoutedLink href={href} />)
+        (href === undefined ? undefined : (
+          // The input moves the highlight, so an option is never a tab stop.
+          <RoadieRoutedLink href={href} tabIndex={-1} />
+        ))
       }
       className={cn('min-h-10 justify-start gap-3 py-2', className)}
       onClick={(event) => {
@@ -50,8 +53,20 @@ export function CommandPaletteItem({
       {...props}
     >
       {icon}
-      <span className='min-w-0 flex-1 truncate'>{children}</span>
-      {shortcut != null && <KbdShortcut shortcut={shortcut} />}
+      <span
+        data-slot='command-palette-item-label'
+        className='min-w-0 flex-1 truncate'
+      >
+        {children}
+      </span>
+      {hasShortcut(shortcut) ? (
+        <KbdShortcut
+          shortcut={shortcut}
+          emphasis='subtler'
+          data-slot='command-palette-item-shortcut'
+          className='shrink-0 text-subtle'
+        />
+      ) : null}
     </Autocomplete.Item>
   )
 }

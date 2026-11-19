@@ -16,9 +16,9 @@ afterEach(cleanup)
 type Command = { label: string; href?: string }
 
 const COMMANDS: Command[] = [
-  { label: 'Events', href: '/events' },
-  { label: 'Orders', href: '/orders' },
-  { label: 'Settings', href: '/settings' }
+  { label: 'Events', href: '#events' },
+  { label: 'Orders', href: '#orders' },
+  { label: 'Settings', href: '#settings' }
 ]
 
 function Palette() {
@@ -61,8 +61,11 @@ async function openPalette() {
 const box = (element: Element) => element.getBoundingClientRect()
 
 describe('CommandPalette in a browser', () => {
-  it('keeps Tab inside the palette', async () => {
-    await page.viewport(390, 844)
+  it.each([
+    ['a phone', 390, 844],
+    ['a desktop', 1280, 800]
+  ])('keeps Tab inside the palette on %s', async (_, width, height) => {
+    await page.viewport(width, height)
     await openPalette()
     const dialog = screen.getByRole('dialog')
     for (let step = 0; step < 4; step++) {
@@ -80,6 +83,27 @@ describe('CommandPalette in a browser', () => {
     await userEvent.keyboard('{Escape}')
     await expect.element(page.getByRole('dialog')).not.toBeInTheDocument()
     await expect.element(opener).toHaveFocus()
+  })
+
+  it('leaves link commands out of the tab order', async () => {
+    await page.viewport(1280, 800)
+    await openPalette()
+    await userEvent.keyboard('{Tab}')
+    await expect
+      .poll(() => document.activeElement?.getAttribute('role'))
+      .not.toBe('option')
+    expect(
+      screen.getAllByRole('option').map((option) => option.tabIndex)
+    ).toEqual([-1, -1, -1])
+  })
+
+  it('follows a link command picked with Enter', async () => {
+    await page.viewport(1280, 800)
+    location.hash = ''
+    await openPalette()
+    await userEvent.keyboard('ord{Enter}')
+    await expect.poll(() => location.hash).toBe('#orders')
+    location.hash = ''
   })
 
   it('fills a phone screen, with the input and Close in view', async () => {

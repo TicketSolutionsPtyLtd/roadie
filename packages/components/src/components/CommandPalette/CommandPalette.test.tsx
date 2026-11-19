@@ -12,6 +12,7 @@ type Command = {
   label: string
   href?: string
   keywords?: string[]
+  shortcut?: string[]
   onSelect?: () => void
 }
 
@@ -43,6 +44,7 @@ function Palette({
               value={command}
               href={command.href}
               onSelect={command.onSelect}
+              shortcut={command.shortcut}
             >
               {command.label}
             </CommandPalette.Item>
@@ -139,6 +141,19 @@ describe('CommandPalette', () => {
     const option = await screen.findByRole('option', { name: 'Orders' })
     expect(option).toHaveAttribute('href', '/orders')
     expect(option).toHaveAttribute('data-testid', 'stub-link')
+  })
+
+  it('draws a shortcut as keys, not as the text it was given', async () => {
+    render(
+      <Palette
+        commands={[
+          { label: 'New event', shortcut: ['mod', 'e'], onSelect: vi.fn() }
+        ]}
+      />
+    )
+    const option = await screen.findByRole('option', { name: /New event/ })
+    expect(option).not.toHaveTextContent('mod')
+    expect(option.querySelector('kbd')).toBeInTheDocument()
   })
 
   it('shows the empty state when nothing matches', async () => {
