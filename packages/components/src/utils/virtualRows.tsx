@@ -37,6 +37,7 @@ export default function VirtualRows({ children }: { children: RowRenderer }) {
     setScroller(parent)
     if (parent && start.current) setMargin(offsetWithin(start.current, parent))
   }, [])
+  // eslint-disable-next-line react/incompatible-library
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scroller,
