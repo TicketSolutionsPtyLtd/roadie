@@ -80,16 +80,18 @@ export function FileUploadRoot({
 
   function pick(event: ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0]
-    if (!file) return syncInput()
-    const rejection = checkFile(file, { accept, maxFileSize, minFileSize })
+    const rejection =
+      file && checkFile(file, { accept, maxFileSize, minFileSize })
     if (rejection) {
       setError(rejection.message)
       onReject?.([rejection])
-      return syncInput()
+    } else if (file) {
+      setError(null)
+      setUncontrolled([file])
+      onValueChange?.([file])
     }
-    setError(null)
-    setUncontrolled([file])
-    onValueChange?.([file])
+    // The input shows only the value; an accepted pick reaches it on re-render.
+    syncInput()
   }
 
   const isDisabled = Boolean(disabled || field.disabled)

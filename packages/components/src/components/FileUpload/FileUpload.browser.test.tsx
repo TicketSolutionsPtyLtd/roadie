@@ -25,20 +25,42 @@ describe('FileUpload in a form', () => {
     expect(postedFiles()).toEqual(['march.csv'])
   })
 
-  it('keeps posting the last good file after a rejected pick', async () => {
-    const { container } = render(
-      <form aria-label='Import'>
-        <FileUpload
-          name='payments'
-          accept='.csv'
-          defaultValue={[csv('march.csv')]}
-        >
+  it.each([
+    {
+      pick: 'a rejected pick',
+      props: { accept: '.csv', defaultValue: [csv('march.csv')] },
+      file: new File(['%PDF'], 'march.pdf')
+    },
+    {
+      pick: 'a pick its controlling parent ignored',
+      props: { value: [csv('march.csv')] },
+      file: csv('april.csv')
+    }
+  ])(
+    'keeps posting the last good file after $pick',
+    async ({ props, file }) => {
+      const { container } = render(
+        <form aria-label='Import'>
+          <FileUpload name='payments' {...props}>
+            <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+          </FileUpload>
+        </form>
+      )
+      const input = container.querySelector('input[type=file]')!
+      await userEvent.upload(input, file)
+      await waitFor(() => expect(postedFiles()).toEqual(['march.csv']))
+    }
+  )
+
+  it('moves focus to the Trigger when a required field stops a submit', async () => {
+    render(
+      <form aria-label='Import' onSubmit={(event) => event.preventDefault()}>
+        <FileUpload name='payments' required>
           <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
         </FileUpload>
       </form>
     )
-    const input = container.querySelector('input[type=file]')!
-    await userEvent.upload(input, new File(['%PDF'], 'march.pdf'))
-    await waitFor(() => expect(postedFiles()).toEqual(['march.csv']))
+    screen.getByRole<HTMLFormElement>('form').requestSubmit()
+    await waitFor(() => expect(screen.getByRole('button')).toHaveFocus())
   })
 })
