@@ -333,6 +333,70 @@ describe('validateRecordView', () => {
     expect(grid.problems[0]!.path).toBe('layout.fields[0]')
   })
 
+  it.each([
+    { type: 'list' },
+    { type: 'list', fields: ['name'], groupBy: 'venue' },
+    { type: 'list', groupBy: 'city' },
+    { type: 'board', groupBy: 'status' },
+    { type: 'calendar', dateField: 'starts' },
+    { type: 'calendar', dateField: 'birthday' },
+    { type: 'map' }
+  ])('accepts the layout %o', (layout) => {
+    expect(validateRecordView(view([], { layout }), eventFields)).toMatchObject(
+      { ok: true, problems: [] }
+    )
+  })
+
+  it.each([
+    [{ type: 'board' }, 'layout.groupBy', ''],
+    [
+      { type: 'board', groupBy: 'nope' },
+      'layout.groupBy',
+      'Unknown field "nope"'
+    ],
+    [
+      { type: 'board', groupBy: 'name' },
+      'layout.groupBy',
+      '"Name" has no options to group by'
+    ],
+    [
+      { type: 'list', groupBy: 'genres' },
+      'layout.groupBy',
+      '"Genres" holds a list, so a record would sit in more than one group'
+    ],
+    [{ type: 'calendar' }, 'layout.dateField', ''],
+    [
+      { type: 'calendar', dateField: 'capacity' },
+      'layout.dateField',
+      '"Capacity" is not a date field'
+    ],
+    [{ type: 'map', centre: [0, 0] }, 'layout', 'Unrecognized key'],
+    [{ type: 'timeline' }, 'layout.type', '']
+  ])('rejects the layout %o', (layout, path, message) => {
+    expect(errors(view([], { layout }))[0]).toMatchObject({
+      path,
+      message: expect.stringContaining(message)
+    })
+  })
+
+  it('rejects a calendar on a list of dates', () => {
+    const fields = [
+      ...eventFields,
+      { key: 'shows', label: 'Shows', type: 'date', multiple: true } as const
+    ]
+    const layout = { type: 'calendar', dateField: 'shows' }
+    expect(validateRecordView(view([], { layout }), fields)).toMatchObject({
+      ok: false,
+      problems: [
+        {
+          path: 'layout.dateField',
+          message:
+            '"Shows" holds a list of dates, which a calendar cannot place yet'
+        }
+      ]
+    })
+  })
+
   it('rejects unknown keys on the view, such as the retired group', () => {
     expect(errors(view([], { page: 2 } as never))[0]!.message).toMatch(
       /Unrecognized key/
