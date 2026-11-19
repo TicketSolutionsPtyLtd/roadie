@@ -458,6 +458,26 @@ describe('Sortable connected lists', () => {
     await waitFor(() => expect(onTransfer).toHaveBeenCalled())
     expect(onTransfer.mock.calls[0]![0].index).toBeGreaterThan(3)
   })
+
+  it('scrolls a container the lists share without registering it twice', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    onTestFinished(() => warn.mockRestore())
+    render(
+      <div className='h-60 overflow-y-auto'>
+        <Lanes />
+      </div>
+    )
+    await startDrag('Date')
+    await hover(item('SKU'), 0.2)
+    await waitFor(() =>
+      expect(item('SKU')).toHaveAttribute('data-drop-edge', 'top')
+    )
+    await drop()
+    expect(warn).not.toHaveBeenCalledWith(
+      expect.stringContaining('already registered'),
+      expect.anything()
+    )
+  })
 })
 
 describe('Sortable List rows', () => {

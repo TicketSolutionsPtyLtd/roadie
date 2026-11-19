@@ -163,11 +163,16 @@ export function sortableDropZone({
   }
   let stopScrolling: Cleanup = () => {}
   return combine(
-    // The list the drag started in scrolls only its own containers.
+    // The list the drag started in scrolls the containers they share.
     monitorForElements({
       canMonitor: ({ source }) => takes(source),
-      onDragStart: () => {
-        stopScrolling = autoScrollAncestors(element, group, axis)
+      onDragStart: ({ source }) => {
+        stopScrolling = autoScrollAncestors(
+          element,
+          group,
+          axis,
+          source.element
+        )
       },
       onDrop: () => stopScrolling()
     }),
@@ -283,7 +288,8 @@ export function sortableDropFrom(
 function autoScrollAncestors(
   first: Element | null,
   group: SortableGroup,
-  axis: SortableAxis
+  axis: SortableAxis,
+  until?: Element
 ): Cleanup {
   const overflow = axis === 'vertical' ? 'overflowY' : 'overflowX'
   const canScroll = ({ source }: { source: { data: Payload } }) =>
@@ -291,7 +297,7 @@ function autoScrollAncestors(
   const cleanups: Cleanup[] = []
   for (
     let node = first;
-    node && node !== document.documentElement;
+    node && node !== document.documentElement && !node.contains(until ?? null);
     node = node.parentElement
   ) {
     const style = getComputedStyle(node)
