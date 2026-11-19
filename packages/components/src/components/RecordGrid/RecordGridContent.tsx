@@ -13,35 +13,30 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { Progress } from '../Progress'
 import { RecordCard } from '../Records/RecordCard'
 import {
   RecordPlaceholder,
   RecordRangeError
 } from '../Records/RecordPlaceholder'
-import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
-import { useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
-import {
-  VIRTUALISE_AFTER,
-  type WindowPadding,
-  recordsWindow
-} from '../Records/recordsWindow'
+import { type WindowPadding, recordsWindow } from '../Records/recordsWindow'
 import { gridGap, gridRowSize } from '../Records/rowSizing'
 import {
   useHeldHeight,
   useRangeWindow,
   useRowWindow
 } from '../Records/rowWindow'
-import { useLeaveSelectOnEscape } from '../Records/selectMode'
-import { useStickyTop } from '../Records/stickyTop'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import type {
   RecordCardParts,
   RecordsRangeState,
   RecordsRow
 } from '../Records/types'
-import { useSurvivor } from '../Records/useBulkActions'
+import {
+  RecordsLayoutState,
+  RecordsStickyProgress,
+  useRecordsLayout
+} from '../Records/useRecordsLayout'
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { ScrollArea } from '../ScrollArea'
 import { gridParts } from './parts'
@@ -82,138 +77,82 @@ export function RecordGridContent({
   fill = false,
   config
 }: RecordGridContentProps) {
-  const { records, caption, toolbar, setContentFill } = useRecordsContext()
-  const leaveSelect = useLeaveSelectOnEscape()
-  const rowsSurvivor = useSurvivor('rows')
-  const frameRef = useRef<HTMLDivElement>(null)
-  const boxed = fill || Boolean(maxHeight)
-  const progressTop = useStickyTop(frameRef, toolbar, boxed)
+  const frame = useRecordsLayout({ fill, maxHeight })
+  const { records, caption, boxed, state, windowed, firstIndex, partial } =
+    frame
   const { fields, view } = records
   const parts = useMemo(
     () => gridParts(config, fields, view.layout),
     [config, fields, view.layout]
   )
-  useLayoutEffect(() => {
-    setContentFill(fill)
-    return () => setContentFill(false)
-  }, [fill, setContentFill])
-
   // Cards have no checkboxes, so the grid selects only through Select mode.
   const selecting = useSelectModeLayout(true)
-  const latest = useRef(records)
-  useLayoutEffect(() => {
-    latest.current = records
-  })
-
-  // Stable, so a selection change or an inline rowActions leaves other cards alone.
-  const toggleRow = useCallback(
-    (id: string, range: boolean) => latest.current.toggleRow(id, { range }),
-    []
-  )
-  const rowActions = useCallback(
-    (row: object) => latest.current.rowActions?.(row),
-    []
-  )
   const shared: GridShared = {
     parts,
     timeZone: records.timeZone,
     selecting,
-    isSelected: records.selectable ? records.isSelected : undefined,
-    onToggle: toggleRow,
-    rowActions: records.rowActions ? rowActions : undefined,
+    isSelected: frame.isSelected,
+    onToggle: frame.toggleRow,
+    rowActions: frame.rowActions,
     getRowHref: records.getRowHref
   }
 
   const { rows, range } = records
-  const busy = records.loading && !records.error
-  // Range mode keeps its cards bright: placeholders already show what loads.
-  const dimmed = busy && !range && rows.length > 0
-  const awaitingRows = busy && !range && rows.length === 0
-  const empty = range ? range.count === 0 : rows.length === 0
-  const shownPage = Math.min(records.position.page, records.pageCount - 1)
-  const partial = rows.length > VIRTUALISE_AFTER || records.pageCount > 1
-  const listProps = { caption, busy }
+  const listProps = { caption, busy: frame.busy }
 
-  // Keyed, so one state replacing another hands its button's focus on.
-  const body = records.error ? (
-    <GridState key='error'>
-      <RecordsError records={records} />
-    </GridState>
-  ) : awaitingRows ? (
-    <GridSkeleton parts={parts} size={records.position.pageSize} />
-  ) : empty ? (
-    <GridState key='empty'>
-      <RecordsEmpty records={records} />
-    </GridState>
-  ) : range ? (
-    <RangeGrid
-      range={range}
-      row={records.position.row}
-      onRow={records.setRow}
-      shared={shared}
-      {...listProps}
-    />
-  ) : rows.length > VIRTUALISE_AFTER ? (
-    <VirtualGrid
-      rows={rows}
-      firstIndex={shownPage * records.position.pageSize + 1}
-      setSize={records.pageCount > 1 ? records.resultCount : rows.length}
-      shared={shared}
-      {...listProps}
-    />
-  ) : (
-    <GridList {...listProps}>
-      {rows.map((record, index) => (
-        <GridCard
-          key={record.id}
-          shared={shared}
-          record={record}
-          posInSet={
-            partial
-              ? shownPage * records.position.pageSize + index + 1
-              : undefined
-          }
-          setSize={partial ? records.resultCount : undefined}
-        />
-      ))}
-    </GridList>
-  )
+  const body =
+    state === 'loading' ? (
+      <GridSkeleton parts={parts} size={records.position.pageSize} />
+    ) : state ? (
+      <RecordsLayoutState key={state} kind={state} records={records} />
+    ) : range ? (
+      <RangeGrid
+        range={range}
+        row={records.position.row}
+        onRow={records.setRow}
+        shared={shared}
+        {...listProps}
+      />
+    ) : windowed === 'rows' ? (
+      <VirtualGrid
+        rows={rows}
+        firstIndex={firstIndex}
+        setSize={records.pageCount > 1 ? records.resultCount : rows.length}
+        shared={shared}
+        {...listProps}
+      />
+    ) : (
+      <GridList {...listProps}>
+        {rows.map((record, index) => (
+          <GridCard
+            key={record.id}
+            shared={shared}
+            record={record}
+            posInSet={partial ? firstIndex + index : undefined}
+            setSize={partial ? records.resultCount : undefined}
+          />
+        ))}
+      </GridList>
+    )
 
   const content = (
     <div
-      ref={frameRef}
+      {...frame.frameProps}
       data-slot='record-grid'
-      data-records-content=''
-      onKeyDown={leaveSelect}
       // In a box, it fills the box, so a state can centre in what's left.
       className={cn('w-full', boxed ? 'flex min-h-full flex-col' : className)}
     >
-      {dimmed && (
-        // Zero height, so the cards don't move; sticks under the toolbar.
-        <div
-          aria-hidden
-          data-slot='record-grid-progress'
-          style={{ top: progressTop }}
-          className='pointer-events-none sticky z-docked h-0'
-        >
-          <div className='absolute inset-x-0 top-0'>
-            <Progress value={null}>
-              <Progress.Track className='h-0.5 rounded-none bg-transparent'>
-                <Progress.Indicator />
-              </Progress.Track>
-            </Progress>
-          </div>
-        </div>
+      {frame.dimmed && (
+        <RecordsStickyProgress
+          slot='record-grid-progress'
+          top={frame.stickyTop}
+        />
       )}
       <div
         data-slot='record-grid-scroller'
-        {...rowsSurvivor}
+        {...frame.rowsSurvivor}
         tabIndex={-1}
-        className={cn(
-          'isolate outline-none',
-          boxed && 'grid grow items-start',
-          dimmed && 'opacity-60'
-        )}
+        className={frame.scrollerClass}
       >
         {body}
       </div>
@@ -242,17 +181,6 @@ export function RecordGridContent({
   )
 }
 RecordGridContent.displayName = 'RecordGridContent'
-
-/** A state in place of the cards, keeping focus with the records when its button goes. */
-function GridState({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useKeepFocusInTable(ref)
-  return (
-    <div ref={ref} className='grid content-center self-stretch'>
-      {children}
-    </div>
-  )
-}
 
 function GridSkeleton({
   parts,
