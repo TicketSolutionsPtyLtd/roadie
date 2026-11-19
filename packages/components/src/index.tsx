@@ -279,11 +279,13 @@ export {
   sortableItemVariants,
   sortableDropIndicatorVariants,
   sortableHandleVariants,
+  sortableDropZoneVariants,
   type SortableProps,
   type SortableMove,
   type SortableTransfer,
   type SortableItemProps,
-  type SortableHandleProps
+  type SortableHandleProps,
+  type SortableDropZoneProps
 } from './components/Sortable'
 
 export {
