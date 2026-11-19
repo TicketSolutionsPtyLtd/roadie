@@ -112,9 +112,7 @@ export function CommandPaletteRoot({
                 locale={locale}
                 autoHighlight='always'
                 value={query}
-                onValueChange={(next, details) => {
-                  if (details.reason !== 'item-press') setQuery(next)
-                }}
+                onValueChange={(next) => setQuery(next)}
               >
                 {children}
               </Autocomplete>
