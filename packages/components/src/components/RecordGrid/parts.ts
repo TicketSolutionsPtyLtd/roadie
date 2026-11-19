@@ -101,8 +101,9 @@ export function gridParts(
 
 /**
  * The grid or list layout after a change to its details. Each key for a field
- * this grid doesn't have, such as one only some people see, keeps its slot.
- * `fields` is left out when the details are back to the definition's.
+ * this layout doesn't have, such as one only some people see, keeps its slot;
+ * fields saved for the other layout aren't carried over. `fields` is left out
+ * when the details are back to the definition's.
  */
 export function gridDetailsLayout(
   config: GridLayoutConfig,

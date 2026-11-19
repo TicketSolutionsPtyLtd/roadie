@@ -8,9 +8,12 @@ import type { RecordCardParts } from '../Records/types'
 import { RecordTableListRow } from './RecordTableListRow'
 
 const partsFor = (config: { description?: 'city'; details: string[] }) =>
-  gridParts({ title: 'show', ...config }, showFields, {
-    type: 'list'
-  }) as RecordCardParts
+  gridParts(
+    { title: 'show', ...config },
+    showFields,
+    { type: 'list' },
+    'list'
+  ) as RecordCardParts
 
 function renderRow(parts: RecordCardParts, index: number, sold?: number) {
   const show = { ...testShows(8)[index]!, ...(sold !== undefined && { sold }) }
