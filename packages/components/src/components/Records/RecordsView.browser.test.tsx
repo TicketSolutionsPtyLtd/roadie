@@ -2,7 +2,7 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
-import type { RecordView } from '@oztix/roadie-core/records'
+import { type RecordView, recordFields } from '@oztix/roadie-core/records'
 
 import { Records, useRecords } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -39,7 +39,13 @@ const layouts = [
   gridLayout<TestShow>({ title: 'show', details: ['city', 'sold'] })
 ]
 
-function Shows({ onView }: { onView?: (view: RecordView) => void }) {
+function Shows({
+  onView,
+  label
+}: {
+  onView?: (view: RecordView) => void
+  label?: string
+}) {
   const records = useRecords({
     data: testShows(6),
     fields: showFields,
@@ -49,7 +55,7 @@ function Shows({ onView }: { onView?: (view: RecordView) => void }) {
     <Records records={records} layouts={layouts} caption='Shows'>
       <Records.Header>
         <Records.Search />
-        <Records.View />
+        <Records.View label={label} />
       </Records.Header>
       <Records.Content />
     </Records>
@@ -111,6 +117,37 @@ describe('Records.View', () => {
           .map((header) => header.textContent)
       )
       .not.toContain('Sold')
+  })
+
+  it('names the button and the drawer with label', TIMEOUT, async () => {
+    render(<Shows label='Display' />)
+    await userEvent.click(screen.getByRole('button', { name: 'Display' }))
+    expect(await screen.findByRole('dialog', { name: 'Display' })).toBeVisible()
+  })
+
+  it('renders nothing with nothing to set', () => {
+    const field = recordFields<TestShow>()
+    const fields = [field.text('show', { label: 'Show', sortable: false })]
+    function Lone() {
+      const records = useRecords({ data: testShows(3), fields })
+      return (
+        <Records
+          records={records}
+          layouts={[
+            tableLayout([tableColumns<TestShow>(fields).field('show')])
+          ]}
+          caption='Shows'
+        >
+          <Records.Header>
+            <Records.Search />
+            <Records.View />
+          </Records.Header>
+          <Records.Content />
+        </Records>
+      )
+    }
+    render(<Lone />)
+    expect(screen.queryByRole('button', { name: 'View' })).toBeNull()
   })
 
   for (const [size, width, height] of [
