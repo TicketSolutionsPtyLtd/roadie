@@ -90,7 +90,7 @@ render(<GuestListImport />)
 
 <Guideline title='Say what the field takes'>
   <Guideline.Do code={`<Field.HelperText>A CSV up to 1 MB.</Field.HelperText>`}>
-    Name the file type and size limit in the helper text, so people pick the right file first time.
+    Name the file type and size limit in the helper text, so people pick the right file first time. Accept a CSV by its `.csv` extension, since Windows often reports one as `application/vnd.ms-excel`.
   </Guideline.Do>
   <Guideline.Dont code={`<FileUpload accept='.csv' maxFileSize={1_000_000}>`}>
     Don't leave the rules for the error message to explain.
@@ -101,7 +101,7 @@ render(<GuestListImport />)
 
 ## Accessibility
 
-- `FileUpload.Trigger` is a real button, so it works with a keyboard, switch access and voice control. `Field.Label` and the button's own text name it together, such as "Guest list, Choose a CSV".
+- `FileUpload.Trigger` is a real button, so it works with a keyboard, switch access and voice control. `Field.Label` and the button's own text name it together, such as "Guest list Choose a CSV".
 - A rejected file's message shows in `Field.ErrorText`, which is announced, and the button gets `aria-invalid` and points at the message.
 - The hidden file input takes `required`, so a form won't submit without a file, and focus goes to the button when it doesn't.
 - `capture` opens the phone's camera instead of its file picker: `user` for the front camera, `environment` for the back.
