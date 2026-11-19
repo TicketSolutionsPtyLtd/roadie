@@ -266,15 +266,14 @@
     "name": "DateField",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "14.2 kB",
-    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
+    "limit": "12.7 kB",
+    "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DateField with core",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "28.4 kB",
-    "ignore": ["@tanstack/react-virtual"]
+    "limit": "28.4 kB"
   },
   {
     "name": "TimeField",
@@ -294,42 +293,39 @@
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
     "limit": "38.2 kB",
-    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
+    "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DatePicker with core",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "53.7 kB",
-    "ignore": ["@tanstack/react-virtual"]
+    "limit": "53.7 kB"
   },
   {
     "name": "DashboardPeriod",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
     "limit": "49 kB",
-    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
+    "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DashboardPeriod with core",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
-    "limit": "65.7 kB",
-    "ignore": ["@tanstack/react-virtual"]
+    "limit": "65.7 kB"
   },
   {
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
     "limit": "45.4 kB",
-    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
+    "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DateRangePicker with core",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "61.2 kB",
-    "ignore": ["@tanstack/react-virtual"]
+    "limit": "61.2 kB"
   },
   {
     "name": "QueryField",
