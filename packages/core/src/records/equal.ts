@@ -29,19 +29,30 @@ function sorted(items: readonly string[] | undefined): string[] {
 }
 
 function sameLayout(a: RecordLayout, b: RecordLayout): boolean {
-  if (a.type === 'grid' || b.type === 'grid') {
-    return (
-      a.type === b.type &&
-      sameList(
-        (a.type === 'grid' && a.fields) || [],
-        (b.type === 'grid' && b.fields) || []
+  switch (a.type) {
+    case 'table':
+      return (
+        b.type === 'table' &&
+        sameList(a.columns?.order ?? [], b.columns?.order ?? []) &&
+        sameList(sorted(a.columns?.hidden), sorted(b.columns?.hidden))
       )
-    )
+    case 'grid':
+      return b.type === 'grid' && sameList(a.fields ?? [], b.fields ?? [])
+    case 'list':
+      return (
+        b.type === 'list' &&
+        sameList(a.fields ?? [], b.fields ?? []) &&
+        a.groupBy === b.groupBy
+      )
+    case 'board':
+      return b.type === 'board' && a.groupBy === b.groupBy
+    case 'calendar':
+      return b.type === 'calendar' && a.dateField === b.dateField
+    case 'map':
+      return b.type === 'map'
+    default:
+      return false
   }
-  return (
-    sameList(a.columns?.order ?? [], b.columns?.order ?? []) &&
-    sameList(sorted(a.columns?.hidden), sorted(b.columns?.hidden))
-  )
 }
 
 /**

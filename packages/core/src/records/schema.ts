@@ -65,7 +65,8 @@ function buildSchema() {
     flag
   ])
 
-  const keys = z.array(z.string().min(1))
+  const key = z.string().min(1)
+  const keys = z.array(key)
 
   return z.strictObject({
     version: z
@@ -89,7 +90,15 @@ function buildSchema() {
           .strictObject({ order: keys.optional(), hidden: keys.optional() })
           .optional()
       }),
-      z.strictObject({ type: z.literal('grid'), fields: keys.optional() })
+      z.strictObject({ type: z.literal('grid'), fields: keys.optional() }),
+      z.strictObject({
+        type: z.literal('list'),
+        fields: keys.optional(),
+        groupBy: key.optional()
+      }),
+      z.strictObject({ type: z.literal('board'), groupBy: key }),
+      z.strictObject({ type: z.literal('calendar'), dateField: key }),
+      z.strictObject({ type: z.literal('map') })
     ])
   })
 }

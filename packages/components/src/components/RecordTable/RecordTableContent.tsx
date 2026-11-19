@@ -4,7 +4,6 @@ import {
   type CSSProperties,
   type ReactNode,
   type RefObject,
-  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -21,18 +20,19 @@ import { cn } from '@oztix/roadie-core/utils'
 import { isDev } from '../../utils/isDev'
 import { surfaceClass, useSurface } from '../../utils/surface'
 import { SortIcon } from '../DataTable/SortIcon'
-import { Progress } from '../Progress'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
-import { useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
 import { useNarrow } from '../Records/narrow'
-import { VIRTUALISE_AFTER } from '../Records/recordsWindow'
-import { useLeaveSelectOnEscape } from '../Records/selectMode'
 import { pageState } from '../Records/selection'
 import { firstDirection } from '../Records/sortOptions'
 import { useStickyTop } from '../Records/stickyTop'
-import { tableFocusTarget, useKeepFocusInTable } from '../Records/tableFocus'
-import { useSurvivor } from '../Records/useBulkActions'
+import { tableFocusTarget } from '../Records/tableFocus'
+import {
+  RecordsLayoutState,
+  RecordsProgress,
+  RecordsStickyProgress,
+  useRecordsLayout
+} from '../Records/useRecordsLayout'
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { ScrollArea } from '../ScrollArea'
 import { NarrowSkeleton, RecordTableNarrowRows } from './RecordTableNarrowRows'
@@ -123,22 +123,21 @@ export function RecordTableContent({
   fill = false,
   config
 }: RecordTableContentProps) {
+  const frame = useRecordsLayout({ fill, maxHeight })
   const {
     records,
     caption,
     toolbar,
-    setContentFill,
     bulkMounted,
-    setBulkSlot
-  } = useRecordsContext()
-  const leaveSelect = useLeaveSelectOnEscape()
-  const rowsSurvivor = useSurvivor('rows')
-  const frameRef = useRef<HTMLDivElement>(null)
+    setBulkSlot,
+    frameRef,
+    boxed,
+    state,
+    partial
+  } = frame
   const headRef = useRef<HTMLDivElement>(null)
   const totalsClipRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
-  // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
-  const boxed = fill || Boolean(maxHeight)
   const contentRef = useRef<HTMLDivElement>(null)
   const headTop = useStickyTop(headRef, toolbar, boxed)
   // On the table, so the head and pinned cells inherit it.
@@ -150,10 +149,6 @@ export function RecordTableContent({
     [allColumns, viewLayout]
   )
   const title = titleColumn(columns)
-  useLayoutEffect(() => {
-    setContentFill(fill)
-    return () => setContentFill(false)
-  }, [fill, setContentFill])
 
   const isNarrow = useNarrow(frameRef, { placement: boxed })
   const narrow = isNarrow ? (config.narrow ?? narrowLayout(columns)) : undefined
@@ -161,28 +156,14 @@ export function RecordTableContent({
     const roles = narrowParts(columns)
     return narrow === 'cards' ? cardParts(roles) : roles
   }, [columns, narrow])
-  const frameTop = useStickyTop(frameRef, toolbar, boxed)
   useKeepFocusShown(frameRef, boxed)
   useLayoutFocus(frameRef, narrow ?? 'wide', boxed)
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
   const selecting = useSelectModeLayout(narrow !== undefined)
-  const latest = useRef(records)
-  useLayoutEffect(() => {
-    latest.current = records
-  })
 
   const { selectable, getRowHref } = records
-  // Presence, not identity: an inline rowActions is new every render.
-  const hasRowActions = Boolean(records.rowActions)
-  // Stable, so a selection change or an inline rowActions leaves other rows alone.
-  const toggleRow = useCallback(
-    (id: string, range: boolean) => latest.current.toggleRow(id, { range }),
-    []
-  )
-  const rowActions = useCallback(
-    (row: object) => latest.current.rowActions?.(row),
-    []
-  )
+  const { toggleRow, rowActions, isSelected } = frame
+  const hasRowActions = rowActions !== undefined
   const missingLinkColumn = getRowHref !== undefined && title === undefined
   // Once per table: a warning per row would flood the console.
   const warnedNoLinkColumn = useRef(false)
@@ -213,17 +194,8 @@ export function RecordTableContent({
   const { rows, range, totals } = records
   const headRows = totals ? 2 : 1
   const headTextClass = cn(headerTextClass, totals ? 'text-sm' : 'text-xs')
-  const busy = records.loading && !records.error
-  // Range mode keeps its rows bright: placeholders already show what loads.
-  const dimmed = busy && !range && rows.length > 0
-  const awaitingRows = busy && !range && rows.length === 0
-  const shownPage = Math.min(records.position.page, records.pageCount - 1)
-  // A page, a window or a range holds only some rows, so each carries its
-  // place and the table counts them all, the header row too.
-  const partial =
-    range !== undefined ||
-    rows.length > VIRTUALISE_AFTER ||
-    records.pageCount > 1
+  const { busy, dimmed } = frame
+  // The table counts every row, the header rows too.
   const rowCount = !partial
     ? undefined
     : range
@@ -231,9 +203,7 @@ export function RecordTableContent({
         ? -1
         : range.count + headRows
       : records.resultCount + headRows
-  const firstIndex = partial
-    ? shownPage * records.position.pageSize + headRows + 1
-    : undefined
+  const firstIndex = partial ? frame.firstIndex + headRows : undefined
   // What the rows show: a sort the fields can't apply marks nothing.
   const sort = records.resolvedQuery.sort
   const pageIds = rows.map((row) => row.id)
@@ -261,42 +231,36 @@ export function RecordTableContent({
   const columnCount =
     columns.length + (selectable ? 1 : 0) + (hasRowActions ? 1 : 0)
 
-  const empty = range ? range.count === 0 : rows.length === 0
+  const narrowState =
+    state === 'loading' ? (
+      <NarrowSkeleton
+        parts={parts}
+        layout={narrow ?? 'list'}
+        size={records.position.pageSize}
+      />
+    ) : state ? (
+      <RecordsLayoutState key={state} kind={state} records={records} />
+    ) : null
   // Keyed, so one state replacing another hands its button's focus on.
-  const narrowState = records.error ? (
-    <NarrowState key='error'>
-      <RecordsError records={records} />
-    </NarrowState>
-  ) : awaitingRows ? (
-    <NarrowSkeleton
-      parts={parts}
-      layout={narrow ?? 'list'}
-      size={records.position.pageSize}
-    />
-  ) : empty ? (
-    <NarrowState key='empty'>
-      <RecordsEmpty records={records} />
-    </NarrowState>
-  ) : null
-  // Error, then skeleton, then empty: what replaces the rows.
-  const state = records.error ? (
-    <StateRow key='error' columns={columnCount}>
-      <RecordsError records={records} />
-    </StateRow>
-  ) : awaitingRows ? (
-    <RecordTableSkeletonRows
-      columns={columns}
-      layout={layout}
-      size={records.position.pageSize}
-      select={selectable}
-      actions={hasRowActions}
-    />
-  ) : empty ? (
-    <StateRow key='empty' columns={columnCount}>
-      <RecordsEmpty records={records} />
-    </StateRow>
-  ) : null
-  const body = state ?? (
+  const stateRows =
+    state === 'error' ? (
+      <StateRow key='error' columns={columnCount}>
+        <RecordsError records={records} />
+      </StateRow>
+    ) : state === 'loading' ? (
+      <RecordTableSkeletonRows
+        columns={columns}
+        layout={layout}
+        size={records.position.pageSize}
+        select={selectable}
+        actions={hasRowActions}
+      />
+    ) : state === 'empty' ? (
+      <StateRow key='empty' columns={columnCount}>
+        <RecordsEmpty records={records} />
+      </StateRow>
+    ) : null
+  const body = stateRows ?? (
     <RecordTableRows
       rows={rows}
       firstIndex={firstIndex}
@@ -307,21 +271,14 @@ export function RecordTableContent({
       layout={layout}
       title={title}
       timeZone={records.timeZone}
-      isSelected={selectable ? records.isSelected : undefined}
+      isSelected={isSelected}
       onToggle={toggleRow}
-      rowActions={hasRowActions ? rowActions : undefined}
+      rowActions={rowActions}
       getRowHref={getRowHref}
       columnCount={columnCount}
     />
   )
 
-  const progress = dimmed && (
-    <Progress value={null}>
-      <Progress.Track className='h-0.5 rounded-none bg-transparent'>
-        <Progress.Indicator />
-      </Progress.Track>
-    </Progress>
-  )
   const narrowBody = narrow !== undefined && (
     <>
       {totals && (
@@ -331,27 +288,19 @@ export function RecordTableContent({
           timeZone={records.timeZone}
         />
       )}
-      {progress && (
-        // Zero height, so the rows don't move; sticks where the wide header would.
-        <div
-          aria-hidden
-          data-slot='record-table-progress'
-          style={{ top: frameTop }}
-          className='pointer-events-none sticky z-docked h-0'
-        >
-          <div className='absolute inset-x-0 top-0'>{progress}</div>
-        </div>
+      {dimmed && (
+        // Sticks where the wide header would.
+        <RecordsStickyProgress
+          slot='record-table-progress'
+          top={frame.stickyTop}
+        />
       )}
       <div
         ref={scrollerRef}
         data-slot='record-table-scroller'
-        {...rowsSurvivor}
+        {...frame.rowsSurvivor}
         tabIndex={-1}
-        className={cn(
-          'isolate outline-none',
-          boxed && 'grid grow items-start',
-          dimmed && 'opacity-60'
-        )}
+        className={frame.scrollerClass}
       >
         {narrowState ?? (
           <RecordTableNarrowRows
@@ -362,14 +311,12 @@ export function RecordTableContent({
             timeZone={records.timeZone}
             caption={caption}
             busy={busy}
-            firstIndex={
-              partial ? shownPage * records.position.pageSize + 1 : undefined
-            }
+            firstIndex={partial ? frame.firstIndex : undefined}
             setSize={partial && !range ? records.resultCount : undefined}
             selecting={selecting}
-            isSelected={selectable ? records.isSelected : undefined}
+            isSelected={isSelected}
             onToggle={toggleRow}
-            rowActions={hasRowActions ? rowActions : undefined}
+            rowActions={rowActions}
             getRowHref={getRowHref}
             range={range}
             row={records.position.row}
@@ -383,11 +330,9 @@ export function RecordTableContent({
   // One element for both layouts, so the width it measures stays observed.
   const content = (
     <div
-      ref={frameRef}
+      {...frame.frameProps}
       data-slot='record-table-frame'
-      data-records-content=''
       data-narrow={narrow ? '' : undefined}
-      onKeyDown={leaveSelect}
       // In a box, the viewport is the region: it holds the focus.
       role={boxed || narrow ? undefined : 'region'}
       aria-label={
@@ -579,13 +524,13 @@ export function RecordTableContent({
                   />
                 </div>
               )}
-              {progress && (
+              {dimmed && (
                 <div
                   aria-hidden
                   data-slot='record-table-progress'
                   className='pointer-events-none absolute inset-x-0 bottom-0'
                 >
-                  {progress}
+                  <RecordsProgress />
                 </div>
               )}
             </div>
@@ -593,7 +538,7 @@ export function RecordTableContent({
               <div
                 ref={scrollerRef}
                 data-slot='record-table-scroller'
-                {...rowsSurvivor}
+                {...frame.rowsSurvivor}
                 tabIndex={-1}
                 className={cn(
                   'isolate grid items-start',
@@ -611,7 +556,7 @@ export function RecordTableContent({
                 <ScrollArea.Viewport
                   ref={scrollerRef}
                   data-slot='record-table-scroller'
-                  {...rowsSurvivor}
+                  {...frame.rowsSurvivor}
                   // Focusable, so not Base UI's presentation role; the frame names the region.
                   role={undefined}
                   tabIndex={0}
@@ -733,15 +678,4 @@ function useKeepFocusShown(
       document.removeEventListener('focusin', onFocusIn)
     }
   }, [frameRef, placement])
-}
-
-/** A state in place of narrow rows, keeping focus in the table when its button goes. */
-function NarrowState({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useKeepFocusInTable(ref)
-  return (
-    <div ref={ref} className='grid content-center self-stretch'>
-      {children}
-    </div>
-  )
 }

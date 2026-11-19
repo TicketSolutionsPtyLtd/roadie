@@ -39,6 +39,12 @@ export type RecordQuery = {
 export type RecordLayout =
   | { type: 'table'; columns?: { order?: string[]; hidden?: string[] } }
   | { type: 'grid'; fields?: string[] }
+  | { type: 'list'; fields?: string[]; groupBy?: string }
+  /** One column per option of `groupBy`. */
+  | { type: 'board'; groupBy: string }
+  | { type: 'calendar'; dateField: string }
+  /** Holds no centre or zoom: the map fits its records. */
+  | { type: 'map' }
 
 export type RecordView = {
   /** `validateRecordView` reads a view without one as `RECORD_VIEW_VERSION`. */
