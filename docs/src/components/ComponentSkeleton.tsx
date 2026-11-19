@@ -157,11 +157,11 @@ export function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'file-upload':
       return (
-        <div className='grid justify-items-start gap-2'>
-          <Skel className='h-2 w-16' />
-          <div className='flex h-7 emphasis-normal items-center gap-2 rounded-full px-3'>
-            <UploadSimpleIcon weight='bold' className='size-3.5 text-subtle' />
-            <Skel className='h-2 w-14' />
+        <div className='flex h-9 w-44 items-center gap-2 rounded-lg border border-subtle bg-normal pr-1 pl-3'>
+          <Skel className='h-2 flex-1 opacity-50' />
+          <div className='flex h-7 emphasis-normal items-center gap-1.5 rounded-full px-2.5'>
+            <UploadSimpleIcon weight='bold' className='size-3 text-subtle' />
+            <Skel className='h-2 w-8' />
           </div>
         </div>
       )

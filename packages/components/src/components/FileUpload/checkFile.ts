@@ -35,9 +35,12 @@ const units = [
   [1e3, 'kilobyte']
 ] as const
 
-// Decimal units, as Finder and Explorer's size column show them, rounded so
-// "over" and "under" stay true.
-function formatFileSize(bytes: number, roundingMode: 'floor' | 'ceil') {
+// Decimal units, as Finder and Explorer's size column show them. Limits round
+// so "over" and "under" stay true.
+export function formatFileSize(
+  bytes: number,
+  roundingMode: 'floor' | 'ceil' | 'halfExpand' = 'halfExpand'
+) {
   const [size, unit] = units.find(([size]) => bytes >= size) ?? [1, 'byte']
   return new Intl.NumberFormat('en-AU', {
     style: 'unit',

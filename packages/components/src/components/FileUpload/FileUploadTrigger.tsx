@@ -11,12 +11,13 @@ export type FileUploadTriggerProps = Omit<
   'href' | 'external' | 'target' | 'rel' | 'download'
 >
 
-/** The button that opens the file picker. */
+/** The button that opens the file picker. It reads "Choose file", or "Replace" once there's one. */
 export function FileUploadTrigger({
   id,
   ref,
   disabled,
   onClick,
+  children,
   ...props
 }: FileUploadTriggerProps) {
   const context = useFileUploadContext('FileUpload.Trigger')
@@ -28,10 +29,10 @@ export function FileUploadTrigger({
       ref={mergeRefs(ref, context.triggerRef)}
       id={triggerId}
       disabled={context.disabled || disabled}
-      // Inside a Field, the label names the field and the button says what it does.
-      aria-labelledby={
-        context.labelId ? `${context.labelId} ${triggerId}` : undefined
-      }
+      // The field's label and the chosen file come first, then what the button does.
+      aria-labelledby={[context.labelId, context.valueId, triggerId]
+        .filter(Boolean)
+        .join(' ')}
       aria-describedby={context.describedBy}
       aria-invalid={context.invalid || undefined}
       onClick={(event) => {
@@ -39,7 +40,9 @@ export function FileUploadTrigger({
         if (!event.defaultPrevented) context.open()
       }}
       {...props}
-    />
+    >
+      {children ?? (context.files.length ? 'Replace' : 'Choose file')}
+    </Button>
   )
 }
 

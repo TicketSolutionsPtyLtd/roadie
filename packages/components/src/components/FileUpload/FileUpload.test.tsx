@@ -168,4 +168,57 @@ describe('FileUpload', () => {
     expect(input).toHaveAttribute('accept', '.csv')
     expect(input).toHaveAttribute('capture', 'environment')
   })
+
+  describe('the bar', () => {
+    it('shows a placeholder and Choose file when empty', () => {
+      render(<FileUpload placeholder='No guest list yet' />)
+      expect(screen.getByText('No guest list yet')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: /Choose file$/ })
+      ).toBeInTheDocument()
+    })
+
+    it('shows the picked file and offers to replace it', async () => {
+      const { container } = render(<FileUpload />)
+      expect(screen.getByText('No file chosen')).toBeInTheDocument()
+      await userEvent.upload(fileInput(container), csv('payments.csv', 2000))
+      expect(await screen.findByText('payments.csv')).toBeInTheDocument()
+      expect(screen.getByText('2 kB')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'payments.csv 2 kB Replace' })
+      ).toBeInTheDocument()
+    })
+
+    it('opens the picker from a click anywhere on the bar', async () => {
+      const { container } = render(<FileUpload />)
+      const opened = vi.fn()
+      fileInput(container).addEventListener('click', opened)
+      await userEvent.click(screen.getByText('No file chosen'))
+      expect(opened).toHaveBeenCalled()
+    })
+
+    it('clears the file and moves focus to the Trigger', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <FileUpload defaultValue={[csv()]} onValueChange={onValueChange} />
+      )
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Remove payments.csv' })
+      )
+      expect(onValueChange).toHaveBeenCalledWith([])
+      expect(screen.getByText('No file chosen')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Choose file$/ })).toHaveFocus()
+    })
+
+    it('marks the bar invalid and disabled from Field', () => {
+      const { container } = render(
+        <Field invalid disabled>
+          <FileUpload />
+        </Field>
+      )
+      const bar = container.querySelector('[data-slot=file-upload-control]')
+      expect(bar).toHaveAttribute('aria-invalid', 'true')
+      expect(bar).toHaveAttribute('data-disabled')
+    })
+  })
 })

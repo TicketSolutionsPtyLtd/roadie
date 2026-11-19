@@ -613,8 +613,13 @@ export default function RscSmokePage() {
         <h2 className='text-display-ui-3 text-strong'>
           FileUpload as bare root (canonical)
         </h2>
+        <FileUpload name='guests' accept='.csv' />
         <FileUpload name='payments' accept='.csv'>
-          <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+          <FileUpload.Control>
+            <FileUpload.Value />
+            <FileUpload.Clear />
+            <FileUpload.Trigger size='sm' />
+          </FileUpload.Control>
         </FileUpload>
       </section>
 

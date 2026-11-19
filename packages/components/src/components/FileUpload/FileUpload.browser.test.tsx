@@ -1,9 +1,16 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { FileUpload } from '.'
+import roadieCss from '../../../vitest.browser.css?inline'
+import { useStylesheet } from '../Pane/testUtils'
 
+let removeStylesheet = () => {}
+beforeAll(() => {
+  removeStylesheet = useStylesheet(roadieCss)
+})
+afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
 const csv = (name: string) => new File(['a,b\n1,2'], name, { type: 'text/csv' })
@@ -62,5 +69,22 @@ describe('FileUpload in a form', () => {
     )
     screen.getByRole<HTMLFormElement>('form').requestSubmit()
     await waitFor(() => expect(screen.getByRole('button')).toHaveFocus())
+  })
+})
+
+describe('FileUpload bar', () => {
+  it('truncates a long file name and keeps its buttons inside', () => {
+    const name = `${'Lampshade Disco final guest list '.repeat(4)}.csv`
+    render(
+      <div style={{ width: 300 }}>
+        <FileUpload defaultValue={[csv(name)]} />
+      </div>
+    )
+    const bar = screen
+      .getByText(name)
+      .closest('[data-slot=file-upload-control]')!
+    expect(bar.getBoundingClientRect().width).toBeLessThanOrEqual(300)
+    const replace = screen.getByRole('button', { name: /Replace$/ })
+    expect(replace.getBoundingClientRect().right).toBeLessThanOrEqual(300)
   })
 })

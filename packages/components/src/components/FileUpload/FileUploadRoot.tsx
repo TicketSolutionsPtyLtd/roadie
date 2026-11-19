@@ -5,6 +5,7 @@ import {
   type ComponentProps,
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState
 } from 'react'
@@ -12,7 +13,11 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext, useFieldControlError } from '../Field/FieldContext'
+import { FileUploadClear } from './FileUploadClear'
 import { FileUploadContext } from './FileUploadContext'
+import { FileUploadControl } from './FileUploadControl'
+import { FileUploadTrigger } from './FileUploadTrigger'
+import { FileUploadValue } from './FileUploadValue'
 import {
   type FileRules,
   type FileUploadRejection,
@@ -38,11 +43,14 @@ export type FileUploadRootProps = Omit<
     capture?: 'user' | 'environment'
     disabled?: boolean
     required?: boolean
+    /** What the default bar says before a file is chosen. */
+    placeholder?: string
   }
 
 /**
  * A file field. It holds the chosen files and keeps a native file input in
- * step with them, so a form posts them under `name`.
+ * step with them, so a form posts them under `name`. With no children it
+ * renders a bar: the file's name, a clear button and a Trigger.
  */
 export function FileUploadRoot({
   name,
@@ -56,6 +64,7 @@ export function FileUploadRoot({
   capture,
   disabled,
   required,
+  placeholder,
   className,
   children,
   ...props
@@ -67,6 +76,8 @@ export function FileUploadRoot({
   useFieldControlError(error)
   const inputRef = useRef<HTMLInputElement>(null)
   const triggerRef = useRef<HTMLElement>(null)
+  const ownId = useId()
+  const inputId = field.fieldId || `${ownId}-input`
 
   const syncInput = useCallback(() => {
     const input = inputRef.current
@@ -85,13 +96,15 @@ export function FileUploadRoot({
     if (rejection) {
       setError(rejection.message)
       onReject?.([rejection])
-    } else if (file) {
-      setError(null)
-      setUncontrolled([file])
-      onValueChange?.([file])
-    }
+    } else if (file) commit([file])
     // The input shows only the value; an accepted pick reaches it on re-render.
     syncInput()
+  }
+
+  function commit(next: File[]) {
+    setError(null)
+    setUncontrolled(next)
+    onValueChange?.(next)
   }
 
   const isDisabled = Boolean(disabled || field.disabled)
@@ -108,7 +121,14 @@ export function FileUploadRoot({
     >
       <FileUploadContext
         value={{
+          files,
           open: () => inputRef.current?.click(),
+          clear: () => {
+            commit([])
+            triggerRef.current?.focus()
+          },
+          inputId,
+          valueId: `${ownId}-value`,
           triggerRef,
           disabled: isDisabled,
           invalid,
@@ -116,12 +136,18 @@ export function FileUploadRoot({
           describedBy: describedBy || undefined
         }}
       >
-        {children}
+        {children ?? (
+          <FileUploadControl>
+            <FileUploadValue placeholder={placeholder} />
+            <FileUploadClear />
+            <FileUploadTrigger size='sm' />
+          </FileUploadControl>
+        )}
       </FileUploadContext>
       <input
         ref={inputRef}
         type='file'
-        id={field.fieldId || undefined}
+        id={inputId}
         name={name}
         accept={accept}
         capture={capture}

@@ -436,6 +436,9 @@ export {
 export {
   FileUpload,
   type FileUploadProps,
+  type FileUploadControlProps,
+  type FileUploadValueProps,
+  type FileUploadClearProps,
   type FileUploadTriggerProps,
   type FileUploadRejection,
   type FileUploadRejectionCode

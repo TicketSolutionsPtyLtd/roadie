@@ -3,7 +3,11 @@
 import { type Ref, createContext, use } from 'react'
 
 export type FileUploadContextValue = {
+  files: File[]
   open: () => void
+  clear: () => void
+  inputId: string
+  valueId: string
   triggerRef: Ref<HTMLElement>
   disabled: boolean
   invalid: boolean
