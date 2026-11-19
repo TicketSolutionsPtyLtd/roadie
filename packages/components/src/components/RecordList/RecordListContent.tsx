@@ -36,8 +36,8 @@ export function RecordListContent({
     [config, fields, view.layout]
   )
   const groupField = useMemo(
-    () => listGroupField(config, fields, view.layout),
-    [config, fields, view.layout]
+    () => listGroupField(fields, view.layout),
+    [fields, view.layout]
   )
   // A range list loads rows as they scroll into view, so it stays ungrouped
   // until groups can come from the server.

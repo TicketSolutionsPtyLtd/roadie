@@ -61,22 +61,17 @@ const column = tableColumns(showFields)
 function ShowList({
   caption,
   withTable = false,
-  groupBy,
   ...options
-}: UseRecordsOptions<TestShow> & {
-  caption?: string
-  withTable?: boolean
-  groupBy?: 'status'
-}) {
+}: UseRecordsOptions<TestShow> & { caption?: string; withTable?: boolean }) {
   const records = useRecords(options)
   const layouts = useMemo(
     () => [
       ...(withTable
         ? [tableLayout([column.field('show'), column.field('city')])]
         : []),
-      listLayout<TestShow>({ ...row, groupBy })
+      listLayout<TestShow>(row)
     ],
-    [withTable, groupBy]
+    [withTable]
   )
   return (
     <Records records={records} layouts={layouts} caption={caption}>
@@ -144,6 +139,8 @@ describe('listLayout in a browser', { timeout: 30_000 }, () => {
   })
 })
 
+const grouped = { layout: { type: 'list', groupBy: 'status' } } as const
+
 const groupsShown = () =>
   [...document.querySelectorAll('[data-slot="list-group"]')].map((group) => [
     group.querySelector('[data-slot="list-group-title"]')?.textContent,
@@ -163,7 +160,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
         data={shows}
         fields={showFields}
         getRowHref={(show) => `/shows/${show.id}`}
-        groupBy='status'
+        defaultView={grouped}
       />
     )
     expect(groupsShown()).toEqual([
@@ -183,7 +180,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
         data={testShows(6)}
         fields={showFields}
         selectable
-        groupBy='status'
+        defaultView={grouped}
       />
     )
     await user.click(screen.getByRole('button', { name: 'Select' }))

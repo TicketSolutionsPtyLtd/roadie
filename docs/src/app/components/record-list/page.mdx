@@ -88,7 +88,7 @@ render(<Events />)
 
 ### Grouped
 
-`groupBy` groups the rows by a field with options, such as a status, under a title and count per option, in the options' order. Records with no value follow in a "No" group, such as "No status", and an option with no records is left out. Inside a group, rows keep the view's sort. A view saves its own `layout.groupBy`, which the URL keeps as `groupBy=status`, and it wins over the list's. A field that holds a list, or has no options, can't group.
+A view's `layout.groupBy` groups the rows by a field with options, such as a status, under a title and count per option, in the options' order. Records with no value follow in a "No" group, such as "No status", and an option with no records is left out. Inside a group, rows keep the view's sort. The URL keeps it as `groupBy=status`. To group a list by default, set it in `defaultView` or the saved view, so people can always turn it off. A field that holds a list, or has no options, can't group.
 
 Grouping applies to one page of rows at a time, so a group can continue on the next page, and a grouped list renders every row on its page rather than only those near the screen. A list that loads by range stays ungrouped. A Shift range in Select mode follows the order on screen, across groups.
 
@@ -114,7 +114,7 @@ const fields = [
     }
   })
 ]
-const layouts = [listLayout({ title: 'name', description: 'venue', trailing: 'status', groupBy: 'status' })]
+const layouts = [listLayout({ title: 'name', description: 'venue', trailing: 'status' })]
 
 function Events() {
   const records = useRecords({
@@ -123,7 +123,8 @@ function Events() {
     getRowId: (row) => row.id,
     getRowHref: (row) => `#${row.id}`,
     recordName: { one: 'event', other: 'events' },
-    selectable: true
+    selectable: true,
+    defaultView: { layout: { type: 'list', groupBy: 'status' } }
   })
   return (
     <Records records={records} layouts={layouts} caption='Events by status'>
