@@ -43,6 +43,18 @@ const destinations: NavigationDestination[] = [
             crossListedFrom: '/foundations'
           }
         ]
+      },
+      {
+        name: 'Overlays',
+        entries: [
+          {
+            name: 'dialog',
+            title: 'Dialog',
+            description: 'A modal window',
+            category: 'Overlays',
+            href: '/components/dialog'
+          }
+        ]
       }
     ]
   }
@@ -62,7 +74,12 @@ describe('pageCommands', () => {
       },
       {
         label: 'Components',
-        pages: ['/components', '/components/navigation', '/components/tabs']
+        pages: [
+          '/components',
+          '/components/navigation',
+          '/components/tabs',
+          '/components/dialog'
+        ]
       }
     ])
   })
@@ -74,6 +91,11 @@ describe('pageCommands', () => {
       href: '/foundations/colour',
       keywords: ['Semantic colour utilities', 'Foundations']
     })
+  })
+
+  it('matches a page with no description by its section alone', () => {
+    const [foundations] = pageCommands(destinations)
+    expect(foundations!.items[0]!.keywords).toEqual(['Foundations'])
   })
 
   it('names a category overview after its category', () => {
