@@ -50,9 +50,27 @@ describe('FileUpload', () => {
   })
 
   it.each([
+    ['an extension in any case', '.csv', 'PAYMENTS.CSV', 'text/plain'],
+    ['a MIME type', 'application/pdf', 'payments.pdf', 'application/pdf'],
+    ['a wildcard', 'image/*', 'poster.png', 'image/png']
+  ])('takes a file matching %s', async (_, accept, name, type) => {
+    const onValueChange = vi.fn()
+    const { container } = render(
+      <FileUpload accept={`.txt, ${accept}`} onValueChange={onValueChange}>
+        <FileUpload.Trigger>Choose a file</FileUpload.Trigger>
+      </FileUpload>
+    )
+    const file = new File(['x'], name, { type })
+    await userEvent
+      .setup({ applyAccept: false })
+      .upload(fileInput(container), file)
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
+  })
+
+  it.each([
     {
       code: 'wrong-type',
-      props: { accept: '.csv' },
+      props: { accept: 'text/csv, image/*' },
       file: new File(['x'], 'payments.xlsx', {
         type: 'application/vnd.ms-excel'
       }),
@@ -60,15 +78,15 @@ describe('FileUpload', () => {
     },
     {
       code: 'too-large',
-      props: { maxFileSize: 1000 },
-      file: csv('payments.csv', 2000),
-      message: 'payments.csv is over 1 kB.'
+      props: { maxFileSize: 1960 },
+      file: csv('payments.csv', 1970),
+      message: 'payments.csv is over 1.9 kB.'
     },
     {
       code: 'too-small',
-      props: { minFileSize: 2_000_000 },
-      file: csv('payments.csv', 20),
-      message: 'payments.csv is under 2 MB.'
+      props: { minFileSize: 1040 },
+      file: csv('payments.csv', 1030),
+      message: 'payments.csv is under 1.1 kB.'
     }
   ])(
     'rejects with $code and shows its message in Field.ErrorText',
@@ -95,6 +113,7 @@ describe('FileUpload', () => {
       expect(onReject).toHaveBeenCalledWith([{ file, code, message }])
       expect(onValueChange).not.toHaveBeenCalled()
       expect(screen.getByRole('button')).toHaveAttribute('aria-invalid', 'true')
+      expect(screen.getByRole('button')).toHaveAccessibleDescription(message)
     }
   )
 
@@ -104,6 +123,7 @@ describe('FileUpload', () => {
         <FileUpload accept='.csv'>
           <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
         </FileUpload>
+        <Field.HelperText>A CSV up to 1 MB.</Field.HelperText>
         <Field.ErrorText />
       </Field>
     )
@@ -112,6 +132,20 @@ describe('FileUpload', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     await user.upload(fileInput(container), csv())
     await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+    expect(screen.getByRole('button')).toHaveAccessibleDescription(
+      'A CSV up to 1 MB.'
+    )
+  })
+
+  it('takes required and disabled as its own props', () => {
+    const { container } = render(
+      <FileUpload required disabled>
+        <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+      </FileUpload>
+    )
+    expect(screen.getByRole('button')).toBeDisabled()
+    expect(fileInput(container)).toBeRequired()
+    expect(fileInput(container)).toBeDisabled()
   })
 
   it('takes invalid, required and disabled from Field', () => {

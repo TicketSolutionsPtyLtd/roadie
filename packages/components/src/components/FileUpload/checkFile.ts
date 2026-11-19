@@ -35,14 +35,16 @@ const units = [
   [1e3, 'kilobyte']
 ] as const
 
-// Decimal units, as Finder and Explorer's size column show them.
-export function formatFileSize(bytes: number) {
+// Decimal units, as Finder and Explorer's size column show them, rounded so
+// "over" and "under" stay true.
+function formatFileSize(bytes: number, roundingMode: 'floor' | 'ceil') {
   const [size, unit] = units.find(([size]) => bytes >= size) ?? [1, 'byte']
   return new Intl.NumberFormat('en-AU', {
     style: 'unit',
     unit,
     unitDisplay: unit === 'byte' ? 'long' : 'short',
-    maximumFractionDigits: 1
+    maximumFractionDigits: 1,
+    roundingMode
   }).format(bytes / size)
 }
 
@@ -63,12 +65,12 @@ export function checkFile(
   if (maxFileSize !== undefined && file.size > maxFileSize)
     return reject(
       'too-large',
-      `${file.name} is over ${formatFileSize(maxFileSize)}.`
+      `${file.name} is over ${formatFileSize(maxFileSize, 'floor')}.`
     )
   if (minFileSize !== undefined && file.size < minFileSize)
     return reject(
       'too-small',
-      `${file.name} is under ${formatFileSize(minFileSize)}.`
+      `${file.name} is under ${formatFileSize(minFileSize, 'ceil')}.`
     )
   return null
 }
