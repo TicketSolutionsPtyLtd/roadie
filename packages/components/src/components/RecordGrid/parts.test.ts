@@ -54,17 +54,29 @@ describe('gridParts', () => {
       ['gross', 'city']
     ],
     [
-      'a list view’s fields in order',
-      { type: 'list', fields: ['gross', 'city'] },
-      ['gross', 'city']
-    ],
-    [
       'no unknown, placed or repeated keys',
       { type: 'grid', fields: ['fees', 'name', 'sold', 'sold'] },
       ['sold']
     ]
   ])('shows %s', (_, layout, expected) => {
     expect(keys(layout)).toEqual(expected)
+  })
+
+  it.each<[string, RecordLayout, string[]]>([
+    [
+      'its own fields',
+      { type: 'list', fields: ['gross', 'city'] },
+      ['gross', 'city']
+    ],
+    [
+      "the definition for a grid view's fields",
+      { type: 'grid', fields: ['gross'] },
+      ['city', 'sold']
+    ]
+  ])('shows a list %s', (_, layout, expected) => {
+    expect(
+      gridParts(config, fields, layout, 'list').details.map((part) => part.key)
+    ).toEqual(expected)
   })
 
   it('keeps a defined part’s cell when the view lists it', () => {
@@ -169,6 +181,12 @@ describe('gridDetailsLayout', () => {
       'writes a list from the default table view',
       ['sold'],
       { type: 'table' },
+      { type: 'list', fields: ['sold'] }
+    ],
+    [
+      "drops a grid view's fields, unknown ones too",
+      ['sold'],
+      { type: 'grid', fields: ['fees', 'city'] },
       { type: 'list', fields: ['sold'] }
     ],
     [

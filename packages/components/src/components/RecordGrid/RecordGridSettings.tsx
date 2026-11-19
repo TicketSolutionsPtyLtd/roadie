@@ -12,6 +12,7 @@ import { useRecordsContext } from '../Records/context'
 import { Sortable } from '../Sortable'
 import { Toggle } from '../Toggle'
 import {
+  type DetailsLayout,
   definedDetails,
   detailCandidates,
   gridDetailsLayout,
@@ -30,7 +31,7 @@ export function RecordGridSettings({
 }: {
   config: GridLayoutConfig
   /** Which layout these are for: the view can still name another, such as the default table. */
-  type?: 'grid' | 'list'
+  type?: DetailsLayout
 }) {
   const { records } = useRecordsContext()
   const headingId = useId()
@@ -42,7 +43,7 @@ export function RecordGridSettings({
   const { fields, view } = records
   const item = type === 'list' ? 'row' : 'card'
   const candidates = detailCandidates(config, fields)
-  const shown = shownDetails(config, fields, view.layout)
+  const shown = shownDetails(config, fields, view.layout, type)
 
   useLayoutEffect(() => {
     const pending = focusField.current

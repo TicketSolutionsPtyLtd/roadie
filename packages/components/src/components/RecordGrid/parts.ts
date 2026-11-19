@@ -53,16 +53,20 @@ export function definedDetails(
 
 const unique = (keys: readonly string[]) => [...new Set(keys)]
 
-const gridFields = (layout: RecordLayout) =>
-  layout.type === 'grid' || layout.type === 'list' ? layout.fields : undefined
+/** Which layout the details are for; a view of the other keeps its own fields. */
+export type DetailsLayout = 'grid' | 'list'
+
+const ownFields = (layout: RecordLayout, type: DetailsLayout) =>
+  layout.type === type ? layout.fields : undefined
 
 /** The detail keys a grid or list view shows, in order: its own `fields`, else the definition's. Keys it can't show are skipped. */
 export function shownDetails(
   config: GridLayoutConfig,
   fields: readonly RecordField[],
-  layout: RecordLayout
+  layout: RecordLayout,
+  type: DetailsLayout = 'grid'
 ) {
-  const own = gridFields(layout)
+  const own = ownFields(layout, type)
   if (!own?.length) return definedDetails(config, fields)
   const candidates = new Set(
     detailCandidates(config, fields).map((field) => field.key)
@@ -74,7 +78,8 @@ export function shownDetails(
 export function gridParts(
   config: GridLayoutConfig,
   fields: readonly RecordField[],
-  layout: RecordLayout
+  layout: RecordLayout,
+  type: DetailsLayout = 'grid'
 ): RecordCardParts {
   const byKey = new Map(fields.map((field) => [field.key, field]))
   const part = (option: GridPartOption | undefined, kind?: 'image') =>
@@ -88,7 +93,7 @@ export function gridParts(
     description: part(config.description),
     leading: part(config.leading),
     trailing: part(config.trailing),
-    details: shownDetails(config, fields, layout).flatMap(
+    details: shownDetails(config, fields, layout, type).flatMap(
       (key) => part(defined.get(key) ?? key) ?? []
     )
   }
@@ -104,13 +109,13 @@ export function gridDetailsLayout(
   fields: readonly RecordField[],
   shown: readonly string[],
   current: RecordLayout,
-  type: 'grid' | 'list' = 'grid'
+  type: DetailsLayout = 'grid'
 ): RecordLayout {
   const known = new Set(
     detailCandidates(config, fields).map((field) => field.key)
   )
   const queue = unique(shown).filter((key) => known.has(key))
-  const written = unique(gridFields(current) ?? [])
+  const written = unique(ownFields(current, type) ?? [])
   const slotted = written.flatMap((key) =>
     known.has(key) ? (queue.length > 0 ? queue.splice(0, 1) : []) : [key]
   )
