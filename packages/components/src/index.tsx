@@ -579,9 +579,11 @@ export {
   type RecordGridProps
 } from './components/RecordGrid'
 export {
+  RecordList,
   listLayout,
   type ListLayoutConfig,
-  type ListLayoutDefinition
+  type ListLayoutDefinition,
+  type RecordListProps
 } from './components/RecordList'
 export {
   RecordTable,

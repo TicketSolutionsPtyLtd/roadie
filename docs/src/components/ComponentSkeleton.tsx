@@ -738,7 +738,6 @@ export function ComponentSkeleton({ name }: { name: string }) {
         </div>
       )
     case 'list':
-    case 'record-list':
       return (
         <div className='grid w-44 divide-y divide-subtle rounded-lg border border-subtle bg-normal px-3'>
           {['w-20', 'w-16', 'w-24'].map((width) => (
@@ -833,6 +832,26 @@ export function ComponentSkeleton({ name }: { name: string }) {
                   <div className={`h-1.5 rounded-sm bg-strong/40 ${width}`} />
                   <Skel className='h-1 w-8' />
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    case 'record-list':
+      return (
+        <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>
+          <div className='flex h-5 items-center gap-1.5 rounded-lg emphasis-field px-1.5'>
+            <Skel className='size-2 shrink-0 rounded-full' />
+            <Skel className='h-1.5 w-10 opacity-50' />
+          </div>
+          <div className='grid divide-y divide-subtler'>
+            {['w-16', 'w-12', 'w-14'].map((width) => (
+              <div key={width} className='flex items-center gap-2 py-1.5'>
+                <div className='grid flex-1 gap-1'>
+                  <div className={`h-1.5 rounded-sm bg-strong/40 ${width}`} />
+                  <Skel className='h-1 w-12' />
+                </div>
+                <div className='h-2.5 w-6 emphasis-normal rounded-full intent-success' />
               </div>
             ))}
           </div>
