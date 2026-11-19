@@ -471,6 +471,11 @@
     display: none !important;
   }
 
+  /* Set, not left to @property's initial value: WebKit 27.2 drops that from
+     a starting style, and the root would transition from `translate: none`. */
+  [data-slot='pane'][data-stack][data-depth='0'] {
+    --pane-depth: 0;
+  }
   [data-slot='pane'][data-stack][data-depth='1'] {
     --pane-depth: 1;
   }
