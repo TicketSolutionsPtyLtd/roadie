@@ -297,6 +297,27 @@ describe('Sortable connected lists', () => {
     })
   })
 
+  it('keeps its list identity when its value changes mid-drag', async () => {
+    vi.mocked(dnd.sortableMonitor).mockClear()
+    const view = (value: string) => (
+      <Sortable
+        group='lanes'
+        value={value}
+        items={['A']}
+        onReorder={() => {}}
+      />
+    )
+    const { rerender } = render(view('todo'))
+    await waitFor(() => expect(dnd.sortableMonitor).toHaveBeenCalled())
+    rerender(view('todo-2'))
+    await waitFor(() => expect(dnd.sortableMonitor).toHaveBeenCalledTimes(2))
+    const [first, latest] = vi
+      .mocked(dnd.sortableMonitor)
+      .mock.calls.map(([options]) => options.group)
+    // The drag in flight carries the first list, so a drop stays a reorder.
+    expect(latest!.list).toBe(first!.list)
+  })
+
   it('warns about a group with no value', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(<Sortable group='lanes' items={[]} onReorder={() => {}} />)

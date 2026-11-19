@@ -79,9 +79,11 @@ export function SortableRoot({
 }: SortableRootProps) {
   const dir = useDirection()
   const [locked] = useState(() => new Set<string>())
+  // Kept across group and value changes, as a drag in flight carries it.
+  const [identity] = useState(() => ({ locked }))
   const group = useMemo(
-    () => createSortableGroup(shared, list, locked),
-    [shared, list, locked]
+    () => createSortableGroup(shared, list, identity),
+    [shared, list, identity]
   )
   const [announcement, setAnnouncement] = useState('')
   const props = {

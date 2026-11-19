@@ -74,7 +74,7 @@ describe('sortableDropFrom', () => {
 
   it('marks an item its list has locked', () => {
     const locked = new Set(['Date'])
-    const todo = createSortableGroup('lanes', 'todo', locked)
+    const todo = createSortableGroup('lanes', 'todo', { locked })
     const done = createSortableGroup('lanes', 'done')
     const drop = sortableDropFrom(
       [target(sortableItemData(done, 'SKU'))],

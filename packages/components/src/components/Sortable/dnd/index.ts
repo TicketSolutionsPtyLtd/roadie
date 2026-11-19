@@ -69,9 +69,9 @@ const edgesFor = (axis: SortableAxis): Edge[] =>
 export function createSortableGroup(
   shared?: string,
   value?: string,
-  locked: ReadonlySet<string> = new Set()
+  list: SortableGroup['list'] = { locked: new Set() }
 ): SortableGroup {
-  return { shared: shared ?? {}, list: { locked }, value }
+  return { shared: shared ?? {}, list, value }
 }
 
 export function sortableItemData(
