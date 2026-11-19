@@ -74,7 +74,13 @@ site's Search button is one.
   <CommandPalette.Trigger />
   <CommandPalette items={commands}>
     <CommandPalette.Input placeholder='Search pages and actions' />
-    <CommandPalette.List>{(command) => …}</CommandPalette.List>
+    <CommandPalette.List>
+      {(command) => (
+        <CommandPalette.Item key={command.label} value={command} href={command.href}>
+          {command.label}
+        </CommandPalette.Item>
+      )}
+    </CommandPalette.List>
   </CommandPalette>
 </>
 ```
