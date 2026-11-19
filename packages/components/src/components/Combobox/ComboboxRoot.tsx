@@ -115,9 +115,7 @@ export function ComboboxRoot<
           }}
           {...props}
           children={
-            <VirtualListContext
-              value={props.virtualized ? scrollToIndex : null}
-            >
+            <VirtualListContext value={scrollToIndex}>
               {props.children}
             </VirtualListContext>
           }
