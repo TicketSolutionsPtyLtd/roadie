@@ -288,12 +288,19 @@ describe('Sortable connected lists', () => {
   it('moves an item into another list at the edge it is dropped on', async () => {
     const onTransfer = vi.fn<Transfer>()
     render(<Lanes onTransfer={onTransfer} />)
+    const row = () => handle('SKU').closest('[data-slot="list-item"]')!
+    const restingFill = getComputedStyle(row()).backgroundColor
     await startDrag('Date')
     await hover(item('Event'), 0.5)
     await hover(item('SKU'), 0.2)
     await waitFor(() =>
       expect(item('SKU')).toHaveAttribute('data-drop-edge', 'top')
     )
+    const zone = screen.getByTestId('done')
+    expect(zone).toHaveAttribute('data-drop-target')
+    expect(getComputedStyle(zone, '::after').borderTopWidth).toBe('2px')
+    // The ring's accent stays on the ring, not the items in the zone.
+    expect(getComputedStyle(row()).backgroundColor).toBe(restingFill)
     await drop()
     await waitFor(() =>
       expect(onTransfer).toHaveBeenCalledWith({
@@ -312,6 +319,62 @@ describe('Sortable connected lists', () => {
     )
   })
 
+  it('drops into an empty list through its drop zone', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(
+      <Lanes initial={{ todo: ['Date'], done: [] }} onTransfer={onTransfer} />
+    )
+    await startDrag('Date')
+    await hover(screen.getByTestId('done'), 0.5)
+    await waitFor(() =>
+      expect(screen.getByTestId('done')).toHaveAttribute('data-drop-target')
+    )
+    await drop()
+    await waitFor(() =>
+      expect(onTransfer).toHaveBeenCalledWith({
+        value: 'Date',
+        from: 'todo',
+        to: 'done',
+        index: 0
+      })
+    )
+    expect(listed('done')).toEqual(['Date'])
+    expect(screen.getByTestId('done')).not.toHaveAttribute('data-drop-target')
+  })
+
+  it('drops past the last item through the drop zone', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(<Lanes onTransfer={onTransfer} />)
+    await startDrag('Date')
+    await hover(screen.getByTestId('done'), 0.95)
+    await waitFor(() =>
+      expect(screen.getByTestId('done')).toHaveAttribute('data-drop-target')
+    )
+    expect(item('SKU')).not.toHaveAttribute('data-drop-edge')
+    await drop()
+    await waitFor(() =>
+      expect(onTransfer).toHaveBeenCalledWith({
+        value: 'Date',
+        from: 'todo',
+        to: 'done',
+        index: 1
+      })
+    )
+    expect(listed('done')).toEqual(['SKU', 'Date'])
+  })
+
+  it('leaves the drop zone to items from other lists', async () => {
+    render(<Lanes initial={{ todo: ['Date'], done: [] }} />)
+    const todo = screen.getByTestId('todo')
+    const done = screen.getByTestId('done')
+    await startDrag('Date')
+    await hover(done, 0.5)
+    await waitFor(() => expect(done).toHaveAttribute('data-drop-target'))
+    await hover(todo, 0.95)
+    await waitFor(() => expect(done).not.toHaveAttribute('data-drop-target'))
+    expect(todo).not.toHaveAttribute('data-drop-target')
+  })
+
   it('refuses a drop the target list turns down', async () => {
     const onTransfer = vi.fn<Transfer>()
     const canDrop = vi.fn<NonNullable<SortableProps['canDrop']>>(() => false)
@@ -323,6 +386,7 @@ describe('Sortable connected lists', () => {
       expect(canDrop).toHaveBeenCalledWith({ value: 'Date', from: 'todo' })
     )
     expect(item('SKU')).not.toHaveAttribute('data-drop-edge')
+    expect(screen.getByTestId('done')).not.toHaveAttribute('data-drop-target')
     await drop()
     await waitFor(() =>
       expect(item('Date')).not.toHaveAttribute('data-dragging')
@@ -342,6 +406,7 @@ describe('Sortable connected lists', () => {
     await hover(item('SKU'), 0.2)
     await waitFor(() => expect(item('Date')).toHaveAttribute('data-dragging'))
     expect(item('SKU')).not.toHaveAttribute('data-drop-edge')
+    expect(screen.getByTestId('done')).not.toHaveAttribute('data-drop-target')
     await drop()
     await waitFor(() =>
       expect(item('Date')).not.toHaveAttribute('data-dragging')
@@ -364,6 +429,34 @@ describe('Sortable connected lists', () => {
     await hover(target, 0.2)
     await waitFor(() => expect(target).toHaveAttribute('data-drop-edge', 'top'))
     await drop()
+  })
+
+  it('scrolls the list it is dragged into', async () => {
+    const many = Array.from({ length: 30 }, (_, index) => `Row ${index + 1}`)
+    const onTransfer = vi.fn<Transfer>()
+    render(
+      <Lanes
+        initial={{ todo: ['Date'], done: many }}
+        onTransfer={onTransfer}
+        doneZone='h-60 overflow-y-auto'
+      />
+    )
+    const scroller = screen.getByTestId('done')
+    await startDrag('Date')
+    const box = scroller.getBoundingClientRect()
+    const edge = { x: box.left + box.width / 2, y: box.bottom - 4 }
+    await commands.pointer([{ type: 'move', ...edge, steps: 8 }])
+    const stopFrames = keepFramesRunning(() => edge)
+    try {
+      await waitFor(() => expect(scroller.scrollTop).toBeGreaterThan(40), {
+        timeout: 5000
+      })
+    } finally {
+      await stopFrames()
+    }
+    await drop()
+    await waitFor(() => expect(onTransfer).toHaveBeenCalled())
+    expect(onTransfer.mock.calls[0]![0].index).toBeGreaterThan(3)
   })
 })
 

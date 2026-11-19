@@ -155,13 +155,11 @@ export function SortableRoot({
       if (source.locked) return
       const { items, axis, dir } = latest.current
       const from = source.sameList ? items.indexOf(source.value) : -1
-      const to = dropIndex({
-        from,
-        target: items.indexOf(target),
-        edge,
-        axis,
-        dir
-      })
+      // Only an item from another list lands on the drop zone.
+      const to =
+        target === null
+          ? items.length
+          : dropIndex({ from, target: items.indexOf(target), edge, axis, dir })
       if (source.sameList) return move(source.value, to, false)
       const transfer = transferFrom(source)
       if (!transfer) return

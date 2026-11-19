@@ -12,12 +12,14 @@ export function Lanes({
   initial = { todo: ['Date', 'Event'], done: ['SKU'] },
   onTransfer,
   canDrop,
-  done
+  done,
+  doneZone = 'min-h-24'
 }: {
   initial?: Lists
   onTransfer?: Transfer
   canDrop?: SortableProps['canDrop']
   done?: Partial<Pick<SortableProps, 'disabled' | 'onTransfer'>>
+  doneZone?: string
 }) {
   const [lists, setLists] = useState(initial)
   return (
@@ -37,13 +39,16 @@ export function Lanes({
           canDrop={list === 'done' ? canDrop : undefined}
           {...(list === 'done' ? done : undefined)}
         >
-          <div data-testid={list}>
+          <Sortable.DropZone
+            data-testid={list}
+            className={list === 'done' ? doneZone : 'min-h-24'}
+          >
             <List>
               {items.map((value) => (
                 <List.Item key={value} value={value} title={value} />
               ))}
             </List>
-          </div>
+          </Sortable.DropZone>
         </Sortable>
       ))}
     </div>

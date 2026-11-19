@@ -25,3 +25,10 @@ export const sortableDropIndicatorVariants = cva(
 )
 
 export const sortableHandleVariants = cva('cursor-grab active:cursor-grabbing')
+
+// Drawn on ::after, so the ring never shifts the layout and its intent never
+// reaches the items inside.
+export const sortableDropZoneVariants = cva([
+  'relative after:pointer-events-none after:absolute after:-inset-1 after:rounded-2xl',
+  'data-drop-target:after:border-2 data-drop-target:after:intent-accent data-drop-target:after:border-strong'
+])
