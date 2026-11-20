@@ -181,11 +181,26 @@ describe('FileUpload', () => {
     it('shows the picked file and offers to replace it', async () => {
       const { container } = render(<FileUpload />)
       expect(screen.getByText('No file chosen')).toBeInTheDocument()
-      await userEvent.upload(fileInput(container), csv('payments.csv', 2000))
+      await userEvent.upload(fileInput(container), csv('payments.csv', 1960))
       expect(await screen.findByText('payments.csv')).toBeInTheDocument()
       expect(screen.getByText('2 kB')).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: 'payments.csv 2 kB Replace' })
+      ).toBeInTheDocument()
+    })
+
+    it("keeps the file in the Trigger's name when Value takes its own id", () => {
+      render(
+        <FileUpload defaultValue={[csv()]}>
+          <FileUpload.Control>
+            {/* @ts-expect-error: id isn't a prop, but an untyped caller's mustn't break the Trigger's name. */}
+            <FileUpload.Value id='guest-list-value' />
+            <FileUpload.Trigger />
+          </FileUpload.Control>
+        </FileUpload>
+      )
+      expect(
+        screen.getByRole('button', { name: /^payments\.csv .* Replace$/ })
       ).toBeInTheDocument()
     })
 

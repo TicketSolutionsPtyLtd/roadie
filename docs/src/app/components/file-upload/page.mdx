@@ -20,7 +20,7 @@ import { FileUpload } from '@oztix/roadie-components/file-upload'
 
 ### Default
 
-With no children, `FileUpload` is a bar: the chosen file's name and size on the left, and a button on the right that reads "Choose file", or "Replace" once there's one. Clicking anywhere on the bar opens the picker. The field holds the file as a `File[]` and keeps a hidden file input in step, so a form posts it under `name`. A second pick replaces the first.
+With no children, `FileUpload` is a bar: the chosen file's name and size on the left, and a button on the right that reads "Choose file", or "Replace" once there's one. Clicking the file's name, or the space beside it, opens the picker. The field holds the file as a `File[]` and keeps a hidden file input in step, so a form posts it under `name`. A second pick replaces the first.
 
 ```tsx-live width=140
 <Field>
