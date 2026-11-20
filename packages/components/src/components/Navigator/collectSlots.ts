@@ -10,8 +10,10 @@ import { NavigatorExpandToggle } from './NavigatorExpandToggle'
 import { NavigatorGroup, type NavigatorGroupProps } from './NavigatorGroup'
 import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
+import { NavigatorSearch, type NavigatorSearchProps } from './NavigatorSearch'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import type { NavigatorSlotGroup, NavigatorSlotMeta } from './mobileSlots'
+import { searchSlotMeta } from './searchSlot'
 import {
   firstRoutedSecondary,
   secondaryDescendantValues,
@@ -21,7 +23,9 @@ import {
 export type PrimaryEntry =
   | {
       kind: 'item'
-      element: ReactElement<NavigatorItemProps>
+      element:
+        | ReactElement<NavigatorItemProps>
+        | ReactElement<NavigatorSearchProps>
       slot: NavigatorSlotMeta
     }
   | {
@@ -34,6 +38,8 @@ export type PrimaryEntry =
 export type CollectedSlots = {
   brand: ReactElement[]
   toggles: ReactElement[]
+  /** A pinned `Navigator.Search`, which sits under the brand rather than with the pinned items. */
+  search: PrimaryEntry[]
   cluster: PrimaryEntry[]
   pinned: PrimaryEntry[]
   automatic: NavigatorSlotMeta[]
@@ -100,6 +106,7 @@ export function collectSlots(children: ReactNode): CollectedSlots {
   const result: CollectedSlots = {
     brand: [],
     toggles: [],
+    search: [],
     cluster: [],
     pinned: [],
     automatic: [],
@@ -126,6 +133,18 @@ export function collectSlots(children: ReactNode): CollectedSlots {
       const element = child as ReactElement<NavigatorItemProps>
       const slot = toSlotMeta(element.props)
       place({ kind: 'item', element, slot }, [slot])
+      return
+    }
+    if (child.type === NavigatorSearch) {
+      const element = child as ReactElement<NavigatorSearchProps>
+      const slot = searchSlotMeta(element.props)
+      if (slot.placement === 'pinned') {
+        result.search.push({ kind: 'item', element, slot })
+        result.pinnedSlots.push(slot)
+        result.ordered.push(slot)
+      } else {
+        place({ kind: 'item', element, slot }, [slot])
+      }
       return
     }
     if (child.type === NavigatorExpandToggle) {

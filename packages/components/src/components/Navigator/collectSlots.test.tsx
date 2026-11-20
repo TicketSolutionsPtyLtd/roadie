@@ -46,4 +46,45 @@ describe('collectSlots', () => {
     )
     expect(values(result.automatic)).toEqual(['/a'])
   })
+
+  it('lifts a pinned Search out of the pinned region, keeping it a pinned slot', () => {
+    const result = collectSlots([
+      <Navigator.Item key='a' value='/a'>
+        A
+      </Navigator.Item>,
+      <Navigator.Item key='account' value='account' placement='pinned'>
+        Account
+      </Navigator.Item>,
+      <Navigator.Search key='search' />
+    ])
+    expect(result.search).toHaveLength(1)
+    expect(result.pinned).toHaveLength(1)
+    expect(result.pinned[0]).toMatchObject({ slot: { value: 'account' } })
+    expect(result.pinnedSlots).toHaveLength(2)
+    expect(result.pinnedSlots[1]).toMatchObject({
+      search: true,
+      label: 'Search',
+      placement: 'pinned'
+    })
+  })
+
+  it('keeps an automatic Search among the destinations, in source order', () => {
+    const result = collectSlots([
+      <Navigator.Item key='a' value='/a'>
+        A
+      </Navigator.Item>,
+      <Navigator.Search key='search' placement='automatic' label='Find' />,
+      <Navigator.Item key='b' value='/b'>
+        B
+      </Navigator.Item>
+    ])
+    expect(result.search).toEqual([])
+    expect(result.automatic.map((slot) => slot.search ?? false)).toEqual([
+      false,
+      true,
+      false
+    ])
+    expect(result.automatic[1]).toMatchObject({ label: 'Find' })
+    expect(result.cluster).toHaveLength(3)
+  })
 })
