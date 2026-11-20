@@ -34,7 +34,7 @@ type Column = RecordGroup<object>
 /** A move the app hasn't confirmed, or confirmed before its row caught up. */
 type Move = { value: string | null; row: object; pending: boolean }
 
-// Sortable names a list by a string. No option is blank, so blank is "No <field>".
+// Sortable names a list by a string. Blank options are dropped, so blank is "No <field>".
 const NONE = ''
 const columnValue = (key: string | null) => key ?? NONE
 
@@ -252,7 +252,8 @@ function boardColumns(
         return { ...record, row: { ...record.row, [field.key]: move.value } }
       })
     : rows
-  const columns = groupRecords(placed, field)
+  // A blank option never holds a record, as blank values group under "No <field>".
+  const columns = groupRecords(placed, field).filter(({ key }) => key !== NONE)
   return columns[columns.length - 1]?.key === null
     ? columns
     : [...columns, { key: null, label: noneLabel(field), rows: [] }]

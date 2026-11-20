@@ -23,7 +23,7 @@ export const noneLabel = (field: RecordField) =>
   // Mid-sentence, so "Venue ID" reads "No venue ID".
   `No ${field.label.replace(/^[A-Z](?=[a-z])/, (first) => first.toLowerCase())}`
 
-export const isBlank = (value: unknown) =>
+const isBlank = (value: unknown) =>
   value === undefined || value === null || value === ''
 
 /**

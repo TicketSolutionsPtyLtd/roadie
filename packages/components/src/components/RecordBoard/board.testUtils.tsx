@@ -5,6 +5,7 @@ import { screen, within } from '@testing-library/react'
 import { boardLayout } from '.'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import type { RecordsField } from '../Records/types'
 
 export type Move = (
   show: TestShow,
@@ -19,15 +20,28 @@ export function Shows({
   onMove,
   width = 1100,
   shows = initial,
-  movable = true
+  fields = showFields,
+  movable = true,
+  selected,
+  save = (_, status) => status ?? ''
 }: {
   onMove?: Move
   width?: number
   shows?: TestShow[]
+  fields?: readonly RecordsField[]
   movable?: boolean
+  selected?: string[]
+  /** The status the app stores once a move resolves, or undefined to leave its data as it was. */
+  save?: (show: TestShow, status: string | null) => string | undefined
 }) {
   const [data, setData] = useState(shows)
-  const records = useRecords({ data, fields: showFields })
+  const records = useRecords({
+    data,
+    fields,
+    getRowId: (row) => row.id,
+    selectable: selected !== undefined,
+    defaultSelection: selected && { ids: selected }
+  })
   const [layouts] = useState(() => [
     boardLayout<TestShow>({
       groupBy: 'status',
@@ -36,9 +50,11 @@ export function Shows({
       onMove: movable
         ? async (show, status) => {
             await onMove?.(show, status)
+            const saved = save(show, status)
+            if (saved === undefined) return
             setData((all) =>
               all.map((row) =>
-                row.id === show.id ? { ...row, status: status ?? '' } : row
+                row.id === show.id ? { ...row, status: saved } : row
               )
             )
           }
