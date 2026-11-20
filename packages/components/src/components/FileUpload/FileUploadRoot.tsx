@@ -140,7 +140,7 @@ export function FileUploadRoot({
           <FileUploadControl>
             <FileUploadValue placeholder={placeholder} />
             <FileUploadClear />
-            <FileUploadTrigger size='sm' />
+            <FileUploadTrigger />
           </FileUploadControl>
         )}
       </FileUploadContext>

@@ -1,10 +1,12 @@
 'use client'
 
-import { useId } from 'react'
+import { use, useId } from 'react'
+
+import { cn } from '@oztix/roadie-core/utils'
 
 import { mergeRefs } from '../../utils/mergeRefs'
 import { Button, type ButtonProps } from '../Button'
-import { useFileUploadContext } from './FileUploadContext'
+import { FileUploadInControl, useFileUploadContext } from './FileUploadContext'
 
 export type FileUploadTriggerProps = Omit<
   ButtonProps,
@@ -18,9 +20,12 @@ export function FileUploadTrigger({
   disabled,
   onClick,
   children,
+  emphasis,
+  className,
   ...props
 }: FileUploadTriggerProps) {
   const context = useFileUploadContext('FileUpload.Trigger')
+  const inControl = use(FileUploadInControl)
   const ownId = useId()
   const triggerId = id ?? ownId
   return (
@@ -28,6 +33,12 @@ export function FileUploadTrigger({
       data-slot='file-upload-trigger'
       ref={mergeRefs(ref, context.triggerRef)}
       id={triggerId}
+      emphasis={emphasis ?? (inControl ? 'subtle' : undefined)}
+      className={cn(
+        inControl &&
+          'h-full self-stretch rounded-l-none rounded-r-md border-0 border-l border-subtle',
+        className
+      )}
       disabled={context.disabled || disabled}
       // The field's label and the chosen file come first, then what the button does.
       aria-labelledby={[context.labelId, context.valueId, triggerId]

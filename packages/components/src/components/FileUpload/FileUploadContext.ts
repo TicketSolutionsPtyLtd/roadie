@@ -24,3 +24,6 @@ export function useFileUploadContext(part: string) {
   if (!context) throw new Error(`${part} must be inside FileUpload.`)
   return context
 }
+
+/** A Trigger inside `FileUpload.Control` joins the bar's end as a segment. */
+export const FileUploadInControl = createContext(false)

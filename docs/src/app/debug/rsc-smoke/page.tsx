@@ -618,7 +618,7 @@ export default function RscSmokePage() {
           <FileUpload.Control>
             <FileUpload.Value />
             <FileUpload.Clear />
-            <FileUpload.Trigger size='sm' />
+            <FileUpload.Trigger />
           </FileUpload.Control>
         </FileUpload>
       </section>
