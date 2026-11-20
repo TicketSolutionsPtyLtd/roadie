@@ -308,7 +308,7 @@ function Group({
           listGroupTitleVariants(),
           'flex gap-1.5',
           shared.bleed && '-mx-3',
-          stickyTop !== undefined && ['sticky z-docked py-1', surfaceClass]
+          stickyTop !== undefined && ['sticky z-1 py-1', surfaceClass]
         )}
         style={stickyTop === undefined ? undefined : { top: stickyTop }}
       >

@@ -309,6 +309,41 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     await expect.poll(() => getComputedStyle(today).backgroundColor).toBe(card)
   })
 
+  it('slides a day’s heading under the sticky search as its day scrolls away', () => {
+    function WithHeader() {
+      const records = useRecords({ data: gigs, fields, now: NOW })
+      const [layouts] = useState(() => [calendarLayout<Gig>(calendar)])
+      return (
+        <div
+          style={{ height: 320, width: 375, overflowY: 'auto' }}
+          data-testid='scroller'
+        >
+          <Records records={records} layouts={layouts} caption='Gigs'>
+            <Records.Header />
+            <Records.Content />
+          </Records>
+        </div>
+      )
+    }
+    render(<WithHeader />)
+    const scroller = screen.getByTestId('scroller')
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="records-header"]'
+    )!
+    const heading = screen.getByRole('heading', {
+      name: /^Tuesday, 3 November/
+    })
+    const day = heading.closest('li')!
+    // The day's bottom edge sits halfway up the header, its heading with it.
+    scroller.scrollTop +=
+      day.getBoundingClientRect().bottom -
+      header.getBoundingClientRect().bottom +
+      header.offsetHeight / 2
+    const { bottom } = heading.getBoundingClientRect()
+    const x = header.getBoundingClientRect().left + 20
+    expect(header.contains(document.elementFromPoint(x, bottom - 2))).toBe(true)
+  })
+
   it('says so when the agenda’s month has nothing on', async () => {
     const user = userEvent.setup()
     render(<Gigs width={375} />)
