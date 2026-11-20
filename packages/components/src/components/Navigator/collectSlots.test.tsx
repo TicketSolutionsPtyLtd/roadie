@@ -87,4 +87,17 @@ describe('collectSlots', () => {
     expect(result.automatic[1]).toMatchObject({ label: 'Find' })
     expect(result.cluster).toHaveLength(3)
   })
+
+  it('flags a Search inside a Group, where it does nothing', () => {
+    const collected = collectSlots(
+      <Navigator.Group>
+        <Navigator.Item value='a' icon={<span />}>
+          A
+        </Navigator.Item>
+        <Navigator.Search />
+      </Navigator.Group>
+    )
+    expect(collected.hasStrayChild).toBe(true)
+    expect(collected.search).toEqual([])
+  })
 })
