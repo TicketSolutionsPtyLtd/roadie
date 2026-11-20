@@ -1,0 +1,139 @@
+export const metadata = {
+  title: 'RecordBoard',
+  description: 'A board of records in a column per status, with cards moved between them',
+  status: 'alpha',
+  category: 'Collections'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A board of records in a column per status, with cards moved between them.
+
+## Import
+
+```tsx
+import { boardLayout } from '@oztix/roadie-components/record-board'
+import { Records, useRecords } from '@oztix/roadie-components/records'
+import { recordFields } from '@oztix/roadie-core/records'
+```
+
+Fields can hold functions, as can `getRowId`, `onMove` and the `useRecords` instance, so render the board in a client component, a file that starts with `'use client'`.
+
+## Examples
+
+### Default
+
+Give `Records` a `boardLayout`, naming the option field in `groupBy` and the fields each card shows, as a grid's cards take them. Each option of the field is a column, in option order, and records with no value sit in a last column named for the field, such as "No status". Drag a card by its handle to another column, or pick "Move to" from the handle's menu. `onMove` gets the record and the column's option value, or null for that last column. Save it and update your data; until then the card shows in its new column.
+
+```tsx-live-noinline-expand
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
+const initial = names.map((name, index) => ({
+  id: `event-${index}`,
+  name,
+  venue: ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Drongo Bell Social Club'][index % 3],
+  status: ['draft', 'on_sale', 'on_sale', 'sold_out', ''][index]
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.text('venue', { label: 'Venue' }),
+  field.option('status', {
+    label: 'Status',
+    status: {
+      draft: { intent: 'neutral' },
+      on_sale: { intent: 'success' },
+      sold_out: { intent: 'danger' }
+    }
+  })
+]
+
+function Events() {
+  const [events, setEvents] = useState(initial)
+  const [layouts] = useState(() => [
+    boardLayout({
+      groupBy: 'status',
+      title: 'name',
+      description: 'venue',
+      onMove: (event, status) =>
+        setEvents((all) =>
+          all.map((row) => (row.id === event.id ? { ...row, status: status ?? '' } : row))
+        )
+    })
+  ])
+  const records = useRecords({
+    data: events,
+    fields,
+    getRowId: (row) => row.id,
+    getRowHref: (row) => `#${row.id}`,
+    recordName: { one: 'event', other: 'events' }
+  })
+  return (
+    <Records records={records} layouts={layouts} caption='Events'>
+      <Records.Header />
+      <Records.Content />
+      <Records.Status />
+    </Records>
+  )
+}
+
+render(<Events />)
+```
+
+### Moves the app turns down
+
+Return a promise from `onMove` while you save. Reject it with an `Error` whose message people can read, and the card goes back to its column with that message above the board. Without `onMove`, cards have no handle and don't move.
+
+```tsx
+boardLayout({
+  groupBy: 'status',
+  title: 'name',
+  onMove: async (event, status) => {
+    if (event.status === 'cancelled') throw new Error('A cancelled event can’t go back on sale.')
+    await saveStatus(event.id, status)
+  }
+})
+```
+
+### Layouts
+
+Give `Records` a `boardLayout` beside the table, and people switch between them from View. A saved view holds `{ type: 'board', groupBy }`, so a view can make its columns from another option field. Switching to the board uses the layout's own `groupBy` until a view picks one. A field that holds a list, or has no options, can't make columns, and `validateRecordView` reports it.
+
+```tsx
+const layouts = [
+  tableLayout(columns),
+  boardLayout({ groupBy: 'status', title: 'name', onMove })
+]
+```
+
+### On a phone
+
+The columns sit in a row that scrolls sideways, each about 85% of the width, so the next column peeks in. A card dragged to the edge of the screen drops into the column there; the Move menu reaches every column.
+
+### Column counts
+
+Each column counts the records loaded into it. With a server, that's the page in view, not every match.
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Make columns from a status people move records through'>
+  <Guideline.Do code={`boardLayout({ groupBy: 'status', title: 'name', onMove })`}>
+    Make the columns from a short set of stages, such as draft, on sale and
+    sold out, that people move records along.
+  </Guideline.Do>
+  <Guideline.Dont code={`boardLayout({ groupBy: 'venue', title: 'name' })`}>
+    Don't make a column per venue or person. Dozens of columns scroll out of
+    sight; group a list by that field instead.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- The board is a group named by the records' caption, holding a region for each column, named by its option.
+- Each card's handle opens a Move menu on click, Enter or Space. An item such as "Move Marzipan Thunderclap to Sold out" moves the card to that column, where it takes its place in the view's sort, and focus follows it.
+- The column a card joins announces the move. A rejected move shows its message in an alert.
+- Each card's title links to its record through `getRowHref`.

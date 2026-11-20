@@ -564,6 +564,11 @@ export {
   type RecordsViewHandler
 } from './components/Records'
 export {
+  boardLayout,
+  type BoardLayoutConfig,
+  type BoardLayoutDefinition
+} from './components/RecordBoard'
+export {
   RecordCalendar,
   calendarLayout,
   type CalendarLayoutConfig,
