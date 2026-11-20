@@ -8,6 +8,8 @@ import {
   useMemo
 } from 'react'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { ToggleGroup, type ToggleGroupProps } from '../ToggleGroup'
 import { useCommandPaletteScope } from './CommandPaletteContext'
 
@@ -20,7 +22,10 @@ export type CommandPaletteScopesProps = Omit<
 > & {
   /** The first tab's label, which shows every type. @default 'All' */
   allLabel?: ReactNode
-  /** A `CommandPalette.Scope` for each type. */
+  /**
+   * A `CommandPalette.Scope` for each type, as direct children: the arrows
+   * read their order from here. `(all)` is taken by the All tab.
+   */
   children: ReactNode
 }
 
@@ -48,7 +53,7 @@ export function CommandPaletteScopes({
   return (
     <div
       data-slot='command-palette-scopes'
-      className='border-b border-subtler px-3 py-2'
+      className={cn('border-b border-subtler px-3 py-2', className)}
     >
       <ToggleGroup
         aria-label='Type'
@@ -58,7 +63,6 @@ export function CommandPaletteScopes({
         onValueChange={([next]) =>
           setScope(!next || next === ALL ? null : next)
         }
-        className={className}
         {...props}
       >
         <ToggleGroup.Item value={ALL}>{allLabel}</ToggleGroup.Item>
