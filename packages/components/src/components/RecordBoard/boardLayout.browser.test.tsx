@@ -17,7 +17,7 @@ import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
-import { type Move, Shows, column, titles } from './board.testUtils'
+import { type Move, Shows, column, titles } from './boardTestUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {

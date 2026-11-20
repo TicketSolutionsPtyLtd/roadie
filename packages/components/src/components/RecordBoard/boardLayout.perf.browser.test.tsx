@@ -11,7 +11,7 @@ import {
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
 import { testShows } from '../Records/testUtils'
-import { Shows } from './board.testUtils'
+import { Shows } from './boardTestUtils'
 
 setupFrameTests({ css: roadieCss })
 // After a drop the library covers the pointer until it moves.
