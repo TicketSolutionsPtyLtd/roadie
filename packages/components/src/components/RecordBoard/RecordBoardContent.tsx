@@ -51,7 +51,7 @@ const columnsClass = cn(
   '@lg/record-board:auto-cols-[minmax(14rem,1fr)]'
 )
 const columnClass =
-  'grid snap-start content-start gap-2 rounded-xl emphasis-sunken p-2'
+  'grid snap-start content-start gap-2 rounded-xl emphasis-subtle p-2'
 
 export function RecordBoardContent({
   className,

@@ -802,7 +802,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
           {[2, 1, 0].map((cards, column) => (
             <div
               key={column}
-              className='grid content-start gap-1 rounded-lg bg-sunken p-1'
+              className='grid content-start gap-1 rounded-lg bg-subtle p-1'
             >
               <Skel className='h-1 w-6' />
               {Array.from({ length: cards }, (_, card) => (
