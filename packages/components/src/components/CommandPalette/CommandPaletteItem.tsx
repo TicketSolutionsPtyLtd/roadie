@@ -13,8 +13,13 @@ export type CommandPaletteItemProps = Omit<AutocompleteItemProps, 'onSelect'> &
   RefAttributes<HTMLDivElement> & {
     /** Makes the command a link. Internal paths route through `RoadieLinkProvider`; external URLs open in a new tab. */
     href?: string
-    /** Runs when the command is picked, before the palette closes. */
+    /** Runs when the command is picked, by a click or Enter, before the palette closes. */
     onSelect?: () => void
+    /**
+     * Whether picking the command closes the palette.
+     * @default true
+     */
+    closeOnSelect?: boolean
     /** Pass a bold Phosphor icon; it is sized for you. */
     icon?: ReactNode
     /** Keys such as `['mod', 'e']`, shown per platform, or text such as `⌘E`. Visual only; bind the keys yourself. */
@@ -24,6 +29,7 @@ export type CommandPaletteItemProps = Omit<AutocompleteItemProps, 'onSelect'> &
 export function CommandPaletteItem({
   href,
   onSelect,
+  closeOnSelect = true,
   icon,
   shortcut,
   render,
@@ -48,7 +54,7 @@ export function CommandPaletteItem({
         onClick?.(event)
         if (event.defaultPrevented) return
         onSelect?.()
-        close()
+        if (closeOnSelect) close()
       }}
       {...props}
     >

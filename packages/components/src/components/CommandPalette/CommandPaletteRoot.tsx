@@ -15,7 +15,14 @@ export type CommandPaletteOpenChangeDetails = {
   reason: DialogPrimitive.Root.ChangeEventReason | 'item-press'
 }
 
-export type CommandPaletteRootProps = {
+/** A command, or the commands inside a group of them. */
+export type CommandPaletteCommand<Item> = Item extends {
+  items: readonly (infer Command)[]
+}
+  ? Command
+  : Item
+
+export type CommandPaletteRootProps<Item = unknown> = {
   /** Whether the palette is open. */
   open?: boolean
   /** Whether the palette is open at first, when uncontrolled. */
@@ -30,9 +37,9 @@ export type CommandPaletteRootProps = {
    * through its child function. An object item's `keywords` array is
    * matched too, after its label.
    */
-  items: readonly unknown[]
-  /** The text an item is matched and ranked by. Defaults to its `label`, then `value`. */
-  itemToStringValue?: (item: never) => string
+  items: readonly Item[]
+  /** The text a command is matched and ranked by. Defaults to its `label`, then `value`. */
+  itemToStringValue?: (item: CommandPaletteCommand<Item>) => string
   /** The dialog's accessible name. @default 'Search and commands' */
   label?: string
   /** Matching locale. Defaults to the page's. */
@@ -61,7 +68,7 @@ function useCommandFilter(locale?: Intl.LocalesArgument) {
   }, [locale])
 }
 
-export function CommandPaletteRoot({
+export function CommandPaletteRoot<Item>({
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -71,7 +78,7 @@ export function CommandPaletteRoot({
   locale,
   className,
   children
-}: CommandPaletteRootProps) {
+}: CommandPaletteRootProps<Item>) {
   const [openState, setOpenState] = useState(defaultOpen)
   const open = openProp ?? openState
   const [query, setQuery] = useState('')

@@ -145,6 +145,51 @@ describe('CommandPalette', () => {
     })
   })
 
+  it('stays open after a command with closeOnSelect={false}', async () => {
+    const onSelect = vi.fn()
+    render(
+      <CommandPalette defaultOpen items={['Copy link']}>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(label: string) => (
+            <CommandPalette.Item
+              key={label}
+              value={label}
+              onSelect={onSelect}
+              closeOnSelect={false}
+            >
+              {label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Copy link' })
+    )
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('types itemToStringValue with the commands inside groups', () => {
+    const groups = [{ label: 'Go to', items: [{ title: 'Orders' }] }]
+    const ok = (
+      <CommandPalette
+        items={groups}
+        itemToStringValue={(command) => command.title}
+      >
+        <CommandPalette.Input />
+      </CommandPalette>
+    )
+    const wrong = (
+      // @ts-expect-error a group has no title; its commands do
+      <CommandPalette items={groups} itemToStringValue={(group) => group.label}>
+        <CommandPalette.Input />
+      </CommandPalette>
+    )
+    expect([ok, wrong]).toHaveLength(2)
+  })
+
   it('moves the highlight with the arrow keys', async () => {
     const newEvent = vi.fn()
     render(

@@ -32,7 +32,8 @@ CommandPalette.Empty = CommandPaletteEmpty
 export { CommandPalette }
 export type {
   CommandPaletteRootProps as CommandPaletteProps,
-  CommandPaletteOpenChangeDetails
+  CommandPaletteOpenChangeDetails,
+  CommandPaletteCommand
 } from './CommandPaletteRoot'
 export type { CommandPaletteInputProps } from './CommandPaletteInput'
 export type { CommandPaletteListProps } from './CommandPaletteList'
