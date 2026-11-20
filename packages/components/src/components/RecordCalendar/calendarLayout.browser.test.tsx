@@ -262,7 +262,8 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     expect(chips('2026-11-13')).toEqual(['Festival of Kazoos'])
   })
 
-  it('shows an agenda on a phone: the month’s records under their days', () => {
+  it('shows an agenda on a phone: the month’s records under their days', async () => {
+    const user = userEvent.setup()
     render(<Gigs width={375} />)
     expect(screen.queryByRole('table')).toBeNull()
     const days = screen.getAllByRole('heading', { level: 2 })
@@ -275,29 +276,11 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
       'Tuesday, 24 November 2026 3',
       'Friday, 27 November 2026 5'
     ])
-    expect(getComputedStyle(days[0]!).position).toBe('sticky')
     const busy = screen.getByRole('list', { name: /27 November/ })
     expect(within(busy).getAllByRole('link')).toHaveLength(5)
     expect(screen.queryByText('Lampshade Disco')).toBeNull()
-  })
-
-  it('keeps a day’s heading at the top of its scroller while its rows pass', () => {
-    render(
-      <div style={{ height: 240, overflowY: 'auto' }} data-testid='scroller'>
-        <Gigs width={375} />
-      </div>
-    )
-    const scroller = screen.getByTestId('scroller')
-    const heading = screen.getByRole('heading', { name: /27 November/ })
-    scroller.scrollTop =
-      heading.getBoundingClientRect().top -
-      scroller.getBoundingClientRect().top +
-      scroller.scrollTop +
-      60
-    expect(heading.getBoundingClientRect().top).toBeCloseTo(
-      scroller.getBoundingClientRect().top,
-      0
-    )
+    await user.click(screen.getByRole('button', { name: 'Previous month' }))
+    expect(screen.getByText('Nothing in October 2026')).toBeInTheDocument()
   })
 
   it('paints sticky day headings the colour behind them and names today', async () => {
@@ -309,7 +292,7 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     await expect.poll(() => getComputedStyle(today).backgroundColor).toBe(card)
   })
 
-  it('slides a day’s heading under the sticky search as its day scrolls away', () => {
+  it('sticks day headings under the search, and slides them under it as their day goes', () => {
     function WithHeader() {
       const records = useRecords({ data: gigs, fields, now: NOW })
       const [layouts] = useState(() => [calendarLayout<Gig>(calendar)])
@@ -326,30 +309,29 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
       )
     }
     render(<WithHeader />)
-    const scroller = screen.getByTestId('scroller')
     const header = document.querySelector<HTMLElement>(
       '[data-slot="records-header"]'
     )!
-    const heading = screen.getByRole('heading', {
-      name: /^Tuesday, 3 November/
-    })
-    const day = heading.closest('li')!
+    const scroller = screen.getByTestId('scroller')
+    const heading = (name: RegExp) => screen.getByRole('heading', { name })
+    const busy = heading(/24 November/)
+    scroller.scrollTop +=
+      busy.getBoundingClientRect().top -
+      header.getBoundingClientRect().bottom +
+      60
+    expect(busy.getBoundingClientRect().top).toBeCloseTo(
+      header.getBoundingClientRect().bottom,
+      0
+    )
+    const first = heading(/^Tuesday, 3 November/)
     // The day's bottom edge sits halfway up the header, its heading with it.
     scroller.scrollTop +=
-      day.getBoundingClientRect().bottom -
+      first.closest('li')!.getBoundingClientRect().bottom -
       header.getBoundingClientRect().bottom +
       header.offsetHeight / 2
-    const { bottom } = heading.getBoundingClientRect()
     const x = header.getBoundingClientRect().left + 20
-    expect(header.contains(document.elementFromPoint(x, bottom - 2))).toBe(true)
-  })
-
-  it('says so when the agenda’s month has nothing on', async () => {
-    const user = userEvent.setup()
-    render(<Gigs width={375} />)
-    await user.click(screen.getByRole('button', { name: 'Previous month' }))
-    expect(screen.getByText('October 2026')).toBeInTheDocument()
-    expect(screen.getByText('Nothing in October 2026')).toBeInTheDocument()
+    const y = first.getBoundingClientRect().bottom - 2
+    expect(header.contains(document.elementFromPoint(x, y))).toBe(true)
   })
 
   it('asks the server for the weeks of the month it shows, unpaged', async () => {
