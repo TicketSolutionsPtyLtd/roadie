@@ -47,7 +47,8 @@ export type CommandPaletteRootProps<Item = unknown> = {
   /**
    * The commands, or groups of them (`{ items }`), that the list renders
    * through its child function. An object item's `keywords` array is
-   * matched too, after its label.
+   * matched too, after its label, and its `scope`, or its group's, picks the
+   * `CommandPalette.Scope` tab it shows under.
    */
   items: readonly Item[]
   /** The text a command is matched and ranked by. Defaults to its `label`, then `value`. */
