@@ -220,5 +220,16 @@ describe('FileUpload', () => {
       expect(bar).toHaveAttribute('aria-invalid', 'true')
       expect(bar).toHaveAttribute('data-disabled')
     })
+
+    it("keeps a disabled field's file from being removed", () => {
+      render(
+        <Field disabled>
+          <FileUpload defaultValue={[csv()]} />
+        </Field>
+      )
+      expect(
+        screen.getByRole('button', { name: 'Remove payments.csv' })
+      ).toBeDisabled()
+    })
   })
 })
