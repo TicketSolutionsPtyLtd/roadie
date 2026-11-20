@@ -80,11 +80,31 @@ describe('FileUpload bar', () => {
         <FileUpload defaultValue={[csv(name)]} />
       </div>
     )
-    const bar = screen
-      .getByText(name)
-      .closest('[data-slot=file-upload-control]')!
+    const fileName = screen.getByText(name)
+    const bar = fileName.closest('[data-slot=file-upload-control]')!
     expect(bar.getBoundingClientRect().width).toBeLessThanOrEqual(300)
+    expect(fileName.getBoundingClientRect().height).toBeLessThanOrEqual(
+      bar.clientHeight
+    )
     const replace = screen.getByRole('button', { name: /Replace$/ })
     expect(replace.getBoundingClientRect().right).toBeLessThanOrEqual(300)
+    const remove = screen.getByRole('button', { name: /^Remove/ })
+    expect(
+      screen.getByText('7 bytes').getBoundingClientRect().right
+    ).toBeLessThanOrEqual(remove.getBoundingClientRect().left)
+  })
+
+  it('joins the Trigger to the end of the bar, full height', () => {
+    render(<FileUpload />)
+    const trigger = screen.getByRole('button', { name: /Choose file$/ })
+    const bar = trigger.closest<HTMLElement>('[data-slot=file-upload-control]')!
+    const barBox = bar.getBoundingClientRect()
+    const box = trigger.getBoundingClientRect()
+    expect(box.top).toBeCloseTo(barBox.top + bar.clientTop, 0)
+    expect(box.height).toBeCloseTo(bar.clientHeight, 0)
+    expect(box.right).toBeCloseTo(
+      barBox.left + bar.clientLeft + bar.clientWidth,
+      0
+    )
   })
 })
