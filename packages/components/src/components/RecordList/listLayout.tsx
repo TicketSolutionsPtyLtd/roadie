@@ -1,8 +1,8 @@
 import { ListBulletsIcon } from '@phosphor-icons/react/ssr'
 
-import { RecordListSettingsLazy } from '../RecordGrid/RecordGridSettingsLazy'
 import type { RecordLayoutDefinition } from '../Records/layouts'
 import { RecordListContent } from './RecordListContent'
+import { RecordListSettings } from './RecordListSettings'
 import type { ListLayoutConfig } from './types'
 
 export type ListLayoutDefinition = RecordLayoutDefinition<ListLayoutConfig>
@@ -18,6 +18,6 @@ export function listLayout<Row extends object>(
     // A part's functions read the consumer's Row; the row hands it the same row.
     config: config as ListLayoutConfig,
     Content: RecordListContent,
-    Settings: RecordListSettingsLazy
+    Settings: RecordListSettings
   }
 }

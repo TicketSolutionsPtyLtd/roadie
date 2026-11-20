@@ -10,3 +10,16 @@ export function listGroupField(
   if (layout.type !== 'list' || !layout.groupBy) return undefined
   return groupableFields(fields).find((field) => field.key === layout.groupBy)
 }
+
+/** The list layout grouped by `groupBy`, or not at all, keeping its fields. */
+export function listGroupLayout(
+  current: RecordLayout,
+  groupBy: string | undefined
+): RecordLayout {
+  const fields = current.type === 'list' ? current.fields : undefined
+  return {
+    type: 'list',
+    ...(fields && { fields }),
+    ...(groupBy && { groupBy })
+  }
+}

@@ -125,5 +125,11 @@ export function gridDetailsLayout(
   const backToDefinition =
     merged.length === defined.length &&
     merged.every((key, index) => key === defined[index])
-  return backToDefinition ? { type } : { type, fields: merged }
+  const layout: RecordLayout = backToDefinition
+    ? { type }
+    : { type, fields: merged }
+  // A list's grouping is its own setting, so a details change keeps it.
+  return current.type === 'list' && layout.type === 'list' && current.groupBy
+    ? { ...layout, groupBy: current.groupBy }
+    : layout
 }

@@ -32,9 +32,3 @@ RecordGridSettingsLazy.preload = () =>
     () => {},
     () => {}
   )
-
-/** The same settings for a list's rows. */
-export function RecordListSettingsLazy(props: { config: GridLayoutConfig }) {
-  return <RecordGridSettingsLazy {...props} type='list' />
-}
-RecordListSettingsLazy.preload = RecordGridSettingsLazy.preload
