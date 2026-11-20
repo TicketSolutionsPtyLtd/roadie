@@ -2,12 +2,16 @@
 // See docs/contributing/COMPOUND_PATTERNS.md.
 import { CommandPaletteCollection } from './CommandPaletteCollection'
 import { CommandPaletteEmpty } from './CommandPaletteEmpty'
+import { CommandPaletteFooter } from './CommandPaletteFooter'
 import { CommandPaletteGroup } from './CommandPaletteGroup'
 import { CommandPaletteGroupLabel } from './CommandPaletteGroupLabel'
+import { CommandPaletteHint } from './CommandPaletteHint'
 import { CommandPaletteInput } from './CommandPaletteInput'
 import { CommandPaletteItem } from './CommandPaletteItem'
 import { CommandPaletteList } from './CommandPaletteList'
 import { CommandPaletteRoot } from './CommandPaletteRoot'
+import { CommandPaletteScope } from './CommandPaletteScope'
+import { CommandPaletteScopes } from './CommandPaletteScopes'
 import { CommandPaletteTrigger } from './CommandPaletteTrigger'
 
 const CommandPalette = CommandPaletteRoot as typeof CommandPaletteRoot & {
@@ -20,6 +24,10 @@ const CommandPalette = CommandPaletteRoot as typeof CommandPaletteRoot & {
   Collection: typeof CommandPaletteCollection
   Item: typeof CommandPaletteItem
   Empty: typeof CommandPaletteEmpty
+  Hint: typeof CommandPaletteHint
+  Footer: typeof CommandPaletteFooter
+  Scope: typeof CommandPaletteScope
+  Scopes: typeof CommandPaletteScopes
 }
 
 CommandPalette.Root = CommandPaletteRoot
@@ -31,6 +39,10 @@ CommandPalette.GroupLabel = CommandPaletteGroupLabel
 CommandPalette.Collection = CommandPaletteCollection
 CommandPalette.Item = CommandPaletteItem
 CommandPalette.Empty = CommandPaletteEmpty
+CommandPalette.Hint = CommandPaletteHint
+CommandPalette.Footer = CommandPaletteFooter
+CommandPalette.Scope = CommandPaletteScope
+CommandPalette.Scopes = CommandPaletteScopes
 
 export { CommandPalette }
 export type {
@@ -46,3 +58,7 @@ export type { CommandPaletteGroupLabelProps } from './CommandPaletteGroupLabel'
 export type { CommandPaletteCollectionProps } from './CommandPaletteCollection'
 export type { CommandPaletteItemProps } from './CommandPaletteItem'
 export type { CommandPaletteEmptyProps } from './CommandPaletteEmpty'
+export type { CommandPaletteHintProps } from './CommandPaletteHint'
+export type { CommandPaletteFooterProps } from './CommandPaletteFooter'
+export type { CommandPaletteScopeProps } from './CommandPaletteScope'
+export type { CommandPaletteScopesProps } from './CommandPaletteScopes'
