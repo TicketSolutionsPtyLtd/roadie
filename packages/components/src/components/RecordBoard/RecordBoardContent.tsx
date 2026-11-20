@@ -1,6 +1,14 @@
 'use client'
 
-import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
+import {
+  type ReactNode,
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 
 import type { RecordField, RecordLayout } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
@@ -66,7 +74,18 @@ export function RecordBoardContent({
     (record: Row) => recordTitle(record.row, record.id, parts.title, timeZone),
     [parts.title, timeZone]
   )
-  const { moves, move, error } = useBoardMoves(config.onMove, titleOf)
+  const { moves, move, error, putBack } = useBoardMoves(config.onMove, titleOf)
+  const bodyRef = useRef<HTMLDivElement>(null)
+  // A card put back remounts in its old column, taking focus from its handle.
+  useLayoutEffect(() => {
+    const active = document.activeElement
+    if (!putBack || (active && active !== document.body)) return
+    bodyRef.current
+      ?.querySelector<HTMLElement>(
+        `[data-record-id="${CSS.escape(putBack.id)}"] [data-slot="sortable-handle"]`
+      )
+      ?.focus()
+  }, [putBack])
   const columns = useMemo(
     () => (field ? boardColumns(rows, field, moves) : []),
     [field, rows, moves]
@@ -104,6 +123,7 @@ export function RecordBoardContent({
           </p>
         )}
         <div
+          ref={bodyRef}
           role='group'
           aria-label={caption}
           aria-busy={frame.busy || undefined}
@@ -203,6 +223,7 @@ function BoardCards({
           <Sortable.Item
             key={record.id}
             value={record.id}
+            data-record-id={record.id}
             label={titleOf(record)}
             render={<li />}
           >
@@ -269,6 +290,9 @@ function useBoardMoves(
 ) {
   const [moves, setMoves] = useState<ReadonlyMap<string, Move>>(new Map())
   const [error, setError] = useState<string | null>(null)
+  // A fresh object each time, so putting back the same card twice refocuses it.
+  const [putBack, setPutBack] = useState<{ id: string } | null>(null)
+  const current = useRef(new Map<string, Move>())
 
   // A later move of the same card replaces this one, which then settles nothing.
   const settle = (id: string, entry: Move, next?: Move) =>
@@ -284,15 +308,19 @@ function useBoardMoves(
     if (!onMove) return
     setError(null)
     const entry: Move = { value, row: record.row, pending: true }
+    current.current.set(record.id, entry)
     setMoves((all) => new Map(all).set(record.id, entry))
     try {
       await onMove(record.row as Record<string, unknown>, value)
       settle(record.id, entry, { ...entry, pending: false })
     } catch (caught) {
       settle(record.id, entry)
+      if (current.current.get(record.id) !== entry) return
+      current.current.delete(record.id)
       setError(messageOf(caught, `${titleOf(record)} wasn’t moved. Try again.`))
+      setPutBack({ id: record.id })
     }
   }
 
-  return { moves, move, error }
+  return { moves, move, error, putBack }
 }

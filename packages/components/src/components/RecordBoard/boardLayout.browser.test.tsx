@@ -135,6 +135,54 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Cancelled shows can’t go back on sale.'
     )
+    // The handle went with the card, so focus follows it back.
+    expect(
+      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
+    ).toHaveFocus()
+  })
+
+  it('shows no message for a move a later move of the same card replaced', async () => {
+    const user = userEvent.setup()
+    const pending: {
+      promise: Promise<void>
+      reject: (error: Error) => void
+    }[] = []
+    render(
+      <Shows
+        onMove={(_, status) =>
+          status === 'cancelled'
+            ? (() => {
+                let reject = (_: Error) => {}
+                const promise = new Promise<void>((_, fail) => {
+                  reject = fail
+                })
+                pending.push({ promise, reject })
+                return promise
+              })()
+            : undefined
+        }
+      />
+    )
+    const moveTo = async (column: string) => {
+      await user.click(
+        screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
+      )
+      await user.click(
+        await screen.findByRole('menuitem', {
+          name: `Move Ocean Alley 1 to ${column}`
+        })
+      )
+    }
+    await moveTo('Cancelled')
+    await moveTo('Sold out')
+    await expect.poll(() => titles('Sold out')).toContain('Ocean Alley 1')
+    // The board's own handler ran first, so its updates land within this act.
+    await act(async () => {
+      pending[0]!.reject(new Error('Too late.'))
+      await pending[0]!.promise.catch(() => {})
+    })
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(titles('Sold out')).toContain('Ocean Alley 1')
   })
 
   it('keeps a blank option out of the columns, so "No status" is the only home for blanks', () => {
