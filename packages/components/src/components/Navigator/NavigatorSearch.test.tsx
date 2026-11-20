@@ -209,3 +209,46 @@ describe('Navigator.Search on the server', () => {
     expect(html).toContain('Search')
   })
 })
+
+describe('Navigator.Search with an href', () => {
+  const linkIn = (orientation: 'vertical' | 'horizontal') =>
+    within(primaryOf(orientation)).queryByRole('link', { name: /Search/ })
+
+  it('links to its page in both layouts, with no palette and no warning', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<Nav search={<Navigator.Search href='/discover' />} />)
+    await flushViewportMeasurement()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(linkIn('vertical')).toHaveAttribute('href', '/discover')
+    expect(linkIn('horizontal')).toHaveAttribute('href', '/discover')
+    expect(linkIn('vertical')).not.toHaveAttribute('aria-keyshortcuts')
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('shows as the current page while its page is open', async () => {
+    render(
+      <Navigator value='/discover'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='a' href='/a'>
+            A
+          </Navigator.Item>
+          <Navigator.Search href='/discover' />
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(linkIn('vertical')).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('links rather than opening the palette when there is one too', async () => {
+    render(
+      <>
+        <Nav search={<Navigator.Search href='/discover' />} />
+        {palette}
+      </>
+    )
+    await flushViewportMeasurement()
+    await userEvent.click(linkIn('horizontal')!)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})

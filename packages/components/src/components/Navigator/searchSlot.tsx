@@ -17,21 +17,26 @@ export const SEARCH_LABEL = 'Search'
 
 export type NavigatorSearchSlotProps = {
   placement?: NavigatorPlacement
+  href?: string
   label?: ReactNode
   icon?: ReactNode
 }
 
 export function searchSlotMeta({
   placement = 'pinned',
+  href,
   label = SEARCH_LABEL,
   // eslint-disable-next-line roadie/phosphor-icon-weight -- presentNavIcon sets it
   icon = <MagnifyingGlassIcon />
 }: NavigatorSearchSlotProps): NavigatorSlotMeta {
+  const value = href ?? SEARCH_VALUE
   return {
-    value: SEARCH_VALUE,
+    value,
     label,
     icon,
-    topValue: SEARCH_VALUE,
+    href,
+    declaredHref: href,
+    topValue: value,
     descendants: [],
     placement,
     priority: 'automatic',
@@ -39,16 +44,20 @@ export function searchSlotMeta({
   }
 }
 
-const isSearchEntry = (entry: CollectedSlots['cluster'][number]) =>
-  entry.kind === 'item' && entry.slot.search === true
+/** A Search that opens the palette; one with an `href` routes like an item. */
+export const opensPalette = (slot: NavigatorSlotMeta) =>
+  slot.search === true && slot.href === undefined
 
-/** What the navigation shows without a palette to open: everything but Search. */
+const isSearchEntry = (entry: CollectedSlots['cluster'][number]) =>
+  entry.kind === 'item' && opensPalette(entry.slot)
+
+/** What the navigation shows without a palette to open: everything but a Search that needs one. */
 export function withoutSearch(collected: CollectedSlots): CollectedSlots {
-  if (!collected.ordered.some((slot) => slot.search)) return collected
-  const keep = (slot: NavigatorSlotMeta) => !slot.search
+  if (!collected.ordered.some(opensPalette)) return collected
+  const keep = (slot: NavigatorSlotMeta) => !opensPalette(slot)
   return {
     ...collected,
-    search: [],
+    search: collected.search.filter((entry) => !isSearchEntry(entry)),
     cluster: collected.cluster.filter((entry) => !isSearchEntry(entry)),
     automatic: collected.automatic.filter(keep),
     pinnedSlots: collected.pinnedSlots.filter(keep),

@@ -47,7 +47,7 @@ import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
-import { usePaletteMissing, withoutSearch } from './searchSlot'
+import { opensPalette, usePaletteMissing, withoutSearch } from './searchSlot'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
@@ -115,7 +115,7 @@ export function NavigatorPrimary({
   const palette = useRegisteredPalette()
   const platform = useKeyPlatform()
   const missing = usePaletteMissing(
-    declared.ordered.some((slot) => slot.search),
+    declared.ordered.some(opensPalette),
     palette
   )
   const collected = useMemo(
@@ -281,7 +281,7 @@ export function NavigatorPrimary({
       active: boolean,
       href: string | undefined
     ) => {
-      if (tab.search) {
+      if (opensPalette(tab)) {
         palette?.open()
         return
       }
@@ -373,7 +373,7 @@ export function NavigatorPrimary({
         <NavigatorTab
           key={tab.value}
           {...tabProps}
-          aria-keyshortcuts={tab.search ? searchShortcut : undefined}
+          aria-keyshortcuts={opensPalette(tab) ? searchShortcut : undefined}
         />
       )
 

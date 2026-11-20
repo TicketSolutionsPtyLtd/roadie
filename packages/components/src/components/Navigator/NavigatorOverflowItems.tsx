@@ -23,6 +23,7 @@ import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
+import { opensPalette } from './searchSlot'
 import { textOf } from './splitSecondary'
 
 export type NavigatorOverflowItemsProps = Omit<ListProps, 'children'>
@@ -118,7 +119,7 @@ export function NavigatorOverflowItems({
     set: keyof NavigatorOverflowSets,
     slot: NavigatorSlotMeta
   ) => {
-    if (slot.search) return renderSearchRow(slot)
+    if (opensPalette(slot)) return renderSearchRow(slot)
     if (slot.menu) return renderMenuRow(set, slot, slot.menu)
     const active = isDestinationActive(slot, value)
     const href = slot.href
