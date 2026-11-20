@@ -237,6 +237,7 @@ export {
   type NavigatorSecondaryGroup,
   type NavigatorSecondaryItem,
   type NavigatorItemProps,
+  type NavigatorSearchProps,
   type NavigatorGroupProps,
   type NavigatorGroupTitleProps,
   type NavigatorMenuProps,
