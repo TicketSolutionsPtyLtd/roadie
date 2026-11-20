@@ -48,7 +48,7 @@ const columnValue = (key: string | null) => key ?? NONE
 
 const columnsClass = cn(
   'grid snap-x snap-mandatory auto-cols-[85%] grid-flow-col gap-3 overflow-x-auto overscroll-x-contain pb-2',
-  '@lg/record-board:auto-cols-[minmax(16rem,1fr)]'
+  '@lg/record-board:auto-cols-[minmax(14rem,1fr)]'
 )
 const columnClass =
   'grid snap-start content-start gap-2 rounded-xl emphasis-sunken p-2'
