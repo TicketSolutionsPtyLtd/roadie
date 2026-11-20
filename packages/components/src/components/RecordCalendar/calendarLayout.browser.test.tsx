@@ -321,15 +321,20 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     const user = userEvent.setup()
     const requests: RecordsRequest[] = []
     const heard = vi.fn((request: RecordsRequest) => requests.push(request))
-    function Served() {
+    const query = { search: '', filters: [], sort: [] }
+    function Served({ layout }: { layout: RecordView['layout'] }) {
       const records = useRecords({
         data: gigs,
         fields,
         now: NOW,
         rowCount: gigs.length,
+        view: { query, layout },
         onRequestChange: heard
       })
-      const [layouts] = useState(() => [calendarLayout<Gig>(calendar)])
+      const [layouts] = useState(() => [
+        calendarLayout<Gig>(calendar),
+        tableLayout([tableColumns<Gig>(fields).field('name')])
+      ])
       return (
         <Records records={records} layouts={layouts} caption='Gigs'>
           <Records.Content />
@@ -337,7 +342,9 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
         </Records>
       )
     }
-    render(<Served />)
+    const { rerender } = render(
+      <Served layout={{ type: 'calendar', dateField: 'starts' }} />
+    )
     const window = (start: string, end: string) => ({
       version: 1,
       query: expect.objectContaining({
@@ -354,8 +361,9 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     await user.click(screen.getByRole('button', { name: 'Next month' }))
     expect(requests.at(-1)).toEqual(window('2026-11-30', '2027-01-03'))
     expect(requests).toHaveLength(2)
-    expect(
-      document.querySelector('[data-slot="records-pagination"]')
-    ).toBeNull()
+    expect(screen.queryByLabelText('Rows per page')).toBeNull()
+    rerender(<Served layout={{ type: 'table' }} />)
+    expect(requests.at(-1)).toHaveProperty('page', 0)
+    expect(screen.getByLabelText('Rows per page')).toBeInTheDocument()
   })
 })
