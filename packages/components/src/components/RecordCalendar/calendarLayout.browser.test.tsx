@@ -79,23 +79,27 @@ const chips = (date: string) =>
 function Gigs({
   weekStart,
   dir,
-  width = 1100
+  width = 1100,
+  now = NOW,
+  className
 }: {
   weekStart?: number
   dir?: 'rtl'
   width?: number
+  now?: Date
+  className?: string
 }) {
   const records = useRecords({
     data: gigs,
     fields,
-    now: NOW,
+    now,
     getRowHref: (gig) => `/gigs/${gig.id}`
   })
   const [layouts] = useState(() => [
     calendarLayout<Gig>({ ...calendar, weekStart })
   ])
   return (
-    <div dir={dir} style={{ width }}>
+    <div dir={dir} className={className} style={{ width }}>
       <Records records={records} layouts={layouts} caption='Gigs'>
         <Records.Content />
       </Records>
@@ -294,6 +298,15 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
       scroller.getBoundingClientRect().top,
       0
     )
+  })
+
+  it('paints sticky day headings the colour behind them and names today', async () => {
+    const { container } = render(
+      <Gigs width={375} className='bg-sunken' now={new Date('2026-11-27')} />
+    )
+    const card = getComputedStyle(container.firstElementChild!).backgroundColor
+    const today = screen.getByRole('heading', { name: /^Today, Friday/ })
+    await expect.poll(() => getComputedStyle(today).backgroundColor).toBe(card)
   })
 
   it('says so when the agenda’s month has nothing on', async () => {

@@ -11,6 +11,7 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { surfaceClass, useSurface } from '../../utils/surface'
 import {
   listGroupSectionClass,
   listGroupTitleVariants,
@@ -245,6 +246,8 @@ const joinSelected = [
   '[&>li:has(+li[data-selected])]:[--list-divider:transparent]'
 ].join(' ')
 
+const noList = { current: null }
+
 // Unwindowed: grouping applies to the rows loaded, a page at most.
 function GroupedList({
   groups,
@@ -270,8 +273,10 @@ function GroupedList({
     [onToggle, order]
   )
   const grouped = { ...shared, onToggle: toggle }
+  const listRef = useRef<HTMLUListElement>(null)
+  useSurface(stickyTop === undefined ? noList : listRef)
   return (
-    <NarrowList {...listProps} grouped>
+    <NarrowList {...listProps} bodyRef={listRef} grouped>
       {shown.map((group) => (
         <Group
           key={group.key ?? ''}
@@ -303,8 +308,7 @@ function Group({
           listGroupTitleVariants(),
           'flex gap-1.5',
           shared.bleed && '-mx-3',
-          stickyTop !== undefined &&
-            'sticky z-docked bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal))) py-1'
+          stickyTop !== undefined && ['sticky z-docked py-1', surfaceClass]
         )}
         style={stickyTop === undefined ? undefined : { top: stickyTop }}
       >
