@@ -67,6 +67,25 @@ const layouts = [
 ]
 ```
 
+### Phones
+
+Under 40rem of room, as on a phone, the month grid gives way to an agenda: the month's records as list rows under each day they cover, with each day's heading sticking as its rows scroll by. Days with nothing on are left out, and a month with nothing on says so. Previous, next and Today work the same way.
+
+### Server mode
+
+The calendar sends the days it shows to the server. With `rowCount`, the `request` that `onRequestChange` hears carries an `overlaps` filter on the date field, with a `dates` range from the first to the last day of the visible weeks, and no `page` or `pageSize`. A request without paging means every record that matches, so return every record in those days. Previous, next and Today send the new month's request, and the first one goes out once the page hydrates, already holding its month. In the browser the same filter applies, so `Records.Status` counts the month's records.
+
+Because the calendar loads every record in its days, it has no pages: `Records.Pagination` shows nothing under it, and comes back when a view switches to another layout.
+
+```tsx
+const records = useRecords({
+  data: page?.rows ?? [],
+  rowCount: page?.rowCount ?? 0,
+  fields,
+  onRequestChange: setRequest
+})
+```
+
 ### Today and the first day of the week
 
 Today comes from the browser's clock, so a server render marks no day and, without `defaultMonth`, shows no month until the page hydrates. Pass `now` to `useRecords` to fix it. `weekStart` picks the first day of the week, Monday by default, and `locale` names the months and days.
@@ -101,6 +120,6 @@ Today comes from the browser's clock, so a server render marks no day and, witho
 - Each chip is a link to its record through `getRowHref`, and Tab moves through them in reading order. The arrow keys move focus from day to day, a week at a time with Up and Down.
 - "+N more" is a button named by the count and the day, such as "+3 more on Friday, 27 November 2026". It opens a popover holding every record on the day, and Escape closes it and returns focus to the button.
 - The month name is announced as it changes. Previous and next are buttons named "Previous month" and "Next month".
-- On a phone the month grid stays for now; an agenda replaces it in a later release.
+- On a phone, each agenda day is a level 2 heading with its date and count, labelling the list of its records. Today's heading starts with "Today".
 
 <PropsDefinitions component='RecordCalendar' />

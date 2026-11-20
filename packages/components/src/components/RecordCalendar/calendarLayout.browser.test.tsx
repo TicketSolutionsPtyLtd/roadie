@@ -2,9 +2,21 @@ import { useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
-import { type RecordView, recordFields } from '@oztix/roadie-core/records'
+import {
+  type RecordView,
+  type RecordsRequest,
+  recordFields
+} from '@oztix/roadie-core/records'
 
 import { calendarLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -67,23 +79,27 @@ const chips = (date: string) =>
 function Gigs({
   weekStart,
   dir,
-  width = 1100
+  width = 1100,
+  now = NOW,
+  className
 }: {
   weekStart?: number
   dir?: 'rtl'
   width?: number
+  now?: Date
+  className?: string
 }) {
   const records = useRecords({
     data: gigs,
     fields,
-    now: NOW,
+    now,
     getRowHref: (gig) => `/gigs/${gig.id}`
   })
   const [layouts] = useState(() => [
     calendarLayout<Gig>({ ...calendar, weekStart })
   ])
   return (
-    <div dir={dir} style={{ width }}>
+    <div dir={dir} className={className} style={{ width }}>
       <Records records={records} layouts={layouts} caption='Gigs'>
         <Records.Content />
       </Records>
@@ -151,8 +167,8 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     expect(more).toHaveFocus()
   })
 
-  it('keeps "+N more" inside its day on a phone', () => {
-    render(<Gigs width={358} />)
+  it('keeps "+N more" inside its day on the narrowest grid', () => {
+    render(<Gigs width={660} />)
     const cell = day('2026-11-27').getBoundingClientRect()
     const more = screen
       .getByRole('button', { name: /more on Friday, 27 November/ })
@@ -244,5 +260,127 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     })
     await user.click(within(panel).getByRole('button', { name: 'Calendar' }))
     expect(chips('2026-11-13')).toEqual(['Festival of Kazoos'])
+  })
+
+  it('shows an agenda on a phone: the month’s records under their days', async () => {
+    const user = userEvent.setup()
+    render(<Gigs width={375} />)
+    expect(screen.queryByRole('table')).toBeNull()
+    const days = screen.getAllByRole('heading', { level: 2 })
+    expect(days.map((heading) => heading.textContent)).toEqual([
+      'Tuesday, 3 November 2026 1',
+      'Tuesday, 10 November 2026 1',
+      'Friday, 13 November 2026 1',
+      'Saturday, 14 November 2026 1',
+      'Sunday, 15 November 2026 1',
+      'Tuesday, 24 November 2026 3',
+      'Friday, 27 November 2026 5'
+    ])
+    const busy = screen.getByRole('list', { name: /27 November/ })
+    expect(within(busy).getAllByRole('link')).toHaveLength(5)
+    expect(screen.queryByText('Lampshade Disco')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Previous month' }))
+    expect(screen.getByText('Nothing in October 2026')).toBeInTheDocument()
+  })
+
+  it('paints sticky day headings the colour behind them and names today', async () => {
+    const { container } = render(
+      <Gigs width={375} className='bg-sunken' now={new Date('2026-11-27')} />
+    )
+    const card = getComputedStyle(container.firstElementChild!).backgroundColor
+    const today = screen.getByRole('heading', { name: /^Today, Friday/ })
+    await expect.poll(() => getComputedStyle(today).backgroundColor).toBe(card)
+  })
+
+  it('sticks day headings under the search, and slides them under it as their day goes', () => {
+    function WithHeader() {
+      const records = useRecords({ data: gigs, fields, now: NOW })
+      const [layouts] = useState(() => [calendarLayout<Gig>(calendar)])
+      return (
+        <div
+          style={{ height: 320, width: 375, overflowY: 'auto' }}
+          data-testid='scroller'
+        >
+          <Records records={records} layouts={layouts} caption='Gigs'>
+            <Records.Header />
+            <Records.Content />
+          </Records>
+        </div>
+      )
+    }
+    render(<WithHeader />)
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="records-header"]'
+    )!
+    const scroller = screen.getByTestId('scroller')
+    const heading = (name: RegExp) => screen.getByRole('heading', { name })
+    const busy = heading(/24 November/)
+    scroller.scrollTop +=
+      busy.getBoundingClientRect().top -
+      header.getBoundingClientRect().bottom +
+      60
+    expect(busy.getBoundingClientRect().top).toBeCloseTo(
+      header.getBoundingClientRect().bottom,
+      0
+    )
+    const first = heading(/^Tuesday, 3 November/)
+    // The day's bottom edge sits halfway up the header, its heading with it.
+    scroller.scrollTop +=
+      first.closest('li')!.getBoundingClientRect().bottom -
+      header.getBoundingClientRect().bottom +
+      header.offsetHeight / 2
+    const x = header.getBoundingClientRect().left + 20
+    const y = first.getBoundingClientRect().bottom - 2
+    expect(header.contains(document.elementFromPoint(x, y))).toBe(true)
+  })
+
+  it('asks the server for the weeks of the month it shows, unpaged', async () => {
+    const user = userEvent.setup()
+    const requests: RecordsRequest[] = []
+    const heard = vi.fn((request: RecordsRequest) => requests.push(request))
+    const query = { search: '', filters: [], sort: [] }
+    function Served({ layout }: { layout: RecordView['layout'] }) {
+      const records = useRecords({
+        data: gigs,
+        fields,
+        now: NOW,
+        rowCount: gigs.length,
+        view: { query, layout },
+        onRequestChange: heard
+      })
+      const [layouts] = useState(() => [
+        calendarLayout<Gig>(calendar),
+        tableLayout([tableColumns<Gig>(fields).field('name')])
+      ])
+      return (
+        <Records records={records} layouts={layouts} caption='Gigs'>
+          <Records.Content />
+          <Records.Pagination />
+        </Records>
+      )
+    }
+    const { rerender } = render(
+      <Served layout={{ type: 'calendar', dateField: 'starts' }} />
+    )
+    const window = (start: string, end: string) => ({
+      version: 1,
+      query: expect.objectContaining({
+        filters: [
+          {
+            field: 'starts',
+            operator: 'overlaps',
+            range: { kind: 'dates', start, end }
+          }
+        ]
+      })
+    })
+    expect(requests).toEqual([window('2026-10-26', '2026-12-06')])
+    await user.click(screen.getByRole('button', { name: 'Next month' }))
+    expect(requests.at(-1)).toEqual(window('2026-11-30', '2027-01-03'))
+    expect(requests).toHaveLength(2)
+    expect(screen.queryByLabelText('Rows per page')).toBeNull()
+    rerender(<Served layout={{ type: 'table' }} />)
+    expect(requests.at(-1)).toHaveProperty('page', 0)
+    expect(screen.getByLabelText('Rows per page')).toBeInTheDocument()
   })
 })

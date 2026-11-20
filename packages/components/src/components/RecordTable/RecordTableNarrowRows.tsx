@@ -11,6 +11,7 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { surfaceClass, useSurface } from '../../utils/surface'
 import {
   listGroupSectionClass,
   listGroupTitleVariants,
@@ -78,6 +79,8 @@ type RecordTableNarrowRowsProps = NarrowShared & {
   onRow?: (row: number) => void
   /** Rows under a title and count per group, in place of `rows`. Groups with no rows are left out. */
   groups?: readonly RecordGroup[]
+  /** Group titles stick at this `top` as their rows scroll by. */
+  stickyTop?: string
 }
 
 const sizing = ({ layout, parts }: NarrowShared): RowSize =>
@@ -93,11 +96,19 @@ export function RecordTableNarrowRows({
   row,
   onRow,
   groups,
+  stickyTop,
   ...shared
 }: RecordTableNarrowRowsProps) {
   const listProps = { caption, busy, cards: shared.layout === 'cards' }
   if (groups)
-    return <GroupedList groups={groups} shared={shared} {...listProps} />
+    return (
+      <GroupedList
+        groups={groups}
+        stickyTop={stickyTop}
+        shared={shared}
+        {...listProps}
+      />
+    )
   if (range)
     return (
       <RangeList
@@ -235,13 +246,17 @@ const joinSelected = [
   '[&>li:has(+li[data-selected])]:[--list-divider:transparent]'
 ].join(' ')
 
+const noList = { current: null }
+
 // Unwindowed: grouping applies to the rows loaded, a page at most.
 function GroupedList({
   groups,
+  stickyTop,
   shared,
   ...listProps
 }: {
   groups: readonly RecordGroup[]
+  stickyTop?: string
   shared: NarrowShared
   caption?: string
   busy?: boolean
@@ -258,10 +273,17 @@ function GroupedList({
     [onToggle, order]
   )
   const grouped = { ...shared, onToggle: toggle }
+  const listRef = useRef<HTMLUListElement>(null)
+  useSurface(stickyTop === undefined ? noList : listRef)
   return (
-    <NarrowList {...listProps} grouped>
+    <NarrowList {...listProps} bodyRef={listRef} grouped>
       {shown.map((group) => (
-        <Group key={group.key ?? ''} group={group} shared={grouped} />
+        <Group
+          key={group.key ?? ''}
+          group={group}
+          stickyTop={stickyTop}
+          shared={grouped}
+        />
       ))}
     </NarrowList>
   )
@@ -269,9 +291,11 @@ function GroupedList({
 
 function Group({
   group,
+  stickyTop,
   shared
 }: {
   group: RecordGroup
+  stickyTop?: string
   shared: NarrowShared
 }) {
   const titleId = useId()
@@ -283,8 +307,10 @@ function Group({
         className={cn(
           listGroupTitleVariants(),
           'flex gap-1.5',
-          shared.bleed && '-mx-3'
+          shared.bleed && '-mx-3',
+          stickyTop !== undefined && ['sticky z-1 py-1', surfaceClass]
         )}
+        style={stickyTop === undefined ? undefined : { top: stickyTop }}
       >
         {group.label}{' '}
         <span className='font-normal tabular-nums'>{group.rows.length}</span>

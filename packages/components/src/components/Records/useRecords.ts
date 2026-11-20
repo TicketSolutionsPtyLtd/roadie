@@ -2,6 +2,7 @@
 
 import {
   type ReactNode,
+  useCallback,
   useDeferredValue,
   useEffect,
   useLayoutEffect,
@@ -139,6 +140,14 @@ export type UseRecordsOptions<Row extends object> = {
 // as records the parts read in full.
 const recordsBrand: unique symbol = Symbol('roadie.records')
 
+/** The days a calendar shows on its date `field`, `start` to `end` inclusive, for the month it names by its first day. */
+export type RecordsDateWindow = {
+  field: string
+  month: string
+  start: string
+  end: string
+}
+
 /** Everything `useRecords` holds, for the parts and layouts. Apps read `RecordsInstance`. */
 export type RecordsState<Row extends object = object> = {
   readonly [recordsBrand]: true
@@ -191,6 +200,10 @@ export type RecordsState<Row extends object = object> = {
   setRow: (row: number) => void
   /** Range mode's loading state, for a layout to render rows at their index. Undefined in other modes. */
   range?: RecordsRangeState<Row>
+  /** The days a calendar shows, which filter its date field in the request, unpaged. Undefined while no calendar shows. */
+  dateWindow?: RecordsDateWindow
+  /** A calendar sets the days it shows, and clears them as it goes. */
+  setDateWindow: (window: RecordsDateWindow | undefined) => void
   /** Every record the search and filters match, sorted, across pages. In server mode, only the page held. */
   matchingRows: readonly RecordsRow<Row>[]
   selectable: boolean
@@ -397,6 +410,35 @@ export function useRecordsState<Row extends object>({
   const filters = useEqualValue(view.query.filters)
   const sort = useEqualValue(view.query.sort)
   const scope = useEqualValue(scopeOption)
+  const [dateWindow, setHeldWindow] = useState<RecordsDateWindow>()
+  // Set before the state, so a request effect in the same commit waits for it.
+  const pendingWindow = useRef<RecordsDateWindow>(undefined)
+  const setDateWindow = useCallback((next: RecordsDateWindow | undefined) => {
+    const held = pendingWindow.current
+    const same =
+      held === next ||
+      (held &&
+        next &&
+        (Object.keys(next) as (keyof RecordsDateWindow)[]).every(
+          (key) => next[key] === held[key]
+        ))
+    if (same) return
+    pendingWindow.current = next
+    setHeldWindow(next)
+  }, [])
+  const windowFilters = useMemo<readonly RecordFilter[]>(
+    () =>
+      dateWindow
+        ? [
+            {
+              field: dateWindow.field,
+              operator: 'between',
+              value: [dateWindow.start, dateWindow.end]
+            }
+          ]
+        : NO_SCOPE,
+    [dateWindow]
+  )
   // A relative date filter's rows wait for the browser's clock.
   const awaitingClock =
     at === null &&
@@ -413,11 +455,12 @@ export function useRecordsState<Row extends object>({
   )
   const appliedScope = useMemo(
     () =>
-      applyQuery({ search: '', filters: [...scope], sort: [] }, fields, {
-        now: new Date(atTime),
-        timeZone: zone
-      }),
-    [scope, fields, atTime, zone]
+      applyQuery(
+        { search: '', filters: [...scope, ...windowFilters], sort: [] },
+        fields,
+        { now: new Date(atTime), timeZone: zone }
+      ),
+    [scope, windowFilters, fields, atTime, zone]
   )
   const resolvedQuery = useMemo(
     () => ({
@@ -591,9 +634,9 @@ export function useRecordsState<Row extends object>({
       () => ({
         version: RECORDS_REQUEST_VERSION,
         query: resolvedQuery,
-        ...(server && !ranged && { page, pageSize })
+        ...(server && !ranged && !dateWindow && { page, pageSize })
       }),
-      [resolvedQuery, server, ranged, page, pageSize]
+      [resolvedQuery, server, ranged, dateWindow, page, pageSize]
     )
   )
   // Hydration renders the server's UTC and clockless request first.
@@ -602,9 +645,13 @@ export function useRecordsState<Row extends object>({
   useLayoutEffect(() => {
     latestOnRequestChange.current = onRequestChange
   })
+  const sentRequest = useRef<RecordsRequest>(undefined)
   useEffect(() => {
-    if (hydrated) latestOnRequestChange.current?.(request)
-  }, [hydrated, request])
+    if (!hydrated || sentRequest.current === request) return
+    if (pendingWindow.current !== dateWindow) return
+    sentRequest.current = request
+    latestOnRequestChange.current?.(request)
+  }, [hydrated, request, dateWindow])
   const controlled = controlledPosition !== undefined
   useEffect(() => {
     if (controlled && clampedPage !== undefined)
@@ -916,6 +963,8 @@ export function useRecordsState<Row extends object>({
       setPosition({ ...position, row: next })
     },
     range: rangeState,
+    dateWindow,
+    setDateWindow,
     matchingRows,
     selectable,
     selection,
