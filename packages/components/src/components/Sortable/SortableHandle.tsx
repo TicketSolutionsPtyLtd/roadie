@@ -4,6 +4,7 @@ import { use, useRef, useState } from 'react'
 
 import {
   ArrowDownIcon,
+  ArrowElbowDownRightIcon,
   ArrowLeftIcon,
   ArrowLineDownIcon,
   ArrowLineLeftIcon,
@@ -22,6 +23,7 @@ import { IconButton, type IconButtonProps } from '../Button/IconButton'
 import { MenuContent } from '../Menu/MenuContent'
 import { MenuItem } from '../Menu/MenuItem'
 import { MenuRoot } from '../Menu/MenuRoot'
+import { MenuSeparator } from '../Menu/MenuSeparator'
 import { MenuTrigger } from '../Menu/MenuTrigger'
 import { SortableItemContext, useSortableRoot } from './SortableContext'
 import {
@@ -29,7 +31,8 @@ import {
   type TextDirection,
   handleLabel,
   menuMoves,
-  reorderLabel
+  reorderLabel,
+  transferLabel
 } from './order'
 import { sortableHandleVariants } from './variants'
 
@@ -78,6 +81,8 @@ export function SortableHandle({
   // events: WebKit sends a tap no mouse events once its pointerdown is
   // cancelled, as a drawer does.
   const pressedRef = useRef(false)
+  // Read on open, as lists join and leave the group without re-rendering this one.
+  const targets = open && !disabled ? root.transferTargets(value) : []
   const DotsIcon = root.axis === 'vertical' ? DotsSixVerticalIcon : DotsSixIcon
 
   return (
@@ -133,6 +138,16 @@ export function SortableHandle({
             </MenuItem>
           )
         })}
+        {targets.length > 0 ? <MenuSeparator /> : null}
+        {targets.map((target, index) => (
+          <MenuItem
+            key={index}
+            icon={<ArrowElbowDownRightIcon weight='bold' />}
+            onClick={target.move}
+          >
+            {transferLabel(target.name, label)}
+          </MenuItem>
+        ))}
       </MenuContent>
     </MenuRoot>
   )

@@ -480,6 +480,46 @@ describe('Sortable connected lists', () => {
   })
 })
 
+describe('Sortable Move to another list', () => {
+  async function openMenu(name: string) {
+    handle(name).focus()
+    await userEvent.keyboard('{Enter}')
+    return screen.findByRole('menu')
+  }
+
+  it('moves an item to the end of another list by keyboard', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(
+      <Lanes
+        initial={{ todo: ['Date', 'Event'], done: ['SKU'] }}
+        onTransfer={onTransfer}
+      />
+    )
+    await openMenu('Date')
+    await userEvent.keyboard('{End}')
+    await waitFor(() =>
+      expect(
+        screen.getByRole('menuitem', { name: 'Move Date to done' })
+      ).toHaveFocus()
+    )
+    await userEvent.keyboard('{Enter}')
+    expect(onTransfer).toHaveBeenCalledWith({
+      value: 'Date',
+      from: 'todo',
+      to: 'done',
+      index: 1
+    })
+    expect(listed('todo')).toEqual(['Event'])
+    expect(listed('done')).toEqual(['SKU', 'Date'])
+    await waitFor(() => expect(handle('Date')).toHaveFocus())
+    await waitFor(() =>
+      expect(screen.getAllByRole('status')[1]).toHaveTextContent(
+        'Date moved to position 2 of 2 done'
+      )
+    )
+  })
+})
+
 describe('Sortable List rows', () => {
   const background = (name: string) =>
     getComputedStyle(

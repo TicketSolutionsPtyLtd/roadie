@@ -17,6 +17,7 @@ import {
   createSortableGroup,
   sortableMonitor
 } from './dnd'
+import { type SortableList, joinGroup, otherLists } from './lists'
 import { dropIndex, moveAnnouncement, moveItem } from './order'
 
 export type SortableMove = {
@@ -93,6 +94,7 @@ export function SortableRoot({
     dir,
     label,
     disabled,
+    shared,
     list,
     onTransfer,
     canDrop
@@ -147,6 +149,20 @@ export function SortableRoot({
         ? { ...item, to: list, onTransfer }
         : null
     }
+    function receive(source: SortableSource, dryRun: boolean) {
+      const transfer = transferFrom(source)
+      if (!transfer || dryRun) return transfer !== null
+      const { onTransfer, ...item } = transfer
+      const { items } = latest.current
+      focusTarget = source.value
+      onTransfer({ ...item, index: items.length })
+      announce(source.label, items.length, items.length + 1)
+      return true
+    }
+    const self: SortableList = {
+      name: () => latest.current.label ?? latest.current.list ?? '',
+      receive
+    }
     function accepts(source: SortableSource) {
       return source.sameList || transferFrom(source) !== null
     }
@@ -171,6 +187,21 @@ export function SortableRoot({
       move,
       drop,
       accepts,
+      self,
+      transferTargets: (itemValue: string) => {
+        const { shared, list } = latest.current
+        if (shared === undefined || list === undefined) return []
+        const source = {
+          value: itemValue,
+          label: names.get(itemValue),
+          list,
+          sameList: false
+        }
+        return otherLists(shared, self, source).map((target) => ({
+          name: target.name(),
+          move: () => target.receive(source, false)
+        }))
+      },
       nameItem: (itemValue: string, name: string | undefined) => {
         names.set(itemValue, name)
         return () => {
@@ -200,6 +231,7 @@ export function SortableRoot({
       group,
       move: actions.move,
       accepts: actions.accepts,
+      transferTargets: actions.transferTargets,
       nameItem: actions.nameItem,
       lockItem: actions.lockItem,
       takeFocus: actions.takeFocus,
@@ -208,6 +240,10 @@ export function SortableRoot({
     }),
     [items, axis, dir, disabled, group, actions]
   )
+
+  useEffect(() => {
+    if (shared !== undefined) return joinGroup(shared, actions.self)
+  }, [shared, actions])
 
   useEffect(() => {
     if (disabled) return

@@ -13,6 +13,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Sortable, type SortableHandleProps, type SortableMove } from '.'
 import { List } from '../List'
+import { Lanes } from './lanes.testUtils'
 
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
 
@@ -440,5 +441,37 @@ describe('List inside Sortable', () => {
       'data-slot',
       'list-item'
     )
+  })
+})
+
+describe('Sortable Move to another list', () => {
+  const moves = (menu: HTMLElement) =>
+    within(menu)
+      .getAllByRole('menuitem')
+      .map((item) => item.textContent)
+      .slice(4)
+
+  it('offers each other list in the group, named by its label', async () => {
+    render(
+      <Lanes
+        initial={{ todo: ['Date'], doing: [], done: ['SKU'] }}
+        done={{ label: 'Finished' }}
+      />
+    )
+    const { menu } = await openMenu('Date')
+    expect(moves(menu)).toEqual(['Move Date to doing', 'Move Date to Finished'])
+    expect(within(menu).getByRole('separator')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['refuses it', { canDrop: () => false }],
+    ['is disabled', { done: { disabled: true } }],
+    ['has no onTransfer', { done: { onTransfer: undefined } }],
+    ['is in another group', { done: { group: 'archive' } }]
+  ] as const)('leaves out a list that %s', async (_, props) => {
+    render(<Lanes {...props} />)
+    const { menu } = await openMenu('Date')
+    expect(moves(menu)).toEqual([])
+    expect(within(menu).queryByRole('separator')).toBeNull()
   })
 })
