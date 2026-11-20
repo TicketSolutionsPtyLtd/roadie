@@ -344,14 +344,14 @@
     "name": "RecordBoard",
     "path": "dist/components/RecordBoard/index.js",
     "import": "*",
-    "limit": "40 kB",
+    "limit": "37.7 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordBoard with core",
     "path": "dist/components/RecordBoard/index.js",
     "import": "*",
-    "limit": "60 kB"
+    "limit": "54.8 kB"
   },
   {
     "name": "RecordCalendar",
