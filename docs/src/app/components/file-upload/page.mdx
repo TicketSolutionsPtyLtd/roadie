@@ -101,7 +101,7 @@ A `FileUpload.Trigger` on its own is a plain button, for a toolbar or a row of a
   <Guideline.Do code={`<Field.HelperText>A CSV up to 1 MB.</Field.HelperText>`}>
     Name the file type and size limit in the helper text, so people pick the right file first time. Accept a CSV by its `.csv` extension, since Windows often reports one as `application/vnd.ms-excel`.
   </Guideline.Do>
-  <Guideline.Dont code={`<FileUpload accept='.csv' maxFileSize={1_000_000}>`}>
+  <Guideline.Dont code={`<FileUpload accept='.csv' maxFileSize={1_000_000} />`}>
     Don't leave the rules for the error message to explain.
   </Guideline.Dont>
 </Guideline>
