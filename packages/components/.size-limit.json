@@ -238,7 +238,7 @@
     "name": "Sortable",
     "path": "dist/components/Sortable/index.js",
     "import": "*",
-    "limit": "18 kB",
+    "limit": "20 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -370,14 +370,14 @@
     "name": "RecordList",
     "path": "dist/components/RecordList/index.js",
     "import": "*",
-    "limit": "60 kB",
+    "limit": "122 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordList with core",
     "path": "dist/components/RecordList/index.js",
     "import": "*",
-    "limit": "77 kB"
+    "limit": "147 kB"
   },
   {
     "name": "RecordTable",

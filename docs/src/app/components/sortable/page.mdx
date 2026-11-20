@@ -292,8 +292,10 @@ render(<ColumnSettings />)
 - **Announcements**: every move, by menu or by drag, is announced in a polite
   live region: "SKU moved to position 3 of 7 columns". A move into a
   connected list is announced by the list it joins.
-- **Connected lists**: items move between lists by drag only. The Move menu
-  reorders within the item's own list.
+- **Connected lists**: the Move menu also offers each other list in the
+  `group` that would take the item, named by its `label` (or its `value`
+  without one), as in "Move Date to done".
+  The item lands at the end of that list, and focus follows it.
 - **Pointer**: a press on the handle that turns into a drag never opens the
   menu. A click without a drag does.
 - **Motion**: the dragged item fades without a transition when reduced motion

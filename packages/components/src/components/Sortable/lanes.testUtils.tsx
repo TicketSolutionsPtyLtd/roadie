@@ -18,7 +18,9 @@ export function Lanes({
   initial?: Lists
   onTransfer?: Transfer
   canDrop?: SortableProps['canDrop']
-  done?: Partial<Pick<SortableProps, 'disabled' | 'onTransfer'>>
+  done?: Partial<
+    Pick<SortableProps, 'disabled' | 'onTransfer' | 'label' | 'group'>
+  >
   doneZone?: string
 }) {
   const [lists, setLists] = useState(initial)
