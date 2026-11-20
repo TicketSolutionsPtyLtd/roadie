@@ -30,7 +30,7 @@ const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 
 const initial = names.map((name, index) => ({
   id: `event-${index}`,
   name,
-  venue: ['The Triffid', 'Forum', 'Northcote Social Club'][index % 3],
+  venue: ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Drongo Bell Social Club'][index % 3],
   status: ['draft', 'on_sale', 'on_sale', 'sold_out', ''][index]
 }))
 
@@ -134,6 +134,6 @@ Each column counts the records loaded into it. With a server, that's the page in
 ## Accessibility
 
 - The board is a group named by the records' caption, holding a region for each column, named by its option.
-- Each card's handle opens a Move menu on click, Enter or Space. An item such as "Move Marzipan Thunderclap to Sold out" moves the card to the end of that column, and focus follows it.
+- Each card's handle opens a Move menu on click, Enter or Space. An item such as "Move Marzipan Thunderclap to Sold out" moves the card to that column, where it takes its place in the view's sort, and focus follows it.
 - The column a card joins announces the move. A rejected move shows its message in an alert.
 - Each card's title links to its record through `getRowHref`.
