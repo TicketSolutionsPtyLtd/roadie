@@ -13,6 +13,15 @@ import { useCommandPaletteScope } from './CommandPaletteContext'
 export type CommandPaletteInputProps = AutocompleteInputProps &
   RefAttributes<HTMLInputElement>
 
+// keyCode 229: Safari's last keydown of a composition reports isComposing false.
+const isHeldOrComposing = (event: KeyboardEvent<HTMLInputElement>) =>
+  event.shiftKey ||
+  event.altKey ||
+  event.metaKey ||
+  event.ctrlKey ||
+  event.nativeEvent.isComposing ||
+  event.keyCode === 229
+
 export function CommandPaletteInput({
   className,
   'aria-label': ariaLabel = 'Search',
@@ -31,7 +40,7 @@ export function CommandPaletteInput({
           ? 1
           : 0
     const next = scopes[scopes.indexOf(scope) + step]
-    if (step === 0 || next === undefined || event.shiftKey) return
+    if (step === 0 || next === undefined || isHeldOrComposing(event)) return
     event.preventDefault()
     setScope(next)
   }

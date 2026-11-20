@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -22,14 +22,21 @@ const GROUPS: Group[] = [
   }
 ]
 
-function Palette(props: Partial<CommandPaletteProps<Group>>) {
+function Palette({
+  withScopes = true,
+  ...props
+}: Partial<CommandPaletteProps<Group>> & { withScopes?: boolean }) {
   return (
     <CommandPalette defaultOpen shortcut={false} items={GROUPS} {...props}>
       <CommandPalette.Input />
-      <CommandPalette.Scopes>
-        <CommandPalette.Scope value='artifacts'>Artifacts</CommandPalette.Scope>
-        <CommandPalette.Scope value='sessions'>Sessions</CommandPalette.Scope>
-      </CommandPalette.Scopes>
+      {withScopes && (
+        <CommandPalette.Scopes>
+          <CommandPalette.Scope value='artifacts'>
+            Artifacts
+          </CommandPalette.Scope>
+          <CommandPalette.Scope value='sessions'>Sessions</CommandPalette.Scope>
+        </CommandPalette.Scopes>
+      )}
       <CommandPalette.List>
         {(group: Group) => (
           <CommandPalette.Group key={group.label} items={group.items}>
@@ -83,6 +90,9 @@ describe('CommandPalette scopes', () => {
     render(<Palette />)
     const input = await screen.findByRole('combobox')
     input.focus()
+    await userEvent.keyboard('{ArrowLeft}')
+    expect(tab('All')).toHaveAttribute('aria-pressed', 'true')
+    expect(options()).toHaveLength(4)
     await userEvent.keyboard('{ArrowRight}')
     expect(tab('Artifacts')).toHaveAttribute('aria-pressed', 'true')
     await userEvent.keyboard('{ArrowRight}{ArrowRight}')
@@ -95,10 +105,53 @@ describe('CommandPalette scopes', () => {
   it('leaves the arrows to the caret inside typed text', async () => {
     render(<Palette />)
     const input = await screen.findByRole('combobox')
-    await userEvent.type(input, 're{ArrowLeft}{ArrowRight}')
-    expect(tab('All')).toHaveAttribute('aria-pressed', 'true')
+    input.focus()
+    await userEvent.keyboard('{ArrowRight}re{ArrowLeft}')
+    expect(tab('Artifacts')).toHaveAttribute('aria-pressed', 'true')
     await userEvent.keyboard('{ArrowRight}')
     expect(tab('Artifacts')).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.keyboard('{ArrowRight}')
+    expect(tab('Sessions')).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('goes back to every command from the All tab', async () => {
+    render(<Palette />)
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Sessions' })
+    )
+    await userEvent.click(tab('All'))
+    expect(options()).toHaveLength(4)
+  })
+
+  it('stops changing type with the arrows once the tabs are gone', async () => {
+    const { rerender } = render(<Palette />)
+    await screen.findAllByRole('option')
+    rerender(<Palette withScopes={false} />)
+    screen.getByRole('combobox').focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(options()).toHaveLength(4)
+  })
+
+  it('leaves the arrows alone while composing text or held with a modifier', async () => {
+    render(<Palette />)
+    const input = await screen.findByRole('combobox')
+    fireEvent.keyDown(input, { key: 'ArrowRight', isComposing: true })
+    fireEvent.keyDown(input, { key: 'ArrowRight', keyCode: 229 })
+    fireEvent.keyDown(input, { key: 'ArrowRight', altKey: true })
+    fireEvent.keyDown(input, { key: 'ArrowRight', metaKey: true })
+    fireEvent.keyDown(input, { key: 'ArrowRight', ctrlKey: true })
+    expect(tab('All')).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('opens on the default type again each time', async () => {
+    const { rerender } = render(<Palette open defaultScope='sessions' />)
+    expect(await screen.findAllByRole('option')).toHaveLength(3)
+    await userEvent.click(tab('Artifacts'))
+    expect(options()).toEqual(['Release notes'])
+    rerender(<Palette open={false} defaultScope='sessions' />)
+    rerender(<Palette open defaultScope='sessions' />)
+    expect(await screen.findAllByRole('option')).toHaveLength(3)
+    expect(tab('Sessions')).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('takes the type from the app when controlled', async () => {
