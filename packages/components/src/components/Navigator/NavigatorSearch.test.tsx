@@ -64,6 +64,21 @@ describe('Navigator.Search', () => {
     expect(warn).toHaveBeenCalledTimes(1)
   })
 
+  it('leaves no empty tile or tab behind, pinned or automatic, with no palette', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(<Nav />)
+    await flushViewportMeasurement()
+    expect(within(primaryOf('vertical')).getAllByRole('listitem')).toHaveLength(
+      2
+    )
+    rerender(<Nav search={<Navigator.Search placement='automatic' />} />)
+    await flushViewportMeasurement()
+    expect(within(primaryOf('vertical')).getAllByRole('listitem')).toHaveLength(
+      2
+    )
+    expect(searchIn('horizontal')).toBeNull()
+  })
+
   it('finds a palette mounted after it, without warning', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
@@ -95,6 +110,41 @@ describe('Navigator.Search', () => {
       'aria-keyshortcuts',
       'Control+K'
     )
+  })
+
+  it("shows the palette's keys in the tile's tooltip", async () => {
+    render(
+      <>
+        <Nav />
+        {palette}
+      </>
+    )
+    await flushViewportMeasurement()
+    searchIn('vertical')!.focus()
+    const popup = await screen.findByText(
+      'Search',
+      { selector: '[data-slot="tooltip-popup"] *' },
+      { timeout: 2000 }
+    )
+    const keys = popup
+      .closest('[data-slot="tooltip-popup"]')!
+      .querySelectorAll('kbd')
+    expect([...keys].map((key) => key.textContent).join(' ')).toMatch(/K$/)
+  })
+
+  it("opens the palette from the phone bar's circle, without changing the value", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      <>
+        <Nav onValueChange={onValueChange} />
+        {palette}
+      </>
+    )
+    await flushViewportMeasurement()
+    await user.click(searchIn('horizontal')!)
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(onValueChange).not.toHaveBeenCalled()
   })
 
   it("takes a label, and gives its icon Navigator's duotone", async () => {
@@ -135,7 +185,9 @@ describe('Navigator.Search', () => {
     const more = document.querySelector<HTMLElement>(
       '[data-slot="pane"][data-overflow]'
     )!
-    await user.click(within(more).getByRole('button', { name: 'Search' }))
+    const row = within(more).getByRole('button', { name: 'Search' })
+    expect(row).toHaveAttribute('aria-keyshortcuts', 'Control+K')
+    await user.click(row)
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(onValueChange).not.toHaveBeenCalled()
   })
