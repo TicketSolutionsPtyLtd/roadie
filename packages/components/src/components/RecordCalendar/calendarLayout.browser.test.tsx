@@ -277,6 +277,25 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     expect(screen.queryByText('Lampshade Disco')).toBeNull()
   })
 
+  it('keeps a day’s heading at the top of its scroller while its rows pass', () => {
+    render(
+      <div style={{ height: 240, overflowY: 'auto' }} data-testid='scroller'>
+        <Gigs width={375} />
+      </div>
+    )
+    const scroller = screen.getByTestId('scroller')
+    const heading = screen.getByRole('heading', { name: /27 November/ })
+    scroller.scrollTop =
+      heading.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop +
+      60
+    expect(heading.getBoundingClientRect().top).toBeCloseTo(
+      scroller.getBoundingClientRect().top,
+      0
+    )
+  })
+
   it('says so when the agenda’s month has nothing on', async () => {
     const user = userEvent.setup()
     render(<Gigs width={375} />)
