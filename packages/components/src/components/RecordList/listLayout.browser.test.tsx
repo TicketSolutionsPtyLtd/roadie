@@ -278,7 +278,24 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(rows()).toHaveLength(3)
   })
 
-  it('stays ungrouped when it loads by range', async () => {
+  it('offers no Group by when no field can group', async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowList
+        data={testShows(3)}
+        fields={showFields.filter(({ key }) => key !== 'status')}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    await within(panel).findAllByRole('button', { name: /^Show / })
+    expect(
+      within(panel).queryByRole('combobox', { name: 'Group by' })
+    ).toBeNull()
+  })
+
+  it('stays ungrouped when it loads by range, and offers no Group by', async () => {
+    const user = userEvent.setup()
     render(
       <ShowList
         fields={showFields}
@@ -291,5 +308,11 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     )
     await expect.poll(() => rows().length).toBeGreaterThan(0)
     expect(groupsShown()).toHaveLength(0)
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    await within(panel).findAllByRole('button', { name: /^Show / })
+    expect(
+      within(panel).queryByRole('combobox', { name: 'Group by' })
+    ).toBeNull()
   })
 })

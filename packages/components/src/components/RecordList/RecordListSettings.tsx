@@ -23,9 +23,10 @@ RecordListSettings.preload = RecordGridSettingsLazy.preload
 function RecordListGroupSettings() {
   const { records } = useRecordsContext()
   const headingId = useId()
-  const { fields, view } = records
+  const { fields, view, range } = records
   const groupable = groupableFields(fields)
-  if (groupable.length === 0) return null
+  // A range list stays ungrouped, so the setting would do nothing.
+  if (range || groupable.length === 0) return null
   const current = listGroupField(fields, view.layout)
   return (
     <section aria-labelledby={headingId} className='grid gap-2'>
