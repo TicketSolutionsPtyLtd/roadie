@@ -796,6 +796,31 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'record-board':
+      return (
+        <div className='grid w-44 grid-cols-3 gap-1.5 rounded-xl bg-normal p-2'>
+          {[2, 1, 0].map((cards, column) => (
+            <div
+              key={column}
+              className='grid content-start gap-1 rounded-lg bg-sunken p-1'
+            >
+              <Skel className='h-1 w-6' />
+              {Array.from({ length: cards }, (_, card) => (
+                <div
+                  key={card}
+                  className='grid emphasis-normal gap-1 rounded-md p-1'
+                >
+                  <div className='h-1.5 w-8 rounded-sm bg-strong/40' />
+                  <Skel className='h-1 w-5' />
+                </div>
+              ))}
+              {cards === 0 && (
+                <div className='h-6 rounded-md border border-dashed border-subtle' />
+              )}
+            </div>
+          ))}
+        </div>
+      )
     case 'record-calendar':
       return (
         <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>

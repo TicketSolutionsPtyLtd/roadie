@@ -248,6 +248,10 @@
       "types": "./dist/components/RadioGroup/index.d.ts",
       "import": "./dist/components/RadioGroup/index.js"
     },
+    "./record-board": {
+      "types": "./dist/components/RecordBoard/index.d.ts",
+      "import": "./dist/components/RecordBoard/index.js"
+    },
     "./record-calendar": {
       "types": "./dist/components/RecordCalendar/index.d.ts",
       "import": "./dist/components/RecordCalendar/index.js"

@@ -39,6 +39,8 @@ export type RecordCardProps = {
   selecting?: boolean
   onToggle?: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
+  /** Leads the title row, before the leading value, such as a board's drag handle. */
+  handle?: ReactNode
   /** The banner image's `sizes`, for a card narrower than the screen, such as in a grid. */
   imageSizes?: string
   className?: string
@@ -59,6 +61,7 @@ export const RecordCard = memo(function RecordCard({
   selecting = false,
   onToggle,
   rowActions,
+  handle,
   imageSizes,
   className
 }: RecordCardProps) {
@@ -117,7 +120,10 @@ export const RecordCard = memo(function RecordCard({
             thumbnail={parts.leading?.kind === 'image'}
           />
         ) : (
-          leading && <div className='shrink-0'>{leading}</div>
+          <>
+            {handle && <div className='-ms-1 shrink-0'>{handle}</div>}
+            {leading && <div className='shrink-0'>{leading}</div>}
+          </>
         )}
         <div className='grid min-w-0 flex-1 grid-cols-1 gap-0.5'>
           {/* A p, not CardTitle's h3: a layout can't know the page's outline. */}

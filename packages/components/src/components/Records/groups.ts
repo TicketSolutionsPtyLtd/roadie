@@ -18,7 +18,12 @@ export const groupableFields = (fields: readonly RecordField[]) =>
     (field) => !field.multiple && recordFieldOptions(field).length > 0
   )
 
-const isBlank = (value: unknown) =>
+/** The group for records with no value, as in "No status". */
+export const noneLabel = (field: RecordField) =>
+  // Mid-sentence, so "Venue ID" reads "No venue ID".
+  `No ${field.label.replace(/^[A-Z](?=[a-z])/, (first) => first.toLowerCase())}`
+
+export const isBlank = (value: unknown) =>
   value === undefined || value === null || value === ''
 
 /**
@@ -38,8 +43,7 @@ export function groupRecords<Row>(
   )
   const none: RecordGroup<Row> = {
     key: null,
-    // Mid-sentence, so "Venue ID" reads "No venue ID".
-    label: `No ${field.label.replace(/^[A-Z](?=[a-z])/, (first) => first.toLowerCase())}`,
+    label: noneLabel(field),
     rows: []
   }
   for (const record of rows) {
