@@ -37,7 +37,6 @@ export function NavigatorSearch({
 }: NavigatorSearchProps) {
   const palette = useRegisteredPalette()
   const platform = useKeyPlatform()
-  if (!palette) return null
   const { label, icon } = searchSlotMeta({
     placement,
     label: labelProp,
@@ -48,15 +47,19 @@ export function NavigatorSearch({
       label={
         <span className='flex items-center gap-2'>
           {label}
-          <KbdShortcut shortcut={palette.shortcut} size='sm' />
+          {palette ? (
+            <KbdShortcut shortcut={palette.shortcut} size='sm' />
+          ) : null}
         </span>
       }
       render={(asTrigger) =>
         asTrigger(
           <NavigatorDestination
-            aria-keyshortcuts={ariaKeyShortcuts(palette.shortcut, platform)}
+            aria-keyshortcuts={
+              palette ? ariaKeyShortcuts(palette.shortcut, platform) : undefined
+            }
             className={cn(navigatorItemVariants({ active: false }), className)}
-            onClick={() => palette.open()}
+            onClick={() => palette?.open()}
           >
             <span data-slot='navigator-item-icon'>
               {presentNavIcon(icon, 'size-6')}

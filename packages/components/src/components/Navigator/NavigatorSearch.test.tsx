@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
@@ -190,5 +191,21 @@ describe('Navigator.Search', () => {
     await user.click(row)
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(onValueChange).not.toHaveBeenCalled()
+  })
+})
+
+describe('Navigator.Search on the server', () => {
+  it('is laid out before any palette registers, so the bar does not jump', () => {
+    const html = renderToString(
+      <Navigator value='a'>
+        <Navigator.Primary aria-label='App'>
+          <Navigator.Item value='a' href='/a' icon={<span />}>
+            A
+          </Navigator.Item>
+          <Navigator.Search />
+        </Navigator.Primary>
+      </Navigator>
+    )
+    expect(html).toContain('Search')
   })
 })

@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 
 import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 
@@ -56,17 +56,26 @@ export function withoutSearch(collected: CollectedSlots): CollectedSlots {
   }
 }
 
-// A microtask past the commit, so a palette mounted after Navigator registers first.
-export function useMissingPaletteWarning(
+/**
+ * Whether a declared Search has no palette to open, known only after mount:
+ * the server and hydration lay Search out, so the bar doesn't jump once the
+ * palette registers. A microtask past the commit, so a palette mounted after
+ * Navigator registers first.
+ */
+export function usePaletteMissing(
   declared: boolean,
   palette: RegisteredPalette | null
 ) {
+  const [missing, setMissing] = useState(false)
+  if (palette && missing) setMissing(false)
   const warned = useRef(false)
   useEffect(() => {
-    if (!declared || palette || !isDev()) return
+    if (!declared || palette) return
     let live = true
     queueMicrotask(() => {
-      if (live && !currentPalette() && !warned.current) {
+      if (!live || currentPalette()) return
+      setMissing(true)
+      if (isDev() && !warned.current) {
         warned.current = true
         console.warn(
           '[Roadie] Navigator.Search found no CommandPalette with a shortcut to open, so it renders nothing.'
@@ -77,4 +86,5 @@ export function useMissingPaletteWarning(
       live = false
     }
   }, [declared, palette])
+  return missing
 }

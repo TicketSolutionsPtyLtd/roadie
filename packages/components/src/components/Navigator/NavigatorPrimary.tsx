@@ -47,7 +47,7 @@ import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
-import { useMissingPaletteWarning, withoutSearch } from './searchSlot'
+import { usePaletteMissing, withoutSearch } from './searchSlot'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
@@ -114,13 +114,13 @@ export function NavigatorPrimary({
 
   const palette = useRegisteredPalette()
   const platform = useKeyPlatform()
-  const collected = useMemo(
-    () => (palette ? declared : withoutSearch(declared)),
-    [declared, palette]
-  )
-  useMissingPaletteWarning(
+  const missing = usePaletteMissing(
     declared.ordered.some((slot) => slot.search),
     palette
+  )
+  const collected = useMemo(
+    () => (missing ? withoutSearch(declared) : declared),
+    [declared, missing]
   )
   const searchShortcut = palette
     ? ariaKeyShortcuts(palette.shortcut, platform)
