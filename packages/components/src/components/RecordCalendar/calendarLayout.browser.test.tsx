@@ -2,9 +2,21 @@ import { useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
-import { type RecordView, recordFields } from '@oztix/roadie-core/records'
+import {
+  type RecordView,
+  type RecordsRequest,
+  recordFields
+} from '@oztix/roadie-core/records'
 
 import { calendarLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -151,8 +163,8 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     expect(more).toHaveFocus()
   })
 
-  it('keeps "+N more" inside its day on a phone', () => {
-    render(<Gigs width={358} />)
+  it('keeps "+N more" inside its day on the narrowest grid', () => {
+    render(<Gigs width={660} />)
     const cell = day('2026-11-27').getBoundingClientRect()
     const more = screen
       .getByRole('button', { name: /more on Friday, 27 November/ })
@@ -244,5 +256,74 @@ describe('calendarLayout in a browser', { timeout: 30_000 }, () => {
     })
     await user.click(within(panel).getByRole('button', { name: 'Calendar' }))
     expect(chips('2026-11-13')).toEqual(['Festival of Kazoos'])
+  })
+
+  it('shows an agenda on a phone: the month’s records under their days', () => {
+    render(<Gigs width={375} />)
+    expect(screen.queryByRole('table')).toBeNull()
+    const days = screen.getAllByRole('heading', { level: 2 })
+    expect(days.map((heading) => heading.textContent)).toEqual([
+      'Tuesday, 3 November 2026 1',
+      'Tuesday, 10 November 2026 1',
+      'Friday, 13 November 2026 1',
+      'Saturday, 14 November 2026 1',
+      'Sunday, 15 November 2026 1',
+      'Tuesday, 24 November 2026 3',
+      'Friday, 27 November 2026 5'
+    ])
+    expect(getComputedStyle(days[0]!).position).toBe('sticky')
+    const busy = screen.getByRole('list', { name: /27 November/ })
+    expect(within(busy).getAllByRole('link')).toHaveLength(5)
+    expect(screen.queryByText('Lampshade Disco')).toBeNull()
+  })
+
+  it('says so when the agenda’s month has nothing on', async () => {
+    const user = userEvent.setup()
+    render(<Gigs width={375} />)
+    await user.click(screen.getByRole('button', { name: 'Previous month' }))
+    expect(screen.getByText('October 2026')).toBeInTheDocument()
+    expect(screen.getByText('Nothing in October 2026')).toBeInTheDocument()
+  })
+
+  it('asks the server for the weeks of the month it shows, unpaged', async () => {
+    const user = userEvent.setup()
+    const requests: RecordsRequest[] = []
+    const heard = vi.fn((request: RecordsRequest) => requests.push(request))
+    function Served() {
+      const records = useRecords({
+        data: gigs,
+        fields,
+        now: NOW,
+        rowCount: gigs.length,
+        onRequestChange: heard
+      })
+      const [layouts] = useState(() => [calendarLayout<Gig>(calendar)])
+      return (
+        <Records records={records} layouts={layouts} caption='Gigs'>
+          <Records.Content />
+          <Records.Pagination />
+        </Records>
+      )
+    }
+    render(<Served />)
+    const window = (start: string, end: string) => ({
+      version: 1,
+      query: expect.objectContaining({
+        filters: [
+          {
+            field: 'starts',
+            operator: 'overlaps',
+            range: { kind: 'dates', start, end }
+          }
+        ]
+      })
+    })
+    expect(requests).toEqual([window('2026-10-26', '2026-12-06')])
+    await user.click(screen.getByRole('button', { name: 'Next month' }))
+    expect(requests.at(-1)).toEqual(window('2026-11-30', '2027-01-03'))
+    expect(requests).toHaveLength(2)
+    expect(
+      document.querySelector('[data-slot="records-pagination"]')
+    ).toBeNull()
   })
 })

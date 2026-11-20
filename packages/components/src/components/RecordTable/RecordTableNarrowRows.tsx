@@ -78,6 +78,8 @@ type RecordTableNarrowRowsProps = NarrowShared & {
   onRow?: (row: number) => void
   /** Rows under a title and count per group, in place of `rows`. Groups with no rows are left out. */
   groups?: readonly RecordGroup[]
+  /** Group titles stick at this `top` as their rows scroll by. */
+  stickyTop?: string
 }
 
 const sizing = ({ layout, parts }: NarrowShared): RowSize =>
@@ -93,11 +95,19 @@ export function RecordTableNarrowRows({
   row,
   onRow,
   groups,
+  stickyTop,
   ...shared
 }: RecordTableNarrowRowsProps) {
   const listProps = { caption, busy, cards: shared.layout === 'cards' }
   if (groups)
-    return <GroupedList groups={groups} shared={shared} {...listProps} />
+    return (
+      <GroupedList
+        groups={groups}
+        stickyTop={stickyTop}
+        shared={shared}
+        {...listProps}
+      />
+    )
   if (range)
     return (
       <RangeList
@@ -238,10 +248,12 @@ const joinSelected = [
 // Unwindowed: grouping applies to the rows loaded, a page at most.
 function GroupedList({
   groups,
+  stickyTop,
   shared,
   ...listProps
 }: {
   groups: readonly RecordGroup[]
+  stickyTop?: string
   shared: NarrowShared
   caption?: string
   busy?: boolean
@@ -261,7 +273,12 @@ function GroupedList({
   return (
     <NarrowList {...listProps} grouped>
       {shown.map((group) => (
-        <Group key={group.key ?? ''} group={group} shared={grouped} />
+        <Group
+          key={group.key ?? ''}
+          group={group}
+          stickyTop={stickyTop}
+          shared={grouped}
+        />
       ))}
     </NarrowList>
   )
@@ -269,9 +286,11 @@ function GroupedList({
 
 function Group({
   group,
+  stickyTop,
   shared
 }: {
   group: RecordGroup
+  stickyTop?: string
   shared: NarrowShared
 }) {
   const titleId = useId()
@@ -283,8 +302,11 @@ function Group({
         className={cn(
           listGroupTitleVariants(),
           'flex gap-1.5',
-          shared.bleed && '-mx-3'
+          shared.bleed && '-mx-3',
+          stickyTop !== undefined &&
+            'sticky z-docked bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal))) py-1'
         )}
+        style={stickyTop === undefined ? undefined : { top: stickyTop }}
       >
         {group.label}{' '}
         <span className='font-normal tabular-nums'>{group.rows.length}</span>

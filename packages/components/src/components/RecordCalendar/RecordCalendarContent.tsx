@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useId, useMemo, useState } from 'react'
+import { type KeyboardEvent, useId, useLayoutEffect, useMemo } from 'react'
 
 import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react'
 
@@ -25,12 +25,15 @@ import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { Popover } from '../Popover'
 import { knowsNow } from '../Records/clock'
 import type { RecordsContentProps } from '../Records/layouts'
+import { useNarrow } from '../Records/narrow'
 import type { RecordsRow } from '../Records/types'
+import type { RecordsDateWindow } from '../Records/useRecords'
 import {
   RecordsLayoutState,
   RecordsProgress,
   useRecordsLayout
 } from '../Records/useRecordsLayout'
+import { RecordCalendarAgenda } from './RecordCalendarAgenda'
 import type { CalendarLayoutConfig } from './types'
 
 // A day shows this many chips, or one fewer and "+N more".
@@ -65,10 +68,10 @@ export function RecordCalendarContent({
   const dateField = fields.find(({ key }) => key === dateKey)
   // Server renders and hydration read no clock, so today waits for the browser.
   const today = knowsNow(now) ? plainDateOf(now, timeZone) : null
-  const [picked, setPicked] = useState<string>()
-  const anchor = picked ?? config.defaultMonth ?? today
+  const anchor = records.dateWindow?.month ?? config.defaultMonth ?? today
   const month = anchor && firstOfMonth(anchor)
   const weekStart = config.weekStart ?? 1
+  const narrow = useNarrow(frame.frameRef)
   const weekdays = useMemo(
     () => weekdayNames(weekStart, locale),
     [weekStart, locale]
@@ -78,19 +81,30 @@ export function RecordCalendarContent({
     const { year, month: number } = plainDateParts(month)
     return monthGrid(year, number, { weekStart })
   }, [month, weekStart])
-  const days = useMemo(
-    () =>
-      weeks && dateField
-        ? recordsByDay(
-            records.matchingRows,
-            dateField,
-            timeZone,
-            weeks[0]![0]!,
-            weeks.at(-1)!.at(-1)!
-          )
-        : new Map<string, Day>(),
-    [weeks, dateField, records.matchingRows, timeZone]
-  )
+  const first = weeks?.[0]![0]
+  const last = weeks?.at(-1)!.at(-1)
+  const { setDateWindow } = records
+  const field = dateField?.key
+  // The request waits for this, so it carries the month's days from the start.
+  useLayoutEffect(() => {
+    if (field && month && first && last)
+      setDateWindow({ field, month, start: first, end: last })
+  }, [field, month, first, last, setDateWindow])
+  useLayoutEffect(() => () => setDateWindow(undefined), [setDateWindow])
+  const goTo = (date: string) =>
+    field && setDateWindow(monthWindow(field, firstOfMonth(date), weekStart))
+  const days = useMemo(() => {
+    if (!month || !first || !last || !dateField) return new Map<string, Day>()
+    return narrow
+      ? recordsByDay(
+          records.matchingRows,
+          dateField,
+          timeZone,
+          month,
+          lastOfMonth(month)
+        )
+      : recordsByDay(records.matchingRows, dateField, timeZone, first, last)
+  }, [month, first, last, narrow, dateField, records.matchingRows, timeZone])
   const chip: Chip = {
     field: fields.find(({ key }) => key === config.title),
     timeZone,
@@ -117,7 +131,7 @@ export function RecordCalendarContent({
           size='sm'
           emphasis='subtler'
           disabled={!today}
-          onClick={() => setPicked(today ?? undefined)}
+          onClick={() => today && goTo(today)}
         >
           Today
         </Button>
@@ -126,7 +140,7 @@ export function RecordCalendarContent({
           size='sm'
           emphasis='subtler'
           disabled={!month}
-          onClick={() => month && setPicked(addMonths(month, -1))}
+          onClick={() => month && goTo(addMonths(month, -1))}
         >
           <CaretLeftIcon weight='bold' className='size-4' />
         </IconButton>
@@ -135,7 +149,7 @@ export function RecordCalendarContent({
           size='sm'
           emphasis='subtler'
           disabled={!month}
-          onClick={() => month && setPicked(addMonths(month, 1))}
+          onClick={() => month && goTo(addMonths(month, 1))}
         >
           <CaretRightIcon weight='bold' className='size-4' />
         </IconButton>
@@ -143,6 +157,16 @@ export function RecordCalendarContent({
       {frame.busy && <RecordsProgress />}
       {state === 'error' ? (
         <RecordsLayoutState key={state} kind={state} records={records} />
+      ) : narrow ? (
+        <RecordCalendarAgenda
+          frame={frame}
+          days={days}
+          title={config.title}
+          layout={layout}
+          locale={locale}
+          today={today}
+          monthName={monthName}
+        />
       ) : (
         <table
           aria-labelledby={captionId}
@@ -385,3 +409,14 @@ function moveBetweenDays(event: KeyboardEvent<HTMLTableElement>) {
 }
 
 const firstOfMonth = (date: string) => `${date.slice(0, 7)}-01`
+const lastOfMonth = (month: string) => addDays(addMonths(month, 1), -1)
+
+function monthWindow(
+  field: string,
+  month: string,
+  weekStart: number
+): RecordsDateWindow {
+  const { year, month: number } = plainDateParts(month)
+  const weeks = monthGrid(year, number, { weekStart })
+  return { field, month, start: weeks[0]![0]!, end: weeks.at(-1)!.at(-1)! }
+}

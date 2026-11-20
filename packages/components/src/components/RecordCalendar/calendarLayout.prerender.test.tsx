@@ -1,17 +1,26 @@
 import { screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { RecordsRequest } from '@oztix/roadie-core/records'
+
 import { hydrateWithoutClock } from '../../utils/testUtils'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { calendarLayout } from './calendarLayout'
 
-function Shows({ defaultMonth }: { defaultMonth?: string }) {
+function Shows({
+  defaultMonth,
+  onRequestChange
+}: {
+  defaultMonth?: string
+  onRequestChange?: (request: RecordsRequest) => void
+}) {
   const records = useRecords<TestShow>({
     data: testShows(12),
     fields: showFields,
     getRowId: (row) => row.id,
-    timeZone: 'Australia/Brisbane'
+    timeZone: 'Australia/Brisbane',
+    ...(onRequestChange && { rowCount: 12, onRequestChange })
   })
   const layouts = [
     calendarLayout<TestShow>({
@@ -58,5 +67,21 @@ describe('RecordCalendar on a prerendering server', () => {
     // testShows puts show-2 on 3 March.
     expect(serverHtml).toContain('Julia Jacklin 1')
     expect(onRecoverableError).not.toHaveBeenCalled()
+  })
+
+  it('sends one request once hydrated, for the weeks of this month', async () => {
+    const heard = vi.fn()
+    await hydrateWithoutClock(<Shows onRequestChange={heard} />)
+    expect(await screen.findByText('November 2026')).toBeInTheDocument()
+    expect(heard).toHaveBeenCalledOnce()
+    const [request] = heard.mock.calls[0] as [RecordsRequest]
+    expect(request).not.toHaveProperty('page')
+    expect(request.query.filters).toEqual([
+      {
+        field: 'starts',
+        operator: 'overlaps',
+        range: { kind: 'dates', start: '2026-10-26', end: '2026-12-06' }
+      }
+    ])
   })
 })

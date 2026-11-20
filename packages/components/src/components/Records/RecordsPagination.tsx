@@ -20,6 +20,8 @@ export function RecordsPagination({
   className
 }: RecordsPaginationProps) {
   const { records } = useRecordsContext()
+  // A calendar loads every record in the days it shows.
+  if (records.dateWindow) return null
   if (records.range) return <RangeCount className={className} />
   const { page, pageSize } = records.position
   // A page past the end, such as a deep link waiting for its count, reads and
