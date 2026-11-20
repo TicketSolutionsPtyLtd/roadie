@@ -9,7 +9,8 @@ export type CommandPaletteScopeProps = ToggleGroupItemProps & {
 
 /** One type tab in `CommandPalette.Scopes`. */
 export function CommandPaletteScope(props: CommandPaletteScopeProps) {
-  return <ToggleGroup.Item data-slot='command-palette-scope' {...props} />
+  // Keeps ToggleGroup's own data-slot, which finds the pressed item.
+  return <ToggleGroup.Item {...props} />
 }
 
 CommandPaletteScope.displayName = 'CommandPalette.Scope'

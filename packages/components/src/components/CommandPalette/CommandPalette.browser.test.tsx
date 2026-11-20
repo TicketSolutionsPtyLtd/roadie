@@ -238,4 +238,24 @@ describe('CommandPalette in a browser', () => {
       } else expect(footer).not.toBeVisible()
     }
   )
+
+  it('enters the type tabs on the type the arrows chose', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <CommandPalette defaultOpen shortcut={false} items={COMMANDS}>
+        <CommandPalette.Input />
+        <CommandPalette.Scopes>
+          <CommandPalette.Scope value='artifacts'>
+            Artifacts
+          </CommandPalette.Scope>
+          <CommandPalette.Scope value='sessions'>Sessions</CommandPalette.Scope>
+        </CommandPalette.Scopes>
+      </CommandPalette>
+    )
+    await expect.element(page.getByRole('combobox')).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}{Tab}')
+    await expect
+      .element(page.getByRole('button', { name: 'Artifacts' }))
+      .toHaveFocus()
+  })
 })
