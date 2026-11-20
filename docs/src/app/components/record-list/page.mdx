@@ -6,13 +6,14 @@ export const metadata = {
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 A list of records to search, filter, sort, and page through.
 
 ## Import
 
 ```tsx
-import { listLayout } from '@oztix/roadie-components/record-list'
+import { RecordList, listLayout } from '@oztix/roadie-components/record-list'
 import { Records, useRecords } from '@oztix/roadie-components/records'
 import { recordFields } from '@oztix/roadie-core/records'
 ```
@@ -23,7 +24,43 @@ Row parts can hold a `cell` function, as can fields with a `match`, `getRowId`, 
 
 ### Default
 
-Give `Records` a `listLayout`, naming in it the field each part of a row shows: `title` names the record and carries its `getRowHref` link, `description` sits under it, `leading` before it, such as an avatar, and `trailing` at the row's end. `details` follow the description on its line, in order, each after a dot, and a detail with no value is left out. The line truncates at the row's end, so keep it to one or two. A part is a field's key, or `{ key, cell }` to replace how the value shows, and a status field shows a `Badge`. Rows look the same at every width, as a table's do on a phone.
+`RecordList` shows records as rows, with the toolbar, pagination, status, and bulk actions built in. It takes the same options as `useRecords`, and in `row` the field each part of a row shows.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Venue' }),
+  field.location('location', { label: 'Location' }),
+  field.number('capacity', { label: 'Capacity' }),
+  field.number('events', { label: 'Events this year' })
+]
+const venues = [
+  { id: 'kazoo', name: 'Kazoo Hollow Room', location: 'Brisbane', capacity: 450, events: 82 },
+  { id: 'antler', name: 'Antler Kettle Hall', location: 'Melbourne', capacity: 1200, events: 64 },
+  { id: 'echidna', name: 'Echidna Gaslight Theatre', location: 'Sydney', capacity: 900, events: 71 },
+  { id: 'foxglove', name: 'Foxglove Tin Pavilion', location: 'Perth', capacity: 2400, events: null }
+]
+
+render(
+  <RecordList
+    caption='Venues'
+    data={venues}
+    fields={fields}
+    getRowId={(row) => row.id}
+    recordName={{ one: 'venue', other: 'venues' }}
+    row={{
+      leading: { key: 'name', cell: ({ row }) => <Avatar size='sm' name={row.name} /> },
+      title: 'name',
+      description: 'location',
+      details: ['capacity', 'events']
+    }}
+  />
+)
+```
+
+### Row parts and layouts
+
+`row`, or a `listLayout` given to `Records`, names the field each part of a row shows: `title` names the record and carries its `getRowHref` link, `description` sits under it, `leading` before it, such as an avatar, and `trailing` at the row's end. `details` follow the description on its line, in order, each after a dot, and a detail with no value is left out. The line truncates at the row's end, so keep it to one or two. A part is a field's key, or `{ key, cell }` to replace how the value shows, and a status field shows a `Badge`. Rows look the same at every width, as a table's do on a phone.
 
 Beside a table or grid, Configure shows a Layout switcher above the sort, and the view's `layout` becomes `{ type: 'list' }`, which the URL keeps as `layout=list`. Configure lists the row's details as it does a grid's [card fields](/components/record-grid#card-fields): drag to reorder, and the eye shows or hides one. They write the view's `layout.fields`, left out once back to the list's `details`.
 
@@ -124,3 +161,4 @@ These work as they do in the grid. `loading` shows placeholder rows, `error` rep
 - The Configure button is named "Configure list", as is the dialog it opens. Each shown detail's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field.
 - `Records.Status` announces Loading, the error, the result count, and the selection.
 
+<PropsDefinitions component='RecordList' />

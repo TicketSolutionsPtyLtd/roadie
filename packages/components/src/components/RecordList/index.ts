@@ -1,3 +1,5 @@
+export { RecordList } from './RecordListPreset'
 export { listLayout } from './listLayout'
 export type { ListLayoutDefinition } from './listLayout'
 export type { ListLayoutConfig } from './types'
+export type { RecordListProps } from './RecordListPreset'
