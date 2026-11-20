@@ -46,7 +46,8 @@ export function useRecordsLayout({
   })
   // Stable, so a selection change or an inline rowActions leaves other records alone.
   const toggleRow = useCallback(
-    (id: string, range: boolean) => latest.current.toggleRow(id, { range }),
+    (id: string, range: boolean, order?: readonly string[]) =>
+      latest.current.toggleRow(id, { range, order }),
     []
   )
   const rowActions = useCallback(

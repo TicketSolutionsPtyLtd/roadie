@@ -201,8 +201,11 @@ export type RecordsState<Row extends object = object> = {
   countSelection: (selection: RecordSelection) => number
   isSelected: (id: string) => boolean
   setSelection: (selection: RecordSelection) => void
-  /** `range` selects from the last record toggled to this one, in sorted order. */
-  toggleRow: (id: string, options?: { range?: boolean }) => void
+  /** `range` selects from the last record toggled to this one, in sorted order, or in `order` when a layout shows them in another, such as grouped. */
+  toggleRow: (
+    id: string,
+    options?: { range?: boolean; order?: readonly string[] }
+  ) => void
   selectPage: (value: boolean) => void
   selectAllMatching: () => void
   clearSelection: () => void
@@ -920,11 +923,11 @@ export function useRecordsState<Row extends object>({
     countSelection,
     isSelected: (id) => isSelected(selection, id),
     setSelection,
-    toggleRow: (id, { range = false } = {}) => {
+    toggleRow: (id, { range = false, order = matchingIds } = {}) => {
       const value = !isSelected(selection, id)
       setSelection(
         range
-          ? toggleRange(selection, matchingIds, anchor.current, id, value)
+          ? toggleRange(selection, order, anchor.current, id, value)
           : toggle(selection, id, value)
       )
       anchor.current = id

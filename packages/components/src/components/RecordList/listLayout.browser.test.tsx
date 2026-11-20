@@ -111,7 +111,9 @@ describe('listLayout in a browser', { timeout: 30_000 }, () => {
       />
     )
     await user.click(screen.getByRole('button', { name: 'Configure table' }))
-    const panel = await screen.findByRole('dialog', { name: 'Configure table' })
+    const panel = await screen.findByRole('dialog', {
+      name: 'Configure table'
+    })
     await user.click(within(panel).getByRole('button', { name: 'List' }))
     const listPanel = await screen.findByRole('dialog', {
       name: 'Configure list'
@@ -134,5 +136,81 @@ describe('listLayout in a browser', { timeout: 30_000 }, () => {
     render(<ShowList {...props} defaultView={read.view} />)
     expect(rows()).toHaveLength(4)
     expect(descriptionOf(rows()[1]!)).toBe('Melbourne · 37 · $7.9k')
+  })
+})
+
+const grouped = { layout: { type: 'list', groupBy: 'status' } } as const
+
+const groupsShown = () =>
+  [...document.querySelectorAll('[data-slot="list-group"]')].map((group) => [
+    group.querySelector('[data-slot="list-group-title"]')?.textContent,
+    within(group as HTMLElement)
+      .getAllByRole('listitem')
+      .map((item) => item.querySelector('a')?.textContent)
+  ])
+
+describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
+  it('groups rows under a title and count per option, in option order, leaving out empty options, with no-value records last', () => {
+    const shows = testShows(6)
+    shows[2]!.status = 'sold_out'
+    shows[5]!.status = null as unknown as string
+    render(
+      <ShowList
+        caption='Upcoming shows'
+        data={shows}
+        fields={showFields}
+        getRowHref={(show) => `/shows/${show.id}`}
+        defaultView={grouped}
+      />
+    )
+    expect(groupsShown()).toEqual([
+      ['On sale 2', ['Ocean Alley 1', 'angie McMahon 1']],
+      ['Sold out 3', ['Ball Park Music 1', 'Julia Jacklin 1', 'Alex Lahey 1']],
+      ['No status 1', ['Middle Kids 1']]
+    ])
+    const onSale = screen.getByRole('list', { name: 'On sale 2' })
+    expect(within(onSale).getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getByRole('list', { name: 'Upcoming shows' })).toBeVisible()
+  })
+
+  it('selects a Shift range in the order the groups show it', async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={showFields}
+        selectable
+        defaultView={grouped}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Select' }))
+    const box = (name: string) => screen.getByRole('checkbox', { name })
+    await user.click(box('Select Ocean Alley 1'))
+    await user.keyboard('{Shift>}')
+    await user.click(box('Select Ball Park Music 1'))
+    await user.keyboard('{/Shift}')
+    const checked = (name: string) =>
+      box(`Select ${name}`).getAttribute('aria-checked')
+    await expect.poll(() => checked('Ball Park Music 1')).toBe('true')
+    expect(checked('angie McMahon 1')).toBe('true')
+    expect(checked('Julia Jacklin 1')).toBe('false')
+  })
+
+  it('saves groupBy in the URL and groups by it when read back', () => {
+    const { view } = recordViewFromSearchParams(
+      recordViewToSearchParams({
+        query: { search: '', filters: [], sort: [] },
+        layout: { type: 'list', groupBy: 'status' }
+      }),
+      showFields
+    )
+    render(
+      <ShowList data={testShows(4)} fields={showFields} defaultView={view} />
+    )
+    expect(groupsShown().map(([title]) => title)).toEqual([
+      'On sale 2',
+      'Sold out 1',
+      'Cancelled 1'
+    ])
   })
 })
