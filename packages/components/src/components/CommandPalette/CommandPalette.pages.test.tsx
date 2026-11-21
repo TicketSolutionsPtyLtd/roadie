@@ -117,6 +117,80 @@ describe('CommandPalette pages', () => {
     expect(options()).toEqual(['Change status…', 'Invite teammate'])
   })
 
+  it('goes back a page from its chip, returning focus to the search', async () => {
+    render(<Palette />)
+    const input = await openStatusPage()
+    const back = screen.getByRole('button', { name: 'Back to all commands' })
+    expect(back).toHaveTextContent('Change status')
+    expect(back).toHaveClass('is-interactive')
+    await userEvent.click(back)
+    expect(options()).toEqual(['Change status…', 'Invite teammate'])
+    expect(chip()).not.toBeInTheDocument()
+    expect(input).toHaveFocus()
+  })
+
+  it("names the chip's way back for the page before", async () => {
+    render(
+      <CommandPalette
+        defaultOpen
+        shortcut={false}
+        items={[{ label: 'Change status…', page: 'status' }]}
+      >
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(command: Command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              page={command.page}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Page
+          value='status'
+          label='Change status'
+          items={[{ label: 'Sold out', page: 'confirm' }]}
+        >
+          <CommandPalette.List>
+            {(status: Command) => (
+              <CommandPalette.Item
+                key={status.label}
+                value={status}
+                page={status.page}
+              >
+                {status.label}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+        </CommandPalette.Page>
+        <CommandPalette.Page value='confirm' label='Confirm' items={['Yes']}>
+          <CommandPalette.List>
+            {(answer: string) => (
+              <CommandPalette.Item key={answer} value={answer}>
+                {answer}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+        </CommandPalette.Page>
+      </CommandPalette>
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Change status…' })
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Sold out' })
+    )
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Back to Change status' })
+    )
+    expect(options()).toEqual(['Sold out'])
+    expect(
+      screen.getByRole('button', { name: 'Back to all commands' })
+    ).toBeInTheDocument()
+  })
+
   it('goes back from a page with Escape, and closes with Escape on the first page', async () => {
     const onOpenChange = vi.fn()
     render(

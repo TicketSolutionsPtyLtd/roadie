@@ -164,6 +164,11 @@ export function CommandPaletteRoot<Item>({
   }
   const pageValue = stack.at(-1)
   const pageEntry = pageValue === undefined ? undefined : pages.get(pageValue)
+  const previousValue = stack.at(-2)
+  const previousLabel =
+    previousValue === undefined
+      ? null
+      : (pages.get(previousValue)?.label ?? null)
   const register = useCallback(
     (value: string, entry: CommandPalettePageEntry) => {
       setPages((current) => new Map(current).set(value, entry))
@@ -180,7 +185,7 @@ export function CommandPaletteRoot<Item>({
     () => ({
       page:
         pageValue !== undefined && pageEntry
-          ? { value: pageValue, label: pageEntry.label }
+          ? { value: pageValue, label: pageEntry.label, previousLabel }
           : null,
       push: (value: string) => {
         setStack((current) => [...current, value])
@@ -192,7 +197,7 @@ export function CommandPaletteRoot<Item>({
       },
       register
     }),
-    [pageValue, pageEntry, register]
+    [pageValue, pageEntry, previousLabel, register]
   )
   const onPage = pagesContext.page !== null
   const scopeContext = useMemo(

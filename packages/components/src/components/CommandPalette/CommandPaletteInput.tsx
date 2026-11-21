@@ -1,13 +1,14 @@
 'use client'
 
-import type { KeyboardEvent, RefAttributes } from 'react'
+import { type KeyboardEvent, type RefAttributes, useMemo, useRef } from 'react'
 
 import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeRefs } from '../../utils/mergeRefs'
 import { Autocomplete, type AutocompleteInputProps } from '../Autocomplete'
-import { Badge } from '../Badge'
+import { badgeVariants } from '../Badge'
 import { Dialog } from '../Dialog'
 import {
   useCommandPalettePages,
@@ -30,8 +31,11 @@ export function CommandPaletteInput({
   className,
   'aria-label': ariaLabel = 'Search',
   onKeyDown,
+  ref,
   ...props
 }: CommandPaletteInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const mergedRef = useMemo(() => mergeRefs(inputRef, ref), [ref])
   const { scope, setScope, scopes } = useCommandPaletteScope()
   const { page, pop } = useCommandPalettePages()
 
@@ -61,15 +65,24 @@ export function CommandPaletteInput({
         aria-hidden
       />
       {page ? (
-        <Badge
+        <button
+          type='button'
           data-slot='command-palette-page-chip'
-          emphasis='subtle'
-          className='max-w-[40%] shrink-0 truncate'
+          aria-label={`Back to ${page.previousLabel ?? 'all commands'}`}
+          className={cn(
+            badgeVariants({ emphasis: 'subtle' }),
+            'is-interactive max-w-[40%] shrink-0'
+          )}
+          onClick={() => {
+            pop()
+            inputRef.current?.focus()
+          }}
         >
-          {page.label}
-        </Badge>
+          <span className='min-w-0 truncate'>{page.label}</span>
+        </button>
       ) : null}
       <Autocomplete.Input
+        ref={mergedRef}
         data-slot='command-palette-input'
         aria-label={ariaLabel}
         className={cn('min-h-14 text-base', className)}

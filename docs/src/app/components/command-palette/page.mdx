@@ -256,7 +256,8 @@ Give a command `page` to open a second step, such as the statuses under
 "Change status…". Declare each step with `CommandPalette.Page`, its own
 `items` and a list to render them; the first page's list steps aside while it's
 open. Picking the command clears the search and shows the page's `label` in
-the input row. **Backspace** on an empty search, or **Escape**, goes back.
+the input row. **Backspace** on an empty search, **Escape**, or a tap on the
+chip goes back.
 A command on the page runs and closes the palette as usual, and the next
 opening starts on the first page. The type tabs hide while a page is open.
 
@@ -379,7 +380,9 @@ flow at every size.
   instead.
 - On a page, **Backspace** on an empty search goes back; with text, it deletes
   text as usual. The list is named for the page, such as "Change status", so
-  screen readers say where the arrows are.
+  screen readers say where the arrows are. The page's chip is a button named
+  for the page it goes back to, such as "Back to all commands", so a phone
+  without a keyboard can go back too.
 - `CommandPalette.Trigger` carries the shortcut in `aria-keyshortcuts`, so
   screen readers announce it; the keycaps are visual.
 - A command with `href` is a link, so it opens in a new tab with a modified

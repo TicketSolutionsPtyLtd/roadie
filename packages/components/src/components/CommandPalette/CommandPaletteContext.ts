@@ -35,8 +35,8 @@ export type CommandPalettePageEntry = {
 }
 
 export type CommandPalettePagesState = {
-  /** The open page's value and label, or null on the first page. */
-  page: { value: string; label: string } | null
+  /** The open page, with the label of the one before (null for the first page), or null on the first page. */
+  page: { value: string; label: string; previousLabel: string | null } | null
   push: (page: string) => void
   pop: () => void
   register: (value: string, entry: CommandPalettePageEntry) => () => void
