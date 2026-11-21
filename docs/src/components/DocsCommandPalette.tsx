@@ -7,6 +7,7 @@ import {
   type PageCommandGroup,
   pageCommands
 } from '@/lib/page-commands'
+import { useRoute } from '@/lib/route'
 
 import { CommandPalette } from '@oztix/roadie-components/command-palette'
 
@@ -21,6 +22,9 @@ const PINNED: PageCommand[] = [
   }
 ]
 
+// A live example here binds ⌘K itself, and a page has one owner (decision 0014).
+const EXAMPLE_OWNS_SHORTCUT = new Set(['/components/navigator'])
+
 /** Every docs page behind ⌘K, or Ctrl+K off Apple platforms. */
 export function DocsCommandPalette({
   items
@@ -28,8 +32,13 @@ export function DocsCommandPalette({
   items: readonly NavigationDestination[]
 }) {
   const groups = useMemo(() => pageCommands(items, PINNED), [items])
+  const route = useRoute()
   return (
-    <CommandPalette items={groups} label='Search the docs'>
+    <CommandPalette
+      items={groups}
+      label='Search the docs'
+      shortcut={EXAMPLE_OWNS_SHORTCUT.has(route) ? false : undefined}
+    >
       <CommandPalette.Input placeholder='Search the docs' />
       <CommandPalette.List>
         {(group: PageCommandGroup) => (
