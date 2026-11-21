@@ -163,6 +163,9 @@ export function CommandPaletteRoot<Item>({
       setStack([])
     }
   }
+  // Pruned here, not on unregister, so a page re-registering its new items stays open.
+  const liveStack = stack.filter((value) => pages.has(value))
+  if (liveStack.length !== stack.length) setStack(liveStack)
   const pageValue = stack.at(-1)
   const pageEntry = pageValue === undefined ? undefined : pages.get(pageValue)
   const previousValue = stack.at(-2)
@@ -179,8 +182,6 @@ export function CommandPaletteRoot<Item>({
           next.delete(value)
           return next
         })
-        // A page that goes away while open can't stay on the stack.
-        setStack((current) => current.filter((open) => open !== value))
       }
     },
     []

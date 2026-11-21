@@ -391,4 +391,56 @@ describe('CommandPalette pages', () => {
     expect(chip()).toBeNull()
     expect(screen.getByRole('option', { name: 'Typo' })).toBeInTheDocument()
   })
+  it('stays on a page as its items change, and goes back when the page goes away', async () => {
+    function Changing({ people, paged }: { people: string[]; paged: boolean }) {
+      return (
+        <CommandPalette
+          defaultOpen
+          shortcut={false}
+          items={[{ label: 'Assign to…', page: 'assign' }]}
+        >
+          <CommandPalette.Input />
+          <CommandPalette.List>
+            {(c: Command) => (
+              <CommandPalette.Item key={c.label} value={c} page={c.page}>
+                {c.label}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+          {paged ? (
+            <CommandPalette.Page
+              value='assign'
+              label='Assign to'
+              items={people}
+            >
+              <CommandPalette.List>
+                {(person: string) => (
+                  <CommandPalette.Item key={person} value={person}>
+                    {person}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.List>
+            </CommandPalette.Page>
+          ) : null}
+        </CommandPalette>
+      )
+    }
+    const { rerender } = render(<Changing people={['Ana Silva']} paged />)
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Assign to…' })
+    )
+    rerender(<Changing people={['Ana Silva', 'Zed Okafor']} paged />)
+    await waitFor(() => expect(options()).toEqual(['Ana Silva', 'Zed Okafor']))
+    expect(
+      screen.getByRole('listbox', { name: 'Assign to' })
+    ).toBeInTheDocument()
+    rerender(<Changing people={[]} paged={false} />)
+    await waitFor(() => expect(options()).toEqual(['Assign to…']))
+    expect(chip()).toBeNull()
+    rerender(<Changing people={['Ana Silva']} paged />)
+    await waitFor(() =>
+      expect(screen.getByRole('option', { name: 'Assign to…' })).toBeVisible()
+    )
+    expect(chip()).toBeNull()
+  })
 })
