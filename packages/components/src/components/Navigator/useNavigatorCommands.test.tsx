@@ -166,7 +166,7 @@ describe('useNavigatorCommands', () => {
       )
     }
     const pagesOf = (log: NavigatorCommandGroup[][]) =>
-      log.at(-1)![1].items.map((item) => ({
+      log.at(-1)![1]!.items.map((item) => ({
         ...item,
         icon: iconOf(item.icon)
       }))
