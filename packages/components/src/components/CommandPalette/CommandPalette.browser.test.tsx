@@ -405,11 +405,16 @@ describe('CommandPalette in a browser', () => {
         '[data-slot="command-palette-status"]'
       )!
 
-    it('takes no room for the status while idle', async () => {
+    it('keeps the status and error live regions rendered but taking no room while idle', async () => {
       await page.viewport(width, height)
       render(<ServerPalette status='idle' />)
       await expect.element(page.getByText('No matches')).toBeVisible()
-      expect(statusRow()).not.toBeVisible()
+      // display: none would drop the live regions from the accessibility tree.
+      for (const slot of ['command-palette-status', 'command-palette-error']) {
+        const region = document.querySelector(`[data-slot="${slot}"]`)!
+        expect(getComputedStyle(region).display).not.toBe('none')
+        expect(box(region).height).toBe(0)
+      }
     })
 
     it('shows a 1rem spinner beside the loading text, inside the palette', async () => {

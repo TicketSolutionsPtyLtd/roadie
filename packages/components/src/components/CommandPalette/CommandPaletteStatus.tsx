@@ -24,7 +24,7 @@ export function CommandPaletteStatus({
     <Autocomplete.Status
       data-slot='command-palette-status'
       className={cn(
-        'not-sr-only flex items-center gap-3 px-4 py-3 text-sm text-subtle empty:hidden',
+        'not-sr-only flex items-center gap-3 text-sm text-subtle [&:not(:empty)]:px-4 [&:not(:empty)]:py-3',
         className
       )}
       {...props}

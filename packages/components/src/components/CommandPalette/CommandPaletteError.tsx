@@ -64,7 +64,7 @@ export function CommandPaletteError({
   return (
     <Autocomplete.Status
       data-slot='command-palette-error'
-      className={cn('not-sr-only empty:hidden', className)}
+      className={cn('not-sr-only', className)}
       {...props}
     >
       {failed ? <ErrorState action={action}>{children}</ErrorState> : null}
