@@ -6,6 +6,7 @@ import {
   useEffect,
   useEffectEvent,
   useMemo,
+  useRef,
   useState
 } from 'react'
 
@@ -24,6 +25,7 @@ import {
   CommandPalettePagesProvider,
   CommandPaletteScopeProvider
 } from './CommandPaletteContext'
+import { holdKeyboard, isCoarsePointer } from './holdKeyboard'
 import { isCurrentPalette, registerPalette } from './registry'
 import { matchesShortcut } from './shortcut'
 
@@ -257,9 +259,17 @@ export function CommandPaletteRoot<Item>({
     event.preventDefault()
     setOpen(!open, { reason: 'shortcut' })
   })
-  const openFromOutside = useEffectEvent(() =>
+  // The stand-in field takes focus from the trigger, so close returns it here.
+  const returnFocus = useRef<HTMLElement | null>(null)
+  const openFromOutside = useEffectEvent(() => {
+    returnFocus.current = null
+    if (isCoarsePointer()) {
+      const active = document.activeElement
+      if (active instanceof HTMLElement) returnFocus.current = active
+      holdKeyboard(document)
+    }
     setOpen(true, { reason: 'trigger-press' })
-  )
+  })
   const keys = shortcut && shortcut.length > 0 ? JSON.stringify(shortcut) : ''
   useEffect(() => {
     if (!keys) return
@@ -288,6 +298,9 @@ export function CommandPaletteRoot<Item>({
         >
           <Dialog.Popup
             data-slot='command-palette'
+            finalFocus={() =>
+              returnFocus.current?.isConnected ? returnFocus.current : true
+            }
             aria-label={label}
             className={cn(
               'flex max-h-[min(36rem,calc(100dvh-12rem))] max-w-xl flex-col gap-0 overflow-hidden p-0',
