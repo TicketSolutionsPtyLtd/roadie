@@ -51,7 +51,8 @@ Object.defineProperty(el, 'offsetWidth', { value: 200 })
 const BOUNDARIES = {
   nextLink: 'Pass href and let RoadieProvider route it.',
   atlaskit: 'Import the drag library only in Sortable/dnd.',
-  tanstack: 'Import @tanstack/react-virtual only in Records/rowWindow.ts.',
+  tanstack:
+    'Import @tanstack/react-virtual only in Records/rowWindow.ts and utils/virtualRows.tsx.',
   chartsTanstack: 'Import TanStack only in plot/, static/,',
   skinNext: 'The React skin routes through onNavigate, not next/*.',
   zod: 'Keep this module zod-free.',
@@ -128,6 +129,7 @@ describe('oxlint import boundaries', () => {
     [`${components}/Sortable/dnd/deep/seed.tsx`, ['nextLink', 'tanstack']],
     [`${components}/Records/seed.ts`, ['atlaskit', 'nextLink', 'tanstack']],
     [`${components}/Records/rowWindow.ts`, ['atlaskit', 'nextLink']],
+    ['packages/components/src/utils/virtualRows.tsx', ['atlaskit', 'nextLink']],
     [`${charts}/seed.ts`, ['chartsTanstack', 'nextLink']],
     [`${charts}/SeedChart/index.tsx`, ['chartsTanstack', 'nextLink']],
     [`${charts}/plot/seed.ts`, ['nextLink']],

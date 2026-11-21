@@ -13,6 +13,7 @@ import {
   useHeldWhileClosed,
   useRankedItems
 } from '../../utils/rankMatches'
+import { VirtualListContext, useVirtualListRoot } from '../../utils/virtualList'
 import { ComboboxReadOnlyContext } from './readOnly'
 
 export type ComboboxRootProps<
@@ -52,8 +53,15 @@ export function ComboboxRoot<
   items,
   ...props
 }: ComboboxRootProps<Value, Multiple, Item>) {
-  const [byPointer, handleItemHighlighted] =
-    usePointerHighlight(onItemHighlighted)
+  const [scrollToIndex, scrollToHighlight] = useVirtualListRoot(
+    props.virtualized
+  )
+  const [byPointer, handleItemHighlighted] = usePointerHighlight<
+    Parameters<NonNullable<typeof onItemHighlighted>>
+  >((value, details) => {
+    scrollToHighlight(details)
+    onItemHighlighted?.(value, details)
+  })
   const { typed, query, handleQueryChange, resetTyped } = useTypedQuery(
     props.open
   )
@@ -106,6 +114,11 @@ export function ComboboxRoot<
             resetTyped(details)
           }}
           {...props}
+          children={
+            <VirtualListContext value={scrollToIndex}>
+              {props.children}
+            </VirtualListContext>
+          }
           filter={ownsFilter ? collatorContains(props.locale) : props.filter}
           // After the rest, so an explicit open={undefined} can't undo it.
           open={open}

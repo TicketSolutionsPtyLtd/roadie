@@ -11,6 +11,7 @@ import {
   PointerHighlightContext,
   optionHighlightClass
 } from '../../utils/optionHighlight'
+import { useVirtualItem } from '../../utils/virtualList'
 
 export type ComboboxItemProps = ComboboxPrimitive.Item.Props &
   RefAttributes<HTMLDivElement>
@@ -23,9 +24,11 @@ export function ComboboxItem({
   onPointerCancel,
   onMouseUp,
   onClickCapture,
+  ref,
   ...props
 }: ComboboxItemProps) {
   const byPointer = use(PointerHighlightContext)
+  const virtualItem = useVirtualItem(ref)
   return (
     <ComboboxPrimitive.Item
       data-slot='combobox-item'
@@ -43,6 +46,7 @@ export function ComboboxItem({
         onClickCapture
       })}
       {...props}
+      {...virtualItem}
     />
   )
 }
