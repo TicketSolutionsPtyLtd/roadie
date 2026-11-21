@@ -10,7 +10,7 @@ import {
 
 import { CommandPalette } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { EventPage, venues } from '../../utils/frameTestUtils'
+import { BACKDROP_BLUR, EventPage, venues } from '../../utils/frameTestUtils'
 
 setupFrameTests({ css: roadieCss })
 
@@ -36,7 +36,9 @@ describe('CommandPalette ranks at 60fps on a slowed CPU', () => {
     await expect.poll(() => document.activeElement).toBe(input)
     await expectFrameBudget(
       'CommandPalette, typing over 200 items',
-      await measureWhile(() => userEvent.keyboard('gumleaf hall 1'))
+      await measureWhile(() => userEvent.keyboard('gumleaf hall 1')),
+      // The palette is a Dialog, so typing pays its full-page blur each frame.
+      { exception: BACKDROP_BLUR }
     )
     expect(input.value).toBe('gumleaf hall 1')
     await expect
