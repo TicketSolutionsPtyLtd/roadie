@@ -27,6 +27,8 @@ export type NavigatorCommand = {
 }
 
 export type NavigatorCommandGroup = {
+  /** The destination's value, unique among groups, for a React key; absent for the group of destinations. */
+  value?: string
   /** The destination's label; absent for the group of destinations. */
   label?: string
   items: NavigatorCommand[]
@@ -76,6 +78,7 @@ function navigatorCommands(
         ]
   )
   const sections = slots.map((slot) => ({
+    value: slot.value,
     label: textOf(slot.label),
     items: pageCommands(slot)
   }))

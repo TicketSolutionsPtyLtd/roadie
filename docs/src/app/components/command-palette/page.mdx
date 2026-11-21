@@ -339,7 +339,7 @@ function PageSearch() {
         <CommandPalette.Input placeholder='Search pages' />
         <CommandPalette.List>
           {(group) => (
-            <CommandPalette.Group key={group.label ?? 'pages'} items={group.items}>
+            <CommandPalette.Group key={group.value ?? ''} items={group.items}>
               {group.label ? (
                 <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
               ) : null}

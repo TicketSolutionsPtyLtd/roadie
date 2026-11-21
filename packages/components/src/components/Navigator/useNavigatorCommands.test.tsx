@@ -72,11 +72,13 @@ describe('useNavigatorCommands', () => {
     await flushViewportMeasurement()
     const groups = log.at(-1)!
     const shape = groups.map((group) => ({
+      value: group.value,
       label: group.label,
       items: group.items.map((item) => ({ ...item, icon: iconOf(item.icon) }))
     }))
     expect(shape).toEqual([
       {
+        value: undefined,
         label: undefined,
         items: [
           {
@@ -94,6 +96,7 @@ describe('useNavigatorCommands', () => {
         ]
       },
       {
+        value: '/events',
         label: 'Events',
         items: [
           {
@@ -216,10 +219,7 @@ describe('useNavigatorCommands', () => {
           <CommandPalette.Input placeholder='Search pages' />
           <CommandPalette.List>
             {(group: NavigatorCommandGroup) => (
-              <CommandPalette.Group
-                key={group.label ?? 'pages'}
-                items={group.items}
-              >
+              <CommandPalette.Group key={group.value ?? ''} items={group.items}>
                 {group.label ? (
                   <CommandPalette.GroupLabel>
                     {group.label}
