@@ -231,6 +231,9 @@ export {
 export {
   Navigator,
   useNavigatorSecondary,
+  useNavigatorCommands,
+  type NavigatorCommand,
+  type NavigatorCommandGroup,
   type NavigatorProps,
   type NavigatorPrimaryProps,
   type NavigatorSecondaryProps,
