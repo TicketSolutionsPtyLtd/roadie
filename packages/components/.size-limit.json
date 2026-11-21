@@ -23,8 +23,8 @@
     "name": "CommandPalette",
     "path": "dist/components/CommandPalette/index.js",
     "import": "*",
-    "limit": "12.4 kB",
-    "ignore": ["@oztix/roadie-core"]
+    "limit": "13.7 kB",
+    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
     "name": "Menu",
@@ -273,14 +273,15 @@
     "name": "DateField",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "12.7 kB",
-    "ignore": ["@oztix/roadie-core"]
+    "limit": "14.2 kB",
+    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
     "name": "DateField with core",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "28.4 kB"
+    "limit": "28.4 kB",
+    "ignore": ["@tanstack/react-virtual"]
   },
   {
     "name": "TimeField",
@@ -300,39 +301,42 @@
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
     "limit": "38.2 kB",
-    "ignore": ["@oztix/roadie-core"]
+    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
     "name": "DatePicker with core",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "53.7 kB"
+    "limit": "53.7 kB",
+    "ignore": ["@tanstack/react-virtual"]
   },
   {
     "name": "DashboardPeriod",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
     "limit": "49 kB",
-    "ignore": ["@oztix/roadie-core"]
+    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
     "name": "DashboardPeriod with core",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
-    "limit": "65.7 kB"
+    "limit": "65.7 kB",
+    "ignore": ["@tanstack/react-virtual"]
   },
   {
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
     "limit": "45.4 kB",
-    "ignore": ["@oztix/roadie-core"]
+    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
     "name": "DateRangePicker with core",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "61.2 kB"
+    "limit": "61.2 kB",
+    "ignore": ["@tanstack/react-virtual"]
   },
   {
     "name": "QueryField",

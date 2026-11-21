@@ -11,6 +11,7 @@ import {
   useTypedQuery
 } from '../../utils/optionHighlight'
 import { collatorContains, useRankedItems } from '../../utils/rankMatches'
+import { VirtualListContext, useVirtualListRoot } from '../../utils/virtualList'
 
 export type AutocompleteRootProps = Omit<
   AutocompletePrimitive.Root.Props<unknown>,
@@ -42,8 +43,15 @@ export function AutocompleteRoot({
   items,
   ...props
 }: AutocompleteRootProps) {
-  const [byPointer, handleItemHighlighted] =
-    usePointerHighlight(onItemHighlighted)
+  const [scrollToIndex, scrollToHighlight] = useVirtualListRoot(
+    props.virtualized
+  )
+  const [byPointer, handleItemHighlighted] = usePointerHighlight<
+    Parameters<NonNullable<typeof onItemHighlighted>>
+  >((value, details) => {
+    scrollToHighlight(details)
+    onItemHighlighted?.(value, details)
+  })
   const { typed, handleQueryChange, resetTyped } = useTypedQuery(props.open)
   const [textState, setTextState] = useState(String(props.defaultValue ?? ''))
   const text = props.value === undefined ? textState : String(props.value ?? '')
@@ -82,6 +90,11 @@ export function AutocompleteRoot({
           else resetTyped(details)
         }}
         {...props}
+        children={
+          <VirtualListContext value={scrollToIndex}>
+            {props.children}
+          </VirtualListContext>
+        }
         filter={ownsFilter ? collatorContains(props.locale) : props.filter}
         // After the rest, so an explicit open={undefined} can't undo it.
         open={open}
