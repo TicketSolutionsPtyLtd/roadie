@@ -201,6 +201,67 @@ function GroupedSearch() {
 render(<GroupedSearch />)
 ```
 
+#### With type tabs and a key footer
+
+`CommandPalette.Scopes` narrows the list to one type. Give a command, or its
+group, a `scope`, and add a `CommandPalette.Scope` with that value; All comes
+first and shows everything. The left and right arrows change type when the
+search is empty, or the caret is at that end of it. `CommandPalette.Footer`
+holds `CommandPalette.Hint`s that remind people of the keys, and hides on a
+phone.
+
+```tsx-live-noinline
+function TypedSearch() {
+  const [open, setOpen] = useState(false)
+  const groups = [
+    {
+      label: 'Events',
+      scope: 'events',
+      items: [{ label: 'Velvet Dingo Fest' }, { label: 'Lampshade Disco' }],
+    },
+    {
+      label: 'Venues',
+      scope: 'venues',
+      items: [{ label: 'Kazoo Hollow Room' }, { label: 'Iguana Teapot Hall' }],
+    },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={groups}>
+        <CommandPalette.Input placeholder='Search events and venues' />
+        <CommandPalette.Scopes>
+          <CommandPalette.Scope value='events'>Events</CommandPalette.Scope>
+          <CommandPalette.Scope value='venues'>Venues</CommandPalette.Scope>
+        </CommandPalette.Scopes>
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(command) => (
+                  <CommandPalette.Item key={command.label} value={command}>
+                    {command.label}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>Nothing matches</CommandPalette.Empty>
+        <CommandPalette.Footer>
+          <CommandPalette.Hint shortcut={['escape']}>Close</CommandPalette.Hint>
+          <CommandPalette.Hint shortcut={['arrowleft', 'arrowright']}>Change type</CommandPalette.Hint>
+        </CommandPalette.Footer>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<TypedSearch />)
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -260,6 +321,9 @@ flow at every size.
   read it as the arrows move.
 - The first command is highlighted, so **Enter** picks it straight away. The
   **arrow keys** move the highlight and wrap at either end.
+- With `CommandPalette.Scopes`, the **left and right arrows** change type
+  from an empty search, or from the caret at that end of it. The tabs are a
+  toggle group named "Type", reachable with **Tab**.
 - **Escape** closes the palette, and focus goes back to what opened it. The
   shortcut closes it too.
 - `CommandPalette.Trigger` carries the shortcut in `aria-keyshortcuts`, so

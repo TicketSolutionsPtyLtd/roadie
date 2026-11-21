@@ -34,7 +34,11 @@ export {
   type CommandPaletteGroupLabelProps,
   type CommandPaletteCollectionProps,
   type CommandPaletteItemProps,
-  type CommandPaletteEmptyProps
+  type CommandPaletteEmptyProps,
+  type CommandPaletteScopesProps,
+  type CommandPaletteScopeProps,
+  type CommandPaletteFooterProps,
+  type CommandPaletteHintProps
 } from './components/CommandPalette'
 export {
   Collapsible,

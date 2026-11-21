@@ -16,7 +16,10 @@ import { collatorContains, rankMatches } from '../../utils/rankMatches'
 import { Autocomplete, type AutocompleteProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
 import { useKeyPlatform } from '../Kbd/platform'
-import { CommandPaletteCloseProvider } from './CommandPaletteContext'
+import {
+  CommandPaletteCloseProvider,
+  CommandPaletteScopeProvider
+} from './CommandPaletteContext'
 import { isCurrentPalette, registerPalette } from './registry'
 import { matchesShortcut } from './shortcut'
 
@@ -44,7 +47,8 @@ export type CommandPaletteRootProps<Item = unknown> = {
   /**
    * The commands, or groups of them (`{ items }`), that the list renders
    * through its child function. An object item's `keywords` array is
-   * matched too, after its label.
+   * matched too, after its label, and its `scope`, or its group's, picks the
+   * `CommandPalette.Scope` tab it shows under.
    */
   items: readonly Item[]
   /** The text a command is matched and ranked by. Defaults to its `label`, then `value`. */
@@ -57,12 +61,46 @@ export type CommandPaletteRootProps<Item = unknown> = {
    * @default ['mod', 'k']
    */
   shortcut?: readonly string[] | false
+  /**
+   * The chosen type tab, by its value, or `null` for All. A command, or its
+   * group, matches a tab through its `scope` field.
+   */
+  scope?: string | null
+  /** The type tab at first, and on each opening, when uncontrolled. @default null */
+  defaultScope?: string | null
+  /** Called as the type tab changes. */
+  onScopeChange?: (scope: string | null) => void
   /** The dialog's accessible name. @default 'Search and commands' */
   label?: string
   /** Matching locale. Defaults to the page's. */
   locale?: Intl.LocalesArgument
   className?: string
   children: ReactNode
+}
+
+const scopeOf = (item: unknown) =>
+  typeof item === 'object' && item !== null && 'scope' in item
+    ? item.scope
+    : undefined
+
+const isGroup = (item: unknown): item is { items: readonly unknown[] } =>
+  typeof item === 'object' &&
+  item !== null &&
+  'items' in item &&
+  Array.isArray(item.items)
+
+/** The commands of one type, keeping each group that still has some. */
+function inScope<Item>(items: readonly Item[], scope: string | null) {
+  if (scope === null) return items
+  return items.flatMap((item) => {
+    if (!isGroup(item)) return scopeOf(item) === scope ? [item] : []
+    const groupScope = scopeOf(item)
+    const kept = item.items.filter(
+      (command) => (scopeOf(command) ?? groupScope) === scope
+    )
+    if (kept.length === item.items.length) return [item]
+    return kept.length > 0 ? [{ ...item, items: kept } as Item] : []
+  })
 }
 
 function keywordsOf(item: unknown): readonly string[] {
@@ -94,6 +132,9 @@ export function CommandPaletteRoot<Item>({
   shortcut = DEFAULT_SHORTCUT,
   items,
   itemToStringValue,
+  scope: scopeProp,
+  defaultScope = null,
+  onScopeChange,
   label = 'Search and commands',
   locale,
   className,
@@ -102,15 +143,33 @@ export function CommandPaletteRoot<Item>({
   const [openState, setOpenState] = useState(defaultOpen)
   const open = openProp ?? openState
   const [query, setQuery] = useState('')
+  const [scopeState, setScopeState] = useState(defaultScope)
+  const scope = scopeProp === undefined ? scopeState : scopeProp
+  const [scopes, setScopes] = useState<readonly (string | null)[]>([null])
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
     setWasOpen(open)
-    if (open) setQuery('')
+    if (open) {
+      setQuery('')
+      setScopeState(defaultScope)
+    }
   }
+  const scopeContext = useMemo(
+    () => ({
+      scope,
+      setScope: (next: string | null) => {
+        setScopeState(next)
+        onScopeChange?.(next)
+      },
+      scopes,
+      setScopes
+    }),
+    [scope, scopes, onScopeChange]
+  )
   const filter = useCommandFilter(locale)
   const ranked = useMemo(
-    () => rankMatches(items, query, itemToStringValue, locale),
-    [items, query, itemToStringValue, locale]
+    () => rankMatches(inScope(items, scope), query, itemToStringValue, locale),
+    [items, scope, query, itemToStringValue, locale]
   )
 
   function setOpen(next: boolean, details: CommandPaletteOpenChangeDetails) {
@@ -158,7 +217,7 @@ export function CommandPaletteRoot<Item>({
             data-slot='command-palette'
             aria-label={label}
             className={cn(
-              'max-h-[min(36rem,calc(100dvh-12rem))] max-w-xl grid-rows-[auto_minmax(0,1fr)] content-start gap-0 overflow-hidden p-0',
+              'flex max-h-[min(36rem,calc(100dvh-12rem))] max-w-xl flex-col gap-0 overflow-hidden p-0',
               'max-sm:h-dvh max-sm:max-h-none max-sm:max-w-none max-sm:rounded-none',
               className
             )}
@@ -166,22 +225,24 @@ export function CommandPaletteRoot<Item>({
             <CommandPaletteCloseProvider
               value={() => setOpen(false, { reason: 'item-press' })}
             >
-              <Autocomplete
-                inline
-                open
-                items={ranked}
-                filter={filter}
-                // Takes the caller's own item type, which Base UI types as unknown.
-                itemToStringValue={
-                  itemToStringValue as ((item: unknown) => string) | undefined
-                }
-                locale={locale}
-                autoHighlight='always'
-                value={query}
-                onValueChange={(next) => setQuery(next)}
-              >
-                {children}
-              </Autocomplete>
+              <CommandPaletteScopeProvider value={scopeContext}>
+                <Autocomplete
+                  inline
+                  open
+                  items={ranked}
+                  filter={filter}
+                  // Takes the caller's own item type, which Base UI types as unknown.
+                  itemToStringValue={
+                    itemToStringValue as ((item: unknown) => string) | undefined
+                  }
+                  locale={locale}
+                  autoHighlight='always'
+                  value={query}
+                  onValueChange={(next) => setQuery(next)}
+                >
+                  {children}
+                </Autocomplete>
+              </CommandPaletteScopeProvider>
             </CommandPaletteCloseProvider>
           </Dialog.Popup>
         </Dialog.Viewport>

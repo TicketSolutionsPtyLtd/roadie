@@ -1,6 +1,6 @@
 'use client'
 
-import type { RefAttributes } from 'react'
+import type { KeyboardEvent, RefAttributes } from 'react'
 
 import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 
@@ -8,15 +8,43 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { Autocomplete, type AutocompleteInputProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
+import { useCommandPaletteScope } from './CommandPaletteContext'
 
 export type CommandPaletteInputProps = AutocompleteInputProps &
   RefAttributes<HTMLInputElement>
 
+// keyCode 229: Safari's last keydown of a composition reports isComposing false.
+const isHeldOrComposing = (event: KeyboardEvent<HTMLInputElement>) =>
+  event.shiftKey ||
+  event.altKey ||
+  event.metaKey ||
+  event.ctrlKey ||
+  event.nativeEvent.isComposing ||
+  event.keyCode === 229
+
 export function CommandPaletteInput({
   className,
   'aria-label': ariaLabel = 'Search',
+  onKeyDown,
   ...props
 }: CommandPaletteInputProps) {
+  const { scope, setScope, scopes } = useCommandPaletteScope()
+
+  // The arrows change type only where they couldn't move the caret.
+  function changeScope(event: KeyboardEvent<HTMLInputElement>) {
+    const { selectionStart, selectionEnd, value } = event.currentTarget
+    const step =
+      event.key === 'ArrowLeft' && selectionEnd === 0
+        ? -1
+        : event.key === 'ArrowRight' && selectionStart === value.length
+          ? 1
+          : 0
+    const next = scopes[scopes.indexOf(scope) + step]
+    if (step === 0 || next === undefined || isHeldOrComposing(event)) return
+    event.preventDefault()
+    setScope(next)
+  }
+
   return (
     <div
       data-slot='command-palette-input-row'
@@ -31,6 +59,10 @@ export function CommandPaletteInput({
         data-slot='command-palette-input'
         aria-label={ariaLabel}
         className={cn('min-h-14 text-base', className)}
+        onKeyDown={(event) => {
+          onKeyDown?.(event)
+          if (!event.defaultPrevented && scopes.length > 1) changeScope(event)
+        }}
         {...props}
       />
       <Dialog.Close

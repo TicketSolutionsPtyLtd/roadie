@@ -184,4 +184,111 @@ describe('CommandPalette in a browser', () => {
     await openPalette()
     await expectNoSeriousViolations()
   })
+
+  it.each([
+    ['a desktop', 1280, 800, true],
+    ['a phone', 390, 844, false]
+  ])(
+    'fits the type tabs, scrolls a long list, and shows the key footer only on %s with keys',
+    async (_, width, height, footerShows) => {
+      await page.viewport(width, height)
+      const commands = Array.from({ length: 40 }, (_, index) => ({
+        label: `Command ${index + 1}`
+      }))
+      render(
+        <CommandPalette defaultOpen shortcut={false} items={commands}>
+          <CommandPalette.Input />
+          <CommandPalette.Scopes>
+            <CommandPalette.Scope value='artifacts'>
+              Artifacts
+            </CommandPalette.Scope>
+            <CommandPalette.Scope value='sessions'>
+              Sessions
+            </CommandPalette.Scope>
+            <CommandPalette.Scope value='projects'>
+              Projects
+            </CommandPalette.Scope>
+            <CommandPalette.Scope value='scheduled'>
+              Scheduled
+            </CommandPalette.Scope>
+          </CommandPalette.Scopes>
+          <CommandPalette.List>
+            {(command: Command) => (
+              <CommandPalette.Item key={command.label} value={command}>
+                {command.label}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+          <CommandPalette.Footer>
+            <CommandPalette.Hint shortcut={['escape']}>
+              Close
+            </CommandPalette.Hint>
+          </CommandPalette.Footer>
+        </CommandPalette>
+      )
+      await expect.element(page.getByRole('dialog')).toBeInViewport()
+      const dialog = box(screen.getByRole('dialog'))
+      const tabs = box(
+        document.querySelector('[data-slot="command-palette-scopes"]')!
+      )
+      expect(tabs.right).toBeLessThanOrEqual(dialog.right + 0.5)
+      expect(dialog.bottom).toBeLessThanOrEqual(height + 0.5)
+      const list = document.querySelector('[data-slot="command-palette-list"]')!
+      expect(list.scrollHeight).toBeGreaterThan(list.clientHeight)
+      expect(box(list).bottom).toBeLessThanOrEqual(dialog.bottom + 0.5)
+      const footer = document.querySelector<HTMLElement>(
+        '[data-slot="command-palette-footer"]'
+      )
+      if (footerShows) {
+        await expect.element(footer!).toBeVisible()
+        expect(box(footer!).bottom).toBeCloseTo(dialog.bottom, 0)
+      } else expect(footer).not.toBeVisible()
+    }
+  )
+
+  it('keeps a short list right under the type tabs on a phone', async () => {
+    await page.viewport(390, 844)
+    render(
+      <CommandPalette defaultOpen shortcut={false} items={COMMANDS}>
+        <CommandPalette.Input />
+        <CommandPalette.Scopes>
+          <CommandPalette.Scope value='events'>Events</CommandPalette.Scope>
+        </CommandPalette.Scopes>
+        <CommandPalette.List>
+          {(command: Command) => (
+            <CommandPalette.Item key={command.label} value={command}>
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await expect.element(page.getByRole('dialog')).toBeInViewport()
+    const tabs = box(screen.getByRole('group', { name: 'Type' }))
+    const list = box(
+      document.querySelector('[data-slot="command-palette-list"]')!
+    )
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    expect(list.top - tabs.bottom).toBeLessThan(rem)
+  })
+
+  it('enters the type tabs on the type the arrows chose', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <CommandPalette defaultOpen shortcut={false} items={COMMANDS}>
+        <CommandPalette.Input />
+        <CommandPalette.Scopes>
+          <CommandPalette.Scope value='artifacts'>
+            Artifacts
+          </CommandPalette.Scope>
+          <CommandPalette.Scope value='sessions'>Sessions</CommandPalette.Scope>
+        </CommandPalette.Scopes>
+      </CommandPalette>
+    )
+    await expect.element(page.getByRole('combobox')).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}{Tab}')
+    await expect
+      .element(page.getByRole('button', { name: 'Artifacts' }))
+      .toHaveFocus()
+  })
 })
