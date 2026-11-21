@@ -9,6 +9,7 @@ import { CommandPaletteHint } from './CommandPaletteHint'
 import { CommandPaletteInput } from './CommandPaletteInput'
 import { CommandPaletteItem } from './CommandPaletteItem'
 import { CommandPaletteList } from './CommandPaletteList'
+import { CommandPalettePage } from './CommandPalettePage'
 import { CommandPaletteRoot } from './CommandPaletteRoot'
 import { CommandPaletteScope } from './CommandPaletteScope'
 import { CommandPaletteScopes } from './CommandPaletteScopes'
@@ -28,6 +29,7 @@ const CommandPalette = CommandPaletteRoot as typeof CommandPaletteRoot & {
   Footer: typeof CommandPaletteFooter
   Scope: typeof CommandPaletteScope
   Scopes: typeof CommandPaletteScopes
+  Page: typeof CommandPalettePage
 }
 
 CommandPalette.Root = CommandPaletteRoot
@@ -43,6 +45,7 @@ CommandPalette.Hint = CommandPaletteHint
 CommandPalette.Footer = CommandPaletteFooter
 CommandPalette.Scope = CommandPaletteScope
 CommandPalette.Scopes = CommandPaletteScopes
+CommandPalette.Page = CommandPalettePage
 
 export { CommandPalette }
 export type {
@@ -62,3 +65,4 @@ export type { CommandPaletteHintProps } from './CommandPaletteHint'
 export type { CommandPaletteFooterProps } from './CommandPaletteFooter'
 export type { CommandPaletteScopeProps } from './CommandPaletteScope'
 export type { CommandPaletteScopesProps } from './CommandPaletteScopes'
+export type { CommandPalettePageProps } from './CommandPalettePage'

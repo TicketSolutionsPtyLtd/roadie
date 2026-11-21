@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { TicketIcon } from '@phosphor-icons/react'
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { CommandPalette } from '.'
@@ -290,5 +290,69 @@ describe('CommandPalette in a browser', () => {
     await expect
       .element(page.getByRole('button', { name: 'Artifacts' }))
       .toHaveFocus()
+  })
+
+  it('changes a status through a page from the keyboard', async () => {
+    await page.viewport(1280, 800)
+    const onStatus = vi.fn()
+    const statuses = ['Draft', 'On sale', 'Sold out']
+    function StatusPalette() {
+      const [open, setOpen] = useState(false)
+      return (
+        <main>
+          <button type='button' onClick={() => setOpen(true)}>
+            Search
+          </button>
+          <CommandPalette
+            open={open}
+            onOpenChange={setOpen}
+            shortcut={false}
+            items={[{ label: 'Change status…', page: 'status' }]}
+          >
+            <CommandPalette.Input />
+            <CommandPalette.List>
+              {(command: { label: string; page: string }) => (
+                <CommandPalette.Item
+                  key={command.label}
+                  value={command}
+                  page={command.page}
+                >
+                  {command.label}
+                </CommandPalette.Item>
+              )}
+            </CommandPalette.List>
+            <CommandPalette.Page
+              value='status'
+              label='Change status'
+              items={statuses}
+            >
+              <CommandPalette.List>
+                {(status: string) => (
+                  <CommandPalette.Item
+                    key={status}
+                    value={status}
+                    onSelect={() => onStatus(status)}
+                  >
+                    {status}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.List>
+            </CommandPalette.Page>
+          </CommandPalette>
+        </main>
+      )
+    }
+    render(<StatusPalette />)
+    screen.getByRole('button', { name: 'Search' }).focus()
+    await userEvent.keyboard('{Enter}')
+    await expect.element(page.getByRole('combobox')).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    await expect
+      .element(page.getByRole('listbox', { name: 'Change status' }))
+      .toBeVisible()
+    await expect.element(page.getByRole('combobox')).toHaveValue('')
+    await userEvent.keyboard('sold{Enter}')
+    await expect.element(page.getByRole('dialog')).not.toBeInTheDocument()
+    expect(onStatus).toHaveBeenCalledWith('Sold out')
   })
 })

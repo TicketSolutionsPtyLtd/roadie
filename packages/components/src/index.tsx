@@ -38,7 +38,8 @@ export {
   type CommandPaletteScopesProps,
   type CommandPaletteScopeProps,
   type CommandPaletteFooterProps,
-  type CommandPaletteHintProps
+  type CommandPaletteHintProps,
+  type CommandPalettePageProps
 } from './components/CommandPalette'
 export {
   Collapsible,

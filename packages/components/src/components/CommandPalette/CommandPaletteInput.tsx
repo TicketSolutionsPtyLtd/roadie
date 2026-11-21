@@ -7,8 +7,12 @@ import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Autocomplete, type AutocompleteInputProps } from '../Autocomplete'
+import { Badge } from '../Badge'
 import { Dialog } from '../Dialog'
-import { useCommandPaletteScope } from './CommandPaletteContext'
+import {
+  useCommandPalettePages,
+  useCommandPaletteScope
+} from './CommandPaletteContext'
 
 export type CommandPaletteInputProps = AutocompleteInputProps &
   RefAttributes<HTMLInputElement>
@@ -29,6 +33,7 @@ export function CommandPaletteInput({
   ...props
 }: CommandPaletteInputProps) {
   const { scope, setScope, scopes } = useCommandPaletteScope()
+  const { page, pop } = useCommandPalettePages()
 
   // The arrows change type only where they couldn't move the caret.
   function changeScope(event: KeyboardEvent<HTMLInputElement>) {
@@ -55,13 +60,28 @@ export function CommandPaletteInput({
         className='size-4 shrink-0 text-subtle'
         aria-hidden
       />
+      {page ? (
+        <Badge
+          data-slot='command-palette-page-chip'
+          emphasis='subtle'
+          className='max-w-[40%] shrink-0 truncate'
+        >
+          {page.label}
+        </Badge>
+      ) : null}
       <Autocomplete.Input
         data-slot='command-palette-input'
         aria-label={ariaLabel}
         className={cn('min-h-14 text-base', className)}
         onKeyDown={(event) => {
           onKeyDown?.(event)
-          if (!event.defaultPrevented && scopes.length > 1) changeScope(event)
+          if (event.defaultPrevented) return
+          if (page) {
+            if (event.key === 'Backspace' && event.currentTarget.value === '') {
+              event.preventDefault()
+              pop()
+            }
+          } else if (scopes.length > 1) changeScope(event)
         }}
         {...props}
       />

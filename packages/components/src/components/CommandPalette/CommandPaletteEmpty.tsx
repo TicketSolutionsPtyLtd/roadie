@@ -4,6 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Autocomplete, type AutocompleteEmptyProps } from '../Autocomplete'
 import { EmptyState } from '../EmptyState'
+import { useOnOpenPage } from './CommandPaletteContext'
 
 export type CommandPaletteEmptyProps = AutocompleteEmptyProps &
   RefAttributes<HTMLDivElement>
@@ -13,6 +14,7 @@ export function CommandPaletteEmpty({
   children,
   ...props
 }: CommandPaletteEmptyProps) {
+  if (!useOnOpenPage()) return null
   return (
     <Autocomplete.Empty data-slot='command-palette-empty' {...props}>
       <EmptyState size='sm'>

@@ -7,7 +7,10 @@ import { cn } from '@oztix/roadie-core/utils'
 import { Autocomplete, type AutocompleteItemProps } from '../Autocomplete'
 import { KbdShortcut, hasShortcut } from '../Kbd/KbdShortcut'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
-import { useCommandPaletteClose } from './CommandPaletteContext'
+import {
+  useCommandPaletteClose,
+  useCommandPalettePages
+} from './CommandPaletteContext'
 
 export type CommandPaletteItemProps = Omit<AutocompleteItemProps, 'onSelect'> &
   RefAttributes<HTMLDivElement> & {
@@ -20,6 +23,8 @@ export type CommandPaletteItemProps = Omit<AutocompleteItemProps, 'onSelect'> &
      * @default true
      */
     closeOnSelect?: boolean
+    /** Opens the `CommandPalette.Page` with this value instead of closing, after `onSelect`. */
+    page?: string
     /** Pass a bold Phosphor icon; it is sized for you. */
     icon?: ReactNode
     /** Keys such as `['mod', 'e']`, shown per platform, or text such as `⌘E`. Visual only; bind the keys yourself. */
@@ -30,6 +35,7 @@ export function CommandPaletteItem({
   href,
   onSelect,
   closeOnSelect = true,
+  page,
   icon,
   shortcut,
   render,
@@ -39,6 +45,7 @@ export function CommandPaletteItem({
   ...props
 }: CommandPaletteItemProps) {
   const close = useCommandPaletteClose()
+  const { push } = useCommandPalettePages()
   return (
     <Autocomplete.Item
       data-slot='command-palette-item'
@@ -54,7 +61,8 @@ export function CommandPaletteItem({
         onClick?.(event)
         if (event.defaultPrevented) return
         onSelect?.()
-        if (closeOnSelect) close()
+        if (page !== undefined) push(page)
+        else if (closeOnSelect) close()
       }}
       {...props}
     >
