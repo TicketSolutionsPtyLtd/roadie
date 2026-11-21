@@ -115,6 +115,75 @@ describe('useNavigatorCommands', () => {
     ])
   })
 
+  it("keeps a page's own icon, skips pages without a link, and follows new saved views", async () => {
+    function Reports({
+      views,
+      log
+    }: {
+      views: string[]
+      log: NavigatorCommandGroup[][]
+    }) {
+      return (
+        <Navigator value='/reports'>
+          <Navigator.Primary aria-label='Organiser'>
+            {testBrand}
+            <Navigator.Item
+              value='/reports'
+              href='/reports'
+              icon={<TicketIcon />}
+            >
+              Reports
+              <Navigator.Secondary aria-label='Report views'>
+                <Navigator.Item
+                  value='/reports/sales'
+                  href='/reports/sales'
+                  icon={<CartIcon />}
+                >
+                  Sales
+                </Navigator.Item>
+                <Navigator.Item value='export' onSelect={() => {}}>
+                  Export
+                </Navigator.Item>
+                {views.map((view) => (
+                  <Navigator.Item
+                    key={view}
+                    value={`/reports/${view}`}
+                    href={`/reports/${view}`}
+                  >
+                    {view}
+                  </Navigator.Item>
+                ))}
+              </Navigator.Secondary>
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Pane>
+            <Probe log={log} />
+          </Pane>
+        </Navigator>
+      )
+    }
+    const pagesOf = (log: NavigatorCommandGroup[][]) =>
+      log.at(-1)![1].items.map((item) => ({
+        ...item,
+        icon: iconOf(item.icon)
+      }))
+
+    const log: NavigatorCommandGroup[][] = []
+    const { rerender } = render(<Reports views={[]} log={log} />)
+    await flushViewportMeasurement()
+    expect(pagesOf(log)).toEqual([
+      {
+        value: '/reports/sales',
+        label: 'Sales',
+        href: '/reports/sales',
+        icon: { type: CartIcon, weight: 'bold' }
+      }
+    ])
+
+    rerender(<Reports views={['Perth']} log={log} />)
+    expect(pagesOf(log).map((item) => item.label)).toEqual(['Sales', 'Perth'])
+  })
+
   it('returns no commands outside a Navigator', () => {
     const log: NavigatorCommandGroup[][] = []
     render(<Probe log={log} />)
