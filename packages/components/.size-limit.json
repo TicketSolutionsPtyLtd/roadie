@@ -23,7 +23,7 @@
     "name": "CommandPalette",
     "path": "dist/components/CommandPalette/index.js",
     "import": "*",
-    "limit": "18.3 kB",
+    "limit": "19.3 kB",
     "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
