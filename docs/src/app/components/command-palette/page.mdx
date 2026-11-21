@@ -426,6 +426,162 @@ The commands carry `value`, `label`, `href`, `icon`, and, for a page in a
 titled `Navigator.Group` such as "Your views", that title as `keywords`. A page
 without its own icon takes its destination's.
 
+#### With server results
+
+When the app searches for itself, pass `filter={null}` so the palette shows
+`items` as given, in that order, and read the search with `onQueryChange`.
+Set `status` to `'loading'` while a search runs, and `CommandPalette.Status`
+shows a spinner with its text; the last results stay until new ones arrive.
+Set it to `'error'` when a search fails, and `CommandPalette.Error` shows its
+text with the `action` you pass, such as a Button that searches again.
+`CommandPalette.Empty` stays hidden in both. Here, a search for "tour" fails
+the first time.
+
+```tsx-live-noinline
+function ServerSearch() {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [attempt, setAttempt] = useState(0)
+  const [status, setStatus] = useState('idle')
+  const [results, setResults] = useState([])
+
+  useEffect(() => {
+    if (query === '') return
+    // Stands in for a fetch to the app's search.
+    const timer = setTimeout(() => {
+      const text = query.toLowerCase()
+      if (text.includes('tour') && attempt === 0) {
+        setStatus('error')
+        return
+      }
+      const events = [
+        'Velvet Dingo Fest',
+        'Ironbark Satellite Tour',
+        'Lampshade Disco',
+        'Pumice Rodeo Tour',
+        'Ochre Kite Weekender',
+      ]
+      setResults(events.filter((event) => event.toLowerCase().includes(text)))
+      setStatus('idle')
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [query, attempt])
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search events</Button>
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        shortcut={false}
+        items={query ? results : []}
+        filter={null}
+        status={status}
+        onQueryChange={(next) => {
+          setQuery(next)
+          setAttempt(0)
+          setStatus(next ? 'loading' : 'idle')
+        }}
+      >
+        <CommandPalette.Input placeholder='Search events' />
+        <CommandPalette.Status>Searching…</CommandPalette.Status>
+        <CommandPalette.List>
+          {(event) => (
+            <CommandPalette.Item key={event} value={event}>
+              {event}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>
+          {query ? 'No events match' : 'Type to search events'}
+        </CommandPalette.Empty>
+        <CommandPalette.Error
+          action={
+            <Button
+              emphasis='strong'
+              onClick={() => {
+                setAttempt((count) => count + 1)
+                setStatus('loading')
+              }}
+            >
+              Try again
+            </Button>
+          }
+        >
+          We couldn't search events
+        </CommandPalette.Error>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<ServerSearch />)
+```
+
+On a page, put a `CommandPalette.Status` and `CommandPalette.Error` inside
+`CommandPalette.Page`, and give the page its own `filter={null}` when the app
+searches its commands. Like `CommandPalette.Empty`, each shows only while its
+own page is open, and `status` covers whichever page that is.
+
+#### With recent commands
+
+The palette keeps no history. To show what someone picked lately, hold it in
+the app's state and put a "Recent" group first in `items`. Here it shows while
+the search is empty.
+
+```tsx-live-noinline
+function RecentSearch() {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [recent, setRecent] = useState(['Orders'])
+  const pages = ['Events', 'Orders', 'Payouts', 'Settings']
+  const remember = (label) =>
+    setRecent((current) => [label, ...current.filter((item) => item !== label)].slice(0, 3))
+  const groups = [
+    ...(query === '' && recent.length > 0
+      ? [{ label: 'Recent', items: recent.map((label) => ({ label })) }]
+      : []),
+    { label: 'Pages', items: pages.map((label) => ({ label })) },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Go to a page</Button>
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        shortcut={false}
+        items={groups}
+        onQueryChange={setQuery}
+      >
+        <CommandPalette.Input placeholder='Search pages' />
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(command) => (
+                  <CommandPalette.Item
+                    key={command.label}
+                    value={command}
+                    onSelect={() => remember(command.label)}
+                  >
+                    {command.label}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<RecentSearch />)
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -467,7 +623,8 @@ Typing ranks the commands: an exact match first, then labels that start with
 the text, then labels with a word that starts with it, then labels that
 contain it. A command that matches only through its `keywords` comes after
 those. Case and accents don't count. Groups keep their order, and their
-commands are ranked within them. Each opening starts with an empty search.
+commands are ranked within them. Each opening starts with an empty search. With `filter={null}`, the palette neither
+matches nor ranks, and shows the app's results in its order.
 
 ### On a phone
 
@@ -498,6 +655,10 @@ flow at every size.
   commands", so a phone without a keyboard can go back too.
 - `CommandPalette.Trigger` carries the shortcut in `aria-keyshortcuts`, so
   screen readers announce it; the keycaps are visual.
+- `CommandPalette.Status` and `CommandPalette.Error` are polite live
+  regions, so screen readers say "Searching…" and the error as they appear,
+  without moving focus from the input. The error's action is reachable with
+  **Tab**.
 - A command with `href` is a link, so it opens in a new tab with a modified
   click, as any link does.
 
