@@ -57,6 +57,7 @@ function Palette({
             </CommandPalette.Item>
           )}
         </CommandPalette.List>
+        <CommandPalette.Empty>No actions match</CommandPalette.Empty>
         <CommandPalette.Page
           value='status'
           label='Change status'
@@ -73,6 +74,7 @@ function Palette({
               </CommandPalette.Item>
             )}
           </CommandPalette.List>
+          <CommandPalette.Empty>No statuses match</CommandPalette.Empty>
         </CommandPalette.Page>
       </CommandPalette>
     </>
@@ -90,8 +92,7 @@ async function openStatusPage() {
   return input
 }
 
-const chip = () =>
-  document.querySelector('[data-slot="command-palette-page-chip"]')
+const chip = () => screen.queryByRole('button', { name: /^Back to/ })
 
 describe('CommandPalette pages', () => {
   it('opens a page from a command, clearing the search and showing its label and commands', async () => {
@@ -242,6 +243,14 @@ describe('CommandPalette pages', () => {
     expect(onOpenChange).toHaveBeenLastCalledWith(false, {
       reason: 'escape-key'
     })
+  })
+
+  it("shows only the open page's empty state", async () => {
+    render(<Palette />)
+    const input = await openStatusPage()
+    await userEvent.type(input, 'zzz')
+    expect(await screen.findByText('No statuses match')).toBeInTheDocument()
+    expect(screen.queryByText('No actions match')).not.toBeInTheDocument()
   })
 
   it('names the list with the open page', async () => {
