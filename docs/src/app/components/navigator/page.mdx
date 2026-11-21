@@ -17,6 +17,7 @@ navigation on large screens and a floating tab bar on phones.
 ```tsx
 import {
   Navigator,
+  useNavigatorCommands,
   useNavigatorSecondary
 } from '@oztix/roadie-components/navigator'
 ```
@@ -1072,6 +1073,25 @@ function HomeCards() {
     </div>
   )
 }
+```
+
+### useNavigatorCommands
+
+```tsx
+function useNavigatorCommands(): NavigatorCommandGroup[]
+```
+
+Returns the destinations, their `Navigator.Secondary` pages, and any saved
+views listed there as groups of link commands for
+[CommandPalette](/components/command-palette#with-navigators-pages)'s `items`,
+so a palette lists the same pages as the navigation. Call it in a component
+inside `<Navigator>`, such as a page header; outside one it returns `[]`. Each
+group has an optional `label` and its `items`, and each command has `value`,
+`label` (plain text), `href`, `icon` and `keywords`.
+
+```tsx
+const groups = useNavigatorCommands()
+return <CommandPalette items={groups}>{/* … */}</CommandPalette>
 ```
 
 <PropsDefinitions component='Navigator' />

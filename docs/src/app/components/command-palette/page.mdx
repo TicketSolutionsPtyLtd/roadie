@@ -313,6 +313,117 @@ function StatusSearch() {
 render(<StatusSearch />)
 ```
 
+#### With Navigator's pages
+
+`useNavigatorCommands` from `@oztix/roadie-components/navigator` returns
+Navigator's destinations, their secondary pages, and any saved views listed
+there, as groups of link commands. Pass them as `items`, so the palette lists
+the same pages as the navigation without writing them twice. The first group
+holds the destinations and has no label. Each destination with secondary
+pages follows, labelled with its name.
+
+Navigator reads its tree as it renders, so call the hook in a component inside
+`<Navigator>`, such as your page's header. Outside one it returns `[]`. Items
+with `onSelect` or a menu and no `href` are left out.
+
+```tsx-live-noinline-expand
+function PageSearch() {
+  const [open, setOpen] = useState(false)
+  const groups = useNavigatorCommands()
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Find a page</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={groups}>
+        <CommandPalette.Input placeholder='Search pages' />
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.label ?? 'pages'} items={group.items}>
+              {group.label ? (
+                <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              ) : null}
+              <CommandPalette.Collection>
+                {(command) => (
+                  <CommandPalette.Item
+                    key={command.value}
+                    value={command}
+                    href={command.href}
+                    icon={command.icon}
+                  >
+                    {command.label}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+function OrganiserApp() {
+  const titles = {
+    '/events/all': 'All events',
+    '/events/on-sale': 'On sale',
+    '/events/perth': 'Perth gigs',
+    '/orders': 'Orders',
+    '/payouts': 'Payouts'
+  }
+
+  return (
+    <DemoRouter initialPath='/events/all'>
+      {(path) => (
+        <Navigator value={path} className='h-full'>
+          <Navigator.Primary aria-label='Organiser'>
+            <Navigator.Brand href='/events/all' />
+            <Navigator.Item value='/events' href='/events/all' icon={<TicketIcon />}>
+              Events
+              <Navigator.Secondary aria-label='Event views'>
+                <Navigator.Group>
+                  <Navigator.GroupTitle>Views</Navigator.GroupTitle>
+                  <Navigator.Item value='/events/all' href='/events/all'>All events</Navigator.Item>
+                  <Navigator.Item value='/events/on-sale' href='/events/on-sale'>On sale</Navigator.Item>
+                </Navigator.Group>
+                <Navigator.Group>
+                  <Navigator.GroupTitle>Your views</Navigator.GroupTitle>
+                  <Navigator.Item value='/events/perth' href='/events/perth'>Perth gigs</Navigator.Item>
+                </Navigator.Group>
+              </Navigator.Secondary>
+            </Navigator.Item>
+            <Navigator.Item value='/orders' href='/orders' icon={<ShoppingCartIcon />}>
+              Orders
+            </Navigator.Item>
+            <Navigator.Item value='/payouts' href='/payouts' icon={<WalletIcon />}>
+              Payouts
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Pane>
+            <Pane.Header>
+              <Pane.Title>{titles[path]}</Pane.Title>
+              <Pane.Actions>
+                <PageSearch />
+              </Pane.Actions>
+            </Pane.Header>
+          </Pane>
+        </Navigator>
+      )}
+    </DemoRouter>
+  )
+}
+
+render(
+  <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
+    <OrganiserApp />
+  </div>
+)
+```
+
+The commands carry `value`, `label`, `href`, `icon`, and, for a page in a
+titled `Navigator.Group` such as "Your views", that title as `keywords`. A page
+without its own icon takes its destination's.
+
 ## Guidelines
 
 <Guidelines>
