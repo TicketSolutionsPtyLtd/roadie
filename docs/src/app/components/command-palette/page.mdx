@@ -623,8 +623,9 @@ Typing ranks the commands: an exact match first, then labels that start with
 the text, then labels with a word that starts with it, then labels that
 contain it. A command that matches only through its `keywords` comes after
 those. Case and accents don't count. Groups keep their order, and their
-commands are ranked within them. Each opening starts with an empty search. With `filter={null}`, the palette neither
-matches nor ranks, and shows the app's results in its order.
+commands are ranked within them. Each opening starts with an empty search.
+With `filter={null}`, the palette neither matches nor ranks, and shows the
+app's results in its order.
 
 ### On a phone
 
@@ -658,7 +659,7 @@ flow at every size.
 - `CommandPalette.Status` and `CommandPalette.Error` are polite live
   regions, so screen readers say "Searching…" and the error as they appear,
   without moving focus from the input. The error's action is reachable with
-  **Tab**.
+  **Tab**, and when a retry clears the error, focus goes back to the search.
 - A command with `href` is a link, so it opens in a new tab with a modified
   click, as any link does.
 
