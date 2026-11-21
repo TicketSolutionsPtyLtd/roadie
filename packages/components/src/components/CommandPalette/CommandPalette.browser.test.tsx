@@ -107,6 +107,15 @@ describe('CommandPalette in a browser', () => {
     location.hash = ''
   })
 
+  it("opens with the platform's own modifier and K", async () => {
+    await page.viewport(1280, 800)
+    render(<Palette />)
+    const mod = /^(Mac|iP)/.test(navigator.platform) ? 'Meta' : 'Control'
+    await userEvent.keyboard(`{${mod}>}k{/${mod}}`)
+    await expect.element(page.getByRole('dialog')).toBeInViewport()
+    await expect.element(page.getByRole('combobox')).toHaveFocus()
+  })
+
   it('fills a phone screen, with the input and Close in view', async () => {
     await page.viewport(390, 844)
     await openPalette()
