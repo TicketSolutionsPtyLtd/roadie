@@ -13,6 +13,7 @@ import type { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isDev } from '../../utils/isDev'
 import { collatorContains, rankMatches } from '../../utils/rankMatches'
 import { Autocomplete, type AutocompleteProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
@@ -172,12 +173,15 @@ export function CommandPaletteRoot<Item>({
   const register = useCallback(
     (value: string, entry: CommandPalettePageEntry) => {
       setPages((current) => new Map(current).set(value, entry))
-      return () =>
+      return () => {
         setPages((current) => {
           const next = new Map(current)
           next.delete(value)
           return next
         })
+        // A page that goes away while open can't stay on the stack.
+        setStack((current) => current.filter((open) => open !== value))
+      }
     },
     []
   )
@@ -188,6 +192,13 @@ export function CommandPaletteRoot<Item>({
           ? { value: pageValue, label: pageEntry.label, previousLabel }
           : null,
       push: (value: string) => {
+        if (!pages.has(value)) {
+          if (isDev())
+            console.warn(
+              `[Roadie] CommandPalette has no CommandPalette.Page with value "${value}" to open.`
+            )
+          return
+        }
         setStack((current) => [...current, value])
         setQuery('')
       },
@@ -197,7 +208,7 @@ export function CommandPaletteRoot<Item>({
       },
       register
     }),
-    [pageValue, pageEntry, previousLabel, register]
+    [pageValue, pageEntry, previousLabel, pages, register]
   )
   const onPage = pagesContext.page !== null
   const scopeContext = useMemo(

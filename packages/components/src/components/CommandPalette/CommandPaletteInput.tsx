@@ -68,7 +68,7 @@ export function CommandPaletteInput({
         <button
           type='button'
           data-slot='command-palette-page-chip'
-          aria-label={`Back to ${page.previousLabel ?? 'all commands'}`}
+          aria-label={`${page.label}, back to ${page.previousLabel ?? 'all commands'}`}
           className={cn(
             badgeVariants({ emphasis: 'subtle' }),
             'is-interactive max-w-[40%] shrink-0'

@@ -92,7 +92,7 @@ async function openStatusPage() {
   return input
 }
 
-const chip = () => screen.queryByRole('button', { name: /^Back to/ })
+const chip = () => screen.queryByRole('button', { name: /, back to / })
 
 describe('CommandPalette pages', () => {
   it('opens a page from a command, clearing the search and showing its label and commands', async () => {
@@ -121,7 +121,7 @@ describe('CommandPalette pages', () => {
   it('goes back a page from its chip, returning focus to the search', async () => {
     render(<Palette />)
     const input = await openStatusPage()
-    const back = screen.getByRole('button', { name: 'Back to all commands' })
+    const back = screen.getByRole('button', { name: /, back to all commands$/ })
     expect(back).toHaveTextContent('Change status')
     expect(back).toHaveClass('is-interactive')
     await userEvent.click(back)
@@ -184,11 +184,11 @@ describe('CommandPalette pages', () => {
       await screen.findByRole('option', { name: 'Sold out' })
     )
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Back to Change status' })
+      await screen.findByRole('button', { name: /, back to Change status$/ })
     )
     expect(options()).toEqual(['Sold out'])
     expect(
-      screen.getByRole('button', { name: 'Back to all commands' })
+      screen.getByRole('button', { name: /, back to all commands$/ })
     ).toBeInTheDocument()
   })
 
@@ -356,5 +356,39 @@ describe('CommandPalette pages', () => {
       'true'
     )
     expect(options()).toEqual(['Change status…'])
+  })
+
+  it('names the chip by its own text first, then where it goes back to', async () => {
+    render(<Palette />)
+    await openStatusPage()
+    expect(
+      screen.getByRole('button', {
+        name: 'Change status, back to all commands'
+      })
+    ).toBeInTheDocument()
+  })
+
+  it('ignores, and warns about, a page no CommandPalette.Page declares', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <CommandPalette
+        defaultOpen
+        shortcut={false}
+        items={[{ label: 'Typo', page: 'staus' }]}
+      >
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(c: { label: string; page: string }) => (
+            <CommandPalette.Item key={c.label} value={c} page={c.page}>
+              {c.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await userEvent.click(await screen.findByRole('option', { name: 'Typo' }))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('staus'))
+    expect(chip()).toBeNull()
+    expect(screen.getByRole('option', { name: 'Typo' })).toBeInTheDocument()
   })
 })

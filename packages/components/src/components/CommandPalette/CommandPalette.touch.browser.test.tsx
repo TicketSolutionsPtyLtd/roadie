@@ -62,7 +62,7 @@ describe('CommandPalette by touch', TIMEOUT, () => {
     )
     await tapOn(await screen.findByRole('option', { name: 'Change status…' }))
     await expect.poll(options).toEqual(['Draft', 'On sale', 'Sold out'])
-    await tapOn(screen.getByRole('button', { name: 'Back to all commands' }))
+    await tapOn(screen.getByRole('button', { name: /, back to all commands$/ }))
     await expect.poll(options).toEqual(['Change status…', 'Invite teammate'])
     await expect.element(page.getByRole('combobox')).toHaveFocus()
   })
