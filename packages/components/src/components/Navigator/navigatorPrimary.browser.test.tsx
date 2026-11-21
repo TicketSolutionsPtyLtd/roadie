@@ -12,6 +12,7 @@ import { page, userEvent } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { CommandPalette } from '../CommandPalette'
 import { Pane } from '../Pane'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -129,6 +130,86 @@ describe('vertical navigation', () => {
     expect(
       getComputedStyle(within(tile('Orders')).getByText('Orders')).opacity
     ).toBe('0')
+  })
+})
+
+function SearchRail() {
+  return (
+    <>
+      <Navigator value='/shows'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand>Oztix</Navigator.Brand>
+          <Navigator.Item value='/shows' href='/shows' icon={<Icon />}>
+            Shows
+          </Navigator.Item>
+          <Navigator.Item value='/orders' href='/orders' icon={<Icon />}>
+            Orders
+          </Navigator.Item>
+          <Navigator.Item
+            value='/account'
+            href='/account'
+            icon={<Icon />}
+            placement='pinned'
+          >
+            Account
+          </Navigator.Item>
+          <Navigator.Search icon={<Icon />} />
+        </Navigator.Primary>
+      </Navigator>
+      <CommandPalette items={['Events', 'Orders']}>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(label: string) => (
+            <CommandPalette.Item key={label} value={label}>
+              {label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    </>
+  )
+}
+
+describe('Navigator.Search on a large screen', () => {
+  let removeStill = () => {}
+  beforeAll(async () => {
+    removeStill = useStylesheet(STILL)
+    await page.viewport(1280, 800)
+  })
+  afterAll(async () => {
+    removeStill()
+    await page.viewport(1920, 1080)
+  })
+
+  const searchTile = () =>
+    within(vertical()).getByRole('button', { name: 'Search' })
+
+  it('sits under the brand and above the destinations, with Account still at the bottom', async () => {
+    render(<SearchRail />)
+    await settle()
+    const search = searchTile().getBoundingClientRect()
+    const shows = tile('Shows').getBoundingClientRect()
+    const account = tile('Account').getBoundingClientRect()
+    expect(search.top).toBeGreaterThanOrEqual(
+      brand().getBoundingClientRect().bottom
+    )
+    expect(search.bottom).toBeLessThan(shows.top)
+    expect(account.top).toBeGreaterThan(
+      tile('Orders').getBoundingClientRect().bottom
+    )
+    expect(
+      vertical().getBoundingClientRect().bottom - account.bottom
+    ).toBeLessThan(40)
+  })
+
+  it('opens the palette and puts focus in its input', async () => {
+    render(<SearchRail />)
+    await settle()
+    // From the keyboard: Safari doesn't focus a button it clicks.
+    searchTile().focus()
+    await userEvent.keyboard('{Enter}')
+    await expect.element(page.getByRole('dialog')).toBeInViewport()
+    await expect.element(page.getByRole('combobox')).toHaveFocus()
   })
 })
 

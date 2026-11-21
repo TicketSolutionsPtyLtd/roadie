@@ -4,6 +4,9 @@ import { type ReactElement, use } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useRegisteredPalette } from '../CommandPalette/registry'
+import { ariaKeyShortcuts } from '../CommandPalette/shortcut'
+import { useKeyPlatform } from '../Kbd/platform'
 import { List, type ListProps } from '../List'
 import { ListItemContent } from '../List/ListItemContent'
 import { listItemVariants } from '../List/variants'
@@ -20,6 +23,7 @@ import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
+import { opensPalette } from './searchSlot'
 import { textOf } from './splitSecondary'
 
 export type NavigatorOverflowItemsProps = Omit<ListProps, 'children'>
@@ -54,6 +58,29 @@ export function NavigatorOverflowItems({
   )
   const { value } = use(NavigatorSelectionContext)
   const { overflowItems, openMenu } = use(NavigatorDisclosureContext)
+  const palette = useRegisteredPalette()
+  const platform = useKeyPlatform()
+
+  // Opens the palette over More, so closing it comes back here.
+  const renderSearchRow = (slot: NavigatorSlotMeta) => (
+    <li key={slot.value}>
+      <button
+        type='button'
+        data-slot='list-item'
+        aria-keyshortcuts={
+          palette ? ariaKeyShortcuts(palette.shortcut, platform) : undefined
+        }
+        onClick={() => palette?.open()}
+        className={listItemVariants({ selected: false })}
+      >
+        <ListItemContent
+          title={slot.label}
+          leading={presentNavIcon(slot.icon, 'size-5 text-subtle')}
+          chevron={false}
+        />
+      </button>
+    </li>
+  )
 
   // List.Item renders its own <li>, so it can't be a menu trigger.
   const renderMenuRow = (
@@ -92,6 +119,7 @@ export function NavigatorOverflowItems({
     set: keyof NavigatorOverflowSets,
     slot: NavigatorSlotMeta
   ) => {
+    if (opensPalette(slot)) return renderSearchRow(slot)
     if (slot.menu) return renderMenuRow(set, slot, slot.menu)
     const active = isDestinationActive(slot, value)
     const href = slot.href

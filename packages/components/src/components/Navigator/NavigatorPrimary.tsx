@@ -16,6 +16,9 @@ import { DotsThreeIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useDevWarning } from '../../utils/useDevWarning'
+import { useRegisteredPalette } from '../CommandPalette/registry'
+import { ariaKeyShortcuts } from '../CommandPalette/shortcut'
+import { useKeyPlatform } from '../Kbd/platform'
 import { ScrollArea } from '../ScrollArea'
 import { Tooltip } from '../Tooltip'
 import {
@@ -44,6 +47,7 @@ import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
+import { opensPalette, usePaletteMissing, withoutSearch } from './searchSlot'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
@@ -96,7 +100,7 @@ export function NavigatorPrimary({
   const {
     value: activeValue,
     activeSecondary,
-    collected,
+    collected: declared,
     showList
   } = use(NavigatorSelectionContext)
   const { overflowOpen, openMenu } = use(NavigatorDisclosureContext)
@@ -107,6 +111,20 @@ export function NavigatorPrimary({
   const clusterTrackRef = useRef<HTMLDivElement>(null)
   const pinnedRef = useRef<HTMLDivElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
+
+  const palette = useRegisteredPalette()
+  const platform = useKeyPlatform()
+  const missing = usePaletteMissing(
+    declared.ordered.some(opensPalette),
+    palette
+  )
+  const collected = useMemo(
+    () => (missing ? withoutSearch(declared) : declared),
+    [declared, missing]
+  )
+  const searchShortcut = palette
+    ? ariaKeyShortcuts(palette.shortcut, platform)
+    : undefined
 
   // Root's walk: a Primary that isn't its direct child finds nothing, and warns.
   const items = collected.ordered
@@ -263,6 +281,10 @@ export function NavigatorPrimary({
       active: boolean,
       href: string | undefined
     ) => {
+      if (opensPalette(tab)) {
+        palette?.open()
+        return
+      }
       activateItem(tab.value)
       if (opensElsewhere(event)) return
       setOpenMenu(null)
@@ -348,7 +370,11 @@ export function NavigatorPrimary({
           }
         />
       ) : (
-        <NavigatorTab key={tab.value} {...tabProps} />
+        <NavigatorTab
+          key={tab.value}
+          {...tabProps}
+          aria-keyshortcuts={opensPalette(tab) ? searchShortcut : undefined}
+        />
       )
 
     const tabs = slots.tabs.map((tab, tabIndex) => {
@@ -391,6 +417,8 @@ export function NavigatorPrimary({
       : null
     return { tabs, pinned }
   }, [
+    palette,
+    searchShortcut,
     slots.tabs,
     pinnedTab,
     pinnedIsActive,
@@ -437,6 +465,14 @@ export function NavigatorPrimary({
               >
                 {collected.brand}
                 {collected.toggles}
+              </div>
+            ) : null}
+            {collected.search.length > 0 ? (
+              <div
+                data-slot='navigator-primary-search'
+                className={navigatorPrimaryPinnedClass}
+              >
+                {wrapCapsules(collected.search, new Set())}
               </div>
             ) : null}
             <ScrollArea

@@ -16,8 +16,10 @@ const listeners = new Set<() => void>()
 
 const notify = () => listeners.forEach((listener) => listener())
 
+export const currentPalette = () => stack.at(-1) ?? null
+
 export const isCurrentPalette = (palette: RegisteredPalette) =>
-  stack.at(-1) === palette
+  currentPalette() === palette
 
 export function registerPalette(palette: RegisteredPalette) {
   if (stack.length > 0 && isDev())
@@ -38,9 +40,5 @@ const subscribe = (listener: () => void) => {
 }
 
 export function useRegisteredPalette() {
-  return useSyncExternalStore(
-    subscribe,
-    () => stack.at(-1) ?? null,
-    () => null
-  )
+  return useSyncExternalStore(subscribe, currentPalette, () => null)
 }

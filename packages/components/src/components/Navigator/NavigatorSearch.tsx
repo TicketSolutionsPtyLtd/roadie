@@ -1,0 +1,101 @@
+'use client'
+
+import type { ReactNode } from 'react'
+
+import { cn } from '@oztix/roadie-core/utils'
+
+import { useRegisteredPalette } from '../CommandPalette/registry'
+import { ariaKeyShortcuts } from '../CommandPalette/shortcut'
+import { KbdShortcut } from '../Kbd/KbdShortcut'
+import { useKeyPlatform } from '../Kbd/platform'
+import { NavigatorDestination } from './NavigatorDestination'
+import { NavigatorItem } from './NavigatorItem'
+import { NavigatorTileTooltip } from './NavigatorTileTooltip'
+import type { NavigatorPlacement } from './mobileSlots'
+import { presentNavIcon } from './presentNavIcon'
+import { searchSlotMeta } from './searchSlot'
+import { navigatorItemLabelClass, navigatorItemVariants } from './variants'
+
+export type NavigatorSearchProps = {
+  /** `pinned` puts it under `Navigator.Brand` in the vertical navigation and in the phone bar's circle, ahead of other pinned items. `automatic` ranks it like any `Navigator.Item`. @default 'pinned' */
+  placement?: NavigatorPlacement
+  /**
+   * Links to a search page instead of opening the CommandPalette, such as a
+   * discovery page for ticket buyers. It needs no palette, and shows as the
+   * current page while that page is open.
+   */
+  href?: string
+  /** @default 'Search' */
+  label?: ReactNode
+  /** A bare Phosphor icon. @default MagnifyingGlassIcon */
+  icon?: ReactNode
+  className?: string
+}
+
+/**
+ * Opens the page's CommandPalette, the one that binds a shortcut. With none,
+ * it renders nothing. With `href`, it links to that page instead.
+ */
+export function NavigatorSearch({
+  placement,
+  href,
+  label: labelProp,
+  icon: iconProp,
+  className
+}: NavigatorSearchProps) {
+  const palette = useRegisteredPalette()
+  const platform = useKeyPlatform()
+  if (href !== undefined) {
+    const { label, icon } = searchSlotMeta({
+      placement,
+      href,
+      label: labelProp,
+      icon: iconProp
+    })
+    return (
+      <NavigatorItem value={href} href={href} icon={icon} className={className}>
+        {label}
+      </NavigatorItem>
+    )
+  }
+  const { label, icon } = searchSlotMeta({
+    placement,
+    label: labelProp,
+    icon: iconProp
+  })
+  return (
+    <NavigatorTileTooltip
+      label={
+        <span className='flex items-center gap-2'>
+          {label}
+          {palette ? (
+            <KbdShortcut shortcut={palette.shortcut} size='sm' />
+          ) : null}
+        </span>
+      }
+      render={(asTrigger) =>
+        asTrigger(
+          <NavigatorDestination
+            aria-keyshortcuts={
+              palette ? ariaKeyShortcuts(palette.shortcut, platform) : undefined
+            }
+            className={cn(navigatorItemVariants({ active: false }), className)}
+            onClick={() => palette?.open()}
+          >
+            <span data-slot='navigator-item-icon'>
+              {presentNavIcon(icon, 'size-6')}
+            </span>
+            <span
+              data-slot='navigator-item-label'
+              className={navigatorItemLabelClass}
+            >
+              {label}
+            </span>
+          </NavigatorDestination>
+        )
+      }
+    />
+  )
+}
+
+NavigatorSearch.displayName = 'Navigator.Search'

@@ -31,7 +31,8 @@ reference for each part.
 | --- | --- | --- |
 | `Navigator.Brand` | Top of the vertical navigation, linking home | Hidden |
 | A `Navigator.Group`, or loose items side by side | A floating capsule of icon tiles | Tabs in the bar |
-| An item with `placement='pinned'` | Bottom of the vertical navigation | The bar's trailing circle |
+| `Navigator.Search` | Under the brand, above the capsules | The bar's trailing circle |
+| An item with `placement='pinned'` | Bottom of the vertical navigation | The bar's trailing circle, unless `Navigator.Search` takes it |
 | A `Navigator.Secondary` | A list pane beside the page | A list pane stacked with the page |
 | Items that don't fit | Fold into More when the window is too short | Fold into More past five slots |
 | Your [`Pane`](/components/pane)s | Columns where they fit | One pane at a time |
@@ -146,6 +147,84 @@ function ConsumerNav() {
 }
 render(<ConsumerNav />)
 ```
+
+### Search
+
+`Navigator.Search` opens the page's [`CommandPalette`](/components/command-palette),
+the one that binds a shortcut. It sits under the brand on a large screen and
+takes the phone bar's circle, so a pinned Account folds into More there. Its
+tooltip shows the shortcut, and with no palette on the page it renders nothing.
+
+```tsx-live-noinline
+function SearchNav() {
+  const [active, setActive] = useState('discover')
+  const labels = {
+    discover: 'Discover',
+    tickets: 'My tickets',
+    saved: 'Saved',
+    account: 'Account'
+  }
+  const commands = [
+    { label: 'Discover', value: 'discover' },
+    { label: 'My tickets', value: 'tickets' },
+    { label: 'Saved', value: 'saved' },
+    { label: 'Account', value: 'account', keywords: ['profile'] }
+  ]
+  return (
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand />
+          <Navigator.Search />
+          <Navigator.Item value='discover' icon={<HouseIcon />}>
+            Discover
+          </Navigator.Item>
+          <Navigator.Item value='tickets' icon={<TicketIcon />}>
+            My tickets
+          </Navigator.Item>
+          <Navigator.Item value='saved' icon={<HeartIcon />}>
+            Saved
+          </Navigator.Item>
+          <Navigator.Item value='account' icon={<GearIcon />} placement='pinned'>
+            Account
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>
+          <div className='grid gap-3 py-4'>
+            <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
+            <p className='text-subtle'>Press Search, or ⌘K on a Mac and Ctrl+K elsewhere.</p>
+          </div>
+        </Pane>
+      </Navigator>
+      <CommandPalette items={commands}>
+        <CommandPalette.Input placeholder='Search pages' />
+        <CommandPalette.List>
+          {(command) => (
+            <CommandPalette.Item
+              key={command.value}
+              value={command}
+              onSelect={() => setActive(command.value)}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages match</CommandPalette.Empty>
+      </CommandPalette>
+    </div>
+  )
+}
+render(<SearchNav />)
+```
+
+- With `placement='automatic'`, Search ranks with the other items as a tile
+  and a tab, and folds into More like them.
+- Write it as a direct child of `Navigator.Primary`, not inside a
+  `Navigator.Group`.
+- `label` and `icon` default to "Search" and a magnifying glass.
+- With `href`, Search links to that page instead, such as a discovery page
+  for ticket buyers. It keeps its place, needs no palette, and shows as the
+  current page while that page is open.
 
 ### Groups
 
@@ -487,7 +566,7 @@ Items that don't fit fold into a More pane.
 
 | Where | What folds |
 | --- | --- |
-| Phone | Anything past five slots. With too many items, the top four stay beside More, or three beside a pinned circle. Extra pinned items always fold. |
+| Phone | Anything past five slots. With too many items, the top four stay beside More, or three beside a pinned circle. Extra pinned items always fold, and `Navigator.Search` goes first into the circle. |
 | Large screen, collapsed | Whatever doesn't fit the window's height. |
 | Large screen, expanded | Nothing. The cluster scrolls instead. |
 
@@ -884,7 +963,7 @@ turn and the phone pull-back.
   deep links work, as the [shell](/foundations/navigation#the-shell) does. Use
   `onValueChange` only when no route owns the state.
 - Write pinned items last. The vertical navigation always tabs through brand,
-  cluster, then pinned items, so source order should match.
+  Search, cluster, then pinned items, so source order should match.
 - Pass bare icons to items. Navigator renders them duotone at `size-6`. Give
   `Navigator.MenuItem` icons `weight='bold'`. An item without an icon shows its
   label's first letter.
@@ -936,7 +1015,10 @@ turn and the phone pull-back.
   `aria-controls`. Its label is "Expand sidebar" or "Collapse sidebar".
 - `Navigator.Brand` is a link named by its content, such as "Oztix" from the
   default `Logo`, or your mark's `alt`. Pick a name that reads in both states.
-- Tab order follows the regions: brand and toggle, cluster, then pinned items.
+- Tab order follows the regions: brand and toggle, Search, cluster, then pinned
+  items.
+- `Navigator.Search` carries the palette's shortcut in `aria-keyshortcuts`, and
+  focus moves to the palette's input when it opens.
 - While the phone bar is collapsed, only its circles are in the tab order. The
   tabs that scale away stay in the accessibility tree, so a screen reader still
   has every destination.
