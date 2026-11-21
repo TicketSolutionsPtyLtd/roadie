@@ -1,5 +1,45 @@
 # @oztix/roadie-components
 
+## 2.21.0
+
+### Minor Changes
+
+- 89fc440: `CommandPalette.Scopes` adds type tabs that narrow the commands by their `scope`, switched with the left and right arrows, and `CommandPalette.Footer` holds `CommandPalette.Hint`s that show its keys.
+- f01227b: `CommandPalette` opens with ⌘K on Apple platforms and Ctrl+K elsewhere, or the keys you pass to `shortcut`, and `CommandPalette.Trigger` is a button that opens it and shows the shortcut.
+- d0ee95f: Add `CommandPalette` (`@oztix/roadie-components/command-palette`), a palette for searching pages and running commands.
+- 8511888: Add `FileUpload` (`@oztix/roadie-components/file-upload`), a file field that checks each file before taking it. With no children it's a bar, with the file's name on the left and a button on the right, built from `FileUpload.Control`, `.Value`, `.Clear` and `.Trigger`. The value is a `File[]` that a form posts under `name`, and `accept`, `maxFileSize` and `minFileSize` turn files away with a code and a message that shows in `Field.ErrorText`.
+- ff965b9: Add `Navigator.Search` to Navigator, a pinned Search item that opens the page's `CommandPalette` and shows its shortcut. It sits under the brand on a large screen and takes the phone bar's circle ahead of other pinned items, which fold into More. With `placement='automatic'` it ranks like any item, with no palette on the page it renders nothing, and with `href` it links to a search page instead.
+- 7ccd282: Add a board layout to `Records`: `boardLayout({ groupBy, title, onMove })` from `@oztix/roadie-components/record-board` shows a column for each option of the `groupBy` field, in option order, then "No <field>", saved as `{ type: 'board', groupBy }`. Cards move to another column by drag, or from the Move menu on their handle. `onMove(row, value)` gets the column's option value, or null for "No <field>", and a rejection puts the card back with its message. On a phone the columns sit in a row that scrolls sideways, each about 85% of the width, so the next column peeks in.
+- 1fb0381: `RecordCalendar` and `calendarLayout` show an agenda on a phone, with the month's records as list rows under sticky day headings. The calendar now sends the days it shows to the server: the request carries an `overlaps` filter on the date field for the visible weeks, unpaged, and changing the month sends that month's request. In the browser the same filter applies, and `Records.Pagination` shows nothing under a calendar.
+- 0f874c6: Add `RecordCalendar` (`@oztix/roadie-components/record-calendar`), a month calendar of records with the standard toolbar and status. A calendar day now shows up to three chips, and "+N more" opens a popover with every record on the day.
+- a554141: Add a calendar layout to `Records`: `calendarLayout({ dateField, title })` from `@oztix/roadie-components/record-calendar` shows records on a month grid, each on its days, saved as `{ type: 'calendar', dateField }`, with previous, next and Today. Today is read in the browser only, so a server render reads no clock. A layout definition can now carry the `layout` a view switches to when it hasn't shown it, which the layout switch in `Records.View` and `Records.Options` uses.
+- 208cbae: Add grouping to `listLayout()`: a view's `layout.groupBy` groups the list's rows by a field with options under a title and count per option, with records that have no value last. Grouping applies to one page of rows at a time, and a list that loads by range stays ungrouped. `toggleRow` takes an `order`, so a Shift range follows the order a layout shows, such as grouped.
+- 41b4a03: Add a Group by setting to the list's settings, which saves the view's `layout.groupBy` or None. Changing the row's details keeps the grouping. A list that loads by range offers no Group by, since it stays ungrouped.
+- c69e247: Add `RecordList` (`@oztix/roadie-components/record-list`), records as a list of rows to search, filter, sort, and page through, with the toolbar, pagination, status, and bulk actions built in. It takes `row` as `listLayout()` does.
+- f275f03: Add `listLayout()` (`@oztix/roadie-components/record-list`), a List layout for `Records` beside the table and grid, saved in the view as `{ type: 'list', fields? }`.
+
+  Each row shows a title, description, leading and trailing value, with any details after the description on its second line. Configure reorders, shows, and hides the details, as it does a grid's card fields, and selection, row actions, the empty and error states, and loading by range work as in the table.
+
+- a0fd74e: `Records.Options` is deprecated in favour of `Records.View`. It still works, warns once in development, and goes in a major release.
+- a0fd74e: Add a View drawer to records. `Records.View` is an icon button, named View, that opens the view's settings in a bottom drawer at every size: the layout switch, the sort, and the shown layout's own settings, such as the table's columns. Put it after the search in your own `Records.Header`.
+- 8e6c119: Add connected lists to `Sortable`. Roots that share a `group`, each with its own `value`, drag items between each other: the list an item lands in calls `onTransfer({ value, from, to, index })`, and `canDrop` can turn an item down. A list without `onTransfer` takes nothing from the others, and a `Sortable` without `group` works as before.
+- 1f58556: Add `Sortable.DropZone`, the area of a connected list where an item from another list can land past the last row or in an empty list. It shows an accent ring while an item is over it, and the list it is dragged into scrolls by itself near its edges.
+- bcd6af3: Add "Move to" items to `Sortable`'s Move menu for connected lists. Each item's menu offers every other list in its `group` that would take it, named by that list's `label`, as in "Move Date to done". The item lands at the end of that list through the same `onTransfer` as a drop, the list it joins announces the move, and focus follows it. A list whose `canDrop` turns the item down, or that is disabled or has no `onTransfer`, isn't offered.
+- f14b2e7: `Autocomplete` takes `virtualized`, as `Combobox` does, so a long list of suggestions draws only the rows near the scroll position.
+- 78af746: `Combobox` takes `virtualized`, which draws only the rows near the scroll position, so a list of thousands stays smooth to type into. Each row keeps its place in the whole list for screen readers.
+
+### Patch Changes
+
+- fb0ca22: Fix `roadie.manifest.json` leaving a compound part tagged `@deprecated` out of its `deprecations` list, so `/roadie:migrate`, `/roadie:review`, and `/roadie:audit` now flag an app still using one. The entry names the part in `export`, such as `Records.Options`, with the tag's text as its `reason`.
+- 938e636: Fix a Navigator root pane starting a `translate` transition in WebKit 27.2 when it mounts into a row that is pushing. The pane didn't move, but the transition ran for the length of the push.
+- 8bdedc3: `RecordGrid` now builds on a shared internal layout frame that the coming record layouts reuse. Nothing changes for apps.
+- 56bc0b3: Records list rows can now show details after the description, and the grid's fields setting serves list views too, ready for the coming list layout. Nothing changes for apps.
+- 499f673: `RecordTable` now builds on the same internal layout frame as `RecordGrid`, so the two pick their loading, error and empty states the same way and share the progress bar and Select mode's Escape. Nothing changes for apps.
+- Updated dependencies [40a22c0]
+- Updated dependencies [a71f81b]
+- Updated dependencies [91b0f63]
+  - @oztix/roadie-core@2.14.0
+
 ## 2.20.0
 
 ### Minor Changes

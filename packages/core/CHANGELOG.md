@@ -1,5 +1,13 @@
 # @oztix/roadie-core
 
+## 2.14.0
+
+### Minor Changes
+
+- 40a22c0: Add crop geometry to `@oztix/roadie-core/image`: `coverZoom` gives the least zoom at which an image, turned by a rotation, covers a frame; `clampCrop` keeps an `ImageCropValue` covering the frame, inside the turned image, and no smaller than a `min` size; `cropValueAt` fills in a crop's area from its percent or the other way round; and `rubberBand` resists a drag past an edge.
+- a71f81b: Add `recordDates(row, field, timeZone)` to `@oztix/roadie-core/records`, the first and last calendar dates a record's date field covers, read as a `within` filter reads them: the venue's dates for an event, and the viewer's for a timestamp.
+- 91b0f63: Add `list`, `board`, `calendar`, and `map` to `RecordLayout`, so a saved view or a URL can hold them. A list takes `fields` and `groupBy`, a board `groupBy`, a calendar `dateField`, and a map nothing, since it fits its records. In a URL they're `layout=list&fields=&groupBy=`, `layout=board&groupBy=`, `layout=calendar&dateField=`, and `layout=map`. `validateRecordView` checks that `groupBy` names a single-valued field with options and `dateField` a date field that holds one date. `RECORD_VIEW_VERSION` and `RECORD_URL_VERSION` stay 1: older views and links read as before, and a release that doesn't know a layout falls back to its default view.
+
 ## 2.13.0
 
 ### Minor Changes

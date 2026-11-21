@@ -1,5 +1,15 @@
 # @oztix/roadie-blocks
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [40a22c0]
+- Updated dependencies [a71f81b]
+- Updated dependencies [91b0f63]
+  - @oztix/roadie-core@2.14.0
+  - @oztix/roadie-illustrations@0.1.1
+
 ## 0.3.0
 
 ### Minor Changes
