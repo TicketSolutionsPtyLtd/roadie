@@ -1,5 +1,14 @@
 # @oztix/roadie-charts
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [40a22c0]
+- Updated dependencies [a71f81b]
+- Updated dependencies [91b0f63]
+  - @oztix/roadie-core@2.14.0
+
 ## 0.4.1
 
 ### Patch Changes
