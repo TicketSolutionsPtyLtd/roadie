@@ -32,6 +32,7 @@ export type CommandPalettePageEntry = {
   label: string
   items: readonly unknown[]
   itemToStringValue?: (item: never) => string
+  filter?: null
 }
 
 export type CommandPalettePagesState = {
@@ -52,6 +53,15 @@ const CommandPalettePagesContext = createContext<CommandPalettePagesState>({
 export const CommandPalettePagesProvider = CommandPalettePagesContext
 
 export const useCommandPalettePages = () => use(CommandPalettePagesContext)
+
+export type CommandPaletteStatusValue = 'idle' | 'loading' | 'error'
+
+const CommandPaletteStatusContext =
+  createContext<CommandPaletteStatusValue>('idle')
+
+export const CommandPaletteStatusProvider = CommandPaletteStatusContext
+
+export const useCommandPaletteStatus = () => use(CommandPaletteStatusContext)
 
 const CommandPalettePageValueContext = createContext<string | null>(null)
 

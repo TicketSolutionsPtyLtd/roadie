@@ -16,6 +16,8 @@ export type CommandPalettePageProps<Item = unknown> = {
   items: readonly Item[]
   /** The text a command is matched and ranked by. Defaults to its `label`, then `value`. */
   itemToStringValue?: (item: Item) => string
+  /** `null` shows `items` as given, unmatched and unranked, for results the app searched for itself. */
+  filter?: null
   /** The page's list, and its empty state, shown in place of the first page's while it's open. */
   children: ReactNode
 }
@@ -26,6 +28,7 @@ export function CommandPalettePage<Item>({
   label,
   items,
   itemToStringValue,
+  filter,
   children
 }: CommandPalettePageProps<Item>) {
   const { page, register } = useCommandPalettePages()
@@ -36,9 +39,10 @@ export function CommandPalettePage<Item>({
         items,
         itemToStringValue: itemToStringValue as
           | ((item: never) => string)
-          | undefined
+          | undefined,
+        filter
       }),
-    [register, value, label, items, itemToStringValue]
+    [register, value, label, items, itemToStringValue, filter]
   )
   if (page?.value !== value) return null
   return (
