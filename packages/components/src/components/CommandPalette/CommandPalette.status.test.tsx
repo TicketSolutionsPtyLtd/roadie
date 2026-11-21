@@ -130,6 +130,65 @@ describe('CommandPalette server results', () => {
     expect(onRetry).toHaveBeenCalledTimes(1)
   })
 
+  it('puts focus back in the search when a retry clears the error', async () => {
+    function Retrying() {
+      const [status, setStatus] = useState<Status>('error')
+      return (
+        <ServerPalette
+          items={[]}
+          status={status}
+          onRetry={() => setStatus('loading')}
+        />
+      )
+    }
+    render(<Retrying />)
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Try again' })
+    )
+    await screen.findByText('Searching…')
+    expect(screen.getByRole('combobox')).toHaveFocus()
+    await userEvent.keyboard('v')
+    expect(screen.getByRole('combobox')).toHaveValue('v')
+  })
+
+  it('gives focus back to the opener when the palette closes from the retry', async () => {
+    function Closable() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <button type='button' onClick={() => setOpen(true)}>
+            Open palette
+          </button>
+          <CommandPalette
+            open={open}
+            onOpenChange={setOpen}
+            shortcut={false}
+            items={[]}
+            status='error'
+          >
+            <CommandPalette.Input />
+            <CommandPalette.Error
+              action={<button type='button'>Try again</button>}
+            >
+              We couldn't search
+            </CommandPalette.Error>
+          </CommandPalette>
+        </>
+      )
+    }
+    render(<Closable />)
+    const opener = screen.getByRole('button', { name: 'Open palette' })
+    await userEvent.click(opener)
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Try again' })
+    )
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(opener).toHaveFocus()
+  })
+
   it('shows the results once loading ends', async () => {
     const { rerender } = render(<ServerPalette items={[]} status='loading' />)
     await screen.findByText('Searching…')

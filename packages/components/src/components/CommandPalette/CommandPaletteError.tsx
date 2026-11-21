@@ -1,6 +1,11 @@
 'use client'
 
-import type { ReactNode, RefAttributes } from 'react'
+import {
+  type ReactNode,
+  type RefAttributes,
+  useLayoutEffect,
+  useRef
+} from 'react'
 
 import { WarningIcon } from '@phosphor-icons/react'
 
@@ -15,6 +20,37 @@ export type CommandPaletteErrorProps = AutocompleteStatusProps &
     /** A way to try again, such as a `Button` that searches again. */
     action?: ReactNode
   }
+
+function ErrorState({
+  action,
+  children
+}: {
+  action: ReactNode
+  children: ReactNode
+}) {
+  const content = useRef<HTMLDivElement>(null)
+  // A retry that clears the error removes the focused button; this runs
+  // before React detaches it, so focus can go back to the search.
+  useLayoutEffect(() => {
+    const element = content.current
+    return () => {
+      if (!element?.contains(document.activeElement)) return
+      element
+        .closest('[data-slot="command-palette"]')
+        ?.querySelector<HTMLInputElement>('[data-slot="command-palette-input"]')
+        ?.focus()
+    }
+  }, [])
+  return (
+    <EmptyState ref={content} size='sm' intent='danger'>
+      <EmptyState.IconTile>
+        <WarningIcon weight='duotone' />
+      </EmptyState.IconTile>
+      <EmptyState.Title>{children}</EmptyState.Title>
+      {action ? <EmptyState.Actions>{action}</EmptyState.Actions> : null}
+    </EmptyState>
+  )
+}
 
 /** Shows its children as a danger empty state's title while the palette's `status` is `'error'`. */
 export function CommandPaletteError({
@@ -31,15 +67,7 @@ export function CommandPaletteError({
       className={cn('not-sr-only empty:hidden', className)}
       {...props}
     >
-      {failed ? (
-        <EmptyState size='sm' intent='danger'>
-          <EmptyState.IconTile>
-            <WarningIcon weight='duotone' />
-          </EmptyState.IconTile>
-          <EmptyState.Title>{children}</EmptyState.Title>
-          {action ? <EmptyState.Actions>{action}</EmptyState.Actions> : null}
-        </EmptyState>
-      ) : null}
+      {failed ? <ErrorState action={action}>{children}</ErrorState> : null}
     </Autocomplete.Status>
   )
 }
