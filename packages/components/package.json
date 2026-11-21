@@ -84,6 +84,10 @@
       "types": "./dist/components/Combobox/index.d.ts",
       "import": "./dist/components/Combobox/index.js"
     },
+    "./command-palette": {
+      "types": "./dist/components/CommandPalette/index.d.ts",
+      "import": "./dist/components/CommandPalette/index.js"
+    },
     "./countdown": {
       "types": "./dist/components/Countdown/index.d.ts",
       "import": "./dist/components/Countdown/index.js"
