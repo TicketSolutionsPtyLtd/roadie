@@ -103,6 +103,43 @@ describe('CommandPalette server results', () => {
     expect(onQueryChange).toHaveBeenLastCalledWith('')
   })
 
+  it('tells onQueryChange the search clears as a page opens and closes', async () => {
+    const onQueryChange = vi.fn()
+    render(
+      <CommandPalette
+        defaultOpen
+        shortcut={false}
+        items={[{ label: 'Assign to…', page: 'assign' }]}
+        onQueryChange={onQueryChange}
+      >
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(command: Command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              page={command.page}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Page value='assign' label='Assign to' items={[]}>
+          <CommandPalette.List>{() => null}</CommandPalette.List>
+        </CommandPalette.Page>
+      </CommandPalette>
+    )
+    const input = await screen.findByRole('combobox')
+    await userEvent.type(input, 'as')
+    await userEvent.keyboard('{Enter}')
+    await screen.findByRole('listbox', { name: 'Assign to' })
+    expect(onQueryChange.mock.calls).toEqual([['a'], ['as'], ['']])
+    await userEvent.type(input, 'z')
+    await userEvent.keyboard('{Escape}')
+    await screen.findByRole('option', { name: 'Assign to…' })
+    expect(onQueryChange.mock.calls.slice(3)).toEqual([['z'], ['']])
+  })
+
   it('announces its status text in a polite live region while loading, and no empty state', async () => {
     render(<ServerPalette items={[]} status='loading' />)
     const status = (await screen.findByText('Searching…')).closest(
