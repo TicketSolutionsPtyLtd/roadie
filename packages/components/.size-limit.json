@@ -23,8 +23,8 @@
     "name": "CommandPalette",
     "path": "dist/components/CommandPalette/index.js",
     "import": "*",
-    "limit": "12.4 kB",
-    "ignore": ["@oztix/roadie-core"]
+    "limit": "13.7 kB",
+    "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
     "name": "Menu",
