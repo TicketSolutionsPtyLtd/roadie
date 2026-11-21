@@ -387,7 +387,7 @@ describe('CommandPalette in a browser', () => {
             </CommandPalette.List>
             <CommandPalette.Empty>No matches</CommandPalette.Empty>
             <CommandPalette.Error
-              action={
+              actions={
                 <button type='button' onClick={onRetry}>
                   Try again
                 </button>

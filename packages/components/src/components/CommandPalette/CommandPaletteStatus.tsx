@@ -1,6 +1,6 @@
 'use client'
 
-import type { RefAttributes } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 
 import { CircleNotchIcon } from '@phosphor-icons/react'
 
@@ -10,7 +10,10 @@ import { Autocomplete, type AutocompleteStatusProps } from '../Autocomplete'
 import { useCommandPaletteStatus, useOnOpenPage } from './CommandPaletteContext'
 
 export type CommandPaletteStatusProps = AutocompleteStatusProps &
-  RefAttributes<HTMLDivElement>
+  RefAttributes<HTMLDivElement> & {
+    /** The text beside the spinner. @default 'Searching…' */
+    children?: ReactNode
+  }
 
 /** A spinner and its text while the palette's `status` is `'loading'`, announced politely. */
 export function CommandPaletteStatus({

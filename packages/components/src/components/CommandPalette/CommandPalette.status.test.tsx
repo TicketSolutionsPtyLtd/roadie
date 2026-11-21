@@ -43,7 +43,7 @@ function ServerPalette({
       </CommandPalette.List>
       <CommandPalette.Empty>No matches</CommandPalette.Empty>
       <CommandPalette.Error
-        action={
+        actions={
           <button type='button' onClick={onRetry}>
             Try again
           </button>
@@ -205,7 +205,7 @@ describe('CommandPalette server results', () => {
           >
             <CommandPalette.Input />
             <CommandPalette.Error
-              action={<button type='button'>Try again</button>}
+              actions={<button type='button'>Try again</button>}
             >
               We couldn't search
             </CommandPalette.Error>
@@ -293,7 +293,7 @@ describe('CommandPalette status on a page', () => {
           </CommandPalette.List>
           <CommandPalette.Empty>No people match</CommandPalette.Empty>
           <CommandPalette.Error
-            action={<button type='button'>Try again</button>}
+            actions={<button type='button'>Try again</button>}
           >
             People didn't load
           </CommandPalette.Error>

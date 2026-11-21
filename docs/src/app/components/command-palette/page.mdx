@@ -433,7 +433,7 @@ When the app searches for itself, pass `filter={null}` so the palette shows
 Set `status` to `'loading'` while a search runs, and `CommandPalette.Status`
 shows a spinner with its text; the last results stay until new ones arrive.
 Set it to `'error'` when a search fails, and `CommandPalette.Error` shows its
-text with the `action` you pass, such as a Button that searches again.
+text with the `actions` you pass, such as a Button that searches again.
 `CommandPalette.Empty` stays hidden in both. Here, a search for "tour" fails
 the first time.
 
@@ -451,6 +451,7 @@ function ServerSearch() {
     const timer = setTimeout(() => {
       const text = query.toLowerCase()
       if (text.includes('tour') && attempt === 0) {
+        setResults([])
         setStatus('error')
         return
       }
@@ -496,7 +497,7 @@ function ServerSearch() {
           {query ? 'No events match' : 'Type to search events'}
         </CommandPalette.Empty>
         <CommandPalette.Error
-          action={
+          actions={
             <Button
               emphasis='strong'
               onClick={() => {
@@ -658,7 +659,7 @@ flow at every size.
   screen readers announce it; the keycaps are visual.
 - `CommandPalette.Status` and `CommandPalette.Error` are polite live
   regions, so screen readers say "Searching…" and the error as they appear,
-  without moving focus from the input. The error's action is reachable with
+  without moving focus from the input. The error's actions are reachable with
   **Tab**, and when a retry clears the error, focus goes back to the search.
 - A command with `href` is a link, so it opens in a new tab with a modified
   click, as any link does.

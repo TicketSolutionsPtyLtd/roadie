@@ -17,15 +17,15 @@ import { useCommandPaletteStatus, useOnOpenPage } from './CommandPaletteContext'
 
 export type CommandPaletteErrorProps = AutocompleteStatusProps &
   RefAttributes<HTMLDivElement> & {
-    /** A way to try again, such as a `Button` that searches again. */
-    action?: ReactNode
+    /** Ways to recover, such as a `Button` that searches again. */
+    actions?: ReactNode
   }
 
 function ErrorState({
-  action,
+  actions,
   children
 }: {
-  action: ReactNode
+  actions: ReactNode
   children: ReactNode
 }) {
   const content = useRef<HTMLDivElement>(null)
@@ -47,14 +47,14 @@ function ErrorState({
         <WarningIcon weight='duotone' />
       </EmptyState.IconTile>
       <EmptyState.Title>{children}</EmptyState.Title>
-      {action ? <EmptyState.Actions>{action}</EmptyState.Actions> : null}
+      {actions ? <EmptyState.Actions>{actions}</EmptyState.Actions> : null}
     </EmptyState>
   )
 }
 
 /** Shows its children as a danger empty state's title while the palette's `status` is `'error'`. */
 export function CommandPaletteError({
-  action,
+  actions,
   className,
   children,
   ...props
@@ -67,7 +67,7 @@ export function CommandPaletteError({
       className={cn('not-sr-only', className)}
       {...props}
     >
-      {failed ? <ErrorState action={action}>{children}</ErrorState> : null}
+      {failed ? <ErrorState actions={actions}>{children}</ErrorState> : null}
     </Autocomplete.Status>
   )
 }
