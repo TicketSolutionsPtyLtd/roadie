@@ -148,6 +148,10 @@
       "types": "./dist/components/Fieldset/index.d.ts",
       "import": "./dist/components/Fieldset/index.js"
     },
+    "./file-upload": {
+      "types": "./dist/components/FileUpload/index.d.ts",
+      "import": "./dist/components/FileUpload/index.js"
+    },
     "./highlight": {
       "types": "./dist/components/Highlight/index.d.ts",
       "import": "./dist/components/Highlight/index.js"

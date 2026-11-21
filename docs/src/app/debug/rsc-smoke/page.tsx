@@ -56,6 +56,7 @@ import { Dialog } from '@oztix/roadie-components/dialog'
 import { Drawer } from '@oztix/roadie-components/drawer'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
+import { FileUpload } from '@oztix/roadie-components/file-upload'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { List } from '@oztix/roadie-components/list'
 import { Logo } from '@oztix/roadie-components/logo'
@@ -606,6 +607,20 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          FileUpload as bare root (canonical)
+        </h2>
+        <FileUpload name='guests' accept='.csv' />
+        <FileUpload name='payments' accept='.csv'>
+          <FileUpload.Control>
+            <FileUpload.Value />
+            <FileUpload.Clear />
+            <FileUpload.Trigger />
+          </FileUpload.Control>
+        </FileUpload>
       </section>
 
       <section className='grid gap-2'>

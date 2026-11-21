@@ -1,0 +1,119 @@
+export const metadata = {
+  title: 'File upload',
+  description: 'A file field that checks each file before taking it',
+  status: 'alpha',
+  category: 'Fields',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A file field that checks each file before taking it.
+
+## Import
+
+```tsx
+import { FileUpload } from '@oztix/roadie-components/file-upload'
+```
+
+## Examples
+
+### Default
+
+With no children, `FileUpload` is a bar: the chosen file's name and size on the left, and a button on the right that reads "Choose file", or "Replace" once there's one. Clicking the file's name, or the space beside it, opens the picker. The field holds the file as a `File[]` and keeps a hidden file input in step, so a form posts it under `name`. A second pick replaces the first.
+
+```tsx-live width=140
+<Field>
+  <Field.Label>Guest list</Field.Label>
+  <FileUpload name='guests' accept='.csv' />
+</Field>
+```
+
+### Rules
+
+`accept` takes the native syntax, such as `.csv`, `image/*` or `application/pdf`. `maxFileSize` and `minFileSize` are in bytes. A file that breaks a rule never joins the value: its message shows in `Field.ErrorText`, and `onReject` gets it with a code (`wrong-type`, `too-large` or `too-small`). Pick a file that isn't a CSV, or one over 1 MB, to see it.
+
+```tsx-live width=140
+<Field required>
+  <Field.Label showIndicator>Guest list</Field.Label>
+  <FileUpload
+    name='guests'
+    accept='.csv'
+    maxFileSize={1_000_000}
+    placeholder='No guest list yet'
+  />
+  <Field.HelperText>A CSV up to 1 MB.</Field.HelperText>
+  <Field.ErrorText />
+</Field>
+```
+
+### States
+
+`Field` sets `invalid`, `required` and `disabled` for the whole field.
+
+```tsx-live layout=stack width=140
+{/* Invalid */}
+<Field invalid>
+  <Field.Label>Guest list</Field.Label>
+  <FileUpload accept='.csv' />
+  <Field.ErrorText>Choose the guest list to import</Field.ErrorText>
+</Field>
+{/* Disabled */}
+<Field disabled>
+  <Field.Label>Guest list</Field.Label>
+  <FileUpload accept='.csv' />
+</Field>
+```
+
+### Composition
+
+#### Parts of the bar
+
+`FileUpload.Control` is the bar, `FileUpload.Value` the name and size (a label, so a click opens the picker), `FileUpload.Clear` the remove button, which shows only while there's a file, and `FileUpload.Trigger` the button. Compose them to change the copy or drop a part.
+
+```tsx-live width=140
+<Field>
+  <Field.Label>Settlement report</Field.Label>
+  <FileUpload accept='.csv'>
+    <FileUpload.Control>
+      <FileUpload.Value placeholder='No report yet' />
+      <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+    </FileUpload.Control>
+  </FileUpload>
+</Field>
+```
+
+#### Button only
+
+A `FileUpload.Trigger` on its own is a plain button, for a toolbar or a row of actions.
+
+```tsx-live
+<FileUpload accept='.csv'>
+  <FileUpload.Trigger>Import guests</FileUpload.Trigger>
+</FileUpload>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Say what the field takes'>
+  <Guideline.Do code={`<Field.HelperText>A CSV up to 1 MB.</Field.HelperText>`}>
+    Name the file type and size limit in the helper text, so people pick the right file first time. Accept a CSV by its `.csv` extension, since Windows often reports one as `application/vnd.ms-excel`.
+  </Guideline.Do>
+  <Guideline.Dont code={`<FileUpload accept='.csv' maxFileSize={1_000_000} />`}>
+    Don't leave the rules for the error message to explain.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- `FileUpload.Trigger` is a real button, so it works with a keyboard, switch access and voice control. `Field.Label`, the chosen file and the button's own text name it together, such as "Guest list guests.csv 2 kB Replace".
+- The bar's click target is `FileUpload.Value`, a label for the hidden input, so the bar adds no focus stop. Its only stops are Clear and Trigger. Clear is named for the file, such as "Remove guests.csv", and focus moves to the Trigger after it.
+- A rejected file's message shows in `Field.ErrorText`, which is announced, and the button gets `aria-invalid` and points at the message.
+- The hidden file input takes `required`, so a form won't submit without a file, and focus goes to the button when it doesn't.
+- `capture` opens the phone's camera instead of its file picker: `user` for the front camera, `environment` for the back.
+
+<PropsDefinitions component='FileUpload' />

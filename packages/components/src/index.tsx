@@ -434,6 +434,16 @@ export {
   useFieldControlError
 } from './components/Field'
 export {
+  FileUpload,
+  type FileUploadProps,
+  type FileUploadControlProps,
+  type FileUploadValueProps,
+  type FileUploadClearProps,
+  type FileUploadTriggerProps,
+  type FileUploadRejection,
+  type FileUploadRejectionCode
+} from './components/FileUpload'
+export {
   Select,
   selectTriggerVariants,
   type SelectProps,
