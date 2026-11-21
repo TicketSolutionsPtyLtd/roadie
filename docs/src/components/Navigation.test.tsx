@@ -310,3 +310,23 @@ describe('DocsNavigator status', () => {
     expect(field('status')).toBeUndefined()
   })
 })
+
+describe('DocsNavigator search', () => {
+  const pressModK = () =>
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
+
+  it('opens the docs palette with ⌘K', async () => {
+    renderAt('/charts/meter')
+    expect(pressModK()).toBe(false)
+    expect(
+      await screen.findByRole('dialog', { name: 'Search the docs' })
+    ).toBeTruthy()
+  })
+
+  it('leaves ⌘K to the live example on the Navigator page', () => {
+    renderAt('/components/navigator/')
+    const unhandled = pressModK()
+    expect(unhandled).toBe(true)
+    expect(screen.queryByRole('dialog', { name: 'Search the docs' })).toBeNull()
+  })
+})
