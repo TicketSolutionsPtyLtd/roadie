@@ -583,6 +583,48 @@ function RecentSearch() {
 render(<RecentSearch />)
 ```
 
+#### With a long list
+
+Add `virtualized` to the root for hundreds or thousands of commands. The list
+then draws only the rows near the scroll position, so opening and typing stay
+smooth. It takes flat `items`, not groups.
+
+```tsx-live-noinline
+function LongSearch() {
+  const [open, setOpen] = useState(false)
+  const names = ['Iguana Teapot Hall', 'Kazoo Hollow Room', 'Wobbly Teacup Room']
+  const venues = Array.from(
+    { length: 2000 },
+    (_, index) => `${names[index % names.length]} ${index + 1}`
+  )
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search venues</Button>
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        shortcut={false}
+        items={venues}
+        virtualized
+      >
+        <CommandPalette.Input placeholder='Search 2,000 venues' />
+        <CommandPalette.List>
+          {(venue) => (
+            <CommandPalette.Item key={venue} value={venue}>
+              {venue}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No venues match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<LongSearch />)
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -663,5 +705,8 @@ flow at every size.
   **Tab**, and when a retry clears the error, focus goes back to the search.
 - A command with `href` is a link, so it opens in a new tab with a modified
   click, as any link does.
+- In a `virtualized` list, each command carries `aria-setsize` and
+  `aria-posinset`, so screen readers say its place in the whole list, not
+  just the rows drawn.
 
 <PropsDefinitions component='CommandPalette' />

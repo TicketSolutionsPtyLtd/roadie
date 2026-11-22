@@ -75,6 +75,12 @@ export type CommandPaletteRootProps<Item = unknown> = {
    */
   status?: 'idle' | 'loading' | 'error'
   /**
+   * Draws only the commands near the scroll position, for hundreds or
+   * thousands of them. Takes flat `items`, not groups, and a row function in
+   * `CommandPalette.List`.
+   */
+  virtualized?: boolean
+  /**
    * The keys that open and close the palette from anywhere on the page, as a
    * key list. `mod` is ⌘ on Apple platforms and Ctrl elsewhere. `false` binds
    * nothing. A field that handles the same keys first, calling
@@ -156,6 +162,7 @@ export function CommandPaletteRoot<Item>({
   filter: filterProp,
   onQueryChange,
   status = 'idle',
+  virtualized,
   scope: scopeProp,
   defaultScope = null,
   onScopeChange,
@@ -351,6 +358,7 @@ export function CommandPaletteRoot<Item>({
                       itemToStringValue={itemLabel}
                       locale={locale}
                       autoHighlight='always'
+                      virtualized={virtualized}
                       value={query}
                       onValueChange={(next) => setQuery(next)}
                     >
