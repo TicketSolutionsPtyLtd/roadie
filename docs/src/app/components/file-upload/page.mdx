@@ -65,7 +65,7 @@ With no children, `FileUpload` is a dropzone. Drop a file on it, paste one, or c
 
 #### Bar
 
-For one plain file in a dense form, compose the bar instead. `FileUpload.Control` is the bar, `FileUpload.Value` the name and size (a label, so a click opens the picker), `FileUpload.Clear` the remove button, which shows only while there's a file, and `FileUpload.Trigger` the button that reads "Choose file", or "Replace" once there's one.
+For one plain file in a dense form, compose the bar instead, as the [guidelines](#guidelines) say. `FileUpload.Control` is the bar, `FileUpload.Value` the name and size (a label, so a click opens the picker), `FileUpload.Clear` the remove button, which shows only while there's a file, and `FileUpload.Trigger` the button that reads "Choose file", or "Replace" once there's one. The bar takes drops too: while a file is over it, its border turns accent and it reads "Drop to add".
 
 ```tsx-live width=140
 <Field>
@@ -93,6 +93,28 @@ A `FileUpload.Trigger` on its own is a plain button, for a toolbar or a row of a
 ## Guidelines
 
 <Guidelines>
+
+<Guideline title='Dropzone or bar'>
+  <Guideline.Do code={`<FileUpload name='guests' accept='.csv' />`}>
+    Use the dropzone, the default, whenever the file is an image or anything people need to see once it's added, more than one file can be added, or uploading is the main job of the page, section or dialog.
+  </Guideline.Do>
+  <Guideline.Dont code={`<FileUpload accept='image/*'>
+  <FileUpload.Control>…</FileUpload.Control>
+</FileUpload>`}>
+    Never use the bar for images, for multiple files, or as the main action on a page.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the bar for one plain file in a dense form'>
+  <Guideline.Do code={`<FileUpload name='prices' accept='.csv'>
+  <FileUpload.Control>…</FileUpload.Control>
+</FileUpload>`}>
+    Use the bar only when all of these are true: it's a single file that isn't an image, such as a CSV, PDF or document; it's one field among several in a dense form, where a dropzone would outweigh its neighbours; and it lines up with other inputs in a row or grid. A "Price list (CSV)" field in a long settings form is one.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't pick the bar to save space when the file is the page's job, such as on a CSV import page. That's the dropzone's place.
+  </Guideline.Dont>
+</Guideline>
 
 <Guideline title='Say what the field takes'>
   <Guideline.Do code={`<Field.HelperText>A CSV up to 1 MB.</Field.HelperText>`}>

@@ -25,7 +25,7 @@ export function FileUploadTrigger({
   ...props
 }: FileUploadTriggerProps) {
   const context = useFileUploadContext('FileUpload.Trigger')
-  const inControl = use(FileUploadInControl)
+  const inControl = use(FileUploadInControl) !== null
   const ownId = useId()
   const triggerId = id ?? ownId
   return (

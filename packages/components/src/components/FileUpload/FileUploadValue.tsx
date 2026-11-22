@@ -1,10 +1,10 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import { type ComponentProps, use } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { useFileUploadContext } from './FileUploadContext'
+import { FileUploadInControl, useFileUploadContext } from './FileUploadContext'
 import { formatFileSize } from './checkFile'
 
 export type FileUploadValueProps = Omit<
@@ -26,6 +26,7 @@ export function FileUploadValue({
 }: FileUploadValueProps) {
   const { files, inputId, valueId } = useFileUploadContext('FileUpload.Value')
   const [file] = files
+  const dragging = use(FileUploadInControl)?.dragging
   return (
     <label
       data-slot='file-upload-value'
@@ -38,7 +39,9 @@ export function FileUploadValue({
       id={valueId}
       htmlFor={inputId}
     >
-      {file ? (
+      {dragging ? (
+        <span className='truncate text-strong'>Drop to add</span>
+      ) : file ? (
         <>
           <span className='truncate text-normal'>{file.name}</span>{' '}
           <span className='shrink-0 text-sm text-subtle'>
