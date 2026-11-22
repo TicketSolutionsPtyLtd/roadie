@@ -351,12 +351,19 @@ describe('CommandPalette', () => {
 
 describe('CommandPalette virtualized', () => {
   function Grouped({
-    groups
+    groups,
+    virtualized = true
   }: {
     groups: { label: string; items: string[] }[]
+    virtualized?: boolean
   }) {
     return (
-      <CommandPalette defaultOpen shortcut={false} items={groups} virtualized>
+      <CommandPalette
+        defaultOpen
+        shortcut={false}
+        items={groups}
+        virtualized={virtualized}
+      >
         <CommandPalette.Input placeholder='Search' />
         <CommandPalette.List>
           {(group: { label: string; items: string[] }) => (
@@ -381,6 +388,19 @@ describe('CommandPalette virtualized', () => {
     await screen.findByRole('option', { name: 'Home' })
     expect(warn).toHaveBeenCalledOnce()
     expect(warn.mock.calls[0]![0]).toMatch(/virtualized.*groups/)
+    warn.mockRestore()
+  })
+
+  it('stays quiet with groups when it is not virtualized', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Grouped
+        groups={[{ label: 'Pages', items: ['Home', 'Events'] }]}
+        virtualized={false}
+      />
+    )
+    await screen.findByRole('option', { name: 'Home' })
+    expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
   })
 
