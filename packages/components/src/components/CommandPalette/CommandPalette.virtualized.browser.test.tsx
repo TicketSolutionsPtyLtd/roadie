@@ -20,7 +20,10 @@ beforeAll(() => {
   removeStylesheet = useStylesheet(roadieCss)
 })
 afterAll(() => removeStylesheet())
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
 
 const VENUES = venues(2000)
 
@@ -126,6 +129,71 @@ describe('CommandPalette virtualized', () => {
     expect(highlighted()!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
       list.top
     )
+  })
+
+  it('scrolls a command reached with the arrow keys flush with the bottom of the list', async () => {
+    // Base UI also scrolls the highlighted row into view a frame later, which
+    // hides a misplaced scroll by the virtualiser only some of the time.
+    vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {})
+    render(<Venues />)
+    const input = await screen.findByRole<HTMLInputElement>('combobox')
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    await expect.poll(() => document.activeElement).toBe(input)
+    await userEvent.keyboard('{ArrowDown>40}')
+    const highlighted = () =>
+      document.getElementById(input.getAttribute('aria-activedescendant')!)
+    await expect
+      .poll(() => highlighted()?.getAttribute('aria-posinset'))
+      .toBe('41')
+    // Aligning the 41st row to the end puts its bottom at the bottom of the list's scrollport.
+    const list = screen.getByRole('listbox')
+    const scrollportBottom = () =>
+      list.getBoundingClientRect().top + list.clientTop + list.clientHeight
+    await expect
+      .poll(() =>
+        Math.abs(
+          highlighted()!.getBoundingClientRect().bottom - scrollportBottom()
+        )
+      )
+      .toBeLessThanOrEqual(1)
+  })
+
+  it('windows commands that arrive after it opens with none', async () => {
+    function Arriving({ items }: { items: string[] }) {
+      return (
+        <CommandPalette
+          defaultOpen
+          shortcut={false}
+          filter={null}
+          items={items}
+          virtualized
+        >
+          <CommandPalette.Input placeholder='Search venues' />
+          <CommandPalette.List>
+            {(venue: string) => (
+              <CommandPalette.Item key={venue} value={venue}>
+                {venue}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+        </CommandPalette>
+      )
+    }
+    const { rerender } = render(<Arriving items={[]} />)
+    const input = await screen.findByRole<HTMLInputElement>('combobox')
+    await expect.poll(() => document.activeElement).toBe(input)
+    rerender(<Arriving items={VENUES} />)
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    await userEvent.keyboard('{ArrowUp}')
+    const highlighted = () =>
+      document.getElementById(input.getAttribute('aria-activedescendant')!)
+    await expect
+      .poll(() => highlighted()?.getAttribute('aria-posinset'))
+      .toBe('2000')
+    const list = screen.getByRole('listbox').getBoundingClientRect()
+    await expect
+      .poll(() => highlighted()!.getBoundingClientRect().bottom)
+      .toBeLessThanOrEqual(list.bottom)
   })
 
   it('hides the list when no command matches', async () => {
