@@ -1,0 +1,130 @@
+export const metadata = {
+  title: 'Image crop',
+  description: 'Crops an image to a fixed ratio by panning and zooming it under a frame',
+  status: 'alpha',
+  category: 'Media & brand',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+Crops an image to a fixed ratio by panning and zooming it under a frame.
+
+## Import
+
+```tsx
+import { ImageCrop } from '@oztix/roadie-components/image-crop'
+```
+
+## Examples
+
+### Default
+
+The frame stays still and the image moves under it. Drag to pan. Focus the crop area, then scroll, press `+` or `-`, or use the arrow keys. The image always covers the frame, so there are never empty corners. `src` takes a URL, or a `File` or `Blob` such as one from `FileUpload`.
+
+```tsx-live width=180
+<ImageCrop
+  src='/brand/photography/08.webp'
+  aspectRatio={2}
+  label='Event image'
+/>
+```
+
+### Minimum size
+
+`minWidth` and `minHeight` are the smallest crop in the image's own pixels. Zoom stops before the crop drops below them, so an event image is never under 1200 × 600px. An E-ticket banner is 10:3, at least 1000 × 300px.
+
+```tsx-live width=180
+<ImageCrop
+  src='/brand/photography/03.webp'
+  aspectRatio={10 / 3}
+  minWidth={1000}
+  minHeight={300}
+  label='E-ticket banner'
+/>
+```
+
+### Circle
+
+`shape='circle'` changes only the mask. The value is still a rectangle, so crop the image to it and round it where it shows, as `Avatar` does.
+
+```tsx-live width=140
+<ImageCrop
+  src='/brand/photography/05.webp'
+  aspectRatio={1}
+  shape='circle'
+  label='Profile photo'
+/>
+```
+
+### Value
+
+`onValueChange` gets the crop once the image loads, then once each drag, burst of scrolling, or key press ends, never on every frame. `area` is in the image's own pixels and `percent` runs 0 to 100, both from the top left. `zoom` is screen pixels per image pixel, so it changes with the crop area's size: save `area` or `percent`.
+
+```tsx-live-noinline layout=stack gap=3
+function EventImage() {
+  const [crop, setCrop] = useState()
+  const area = crop?.area
+
+  return (
+    <>
+      <ImageCrop
+        src='/brand/photography/08.webp'
+        aspectRatio={2}
+        label='Event image'
+        onValueChange={setCrop}
+      />
+      <p className='text-sm text-subtle'>
+        {area
+          ? `${Math.round(area.width)} × ${Math.round(area.height)}px from ${Math.round(area.x)}, ${Math.round(area.y)}`
+          : 'Loading the image'}
+      </p>
+    </>
+  )
+}
+
+render(<EventImage />)
+```
+
+### Composition
+
+`ImageCrop.Stage` is the crop area. It's 4:3 and as wide as its container by default; set its size with `className`.
+
+```tsx-live width=180
+<ImageCrop src='/brand/photography/08.webp' aspectRatio={2}>
+  <ImageCrop.Stage className='aspect-video' />
+</ImageCrop>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Set the minimum the slot needs'>
+  <Guideline.Do code={`<ImageCrop aspectRatio={2} minWidth={1200} minHeight={600} />`}>
+    Pass the smallest size the image shows at, so nobody can zoom into a crop that looks soft.
+  </Guideline.Do>
+  <Guideline.Dont code={`<ImageCrop aspectRatio={2} />`}>
+    Don't leave zoom uncapped for an image with a size rule.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Save the area, not the zoom'>
+  <Guideline.Do code={`onValueChange={(crop) => save(crop.area)}`}>
+    Store `area` or `percent`. Either one puts the crop back on any screen.
+  </Guideline.Do>
+  <Guideline.Dont code={`onValueChange={(crop) => save(crop.zoom)}`}>
+    Don't store `zoom`, which depends on the crop area's size on screen.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- The crop area is a focusable group named by `label` (default "Crop image"), with a description that says how to move and zoom the image.
+- The arrow keys move the image 10px, or 50px with Shift. `+` and `-` zoom in and out.
+- A plain scroll zooms only once the crop area has focus, so scrolling the page past it never zooms by accident.
+- Focus shows a ring around the crop area. The frame, its grid, and the image are hidden from screen readers.
+
+<PropsDefinitions component={['ImageCrop', 'ImageCrop.Stage']} />

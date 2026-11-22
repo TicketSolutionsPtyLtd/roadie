@@ -98,6 +98,13 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='absolute -bottom-7 left-16 size-20 rotate-45 rounded-md bg-strong/15' />
         </div>
       )
+    case 'image-crop':
+      return (
+        <div className='relative grid h-24 w-40 place-items-center overflow-hidden rounded-xl bg-(--color-neutral-light-13)'>
+          <div className='absolute -bottom-6 left-4 size-16 rotate-45 rounded-md bg-(--color-neutral-light-5)/40' />
+          <div className='relative h-14 w-28 rounded-sm shadow-[0_0_0_1.5px_var(--color-neutral-light-0)]' />
+        </div>
+      )
     case 'avatar':
       return (
         <Avatar.Group aria-hidden>

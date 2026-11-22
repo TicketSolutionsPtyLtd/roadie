@@ -121,6 +121,13 @@ export {
 } from './components/IconTile'
 
 export { Image, type ImageProps, type ImageSource } from './components/Image'
+export {
+  ImageCrop,
+  type ImageCropProps,
+  type ImageCropStageProps,
+  type ImageCropShape,
+  type ImageCropValue
+} from './components/ImageCrop'
 
 export {
   Logo,

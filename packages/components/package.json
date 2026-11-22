@@ -168,6 +168,10 @@
       "types": "./dist/components/Image/index.d.ts",
       "import": "./dist/components/Image/index.js"
     },
+    "./image-crop": {
+      "types": "./dist/components/ImageCrop/index.d.ts",
+      "import": "./dist/components/ImageCrop/index.js"
+    },
     "./input": {
       "types": "./dist/components/Input/index.d.ts",
       "import": "./dist/components/Input/index.js"
