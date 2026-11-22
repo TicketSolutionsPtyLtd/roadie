@@ -456,6 +456,7 @@ export {
   FileUpload,
   type FileUploadProps,
   type FileUploadControlProps,
+  type FileUploadDropzoneProps,
   type FileUploadValueProps,
   type FileUploadClearProps,
   type FileUploadTriggerProps,
