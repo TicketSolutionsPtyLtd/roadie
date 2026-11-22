@@ -32,18 +32,26 @@ export default function VirtualRows({ children }: { children: RowRenderer }) {
   const start = useRef<HTMLDivElement>(null)
   const [scroller, setScroller] = useState<HTMLElement | null>(null)
   const [margin, setMargin] = useState(0)
+  const [gap, setGap] = useState(0)
+  const empty = items.length === 0
   useLayoutEffect(() => {
+    if (!start.current) return
     const parent = findScrollParent(start.current)
+    // A list with a row gap puts one after the leading spacer too, so it counts as margin.
+    const rowGap =
+      parseFloat(getComputedStyle(start.current.parentElement!).rowGap) || 0
     setScroller(parent)
-    if (parent && start.current) setMargin(offsetWithin(start.current, parent))
-  }, [])
+    setGap(rowGap)
+    if (parent) setMargin(offsetWithin(start.current, parent) + rowGap)
+  }, [empty])
   // eslint-disable-next-line react/incompatible-library
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scroller,
     estimateSize: () => ROW_ESTIMATE,
     overscan: OVERSCAN,
-    scrollMargin: margin
+    scrollMargin: margin,
+    gap
   })
   useLayoutEffect(() => {
     if (!scrollToIndex) return
@@ -56,7 +64,9 @@ export default function VirtualRows({ children }: { children: RowRenderer }) {
   const rows = virtualizer.getVirtualItems()
   const before = (rows[0]?.start ?? margin) - margin
   const after =
-    virtualizer.getTotalSize() - (rows.at(-1)?.end ?? margin) + margin
+    virtualizer.getTotalSize() - (rows.at(-1)?.end ?? margin) + margin - gap
+  // Leaves the list empty, so its `:empty` styles still apply.
+  if (empty) return null
   return (
     <>
       <div ref={start} aria-hidden style={{ height: before }} />

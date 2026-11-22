@@ -587,7 +587,8 @@ render(<RecentSearch />)
 
 Add `virtualized` to the root for hundreds or thousands of commands. The list
 then draws only the rows near the scroll position, so opening and typing stay
-smooth. It takes flat `items`, not groups.
+smooth. It takes flat `items`; with groups, it draws every command and warns in
+development.
 
 ```tsx-live-noinline
 function LongSearch() {

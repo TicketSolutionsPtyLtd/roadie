@@ -16,6 +16,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
 import { collatorContains, rankMatches } from '../../utils/rankMatches'
+import { useDevWarning } from '../../utils/useDevWarning'
 import { Autocomplete, type AutocompleteProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
 import { useKeyPlatform } from '../Kbd/platform'
@@ -76,8 +77,8 @@ export type CommandPaletteRootProps<Item = unknown> = {
   status?: 'idle' | 'loading' | 'error'
   /**
    * Draws only the commands near the scroll position, for hundreds or
-   * thousands of them. Takes flat `items`, not groups, and a row function in
-   * `CommandPalette.List`.
+   * thousands of them. Takes flat `items` and a row function in
+   * `CommandPalette.List`; with groups, it draws every command.
    */
   virtualized?: boolean
   /**
@@ -262,6 +263,11 @@ export function CommandPaletteRoot<Item>({
     const shown = onPage && pageEntry ? pageEntry.items : inScope(items, scope)
     return ranks ? rankMatches(shown, query, itemLabel, locale) : shown
   }, [onPage, pageEntry, items, scope, ranks, query, itemLabel, locale])
+  const windowsGroups = Boolean(virtualized) && ranked.some(isGroup)
+  useDevWarning(
+    windowsGroups &&
+      '[Roadie] CommandPalette is virtualized but its items are groups, so it draws every command. Pass flat items to window them.'
+  )
 
   // Opening clears the search during render, so it's reported after commit.
   const reportQuery = useEffectEvent((next: string) => onQueryChange?.(next))
@@ -358,7 +364,7 @@ export function CommandPaletteRoot<Item>({
                       itemToStringValue={itemLabel}
                       locale={locale}
                       autoHighlight='always'
-                      virtualized={virtualized}
+                      virtualized={virtualized && !windowsGroups}
                       value={query}
                       onValueChange={(next) => setQuery(next)}
                     >
