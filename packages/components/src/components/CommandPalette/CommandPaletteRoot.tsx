@@ -266,7 +266,7 @@ export function CommandPaletteRoot<Item>({
     if (isCoarsePointer()) {
       const active = document.activeElement
       if (active instanceof HTMLElement) returnFocus.current = active
-      holdKeyboard(document)
+      holdKeyboard(document, returnFocus.current)
     }
     setOpen(true, { reason: 'trigger-press' })
   })
@@ -298,9 +298,12 @@ export function CommandPaletteRoot<Item>({
         >
           <Dialog.Popup
             data-slot='command-palette'
-            finalFocus={() =>
-              returnFocus.current?.isConnected ? returnFocus.current : true
-            }
+            finalFocus={() => {
+              // Once only, so a later open by the shortcut returns focus as usual.
+              const target = returnFocus.current
+              returnFocus.current = null
+              return target?.isConnected ? target : true
+            }}
             aria-label={label}
             className={cn(
               'flex max-h-[min(36rem,calc(100dvh-12rem))] max-w-xl flex-col gap-0 overflow-hidden p-0',

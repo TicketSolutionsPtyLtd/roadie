@@ -4,11 +4,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { CommandPalette } from '.'
 
-function Page() {
+function Page({ open }: { open?: boolean }) {
   return (
     <>
       <CommandPalette.Trigger />
-      <CommandPalette items={['Events', 'Orders']}>
+      <button type='button'>Elsewhere</button>
+      <CommandPalette items={['Events', 'Orders']} open={open}>
         <CommandPalette.Input />
         <CommandPalette.List>
           {(label: string) => (
@@ -56,6 +57,38 @@ describe('CommandPalette on a touch screen', () => {
     await userEvent.keyboard('{Escape}')
     await vi.waitFor(() => expect(trigger()).toHaveFocus())
     expect(document.querySelectorAll('input')).toHaveLength(0)
+  })
+
+  it('returns focus where it was when the shortcut opens it after a tap', async () => {
+    usePointer('coarse')
+    render(<Page />)
+    trigger().focus()
+    fireEvent.click(trigger())
+    await vi.waitFor(() => expect(screen.getByRole('combobox')).toHaveFocus())
+    await userEvent.keyboard('{Escape}')
+    await vi.waitFor(() => expect(trigger()).toHaveFocus())
+    const elsewhere = screen.getByRole('button', { name: 'Elsewhere' })
+    elsewhere.focus()
+    await userEvent.keyboard('{Control>}k{/Control}')
+    await vi.waitFor(() => expect(screen.getByRole('combobox')).toHaveFocus())
+    await userEvent.keyboard('{Escape}')
+    await vi.waitFor(() => expect(elsewhere).toHaveFocus())
+  })
+
+  it('gives focus back to the trigger when the app keeps the palette shut', () => {
+    vi.useFakeTimers()
+    try {
+      usePointer('coarse')
+      render(<Page open={false} />)
+      trigger().focus()
+      fireEvent.click(trigger())
+      expect(document.activeElement).toBeInstanceOf(HTMLInputElement)
+      vi.advanceTimersByTime(2000)
+      expect(trigger()).toHaveFocus()
+      expect(document.querySelectorAll('input')).toHaveLength(0)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('takes no stand-in field with a mouse', () => {
