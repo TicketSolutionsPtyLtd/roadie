@@ -250,6 +250,69 @@ function TypedSearch() {
 render(<TypedSearch />)
 ```
 
+#### With pages
+
+Give a command `page` to open a second step, such as the statuses under
+"Change status…". Declare each step with `CommandPalette.Page`, its own
+`items` and a list to render them; the first page's list steps aside while it's
+open. Picking the command clears the search and shows the page's `label` in
+the input row. **Backspace** on an empty search, **Escape**, or a tap on the
+chip goes back.
+A command on the page runs and closes the palette as usual, and the next
+opening starts on the first page. The type tabs hide while a page is open.
+
+```tsx-live-noinline
+function StatusSearch() {
+  const [open, setOpen] = useState(false)
+  const [status, setStatus] = useState('Draft')
+  const commands = [
+    { label: 'Change status…', page: 'status' },
+    { label: 'Invite teammate', onSelect: () => {} },
+  ]
+  const statuses = ['Draft', 'On sale', 'Sold out'].map((label) => ({
+    label,
+    onSelect: () => setStatus(label),
+  }))
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Velvet Dingo Fest: {status}</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={commands}>
+        <CommandPalette.Input placeholder='Search actions' />
+        <CommandPalette.List>
+          {(command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              page={command.page}
+              onSelect={command.onSelect}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No actions match</CommandPalette.Empty>
+        <CommandPalette.Page value='status' label='Change status' items={statuses}>
+          <CommandPalette.List>
+            {(option) => (
+              <CommandPalette.Item key={option.label} value={option} onSelect={option.onSelect}>
+                {option.label}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+          <CommandPalette.Empty>No statuses match</CommandPalette.Empty>
+        </CommandPalette.Page>
+        <CommandPalette.Footer>
+          <CommandPalette.Hint shortcut={['escape']}>Back or close</CommandPalette.Hint>
+        </CommandPalette.Footer>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<StatusSearch />)
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -313,7 +376,13 @@ flow at every size.
   from an empty search, or from the caret at that end of it. The tabs are a
   toggle group named "Type", reachable with **Tab**.
 - **Escape** closes the palette, and focus goes back to what opened it. The
-  shortcut closes it too.
+  shortcut closes it too. On a page, **Escape** goes back to the page before
+  instead.
+- On a page, **Backspace** on an empty search goes back; with text, it deletes
+  text as usual. The list is named for the page, such as "Change status", so
+  screen readers say where the arrows are. The page's chip is a button named
+  by its text and where it goes back to, such as "Change status, back to all
+  commands", so a phone without a keyboard can go back too.
 - `CommandPalette.Trigger` carries the shortcut in `aria-keyshortcuts`, so
   screen readers announce it; the keycaps are visual.
 - A command with `href` is a link, so it opens in a new tab with a modified

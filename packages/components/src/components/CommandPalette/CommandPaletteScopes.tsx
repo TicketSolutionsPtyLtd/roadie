@@ -11,7 +11,10 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { ToggleGroup, type ToggleGroupProps } from '../ToggleGroup'
-import { useCommandPaletteScope } from './CommandPaletteContext'
+import {
+  useCommandPalettePages,
+  useCommandPaletteScope
+} from './CommandPaletteContext'
 
 // ToggleGroup values are non-empty strings, so All takes one no type would.
 const ALL = '(all)'
@@ -43,6 +46,7 @@ export function CommandPaletteScopes({
   ...props
 }: CommandPaletteScopesProps) {
   const { scope, setScope, setScopes } = useCommandPaletteScope()
+  const { page } = useCommandPalettePages()
   const values = Children.toArray(children).flatMap(scopeValue)
   const key = values.join('\n')
   const order = useMemo(() => [null, ...key.split('\n').filter(Boolean)], [key])
@@ -50,6 +54,7 @@ export function CommandPaletteScopes({
     setScopes(order)
     return () => setScopes([null])
   }, [order, setScopes])
+  if (page) return null
   return (
     <div
       data-slot='command-palette-scopes'

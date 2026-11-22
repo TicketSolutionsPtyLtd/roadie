@@ -2,6 +2,7 @@
 
 import {
   type ReactNode,
+  useCallback,
   useEffect,
   useEffectEvent,
   useMemo,
@@ -12,12 +13,15 @@ import type { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isDev } from '../../utils/isDev'
 import { collatorContains, rankMatches } from '../../utils/rankMatches'
 import { Autocomplete, type AutocompleteProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
 import { useKeyPlatform } from '../Kbd/platform'
 import {
   CommandPaletteCloseProvider,
+  type CommandPalettePageEntry,
+  CommandPalettePagesProvider,
   CommandPaletteScopeProvider
 } from './CommandPaletteContext'
 import { isCurrentPalette, registerPalette } from './registry'
@@ -39,7 +43,7 @@ export type CommandPaletteRootProps<Item = unknown> = {
   open?: boolean
   /** Whether the palette is open at first, when uncontrolled. */
   defaultOpen?: boolean
-  /** Called as the palette opens or closes, with why: `'item-press'` when a command was picked. */
+  /** Called as the palette opens or closes, with why: `'item-press'` when a command was picked. Escape on a page goes back instead of closing. */
   onOpenChange?: (
     open: boolean,
     details: CommandPaletteOpenChangeDetails
@@ -146,14 +150,68 @@ export function CommandPaletteRoot<Item>({
   const [scopeState, setScopeState] = useState(defaultScope)
   const scope = scopeProp === undefined ? scopeState : scopeProp
   const [scopes, setScopes] = useState<readonly (string | null)[]>([null])
+  const [stack, setStack] = useState<readonly string[]>([])
+  const [pages, setPages] = useState<
+    ReadonlyMap<string, CommandPalettePageEntry>
+  >(new Map())
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
     setWasOpen(open)
     if (open) {
       setQuery('')
       setScopeState(defaultScope)
+      setStack([])
     }
   }
+  // Pruned here, not on unregister, so a page re-registering its new items stays open.
+  const liveStack = stack.filter((value) => pages.has(value))
+  if (liveStack.length !== stack.length) setStack(liveStack)
+  const pageValue = stack.at(-1)
+  const pageEntry = pageValue === undefined ? undefined : pages.get(pageValue)
+  const previousValue = stack.at(-2)
+  const previousLabel =
+    previousValue === undefined
+      ? null
+      : (pages.get(previousValue)?.label ?? null)
+  const register = useCallback(
+    (value: string, entry: CommandPalettePageEntry) => {
+      setPages((current) => new Map(current).set(value, entry))
+      return () => {
+        setPages((current) => {
+          const next = new Map(current)
+          next.delete(value)
+          return next
+        })
+      }
+    },
+    []
+  )
+  const pagesContext = useMemo(
+    () => ({
+      page:
+        pageValue !== undefined && pageEntry
+          ? { value: pageValue, label: pageEntry.label, previousLabel }
+          : null,
+      push: (value: string) => {
+        if (!pages.has(value)) {
+          if (isDev())
+            console.warn(
+              `[Roadie] CommandPalette has no CommandPalette.Page with value "${value}" to open.`
+            )
+          return
+        }
+        setStack((current) => [...current, value])
+        setQuery('')
+      },
+      pop: () => {
+        setStack((current) => current.slice(0, -1))
+        setQuery('')
+      },
+      register
+    }),
+    [pageValue, pageEntry, previousLabel, pages, register]
+  )
+  const onPage = pagesContext.page !== null
   const scopeContext = useMemo(
     () => ({
       scope,
@@ -167,10 +225,25 @@ export function CommandPaletteRoot<Item>({
     [scope, scopes, onScopeChange]
   )
   const filter = useCommandFilter(locale)
+  // Takes the caller's own item type, which Base UI types as unknown.
+  const itemLabel = (
+    onPage ? pageEntry?.itemToStringValue : itemToStringValue
+  ) as ((item: unknown) => string) | undefined
   const ranked = useMemo(
-    () => rankMatches(inScope(items, scope), query, itemToStringValue, locale),
-    [items, scope, query, itemToStringValue, locale]
+    () =>
+      onPage && pageEntry
+        ? rankMatches(pageEntry.items, query, itemLabel, locale)
+        : rankMatches(inScope(items, scope), query, itemLabel, locale),
+    [onPage, pageEntry, items, scope, query, itemLabel, locale]
   )
+
+  function handleOpenChange(
+    next: boolean,
+    details: CommandPaletteOpenChangeDetails
+  ) {
+    if (!next && details.reason === 'escape-key' && onPage) pagesContext.pop()
+    else setOpen(next, details)
+  }
 
   function setOpen(next: boolean, details: CommandPaletteOpenChangeDetails) {
     setOpenState(next)
@@ -206,7 +279,7 @@ export function CommandPaletteRoot<Item>({
   }, [keys])
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop />
         <Dialog.Viewport
@@ -226,22 +299,21 @@ export function CommandPaletteRoot<Item>({
               value={() => setOpen(false, { reason: 'item-press' })}
             >
               <CommandPaletteScopeProvider value={scopeContext}>
-                <Autocomplete
-                  inline
-                  open
-                  items={ranked}
-                  filter={filter}
-                  // Takes the caller's own item type, which Base UI types as unknown.
-                  itemToStringValue={
-                    itemToStringValue as ((item: unknown) => string) | undefined
-                  }
-                  locale={locale}
-                  autoHighlight='always'
-                  value={query}
-                  onValueChange={(next) => setQuery(next)}
-                >
-                  {children}
-                </Autocomplete>
+                <CommandPalettePagesProvider value={pagesContext}>
+                  <Autocomplete
+                    inline
+                    open
+                    items={ranked}
+                    filter={filter}
+                    itemToStringValue={itemLabel}
+                    locale={locale}
+                    autoHighlight='always'
+                    value={query}
+                    onValueChange={(next) => setQuery(next)}
+                  >
+                    {children}
+                  </Autocomplete>
+                </CommandPalettePagesProvider>
               </CommandPaletteScopeProvider>
             </CommandPaletteCloseProvider>
           </Dialog.Popup>
