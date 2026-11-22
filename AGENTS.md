@@ -80,8 +80,9 @@ pnpm --filter docs dev
   compound. The `new-component` skill covers both.
 - Never set a default intent in `defaultVariants`; intent flows through the
   cascade.
-- Drag and drop goes through `Sortable`. The editor's document blocks are
-  the exception: they move with the editor's own block handle, as ProseMirror
+- Drag and drop goes through `Sortable`, and files dropped from outside the
+  page through its dnd module. The editor's document blocks are the
+  exception: they move with the editor's own block handle, as ProseMirror
   transactions.
 
 ## Styling

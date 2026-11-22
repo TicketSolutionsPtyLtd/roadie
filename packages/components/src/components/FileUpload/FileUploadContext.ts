@@ -4,6 +4,8 @@ import { type Ref, createContext, use } from 'react'
 
 export type FileUploadContextValue = {
   files: File[]
+  /** Checks picked, dropped or pasted files and takes the ones that pass. */
+  take: (files: ArrayLike<File>) => void
   open: () => void
   clear: () => void
   inputId: string
