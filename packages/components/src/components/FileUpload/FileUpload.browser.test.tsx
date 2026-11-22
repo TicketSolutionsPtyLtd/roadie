@@ -1,5 +1,13 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { FileUpload } from '.'
@@ -14,6 +22,30 @@ afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
 const csv = (name: string) => new File(['a,b\n1,2'], name, { type: 'text/csv' })
+
+/** Drags files in from outside the page, as the desktop does, and drops them unless told not to. */
+async function dragFiles(target: Element, files: File[], drop = true) {
+  const dataTransfer = new DataTransfer()
+  for (const file of files) dataTransfer.items.add(file)
+  const box = target.getBoundingClientRect()
+  const init = {
+    bubbles: true,
+    cancelable: true,
+    dataTransfer,
+    clientX: box.x + box.width / 2,
+    clientY: box.y + box.height / 2
+  }
+  target.dispatchEvent(new DragEvent('dragenter', init))
+  target.dispatchEvent(new DragEvent('dragover', init))
+  await new Promise(requestAnimationFrame)
+  if (drop) target.dispatchEvent(new DragEvent('drop', init))
+}
+
+/** Jumps every transition under element to its end. */
+const settle = (element: Element) => {
+  for (const animation of element.getAnimations({ subtree: true }))
+    animation.finish()
+}
 
 const postedFiles = () =>
   new FormData(screen.getByRole('form'))
@@ -70,6 +102,16 @@ describe('FileUpload in a form', () => {
     screen.getByRole<HTMLFormElement>('form').requestSubmit()
     await waitFor(() => expect(screen.getByRole('button')).toHaveFocus())
   })
+
+  it('moves focus to the dropzone when a required field stops a submit', async () => {
+    render(
+      <form aria-label='Import' onSubmit={(event) => event.preventDefault()}>
+        <FileUpload name='payments' required />
+      </form>
+    )
+    screen.getByRole<HTMLFormElement>('form').requestSubmit()
+    await waitFor(() => expect(screen.getByRole('button')).toHaveFocus())
+  })
 })
 
 describe('FileUpload bar', () => {
@@ -77,7 +119,13 @@ describe('FileUpload bar', () => {
     const name = `${'Lampshade Disco final guest list '.repeat(4)}.csv`
     render(
       <div style={{ width: 300 }}>
-        <FileUpload defaultValue={[csv(name)]} />
+        <FileUpload defaultValue={[csv(name)]}>
+          <FileUpload.Control>
+            <FileUpload.Value />
+            <FileUpload.Clear />
+            <FileUpload.Trigger />
+          </FileUpload.Control>
+        </FileUpload>
       </div>
     )
     const fileName = screen.getByText(name)
@@ -95,7 +143,14 @@ describe('FileUpload bar', () => {
   })
 
   it('joins the Trigger to the end of the bar, full height', () => {
-    render(<FileUpload />)
+    render(
+      <FileUpload>
+        <FileUpload.Control>
+          <FileUpload.Value />
+          <FileUpload.Trigger />
+        </FileUpload.Control>
+      </FileUpload>
+    )
     const trigger = screen.getByRole('button', { name: /Choose file$/ })
     const bar = trigger.closest<HTMLElement>('[data-slot=file-upload-control]')!
     const barBox = bar.getBoundingClientRect()
@@ -106,5 +161,54 @@ describe('FileUpload bar', () => {
       barBox.left + bar.clientLeft + bar.clientWidth,
       0
     )
+  })
+})
+
+describe('FileUpload drops', () => {
+  it('adds a file dropped on the dropzone', async () => {
+    const onValueChange = vi.fn()
+    render(<FileUpload onValueChange={onValueChange} />)
+    const file = csv('march.csv')
+    await dragFiles(screen.getByRole('button'), [file])
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
+    expect(screen.getByRole('button')).not.toHaveAttribute('data-dragging')
+  })
+
+  it('turns solid accent and lifts its tile on the tokens while files are over it', async () => {
+    render(
+      <>
+        <FileUpload />
+        {/* The tokens, resolved the way the browser writes them. */}
+        <div
+          data-testid='reference'
+          className='border border-strong transition-transform duration-slow ease-spring-lively intent-accent'
+        />
+      </>
+    )
+    const zone = screen.getByRole('button')
+    const tile = zone.querySelector('[data-slot=icon-tile]')!
+    const rest = tile.getBoundingClientRect()
+    await dragFiles(zone, [csv('march.csv')], false)
+    await waitFor(() => expect(zone).toHaveAttribute('data-dragging'))
+    const expected = getComputedStyle(screen.getByTestId('reference'))
+    const tileStyle = getComputedStyle(tile)
+    expect(tileStyle.transitionDuration).toBe(expected.transitionDuration)
+    expect(tileStyle.transitionTimingFunction).toBe(
+      expected.transitionTimingFunction
+    )
+    settle(zone)
+    expect(getComputedStyle(zone).borderTopStyle).toBe('solid')
+    expect(getComputedStyle(zone).borderTopColor).toBe(expected.borderTopColor)
+    expect(tile.getBoundingClientRect().top).toBeLessThan(rest.top)
+    expect(tile.getBoundingClientRect().width).toBeGreaterThan(rest.width)
+    await dragFiles(zone, [], true)
+  })
+
+  it('ignores a drop while disabled', async () => {
+    const onValueChange = vi.fn()
+    render(<FileUpload disabled onValueChange={onValueChange} />)
+    await dragFiles(screen.getByRole('button'), [csv('march.csv')])
+    await new Promise(requestAnimationFrame)
+    expect(onValueChange).not.toHaveBeenCalled()
   })
 })
