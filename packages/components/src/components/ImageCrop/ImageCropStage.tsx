@@ -132,6 +132,7 @@ export function ImageCropStage({
     const onWheel = (event: WheelEvent) => {
       const { scene, shown } = latest.current
       if (document.activeElement !== element || !scene || !shown) return
+      if (drag.current) return
       event.preventDefault()
       const rect = element.getBoundingClientRect()
       const lines = { 1: 16, 2: rect.height }[event.deltaMode] ?? 1
@@ -188,7 +189,8 @@ export function ImageCropStage({
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event)
     if (event.defaultPrevented || event.target !== event.currentTarget) return
-    if (!scene || !shown) return
+    // A key mid-gesture would be overwritten when the gesture ends.
+    if (!scene || !shown || drag.current || live.current) return
     // Arrows move the image, as a drag does, so the crop moves the other way.
     const step = (event.shiftKey ? 50 : 10) / shown.zoom
     const moves: Record<string, [number, number]> = {
@@ -228,6 +230,7 @@ export function ImageCropStage({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
+      onLostPointerCapture={handlePointerEnd}
       onKeyDown={handleKeyDown}
       {...props}
     >

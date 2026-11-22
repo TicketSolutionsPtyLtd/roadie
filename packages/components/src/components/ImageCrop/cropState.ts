@@ -117,12 +117,12 @@ export function transformOf(value: ImageCropValue, image: CropSize): string {
   return `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg) scale(${zoom})`
 }
 
-/** Whether two values crop the same pixels, to half a natural px. */
+/** Whether two values look the same on screen, to half a px at `a`'s zoom. */
 export function sameCrop(a: ImageCropValue, b: ImageCropValue): boolean {
   return (
     a.rotation === b.rotation &&
     (['x', 'y', 'width', 'height'] as const).every(
-      (key) => Math.abs(a.area[key] - b.area[key]) < 0.5
+      (key) => Math.abs(a.area[key] - b.area[key]) * a.zoom < 0.5
     )
   )
 }

@@ -108,8 +108,9 @@ describe('transformOf', () => {
 })
 
 describe('sameCrop', () => {
-  it('ignores less than half a natural pixel', () => {
-    expect(sameCrop(start, panBy(start, 0, -0.4, scene))).toBe(true)
-    expect(sameCrop(start, panBy(start, 0, -1, scene))).toBe(false)
+  it('ignores less than half a screen pixel', () => {
+    // At zoom 0.25, 4 natural px are 1 screen px.
+    expect(sameCrop(start, panBy(start, 0, -1, scene))).toBe(true)
+    expect(sameCrop(start, panBy(start, 0, -4, scene))).toBe(false)
   })
 })

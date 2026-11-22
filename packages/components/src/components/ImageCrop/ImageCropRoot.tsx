@@ -68,11 +68,17 @@ export function ImageCropRoot({
   ...props
 }: ImageCropRootProps) {
   const [uncontrolled, setUncontrolled] = useState(defaultValue)
+  const [last, setLast] = useState<{ src?: string; value: ImageCropValue }>()
   const url = useSourceUrl(src)
   const commit = (next: ImageCropValue) => {
     if (value === undefined) setUncontrolled(next)
+    setLast({ src: url, value: next })
     onValueChange?.(next)
   }
+  // A crop made for the last image, echoed back, doesn't carry to a new one.
+  const given = value ?? uncontrolled
+  const current =
+    last && last.value === given && last.src !== url ? undefined : given
 
   return (
     <ImageCropContext
@@ -82,7 +88,7 @@ export function ImageCropRoot({
         shape,
         min: minCrop(aspectRatio, minWidth, minHeight),
         label,
-        value: value ?? uncontrolled,
+        value: current,
         commit
       }}
     >

@@ -16,19 +16,32 @@ import { ImageCrop, type ImageCropProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
 
-let removeStylesheet = () => {}
-let photo: Blob
-beforeAll(async () => {
-  removeStylesheet = useStylesheet(roadieCss)
+function makePhoto(width: number, height: number) {
   const canvas = document.createElement('canvas')
-  canvas.width = 2400
-  canvas.height = 1600
+  canvas.width = width
+  canvas.height = height
   const context = canvas.getContext('2d')!
   context.fillStyle = '#3a6'
-  context.fillRect(0, 0, 2400, 1600)
-  photo = await new Promise<Blob>((resolve) =>
-    canvas.toBlob((blob) => resolve(blob!))
-  )
+  context.fillRect(0, 0, width, height)
+  return new Promise<Blob>((resolve) => canvas.toBlob((blob) => resolve(blob!)))
+}
+
+const nextFrames = async () => {
+  await new Promise(requestAnimationFrame)
+  await new Promise(requestAnimationFrame)
+}
+
+let removeStylesheet = () => {}
+let photo: Blob
+let square: Blob
+let tiny: Blob
+beforeAll(async () => {
+  removeStylesheet = useStylesheet(roadieCss)
+  ;[photo, square, tiny] = await Promise.all([
+    makePhoto(2400, 1600),
+    makePhoto(1600, 1600),
+    makePhoto(120, 60)
+  ])
 })
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
@@ -36,7 +49,7 @@ afterEach(() => cleanup())
 // A 640px stage is 480px tall, so a 2:1 frame is 544 × 272 inside its 48px inset.
 async function renderCrop(props: Partial<ImageCropProps> = {}) {
   const onValueChange = vi.fn<(value: ImageCropValue) => void>()
-  render(
+  const crop = (more: Partial<ImageCropProps>) => (
     <div style={{ width: 640 }}>
       <ImageCrop
         src={photo}
@@ -44,13 +57,16 @@ async function renderCrop(props: Partial<ImageCropProps> = {}) {
         label='Event image'
         onValueChange={onValueChange}
         {...props}
+        {...more}
       />
     </div>
   )
+  const { rerender } = render(crop({}))
   await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
   const stage = screen.getByRole('group', { name: 'Event image' })
   const last = () => onValueChange.mock.lastCall![0]
-  return { stage, onValueChange, last }
+  const update = (more: Partial<ImageCropProps>) => rerender(crop(more))
+  return { stage, onValueChange, last, update }
 }
 
 const rect = (element: Element) => element.getBoundingClientRect()
@@ -74,9 +90,18 @@ describe('ImageCrop on load', () => {
     expect(rect(frameOf(stage)).width).toBeCloseTo(544)
     expectCovered(stage)
     // Effects from the report have run by the next two frames.
-    await new Promise(requestAnimationFrame)
-    await new Promise(requestAnimationFrame)
+    await nextFrames()
     expect(onValueChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('starts a new image from its own centred crop', async () => {
+    const { stage, onValueChange, last, update } = await renderCrop()
+    stage.focus()
+    await userEvent.keyboard('{ArrowUp}')
+    update({ src: square })
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(3))
+    const { x, y, width, height } = last().area
+    expect([x, y, width, height].map(Math.round)).toEqual([0, 400, 1600, 800])
   })
 
   it('keeps a value that fits, and reports nothing', async () => {
@@ -98,6 +123,7 @@ describe('ImageCrop on load', () => {
       return element
     })
     expect(rect(image).width).toBeCloseTo(2400 * (544 / 1200))
+    await nextFrames()
     expect(onValueChange).not.toHaveBeenCalled()
   })
 })
@@ -205,6 +231,36 @@ describe('ImageCrop with the keyboard', () => {
     const calls = onValueChange.mock.calls.length
     await userEvent.keyboard('+')
     expect(onValueChange).toHaveBeenCalledTimes(calls)
+  })
+
+  it('still moves a small image zoomed far in', async () => {
+    const { stage, last } = await renderCrop({ src: tiny })
+    stage.focus()
+    for (let i = 0; i < 30; i++) await userEvent.keyboard('+')
+    const before = last().area.x
+    await userEvent.keyboard('{ArrowRight}')
+    expect(last().area.x).toBeCloseTo(before - 10 / last().zoom)
+  })
+
+  it('ignores keys while a wheel zoom is settling', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    stage.focus()
+    const { x, y, width, height } = rect(stage)
+    stage.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -100,
+        clientX: x + width / 2,
+        clientY: y + height / 2,
+        bubbles: true,
+        cancelable: true
+      })
+    )
+    await userEvent.keyboard('{ArrowUp}')
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+    await nextFrames()
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expectCovered(stage)
+    expect(last().zoom).toBeGreaterThan(544 / 2400)
   })
 })
 

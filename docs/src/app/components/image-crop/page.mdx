@@ -74,7 +74,7 @@ function EventImage() {
         label='Event image'
         onValueChange={setCrop}
       />
-      <p className='text-sm text-subtle'>
+      <p className='text-display-ui-6 text-subtle'>
         {area
           ? `${Math.round(area.width)} × ${Math.round(area.height)}px from ${Math.round(area.x)}, ${Math.round(area.y)}`
           : 'Loading the image'}
@@ -127,4 +127,4 @@ render(<EventImage />)
 - A plain scroll zooms only once the crop area has focus, so scrolling the page past it never zooms by accident.
 - Focus shows a ring around the crop area. The frame, its grid, and the image are hidden from screen readers.
 
-<PropsDefinitions component={['ImageCrop', 'ImageCrop.Stage']} />
+<PropsDefinitions component='ImageCrop' />

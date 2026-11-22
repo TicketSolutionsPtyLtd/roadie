@@ -19,18 +19,6 @@ describe('ImageCrop', () => {
     expect(screen.getByRole('group', { name: 'Crop image' })).toBeVisible()
   })
 
-  it('reports nothing before the image has loaded', () => {
-    const onValueChange = vi.fn()
-    render(
-      <ImageCrop
-        src='/event.jpg'
-        aspectRatio={2}
-        onValueChange={onValueChange}
-      />
-    )
-    expect(onValueChange).not.toHaveBeenCalled()
-  })
-
   it('masks a circle but sets nothing else apart', () => {
     render(<ImageCrop src='/avatar.jpg' aspectRatio={1} shape='circle' />)
     expect(screen.getByRole('group')).toHaveAttribute('data-shape', 'circle')
