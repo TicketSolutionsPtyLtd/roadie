@@ -187,6 +187,29 @@ describe('useNavigatorCommands', () => {
     expect(pagesOf(log).map((item) => item.label)).toEqual(['Sales', 'Perth'])
   })
 
+  it('leaves out Navigator.Search, even when it links to a search page', async () => {
+    const log: NavigatorCommandGroup[][] = []
+    render(
+      <Navigator value='/events'>
+        <Navigator.Primary aria-label='Organiser'>
+          {testBrand}
+          <Navigator.Search href='/discover' />
+          <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
+            Events
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>
+          <Probe log={log} />
+        </Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const values = log
+      .at(-1)
+      ?.flatMap((group) => group.items.map((c) => c.value))
+    expect(values).toEqual(['/events'])
+  })
+
   it('returns no commands outside a Navigator', () => {
     const log: NavigatorCommandGroup[][] = []
     render(<Probe log={log} />)

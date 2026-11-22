@@ -63,8 +63,10 @@ function pageCommands(slot: NavigatorSlotMeta): NavigatorCommand[] {
 }
 
 function navigatorCommands(
-  slots: readonly NavigatorSlotMeta[]
+  collected: readonly NavigatorSlotMeta[]
 ): NavigatorCommandGroup[] {
+  // Search would open the palette it's listed in, or link to a page beside it.
+  const slots = collected.filter((slot) => !slot.search)
   const destinations = slots.flatMap((slot) =>
     slot.href === undefined
       ? []
@@ -90,7 +92,8 @@ function navigatorCommands(
 /**
  * Navigator's destinations, their `Navigator.Secondary` pages, and any saved
  * views listed there, as groups of link commands for `CommandPalette`'s
- * `items`. Call it inside `<Navigator>`; outside one it returns `[]`.
+ * `items`, leaving out `Navigator.Search`. Call it inside `<Navigator>`;
+ * outside one it returns `[]`.
  */
 export function useNavigatorCommands(): NavigatorCommandGroup[] {
   const { collected } = use(NavigatorSelectionContext)
