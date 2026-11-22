@@ -65,7 +65,8 @@ function pageCommands(slot: NavigatorSlotMeta): NavigatorCommand[] {
 function navigatorCommands(
   collected: readonly NavigatorSlotMeta[]
 ): NavigatorCommandGroup[] {
-  // Search would open the palette it's listed in, or link to a page beside it.
+  // Search opens the palette it would be listed in, or links to a search page
+  // that stands in for it.
   const slots = collected.filter((slot) => !slot.search)
   const destinations = slots.flatMap((slot) =>
     slot.href === undefined
