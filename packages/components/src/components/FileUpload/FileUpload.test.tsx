@@ -8,6 +8,20 @@ import { Field } from '../Field'
 const csv = (name = 'payments.csv', size = 10) =>
   new File(['x'.repeat(size)], name, { type: 'text/csv' })
 
+const bar = (placeholder?: string) => (
+  <FileUpload.Control>
+    <FileUpload.Value placeholder={placeholder} />
+    <FileUpload.Clear />
+    <FileUpload.Trigger />
+  </FileUpload.Control>
+)
+
+const paste = (target: Element, file: File) => {
+  const event = new Event('paste', { bubbles: true, cancelable: true })
+  Object.assign(event, { clipboardData: { files: [file] } })
+  target.dispatchEvent(event)
+}
+
 const fileInput = (container: HTMLElement) =>
   container.querySelector<HTMLInputElement>('input[type=file]')!
 
@@ -169,9 +183,83 @@ describe('FileUpload', () => {
     expect(input).toHaveAttribute('capture', 'environment')
   })
 
+  describe('the dropzone', () => {
+    it('is what FileUpload renders with no children', () => {
+      render(
+        <Field>
+          <Field.Label>Event image</Field.Label>
+          <FileUpload />
+        </Field>
+      )
+      expect(
+        screen.getByRole('button', {
+          name: 'Event image Drop a file, or choose one'
+        })
+      ).toHaveAttribute('data-slot', 'file-upload-dropzone')
+    })
+
+    it.each(['{Enter}', ' '])('opens the picker on %s', async (key) => {
+      const { container } = render(<FileUpload />)
+      const click = vi.spyOn(fileInput(container), 'click')
+      const user = userEvent.setup()
+      await user.tab()
+      expect(screen.getByRole('button')).toHaveFocus()
+      await user.keyboard(key)
+      expect(click).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows the chosen file under its title', () => {
+      render(<FileUpload defaultValue={[csv('payments.csv', 1960)]} />)
+      expect(screen.getByRole('button')).toHaveTextContent(
+        'Drop a file, or choose onepayments.csv2 kB'
+      )
+    })
+
+    it('leaves the tab order and keeps the picker shut when disabled', async () => {
+      const { container } = render(<FileUpload disabled />)
+      const click = vi.spyOn(fileInput(container), 'click')
+      const zone = screen.getByRole('button')
+      expect(zone).toHaveAttribute('aria-disabled', 'true')
+      expect(zone).not.toHaveAttribute('tabindex')
+      await userEvent.click(zone)
+      expect(click).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('paste', () => {
+    it.each([
+      ['the dropzone', undefined],
+      ['the bar', bar()]
+    ])('adds a pasted file in %s', async (_, children) => {
+      const onValueChange = vi.fn()
+      render(<FileUpload onValueChange={onValueChange}>{children}</FileUpload>)
+      const file = csv()
+      paste(screen.getAllByRole('button')[0]!, file)
+      await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
+    })
+
+    it('leaves a paste in a text field inside to the field', () => {
+      const onValueChange = vi.fn()
+      render(
+        <FileUpload onValueChange={onValueChange}>
+          <input aria-label='Note' />
+        </FileUpload>
+      )
+      paste(screen.getByRole('textbox'), csv())
+      expect(onValueChange).not.toHaveBeenCalled()
+    })
+
+    it('ignores a paste while disabled', () => {
+      const onValueChange = vi.fn()
+      render(<FileUpload disabled onValueChange={onValueChange} />)
+      paste(screen.getByRole('button'), csv())
+      expect(onValueChange).not.toHaveBeenCalled()
+    })
+  })
+
   describe('the bar', () => {
     it('shows a placeholder and Choose file when empty', () => {
-      render(<FileUpload placeholder='No guest list yet' />)
+      render(<FileUpload>{bar('No guest list yet')}</FileUpload>)
       expect(screen.getByText('No guest list yet')).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: /Choose file$/ })
@@ -179,7 +267,7 @@ describe('FileUpload', () => {
     })
 
     it('shows the picked file and offers to replace it', async () => {
-      const { container } = render(<FileUpload />)
+      const { container } = render(<FileUpload>{bar()}</FileUpload>)
       expect(screen.getByText('No file chosen')).toBeInTheDocument()
       await userEvent.upload(fileInput(container), csv('payments.csv', 1960))
       expect(await screen.findByText('payments.csv')).toBeInTheDocument()
@@ -205,7 +293,7 @@ describe('FileUpload', () => {
     })
 
     it('opens the picker from a click anywhere on the bar', async () => {
-      const { container } = render(<FileUpload />)
+      const { container } = render(<FileUpload>{bar()}</FileUpload>)
       const opened = vi.fn()
       fileInput(container).addEventListener('click', opened)
       await userEvent.click(screen.getByText('No file chosen'))
@@ -215,7 +303,9 @@ describe('FileUpload', () => {
     it('clears the file and moves focus to the Trigger', async () => {
       const onValueChange = vi.fn()
       render(
-        <FileUpload defaultValue={[csv()]} onValueChange={onValueChange} />
+        <FileUpload defaultValue={[csv()]} onValueChange={onValueChange}>
+          {bar()}
+        </FileUpload>
       )
       await userEvent.click(
         screen.getByRole('button', { name: 'Remove payments.csv' })
@@ -228,18 +318,18 @@ describe('FileUpload', () => {
     it('marks the bar invalid and disabled from Field', () => {
       const { container } = render(
         <Field invalid disabled>
-          <FileUpload />
+          <FileUpload>{bar()}</FileUpload>
         </Field>
       )
-      const bar = container.querySelector('[data-slot=file-upload-control]')
-      expect(bar).toHaveAttribute('aria-invalid', 'true')
-      expect(bar).toHaveAttribute('data-disabled')
+      const control = container.querySelector('[data-slot=file-upload-control]')
+      expect(control).toHaveAttribute('aria-invalid', 'true')
+      expect(control).toHaveAttribute('data-disabled')
     })
 
     it("keeps a disabled field's file from being removed", () => {
       render(
         <Field disabled>
-          <FileUpload defaultValue={[csv()]} />
+          <FileUpload defaultValue={[csv()]}>{bar()}</FileUpload>
         </Field>
       )
       expect(

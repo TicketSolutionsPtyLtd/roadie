@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  type ChangeEvent,
   type ComponentProps,
   useCallback,
   useEffect,
@@ -13,11 +12,8 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext, useFieldControlError } from '../Field/FieldContext'
-import { FileUploadClear } from './FileUploadClear'
 import { FileUploadContext } from './FileUploadContext'
-import { FileUploadControl } from './FileUploadControl'
-import { FileUploadTrigger } from './FileUploadTrigger'
-import { FileUploadValue } from './FileUploadValue'
+import { FileUploadDropzone } from './FileUploadDropzone'
 import {
   type FileRules,
   type FileUploadRejection,
@@ -43,14 +39,13 @@ export type FileUploadRootProps = Omit<
     capture?: 'user' | 'environment'
     disabled?: boolean
     required?: boolean
-    /** What the default bar says before a file is chosen. */
-    placeholder?: string
   }
 
 /**
  * A file field. It holds the chosen files and keeps a native file input in
  * step with them, so a form posts them under `name`. With no children it
- * renders a bar: the file's name, a clear button and a Trigger.
+ * renders a Dropzone. Files can also be dropped on a Control, or pasted
+ * anywhere inside.
  */
 export function FileUploadRoot({
   name,
@@ -64,9 +59,9 @@ export function FileUploadRoot({
   capture,
   disabled,
   required,
-  placeholder,
   className,
   children,
+  onPaste,
   ...props
 }: FileUploadRootProps) {
   const field = useFieldContext()
@@ -89,8 +84,9 @@ export function FileUploadRoot({
   }, [files])
   useEffect(syncInput, [syncInput])
 
-  function pick(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0]
+  // Picks, drops and pastes all come through here. One file for now: the first.
+  function take(picked: ArrayLike<File>) {
+    const file = picked[0]
     const rejection =
       file && checkFile(file, { accept, maxFileSize, minFileSize })
     if (rejection) {
@@ -117,11 +113,24 @@ export function FileUploadRoot({
       data-disabled={isDisabled || undefined}
       data-invalid={invalid || undefined}
       className={cn('grid justify-items-start gap-2', className)}
+      onPaste={(event) => {
+        onPaste?.(event)
+        const pasted = event.clipboardData.files
+        const target = event.target as HTMLElement
+        // A text field inside keeps its paste, such as cells copied with an image.
+        const editable =
+          target.isContentEditable || target.matches('input, textarea')
+        if (event.defaultPrevented || isDisabled || editable || !pasted.length)
+          return
+        event.preventDefault()
+        take(pasted)
+      }}
       {...props}
     >
       <FileUploadContext
         value={{
           files,
+          take,
           open: () => inputRef.current?.click(),
           clear: () => {
             commit([])
@@ -136,13 +145,7 @@ export function FileUploadRoot({
           describedBy: describedBy || undefined
         }}
       >
-        {children ?? (
-          <FileUploadControl>
-            <FileUploadValue placeholder={placeholder} />
-            <FileUploadClear />
-            <FileUploadTrigger />
-          </FileUploadControl>
-        )}
+        {children ?? <FileUploadDropzone />}
       </FileUploadContext>
       <input
         ref={inputRef}
@@ -156,7 +159,7 @@ export function FileUploadRoot({
         tabIndex={-1}
         aria-hidden
         className='sr-only'
-        onChange={pick}
+        onChange={(event) => take(event.currentTarget.files ?? [])}
         // The browser focuses an empty required input when a form submits.
         onFocus={() => triggerRef.current?.focus()}
       />

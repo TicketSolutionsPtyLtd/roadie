@@ -1,4 +1,5 @@
-// The only module that imports the drag library, so it can be swapped here.
+// With file.ts, the only module that imports the drag library, so it can be
+// swapped here.
 // Framework-free: React (and any Vue skin) wires DOM elements and callbacks in.
 import {
   autoScrollForElements,
