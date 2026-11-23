@@ -118,7 +118,13 @@ describe('Combobox virtualized', () => {
       { label: 'Teacups', items: VENUES.slice(1400) }
     ]
 
-    function GroupedVenues({ defaultValue }: { defaultValue?: string }) {
+    function GroupedVenues({
+      defaultValue,
+      groupRef
+    }: {
+      defaultValue?: string
+      groupRef?: (element: HTMLDivElement | null) => void
+    }) {
       return (
         <Combobox items={GROUPS} virtualized defaultValue={defaultValue}>
           <Combobox.InputGroup>
@@ -130,7 +136,11 @@ describe('Combobox virtualized', () => {
               <Combobox.Popup className='max-h-80'>
                 <Combobox.List>
                   {(group: (typeof GROUPS)[number]) => (
-                    <Combobox.Group key={group.label} items={group.items}>
+                    <Combobox.Group
+                      key={group.label}
+                      items={group.items}
+                      ref={groupRef}
+                    >
                       <Combobox.GroupLabel>{group.label}</Combobox.GroupLabel>
                       <Combobox.Collection>
                         {(venue: string, index: number) => (
@@ -152,6 +162,18 @@ describe('Combobox virtualized', () => {
         </Combobox>
       )
     }
+
+    it('passes its own ref to each windowed group', async () => {
+      const groups = new Set<HTMLDivElement>()
+      render(
+        <GroupedVenues
+          groupRef={(element) => void (element && groups.add(element))}
+        />
+      )
+      await userEvent.click(screen.getByRole('combobox'))
+      await expect.poll(() => options().length).toBeGreaterThan(0)
+      expect(groups).toContain(screen.getByRole('group', { name: 'Halls' }))
+    })
 
     it('mounts a window of rows, each counted within its group', async () => {
       render(<GroupedVenues />)
