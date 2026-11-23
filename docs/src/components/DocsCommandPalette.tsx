@@ -7,7 +7,6 @@ import {
   type PageCommandGroup,
   pageCommands
 } from '@/lib/page-commands'
-import { useRoute } from '@/lib/route'
 
 import { CommandPalette } from '@oztix/roadie-components/command-palette'
 
@@ -31,9 +30,6 @@ const SCOPES = [
   { value: '/blocks', label: 'Blocks' }
 ]
 
-// A live example here binds ⌘K itself, and a page has one owner (decision 0014).
-const EXAMPLE_OWNS_SHORTCUT = new Set(['/components/navigator'])
-
 // A pinned page keeps its own icon; every other page takes its section's.
 function PageIcon({ href, scope }: { href: string; scope: string }) {
   const pinned = PINNED.some((page) => page.href === href)
@@ -42,20 +38,18 @@ function PageIcon({ href, scope }: { href: string; scope: string }) {
   })
 }
 
-/** Every docs page behind ⌘K, or Ctrl+K off Apple platforms. */
+/**
+ * Every docs page behind ⌘K, or Ctrl+K off Apple platforms, on every page. A
+ * live example whose palette binds ⌘K runs in its own frame (`framed`).
+ */
 export function DocsCommandPalette({
   items
 }: {
   items: readonly NavigationDestination[]
 }) {
   const groups = useMemo(() => pageCommands(items, PINNED), [items])
-  const route = useRoute()
   return (
-    <CommandPalette
-      items={groups}
-      label='Search the docs'
-      shortcut={EXAMPLE_OWNS_SHORTCUT.has(route) ? false : undefined}
-    >
+    <CommandPalette items={groups} label='Search the docs'>
       <CommandPalette.Input placeholder='Search the docs' />
       <CommandPalette.Scopes aria-label='Section'>
         {SCOPES.map((scope) => (

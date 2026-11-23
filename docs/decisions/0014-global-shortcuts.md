@@ -21,8 +21,10 @@ Triggers open the registered one.
 
 A field that wants the keys calls `preventDefault`, and there is no opt-out
 attribute. A page with several palettes sets `shortcut={false}` on all but
-one, as the docs site does. There is no app-wide hotkey API; the next global
-shortcut reuses this pattern, and a shared one waits until two need it.
+one, as the docs site does; a docs example whose palette must bind the keys
+runs in its own frame instead (`framed`, INNO-1640). There is no app-wide
+hotkey API; the next global shortcut reuses this pattern, and a shared one
+waits until two need it.
 
 ## Links
 

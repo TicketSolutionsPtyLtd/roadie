@@ -452,7 +452,7 @@ export type LiveRunnerProps = {
   isolated?: boolean
   /** Classes the preview lays the example out with, from the fence's `layout=`, `gap=`, and `width=`. */
   previewLayout?: string
-  /** A device other than the reader's own screen, picked in the header; the example runs in a frame at its width. */
+  /** A device picked in the header, or the reader's own for a `framed` example; the example runs in a frame at its width. */
   frameDevice?: Device
   /** Whether the full-width dialog is open, from the header's Full width button. */
   fullWidth?: boolean
