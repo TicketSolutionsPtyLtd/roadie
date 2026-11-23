@@ -430,9 +430,13 @@ describe('CommandPalette virtualized, with groups', () => {
     await expectStillUntilLeaves(list, VENUES[712]!)
   })
 
-  it('keeps rows still as a group with no label scrolls out of the window', async () => {
-    const groups = new Set<HTMLElement>()
-    render(
+  /** Groups named by `aria-label`, with no `GroupLabel` to measure. */
+  function UnlabelledVenues({
+    groupRef
+  }: {
+    groupRef?: (element: HTMLDivElement | null) => void
+  }) {
+    return (
       <CommandPalette defaultOpen shortcut={false} items={GROUPS} virtualized>
         <CommandPalette.Input placeholder='Search venues' />
         <CommandPalette.List>
@@ -441,9 +445,7 @@ describe('CommandPalette virtualized, with groups', () => {
               key={group.label}
               items={group.items}
               aria-label={group.label}
-              ref={(element: HTMLDivElement | null) => {
-                if (element) groups.add(element)
-              }}
+              ref={groupRef}
             >
               <CommandPalette.Collection>
                 {(venue: string) => (
@@ -457,16 +459,42 @@ describe('CommandPalette virtualized, with groups', () => {
         </CommandPalette.List>
       </CommandPalette>
     )
-    await expect.poll(() => options().length).toBeGreaterThan(0)
-    // The group's own ref still reaches it alongside the one that measures it.
-    expect(groups.has(screen.getByRole('group', { name: 'Halls' }))).toBe(true)
-    const list = screen.getByRole('listbox')
-    await scrollToVenue(list, 712)
-    await expectStillUntilLeaves(list, VENUES[712]!)
-    // A later group's row also holds the gap and its margin above it.
-    await scrollToVenue(list, 1412)
-    await expectStillUntilLeaves(list, VENUES[1412]!, 'Rooms')
-  })
+  }
+
+  // Each walks hundreds of frames, slow in a throttled CI WebKit.
+  it(
+    'keeps rows still as a group with no label scrolls out of the window',
+    { timeout: 30_000 },
+    async () => {
+      const groups = new Set<HTMLElement>()
+      render(
+        <UnlabelledVenues
+          groupRef={(element) => void (element && groups.add(element))}
+        />
+      )
+      await expect.poll(() => options().length).toBeGreaterThan(0)
+      // The group's own ref still reaches it alongside the one that measures it.
+      expect(groups.has(screen.getByRole('group', { name: 'Halls' }))).toBe(
+        true
+      )
+      const list = screen.getByRole('listbox')
+      await scrollToVenue(list, 712)
+      await expectStillUntilLeaves(list, VENUES[712]!)
+    }
+  )
+
+  it(
+    'keeps rows still as a later group with no label scrolls out of the window',
+    { timeout: 30_000 },
+    async () => {
+      render(<UnlabelledVenues />)
+      await expect.poll(() => options().length).toBeGreaterThan(0)
+      const list = screen.getByRole('listbox')
+      // A later group's row also holds the gap and its margin above it.
+      await scrollToVenue(list, 1412)
+      await expectStillUntilLeaves(list, VENUES[1412]!, 'Rooms')
+    }
+  )
 
   it('scrolls to the command reached with the arrow keys past many groups', async () => {
     const many = Array.from({ length: 200 }, (_, block) => ({
