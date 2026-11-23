@@ -118,9 +118,9 @@ describe('Combobox virtualized', () => {
       { label: 'Teacups', items: VENUES.slice(1400) }
     ]
 
-    function GroupedVenues() {
+    function GroupedVenues({ defaultValue }: { defaultValue?: string }) {
       return (
-        <Combobox items={GROUPS} virtualized>
+        <Combobox items={GROUPS} virtualized defaultValue={defaultValue}>
           <Combobox.InputGroup>
             <Combobox.Input aria-label='Venue' />
             <Combobox.Trigger />
@@ -133,8 +133,12 @@ describe('Combobox virtualized', () => {
                     <Combobox.Group key={group.label} items={group.items}>
                       <Combobox.GroupLabel>{group.label}</Combobox.GroupLabel>
                       <Combobox.Collection>
-                        {(venue: string) => (
-                          <Combobox.Item key={venue} value={venue}>
+                        {(venue: string, index: number) => (
+                          <Combobox.Item
+                            key={venue}
+                            value={venue}
+                            data-place={index}
+                          >
                             {venue}
                           </Combobox.Item>
                         )}
@@ -177,6 +181,96 @@ describe('Combobox virtualized', () => {
       expect(row.bottom).toBeLessThanOrEqual(box.bottom + 1)
       await userEvent.keyboard('{Enter}')
       await expect.poll(() => input.value).toBe(LAST)
+    })
+
+    const popup = () =>
+      document.querySelector<HTMLElement>('[data-slot="combobox-popup"]')!
+    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+
+    it('keeps the group in view named, its label pinned to the top', async () => {
+      render(<GroupedVenues />)
+      await userEvent.click(screen.getByRole('combobox'))
+      await expect.poll(() => options().length).toBeGreaterThan(0)
+      // Well into Rooms, far past its label's own row.
+      popup().scrollTop = 1000 * 32
+      await expect
+        .poll(() => screen.queryByRole('group', { name: 'Rooms' }))
+        .not.toBeNull()
+      const label = document.querySelector<HTMLElement>(
+        '[data-slot="combobox-group-label"]'
+      )!
+      expect(label).toHaveTextContent('Rooms')
+      const top = popup().getBoundingClientRect().top + popup().clientTop
+      await expect
+        .poll(() => Math.abs(label.getBoundingClientRect().top - top))
+        .toBeLessThanOrEqual(1)
+      // Opaque, so the rows scrolling under it don't show through.
+      expect(getComputedStyle(label).backgroundColor).not.toBe(
+        'rgba(0, 0, 0, 0)'
+      )
+      expect(screen.queryByRole('group', { name: 'Halls' })).toBeNull()
+      // A Collection gets each venue's index in its group.
+      const [first] = options()
+      expect(first).toHaveAttribute(
+        'data-place',
+        String(Number(first!.getAttribute('aria-posinset')) - 1)
+      )
+    })
+
+    it('keeps rows still as the group above scrolls out of the window', async () => {
+      render(<GroupedVenues />)
+      await userEvent.click(screen.getByRole('combobox'))
+      await expect.poll(() => options().length).toBeGreaterThan(0)
+      // The popup scales in as it opens, which would scale every distance.
+      await Promise.all(
+        popup()
+          .getAnimations()
+          .map((each) => each.finished)
+      )
+      // Rows below are estimated until drawn, so step towards the row.
+      for (let tries = 0; tries < 40; tries++) {
+        if (screen.queryByRole('option', { name: VENUES[712] })) break
+        const top = Number(options()[0]!.textContent!.split(' ').at(-1))
+        popup().scrollTop += (713 - top) * 24
+        await frame()
+        await frame()
+      }
+      const row = () => screen.getByRole('option', { name: VENUES[712] })
+      row().scrollIntoView({ block: 'end' })
+      let left = false
+      for (let step = 0; step < 20 && !left; step++) {
+        await frame()
+        await frame()
+        const before = row().getBoundingClientRect().top
+        const scrolled = popup().scrollTop
+        popup().scrollTop += 24
+        await frame()
+        await frame()
+        const moved = popup().scrollTop - scrolled
+        expect(
+          Math.abs(row().getBoundingClientRect().top - (before - moved))
+        ).toBeLessThanOrEqual(1)
+        left = screen.queryByRole('group', { name: 'Halls' }) === null
+      }
+      expect(left).toBe(true)
+    })
+
+    it('opens on the chosen venue in a later group', async () => {
+      render(<GroupedVenues defaultValue={VENUES[1500]} />)
+      await userEvent.click(
+        document.querySelector<HTMLElement>('[data-slot="combobox-trigger"]')!
+      )
+      const chosen = await screen.findByRole('option', { name: VENUES[1500] })
+      const label = document.querySelector<HTMLElement>(
+        '[data-slot="combobox-group-label"]'
+      )!
+      const box = popup().getBoundingClientRect()
+      await expect
+        .poll(() => chosen.getBoundingClientRect().top)
+        .toBeGreaterThanOrEqual(label.getBoundingClientRect().bottom - 1)
+      expect(chosen.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        box.bottom + 1
+      )
     })
   })
 })

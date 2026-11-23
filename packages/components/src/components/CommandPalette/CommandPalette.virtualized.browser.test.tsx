@@ -313,6 +313,8 @@ describe('CommandPalette virtualized, with groups', () => {
     await expect
       .poll(() => Math.abs(label.getBoundingClientRect().top - scrollportTop()))
       .toBeLessThanOrEqual(1)
+    // Opaque, so the rows scrolling under it don't show through.
+    expect(getComputedStyle(label).backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
     expect(screen.queryByRole('group', { name: 'Halls' })).toBeNull()
     expect(options().length).toBeLessThan(60)
   })
@@ -416,6 +418,14 @@ describe('CommandPalette virtualized, with groups', () => {
     expect(labels().map((label) => label.textContent)).toEqual(['Teacups'])
   })
 
+  it('keeps rows still as the group above scrolls out of the window', async () => {
+    render(<GroupedVenues />)
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    const list = screen.getByRole('listbox')
+    await scrollToVenue(list, 712)
+    await expectStillUntilHallsLeave(list, VENUES[712]!)
+  })
+
   it('keeps rows still as a group with no label scrolls out of the window', async () => {
     render(
       <CommandPalette defaultOpen shortcut={false} items={GROUPS} virtualized>
@@ -443,5 +453,85 @@ describe('CommandPalette virtualized, with groups', () => {
     const list = screen.getByRole('listbox')
     await scrollToVenue(list, 712)
     await expectStillUntilHallsLeave(list, VENUES[712]!)
+  })
+
+  it('scrolls to the command reached with the arrow keys past many groups', async () => {
+    const many = Array.from({ length: 200 }, (_, block) => ({
+      label: `Block ${block + 1}`,
+      items: VENUES.slice(block * 10, block * 10 + 10)
+    }))
+    render(<GroupedVenues groups={many} />)
+    const input = await screen.findByRole<HTMLInputElement>('combobox')
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    await expect.poll(() => document.activeElement).toBe(input)
+    await userEvent.keyboard('{ArrowUp}')
+    const highlighted = () =>
+      document.getElementById(input.getAttribute('aria-activedescendant')!)
+    await expect.poll(() => highlighted()?.textContent).toBe(VENUES.at(-1))
+    const list = screen.getByRole('listbox').getBoundingClientRect()
+    const row = highlighted()!.getBoundingClientRect()
+    expect(row.bottom).toBeLessThanOrEqual(list.bottom + 1)
+    expect(row.top).toBeGreaterThanOrEqual(list.top - 1)
+  })
+
+  it("gives a Collection each command's index in its group", async () => {
+    render(
+      <CommandPalette defaultOpen shortcut={false} items={GROUPS} virtualized>
+        <CommandPalette.Input placeholder='Search venues' />
+        <CommandPalette.List>
+          {(group: (typeof GROUPS)[number]) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>
+                {group.label}
+              </CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(venue: string, index: number) => (
+                  <CommandPalette.Item
+                    key={venue}
+                    value={venue}
+                    data-place={index}
+                  >
+                    {venue}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    await scrollToVenue(screen.getByRole('listbox'), 1000)
+    expect(screen.getByRole('option', { name: VENUES[1000] })).toHaveAttribute(
+      'data-place',
+      '300'
+    )
+  })
+
+  it('counts commands mapped without a Collection within their group', async () => {
+    render(
+      <CommandPalette defaultOpen shortcut={false} items={GROUPS} virtualized>
+        <CommandPalette.Input placeholder='Search venues' />
+        <CommandPalette.List>
+          {(group: (typeof GROUPS)[number]) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>
+                {group.label}
+              </CommandPalette.GroupLabel>
+              {group.items.map((venue) => (
+                <CommandPalette.Item key={venue} value={venue}>
+                  {venue}
+                </CommandPalette.Item>
+              ))}
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    await scrollToVenue(screen.getByRole('listbox'), 1000)
+    const row = screen.getByRole('option', { name: VENUES[1000] })
+    expect(row).toHaveAttribute('aria-posinset', '301')
+    expect(row).toHaveAttribute('aria-setsize', '700')
   })
 })
