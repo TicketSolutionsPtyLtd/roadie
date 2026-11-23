@@ -86,6 +86,18 @@ describe('CommandPalette scopes', () => {
     expect(options()).toEqual(['Release notes'])
   })
 
+  it('narrows server results by type with filter={null}, matching nothing itself', async () => {
+    render(<Palette filter={null} />)
+    await userEvent.type(await screen.findByRole('combobox'), 'zzz')
+    expect(options()).toHaveLength(4)
+    await userEvent.click(tab('Sessions'))
+    expect(options()).toEqual([
+      'Calendar agenda',
+      'RecordBoard',
+      'Backlog review'
+    ])
+  })
+
   it('moves between types with the arrows from an empty input', async () => {
     render(<Palette />)
     const input = await screen.findByRole('combobox')

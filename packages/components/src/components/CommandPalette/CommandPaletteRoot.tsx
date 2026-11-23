@@ -16,6 +16,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
 import { collatorContains, rankMatches } from '../../utils/rankMatches'
+import { useDevWarning } from '../../utils/useDevWarning'
 import { Autocomplete, type AutocompleteProps } from '../Autocomplete'
 import { Dialog } from '../Dialog'
 import { useKeyPlatform } from '../Kbd/platform'
@@ -23,7 +24,8 @@ import {
   CommandPaletteCloseProvider,
   type CommandPalettePageEntry,
   CommandPalettePagesProvider,
-  CommandPaletteScopeProvider
+  CommandPaletteScopeProvider,
+  CommandPaletteStatusProvider
 } from './CommandPaletteContext'
 import { holdKeyboard, isCoarsePointer } from './holdKeyboard'
 import { isCurrentPalette, registerPalette } from './registry'
@@ -59,6 +61,26 @@ export type CommandPaletteRootProps<Item = unknown> = {
   items: readonly Item[]
   /** The text a command is matched and ranked by. Defaults to its `label`, then `value`. */
   itemToStringValue?: (item: CommandPaletteCommand<Item>) => string
+  /**
+   * `null` shows `items` as given, unmatched and unranked, for results the
+   * app searched for itself. The type tabs still narrow them by `scope`.
+   */
+  filter?: null
+  /** Called as the search changes: as someone types, and when it clears on opening or on a page change. */
+  onQueryChange?: (query: string) => void
+  /**
+   * Where the app's search stands. `'loading'` shows `CommandPalette.Status`
+   * and `'error'` shows `CommandPalette.Error`, and neither shows
+   * `CommandPalette.Empty`.
+   * @default 'idle'
+   */
+  status?: 'idle' | 'loading' | 'error'
+  /**
+   * Draws only the commands near the scroll position, for hundreds or
+   * thousands of them. Takes flat `items` and a row function in
+   * `CommandPalette.List`; with groups, it draws every command.
+   */
+  virtualized?: boolean
   /**
    * The keys that open and close the palette from anywhere on the page, as a
    * key list. `mod` is ⌘ on Apple platforms and Ctrl elsewhere. `false` binds
@@ -138,6 +160,10 @@ export function CommandPaletteRoot<Item>({
   shortcut = DEFAULT_SHORTCUT,
   items,
   itemToStringValue,
+  filter: filterProp,
+  onQueryChange,
+  status = 'idle',
+  virtualized,
   scope: scopeProp,
   defaultScope = null,
   onScopeChange,
@@ -226,18 +252,31 @@ export function CommandPaletteRoot<Item>({
     }),
     [scope, scopes, onScopeChange]
   )
-  const filter = useCommandFilter(locale)
+  const commandFilter = useCommandFilter(locale)
+  const ranks = (onPage ? pageEntry?.filter : filterProp) !== null
+  const filter = ranks ? commandFilter : null
   // Takes the caller's own item type, which Base UI types as unknown.
   const itemLabel = (
     onPage ? pageEntry?.itemToStringValue : itemToStringValue
   ) as ((item: unknown) => string) | undefined
-  const ranked = useMemo(
-    () =>
-      onPage && pageEntry
-        ? rankMatches(pageEntry.items, query, itemLabel, locale)
-        : rankMatches(inScope(items, scope), query, itemLabel, locale),
-    [onPage, pageEntry, items, scope, query, itemLabel, locale]
+  const ranked = useMemo(() => {
+    const shown = onPage && pageEntry ? pageEntry.items : inScope(items, scope)
+    return ranks ? rankMatches(shown, query, itemLabel, locale) : shown
+  }, [onPage, pageEntry, items, scope, ranks, query, itemLabel, locale])
+  const windowsGroups = Boolean(virtualized) && ranked.some(isGroup)
+  useDevWarning(
+    windowsGroups &&
+      '[Roadie] CommandPalette is virtualized but its items are groups, so it draws every command. Pass flat items to window them.'
   )
+
+  // Opening clears the search during render, so it's reported after commit.
+  const reportQuery = useEffectEvent((next: string) => onQueryChange?.(next))
+  const reported = useRef(query)
+  useEffect(() => {
+    if (query === reported.current) return
+    reported.current = query
+    reportQuery(query)
+  }, [query])
 
   function handleOpenChange(
     next: boolean,
@@ -316,19 +355,22 @@ export function CommandPaletteRoot<Item>({
             >
               <CommandPaletteScopeProvider value={scopeContext}>
                 <CommandPalettePagesProvider value={pagesContext}>
-                  <Autocomplete
-                    inline
-                    open
-                    items={ranked}
-                    filter={filter}
-                    itemToStringValue={itemLabel}
-                    locale={locale}
-                    autoHighlight='always'
-                    value={query}
-                    onValueChange={(next) => setQuery(next)}
-                  >
-                    {children}
-                  </Autocomplete>
+                  <CommandPaletteStatusProvider value={status}>
+                    <Autocomplete
+                      inline
+                      open
+                      items={ranked}
+                      filter={filter}
+                      itemToStringValue={itemLabel}
+                      locale={locale}
+                      autoHighlight='always'
+                      virtualized={virtualized && !windowsGroups}
+                      value={query}
+                      onValueChange={(next) => setQuery(next)}
+                    >
+                      {children}
+                    </Autocomplete>
+                  </CommandPaletteStatusProvider>
                 </CommandPalettePagesProvider>
               </CommandPaletteScopeProvider>
             </CommandPaletteCloseProvider>

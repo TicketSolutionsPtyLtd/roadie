@@ -35,6 +35,8 @@ export {
   type CommandPaletteCollectionProps,
   type CommandPaletteItemProps,
   type CommandPaletteEmptyProps,
+  type CommandPaletteStatusProps,
+  type CommandPaletteErrorProps,
   type CommandPaletteScopesProps,
   type CommandPaletteScopeProps,
   type CommandPaletteFooterProps,
