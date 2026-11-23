@@ -102,8 +102,15 @@ const options = () => screen.queryAllByRole('option')
 
 const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 
+/**
+ * Moves the pointer onto the search field. A pointer an earlier test left
+ * resting on the list snaps it back to the top as it scrolls (INNO-1641).
+ */
+const pointerOffList = () => userEvent.hover(screen.getByRole('combobox'))
+
 /** Scrolls `list` until `VENUES[index]` is drawn, stepping since rows below are estimated until then. */
 async function scrollToVenue(list: HTMLElement, index: number) {
+  await pointerOffList()
   for (let tries = 0; tries < 40; tries++) {
     if (screen.queryByRole('option', { name: VENUES[index] })) return
     const top = Number(options()[0]!.textContent!.split(' ').at(-1))
@@ -307,6 +314,7 @@ describe('CommandPalette virtualized, with groups', () => {
     render(<GroupedVenues />)
     await expect.poll(() => options().length).toBeGreaterThan(0)
     const list = screen.getByRole('listbox')
+    await pointerOffList()
     // Well into Rooms, far past its label's own row.
     list.scrollTop = 1000 * 40
     await expect
@@ -327,6 +335,7 @@ describe('CommandPalette virtualized, with groups', () => {
     render(<GroupedVenues />)
     await expect.poll(() => options().length).toBeGreaterThan(0)
     const list = screen.getByRole('listbox')
+    await pointerOffList()
     // Rows measure taller than their estimate as they appear, so keep going.
     await expect
       .poll(() => {
@@ -348,6 +357,7 @@ describe('CommandPalette virtualized, with groups', () => {
     render(<GroupedVenues />)
     await expect.poll(() => options().length).toBeGreaterThan(0)
     const list = screen.getByRole('listbox')
+    await pointerOffList()
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
     // Walk down past the end of Halls, a few rows at a time.
     const row = () => screen.getByRole('option', { name: VENUES[699] })
