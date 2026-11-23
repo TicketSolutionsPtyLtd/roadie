@@ -2,7 +2,7 @@
 
 import { type RefObject, useEffect, useEffectEvent, useState } from 'react'
 
-import { fileDropTarget } from '../Sortable/dnd'
+import { fileDropTarget } from '../Sortable/dnd/file'
 import { useFileUploadContext } from './FileUploadContext'
 
 /** Makes an element take files dropped from outside the page, and says while they're over it. */
