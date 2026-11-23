@@ -22,6 +22,14 @@ const PINNED: PageCommand[] = [
   }
 ]
 
+// The catalogues big enough to search alone. Other sections show under All.
+const SCOPES = [
+  { value: '/foundations', label: 'Foundations' },
+  { value: '/components', label: 'Components' },
+  { value: '/charts', label: 'Charts' },
+  { value: '/blocks', label: 'Blocks' }
+]
+
 // A live example here binds ⌘K itself, and a page has one owner (decision 0014).
 const EXAMPLE_OWNS_SHORTCUT = new Set(['/components/navigator'])
 
@@ -40,6 +48,13 @@ export function DocsCommandPalette({
       shortcut={EXAMPLE_OWNS_SHORTCUT.has(route) ? false : undefined}
     >
       <CommandPalette.Input placeholder='Search the docs' />
+      <CommandPalette.Scopes aria-label='Section'>
+        {SCOPES.map((scope) => (
+          <CommandPalette.Scope key={scope.value} value={scope.value}>
+            {scope.label}
+          </CommandPalette.Scope>
+        ))}
+      </CommandPalette.Scopes>
       <CommandPalette.List>
         {(group: PageCommandGroup) => (
           <CommandPalette.Group key={group.label} items={group.items}>
@@ -59,6 +74,13 @@ export function DocsCommandPalette({
         )}
       </CommandPalette.List>
       <CommandPalette.Empty>No pages match</CommandPalette.Empty>
+      <CommandPalette.Footer>
+        <CommandPalette.Hint shortcut={['enter']}>Open</CommandPalette.Hint>
+        <CommandPalette.Hint shortcut={['arrowleft', 'arrowright']}>
+          Change section
+        </CommandPalette.Hint>
+        <CommandPalette.Hint shortcut={['escape']}>Close</CommandPalette.Hint>
+      </CommandPalette.Footer>
     </CommandPalette>
   )
 }
