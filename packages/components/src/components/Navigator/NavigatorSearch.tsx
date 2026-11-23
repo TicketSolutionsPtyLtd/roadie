@@ -14,7 +14,12 @@ import { NavigatorTileTooltip } from './NavigatorTileTooltip'
 import type { NavigatorPlacement } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { searchSlotMeta } from './searchSlot'
-import { navigatorItemLabelClass, navigatorItemVariants } from './variants'
+import {
+  navigatorItemLabelClass,
+  navigatorItemTrailingClass,
+  navigatorItemVariants,
+  navigatorSearchShortcutClass
+} from './variants'
 
 export type NavigatorSearchProps = {
   /** `pinned` puts it under `Navigator.Brand` in the vertical navigation and in the phone bar's circle, ahead of other pinned items. `automatic` ranks it like any `Navigator.Item`. @default 'pinned' */
@@ -91,6 +96,18 @@ export function NavigatorSearch({
             >
               {label}
             </span>
+            {palette ? (
+              // Quiet, and only beside the label, as the tooltip names it collapsed.
+              <KbdShortcut
+                data-slot='navigator-search-shortcut'
+                shortcut={palette.shortcut}
+                emphasis='subtler'
+                className={cn(
+                  navigatorItemTrailingClass,
+                  navigatorSearchShortcutClass
+                )}
+              />
+            ) : null}
           </NavigatorDestination>
         )
       }

@@ -133,10 +133,10 @@ describe('vertical navigation', () => {
   })
 })
 
-function SearchRail() {
+function SearchRail({ expanded }: { expanded?: boolean }) {
   return (
     <>
-      <Navigator value='/shows'>
+      <Navigator value='/shows' expanded={expanded}>
         <Navigator.Primary aria-label='Main'>
           <Navigator.Brand>Oztix</Navigator.Brand>
           <Navigator.Item value='/shows' href='/shows' icon={<Icon />}>
@@ -200,6 +200,24 @@ describe('Navigator.Search on a large screen', () => {
     expect(
       vertical().getBoundingClientRect().bottom - account.bottom
     ).toBeLessThan(40)
+  })
+
+  it("shows the palette's shortcut at the end of the tile only while expanded", async () => {
+    const { rerender } = render(<SearchRail expanded />)
+    await settle()
+    const kbd = () =>
+      searchTile().querySelector<HTMLElement>(
+        '[data-slot="navigator-search-shortcut"]'
+      )!
+    expect(getComputedStyle(kbd()).opacity).toBe('1')
+    expect(kbd().textContent).toMatch(/K/)
+    // The keys sit together, as ⌘K, with no gap between them.
+    expect(getComputedStyle(kbd()).columnGap).toBe('0px')
+    const tileBox = searchTile().getBoundingClientRect()
+    expect(tileBox.right - kbd().getBoundingClientRect().right).toBeLessThan(24)
+    rerender(<SearchRail expanded={false} />)
+    await settle()
+    expect(getComputedStyle(kbd()).opacity).toBe('0')
   })
 
   it('opens the palette and puts focus in its input', async () => {
