@@ -31,9 +31,6 @@ import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { AgentMenu } from './AgentMenu'
 import { DocsCommandPalette } from './DocsCommandPalette'
-import { destinationIcon } from './destinationIcons'
-
-const AppearanceIcon = destinationIcon('/appearance')
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
 import { InspectorSlotContext } from './InspectorSlot'
@@ -47,6 +44,7 @@ import { OnThisPage, useDocHeadings } from './OnThisPage'
 import { PageMeta, type PageStatusInfo, navBadge } from './PageStatus'
 import { RelatedLinks } from './RelatedLinks'
 import { SourceMenu } from './SourceMenu'
+import { destinationIcon } from './destinationIcons'
 
 export type NavigationItem = {
   title: string
@@ -82,6 +80,8 @@ type NavigationProps = {
   pageUpdated?: Record<string, string>
   children: ReactNode
 }
+
+const AppearanceIcon = destinationIcon('/appearance')
 
 // A cross listing never matches the route, so the page's own destination stays the lit one.
 const entryValue = (host: string, entry: CatalogueEntry) =>
