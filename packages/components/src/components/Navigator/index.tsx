@@ -45,6 +45,11 @@ Navigator.SecondaryItems = NavigatorSecondaryItems
 
 export { Navigator }
 export { useNavigatorSecondary } from './useNavigatorSecondary'
+export { useNavigatorCommands } from './useNavigatorCommands'
+export type {
+  NavigatorCommand,
+  NavigatorCommandGroup
+} from './useNavigatorCommands'
 export type {
   NavigatorSecondaryData,
   NavigatorSecondaryGroup,

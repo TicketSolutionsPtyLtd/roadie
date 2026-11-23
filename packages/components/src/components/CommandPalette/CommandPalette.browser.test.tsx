@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { TicketIcon } from '@phosphor-icons/react'
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { CommandPalette } from '.'
@@ -290,5 +290,172 @@ describe('CommandPalette in a browser', () => {
     await expect
       .element(page.getByRole('button', { name: 'Artifacts' }))
       .toHaveFocus()
+  })
+
+  it('changes a status through a page from the keyboard', async () => {
+    await page.viewport(1280, 800)
+    const onStatus = vi.fn()
+    const statuses = ['Draft', 'On sale', 'Sold out']
+    function StatusPalette() {
+      const [open, setOpen] = useState(false)
+      return (
+        <main>
+          <button type='button' onClick={() => setOpen(true)}>
+            Search
+          </button>
+          <CommandPalette
+            open={open}
+            onOpenChange={setOpen}
+            shortcut={false}
+            items={[{ label: 'Change status…', page: 'status' }]}
+          >
+            <CommandPalette.Input />
+            <CommandPalette.List>
+              {(command: { label: string; page: string }) => (
+                <CommandPalette.Item
+                  key={command.label}
+                  value={command}
+                  page={command.page}
+                >
+                  {command.label}
+                </CommandPalette.Item>
+              )}
+            </CommandPalette.List>
+            <CommandPalette.Page
+              value='status'
+              label='Change status'
+              items={statuses}
+            >
+              <CommandPalette.List>
+                {(status: string) => (
+                  <CommandPalette.Item
+                    key={status}
+                    value={status}
+                    onSelect={() => onStatus(status)}
+                  >
+                    {status}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.List>
+            </CommandPalette.Page>
+          </CommandPalette>
+        </main>
+      )
+    }
+    render(<StatusPalette />)
+    screen.getByRole('button', { name: 'Search' }).focus()
+    await userEvent.keyboard('{Enter}')
+    await expect.element(page.getByRole('combobox')).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    await expect
+      .element(page.getByRole('listbox', { name: 'Change status' }))
+      .toBeVisible()
+    await expect.element(page.getByRole('combobox')).toHaveValue('')
+    await userEvent.keyboard('sold{Enter}')
+    await expect.element(page.getByRole('dialog')).not.toBeInTheDocument()
+    expect(onStatus).toHaveBeenCalledWith('Sold out')
+  })
+
+  describe.each([
+    ['a phone', 390, 844],
+    ['a desktop', 1280, 800]
+  ])('server search on %s', (_, width, height) => {
+    function ServerPalette({
+      status,
+      onRetry = () => {}
+    }: {
+      status: 'idle' | 'loading' | 'error'
+      onRetry?: () => void
+    }) {
+      return (
+        <main>
+          <CommandPalette
+            defaultOpen
+            shortcut={false}
+            items={[] as Command[]}
+            filter={null}
+            status={status}
+          >
+            <CommandPalette.Input />
+            <CommandPalette.Status>Searching…</CommandPalette.Status>
+            <CommandPalette.List>
+              {(command: Command) => (
+                <CommandPalette.Item key={command.label} value={command}>
+                  {command.label}
+                </CommandPalette.Item>
+              )}
+            </CommandPalette.List>
+            <CommandPalette.Empty>No matches</CommandPalette.Empty>
+            <CommandPalette.Error
+              actions={
+                <button type='button' onClick={onRetry}>
+                  Try again
+                </button>
+              }
+            >
+              We couldn't search
+            </CommandPalette.Error>
+          </CommandPalette>
+        </main>
+      )
+    }
+
+    const statusRow = () =>
+      document.querySelector<HTMLElement>(
+        '[data-slot="command-palette-status"]'
+      )!
+
+    it('keeps the status and error live regions rendered but taking no room while idle', async () => {
+      await page.viewport(width, height)
+      render(<ServerPalette status='idle' />)
+      await expect.element(page.getByText('No matches')).toBeVisible()
+      // display: none would drop the live regions from the accessibility tree.
+      for (const slot of ['command-palette-status', 'command-palette-error']) {
+        const region = document.querySelector(`[data-slot="${slot}"]`)!
+        expect(getComputedStyle(region).display).not.toBe('none')
+        expect(box(region).height).toBe(0)
+      }
+    })
+
+    it('shows a 1rem spinner beside the loading text, inside the palette', async () => {
+      await page.viewport(width, height)
+      render(<ServerPalette status='loading' />)
+      await expect.element(page.getByText('Searching…')).toBeVisible()
+      const row = statusRow()
+      const spinner = row.querySelector('svg')!
+      const rem = parseFloat(
+        getComputedStyle(document.documentElement).fontSize
+      )
+      expect(box(spinner).width).toBeCloseTo(rem, 0)
+      const middle = (rect: DOMRect) => rect.top + rect.height / 2
+      expect(middle(box(spinner))).toBeCloseTo(middle(box(row)), 0)
+      expect(box(spinner).right).toBeLessThan(box(row).right - 4 * rem)
+      const dialog = box(screen.getByRole('dialog'))
+      expect(box(row).left).toBeGreaterThanOrEqual(dialog.left)
+      expect(box(row).right).toBeLessThanOrEqual(dialog.right + 0.5)
+      await expect.element(row).toBeInViewport()
+      await expectNoSeriousViolations()
+    })
+
+    it('shows the error with its retry in view, and the retry works', async () => {
+      await page.viewport(width, height)
+      const onRetry = vi.fn()
+      render(<ServerPalette status='error' onRetry={onRetry} />)
+      const retry = page.getByRole('button', { name: /Try again/ })
+      await expect.element(retry).toBeInViewport()
+      await expect
+        .element(page.getByRole('heading', { name: /We couldn't search/ }))
+        .toBeVisible()
+      expect(
+        document.querySelector('[data-slot="command-palette-list"]')
+      ).not.toBeVisible()
+      const error = document.querySelector('[data-slot="empty-state"]')!
+      expect(box(error).width).toBeGreaterThan(
+        box(screen.getByRole('dialog')).width / 2
+      )
+      await retry.click()
+      expect(onRetry).toHaveBeenCalledTimes(1)
+      await expectNoSeriousViolations()
+    })
   })
 })

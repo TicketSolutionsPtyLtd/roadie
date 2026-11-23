@@ -35,10 +35,13 @@ export {
   type CommandPaletteCollectionProps,
   type CommandPaletteItemProps,
   type CommandPaletteEmptyProps,
+  type CommandPaletteStatusProps,
+  type CommandPaletteErrorProps,
   type CommandPaletteScopesProps,
   type CommandPaletteScopeProps,
   type CommandPaletteFooterProps,
-  type CommandPaletteHintProps
+  type CommandPaletteHintProps,
+  type CommandPalettePageProps
 } from './components/CommandPalette'
 export {
   Collapsible,
@@ -230,6 +233,9 @@ export {
 export {
   Navigator,
   useNavigatorSecondary,
+  useNavigatorCommands,
+  type NavigatorCommand,
+  type NavigatorCommandGroup,
   type NavigatorProps,
   type NavigatorPrimaryProps,
   type NavigatorSecondaryProps,
