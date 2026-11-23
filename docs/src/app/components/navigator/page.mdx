@@ -154,7 +154,9 @@ render(<ConsumerNav />)
 `Navigator.Search` opens the page's [`CommandPalette`](/components/command-palette),
 the one that binds a shortcut. It sits under the brand on a large screen and
 takes the phone bar's circle, so a pinned Account folds into More there. Its
-tooltip shows the shortcut, and with no palette on the page it renders nothing.
+tooltip shows the shortcut while the navigation is collapsed, and the tile
+ends with it, quietly, while expanded. With no palette on the page it renders
+nothing.
 
 ```tsx-live-noinline
 function SearchNav() {

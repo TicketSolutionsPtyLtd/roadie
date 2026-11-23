@@ -246,6 +246,40 @@ describe('CommandPalette in a browser', () => {
     }
   )
 
+  it('sizes each type tab to its label, and the hints to small keycaps', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <CommandPalette defaultOpen shortcut={false} items={COMMANDS}>
+        <CommandPalette.Input />
+        <CommandPalette.Scopes>
+          <CommandPalette.Scope value='events'>Events</CommandPalette.Scope>
+          <CommandPalette.Scope value='venues'>
+            Venues and halls
+          </CommandPalette.Scope>
+        </CommandPalette.Scopes>
+        <CommandPalette.List>
+          {(command: Command) => (
+            <CommandPalette.Item key={command.label} value={command}>
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Footer>
+          <CommandPalette.Hint shortcut={['escape']}>Close</CommandPalette.Hint>
+        </CommandPalette.Footer>
+      </CommandPalette>
+    )
+    await expect.element(page.getByRole('dialog')).toBeInViewport()
+    const events = box(screen.getByRole('button', { name: 'Events' }))
+    const venues = box(screen.getByRole('button', { name: 'Venues and halls' }))
+    expect(venues.width - events.width).toBeGreaterThan(20)
+    const kbd = document.querySelector(
+      '[data-slot="command-palette-hint"] kbd'
+    )!
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    expect(box(kbd).height).toBeCloseTo(1.25 * rem, 0)
+  })
+
   it('keeps a short list right under the type tabs on a phone', async () => {
     await page.viewport(390, 844)
     render(
@@ -272,7 +306,7 @@ describe('CommandPalette in a browser', () => {
     expect(list.top - tabs.bottom).toBeLessThan(rem)
   })
 
-  it('enters the type tabs on the type the arrows chose', async () => {
+  it('enters the type tabs on the last type, once Tab has passed it', async () => {
     await page.viewport(1280, 800)
     render(
       <CommandPalette defaultOpen shortcut={false} items={COMMANDS}>
@@ -286,9 +320,11 @@ describe('CommandPalette in a browser', () => {
       </CommandPalette>
     )
     await expect.element(page.getByRole('combobox')).toHaveFocus()
-    await userEvent.keyboard('{ArrowRight}{Tab}')
+    await userEvent.keyboard('{Tab}{Tab}')
+    await expect.element(page.getByRole('combobox')).toHaveFocus()
+    await userEvent.keyboard('{Tab}')
     await expect
-      .element(page.getByRole('button', { name: 'Artifacts' }))
+      .element(page.getByRole('button', { name: 'Sessions' }))
       .toHaveFocus()
   })
 

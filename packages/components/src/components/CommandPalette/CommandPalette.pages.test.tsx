@@ -298,7 +298,7 @@ describe('CommandPalette pages', () => {
     expect(options()).toEqual(['Change status…', 'Invite teammate'])
   })
 
-  it('hides the type tabs on a page, and brings the chosen type back on the first page', async () => {
+  it('hides the type tabs on a page, leaves Tab and the arrows alone there, and brings the chosen type back on the first page', async () => {
     render(
       <CommandPalette
         defaultOpen
@@ -347,9 +347,14 @@ describe('CommandPalette pages', () => {
     expect(
       screen.queryByRole('group', { name: 'Type' })
     ).not.toBeInTheDocument()
-    screen.getByRole('combobox').focus()
+    const input = screen.getByRole('combobox')
+    expect(input).not.toHaveAttribute('aria-keyshortcuts')
+    input.focus()
     await userEvent.keyboard('{ArrowRight}')
     expect(options()).toEqual(STATUSES)
+    await userEvent.keyboard('{Tab}')
+    expect(options()).toEqual(STATUSES)
+    input.focus()
     await userEvent.keyboard('{Backspace}')
     expect(screen.getByRole('button', { name: 'Events' })).toHaveAttribute(
       'aria-pressed',

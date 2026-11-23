@@ -59,6 +59,7 @@ import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { FileUpload } from '@oztix/roadie-components/file-upload'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
+import { ImageCrop } from '@oztix/roadie-components/image-crop'
 import { List } from '@oztix/roadie-components/list'
 import { Logo } from '@oztix/roadie-components/logo'
 import { Menu } from '@oztix/roadie-components/menu'
@@ -639,6 +640,20 @@ export default function RscSmokePage() {
             <FileUpload.Trigger />
           </FileUpload.Control>
         </FileUpload>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          ImageCrop as bare root (canonical)
+        </h2>
+        <ImageCrop src='/brand/photography/08.webp' aspectRatio={2} />
+        <ImageCrop
+          src='/brand/photography/08.webp'
+          aspectRatio={1}
+          shape='circle'
+        >
+          <ImageCrop.Stage className='aspect-video' />
+        </ImageCrop>
       </section>
 
       <section className='grid gap-2'>
