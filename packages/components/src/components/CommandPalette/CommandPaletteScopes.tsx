@@ -61,6 +61,8 @@ export function CommandPaletteScopes({
       className={cn('border-b border-subtler px-3 py-2', className)}
     >
       <ToggleGroup
+        // Tabs fit their labels, unlike a segmented control's equal columns.
+        className='auto-cols-max'
         aria-label='Type'
         emphasis='subtler'
         size='sm'

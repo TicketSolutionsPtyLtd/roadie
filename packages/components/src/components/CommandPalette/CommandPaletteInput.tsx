@@ -39,20 +39,40 @@ export function CommandPaletteInput({
   const { scope, setScope, scopes } = useCommandPaletteScope()
   const { page, pop } = useCommandPalettePages()
 
-  // The arrows change type only where they couldn't move the caret.
+  const tabbing = !page && scopes.length > 1
+  const index = scopes.indexOf(scope)
+  const scopeAt = (step: 1 | -1) => (tabbing ? scopes[index + step] : undefined)
+
+  // Tab and Shift+Tab change type as QueryField's change operator, and leave
+  // the input past either end. The arrows do too, where they couldn't move
+  // the caret.
   function changeScope(event: KeyboardEvent<HTMLInputElement>) {
     const { selectionStart, selectionEnd, value } = event.currentTarget
-    const step =
-      event.key === 'ArrowLeft' && selectionEnd === 0
+    const tabKey =
+      event.key === 'Tab' && !event.altKey && !event.metaKey && !event.ctrlKey
+    const step = tabKey
+      ? event.shiftKey
+        ? -1
+        : 1
+      : event.key === 'ArrowLeft' && selectionEnd === 0
         ? -1
         : event.key === 'ArrowRight' && selectionStart === value.length
           ? 1
           : 0
-    const next = scopes[scopes.indexOf(scope) + step]
-    if (step === 0 || next === undefined || isHeldOrComposing(event)) return
+    const next = scopes[index + step]
+    if (step === 0 || next === undefined) return
+    if (tabKey ? event.nativeEvent.isComposing : isHeldOrComposing(event))
+      return
     event.preventDefault()
     setScope(next)
   }
+
+  const keyShortcuts = [
+    scopeAt(1) !== undefined && 'Tab',
+    scopeAt(-1) !== undefined && 'Shift+Tab'
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <div
@@ -85,6 +105,7 @@ export function CommandPaletteInput({
         ref={mergedRef}
         data-slot='command-palette-input'
         aria-label={ariaLabel}
+        aria-keyshortcuts={keyShortcuts || undefined}
         className={cn('min-h-14 text-base', className)}
         onKeyDown={(event) => {
           onKeyDown?.(event)
@@ -94,7 +115,7 @@ export function CommandPaletteInput({
               event.preventDefault()
               pop()
             }
-          } else if (scopes.length > 1) changeScope(event)
+          } else if (tabbing) changeScope(event)
         }}
         {...props}
       />

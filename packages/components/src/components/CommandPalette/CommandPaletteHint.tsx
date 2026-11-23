@@ -9,7 +9,7 @@ export type CommandPaletteHintProps = ComponentProps<'span'> & {
   shortcut: ReactNode
 }
 
-/** A key reminder in `CommandPalette.Footer`: its label, then the keys. */
+/** A key reminder in `CommandPalette.Footer`: its label, then the keys, as small keycaps like QueryField's. */
 export function CommandPaletteHint({
   shortcut,
   className,
@@ -23,7 +23,7 @@ export function CommandPaletteHint({
       {...props}
     >
       {children}
-      <KbdShortcut shortcut={shortcut} />
+      <KbdShortcut shortcut={shortcut} size='sm' />
     </span>
   )
 }

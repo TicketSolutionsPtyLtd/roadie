@@ -53,7 +53,7 @@ function Palette({
       </CommandPalette.List>
       <CommandPalette.Footer>
         <CommandPalette.Hint shortcut={['escape']}>Close</CommandPalette.Hint>
-        <CommandPalette.Hint shortcut={['arrowleft', 'arrowright']}>
+        <CommandPalette.Hint shortcut={['tab']}>
           Change type
         </CommandPalette.Hint>
       </CommandPalette.Footer>
@@ -112,6 +112,35 @@ describe('CommandPalette scopes', () => {
     await userEvent.keyboard('{ArrowLeft}')
     expect(tab('Artifacts')).toHaveAttribute('aria-pressed', 'true')
     expect(input).toHaveFocus()
+  })
+
+  it('moves between types with Tab and Shift+Tab, as QueryField moves between operators', async () => {
+    render(<Palette />)
+    const input = await screen.findByRole('combobox')
+    input.focus()
+    await userEvent.type(input, 're')
+    await userEvent.keyboard('{Tab}')
+    expect(tab('Artifacts')).toHaveAttribute('aria-pressed', 'true')
+    expect(input).toHaveFocus()
+    await userEvent.keyboard('{Tab}')
+    expect(tab('Sessions')).toHaveAttribute('aria-pressed', 'true')
+    expect(input).toHaveFocus()
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+    expect(tab('Artifacts')).toHaveAttribute('aria-pressed', 'true')
+    expect(input).toHaveAttribute('aria-keyshortcuts', 'Tab Shift+Tab')
+  })
+
+  it('lets Tab leave the input past the last type, and Shift+Tab before All', async () => {
+    render(<Palette />)
+    const input = await screen.findByRole('combobox')
+    input.focus()
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+    expect(tab('All')).toHaveAttribute('aria-pressed', 'true')
+    expect(input).not.toHaveFocus()
+    input.focus()
+    await userEvent.keyboard('{Tab}{Tab}{Tab}')
+    expect(tab('Sessions')).toHaveAttribute('aria-pressed', 'true')
+    expect(input).not.toHaveFocus()
   })
 
   it('leaves the arrows to the caret inside typed text', async () => {
