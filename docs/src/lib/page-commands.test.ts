@@ -103,6 +103,13 @@ describe('pageCommands', () => {
     expect(components.items[1]!.label).toBe('Navigation overview')
   })
 
+  it('scopes each section by its href, for the type tabs', () => {
+    expect(pageCommands(destinations).map((group) => group.scope)).toEqual([
+      '/foundations',
+      '/components'
+    ])
+  })
+
   it('adds pinned pages to the first section', () => {
     const appearance = {
       label: 'Appearance',

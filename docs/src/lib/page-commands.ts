@@ -1,7 +1,12 @@
 import type { NavigationDestination } from '@/components/Navigation'
 
 export type PageCommand = { label: string; href: string; keywords: string[] }
-export type PageCommandGroup = { label: string; items: PageCommand[] }
+export type PageCommandGroup = {
+  label: string
+  /** The section's href, which a `CommandPalette.Scope` tab matches. */
+  scope: string
+  items: PageCommand[]
+}
 
 const command = (
   label: string,
@@ -45,6 +50,7 @@ export function pageCommands(
 ): PageCommandGroup[] {
   return destinations.map((destination, index) => ({
     label: destination.title,
+    scope: destination.href,
     items: [
       command(destination.title, destination.href, destination.title),
       ...sectionPages(destination),

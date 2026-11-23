@@ -316,6 +316,10 @@ export const navigatorItemVariants = cva(
 export const navigatorItemLabelClass =
   'col-start-2 row-start-1 ms-3 truncate opacity-0 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
 
+// Fades with the label, a step quieter, so the expanded Search hints at its shortcut.
+export const navigatorSearchShortcutClass =
+  'gap-0 font-normal text-subtler opacity-0 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
+
 // Without an icon the label takes the icon column, unless a capsule sibling's
 // icon needs it for alignment: the capsule sets a variable rather than a
 // selector reaching past its :has() (hasInvalidation.browser.test.ts).

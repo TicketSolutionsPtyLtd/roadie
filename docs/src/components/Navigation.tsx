@@ -13,19 +13,7 @@ import {
 
 import { useRouter } from 'next/navigation'
 
-import {
-  ChartLineIcon,
-  CompassIcon,
-  CubeIcon,
-  HouseIcon,
-  ListDashesIcon,
-  PaintBrushIcon,
-  PaletteIcon,
-  PencilLineIcon,
-  RowsIcon,
-  SparkleIcon,
-  SquaresFourIcon
-} from '@phosphor-icons/react'
+import { ListDashesIcon } from '@phosphor-icons/react'
 
 import type {
   CatalogueCategory,
@@ -39,7 +27,6 @@ import { relatedLinks } from '@/lib/token-families'
 import { getAssetPath } from '@/utils/getAssetPath'
 
 import { Navigator, Pane } from '@oztix/roadie-components'
-import { CommandPalette } from '@oztix/roadie-components/command-palette'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { AgentMenu } from './AgentMenu'
@@ -57,6 +44,7 @@ import { OnThisPage, useDocHeadings } from './OnThisPage'
 import { PageMeta, type PageStatusInfo, navBadge } from './PageStatus'
 import { RelatedLinks } from './RelatedLinks'
 import { SourceMenu } from './SourceMenu'
+import { destinationIcon } from './destinationIcons'
 
 export type NavigationItem = {
   title: string
@@ -93,19 +81,7 @@ type NavigationProps = {
   children: ReactNode
 }
 
-/* eslint-disable roadie/phosphor-icon-weight -- Navigator.Item sets these duotone */
-const DESTINATION_ICONS: Record<string, ReactNode> = {
-  '/': <HouseIcon />,
-  '/brand': <SparkleIcon />,
-  '/foundations': <CompassIcon />,
-  '/content': <PencilLineIcon />,
-  '/tokens': <PaletteIcon />,
-  '/components': <CubeIcon />,
-  '/charts': <ChartLineIcon />,
-  '/blocks': <RowsIcon />,
-  '/roadie-widgets': <SquaresFourIcon />
-}
-/* eslint-enable roadie/phosphor-icon-weight */
+const AppearanceIcon = destinationIcon('/appearance')
 
 // A cross listing never matches the route, so the page's own destination stays the lit one.
 const entryValue = (host: string, entry: CatalogueEntry) =>
@@ -241,7 +217,9 @@ export function DocsNavigator({
               Roadie
             </span>
           </Navigator.Brand>
+          <Navigator.Search />
           {items.map((destination) => {
+            const DestinationIcon = destinationIcon(destination.href)
             const subItems = destination.items.filter(
               (item) => item.href !== destination.href
             )
@@ -250,7 +228,7 @@ export function DocsNavigator({
                 key={destination.href}
                 value={destination.href}
                 href={destination.href}
-                icon={DESTINATION_ICONS[destination.href] ?? <HouseIcon />}
+                icon={<DestinationIcon />}
                 visibilityPriority={
                   destination.href === '/tokens' ? 'low' : undefined
                 }
@@ -313,7 +291,7 @@ export function DocsNavigator({
           <Navigator.Item
             value='/appearance'
             href='/appearance'
-            icon={<PaintBrushIcon />}
+            icon={<AppearanceIcon />}
             placement='pinned'
           >
             Appearance
@@ -324,9 +302,6 @@ export function DocsNavigator({
         <Pane className='@container/docs-pane scroll-pt-6'>
           <Pane.Header>
             <Pane.Actions>
-              <CommandPalette.Trigger className='max-sm:w-10 max-sm:px-0 max-sm:**:data-[slot=command-palette-trigger-shortcut]:hidden'>
-                <span className='max-sm:sr-only'>Search</span>
-              </CommandPalette.Trigger>
               {sourceLinks[route] ? (
                 <SourceMenu {...sourceLinks[route]} />
               ) : null}
