@@ -106,7 +106,8 @@ describe('collectLiveExamples', () => {
     [
       'CommandPalette.Root',
       '<CommandPalette.Root\n  items={[]}\n>\n  <CommandPalette.Input />\n</CommandPalette.Root>'
-    ]
+    ],
+    ['self-closing CommandPalette', '<CommandPalette/>']
   ])('rejects an unframed %s that binds the shortcut', (_, code) => {
     expect(() => ids(`## Search\n\n\`\`\`tsx-live\n${code}\n\`\`\``)).toThrow(
       /fence on line 3 .*shortcut=\{false\}.*framed/s
@@ -201,13 +202,14 @@ describe('remarkLiveExamples', () => {
     const file = {
       path: '/repo/docs/src/app/components/badge/page.mdx',
       value:
-        '## Default\n\n```tsx-live eager\n<Badge />\n```\n\n```tsx-live layout=row\n<Badge />\n```'
+        '## Default\n\n```tsx-live eager framed\n<Badge />\n```\n\n```tsx-live layout=row\n<Badge />\n```'
     }
     const compiled = String(await processor.process(file))
 
     expect(compiled).toContain('"data-example-id": "default"')
     expect(compiled).toContain('"data-example-page": "components/badge"')
     expect(compiled).toContain('"data-example-eager": ""')
+    expect(compiled).toContain('"data-example-framed": ""')
     expect(compiled).toMatch(/"data-preview-layout": "[^"]+"/)
   })
 })

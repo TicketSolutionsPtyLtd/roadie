@@ -58,7 +58,7 @@ function checkCaptions(node) {
 }
 
 // A palette's root, not its parts, followed by its props up to the next tag.
-const PALETTE_ROOT = /<CommandPalette(?:\.Root)?(?=[\s>])([^<]*)/g
+const PALETTE_ROOT = /<CommandPalette(?:\.Root)?(?=[\s/>])([^<]*)/g
 const BINDS_NOTHING = /\bshortcut\s*=\s*\{\s*false\s*\}/
 
 // A palette that binds ⌘K in the page takes it from the docs search (INNO-1640).
