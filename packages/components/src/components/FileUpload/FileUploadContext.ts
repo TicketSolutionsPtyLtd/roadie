@@ -27,5 +27,10 @@ export function useFileUploadContext(part: string) {
   return context
 }
 
-/** A Trigger inside `FileUpload.Control` joins the bar's end as a segment. */
-export const FileUploadInControl = createContext(false)
+/**
+ * Set inside `FileUpload.Control`: a Trigger there joins the bar's end as a
+ * segment, and Value says when files are over the bar.
+ */
+export const FileUploadInControl = createContext<{ dragging: boolean } | null>(
+  null
+)

@@ -212,3 +212,46 @@ describe('FileUpload drops', () => {
     expect(onValueChange).not.toHaveBeenCalled()
   })
 })
+
+describe('FileUpload bar drops', () => {
+  const renderBar = (defaultValue?: File[]) => {
+    const onValueChange = vi.fn()
+    const { container } = render(
+      <>
+        <FileUpload defaultValue={defaultValue} onValueChange={onValueChange}>
+          <FileUpload.Control>
+            <FileUpload.Value />
+            <FileUpload.Trigger />
+          </FileUpload.Control>
+        </FileUpload>
+        <div
+          data-testid='reference'
+          className='border border-strong intent-accent'
+        />
+      </>
+    )
+    const bar = container.querySelector('[data-slot=file-upload-control]')!
+    return { bar, onValueChange }
+  }
+
+  it('adds a file dropped on the bar', async () => {
+    const { bar, onValueChange } = renderBar()
+    const file = csv('march.csv')
+    await dragFiles(bar, [file])
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
+    expect(bar).not.toHaveAttribute('data-dragging')
+  })
+
+  it('turns accent and reads "Drop to add" while files are over it', async () => {
+    const { bar } = renderBar([csv('march.csv')])
+    await dragFiles(bar, [csv('april.csv')], false)
+    await waitFor(() => expect(bar).toHaveAttribute('data-dragging'))
+    const value = bar.querySelector('[data-slot=file-upload-value]')
+    expect(value?.textContent).toBe('Drop to add')
+    settle(bar)
+    expect(getComputedStyle(bar).borderTopColor).toBe(
+      getComputedStyle(screen.getByTestId('reference')).borderTopColor
+    )
+    await dragFiles(bar, [], true)
+  })
+})
