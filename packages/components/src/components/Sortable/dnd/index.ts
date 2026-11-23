@@ -1,4 +1,5 @@
-// The only module that imports the drag library, so it can be swapped here.
+// With file.ts, the only module that imports the drag library, so it can be
+// swapped here.
 // Framework-free: React (and any Vue skin) wires DOM elements and callbacks in.
 import {
   autoScrollForElements,
@@ -15,11 +16,6 @@ import {
   dropTargetForElements,
   monitorForElements
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
-import { dropTargetForExternal } from '@atlaskit/pragmatic-drag-and-drop/external/adapter'
-import {
-  containsFiles,
-  getFiles
-} from '@atlaskit/pragmatic-drag-and-drop/external/file'
 
 import type { SortableAxis, SortableEdge } from '../order'
 
@@ -316,29 +312,4 @@ function autoScrollAncestors(
     )
   }
   return combine(...cleanups)
-}
-
-export type FileDropTargetOptions = {
-  element: HTMLElement
-  /** True while files from outside the page are over the element. */
-  onDragChange: (over: boolean) => void
-  onDrop: (files: File[]) => void
-}
-
-/** Takes files dragged in from outside the page, such as from the desktop. */
-export function fileDropTarget({
-  element,
-  onDragChange,
-  onDrop
-}: FileDropTargetOptions): Cleanup {
-  return dropTargetForExternal({
-    element,
-    canDrop: containsFiles,
-    onDragEnter: () => onDragChange(true),
-    onDragLeave: () => onDragChange(false),
-    onDrop: ({ source }) => {
-      onDragChange(false)
-      onDrop(getFiles({ source }))
-    }
-  })
 }
