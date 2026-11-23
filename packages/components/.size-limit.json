@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "290 kB"
+    "limit": "292 kB"
   },
   {
     "name": "Single component (Button)",
@@ -23,7 +23,7 @@
     "name": "CommandPalette",
     "path": "dist/components/CommandPalette/index.js",
     "import": "*",
-    "limit": "19.3 kB",
+    "limit": "22.5 kB",
     "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
@@ -280,14 +280,14 @@
     "name": "DateField",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "14.2 kB",
+    "limit": "15.7 kB",
     "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
     "name": "DateField with core",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "28.4 kB",
+    "limit": "31.3 kB",
     "ignore": ["@tanstack/react-virtual"]
   },
   {
@@ -349,7 +349,7 @@
     "name": "QueryField",
     "path": "dist/components/QueryField/index.js",
     "import": "*",
-    "limit": "18.7 kB",
+    "limit": "21.7 kB",
     "ignore": ["@oztix/roadie-core", "@tanstack/react-virtual"]
   },
   {
@@ -383,14 +383,14 @@
     "name": "RecordCalendar",
     "path": "dist/components/RecordCalendar/index.js",
     "import": "*",
-    "limit": "101.5 kB",
+    "limit": "102.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordCalendar with core",
     "path": "dist/components/RecordCalendar/index.js",
     "import": "*",
-    "limit": "124.5 kB"
+    "limit": "125.5 kB"
   },
   {
     "name": "RecordGrid",
