@@ -373,10 +373,28 @@ describe('DocsNavigator search', () => {
     expect(iconOf('Appearance')).toBe(bold(<PaintBrushIcon weight='bold' />))
   })
 
-  it('leaves ⌘K to the live example on the Navigator page', () => {
-    renderAt('/components/navigator/')
-    const unhandled = pressModK()
-    expect(unhandled).toBe(true)
-    expect(screen.queryByRole('dialog', { name: 'Search the docs' })).toBeNull()
-  })
+  // A live example that owns ⌘K runs in its own frame (INNO-1640).
+  it.each(['/components/navigator/', '/components/command-palette/'])(
+    'opens the docs palette with ⌘K and Search on %s',
+    async (route) => {
+      renderAt(route)
+      expect(pressModK()).toBe(false)
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Search the docs'
+      })
+      fireEvent.keyDown(dialog, { key: 'Escape' })
+      await vi.waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: 'Search the docs' })
+        ).toBeNull()
+      )
+      const search = screen
+        .getAllByRole('button', { name: /Search/, hidden: true })
+        .find((button) => button.hasAttribute('aria-keyshortcuts'))!
+      fireEvent.click(search)
+      expect(
+        await screen.findByRole('dialog', { name: 'Search the docs' })
+      ).toBeTruthy()
+    }
+  )
 })
