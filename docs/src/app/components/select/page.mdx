@@ -295,8 +295,8 @@ picks from a closed set. They don't need to search or type a custom value.
 
 If users are likely to **search** the list, the list is **long** (15+ items), or
 options load **asynchronously**, use [Combobox](/components/combobox). Select
-mounts every item when it opens, so hundreds of items cost a dropped frame;
-Combobox's `virtualized` draws only the rows in view.
+mounts every item when it opens, so hundreds of items drop frames. With
+`virtualized`, Combobox draws only the rows near the scroll position.
 
 | Question | Select | Combobox |
 |---|---|---|

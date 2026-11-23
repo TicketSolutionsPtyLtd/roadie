@@ -35,7 +35,8 @@ it('scrolls 10,000 rows at 60fps', async () => {
   `exception: '…'` records a miss accepted by design, naming why, so the table
   shows it and CI doesn't fail. Today that's the full-page backdrop blur
   behind Dialog and Drawer, which costs more than a frame to draw in
-  software raster.
+  software raster, and long lists drawn without virtualisation: a Select past
+  its ~15-item guideline, and a Combobox of thousands without `virtualized`.
 - The perf project slows Chromium's CPU through the DevTools protocol, to a
   rate calibrated so every machine runs a fixed workload in the same time
   (`ROADIE_PERF_CPU` sets a fixed rate, and `1` turns it off). Chromium

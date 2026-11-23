@@ -45,7 +45,7 @@ describe('Select opens and closes at 60fps on a slowed CPU', () => {
       }),
       // Base UI's Select mounts every item and can't virtualise. The docs send
       // lists over ~15 items to Combobox, whose `virtualized` meets the budget.
-      { exception: 'a Select of 200 items, past its ~15 item guideline' }
+      { exception: 'a Select of 200 items, past its ~15-item guideline' }
     )
     expect(document.querySelectorAll('[role="option"]')).toHaveLength(200)
     // Closing re-renders all 200 items, so CI drops up to four frames.

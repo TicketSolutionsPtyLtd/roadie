@@ -55,7 +55,8 @@ describe('Combobox filters at 60fps on a slowed CPU', () => {
     await expectFrameBudget(
       'Combobox, typing over 2,000 items',
       await typeOverVenues(false),
-      // Every match mounts as you type. Lists this long opt into `virtualized`, below.
+      // Every match mounts as you type. Lists this long opt into `virtualized`,
+      // below.
       { exception: 'a list of 2,000 items without `virtualized`' }
     )
   })
