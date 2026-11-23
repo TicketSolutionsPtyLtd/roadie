@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 
+import { ChartLineIcon, PaintBrushIcon } from '@phosphor-icons/react'
 import {
   cleanup,
   fireEvent,
@@ -354,6 +355,22 @@ describe('DocsNavigator search', () => {
     expect(meter()).not.toBeNull()
     fireEvent.click(tab('Blocks'))
     expect(meter()).toBeNull()
+  })
+
+  it("gives each result its section's icon, and Appearance its own", async () => {
+    renderAt('/charts/meter')
+    pressModK()
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Search the docs'
+    })
+    const iconOf = (name: string) =>
+      within(dialog)
+        .getByRole('option', { name, hidden: true })
+        .querySelector('svg')?.innerHTML
+    const bold = (icon: ReactElement) =>
+      render(icon).container.querySelector('svg')?.innerHTML
+    expect(iconOf('Meter')).toBe(bold(<ChartLineIcon weight='bold' />))
+    expect(iconOf('Appearance')).toBe(bold(<PaintBrushIcon weight='bold' />))
   })
 
   it('leaves ⌘K to the live example on the Navigator page', () => {

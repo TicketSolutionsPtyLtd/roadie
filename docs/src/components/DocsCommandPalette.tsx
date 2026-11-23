@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { createElement, useMemo } from 'react'
 
 import {
   type PageCommand,
@@ -12,6 +12,7 @@ import { useRoute } from '@/lib/route'
 import { CommandPalette } from '@oztix/roadie-components/command-palette'
 
 import type { NavigationDestination } from './Navigation'
+import { destinationIcon } from './destinationIcons'
 
 // Navigation pins Appearance outside its sections.
 const PINNED: PageCommand[] = [
@@ -32,6 +33,14 @@ const SCOPES = [
 
 // A live example here binds ⌘K itself, and a page has one owner (decision 0014).
 const EXAMPLE_OWNS_SHORTCUT = new Set(['/components/navigator'])
+
+// A pinned page keeps its own icon; every other page takes its section's.
+function PageIcon({ href, scope }: { href: string; scope: string }) {
+  const pinned = PINNED.some((page) => page.href === href)
+  return createElement(destinationIcon(pinned ? href : scope), {
+    weight: 'bold'
+  })
+}
 
 /** Every docs page behind ⌘K, or Ctrl+K off Apple platforms. */
 export function DocsCommandPalette({
@@ -65,6 +74,7 @@ export function DocsCommandPalette({
                   key={page.href}
                   value={page}
                   href={page.href}
+                  icon={<PageIcon href={page.href} scope={group.scope} />}
                 >
                   {page.label}
                 </CommandPalette.Item>
@@ -76,7 +86,7 @@ export function DocsCommandPalette({
       <CommandPalette.Empty>No pages match</CommandPalette.Empty>
       <CommandPalette.Footer>
         <CommandPalette.Hint shortcut={['enter']}>Open</CommandPalette.Hint>
-        <CommandPalette.Hint shortcut={['arrowleft', 'arrowright']}>
+        <CommandPalette.Hint shortcut={['tab']}>
           Change section
         </CommandPalette.Hint>
         <CommandPalette.Hint shortcut={['escape']}>Close</CommandPalette.Hint>

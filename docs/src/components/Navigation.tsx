@@ -13,19 +13,7 @@ import {
 
 import { useRouter } from 'next/navigation'
 
-import {
-  ChartLineIcon,
-  CompassIcon,
-  CubeIcon,
-  HouseIcon,
-  ListDashesIcon,
-  PaintBrushIcon,
-  PaletteIcon,
-  PencilLineIcon,
-  RowsIcon,
-  SparkleIcon,
-  SquaresFourIcon
-} from '@phosphor-icons/react'
+import { ListDashesIcon } from '@phosphor-icons/react'
 
 import type {
   CatalogueCategory,
@@ -43,6 +31,9 @@ import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { AgentMenu } from './AgentMenu'
 import { DocsCommandPalette } from './DocsCommandPalette'
+import { destinationIcon } from './destinationIcons'
+
+const AppearanceIcon = destinationIcon('/appearance')
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
 import { InspectorSlotContext } from './InspectorSlot'
@@ -91,20 +82,6 @@ type NavigationProps = {
   pageUpdated?: Record<string, string>
   children: ReactNode
 }
-
-/* eslint-disable roadie/phosphor-icon-weight -- Navigator.Item sets these duotone */
-const DESTINATION_ICONS: Record<string, ReactNode> = {
-  '/': <HouseIcon />,
-  '/brand': <SparkleIcon />,
-  '/foundations': <CompassIcon />,
-  '/content': <PencilLineIcon />,
-  '/tokens': <PaletteIcon />,
-  '/components': <CubeIcon />,
-  '/charts': <ChartLineIcon />,
-  '/blocks': <RowsIcon />,
-  '/roadie-widgets': <SquaresFourIcon />
-}
-/* eslint-enable roadie/phosphor-icon-weight */
 
 // A cross listing never matches the route, so the page's own destination stays the lit one.
 const entryValue = (host: string, entry: CatalogueEntry) =>
@@ -242,6 +219,7 @@ export function DocsNavigator({
           </Navigator.Brand>
           <Navigator.Search />
           {items.map((destination) => {
+            const DestinationIcon = destinationIcon(destination.href)
             const subItems = destination.items.filter(
               (item) => item.href !== destination.href
             )
@@ -250,7 +228,7 @@ export function DocsNavigator({
                 key={destination.href}
                 value={destination.href}
                 href={destination.href}
-                icon={DESTINATION_ICONS[destination.href] ?? <HouseIcon />}
+                icon={<DestinationIcon />}
                 visibilityPriority={
                   destination.href === '/tokens' ? 'low' : undefined
                 }
@@ -313,7 +291,7 @@ export function DocsNavigator({
           <Navigator.Item
             value='/appearance'
             href='/appearance'
-            icon={<PaintBrushIcon />}
+            icon={<AppearanceIcon />}
             placement='pinned'
           >
             Appearance
