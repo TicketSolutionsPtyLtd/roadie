@@ -100,6 +100,41 @@ const scrollportTop = () => {
 
 const options = () => screen.queryAllByRole('option')
 
+const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+
+/** Scrolls `list` until `VENUES[index]` is drawn, stepping since rows below are estimated until then. */
+async function scrollToVenue(list: HTMLElement, index: number) {
+  for (let tries = 0; tries < 40; tries++) {
+    if (screen.queryByRole('option', { name: VENUES[index] })) return
+    const top = Number(options()[0]!.textContent!.split(' ').at(-1))
+    list.scrollTop += (index + 1 - top) * 30
+    await frame()
+    await frame()
+  }
+}
+
+/** Scrolls `list` down until the Halls group leaves the window, checking `name`'s row moves only as far as the list does. */
+async function expectStillUntilHallsLeave(list: HTMLElement, name: string) {
+  const row = () => screen.getByRole('option', { name })
+  row().scrollIntoView({ block: 'end' })
+  let left = false
+  for (let step = 0; step < 20 && !left; step++) {
+    await frame()
+    await frame()
+    const before = row().getBoundingClientRect().top
+    const scrolled = list.scrollTop
+    list.scrollTop += 30
+    await frame()
+    await frame()
+    const moved = list.scrollTop - scrolled
+    expect(
+      Math.abs(row().getBoundingClientRect().top - (before - moved))
+    ).toBeLessThanOrEqual(1)
+    left = screen.queryByRole('group', { name: 'Halls' }) === null
+  }
+  expect(left).toBe(true)
+}
+
 describe('CommandPalette virtualized', () => {
   it('windows its commands, each knowing its place in the whole list', async () => {
     render(<Venues />)
@@ -379,5 +414,34 @@ describe('CommandPalette virtualized, with groups', () => {
     expect(options()).toHaveLength(1)
     expect(options()[0]).toHaveTextContent(VENUES[1500]!)
     expect(labels().map((label) => label.textContent)).toEqual(['Teacups'])
+  })
+
+  it('keeps rows still as a group with no label scrolls out of the window', async () => {
+    render(
+      <CommandPalette defaultOpen shortcut={false} items={GROUPS} virtualized>
+        <CommandPalette.Input placeholder='Search venues' />
+        <CommandPalette.List>
+          {(group: (typeof GROUPS)[number]) => (
+            <CommandPalette.Group
+              key={group.label}
+              items={group.items}
+              aria-label={group.label}
+            >
+              <CommandPalette.Collection>
+                {(venue: string) => (
+                  <CommandPalette.Item key={venue} value={venue}>
+                    {venue}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    )
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    const list = screen.getByRole('listbox')
+    await scrollToVenue(list, 712)
+    await expectStillUntilHallsLeave(list, VENUES[712]!)
   })
 })

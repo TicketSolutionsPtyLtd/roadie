@@ -3,6 +3,7 @@
 import {
   type ReactNode,
   type Ref,
+  type RefCallback,
   type RefObject,
   Suspense,
   createContext,
@@ -87,10 +88,24 @@ export function useVirtualItem<T extends HTMLElement>(
  * its top margin, whatever comes before it, so the space the virtualiser
  * measured doesn't change as the window moves.
  */
-export function useVirtualGroup() {
+export function useVirtualGroup<T extends HTMLElement>(ref?: Ref<T>) {
   const group = use(VirtualGroupContext)
-  if (!group) return null
-  return { 'data-virtual-group': group.first ? 'first' : 'rest' }
+  if (!group) return { ref }
+  const { row, measure } = group.label
+  // A group with no label sizes its label's row itself.
+  const unlabelled: RefCallback<T> = (element) => {
+    if (!element || element.querySelector('[data-virtual-label]')) return
+    if (typeof measure !== 'function') return
+    element.setAttribute('data-index', String(row))
+    measure(element)
+    return () => {
+      measure(null)
+    }
+  }
+  return {
+    ref: mergeRefs<T>(ref, unlabelled),
+    'data-virtual-group': group.first ? 'first' : 'rest'
+  }
 }
 
 /** Props a group label spreads in a windowed list, so it's measured and sticks to the top. */

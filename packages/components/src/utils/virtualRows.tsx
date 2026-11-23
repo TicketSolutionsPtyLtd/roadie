@@ -129,7 +129,9 @@ export default function VirtualRows({ children }: { children: RowRenderer }) {
       ? (element, entry, instance) =>
           element.hasAttribute('data-virtual-label')
             ? measureLabel(element as HTMLElement, gap, setLabelHeight)
-            : measureSize(element, entry, instance)
+            : element.hasAttribute('data-virtual-group')
+              ? lead(element, gap)
+              : measureSize(element, entry, instance)
       : measureSize
   })
   useLayoutEffect(() => {
@@ -199,10 +201,26 @@ export default function VirtualRows({ children }: { children: RowRenderer }) {
 }
 
 /**
- * A label row is everything from the end of the group before to the end of
- * the label: the list's gap and the group's top margin, its top padding and
- * border, then the label. Its box is read from its size, not its place, since
- * a stuck label sits wherever the scroll put it.
+ * The space a label row takes above its label: the list's gap and the
+ * group's top margin, then the group's top padding and border. A group with
+ * no label is measured as this alone.
+ */
+function lead(group: Element, gap: number) {
+  const style = getComputedStyle(group)
+  const between =
+    group.getAttribute('data-virtual-group') === 'first'
+      ? 0
+      : gap + (parseFloat(style.marginTop) || 0)
+  return (
+    between +
+    (parseFloat(style.paddingTop) || 0) +
+    (parseFloat(style.borderTopWidth) || 0)
+  )
+}
+
+/**
+ * A label row is its group's lead, then the label. Its box is read from its
+ * size, not its place, since a stuck label sits wherever the scroll put it.
  */
 function measureLabel(
   label: HTMLElement,
@@ -213,18 +231,7 @@ function measureLabel(
   // A label sticks over the top of the list, so a row scrolled into view stops below it.
   onHeight(height)
   const group = label.closest('[data-virtual-group]')
-  if (!group) return height
-  const style = getComputedStyle(group)
-  const lead =
-    group.getAttribute('data-virtual-group') === 'first'
-      ? 0
-      : gap + (parseFloat(style.marginTop) || 0)
-  return (
-    lead +
-    (parseFloat(style.paddingTop) || 0) +
-    (parseFloat(style.borderTopWidth) || 0) +
-    height
-  )
+  return height + (group ? lead(group, gap) : 0)
 }
 
 /**
