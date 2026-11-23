@@ -382,12 +382,12 @@ describe('CommandPalette virtualized', () => {
     )
   }
 
-  it('warns once that it draws every command when the items are groups', async () => {
+  it('stays quiet with groups when it is virtualized', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(<Grouped groups={[{ label: 'Pages', items: ['Home', 'Events'] }]} />)
-    await screen.findByRole('option', { name: 'Home' })
-    expect(warn).toHaveBeenCalledOnce()
-    expect(warn.mock.calls[0]![0]).toMatch(/virtualized.*groups/)
+    // jsdom lays nothing out, so a windowed list draws no rows to wait for.
+    await screen.findByRole('combobox')
+    expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
   })
 

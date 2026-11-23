@@ -28,7 +28,7 @@ export function AutocompleteItem({
   ...props
 }: AutocompleteItemProps) {
   const byPointer = use(PointerHighlightContext)
-  const virtualItem = useVirtualItem(ref)
+  const virtualItem = useVirtualItem(ref, props.value)
   return (
     <AutocompletePrimitive.Item
       data-slot='autocomplete-item'

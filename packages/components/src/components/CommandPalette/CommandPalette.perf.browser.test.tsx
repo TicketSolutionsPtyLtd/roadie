@@ -3,6 +3,7 @@ import { userEvent } from 'vitest/browser'
 
 import {
   expectFrameBudget,
+  measureFrames,
   measureWhile,
   mount,
   setupFrameTests
@@ -74,5 +75,73 @@ describe('CommandPalette ranks at 60fps on a slowed CPU', () => {
     await expect
       .poll(() => document.querySelectorAll('[role="option"]').length)
       .toBeGreaterThan(0)
+  })
+
+  describe('with 2,000 venues in groups, virtualized', () => {
+    const all = venues(2000)
+    const groups = [
+      { label: 'Halls', items: all.slice(0, 700) },
+      { label: 'Rooms', items: all.slice(700, 1400) },
+      { label: 'Teacups', items: all.slice(1400) }
+    ]
+
+    async function mountGrouped() {
+      const root = await mount(
+        <EventPage>
+          <CommandPalette defaultOpen items={groups} virtualized>
+            <CommandPalette.Input />
+            <CommandPalette.List>
+              {(group: (typeof groups)[number]) => (
+                <CommandPalette.Group key={group.label} items={group.items}>
+                  <CommandPalette.GroupLabel>
+                    {group.label}
+                  </CommandPalette.GroupLabel>
+                  <CommandPalette.Collection>
+                    {(venue: string) => (
+                      <CommandPalette.Item key={venue} value={venue}>
+                        {venue}
+                      </CommandPalette.Item>
+                    )}
+                  </CommandPalette.Collection>
+                </CommandPalette.Group>
+              )}
+            </CommandPalette.List>
+          </CommandPalette>
+        </EventPage>,
+        { frames: 5 }
+      )
+      const input =
+        root.ownerDocument.querySelector<HTMLInputElement>('[role="combobox"]')!
+      await expect.poll(() => document.activeElement).toBe(input)
+      return input
+    }
+
+    it('filters them as someone types', async () => {
+      const input = await mountGrouped()
+      await expectFrameBudget(
+        'CommandPalette, typing over 2,000 grouped items, virtualized',
+        await measureWhile(() => userEvent.keyboard('gumleaf hall 1')),
+        { exception: BACKDROP_BLUR }
+      )
+      expect(input.value).toBe('gumleaf hall 1')
+      await expect
+        .poll(() => document.querySelectorAll('[role="option"]').length)
+        .toBeGreaterThan(0)
+    })
+
+    it('scrolls through them, past group labels', async () => {
+      await mountGrouped()
+      const list = document.querySelector<HTMLElement>('[role="listbox"]')!
+      await expectFrameBudget(
+        'CommandPalette, scrolling 2,000 grouped items, virtualized',
+        await measureFrames(() => {
+          list.scrollTop += 300
+        }),
+        { exception: BACKDROP_BLUR }
+      )
+      expect(document.querySelectorAll('[role="option"]').length).toBeLessThan(
+        80
+      )
+    })
   })
 })

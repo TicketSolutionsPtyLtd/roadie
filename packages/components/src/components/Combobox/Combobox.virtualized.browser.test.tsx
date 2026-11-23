@@ -110,4 +110,73 @@ describe('Combobox virtualized', () => {
     expect(row.top).toBeGreaterThanOrEqual(box.top - 1)
     expect(row.bottom).toBeLessThanOrEqual(box.bottom + 1)
   })
+
+  describe('with groups', () => {
+    const GROUPS = [
+      { label: 'Halls', items: VENUES.slice(0, 700) },
+      { label: 'Rooms', items: VENUES.slice(700, 1400) },
+      { label: 'Teacups', items: VENUES.slice(1400) }
+    ]
+
+    function GroupedVenues() {
+      return (
+        <Combobox items={GROUPS} virtualized>
+          <Combobox.InputGroup>
+            <Combobox.Input aria-label='Venue' />
+            <Combobox.Trigger />
+          </Combobox.InputGroup>
+          <Combobox.Portal>
+            <Combobox.Positioner>
+              <Combobox.Popup className='max-h-80'>
+                <Combobox.List>
+                  {(group: (typeof GROUPS)[number]) => (
+                    <Combobox.Group key={group.label} items={group.items}>
+                      <Combobox.GroupLabel>{group.label}</Combobox.GroupLabel>
+                      <Combobox.Collection>
+                        {(venue: string) => (
+                          <Combobox.Item key={venue} value={venue}>
+                            {venue}
+                          </Combobox.Item>
+                        )}
+                      </Combobox.Collection>
+                    </Combobox.Group>
+                  )}
+                </Combobox.List>
+              </Combobox.Popup>
+            </Combobox.Positioner>
+          </Combobox.Portal>
+        </Combobox>
+      )
+    }
+
+    it('mounts a window of rows, each counted within its group', async () => {
+      render(<GroupedVenues />)
+      await userEvent.click(screen.getByRole('combobox'))
+      await expect.poll(() => options().length).toBeGreaterThan(0)
+      expect(options().length).toBeLessThan(60)
+      expect(options()[0]).toHaveAttribute('aria-posinset', '1')
+      expect(options()[0]).toHaveAttribute('aria-setsize', '700')
+      expect(screen.getByRole('group', { name: 'Halls' })).toBeVisible()
+    })
+
+    it('picks the venue reached with the arrow keys in a later group', async () => {
+      render(<GroupedVenues />)
+      const input = screen.getByRole<HTMLInputElement>('combobox')
+      await userEvent.click(input)
+      await expect.poll(() => options().length).toBeGreaterThan(0)
+      await userEvent.keyboard('{ArrowUp}')
+      await expect.poll(() => active()?.textContent).toBe(LAST)
+      expect(active()).toHaveAttribute('aria-posinset', '600')
+      expect(active()).toHaveAttribute('aria-setsize', '600')
+      expect(active()!.closest('[role="group"]')).toBe(
+        screen.getByRole('group', { name: 'Teacups' })
+      )
+      const popup = document.querySelector('[data-slot="combobox-popup"]')!
+      const row = active()!.getBoundingClientRect()
+      const box = popup.getBoundingClientRect()
+      expect(row.bottom).toBeLessThanOrEqual(box.bottom + 1)
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => input.value).toBe(LAST)
+    })
+  })
 })

@@ -590,17 +590,24 @@ render(<RecentSearch />)
 
 Add `virtualized` to the root for hundreds or thousands of commands. The list
 then draws only the rows near the scroll position, so opening and typing stay
-smooth. It takes flat `items`; with groups, it draws every command and warns in
-development.
+smooth. It takes flat `items` or groups. With groups, the label of the group in
+view sticks to the top of the list.
 
 ```tsx-live-noinline
 function LongSearch() {
   const [open, setOpen] = useState(false)
-  const names = ['Iguana Teapot Hall', 'Kazoo Hollow Room', 'Wobbly Teacup Room']
-  const venues = Array.from(
-    { length: 2000 },
-    (_, index) => `${names[index % names.length]} ${index + 1}`
-  )
+  const kinds = [
+    { label: 'Teapot halls', name: 'Iguana Teapot Hall' },
+    { label: 'Hollow rooms', name: 'Kazoo Hollow Room' },
+    { label: 'Teacup rooms', name: 'Wobbly Teacup Room' }
+  ]
+  const groups = kinds.map((kind, offset) => ({
+    label: kind.label,
+    items: Array.from(
+      { length: 667 - (offset === 2 ? 1 : 0) },
+      (_, index) => `${kind.name} ${index * 3 + offset + 1}`
+    )
+  }))
 
   return (
     <>
@@ -609,15 +616,22 @@ function LongSearch() {
         open={open}
         onOpenChange={setOpen}
         shortcut={false}
-        items={venues}
+        items={groups}
         virtualized
       >
         <CommandPalette.Input placeholder='Search 2,000 venues' />
         <CommandPalette.List>
-          {(venue) => (
-            <CommandPalette.Item key={venue} value={venue}>
-              {venue}
-            </CommandPalette.Item>
+          {(group) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(venue) => (
+                  <CommandPalette.Item key={venue} value={venue}>
+                    {venue}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
           )}
         </CommandPalette.List>
         <CommandPalette.Empty>No venues match</CommandPalette.Empty>
@@ -713,7 +727,8 @@ flow at every size.
 - A command with `href` is a link, so it opens in a new tab with a modified
   click, as any link does.
 - In a `virtualized` list, each command carries `aria-setsize` and
-  `aria-posinset`, so screen readers say its place in the whole list, not
-  just the rows drawn.
+  `aria-posinset`, so screen readers say its place in the whole list, or in
+  its group, not just the rows drawn. A group's label stays mounted while any
+  of its commands is drawn, so the group keeps its name.
 
 <PropsDefinitions component='CommandPalette' />
