@@ -113,8 +113,12 @@ async function scrollToVenue(list: HTMLElement, index: number) {
   }
 }
 
-/** Scrolls `list` down until the Halls group leaves the window, checking `name`'s row moves only as far as the list does. */
-async function expectStillUntilHallsLeave(list: HTMLElement, name: string) {
+/** Scrolls `list` down until `group` leaves the window, checking `name`'s row moves only as far as the list does. */
+async function expectStillUntilLeaves(
+  list: HTMLElement,
+  name: string,
+  group = 'Halls'
+) {
   const row = () => screen.getByRole('option', { name })
   row().scrollIntoView({ block: 'end' })
   let left = false
@@ -130,7 +134,7 @@ async function expectStillUntilHallsLeave(list: HTMLElement, name: string) {
     expect(
       Math.abs(row().getBoundingClientRect().top - (before - moved))
     ).toBeLessThanOrEqual(1)
-    left = screen.queryByRole('group', { name: 'Halls' }) === null
+    left = screen.queryByRole('group', { name: group }) === null
   }
   expect(left).toBe(true)
 }
@@ -423,10 +427,11 @@ describe('CommandPalette virtualized, with groups', () => {
     await expect.poll(() => options().length).toBeGreaterThan(0)
     const list = screen.getByRole('listbox')
     await scrollToVenue(list, 712)
-    await expectStillUntilHallsLeave(list, VENUES[712]!)
+    await expectStillUntilLeaves(list, VENUES[712]!)
   })
 
   it('keeps rows still as a group with no label scrolls out of the window', async () => {
+    const groups = new Set<HTMLElement>()
     render(
       <CommandPalette defaultOpen shortcut={false} items={GROUPS} virtualized>
         <CommandPalette.Input placeholder='Search venues' />
@@ -436,6 +441,9 @@ describe('CommandPalette virtualized, with groups', () => {
               key={group.label}
               items={group.items}
               aria-label={group.label}
+              ref={(element: HTMLDivElement | null) => {
+                if (element) groups.add(element)
+              }}
             >
               <CommandPalette.Collection>
                 {(venue: string) => (
@@ -450,9 +458,14 @@ describe('CommandPalette virtualized, with groups', () => {
       </CommandPalette>
     )
     await expect.poll(() => options().length).toBeGreaterThan(0)
+    // The group's own ref still reaches it alongside the one that measures it.
+    expect(groups.has(screen.getByRole('group', { name: 'Halls' }))).toBe(true)
     const list = screen.getByRole('listbox')
     await scrollToVenue(list, 712)
-    await expectStillUntilHallsLeave(list, VENUES[712]!)
+    await expectStillUntilLeaves(list, VENUES[712]!)
+    // A later group's row also holds the gap and its margin above it.
+    await scrollToVenue(list, 1412)
+    await expectStillUntilLeaves(list, VENUES[1412]!, 'Rooms')
   })
 
   it('scrolls to the command reached with the arrow keys past many groups', async () => {
