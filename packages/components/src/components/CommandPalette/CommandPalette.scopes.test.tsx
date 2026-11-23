@@ -132,13 +132,20 @@ describe('CommandPalette scopes', () => {
     expect(input).toHaveAttribute('aria-keyshortcuts', 'Tab Shift+Tab')
   })
 
-  it('lets Tab leave the input past the last type, and Shift+Tab before All', async () => {
+  // Separate renders: leaving the dialog's first field lets its focus guard
+  // move focus again a moment later, which a refocus in the same test races.
+  it('lets Shift+Tab leave the input before All', async () => {
     render(<Palette />)
     const input = await screen.findByRole('combobox')
     input.focus()
     await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
     expect(tab('All')).toHaveAttribute('aria-pressed', 'true')
     expect(input).not.toHaveFocus()
+  })
+
+  it('lets Tab leave the input past the last type', async () => {
+    render(<Palette />)
+    const input = await screen.findByRole('combobox')
     input.focus()
     await userEvent.keyboard('{Tab}{Tab}{Tab}')
     expect(tab('Sessions')).toHaveAttribute('aria-pressed', 'true')
