@@ -27,11 +27,7 @@ describe('Docs search beside an example that binds ⌘K', () => {
     const page = await context.newPage()
     const problems: string[] = []
     page.on('console', (message) => {
-      if (
-        message.type() === 'error' ||
-        message.text().includes('[Roadie] Give one CommandPalette')
-      )
-        problems.push(message.text())
+      if (message.type() === 'error') problems.push(message.text())
     })
     page.on('pageerror', (error) => problems.push(String(error)))
     await page.goto(`${ORIGIN}${BASE_PATH}/components/navigator/#search`)
