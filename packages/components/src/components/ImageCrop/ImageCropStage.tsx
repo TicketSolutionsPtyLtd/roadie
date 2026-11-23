@@ -55,7 +55,8 @@ export function ImageCropStage({
   const [loaded, setLoaded] = useState<{ src: string; size: CropSize }>()
   const [active, setActive] = useState(false)
   const [, repaint] = useReducer((n: number) => n + 1, 0)
-  const drag = useRef<{ id: number; x: number; y: number }>(null)
+  // The pointer mid-drag, where it went down, and the image it went down on.
+  const drag = useRef<{ id: number; x: number; y: number; src?: string }>(null)
   // The value mid-gesture, and the image it was made on.
   const live = useRef<{ src?: string; value: ImageCropValue }>(null)
   const describedBy = useId()
@@ -169,13 +170,20 @@ export function ImageCropStage({
     if (event.defaultPrevented || !shown || drag.current) return
     if (event.pointerType === 'mouse' && event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
-    drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY }
+    drag.current = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      src: crop.src
+    }
     setActive(true)
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const start = drag.current
     if (!start || start.id !== event.pointerId || !scene || !shown) return
+    // A drag begun on the last image waits for the pointer to lift.
+    if (start.src !== crop.src) return
     const value = panBy(
       shown,
       -(event.clientX - start.x) / shown.zoom,

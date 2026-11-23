@@ -256,6 +256,33 @@ describe('ImageCrop with a pointer', () => {
     expect(onValueChange).toHaveBeenCalledTimes(1)
   })
 
+  it('ends a drag unreported when the image changes under it', async () => {
+    await commands.parkPointer()
+    const { stage, onValueChange, last, update } = await renderCrop()
+    const { x, y } = rect(stage)
+    await commands.pointer([
+      { type: 'move', x: x + 320, y: y + 240 },
+      { type: 'down' },
+      { type: 'move', x: x + 320, y: y + 270, steps: 6 }
+    ])
+    update({ src: square })
+    // The square shows 544px tall once loaded, and reports its centred crop.
+    await waitFor(() => expect(rect(imageOf(stage)).height).toBeCloseTo(544))
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+    const top = rect(imageOf(stage)).top
+    await commands.pointer([
+      { type: 'move', x: x + 320, y: y + 330, steps: 6 },
+      { type: 'up' }
+    ])
+    await nextFrames()
+    expect(rect(imageOf(stage)).top).toBeCloseTo(top)
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    const { x: left, y: down, width, height } = last().area
+    expect([left, down, width, height].map(Math.round)).toEqual([
+      0, 400, 1600, 800
+    ])
+  })
+
   it('stops at the edge, so the image still covers the frame', async () => {
     await commands.parkPointer()
     const { stage, last } = await renderCrop()
