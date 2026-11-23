@@ -117,6 +117,40 @@ describe('ImageCrop on load', () => {
     expect([x, y, width, height].map(Math.round)).toEqual([0, 400, 1600, 800])
   })
 
+  it('starts a new image centred when the parent copies on every render', async () => {
+    const { stage, onValueChange, last, update } = await renderCrop()
+    stage.focus()
+    await userEvent.keyboard('{ArrowUp}')
+    // A parent that builds a fresh copy each render, as without React Compiler.
+    const kept = structuredClone(last())
+    update({ value: { ...kept } })
+    update({ value: { ...kept }, src: square })
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(3))
+    const { x, y, width, height } = last().area
+    expect([x, y, width, height].map(Math.round)).toEqual([0, 400, 1600, 800])
+  })
+
+  it('keeps a crop the user moves back to on a same-size image', async () => {
+    const { stage, onValueChange, last, update } = await renderCrop()
+    stage.focus()
+    await userEvent.keyboard('{ArrowUp}')
+    const old = structuredClone(last())
+    update({ value: { ...old } })
+    await nextFrames()
+    // Where the old crop sits on screen; the twin is the same size.
+    const top = rect(imageOf(stage)).top
+    const twin = await makePhoto(2400, 1600)
+    update({ value: { ...old }, src: twin })
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(3))
+    update({ value: { ...last() }, src: twin })
+    await userEvent.keyboard('{ArrowUp}')
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(4))
+    expect(last().area.y).toBeCloseTo(old.area.y)
+    update({ value: { ...last() }, src: twin })
+    await nextFrames()
+    expect(rect(imageOf(stage)).top).toBeCloseTo(top)
+  })
+
   it('starts a new image centred after an untouched defaultValue', async () => {
     const onValueChange = vi.fn<(value: ImageCropValue) => void>()
     const area = { x: 600, y: 400, width: 1200, height: 600 }

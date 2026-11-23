@@ -53,6 +53,16 @@ function useSourceUrl(src: string | Blob) {
   return blob?.src === src ? blob.url : undefined
 }
 
+function sameValue(a?: ImageCropValue, b?: ImageCropValue) {
+  if (!a || !b) return a === b
+  return (
+    a.rotation === b.rotation &&
+    (['x', 'y', 'width', 'height'] as const).every(
+      (key) => a.area[key] === b.area[key]
+    )
+  )
+}
+
 /**
  * Crops an image to a fixed ratio: the image pans and zooms under a frame.
  * With no children it renders `ImageCrop.Stage`.
@@ -85,10 +95,11 @@ export function ImageCropRoot({
     given?: ImageCropValue
     stale?: ImageCropValue
   }>({ src, given })
-  const stale =
-    seen.given !== given ? undefined : seen.src !== src ? given : seen.stale
-  if (seen.src !== src || seen.given !== given) setSeen({ src, given, stale })
-  const current = given === stale ? undefined : given
+  // Compared by content, since a parent may pass a fresh copy each render.
+  const changed = !sameValue(seen.given, given)
+  const stale = changed ? undefined : seen.src !== src ? given : seen.stale
+  if (seen.src !== src || changed) setSeen({ src, given, stale })
+  const current = stale && sameValue(given, stale) ? undefined : given
 
   return (
     <ImageCropContext
