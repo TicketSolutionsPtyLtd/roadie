@@ -19,13 +19,11 @@ export type CommandPaletteInputProps = AutocompleteInputProps &
   RefAttributes<HTMLInputElement>
 
 // keyCode 229: Safari's last keydown of a composition reports isComposing false.
-const isHeldOrComposing = (event: KeyboardEvent<HTMLInputElement>) =>
-  event.shiftKey ||
-  event.altKey ||
-  event.metaKey ||
-  event.ctrlKey ||
-  event.nativeEvent.isComposing ||
-  event.keyCode === 229
+const isComposing = (event: KeyboardEvent<HTMLInputElement>) =>
+  event.nativeEvent.isComposing || event.keyCode === 229
+
+const isHeld = (event: KeyboardEvent<HTMLInputElement>) =>
+  event.altKey || event.metaKey || event.ctrlKey
 
 export function CommandPaletteInput({
   className,
@@ -48,8 +46,7 @@ export function CommandPaletteInput({
   // the caret.
   function changeScope(event: KeyboardEvent<HTMLInputElement>) {
     const { selectionStart, selectionEnd, value } = event.currentTarget
-    const tabKey =
-      event.key === 'Tab' && !event.altKey && !event.metaKey && !event.ctrlKey
+    const tabKey = event.key === 'Tab' && !isHeld(event)
     const step = tabKey
       ? event.shiftKey
         ? -1
@@ -60,9 +57,9 @@ export function CommandPaletteInput({
           ? 1
           : 0
     const next = scopes[index + step]
-    if (step === 0 || next === undefined) return
-    if (tabKey ? event.nativeEvent.isComposing : isHeldOrComposing(event))
-      return
+    if (step === 0 || next === undefined || isComposing(event)) return
+    // Shift+Tab steps back; a held arrow is the caret's.
+    if (!tabKey && (event.shiftKey || isHeld(event))) return
     event.preventDefault()
     setScope(next)
   }
