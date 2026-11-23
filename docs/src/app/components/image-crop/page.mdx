@@ -59,7 +59,7 @@ The frame stays still and the image moves under it. Drag to pan. Focus the crop 
 
 ### Value
 
-`onValueChange` gets the crop once the image loads, then once each drag, burst of scrolling, or key press ends, never on every frame. `area` is in the image's own pixels and `percent` runs 0 to 100, both from the top left. `zoom` is screen pixels per image pixel, so it changes with the crop area's size: save `area` or `percent`.
+`onValueChange` gets the crop once the image loads, unless a `value` or `defaultValue` already fits, then once each drag, burst of scrolling, or key press ends, never on every frame. A new `src` starts centred unless a new `value` comes with it. `area` is in the image's own pixels and `percent` runs 0 to 100, both from the top left. `zoom` is screen pixels per image pixel, so it changes with the crop area's size: save `area` or `percent`.
 
 ```tsx-live-noinline layout=stack gap=3
 function EventImage() {

@@ -113,4 +113,12 @@ describe('sameCrop', () => {
     expect(sameCrop(start, panBy(start, 0, -1, scene))).toBe(true)
     expect(sameCrop(start, panBy(start, 0, -4, scene))).toBe(false)
   })
+
+  it('compares at the zoom on screen, not a stale one either side', () => {
+    // A saved value carries whatever zoom it was given, here none.
+    const saved = { ...start, zoom: 0 }
+    const moved = panBy(start, 0, -40, scene)
+    expect(sameCrop(saved, moved)).toBe(false)
+    expect(sameCrop(moved, saved)).toBe(false)
+  })
 })

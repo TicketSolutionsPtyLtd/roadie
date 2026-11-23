@@ -56,7 +56,8 @@ export function ImageCropStage({
   const [active, setActive] = useState(false)
   const [, repaint] = useReducer((n: number) => n + 1, 0)
   const drag = useRef<{ id: number; x: number; y: number }>(null)
-  const live = useRef<ImageCropValue>(null)
+  // The value mid-gesture, and the image it was made on.
+  const live = useRef<{ src?: string; value: ImageCropValue }>(null)
   const describedBy = useId()
 
   const image = loaded && loaded.src === crop.src ? loaded.size : undefined
@@ -67,7 +68,7 @@ export function ImageCropStage({
       ? { frame, image, min: crop.min }
       : undefined
   const shown = scene && fitCrop(crop.value, scene)
-  const latest = useRef({ scene, shown, commit: crop.commit })
+  const latest = useRef({ scene, shown, src: crop.src, commit: crop.commit })
 
   // Mid-gesture only the transform changes, written here rather than rendered.
   const paint = (value: ImageCropValue) => {
@@ -77,7 +78,9 @@ export function ImageCropStage({
   }
 
   useLayoutEffect(() => {
-    latest.current = { scene, shown, commit: crop.commit }
+    latest.current = { scene, shown, src: crop.src, commit: crop.commit }
+    // A gesture on the last image ends unreported, as a new one starts centred.
+    if (live.current && live.current.src !== crop.src) live.current = null
     if (shown && !live.current) paint(shown)
   })
 
@@ -117,7 +120,7 @@ export function ImageCropStage({
 
   // Ends a gesture: report once, then paint whatever value the parent kept.
   const finish = () => {
-    const value = live.current
+    const value = live.current?.value
     const { shown, commit } = latest.current
     live.current = null
     setActive(false)
@@ -130,14 +133,15 @@ export function ImageCropStage({
     if (!element) return
     let timer: ReturnType<typeof setTimeout> | undefined
     const onWheel = (event: WheelEvent) => {
-      const { scene, shown } = latest.current
+      const { scene, shown, src } = latest.current
       if (document.activeElement !== element || !scene || !shown) return
-      if (drag.current) return
+      // Focused, a wheel never scrolls the page, but it waits out a drag.
       event.preventDefault()
+      if (drag.current) return
       const rect = element.getBoundingClientRect()
       const lines = { 1: 16, 2: rect.height }[event.deltaMode] ?? 1
-      const base = live.current ?? shown
-      live.current = zoomTo(
+      const base = live.current?.value ?? shown
+      const value = zoomTo(
         base,
         base.zoom * Math.exp(-event.deltaY * lines * 0.002),
         scene,
@@ -146,7 +150,8 @@ export function ImageCropStage({
           y: event.clientY - rect.top - rect.height / 2
         }
       )
-      paint(live.current)
+      live.current = { src, value }
+      paint(value)
       setActive(true)
       clearTimeout(timer)
       timer = setTimeout(finish, WHEEL_SETTLE_MS)
@@ -171,13 +176,14 @@ export function ImageCropStage({
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const start = drag.current
     if (!start || start.id !== event.pointerId || !scene || !shown) return
-    live.current = panBy(
+    const value = panBy(
       shown,
       -(event.clientX - start.x) / shown.zoom,
       -(event.clientY - start.y) / shown.zoom,
       scene
     )
-    paint(live.current)
+    live.current = { src: crop.src, value }
+    paint(value)
   }
 
   const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {

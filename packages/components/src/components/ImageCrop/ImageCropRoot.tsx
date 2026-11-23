@@ -23,13 +23,17 @@ export type ImageCropRootProps = Omit<
   minWidth?: number
   /** The shortest crop in the image's own pixels. Zoom stops before the crop drops below it. */
   minHeight?: number
-  /** The crop, when you control it. Its `area` (or `percent`) wins over `zoom`. */
+  /**
+   * The crop, when you control it. Its `area` (or `percent`) wins over `zoom`.
+   * A new `src` starts centred unless a new value comes with it.
+   */
   value?: ImageCropValue
   /** The crop to start with, when ImageCrop controls it. */
   defaultValue?: ImageCropValue
   /**
-   * Called once the image loads, with the centred crop that covers the frame,
-   * then once each time a drag, a burst of wheel zoom or a key press ends.
+   * Called once the image loads, with the centred crop that covers the frame
+   * (or the given value, moved to fit, if it didn't), then once each time a
+   * drag, a burst of wheel zoom or a key press ends.
    */
   onValueChange?: (value: ImageCropValue) => void
   /** What a screen reader calls the crop area. */
@@ -68,17 +72,23 @@ export function ImageCropRoot({
   ...props
 }: ImageCropRootProps) {
   const [uncontrolled, setUncontrolled] = useState(defaultValue)
-  const [last, setLast] = useState<{ src?: string; value: ImageCropValue }>()
   const url = useSourceUrl(src)
   const commit = (next: ImageCropValue) => {
     if (value === undefined) setUncontrolled(next)
-    setLast({ src: url, value: next })
     onValueChange?.(next)
   }
-  // A crop made for the last image, echoed back, doesn't carry to a new one.
+  // A value that hasn't changed since `src` did was made for the last image,
+  // so a new one starts centred. A value given with the new `src` is kept.
   const given = value ?? uncontrolled
-  const current =
-    last && last.value === given && last.src !== url ? undefined : given
+  const [seen, setSeen] = useState<{
+    src: string | Blob
+    given?: ImageCropValue
+    stale?: ImageCropValue
+  }>({ src, given })
+  const stale =
+    seen.given !== given ? undefined : seen.src !== src ? given : seen.stale
+  if (seen.src !== src || seen.given !== given) setSeen({ src, given, stale })
+  const current = given === stale ? undefined : given
 
   return (
     <ImageCropContext

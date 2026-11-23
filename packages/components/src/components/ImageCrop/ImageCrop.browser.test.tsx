@@ -104,6 +104,76 @@ describe('ImageCrop on load', () => {
     expect([x, y, width, height].map(Math.round)).toEqual([0, 400, 1600, 800])
   })
 
+  it('starts a new image centred when the parent kept a copy', async () => {
+    const { stage, onValueChange, last, update } = await renderCrop()
+    stage.focus()
+    await userEvent.keyboard('{ArrowUp}')
+    // A parent that stores a copy, such as one rounded for saving.
+    const kept = structuredClone(last())
+    update({ value: kept })
+    update({ value: kept, src: square })
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(3))
+    const { x, y, width, height } = last().area
+    expect([x, y, width, height].map(Math.round)).toEqual([0, 400, 1600, 800])
+  })
+
+  it('starts a new image centred after an untouched defaultValue', async () => {
+    const onValueChange = vi.fn<(value: ImageCropValue) => void>()
+    const area = { x: 600, y: 400, width: 1200, height: 600 }
+    const crop = (src: Blob) => (
+      <div style={{ width: 640 }}>
+        <ImageCrop
+          src={src}
+          aspectRatio={2}
+          defaultValue={{ area, percent: area, zoom: 1, rotation: 0 }}
+          onValueChange={onValueChange}
+        />
+      </div>
+    )
+    const { rerender } = render(crop(photo))
+    // The value fits the photo, so it shows as given and nothing is reported.
+    await waitFor(() =>
+      expect(
+        rect(screen.getByRole('group').querySelector('img')!).width
+      ).toBeCloseTo(2400 * (544 / 1200))
+    )
+    rerender(crop(square))
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+    const { x, y, width, height } = onValueChange.mock.lastCall![0].area
+    expect([x, y, width, height].map(Math.round)).toEqual([0, 400, 1600, 800])
+  })
+
+  it('keeps a value given with a new image', async () => {
+    const { stage, onValueChange, update } = await renderCrop()
+    const area = { x: 0, y: 0, width: 1600, height: 800 }
+    update({
+      src: square,
+      value: { area, percent: area, zoom: 1, rotation: 0 }
+    })
+    // The square shows 544px tall once loaded; the photo was 363px.
+    await waitFor(() => expect(rect(imageOf(stage)).height).toBeCloseTo(544))
+    await nextFrames()
+    expect(rect(imageOf(stage)).top).toBeCloseTo(rect(frameOf(stage)).top)
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports a value that does not fit, whatever zoom it carries', async () => {
+    const onValueChange = vi.fn()
+    const area = { x: 0, y: 900, width: 2400, height: 1200 }
+    render(
+      <div style={{ width: 640 }}>
+        <ImageCrop
+          src={photo}
+          aspectRatio={2}
+          defaultValue={{ area, percent: area, zoom: 0, rotation: 0 }}
+          onValueChange={onValueChange}
+        />
+      </div>
+    )
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+    expect(onValueChange.mock.lastCall![0].area.y).toBe(400)
+  })
+
   it('keeps a value that fits, and reports nothing', async () => {
     const onValueChange = vi.fn()
     const area = { x: 600, y: 400, width: 1200, height: 600 }
@@ -145,6 +215,45 @@ describe('ImageCrop with a pointer', () => {
     expect(onValueChange).toHaveBeenCalledTimes(2)
     expect(last().area.y).toBeCloseTo(200 - 30 / zoom, 0)
     expect(stage).not.toHaveAttribute('data-active')
+  })
+
+  it('ends a drag when the stage loses the pointer', async () => {
+    await commands.parkPointer()
+    const { stage, onValueChange } = await renderCrop()
+    let pointerId = 0
+    stage.addEventListener('pointerdown', (event) => {
+      pointerId = event.pointerId
+    })
+    const { x, y } = rect(stage)
+    await commands.pointer([
+      { type: 'move', x: x + 320, y: y + 240 },
+      { type: 'down' },
+      { type: 'move', x: x + 320, y: y + 270, steps: 6 }
+    ])
+    stage.dispatchEvent(
+      new PointerEvent('lostpointercapture', { pointerId, bubbles: true })
+    )
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-active'))
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    await commands.pointer([
+      { type: 'move', x: x + 320, y: y + 300, steps: 3 },
+      { type: 'up' }
+    ])
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+  })
+
+  it('ignores keys while a pointer is down', async () => {
+    await commands.parkPointer()
+    const { stage, onValueChange } = await renderCrop()
+    const { x, y } = rect(stage)
+    await commands.pointer([
+      { type: 'move', x: x + 320, y: y + 240 },
+      { type: 'down' }
+    ])
+    expect(stage).toHaveFocus()
+    await userEvent.keyboard('{ArrowUp}')
+    await commands.pointer([{ type: 'up' }])
+    expect(onValueChange).toHaveBeenCalledTimes(1)
   })
 
   it('stops at the edge, so the image still covers the frame', async () => {
@@ -195,6 +304,49 @@ describe('ImageCrop with the wheel', () => {
     await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
     expect(last().zoom).toBeGreaterThan(before)
     expectCovered(stage)
+  })
+})
+
+describe('ImageCrop with the wheel mid-gesture', () => {
+  const wheel = (stage: HTMLElement) => {
+    const { x, y, width, height } = rect(stage)
+    const event = new WheelEvent('wheel', {
+      deltaY: -100,
+      clientX: x + width / 2,
+      clientY: y + height / 2,
+      bubbles: true,
+      cancelable: true
+    })
+    stage.dispatchEvent(event)
+    return event
+  }
+
+  it('keeps the page still under a wheel mid-drag, and does not zoom', async () => {
+    await commands.parkPointer()
+    const { stage, last } = await renderCrop()
+    const zoom = last().zoom
+    const { x, y } = rect(stage)
+    await commands.pointer([
+      { type: 'move', x: x + 320, y: y + 240 },
+      { type: 'down' },
+      { type: 'move', x: x + 320, y: y + 270, steps: 6 }
+    ])
+    expect(wheel(stage).defaultPrevented).toBe(true)
+    await commands.pointer([{ type: 'up' }])
+    expect(last().zoom).toBeCloseTo(zoom)
+  })
+
+  it('drops a zoom still settling when the image changes', async () => {
+    const { stage, onValueChange, last, update } = await renderCrop()
+    stage.focus()
+    wheel(stage)
+    update({ src: square })
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-active'))
+    await nextFrames()
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    const { x, y, width, height } = last().area
+    expect([x, y, width, height].map(Math.round)).toEqual([0, 400, 1600, 800])
   })
 })
 
