@@ -28,7 +28,7 @@ export function ComboboxItem({
   ...props
 }: ComboboxItemProps) {
   const byPointer = use(PointerHighlightContext)
-  const virtualItem = useVirtualItem(ref)
+  const virtualItem = useVirtualItem(ref, props.value)
   return (
     <ComboboxPrimitive.Item
       data-slot='combobox-item'
