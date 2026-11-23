@@ -34,12 +34,7 @@ type CodePreviewProps = {
   exampleHref?: string
   /** Renders the live example on load instead of when it nears the viewport. An `eager` fence meta does the same. */
   eager?: boolean
-  /**
-   * Runs the live example in its own frame at the screen's device, as the
-   * width picker does for another device, so a page-wide shortcut it binds,
-   * such as a CommandPalette's ⌘K, stays out of the docs page. A `framed`
-   * fence meta does the same.
-   */
+  /** Runs the live example in a frame even at the screen's own device, so a shortcut it binds, such as ⌘K, stays out of the docs page. A `framed` fence meta does the same. */
   framed?: boolean
   /** Classes the preview lays the example out with, from the fence's `layout=`, `gap=`, and `width=`. */
   previewLayout?: string
