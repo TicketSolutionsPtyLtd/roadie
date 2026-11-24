@@ -83,8 +83,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   (`full`), and without what only an `import()` reaches (`initial`). `size`
   allows 3% or 300 B of growth, whichever is larger. For a new subpath, or
   growth you meant, build, run `pnpm --filter <package> size:update`, and
-  commit the file. After taking `main`, run the update again; never merge
-  the table by hand.
+  commit the file. After taking `main`, build and run the update again;
+  never merge the table by hand.
   New `@utility` classes also go in `src/css/safelist.html`. Core's CSS has
   hand-set Size Limit budgets in the `size-limit` field of its `package.json`
   (`roadie.compiled.css`, brotli and raw, and what importing
