@@ -208,11 +208,12 @@ describe('FileUpload', () => {
       expect(click).toHaveBeenCalledTimes(1)
     })
 
-    it('shows the chosen file under its title', () => {
+    it('lists the chosen file under it, with a way to remove it', () => {
       render(<FileUpload defaultValue={[csv('payments.csv', 1960)]} />)
-      expect(screen.getByRole('button')).toHaveTextContent(
-        'Drop a file, or choose onepayments.csv2 kB'
-      )
+      expect(screen.getByRole('listitem')).toHaveTextContent('payments.csv2 kB')
+      expect(
+        screen.getByRole('button', { name: 'Remove payments.csv' })
+      ).toBeInTheDocument()
     })
 
     it('leaves the tab order and keeps the picker shut when disabled', async () => {
@@ -335,6 +336,99 @@ describe('FileUpload', () => {
       expect(
         screen.getByRole('button', { name: 'Remove payments.csv' })
       ).toBeDisabled()
+    })
+  })
+
+  describe('the list', () => {
+    const pdf = new File(['x'.repeat(2048)], 'rider.pdf', {
+      type: 'application/pdf'
+    })
+
+    it('renders each file through a child function', () => {
+      render(
+        <FileUpload defaultValue={[pdf]}>
+          <FileUpload.List>
+            {({ file, id }) => (
+              <FileUpload.Item data-testid={id}>
+                <FileUpload.ItemName />
+                {file.type}
+              </FileUpload.Item>
+            )}
+          </FileUpload.List>
+        </FileUpload>
+      )
+      expect(screen.getByRole('listitem')).toHaveTextContent(
+        'rider.pdfapplication/pdf'
+      )
+      expect(screen.getByTestId(/^file-/)).toBeInTheDocument()
+    })
+
+    it('removes a file and moves focus to the next row, then the previous', async () => {
+      const onValueChange = vi.fn()
+      const march = csv('march.csv')
+      const april = csv('april.csv')
+      const may = csv('may.csv')
+      render(
+        <FileUpload
+          defaultValue={[march, april, may]}
+          onValueChange={onValueChange}
+        >
+          <FileUpload.List />
+        </FileUpload>
+      )
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Remove april.csv' }))
+      expect(onValueChange).toHaveBeenLastCalledWith([march, may])
+      expect(
+        screen.getByRole('button', { name: 'Remove may.csv' })
+      ).toHaveFocus()
+      await user.click(screen.getByRole('button', { name: 'Remove may.csv' }))
+      expect(onValueChange).toHaveBeenLastCalledWith([march])
+      expect(
+        screen.getByRole('button', { name: 'Remove march.csv' })
+      ).toHaveFocus()
+      await waitFor(() =>
+        expect(screen.getAllByRole('listitem')).toHaveLength(1)
+      )
+    })
+
+    it('moves focus to the dropzone when the last file goes', async () => {
+      render(<FileUpload defaultValue={[csv()]} />)
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Remove payments.csv' })
+      )
+      expect(screen.getByRole('button', { name: /^Drop a file/ })).toHaveFocus()
+      await waitFor(() => expect(screen.queryByRole('list')).toBeNull())
+    })
+
+    it('drops a removed row at once when it is not a FileUpload.Item', async () => {
+      render(
+        <FileUpload defaultValue={[csv()]}>
+          <FileUpload.List>
+            {({ file }) => <li>{file.name}</li>}
+          </FileUpload.List>
+          <FileUpload.Clear />
+        </FileUpload>
+      )
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Remove payments.csv' })
+      )
+      await waitFor(() => expect(screen.queryByRole('list')).toBeNull())
+    })
+
+    it('empties the value with Clear', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <FileUpload defaultValue={[csv()]} onValueChange={onValueChange}>
+          <FileUpload.List />
+          <FileUpload.Clear />
+        </FileUpload>
+      )
+      await userEvent.click(
+        screen.getAllByRole('button', { name: 'Remove payments.csv' })[1]!
+      )
+      expect(onValueChange).toHaveBeenCalledWith([])
+      await waitFor(() => expect(screen.queryByRole('list')).toBeNull())
     })
   })
 })

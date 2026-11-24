@@ -9,7 +9,6 @@ import { cn } from '@oztix/roadie-core/utils'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { IconTile } from '../IconTile'
 import { useFileUploadContext } from './FileUploadContext'
-import { formatFileSize } from './checkFile'
 import { useFileDrop } from './useFileDrop'
 
 export type FileUploadDropzoneProps = Omit<ComponentProps<'div'>, 'title'> & {
@@ -20,7 +19,7 @@ export type FileUploadDropzoneProps = Omit<ComponentProps<'div'>, 'title'> & {
 /**
  * The area files are dropped on. It's also a button: a click, Enter or Space
  * opens the picker, so never put a Trigger inside it. Its icon tile lifts
- * while files are over it, and the chosen file shows under the title.
+ * while files are over it. `FileUpload.List` shows the chosen files.
  */
 export function FileUploadDropzone({
   id,
@@ -38,7 +37,6 @@ export function FileUploadDropzone({
   const dragging = useFileDrop(ownRef, 'FileUpload.Dropzone')
   const ownId = useId()
   const zoneId = id ?? ownId
-  const [file] = context.files
   return (
     <div
       ref={mergeRefs(ref, ownRef, context.triggerRef)}
@@ -83,12 +81,6 @@ export function FileUploadDropzone({
         <CloudArrowUpIcon weight='bold' />
       </IconTile>
       <p className='text-display-ui-6 text-strong'>{title}</p>
-      {file && (
-        <p className='flex max-w-full min-w-0 gap-2 text-sm text-subtle'>
-          <span className='truncate text-normal'>{file.name}</span>
-          <span className='shrink-0'>{formatFileSize(file.size)}</span>
-        </p>
-      )}
       {children}
     </div>
   )
