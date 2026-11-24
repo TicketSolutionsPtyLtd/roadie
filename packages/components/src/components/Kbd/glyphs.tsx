@@ -1,7 +1,4 @@
-// The bold weight of ten Phosphor icons, inlined so Kbd, and every Tooltip
-// and Menu item that shows a shortcut, doesn't load all six weights of each.
-// glyphs.test.tsx checks each one renders exactly as Phosphor's bold. The
-// legal comment below keeps Phosphor's MIT notice in the built file.
+// Phosphor's bold paths, inlined so Kbd doesn't load all six weights.
 import type { SVGProps } from 'react'
 
 /*! Phosphor Icons (https://phosphoricons.com), MIT License, Copyright (c) 2020 Phosphor Icons */

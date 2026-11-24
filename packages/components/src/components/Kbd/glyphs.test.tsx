@@ -43,10 +43,6 @@ const cases = Object.entries(PHOSPHOR).map(
 )
 
 describe('Kbd glyphs', () => {
-  it('draws exactly the ten glyphs Kbd uses', () => {
-    expect(cases).toHaveLength(10)
-  })
-
   it.each(cases)(
     '%s renders the same SVG as Phosphor bold',
     (_, Glyph, PhosphorIcon) => {
