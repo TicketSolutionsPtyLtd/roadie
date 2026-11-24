@@ -29,12 +29,12 @@ export function useRecordsLayout({
   maxHeight
 }: Pick<RecordsContentProps, 'fill' | 'maxHeight'>) {
   const context = useRecordsContext()
-  const { records, toolbar, setContentFill } = context
+  const { records, toolbar, scope, setContentFill } = context
   const leaveSelect = useLeaveSelectOnEscape()
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const boxed = fill || Boolean(maxHeight)
-  const stickyTop = useStickyTop(frameRef, toolbar, boxed)
+  const stickyTop = useStickyTop(frameRef, toolbar, scope, boxed)
   useLayoutEffect(() => {
     setContentFill(fill)
     return () => setContentFill(false)

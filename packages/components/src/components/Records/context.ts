@@ -20,9 +20,9 @@ export type RecordsContextValue = {
   layouts: readonly AnyRecordLayout[]
   /** Accessible name for the records, such as the table's. */
   caption?: string
-  /** The mounted toolbar and its height, so Content's header sticks under it. */
-  toolbar: RecordsToolbarBox | null
-  setToolbar: Dispatch<SetStateAction<RecordsToolbarBox | null>>
+  /** The mounted toolbar, so Content's header sticks under it. Its height is a custom property named by `scope`, so a resize renders nothing. */
+  toolbar: HTMLElement | null
+  setToolbar: Dispatch<SetStateAction<HTMLElement | null>>
   /** Whether Content fills its parent's height. */
   contentFill: boolean
   setContentFill: (fill: boolean) => void
@@ -48,8 +48,6 @@ export type RecordsContextValue = {
   /** Bumped by each change to the search or filters, so an action can tell its query moved on. */
   queryRevision: RefObject<{ key: string; count: number }>
 }
-
-export type RecordsToolbarBox = { element: HTMLElement; height: number }
 
 export const RecordsContext = createContext<RecordsContextValue | null>(null)
 
