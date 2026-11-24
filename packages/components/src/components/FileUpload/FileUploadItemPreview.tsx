@@ -94,6 +94,8 @@ export function FileUploadItemPreview({
         await decoder.decode()
         if (live) setSrc(made)
       })
+      // A file the browser can't decode, such as a HEIC, keeps the icon.
+      // That's the intended fallback, not an error to report.
       .catch(() => {})
     return () => {
       live = false
