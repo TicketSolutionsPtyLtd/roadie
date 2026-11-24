@@ -27,6 +27,7 @@ import {
   CaretUpIcon,
   CheckCircleIcon,
   CheckIcon,
+  CropIcon,
   CopyIcon,
   CubeIcon,
   DotsThreeIcon,
@@ -106,6 +107,7 @@ import {
   resolveComparison,
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
+import { cropImage } from '@oztix/roadie-core/image'
 import {
   compileRecordQuery,
   recordFields,
@@ -150,6 +152,7 @@ const PhosphorIcons = {
   BellRingingIcon,
   CheckCircleIcon,
   CheckIcon,
+  CropIcon,
   LinkSimpleIcon,
   XIcon,
   XCircleIcon,
@@ -271,6 +274,7 @@ const scope = {
   Gallery,
   LegendKey,
   lineChartTable,
+  cropImage,
   addDays,
   plainDateOf,
   resolveComparison,
