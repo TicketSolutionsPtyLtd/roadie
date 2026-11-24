@@ -12,11 +12,7 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useDevWarning } from '../../utils/useDevWarning'
-import {
-  RecordsContext,
-  type RecordsToolbarBox,
-  useRecordsContext
-} from './context'
+import { RecordsContext, useRecordsContext } from './context'
 import type { AnyRecordLayout } from './layouts'
 import { useLeaveSelectOnEscape } from './selectMode'
 import { matchKey } from './selection'
@@ -45,7 +41,7 @@ export function RecordsProvider<Row extends object>({
       `[Roadie] Records has two layouts of one type (${types.join(', ')}). Records shows and offers only the first of each.`
   )
   const [contentFill, setContentFill] = useState(false)
-  const [toolbar, setToolbar] = useState<RecordsToolbarBox | null>(null)
+  const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
   const [selectMode, setSelectMode] = useState(false)
   const [bulkMounted, setBulkMounted] = useState(false)
   const [bulkSlot, setBulkSlot] = useState<HTMLElement | null>(null)
