@@ -363,7 +363,10 @@ export function PhoneField({
                       <span className='text-subtle tabular-nums'>
                         +{option.dialCode}
                       </span>
-                      <Combobox.ItemIndicator />
+                      {/* A slot on every row, so the check doesn't shift the chosen row's dial code. */}
+                      <span className='grid size-4 shrink-0 place-items-center'>
+                        <Combobox.ItemIndicator />
+                      </span>
                     </Combobox.Item>
                   )}
                 </Combobox.List>

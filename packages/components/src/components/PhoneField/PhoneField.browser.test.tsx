@@ -171,6 +171,28 @@ describe('PhoneField picker', () => {
     expect(await search()).toHaveValue('')
   })
 
+  it("lines up every dial code, with room for the chosen country's check", async () => {
+    const { picker } = mount({
+      defaultCountry: 'NZ',
+      countries: ['AU', 'NZ', 'GB', 'US']
+    })
+    await userEvent.click(picker)
+    await expect.poll(() => options().length).toBe(4)
+
+    const dialCodes = options().map(
+      (option) =>
+        [...option.querySelectorAll('span')]
+          .find((span) => span.textContent?.startsWith('+'))!
+          .getBoundingClientRect().right
+    )
+    expect(new Set(dialCodes.map(Math.round)).size).toBe(1)
+    const check = screen
+      .getByRole('option', { name: /New Zealand/ })
+      .querySelector('svg')!
+      .getBoundingClientRect()
+    expect(check.left).toBeGreaterThan(dialCodes[0]!)
+  })
+
   it('keeps the popup on a 320px screen', async () => {
     await page.viewport(320, 568)
     try {
