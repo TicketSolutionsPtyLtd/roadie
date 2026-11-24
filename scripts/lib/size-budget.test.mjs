@@ -54,6 +54,8 @@ describe('bundle', () => {
     [
       `import { useState } from 'react'`,
       `import { jsx } from 'react/jsx-runtime'`,
+      // Not installed here, so bundling fails unless they are left to the app.
+      `import 'react-dom/client'\nimport 'vue'\nimport 'mjml'`,
       `import { dep } from 'dep'`,
       `import { shared } from './shared.js'`,
       `export const own = ['OWN_CODE', dep, shared, useState, jsx]`,
