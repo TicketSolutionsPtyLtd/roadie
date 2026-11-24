@@ -17,6 +17,9 @@ const fixtures = Object.entries(files).flatMap(([file, exports]) =>
 let removeStylesheet = () => {}
 beforeAll(() => {
   removeStylesheet = useStylesheet(roadieCss)
+  // Every run reads as a Mac, the keyboard whose keys shift, on any machine.
+  const userAgentData = { platform: 'macOS' }
+  Object.defineProperty(navigator, 'userAgentData', { value: userAgentData })
 })
 afterAll(async () => {
   removeStylesheet()

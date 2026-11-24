@@ -61,6 +61,9 @@ pnpm --filter docs dev
   semantic colour, z-index, duration, easing, and text style) also goes in its
   group in `packages/core/src/utils/cn.ts`, or `cn()` keeps both classes and a
   consumer's class can't override the component's.
+- A component folder with client state gets a `Component.ssr.tsx` hydration
+  fixture (`src/hydration.browser.test.tsx` runs it), or an `EXEMPT` entry
+  with a reason in `src/hydrationFixtures.test.ts`, which fails otherwise.
 - `packages/core/src/css/roadie.css` imports every sheet in order, and each
   sheet's header says what it owns.
 - Every package but the lint plugin builds `dist/roadie.manifest.json`
