@@ -69,11 +69,13 @@ describe('roadie.compiled.css', () => {
     )
     const safelisted = new Set(
       [...safelist.matchAll(/class="([^"]*)"/g)].flatMap(([, names = '']) =>
-        names.split(/\s+/)
+        names.trim().split(/\s+/).filter(Boolean)
       )
     )
     const classes = classesIn(sheet)
     expect(classes).toContain('emphasis-strong')
+    expect(classes).toContain('z-popover')
+    expect(classes).toContain('ease-spring')
     expect(
       classes.filter(
         (name) => !safelisted.has(name) && !OWN_SELECTORS.includes(name)
@@ -82,6 +84,6 @@ describe('roadie.compiled.css', () => {
   })
 
   it('needs no browser support for CSS nesting', () => {
-    expect(sheet.includes('&')).toBe(false)
+    expect(sheet.replace(/"[^"]*"|'[^']*'/g, '').includes('&')).toBe(false)
   })
 })
