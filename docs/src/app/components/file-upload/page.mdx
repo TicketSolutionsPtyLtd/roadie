@@ -56,6 +56,19 @@ With no children, `FileUpload` is a dropzone with the chosen file listed under i
 </Field>
 ```
 
+### Drop anywhere on the page
+
+Where uploading is the page's main job, `pageDrop` lets the whole window take files. While they're dragged in, an overlay names the field and counts them, such as "Drop to add 3 files to Event documents", and turns danger when every file is a type the field won't take. Over a dropzone it steps aside, and the dropzone takes the drop. Give it to one field per page; a second one warns in development. The type check needs MIME types in `accept`, since a file's name, and so its extension, stays hidden until the drop.
+
+```tsx-live width=140
+<Field>
+  <Field.Label>Event documents</Field.Label>
+  <FileUpload pageDrop name='documents' maxFiles={6} accept='image/*,application/pdf' />
+  <Field.HelperText>Images or PDFs. Drag them anywhere on this page.</Field.HelperText>
+  <Field.ErrorText />
+</Field>
+```
+
 ### Upload
 
 Give `onUpload` a function that uploads one file, and the field uploads each file as it's added. When several join the value at once, such as through a controlled `value`, three upload at a time and the rest wait. It's called with the file and `{ signal, onProgress }`: report progress from 0 to 1, and stop when `signal` aborts, as it does when the file is removed. What it resolves becomes the row's `result`, such as the stored file's URL. A function that only takes the file, such as the editor's `onUploadImage`, works too. While a file waits and uploads, a ring over its preview fills and a hairline runs along its row, and a check pops in once it's done. Files the field starts with, from `value` or `defaultValue`, don't upload. Roadie never fetches: this example's network is fake.
@@ -249,6 +262,7 @@ A `FileUpload.Trigger` on its own is a plain button, for a toolbar or a row of a
 ## Accessibility
 
 - Dragging is never the only way in. `FileUpload.Dropzone` is a button: Tab reaches it, and Enter, Space or a click opens the picker. `Field.Label` and its title name it, such as "Guest list Drop a file, or choose one". Pasting a file works anywhere inside the field.
+- `pageDrop` adds a target, never the only way in: the dropzone, paste and the picker still work. Its overlay is hidden from assistive tech, since it only shows mid-drag.
 - With `maxFiles` above 1, each row's handle is named for its file, such as "Reorder rider.pdf". Dragging it is never the only way: a click, Enter or Space opens a Move menu, and focus stays on the handle once the file moves. The list is named by `Field.Label`, and the dropzone's name ends with the count, such as "Event documents Drop files, or choose them 2 of 6".
 - Each row's Remove is named for its file, such as "Remove guests.csv". After it, focus moves to the next row's Remove, the previous row's when it was the last, or the dropzone or Trigger when no files are left. A row that's collapsing is inert, so it takes no focus.
 - A polite live region says when files are added and when each one has uploaded, with the total once there's more than one, such as "april.csv uploaded. 1 of 2 uploaded." It never reads out each percent. A failed upload is announced at once, such as "april.csv couldn't upload. Retry is available."

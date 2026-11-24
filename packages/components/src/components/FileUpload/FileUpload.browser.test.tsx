@@ -15,6 +15,7 @@ import { commands, userEvent } from 'vitest/browser'
 import { FileUpload } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -469,5 +470,103 @@ describe('FileUpload with several files', () => {
     expect(row.getAnimations().length).toBeGreaterThan(0)
     settle(row)
     await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(1))
+  })
+})
+
+describe('FileUpload pageDrop', () => {
+  // An earlier test can leave a drag held over the page; a drop ends it.
+  beforeEach(() => {
+    document.body.dispatchEvent(
+      new DragEvent('drop', {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: new DataTransfer()
+      })
+    )
+  })
+  const pdf = (name: string) =>
+    new File(['%PDF'], name, { type: 'application/pdf' })
+  const overlay = () =>
+    document.querySelector<HTMLElement>('[data-slot=file-upload-page-drop]')
+
+  function Page({
+    onValueChange
+  }: {
+    onValueChange?: (files: File[]) => void
+  }) {
+    return (
+      <div style={{ display: 'grid', gap: 16 }}>
+        <p data-testid='elsewhere' style={{ height: 120 }}>
+          The rest of the page
+        </p>
+        <Field>
+          <Field.Label>Event documents</Field.Label>
+          <FileUpload
+            pageDrop
+            maxFiles={6}
+            accept='image/*,application/pdf'
+            onValueChange={onValueChange}
+          />
+        </Field>
+      </div>
+    )
+  }
+
+  it('names the field and the count while files are over the page, and takes the drop', async () => {
+    const onValueChange = vi.fn()
+    render(<Page onValueChange={onValueChange} />)
+    const files = ['rider.pdf', 'stage.pdf', 'runsheet.pdf'].map(pdf)
+    await dragFiles(screen.getByTestId('elsewhere'), files, false)
+    await waitFor(() =>
+      expect(overlay()).toHaveTextContent(
+        'Drop to add 3 files to Event documents'
+      )
+    )
+    expect(overlay()).not.toHaveAttribute('data-wrong')
+    expect(overlay()).toHaveAttribute('aria-hidden')
+    // Pointer-transparent, so the page under it still gets the drop.
+    expect(getComputedStyle(overlay()!).pointerEvents).toBe('none')
+
+    await dragFiles(screen.getByTestId('elsewhere'), files)
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(files))
+    expect(overlay()).toBeNull()
+  })
+
+  it("turns danger when every file is a type the field won't take", async () => {
+    render(<Page />)
+    await dragFiles(
+      screen.getByTestId('elsewhere'),
+      [new File(['x'], 'notes.txt', { type: 'text/plain' })],
+      false
+    )
+    await waitFor(() => expect(overlay()).toHaveAttribute('data-wrong'))
+    expect(overlay()).toHaveTextContent(
+      "Event documents doesn't take this file type"
+    )
+    expect(overlay()!.querySelector('.intent-danger')).not.toBeNull()
+  })
+
+  it('goes when the files leave the window', async () => {
+    render(<Page />)
+    const elsewhere = screen.getByTestId('elsewhere')
+    await dragFiles(elsewhere, [pdf('rider.pdf')], false)
+    await waitFor(() => expect(overlay()).not.toBeNull())
+    elsewhere.dispatchEvent(
+      new DragEvent('dragleave', { bubbles: true, relatedTarget: null })
+    )
+    await waitFor(() => expect(overlay()).toBeNull())
+  })
+
+  it('steps aside over the dropzone, which takes the drop itself', async () => {
+    const onValueChange = vi.fn()
+    render(<Page onValueChange={onValueChange} />)
+    const zone = screen.getByRole('button', { name: /^Event documents Drop/ })
+    const file = pdf('rider.pdf')
+    await dragFiles(zone, [file], false)
+    await waitFor(() => expect(zone).toHaveAttribute('data-dragging'))
+    expect(overlay()).toBeNull()
+    await dragFiles(zone, [file])
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+    expect(onValueChange).toHaveBeenCalledWith([file])
   })
 })

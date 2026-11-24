@@ -576,4 +576,20 @@ describe('FileUpload', () => {
       ).toBeInTheDocument()
     })
   })
+
+  it('warns when a second field on the page has pageDrop', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(<FileUpload pageDrop />)
+    expect(warn).not.toHaveBeenCalled()
+    rerender(
+      <>
+        <FileUpload pageDrop />
+        <FileUpload pageDrop />
+      </>
+    )
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('more than one FileUpload has pageDrop')
+    )
+    warn.mockRestore()
+  })
 })
