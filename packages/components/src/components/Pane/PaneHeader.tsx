@@ -46,7 +46,7 @@ export type PaneHeaderProps = ComponentProps<'header'> & {
 const backIcon = <CaretLeftIcon weight='bold' className='size-5' />
 const closeIcon = <XIcon weight='bold' className='size-5' />
 
-/** Sticky chrome at the top of a pane: Back, a compact title, and actions. Always one control tall, even empty, so the server's first paint is where the pane settles. */
+/** Sticky chrome at the top of a pane: Back, a compact title, and actions. At least one control tall, even empty, so the server's first paint is where the pane settles. */
 export function PaneHeader({
   backHref,
   backLabel,

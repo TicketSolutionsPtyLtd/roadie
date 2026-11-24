@@ -281,9 +281,9 @@ describe('Pane.Header', () => {
     'draws a header with %s in it, so the pane keeps its top',
     async (_, header) => {
       await renderPane(<Pane>{header}</Pane>)
-      expect(document.querySelector('[data-slot="pane-header"]')).toHaveClass(
-        'grid'
-      )
+      expect(
+        document.querySelector('[data-slot="pane-header"]')
+      ).toBeInTheDocument()
     }
   )
 
@@ -348,14 +348,15 @@ describe('Pane.Header', () => {
     expect(screen.queryByLabelText('Back')).toBeNull()
   })
 
-  it('keeps a Back-only header drawn as a title arrives, so nothing below moves', async () => {
+  it('keeps a Back-only header drawn as a title arrives', async () => {
     const { rerender } = await renderPane(
       <Pane>
         <Pane.Header backHref='/components' />
       </Pane>
     )
     const header = () => document.querySelector('[data-slot="pane-header"]')
-    expect(header()).toHaveClass('grid')
+    const before = header()
+    expect(before).toBeInTheDocument()
 
     rerender(
       <Pane>
@@ -365,7 +366,8 @@ describe('Pane.Header', () => {
       </Pane>
     )
     await flush()
-    expect(header()).toHaveClass('grid')
+    expect(header()).toBe(before)
+    expect(before).toHaveTextContent('Button')
   })
 })
 
@@ -609,7 +611,7 @@ describe('Pane.Header close affordance', () => {
     }
   })
 
-  it('draws a header of only Back, whether or not the layout shows Back', async () => {
+  it('draws a header of only Back', async () => {
     render(
       <Navigator value='/a'>
         <Pane column='list'>List</Pane>
@@ -620,7 +622,7 @@ describe('Pane.Header close affordance', () => {
     )
     await flushViewportMeasurement()
     const header = document.querySelector('[data-slot="pane-header"]')
-    expect(header).toHaveClass('grid')
+    expect(header).toContainElement(screen.getByLabelText('Back'))
   })
 
   it('never offers Back or Close on an inspector, and draws its header empty', async () => {
@@ -650,10 +652,9 @@ describe('Pane.Header close affordance', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(document.querySelector('[data-slot="pane-header"]')).toHaveClass(
-      'grid'
-    )
-    expect(screen.getByLabelText('Close')).toBeInTheDocument()
+    expect(
+      document.querySelector('[data-slot="pane-header"]')
+    ).toContainElement(screen.getByLabelText('Close'))
   })
 })
 

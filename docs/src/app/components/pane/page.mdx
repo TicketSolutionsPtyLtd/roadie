@@ -196,8 +196,8 @@ render(<Composed />)
   Inside a `Navigator`, the columns decide. See
   [Back and Close](#back-and-close).
 - `Pane.Header` keeps one control's height even with nothing in it, or when the
-  columns hide its Back. The server renders it, so the first paint, a skeleton
-  and the loaded pane all start their content at the same line. Leave
+  columns hide its Back or Close. The server renders it, so the first paint, a
+  skeleton, and the loaded pane all start their content at the same line. Leave
   `Pane.Header` out of a pane that should have no top chrome.
 
 ### Titles
