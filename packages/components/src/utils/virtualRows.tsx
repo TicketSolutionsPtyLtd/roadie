@@ -93,7 +93,7 @@ export default function VirtualRows({ children }: { children: RowRenderer }) {
         : { layout: [], count: items.length },
     [grouped, items]
   )
-  const scrollToIndex = use(VirtualListContext)
+  const scroll = use(VirtualListContext)
   const start = useRef<HTMLDivElement>(null)
   const [scroller, setScroller] = useState<HTMLElement | null>(null)
   const [margin, setMargin] = useState(0)
@@ -134,17 +134,22 @@ export default function VirtualRows({ children }: { children: RowRenderer }) {
               : measureSize(element, entry, instance)
       : measureSize
   })
+  // Offered only once there's a container to scroll, then catches up on a
+  // highlight that came before it.
   useLayoutEffect(() => {
-    if (!scrollToIndex) return
-    scrollToIndex.current = (index) =>
+    if (!scroll || !scroller) return
+    const scrollToIndex = (index: number) =>
       virtualizer.scrollToIndex(
         grouped ? index + lastAtOrBefore(layout, index, 'first') + 1 : index,
         { align: 'auto' }
       )
+    const { waiting } = scroll.current
+    scroll.current = { scrollToIndex, waiting: null }
+    if (waiting !== null) scrollToIndex(waiting)
     return () => {
-      scrollToIndex.current = null
+      scroll.current.scrollToIndex = null
     }
-  }, [scrollToIndex, virtualizer, grouped, layout])
+  }, [scroll, scroller, virtualizer, grouped, layout])
   // A sticky label pins inside the scroller's padding, so it's lifted over it.
   useLayoutEffect(() => {
     if (!scroller || !grouped || !labelHeight) return

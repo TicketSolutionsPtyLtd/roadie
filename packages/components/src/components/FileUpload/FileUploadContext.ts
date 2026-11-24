@@ -1,6 +1,6 @@
 'use client'
 
-import { type Ref, createContext, use } from 'react'
+import { type RefObject, createContext, use } from 'react'
 
 export type FileUploadContextValue = {
   files: File[]
@@ -8,9 +8,10 @@ export type FileUploadContextValue = {
   take: (files: ArrayLike<File>) => void
   open: () => void
   clear: () => void
+  remove: (file: File) => void
   inputId: string
   valueId: string
-  triggerRef: Ref<HTMLElement>
+  triggerRef: RefObject<HTMLElement | null>
   disabled: boolean
   invalid: boolean
   labelId?: string
@@ -24,6 +25,26 @@ export const FileUploadContext = createContext<FileUploadContextValue | null>(
 export function useFileUploadContext(part: string) {
   const context = use(FileUploadContext)
   if (!context) throw new Error(`${part} must be inside FileUpload.`)
+  return context
+}
+
+/** A file in `FileUpload.List`, with an id that stays the same while it's there. */
+export type FileUploadItem = { file: File; id: string }
+
+export const FileUploadItemContext = createContext<{
+  item: FileUploadItem
+  /** Removed, and collapsing before it goes. */
+  leaving: boolean
+  /** Its place among the files added with it, for the stagger. */
+  enterIndex: number
+  onLeft: () => void
+  /** Called by `FileUpload.Item`, which runs the collapse and calls `onLeft`. */
+  claim: (id: string) => void
+} | null>(null)
+
+export function useFileUploadItem(part: string) {
+  const context = use(FileUploadItemContext)
+  if (!context) throw new Error(`${part} must be inside FileUpload.List.`)
   return context
 }
 

@@ -14,6 +14,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { useFieldContext, useFieldControlError } from '../Field/FieldContext'
 import { FileUploadContext } from './FileUploadContext'
 import { FileUploadDropzone } from './FileUploadDropzone'
+import { FileUploadList } from './FileUploadList'
 import {
   type FileRules,
   type FileUploadRejection,
@@ -44,7 +45,7 @@ export type FileUploadRootProps = Omit<
 /**
  * A file field. It holds the chosen files and keeps a native file input in
  * step with them, so a form posts them under `name`. With no children it
- * renders a Dropzone. Files can also be dropped on a Control, or pasted
+ * renders a Dropzone with the List of chosen files under it. Files can also be dropped on a Control, or pasted
  * anywhere inside.
  */
 export function FileUploadRoot({
@@ -136,6 +137,7 @@ export function FileUploadRoot({
             commit([])
             triggerRef.current?.focus()
           },
+          remove: (file) => commit(files.filter((each) => each !== file)),
           inputId,
           valueId: `${ownId}-value`,
           triggerRef,
@@ -145,7 +147,12 @@ export function FileUploadRoot({
           describedBy: describedBy || undefined
         }}
       >
-        {children ?? <FileUploadDropzone />}
+        {children ?? (
+          <>
+            <FileUploadDropzone />
+            <FileUploadList />
+          </>
+        )}
       </FileUploadContext>
       <input
         ref={inputRef}

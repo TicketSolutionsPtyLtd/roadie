@@ -6,9 +6,10 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 
 import { FileUpload } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -171,7 +172,9 @@ describe('FileUpload drops', () => {
     const file = csv('march.csv')
     await dragFiles(screen.getByRole('button'), [file])
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
-    expect(screen.getByRole('button')).not.toHaveAttribute('data-dragging')
+    expect(
+      screen.getByRole('button', { name: /^Drop a file/ })
+    ).not.toHaveAttribute('data-dragging')
   })
 
   it('turns solid accent and lifts its tile on the tokens while files are over it', async () => {
@@ -253,5 +256,49 @@ describe('FileUpload bar drops', () => {
       getComputedStyle(screen.getByTestId('reference')).borderTopColor
     )
     await dragFiles(bar, [], true)
+  })
+})
+
+describe('FileUpload list', () => {
+  it('fades and collapses a removed row on the tokens, then drops it', async () => {
+    render(
+      <>
+        <FileUpload defaultValue={[csv('march.csv')]} />
+        <div
+          data-testid='reference'
+          className='transition duration-slow ease-spring'
+        />
+      </>
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove march.csv' })
+    )
+    const row = screen.getByRole('listitem', { hidden: true })
+    expect(row).toHaveAttribute('data-leaving')
+    const expected = getComputedStyle(screen.getByTestId('reference'))
+    const style = getComputedStyle(row)
+    expect(style.transitionDuration.split(', ')[0]).toBe(
+      expected.transitionDuration.split(', ')[0]
+    )
+    expect(style.transitionTimingFunction.split(', ')[0]).toBe(
+      expected.transitionTimingFunction.split(', ')[0]
+    )
+    settle(row)
+    expect(getComputedStyle(row).opacity).toBe('0')
+    expect(row.getBoundingClientRect().height).toBe(0)
+    await waitFor(() => expect(screen.queryByRole('list')).toBeNull())
+  })
+
+  it('drops a removed row at once when motion is reduced', async () => {
+    await commands.reduceMotion(true)
+    onTestFinished(() => commands.reduceMotion(false))
+    render(<FileUpload defaultValue={[csv('march.csv')]} />)
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove march.csv' })
+    )
+    // Well inside the 300ms collapse it would otherwise run.
+    await expect
+      .poll(() => screen.queryByRole('list'), { timeout: 150, interval: 10 })
+      .toBeNull()
   })
 })
