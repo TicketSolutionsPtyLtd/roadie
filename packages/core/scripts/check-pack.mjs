@@ -9,11 +9,13 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const TEST_FOLDER =
-  /(^|\/)(__tests__|__mocks__|__screenshots__|__snapshots__|__fixtures__|fixtures?|tests?|test-?utils)\//
+  /(^|\/)(__tests__|__mocks__|__screenshots__|__snapshots__|__fixtures__|fixtures?|_?tests?)\//
+// The named helpers are the ones scripts/turbo-inputs.test.mjs lists.
 const TEST_FILE =
-  /\.(test|spec)(-d)?\.(d\.)?[cm]?[jt]sx?$|((^|[/._-])[Tt]est-?[Uu]tils|\wTestUtils)\b[^/]*$/
+  /\.(test|spec)(-d)?\.(d\.)?[cm]?[jt]sx?$|(^|\/)(fixtures|testChart|browserTesting)\.[^/]*$/
+const TEST_HELPER = /((^|[/._-])[Tt]est[-_]?[Uu]tils|\wTestUtils)\b/
 const TEST_LIBRARY =
-  /(?:^|\/)node_modules\/((?:@testing-library|@vitest)\/[^/]+|aria-query|vitest)\//
+  /(?:^|\/)node_modules\/((?:@testing-library|@vitest)\/[^/]+|aria-query|axe-core|vitest)\//
 const testLibrary = (file) => TEST_LIBRARY.exec(file)?.[1]
 
 function exportTargets(exports) {
@@ -42,7 +44,11 @@ export function packProblems(files, readFile, exports, withheld = []) {
     )
   const fromLibrary = new Map()
   for (const file of files) {
-    if (TEST_FOLDER.test(file) || TEST_FILE.test(file))
+    if (
+      TEST_FOLDER.test(file) ||
+      TEST_FILE.test(file) ||
+      TEST_HELPER.test(file)
+    )
       problems.push(`${file} is a test file`)
     const library = testLibrary(file)
     if (library)
