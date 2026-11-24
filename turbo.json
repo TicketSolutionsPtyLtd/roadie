@@ -102,6 +102,7 @@
         "src/**/__screenshots__/**/*.png",
         "*.config.{js,mjs,cjs,ts}",
         "$TURBO_ROOT$/vitest.browsers.config.ts",
+        "$TURBO_ROOT$/scripts/lib/balance-shards.mjs",
         "*.css",
         "package.json"
       ],

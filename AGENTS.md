@@ -53,6 +53,9 @@ pnpm --filter docs dev
 - Each package's public API is the `exports` block in its `package.json`.
   Docs and consumers import per-component subpaths, never the root barrel.
 - A JS subpath needs a `tsdown.config.ts` entry unless a wildcard covers it.
+- A JS subpath in components needs its row in the generated
+  `packages/components/size-budget.json`, or `size` fails. Build, then run
+  `pnpm --filter @oztix/roadie-components size:update`.
 - A CSS `@utility` must be named in its package's `src/css/safelist.html` (core
   and charts), or Tailwind purges it and the compiled sheet comes out empty.
 - A utility in a family where one class replaces another (intent, emphasis,
@@ -120,7 +123,8 @@ Each rule has a foundations page with the detail.
   classes (`size-4` by default), and `/ssr` imports in server components. `fill`
   is only for selected states and `duotone` only in a tile or graphic above 48px
   (an `IconTile` above `lg`, or an `EmptyState` tile at its default size);
-  Navigator applies duotone to its destinations itself.
+  Navigator applies duotone to its primary destinations (the rail, the bar and
+  More) itself; secondary rows keep the weight given, bold by default.
 - **Text.** Raw `<p>` and `<h1>` to `<h6>` with `text-display-ui-*` or
   `text-display-prose-*`. There are no Text or Heading components; `Prose`
   renders CMS or markdown content. SpotIllustration colours are fixed.

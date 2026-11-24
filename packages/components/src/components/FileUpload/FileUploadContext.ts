@@ -9,6 +9,9 @@ export type FileUploadContextValue = {
   open: () => void
   clear: () => void
   remove: (file: File) => void
+  /** Sets the files in a new order. */
+  reorder: (files: File[]) => void
+  maxFiles: number
   /** Each file's upload, once `onUpload` has queued it. */
   uploads: ReadonlyMap<File, FileUploadUpload>
   /** Queues a failed upload again. */

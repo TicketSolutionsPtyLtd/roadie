@@ -408,8 +408,9 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "typecheck": "tsc --noEmit",
-    "size": "size-limit",
-    "size:check": "size-limit --limit"
+    "size": "node ../../scripts/size-budget.mjs --check",
+    "size:check": "node ../../scripts/size-budget.mjs --check",
+    "size:update": "node ../../scripts/size-budget.mjs --update"
   },
   "peerDependencies": {
     "@ark-ui/react": "^5.0.0",

@@ -10,6 +10,13 @@
 }
 
 @layer components {
+  /* Set by the pane's content once it is a flex column around a Pane.Body,
+     where auto margins shrink a child to its content. Reset on each pane, so a
+     nested one doesn't inherit its parent's. */
+  [data-slot='pane'] {
+    --pane-measure-fill: initial;
+  }
+
   [data-slot='pane'][data-measure='narrow'] {
     --pane-measure: --theme(--container-sm);
   }
@@ -39,6 +46,16 @@
     > [data-slot='pane-title'] {
     max-width: var(--pane-measure);
     margin-inline: auto;
+  }
+  [data-slot='pane']:is(
+      [data-measure='narrow'],
+      [data-measure='readable'],
+      [data-measure='wide']
+    )
+    > [data-slot='pane-viewport']
+    > [data-slot='scroll-area-content']
+    > :not([data-slot='pane-header'], [data-slot='pane-footer']) {
+    width: var(--pane-measure-fill, auto);
   }
   /* A grid item with auto margins shrinks to its text instead of stretching. */
   [data-slot='pane'][data-measure]:not([data-measure='full'])

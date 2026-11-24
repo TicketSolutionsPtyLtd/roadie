@@ -1,9 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { FileUpload } from '.'
 import { Field } from '../Field'
+import { Sortable } from '../Sortable'
 
 const csv = (name = 'payments.csv', size = 10) =>
   new File(['x'.repeat(size)], name, { type: 'text/csv' })
@@ -47,6 +48,196 @@ describe('FileUpload', () => {
     await user.upload(input, file)
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
     expect(input).toHaveAttribute('name', 'payments')
+  })
+
+  it('takes a file that validate passes', async () => {
+    const onValueChange = vi.fn()
+    const validate = vi.fn(async () => null)
+    const { container } = render(
+      <FileUpload validate={validate} onValueChange={onValueChange}>
+        <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+      </FileUpload>
+    )
+    const file = csv()
+    await userEvent.upload(fileInput(container), file)
+    expect(validate).toHaveBeenCalledWith(file)
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
+  })
+
+  it('checks each of several files and takes the ones that pass', async () => {
+    const onValueChange = vi.fn()
+    const onReject = vi.fn()
+    const march = csv('march.csv')
+    const april = csv('april.csv')
+    const { container } = render(
+      <FileUpload
+        maxFiles={3}
+        validate={async (file) =>
+          file === april ? 'april.csv has no Email column.' : null
+        }
+        onValueChange={onValueChange}
+        onReject={onReject}
+      >
+        <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+      </FileUpload>
+    )
+    await userEvent.upload(fileInput(container), [march, april])
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([march]))
+    expect(onReject).toHaveBeenCalledWith([
+      {
+        file: april,
+        code: 'invalid',
+        message: 'april.csv has no Email column.'
+      }
+    ])
+  })
+
+  it('adds both of two quick picks once their checks land', async () => {
+    const onValueChange = vi.fn()
+    const passes: ((message: null) => void)[] = []
+    const march = csv('march.csv')
+    const april = csv('april.csv')
+    const { container } = render(
+      <FileUpload
+        maxFiles={3}
+        validate={() => new Promise<null>((resolve) => passes.push(resolve))}
+        onValueChange={onValueChange}
+      >
+        <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+      </FileUpload>
+    )
+    await userEvent.upload(fileInput(container), march)
+    await userEvent.upload(fileInput(container), april)
+    await act(async () => passes[1]!(null))
+    await act(async () => passes[0]!(null))
+    expect(onValueChange).toHaveBeenLastCalledWith([april, march])
+  })
+
+  it("doesn't count a file validate turns away against maxFiles", async () => {
+    const onValueChange = vi.fn()
+    const bad = csv('bad.csv')
+    const good = csv('good.csv')
+    const { container } = render(
+      <FileUpload
+        maxFiles={2}
+        defaultValue={[csv('march.csv')]}
+        validate={async (file) => (file === bad ? 'bad.csv is empty.' : null)}
+        onValueChange={onValueChange}
+      >
+        <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+      </FileUpload>
+    )
+    await userEvent.upload(fileInput(container), [bad, good])
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenCalledWith([expect.anything(), good])
+    )
+  })
+
+  it('shows a rule rejection at once, and keeps it when the rest land', async () => {
+    let pass: (message: null) => void = () => {}
+    const { container } = render(
+      <Field>
+        <Field.Label>Payments</Field.Label>
+        <FileUpload
+          maxFiles={3}
+          maxFileSize={5}
+          validate={() => new Promise<null>((resolve) => (pass = resolve))}
+        >
+          <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+        </FileUpload>
+        <Field.ErrorText />
+      </Field>
+    )
+    await userEvent.upload(fileInput(container), [
+      csv('big.csv', 10),
+      csv('small.csv', 1)
+    ])
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'big.csv is over'
+    )
+    await act(async () => pass(null))
+    expect(screen.getByRole('alert')).toHaveTextContent('big.csv is over')
+  })
+
+  it("keeps the rules' messages beside the ones validate adds", async () => {
+    const onReject = vi.fn()
+    const { container } = render(
+      <Field>
+        <Field.Label>Payments</Field.Label>
+        <FileUpload
+          maxFiles={3}
+          maxFileSize={5}
+          validate={async (file) => `${file.name} is empty.`}
+          onReject={onReject}
+        >
+          <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+        </FileUpload>
+        <Field.ErrorText />
+      </Field>
+    )
+    await userEvent.upload(fileInput(container), [
+      csv('big.csv', 10),
+      csv('small.csv', 1)
+    ])
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('small.csv is empty.')
+    )
+    expect(screen.getByRole('alert')).toHaveTextContent('big.csv is over')
+    expect(onReject).toHaveBeenCalledTimes(2)
+  })
+
+  it("doesn't run validate on a file another rule turns away", async () => {
+    const validate = vi.fn(() => null)
+    const { container } = render(
+      <FileUpload accept='image/*' validate={validate}>
+        <FileUpload.Trigger>Choose an image</FileUpload.Trigger>
+      </FileUpload>
+    )
+    await userEvent
+      .setup({ applyAccept: false })
+      .upload(fileInput(container), csv())
+    expect(validate).not.toHaveBeenCalled()
+  })
+
+  it("doesn't bring a file back when the field is cleared during its check", async () => {
+    const onValueChange = vi.fn()
+    let pass: (message: null) => void = () => {}
+    const { container } = render(
+      <FileUpload
+        defaultValue={[csv('march.csv')]}
+        validate={() => new Promise<null>((resolve) => (pass = resolve))}
+        onValueChange={onValueChange}
+      >
+        <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+        <FileUpload.Clear />
+      </FileUpload>
+    )
+    await userEvent.upload(fileInput(container), csv('april.csv'))
+    await userEvent.click(screen.getByRole('button', { name: /^Remove/ }))
+    expect(onValueChange).toHaveBeenLastCalledWith([])
+    await act(async () => pass(null))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the latest pick when an earlier check finishes after it', async () => {
+    const onValueChange = vi.fn()
+    let passSlow: (message: null) => void = () => {}
+    const validate = vi.fn((file: File) =>
+      file.name === 'slow.csv'
+        ? new Promise<null>((resolve) => (passSlow = resolve))
+        : Promise.resolve(null)
+    )
+    const { container } = render(
+      <FileUpload validate={validate} onValueChange={onValueChange}>
+        <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+      </FileUpload>
+    )
+    const fast = csv('fast.csv')
+    await userEvent.upload(fileInput(container), csv('slow.csv'))
+    await userEvent.upload(fileInput(container), fast)
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([fast]))
+    await act(async () => passSlow(null))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
   })
 
   it('replaces the first file with a second pick', async () => {
@@ -101,6 +292,25 @@ describe('FileUpload', () => {
       props: { minFileSize: 1040 },
       file: csv('payments.csv', 1030),
       message: 'payments.csv is under 1.1 kB.'
+    },
+    {
+      code: 'invalid',
+      props: {
+        validate: async (file: File) =>
+          `${file.name} has no Email column.` as string | null
+      },
+      file: csv('payments.csv'),
+      message: 'payments.csv has no Email column.'
+    },
+    {
+      code: 'invalid',
+      props: {
+        validate: async (): Promise<string | null> => {
+          throw new Error('decode failed')
+        }
+      },
+      file: csv('payments.csv'),
+      message: "payments.csv couldn't be checked. Try another file."
     }
   ])(
     'rejects with $code and shows its message in Field.ErrorText',
@@ -455,5 +665,140 @@ describe('FileUpload', () => {
       expect(onValueChange).toHaveBeenCalledWith([])
       await waitFor(() => expect(screen.queryByRole('list')).toBeNull())
     })
+  })
+
+  describe('several files', () => {
+    const files = (count: number) =>
+      Array.from({ length: count }, (_, index) => csv(`set-${index + 1}.csv`))
+
+    it('adds picks to the files, and turns away a seventh over maxFiles={6}', async () => {
+      const onValueChange = vi.fn()
+      const onReject = vi.fn()
+      const six = files(6)
+      const { container } = render(
+        <Field>
+          <Field.Label>Event documents</Field.Label>
+          <FileUpload
+            maxFiles={6}
+            onValueChange={onValueChange}
+            onReject={onReject}
+          />
+          <Field.ErrorText />
+        </Field>
+      )
+      const input = fileInput(container)
+      expect(input).toHaveAttribute('multiple')
+      const user = userEvent.setup()
+      await user.upload(input, six.slice(0, 4))
+      expect(onValueChange).toHaveBeenLastCalledWith(six.slice(0, 4))
+      expect(
+        screen.getByRole('button', {
+          name: /Drop files, or choose them 4 of 6/
+        })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('list', { name: 'Event documents' })
+      ).toBeInTheDocument()
+
+      const seventh = csv('set-7.csv')
+      await user.upload(input, [...six.slice(4), seventh])
+      expect(onValueChange).toHaveBeenLastCalledWith(six)
+      expect(onReject).toHaveBeenCalledWith([
+        expect.objectContaining({ file: seventh, code: 'too-many' })
+      ])
+      expect(
+        await screen.findByText(
+          "set-7.csv wasn't added, as the field takes up to 6 files."
+        )
+      ).toBeInTheDocument()
+    })
+
+    it('reorders the files from the Move menu', async () => {
+      const onValueChange = vi.fn()
+      const [first, second, third] = files(3) as [File, File, File]
+      render(
+        <FileUpload
+          maxFiles={6}
+          defaultValue={[first, second, third]}
+          onValueChange={onValueChange}
+        />
+      )
+      const user = userEvent.setup()
+      await user.click(
+        screen.getByRole('button', { name: 'Reorder set-1.csv' })
+      )
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'Move set-1.csv down' })
+      )
+      expect(onValueChange).toHaveBeenLastCalledWith([second, first, third])
+      expect(
+        screen.getAllByRole('listitem').map((row) => row.textContent)
+      ).toEqual([
+        expect.stringContaining('set-2.csv'),
+        expect.stringContaining('set-1.csv'),
+        expect.stringContaining('set-3.csv')
+      ])
+    })
+
+    it('leaves a single-file list without handles, even inside a Sortable', () => {
+      render(
+        <Sortable items={['row']} onReorder={() => {}}>
+          <Sortable.Item value='row' label='row'>
+            <FileUpload defaultValue={[csv()]} />
+          </Sortable.Item>
+        </Sortable>
+      )
+      expect(screen.queryByRole('button', { name: /^Reorder/ })).toBeNull()
+    })
+
+    it('keeps a rejection showing while the files are reordered', async () => {
+      const [first, second] = files(2) as [File, File]
+      const { container } = render(
+        <Field>
+          <Field.Label>Event documents</Field.Label>
+          <FileUpload maxFiles={2} defaultValue={[first, second]} />
+          <Field.ErrorText />
+        </Field>
+      )
+      const user = userEvent.setup()
+      await user.upload(fileInput(container), csv('extra.csv'))
+      const message =
+        "extra.csv wasn't added, as the field takes up to 2 files."
+      expect(await screen.findByText(message)).toBeInTheDocument()
+      await user.click(
+        screen.getByRole('button', { name: 'Reorder set-1.csv' })
+      )
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'Move set-1.csv down' })
+      )
+      expect(screen.getByText(message)).toBeInTheDocument()
+    })
+
+    it('reads Choose files on the Trigger', () => {
+      render(
+        <FileUpload maxFiles={3} defaultValue={[csv()]}>
+          <FileUpload.Trigger />
+        </FileUpload>
+      )
+      expect(
+        screen.getByRole('button', { name: /Choose files$/ })
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('warns when a second field on the page has pageDrop', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(<FileUpload pageDrop />)
+    expect(warn).not.toHaveBeenCalled()
+    rerender(
+      <>
+        <FileUpload pageDrop />
+        <FileUpload pageDrop />
+      </>
+    )
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('only one FileUpload on a page can have pageDrop')
+    )
+    warn.mockRestore()
   })
 })
