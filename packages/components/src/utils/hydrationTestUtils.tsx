@@ -1,8 +1,3 @@
-// The hydration shift check. A fixture's server HTML goes into the page and is
-// measured, then React hydrates it and it's measured again: whatever the server
-// painted must still be there, in the same place at the same size. New slots
-// may appear around it. src/hydration.browser.test.tsx runs every
-// `Component/Component.ssr.tsx` through it, on HTML rendered in Node.
 import { type ReactElement, type ReactNode, useEffect } from 'react'
 
 import { type Root, hydrateRoot } from 'react-dom/client'
@@ -27,7 +22,6 @@ async function settle(host: HTMLElement, frames: number) {
   )
 }
 
-/** The host, the fixture's root and every `data-slot`, boxed from the host. */
 function measure(host: HTMLElement): Shot {
   const origin = host.getBoundingClientRect()
   const seen = new Map<string, number>()
@@ -47,7 +41,6 @@ function measure(host: HTMLElement): Shot {
   return shot
 }
 
-/** What the server painted that hydration moved, resized or took away. */
 function shifts(server: Shot, hydrated: Shot) {
   const found: string[] = []
   for (const [element, { label, box }] of server) {
