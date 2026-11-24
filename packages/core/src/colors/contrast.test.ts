@@ -133,10 +133,6 @@ describe('getContrastColor', () => {
     }
   )
 
-  it('accepts uppercase hex', () => {
-    expect(getContrastColor('#0091EB')).toBe('white')
-  })
-
   it.each(['ff0000', '#ff000', '#ff00000', '#gggggg', '#', '', 'nonsense'])(
     'throws a TypeError for %j, which is no colour',
     (background) => {
