@@ -1,9 +1,10 @@
 /* Card variant='ticket'. The body and footer each paint the fill and are cut
    at the join: with corner-shape: scoop where supported, and with a
-   half-notch mask on each part elsewhere. The edge and shadow are
-   drop-shadows on the root so they follow the notches. Nothing inside the
-   filtered root may be much taller than the card: Safari stops painting the
-   card, and sometimes the whole page, when it is.
+   half-notch mask on each part elsewhere. The edge and shadow are a
+   box-shadow on the root, and each notched part draws the edge around its
+   half of the notch as a ring in its own background. Never a filter: a
+   filtered card is redrawn on every frame it moves, so a carousel of them
+   ran at 20fps (docs/solutions/best-practices/filters-redraw-every-frame.md).
 
    The join follows the card's `direction` (see card-direction.css), so every
    value it depends on is a custom property the parts set: the defaults are
@@ -12,6 +13,7 @@
 @layer components {
   [data-slot='card'][data-variant='ticket'] {
     --card-notch: 0.75rem;
+    --card-edge-width: 0px;
     --card-shadow-color: oklch(0.3 0.05 var(--intent-hue) / 0.06);
     --card-edge: transparent;
     --card-shadow-2: transparent;
@@ -20,13 +22,11 @@
 
     overflow: clip;
     color: var(--intent-text-normal);
-    filter: drop-shadow(1px 0 0 var(--card-edge))
-      drop-shadow(-1px 0 0 var(--card-edge))
-      drop-shadow(0 1px 0 var(--card-edge))
-      drop-shadow(0 -1px 0 var(--card-edge))
-      drop-shadow(0 2px 2px var(--card-shadow-2))
-      drop-shadow(0 4px 4px var(--card-shadow-4))
-      drop-shadow(0 8px 8px var(--card-shadow-8));
+    box-shadow:
+      0 0 0 var(--card-edge-width) var(--card-edge),
+      0 2px 2px var(--card-shadow-2),
+      0 4px 4px var(--card-shadow-4),
+      0 8px 8px var(--card-shadow-8);
     transition: background-color var(--duration-moderate) var(--ease-standard);
 
     :where(.dark) & {
@@ -78,9 +78,40 @@
 
   /* A part is cut only where a direction below hands it a notch: with the
      --ticket-notch-* custom properties unset these declarations are invalid
-     and drop out, so an uncut part keeps its own radius and needs no mask.
-     A notch switched off is 0px rather than 0, which the calc() below would
-     reject as a unitless zero, taking the whole mask with it. */
+     and drop out, so an uncut part keeps its own radius, background and
+     mask. A notch switched off is 0px rather than 0, which the calc() below
+     would reject as a unitless zero, taking the whole mask with it.
+
+     The hole is the notch less the edge, and the part paints the edge in the
+     ring between them, where the root's box-shadow can't reach. */
+  [data-slot='card'][data-variant='ticket'] > * {
+    --ticket-notch-a-hole: max(
+      0px,
+      var(--ticket-notch-a-size) - var(--card-edge-width)
+    );
+    --ticket-notch-b-hole: max(
+      0px,
+      var(--ticket-notch-b-size) - var(--card-edge-width)
+    );
+    --ticket-notch-rim:
+      radial-gradient(
+        circle at var(--ticket-notch-a),
+        #0000 var(--ticket-notch-a-hole),
+        var(--card-rim, var(--card-edge)) var(--ticket-notch-a-hole),
+        var(--card-rim, var(--card-edge)) var(--ticket-notch-a-size),
+        #0000 calc(var(--ticket-notch-a-size) + 0.5px)
+      ),
+      radial-gradient(
+        circle at var(--ticket-notch-b),
+        #0000 var(--ticket-notch-b-hole),
+        var(--card-rim, var(--card-edge)) var(--ticket-notch-b-hole),
+        var(--card-rim, var(--card-edge)) var(--ticket-notch-b-size),
+        #0000 calc(var(--ticket-notch-b-size) + 0.5px)
+      );
+
+    background-image: var(--ticket-notch-rim, revert-layer);
+  }
+
   @supports (corner-shape: scoop) {
     [data-slot='card'][data-variant='ticket'] > * {
       border-radius: var(--ticket-scoop);
@@ -93,14 +124,14 @@
       mask:
         radial-gradient(
             circle at var(--ticket-notch-a),
-            #0000 var(--ticket-notch-a-size),
-            #000 calc(var(--ticket-notch-a-size) + 0.5px)
+            #0000 var(--ticket-notch-a-hole),
+            #000 calc(var(--ticket-notch-a-hole) + 0.5px)
           )
           var(--ticket-notch-a-layer) no-repeat,
         radial-gradient(
             circle at var(--ticket-notch-b),
-            #0000 var(--ticket-notch-b-size),
-            #000 calc(var(--ticket-notch-b-size) + 0.5px)
+            #0000 var(--ticket-notch-b-hole),
+            #000 calc(var(--ticket-notch-b-hole) + 0.5px)
           )
           var(--ticket-notch-b-layer) no-repeat;
     }
@@ -109,7 +140,7 @@
   [data-slot='card'][data-variant='ticket']:not([data-direction='horizontal']) {
     & > :has(+ [data-slot='card-footer']) {
       --ticket-scoop-shape: scoop;
-      --ticket-scoop: 0 0 var(--card-notch) var(--card-notch);
+      --ticket-scoop: 0 0 var(--ticket-notch-b-hole) var(--ticket-notch-a-hole);
       --ticket-notch-a: 0 100%;
       --ticket-notch-a-layer: left / 51% 100%;
       --ticket-notch-a-size: var(--card-notch);
@@ -120,7 +151,7 @@
 
     & > [data-slot='card-footer'] {
       --ticket-scoop-shape: scoop;
-      --ticket-scoop: var(--card-notch) var(--card-notch) 0 0;
+      --ticket-scoop: var(--ticket-notch-a-hole) var(--ticket-notch-b-hole) 0 0;
       --ticket-notch-a: 0 0;
       --ticket-notch-a-layer: left / 51% 100%;
       --ticket-notch-a-size: var(--card-notch);
@@ -132,7 +163,7 @@
 
   [data-slot='card'][data-variant='ticket'][data-direction='horizontal'] {
     & > :not([data-slot='card-footer']) {
-      --ticket-scoop: 0 var(--ticket-notch-a-size) var(--ticket-notch-b-size) 0;
+      --ticket-scoop: 0 var(--ticket-notch-a-hole) var(--ticket-notch-b-hole) 0;
       --ticket-notch-a: 100% 0;
       --ticket-notch-a-layer: top / 100% 51%;
       --ticket-notch-a-size: 0px;
@@ -155,7 +186,7 @@
 
     & > [data-slot='card-footer'] {
       --ticket-scoop-shape: scoop;
-      --ticket-scoop: var(--card-notch) 0 0 var(--card-notch);
+      --ticket-scoop: var(--ticket-notch-a-hole) 0 0 var(--ticket-notch-b-hole);
       --ticket-notch-a: 0 0;
       --ticket-notch-a-layer: top / 100% 51%;
       --ticket-notch-a-size: var(--card-notch);
@@ -174,7 +205,7 @@
   @container card (width >= 30rem) {
     [data-slot='card'][data-variant='ticket'][data-direction='auto'] {
       & > :not([data-slot='card-footer']) {
-        --ticket-scoop: 0 var(--ticket-notch-a-size) var(--ticket-notch-b-size)
+        --ticket-scoop: 0 var(--ticket-notch-a-hole) var(--ticket-notch-b-hole)
           0;
         --ticket-notch-a: 100% 0;
         --ticket-notch-a-layer: top / 100% 51%;
@@ -196,7 +227,8 @@
 
       & > [data-slot='card-footer'] {
         --ticket-scoop-shape: scoop;
-        --ticket-scoop: var(--card-notch) 0 0 var(--card-notch);
+        --ticket-scoop: var(--ticket-notch-a-hole) 0 0
+          var(--ticket-notch-b-hole);
         --ticket-notch-a: 0 0;
         --ticket-notch-a-layer: top / 100% 51%;
         --ticket-notch-a-size: var(--card-notch);
@@ -215,12 +247,17 @@
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='raised'] {
     --card-fill: var(--intent-bg-raised);
+    --card-edge-width: 1px;
     --card-edge: oklch(0.3 0.05 var(--intent-hue) / 0.06);
+    /* The edge and the shadows piled up around the notch when they were
+       drop-shadows of the whole shape, which is what gave it its line. */
+    --card-rim: oklch(0.3 0.05 var(--intent-hue) / 0.2);
     --card-shadow-2: var(--card-shadow-color);
     --card-shadow-4: var(--card-shadow-color);
 
     :where(.dark) & {
       --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.35);
+      --card-rim: oklch(0.05 0.02 var(--intent-hue) / 0.65);
     }
 
     &.is-interactive:hover,
@@ -247,6 +284,7 @@
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='normal'] {
     --card-fill: var(--intent-bg-normal);
+    --card-edge-width: 1px;
     --card-edge: var(--intent-border-normal);
 
     &.is-interactive:hover,

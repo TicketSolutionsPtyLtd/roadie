@@ -97,6 +97,38 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
         distance(sample(right - NOTCH_RADIUS - 6, join), fill)
       ).toBeLessThanOrEqual(2)
     })
+
+    it.runIf(emphasis === 'raised' || emphasis === 'normal')(
+      'draws its edge around the notch',
+      async () => {
+        const { host, card, footer } = renderTicket()
+        const sample = await capture(host)
+        const { left, right } = card.getBoundingClientRect()
+        const join = footer.getBoundingClientRect().top
+        const fill = sample(left + NOTCH_RADIUS + 6, join - 8)
+        // The rim is a pixel wide, so take the most distinct pixel across it.
+        const rim = (edge: number, inward: 1 | -1) =>
+          Math.max(
+            ...[-1.5, -1, -0.5, 0].map((offset) => {
+              const pixel = sample(
+                edge + inward * (NOTCH_RADIUS + offset),
+                join
+              )
+              return Math.min(distance(pixel, fill), distance(pixel, BACKDROP))
+            })
+          )
+
+        expect(rim(left, 1)).toBeGreaterThan(16)
+        expect(rim(right, -1)).toBeGreaterThan(16)
+      }
+    )
+
+    // A filtered card is redrawn on every frame it moves (see
+    // CardTicket.perf.browser.test.tsx, which runs only in the Perf workflow).
+    it('draws its edge and shadow without a filter', () => {
+      const { card } = renderTicket()
+      expect(getComputedStyle(card).filter).toBe('none')
+    })
   }
 )
 
