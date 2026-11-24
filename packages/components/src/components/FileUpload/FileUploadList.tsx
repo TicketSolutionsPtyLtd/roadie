@@ -59,13 +59,9 @@ function layRows(files: File[], leaving: Leaving[]) {
       ({ after }) => !pending.some(({ file }) => file === after)
     )
     const { file, after, index } = pending.splice(Math.max(next, 0), 1)[0]!
+    // A first row (`after` null, `index` 0) takes the fallback too.
     const above = rows.findIndex((row) => row.file === after)
-    const at =
-      after === null
-        ? 0
-        : above === -1
-          ? Math.min(index, rows.length)
-          : above + 1
+    const at = above === -1 ? Math.min(index, rows.length) : above + 1
     rows.splice(at, 0, { file, leaving: true })
   }
   return rows
