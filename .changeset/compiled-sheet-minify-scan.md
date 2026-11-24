@@ -1,8 +1,8 @@
 ---
-'@oztix/roadie-core': patch
+'@oztix/roadie-core': minor
 ---
 
-Remove 68 classes from `@oztix/roadie-core/css/compiled` that `safelist.html` never named, and minify the sheet. Its build scanned the whole package by mistake, so it picked up classes named in the package's source, tests, changelog, and README. Every class `safelist.html` names stays, including Roadie's `z-*` layering and `ease-*` easing utilities, and an app that imports `@oztix/roadie-core/css` and runs Tailwind is unchanged.
+Breaking: remove 68 classes from `@oztix/roadie-core/css/compiled` that `safelist.html` never named, and minify the sheet. Its build scanned the whole package by mistake, so it picked up classes named in the package's source, tests, changelog, and README. Every class `safelist.html` names stays, including Roadie's `z-*` layering and `ease-*` easing utilities, and an app that imports `@oztix/roadie-core/css` and runs Tailwind is unchanged.
 
 A host that links the compiled sheet and writes one of these classes loses its styles, and should write that rule in its own CSS:
 
