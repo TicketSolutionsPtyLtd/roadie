@@ -327,7 +327,7 @@ export function PhoneField({
           // Engines name a few countries differently, so the server's name can differ.
           suppressHydrationWarning
           className={cn(
-            'flex h-full shrink-0 items-center gap-1 rounded-lg px-2 emphasis-subtler',
+            'flex h-full shrink-0 items-center gap-1 rounded-s-lg rounded-e-none px-2 emphasis-subtler',
             // The group already dims a disabled field; is-interactive would dim the picker twice.
             !disabled && 'is-interactive'
           )}

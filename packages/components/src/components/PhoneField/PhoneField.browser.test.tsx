@@ -121,6 +121,22 @@ describe('PhoneField states', () => {
   })
 })
 
+describe('PhoneField picker shape', () => {
+  it("rounds the picker only on the outer side, where it meets the field's edge", () => {
+    const { picker, group } = mount()
+    const style = getComputedStyle(picker)
+
+    expect(style.borderTopLeftRadius).toBe(
+      getComputedStyle(group).borderTopLeftRadius
+    )
+    expect(style.borderBottomLeftRadius).toBe(
+      getComputedStyle(group).borderBottomLeftRadius
+    )
+    expect(style.borderTopRightRadius).toBe('0px')
+    expect(style.borderBottomRightRadius).toBe('0px')
+  })
+})
+
 describe('PhoneField picker', () => {
   it('lists every country by name, drawing only the rows in view', async () => {
     const { picker } = mount()
