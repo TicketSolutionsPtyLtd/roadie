@@ -53,7 +53,10 @@ For the ticket that meant:
 What's lost: the faint shadow the filters cast into each notch, and on
 raised tickets the root's soft shadow still passes across a notch's mouth
 where the filters left it clean. That's faint at the sides, and most visible
-under the bottom notch of a horizontal ticket.
+under the bottom notch of a horizontal ticket. A raised ticket's outline is
+also darker: the filters drew it lighter along the sides than around the
+notch, where they piled up, and the parts draw it at the notch's 20% all the
+way round, as does the ring on a ticket with no footer.
 
 ## Guard
 
@@ -64,4 +67,6 @@ dropped; after, both are 16.7ms with none dropped. Keeping only the four zero-bl
 edge filters measured a 366ms first frame and 27% of frames dropped. The
 perf test runs only with `--perf`, so `CardTicket.browser.test.tsx` also
 checks, in every engine, that the ticket has no `filter`, draws its edge
-around the card and the notch, and leaves each notch's mouth open.
+along every outer side and corner and around the notch, leaves each notch's
+mouth open, draws the same edge with no footer, and that a ticket nested in
+a notched part takes none of its notches.

@@ -277,6 +277,48 @@ describe('Card ticket without a footer', () => {
 
     expect(distance(sample(left + 8, top + 40), BACKDROP)).toBeGreaterThan(40)
   })
+
+  it.each(['raised', 'normal'] as const)(
+    'draws its %s edge as dark as a ticket with one',
+    async (emphasis) => {
+      const { container } = render(
+        <div
+          data-testid='host'
+          style={{ display: 'grid', gap: 24, padding: 24, width: 360 }}
+        >
+          <Card variant='ticket' emphasis={emphasis} data-testid='alone'>
+            <Card.Content>
+              <p>General admission</p>
+            </Card.Content>
+          </Card>
+          <Card variant='ticket' emphasis={emphasis} data-testid='stub'>
+            <Card.Content>
+              <p>General admission</p>
+            </Card.Content>
+            <Card.Footer>
+              <p>Sam Okafor</p>
+            </Card.Footer>
+          </Card>
+        </div>
+      )
+      const host = container.querySelector<HTMLElement>('[data-testid=host]')!
+      const sample = await capture(host)
+      // One draws its edge just outside the card and the other just inside,
+      // so take the darkest pixel across both.
+      const edge = (id: string) => {
+        const { left, width, top } = container
+          .querySelector(`[data-testid=${id}]`)!
+          .getBoundingClientRect()
+        return Math.max(
+          ...[-1, 0, 1].map((offset) =>
+            darkness(sample(left + width / 2, top + offset))
+          )
+        )
+      }
+
+      expect(Math.abs(edge('alone') - edge('stub'))).toBeLessThanOrEqual(8)
+    }
+  )
 })
 
 describe('Card ticket nested in a ticket with a footer', () => {

@@ -331,10 +331,13 @@
   [data-slot='card'][data-variant='ticket'][data-emphasis='raised'] {
     --card-fill: var(--intent-bg-raised);
     --card-edge-width: 1px;
-    --card-edge: oklch(0.3 0.05 var(--intent-hue) / 0.06);
+    /* The ring a ticket with no footer draws, as dark as the edge the parts
+       draw on one with a footer. */
+    --card-edge: oklch(0.3 0.05 var(--intent-hue) / 0.2);
     /* The parts draw the edge over their own fill, so it's mixed in solid.
-       It's as dark as the outline the old drop-shadows drew, where the edge
-       and the shadows piled up, not the 6% the root's ring draws. */
+       It's as dark as the rim the old drop-shadows drew around the notch,
+       where the edge and the shadows piled up; they drew the rest of the
+       outline lighter. */
     --card-edge-solid: color-mix(
       in srgb,
       oklch(0.3 0.05 var(--intent-hue)) 20%,
@@ -344,7 +347,7 @@
     --card-shadow-4: var(--card-shadow-color);
 
     :where(.dark) & {
-      --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.35);
+      --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.65);
       --card-edge-solid: color-mix(
         in srgb,
         oklch(0.05 0.02 var(--intent-hue)) 65%,
