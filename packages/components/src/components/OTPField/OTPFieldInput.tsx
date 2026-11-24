@@ -102,7 +102,9 @@ export function OTPFieldInput({
           {
             ...inputProps,
             ...slotLabel(inputProps, state, context.label),
-            ...(context.autoFocus && state.index === 0 && { autoFocus: true })
+            ...(context.autoFocus &&
+              state.index === 0 &&
+              inputProps.autoFocus === undefined && { autoFocus: true })
           },
           state
         )

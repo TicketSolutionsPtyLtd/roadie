@@ -1,9 +1,13 @@
+import { StrictMode } from 'react'
+
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { OTPField } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { hydrateWithoutClock } from '../../utils/testUtils'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -73,5 +77,56 @@ describe('OTPField autoFocus', () => {
     render(<OTPField length={4} aria-label='Code' autoFocus />)
     await user.keyboard('1')
     expect(document.activeElement).toBe(screen.getAllByRole('textbox')[1])
+  })
+
+  it('focuses the first slot inside Field', () => {
+    render(
+      <Field>
+        <Field.Label>Code</Field.Label>
+        <OTPField length={4} autoFocus />
+      </Field>
+    )
+    expect(document.activeElement).toBe(screen.getAllByRole('textbox')[0])
+  })
+
+  it('still focuses the first slot under StrictMode', () => {
+    render(
+      <StrictMode>
+        <OTPField length={4} aria-label='Code' autoFocus />
+      </StrictMode>
+    )
+    expect(document.activeElement).toBe(screen.getAllByRole('textbox')[0])
+  })
+
+  // React leaves focus on hydrated markup to the browser's native autofocus,
+  // so the server HTML must carry exactly one autofocus, on the first slot.
+  it('server renders autofocus on the first slot only and hydrates cleanly', async () => {
+    const { container, serverHtml, onRecoverableError } =
+      await hydrateWithoutClock(
+        <OTPField length={4} aria-label='Code' autoFocus />
+      )
+    expect(serverHtml.match(/autofocus/g)).toHaveLength(1)
+    expect(container.querySelector('input')).toHaveAttribute('autofocus')
+    expect(onRecoverableError).not.toHaveBeenCalled()
+  })
+
+  it('keeps an autoFocus set on a slot you compose', () => {
+    render(
+      <OTPField length={2} aria-label='Code'>
+        <OTPField.Input />
+        <OTPField.Input autoFocus />
+      </OTPField>
+    )
+    expect(document.activeElement).toBe(screen.getAllByRole('textbox')[1])
+  })
+
+  it('lets a composed first slot opt out with autoFocus false', () => {
+    render(
+      <OTPField length={2} aria-label='Code' autoFocus>
+        <OTPField.Input autoFocus={false} />
+        <OTPField.Input />
+      </OTPField>
+    )
+    expect(document.body).toBe(document.activeElement)
   })
 })
