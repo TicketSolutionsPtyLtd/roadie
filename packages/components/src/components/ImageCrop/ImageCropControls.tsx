@@ -8,13 +8,14 @@ import { Separator } from '../Separator'
 import { useImageCropContext } from './ImageCropContext'
 import { ImageCropReset } from './ImageCropReset'
 import { ImageCropRotate } from './ImageCropRotate'
+import { ImageCropStraighten } from './ImageCropStraighten'
 import { ImageCropZoom } from './ImageCropZoom'
 
 export type ImageCropControlsProps = ComponentProps<'div'>
 
 /**
  * A floating pill over the bottom edge of the Stage. With no children it
- * holds `Zoom`, `Rotate` and `Reset`.
+ * holds `Zoom`, `Rotate`, `Straighten` and `Reset`.
  */
 export function ImageCropControls({
   className,
@@ -39,6 +40,7 @@ export function ImageCropControls({
           <ImageCropZoom />
           <Separator orientation='vertical' className='my-1.5' />
           <ImageCropRotate />
+          <ImageCropStraighten />
           <ImageCropReset />
         </>
       )}

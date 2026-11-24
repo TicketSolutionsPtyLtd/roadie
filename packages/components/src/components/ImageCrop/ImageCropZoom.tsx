@@ -36,7 +36,7 @@ export function ImageCropZoom({ className, ...props }: ImageCropZoomProps) {
     const next = zoomTo(shown, shown.zoom * factor, scene)
     if (!sameCrop(next, shown)) crop.commit(next, { animate: true })
   }
-  const button = 'rounded-full @max-sm:hidden'
+  const button = 'rounded-full @max-md:hidden'
 
   return (
     <div className={cn('flex items-center gap-1', className)} {...props}>
@@ -69,7 +69,7 @@ export function ImageCropZoom({ className, ...props }: ImageCropZoomProps) {
           const next = zoomTo(shown, at(value), scene)
           if (!sameCrop(next, shown)) crop.commit(next)
         }}
-        className='w-28 px-2 @sm:w-40'
+        className='w-28 px-2 @md:w-40'
       >
         <Slider.Control>
           <Slider.Track>

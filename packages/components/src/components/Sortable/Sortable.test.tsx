@@ -13,7 +13,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Sortable, type SortableHandleProps, type SortableMove } from '.'
 import { List } from '../List'
-import { Lanes } from './lanes.testUtils'
+import { Lanes } from './lanesTestUtils'
 
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
 
