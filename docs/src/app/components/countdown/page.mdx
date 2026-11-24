@@ -249,8 +249,9 @@ Never make the countdown responsible for the thing that happens. It is a
 display, it stops while the tab is hidden, and whatever occurs at zero must
 occur on its own, with the count reporting rather than driving.
 
-A wait before someone can act again, such as sending a new login code, is one
-of these too. The OTP field page shows it built with `useCountdownUrgency`:
+A wait before someone can act again, such as sending a new login code, is a
+system wait too, except that at zero a button appears rather than something
+happening by itself. The OTP field page builds it with `useCountdownUrgency`:
 [Send a new code](/components/otp-field#send-a-new-code).
 
 ## Without React

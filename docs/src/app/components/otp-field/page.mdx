@@ -164,7 +164,7 @@ render(<LoginCode />)
 
 ### Send a new code
 
-Offer a new code once a short wait has passed. Build it from parts that exist: `Countdown` shows the wait, `useCountdownUrgency` reports `'expired'` when it ends, and a `Button` takes its place. Both read the page's one shared ticker, so the wait adds no timer and re-renders once, at zero. While the send is in flight, the button is `pending`.
+Offer a new code once a short wait has passed. Build it from parts that exist: `Countdown` shows the wait, `useCountdownUrgency` reports `'expired'` when it ends, and a `Button` takes its place. Both read the page's one shared ticker, so the wait adds no timer of its own. The count ticks each second, and the rest of the example re-renders once, at zero. While the send is in flight, the button is `pending`.
 
 ```tsx-live-noinline
 function VerifyEmail() {
@@ -207,7 +207,7 @@ function VerifyEmail() {
 render(<VerifyEmail />)
 ```
 
-The wait here is 10 seconds so the example comes round; 30 to 60 is usual. The server owns the cooldown and refuses an early send, and the count only reports it, so start it from the time the server gives, not from a timer of your own. Say what was sent with a [Toast](/components/toast) once the send succeeds.
+The wait here is 10 seconds so you can see it end; 30 to 60 seconds is usual. The server owns the cooldown and refuses an early send, and the count only reports it, so start it from the time the server gives, not from a timer of your own. Say what was sent with a [Toast](/components/toast) once the send succeeds.
 
 ## Guidelines
 
