@@ -1,7 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest'
 
 import {
-  engine,
   expectFrameBudget,
   measureFrames,
   mount,
@@ -24,12 +23,14 @@ afterAll(() => {
 type Variant = 'default' | 'ticket'
 type Emphasis = 'raised' | 'normal' | 'subtle'
 
-// Chromium supports `corner-shape`, so it draws the ticket's notches as
-// scoops. WebKit and Firefox cut them with a mask on each part instead, a
-// path Chromium never draws, so a WebKit run is the only one that covers it.
+// Where `corner-shape` is supported (Chromium), the ticket's notches are
+// scoops. Elsewhere (WebKit and Firefox today) a mask cuts each part instead,
+// a path Chromium never draws, so a WebKit run is the only one that covers it.
 const MASK_NOTE = 'notches cut by mask (no corner-shape)'
 const note = (variant: Variant) =>
-  variant === 'ticket' && engine !== 'chromium' ? MASK_NOTE : undefined
+  variant === 'ticket' && !CSS.supports('corner-shape', 'scoop')
+    ? MASK_NOTE
+    : undefined
 
 const TICKETS = Array.from({ length: 12 }, (_, index) => ({
   id: `A7K2MKW${index}`,
