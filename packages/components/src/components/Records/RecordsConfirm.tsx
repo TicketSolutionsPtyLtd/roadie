@@ -16,6 +16,33 @@ export const reportActionError = (error: unknown) =>
   // Older browsers and jsdom before 31 have no reportError.
   (window.reportError ?? console.error)(error)
 
+/**
+ * Awaits `work`, then calls `then`. A rejection or a throw goes to `failed`,
+ * and `done` runs either way. A plain function, as the React Compiler skips
+ * a component that holds a `finally`.
+ */
+export async function attempt(
+  work: () => unknown,
+  {
+    then,
+    failed = reportActionError,
+    done
+  }: {
+    then?: () => void
+    failed?: (error: unknown) => void
+    done: () => void
+  }
+) {
+  try {
+    await work()
+    then?.()
+  } catch (error) {
+    failed(error)
+  } finally {
+    done()
+  }
+}
+
 export type RecordsConfirmProps = {
   action: Confirmable
   /** The records the action acts on, for the default title. */
