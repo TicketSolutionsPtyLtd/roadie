@@ -102,6 +102,49 @@ Hover and focus states use the intent color scale automatically via `is-interact
 <Button disabled>Button</Button>
 ```
 
+### Pending
+
+Set `pending` while the button's action is under way. It stops responding to clicks and keys, keeps focus and its place in the tab order, and stays the same size. After 200ms its label fades and a spinner in the label's colour takes its place, so a fast response never flashes a loader. A pending submit button doesn't submit its form, even from `Enter` in a field. `disabled` wins over `pending`.
+
+```tsx-live layout=row
+<Button emphasis='strong' pending>Strong</Button>
+<Button emphasis='normal' pending>Normal</Button>
+<Button emphasis='subtle' pending>Subtle</Button>
+<Button emphasis='subtler' pending>Subtler</Button>
+<IconButton aria-label='Refresh' pending>
+  <ArrowClockwiseIcon weight='bold' />
+</IconButton>
+```
+
+Hold it for as long as the work takes, then show the result: a toast, the field's error, or the next page.
+
+```tsx-live-noinline
+function SendTickets() {
+  const [pending, setPending] = useState(false)
+  return (
+    <form
+      className='grid max-w-sm gap-3'
+      onSubmit={(event) => {
+        event.preventDefault()
+        setPending(true)
+        setTimeout(() => setPending(false), 2000)
+      }}
+    >
+      <Field>
+        <Field.Label>Email</Field.Label>
+        <Field.Input type='email' defaultValue='sam@example.com' />
+      </Field>
+      <Button type='submit' emphasis='strong' intent='accent' pending={pending}>
+        Send tickets
+      </Button>
+    </form>
+  )
+}
+render(<SendTickets />)
+```
+
+The look comes from `aria-busy='true'` on any element with the `btn` class, so markup that isn't React, such as the deprecated `LinkButton` or a link in a Vue widget, gets it from the attribute. The element's behaviour is then yours: pair it with `aria-disabled='true'` and stop the click.
+
 ### Href
 
 Pass `href` to render the button as a routed anchor. Roadie picks the right element + safety attributes based on the href shape: internal routes go through your configured [`RoadieLinkProvider`](/foundations/linking); external hrefs (`https://…`, `//…`) auto-render with `target='_blank' rel='noopener noreferrer'`; protocol hrefs (`mailto:` / `tel:` / `sms:`) render plain anchors.
@@ -144,10 +187,13 @@ For full element control, or anchor props `href` doesn't cover (`hreflang`, `ref
 
 Write labels with [Interface copy](/content/interface-copy#buttons).
 
+Use `pending` for an action that is slow or can't be undone, such as a payment or a send. For a fast one that can be undone, update the screen at once and reconcile in the background instead ([Interactions](/foundations/interactions#feedback-and-state)). Keep the label: the spinner says it's working, and the label is still what a screen reader names.
+
 ## Accessibility
 
 - **Keyboard**: `Enter` or `Space` activates the button. With `href` it is a link, so `Enter` follows it and `Space` scrolls the page. Focus is indicated by a semi-transparent ring via `is-interactive`.
 - **ARIA**: Renders a native `<button>`, or an `<a>` with `href`. A disabled link gets `aria-disabled`, leaves the tab order and doesn't navigate.
+- **Pending**: Sets `aria-busy` and `aria-disabled` and keeps focus, so a keyboard submit doesn't drop focus to the page. The label stays the button's name. The button doesn't announce the wait itself; announce the result instead, with a toast or `Field.ErrorText`.
 - **IconButton**: Requires an `aria-label` prop (enforced by TypeScript) since there is no visible text.
 
 <PropsDefinitions component={['Button', 'IconButton']} />

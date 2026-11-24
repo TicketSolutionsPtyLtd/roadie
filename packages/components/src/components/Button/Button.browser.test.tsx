@@ -166,3 +166,123 @@ describe('icons in a component inside a Button', () => {
     expect(width('own')).toBe(24)
   })
 })
+
+describe('a pending button', () => {
+  const box = (element: Element) => {
+    const { width, height } = element.getBoundingClientRect()
+    return { width, height }
+  }
+  const icon = <svg data-testid='icon' viewBox='0 0 16 16' />
+  const shapes = {
+    text: (pending: boolean, size: 'xs' | 'sm' | 'md' | 'lg') => (
+      <Button size={size} pending={pending}>
+        Save changes
+      </Button>
+    ),
+    'icon and text': (pending: boolean, size: 'xs' | 'sm' | 'md' | 'lg') => (
+      <Button size={size} pending={pending}>
+        {icon}
+        Save changes
+      </Button>
+    ),
+    'icon only': (pending: boolean, size: 'xs' | 'sm' | 'md' | 'lg') => (
+      <IconButton size={size} aria-label='Save' pending={pending}>
+        {icon}
+      </IconButton>
+    )
+  }
+
+  describe.each(Object.entries(shapes))('%s', (_, shape) => {
+    it.each(['xs', 'sm', 'md', 'lg'] as const)(
+      'keeps its size at %s',
+      async (size) => {
+        const { rerender } = render(shape(false, size))
+        // A font that arrives mid-test would change the width, not pending.
+        await document.fonts.ready
+        const button = screen.getByRole('button')
+        const rest = box(button)
+        rerender(shape(true, size))
+        expect(button).toHaveAttribute('aria-busy', 'true')
+        expect(box(button)).toEqual(rest)
+        // And once the spinner has replaced the label.
+        await expect
+          .poll(() => getComputedStyle(button, '::before').opacity, {
+            timeout: 2000
+          })
+          .toBe('1')
+        expect(box(button)).toEqual(rest)
+      }
+    )
+  })
+
+  it('shows a ring in place of its label, undimmed, after 200ms', async () => {
+    render(
+      <Button emphasis='strong' pending>
+        {icon}
+        Save
+      </Button>
+    )
+    const button = screen.getByRole('button')
+    const ring = getComputedStyle(button, '::before')
+    // Nothing yet: a fast response never flashes a spinner.
+    expect(ring.opacity).toBe('0')
+    expect(getComputedStyle(screen.getByTestId('icon')).opacity).toBe('1')
+
+    await expect.poll(() => ring.opacity, { timeout: 2000 }).toBe('1')
+    await expect
+      .poll(() => getComputedStyle(screen.getByTestId('icon')).opacity, {
+        timeout: 2000
+      })
+      .toBe('0')
+    // Transparent ink, whatever the channels it faded from.
+    await expect
+      .poll(() => getComputedStyle(button).webkitTextFillColor, {
+        timeout: 2000
+      })
+      .toMatch(/, 0\)$/)
+    expect(ring.borderTopColor).toBe(getComputedStyle(button).color)
+    expect(ring.borderRadius).not.toBe('0px')
+    expect(getComputedStyle(button).opacity).toBe('1')
+    expect(getComputedStyle(button).filter).toBe('none')
+  })
+
+  it('centres the ring', async () => {
+    render(<Button pending>Save changes</Button>)
+    const button = screen.getByRole('button')
+    const ring = getComputedStyle(button, '::before')
+    const { width, height } = box(button)
+    // Inset from every edge equally, so the ring sits in the middle.
+    expect(parseFloat(ring.left) * 2 + parseFloat(ring.width)).toBeCloseTo(
+      width,
+      0
+    )
+    expect(parseFloat(ring.top) * 2 + parseFloat(ring.height)).toBeCloseTo(
+      height,
+      0
+    )
+  })
+
+  it('keeps a positioning class', () => {
+    render(
+      <div className='relative h-40 w-40'>
+        <Button pending className='absolute end-0 bottom-0'>
+          Save
+        </Button>
+      </div>
+    )
+    expect(getComputedStyle(screen.getByRole('button')).position).toBe(
+      'absolute'
+    )
+  })
+
+  it('stays dimmed, with no ring, when disabled too', () => {
+    render(
+      <Button pending disabled>
+        Save
+      </Button>
+    )
+    const button = screen.getByRole('button')
+    expect(getComputedStyle(button).opacity).toBe('0.5')
+    expect(getComputedStyle(button, '::before').content).toBe('none')
+  })
+})

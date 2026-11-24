@@ -25,6 +25,53 @@
     width: 1rem;
     height: 1rem;
   }
+
+  /* Pending: the action is under way (Button's `pending`, or `aria-busy` on
+     any .btn, so the look never comes without the semantics). The label keeps
+     its box, so the size holds. After 200ms, so a fast response never flashes
+     a loader, its ink fades and a ring in its colour spins in its place.
+     Reduced motion leaves the ring still. */
+  &[aria-busy='true'] {
+    animation: btn-pending-ink var(--duration-normal) var(--ease-exit)
+      var(--duration-moderate) forwards;
+
+    /* Opacity, not visibility, so a label in a child stays the name. */
+    & > * {
+      animation: fade-out var(--duration-normal) var(--ease-exit)
+        var(--duration-moderate) forwards;
+    }
+
+    /* Absolute with no insets: a flex container centres the static position,
+       so the button needn't become a containing block and a positioning class
+       on it still wins. ::before, since an interactive-within target's
+       overlay is ::after. */
+    &::before {
+      content: '';
+      position: absolute;
+      width: 1em;
+      height: 1em;
+      border: 2px solid color-mix(in oklch, currentColor 25%, transparent);
+      border-top-color: currentColor;
+      border-radius: 9999px;
+      pointer-events: none;
+      animation:
+        fade-in var(--duration-normal) var(--ease-enter)
+          var(--duration-moderate) backwards,
+        var(--animate-spin);
+    }
+  }
+
+  /* Busy reads as working, not unavailable, so undo the disabled dimming. */
+  &[aria-busy='true']:is(:disabled, [data-disabled]) {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@keyframes btn-pending-ink {
+  to {
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 /* ─── Text button sizes ─── */

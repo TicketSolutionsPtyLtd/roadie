@@ -106,6 +106,96 @@ describe('Button', () => {
     expect(handleClick).not.toHaveBeenCalled()
   })
 
+  describe('pending', () => {
+    it('is busy and can still be tabbed to', async () => {
+      const user = userEvent.setup()
+      render(<Button pending>Save</Button>)
+      const button = screen.getByRole('button', { name: 'Save' })
+      expect(button).toHaveAttribute('aria-busy', 'true')
+      expect(button).toHaveAttribute('aria-disabled', 'true')
+      await user.tab()
+      expect(button).toHaveFocus()
+    })
+
+    it('ignores clicks, Enter, and Space', async () => {
+      const onClick = vi.fn()
+      const user = userEvent.setup()
+      render(
+        <Button pending onClick={onClick}>
+          Save
+        </Button>
+      )
+      const button = screen.getByRole('button', { name: 'Save' })
+      await user.click(button)
+      button.focus()
+      await user.keyboard('{Enter}[Space]')
+      expect(onClick).not.toHaveBeenCalled()
+    })
+
+    it('keeps focus when it turns pending', async () => {
+      const user = userEvent.setup()
+      const { rerender } = render(<Button>Save</Button>)
+      await user.tab()
+      rerender(<Button pending>Save</Button>)
+      expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus()
+    })
+
+    it('does not submit its form, by click or by Enter in a field', async () => {
+      const onSubmit = vi.fn((event: { preventDefault: () => void }) =>
+        event.preventDefault()
+      )
+      const user = userEvent.setup()
+      render(
+        <form onSubmit={onSubmit}>
+          <input aria-label='Email' />
+          <Button type='submit' pending>
+            Send
+          </Button>
+        </form>
+      )
+      await user.click(screen.getByRole('button', { name: 'Send' }))
+      await user.type(screen.getByLabelText('Email'), 'a{Enter}')
+      expect(onSubmit).not.toHaveBeenCalled()
+    })
+
+    it('adds nothing when false', () => {
+      render(<Button pending={false}>Save</Button>)
+      const button = screen.getByRole('button', { name: 'Save' })
+      expect(button).not.toHaveAttribute('aria-busy')
+      expect(button).not.toHaveAttribute('aria-disabled')
+      expect(button).not.toHaveAttribute('data-disabled')
+    })
+
+    it('gives way to disabled', () => {
+      render(
+        <Button pending disabled>
+          Save
+        </Button>
+      )
+      const button = screen.getByRole('button', { name: 'Save' })
+      expect(button).toBeDisabled()
+      expect(button).not.toHaveAttribute('aria-busy')
+    })
+
+    it('keeps a pending link in the tab order without navigating', async () => {
+      const onClick = vi.fn()
+      const user = userEvent.setup()
+      render(
+        <Button href='/events/123' pending onClick={onClick}>
+          Events
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Events' })
+      expect(link).toHaveAttribute('aria-busy', 'true')
+      expect(link).toHaveAttribute('aria-disabled', 'true')
+      expect(link).not.toHaveAttribute('tabindex')
+      await user.tab()
+      expect(link).toHaveFocus()
+      expect(fireEvent.click(link)).toBe(false)
+      expect(onClick).not.toHaveBeenCalled()
+    })
+  })
+
   it('applies custom className', () => {
     const { getByText } = render(
       <Button className='custom-class'>Custom</Button>

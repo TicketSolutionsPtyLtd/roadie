@@ -65,7 +65,15 @@ export type ButtonHrefProps = {
 export type ButtonProps = ButtonPrimitive.Props &
   RefAttributes<HTMLElement> &
   VariantProps<typeof buttonVariants> &
-  ButtonHrefProps
+  ButtonHrefProps & {
+    /**
+     * The button's action is under way. It stops responding, keeps focus and
+     * its place in the tab order, and after 200ms shows a spinner in place of
+     * its label at the same size. Sets `aria-busy` and `aria-disabled`.
+     * `disabled` wins.
+     */
+    pending?: boolean
+  }
 
 export function Button({
   className,
@@ -78,6 +86,7 @@ export function Button({
   rel,
   download,
   nativeButton,
+  pending,
   ...props
 }: ButtonProps) {
   // `render` wins over `href`; the ref warns once per mount, even under StrictMode.
@@ -94,6 +103,11 @@ export function Button({
   }, [props.render, href])
 
   const classes = cn(buttonVariants({ intent, emphasis, size, className }))
+  // Disabled but focusable, so focus stays put through a keyboard submit.
+  const busy = pending && !props.disabled
+  const busyProps = busy
+    ? { disabled: true, focusableWhenDisabled: true, 'aria-busy': true }
+    : undefined
 
   if (!props.render && href !== undefined) {
     const {
@@ -104,7 +118,7 @@ export function Button({
       onClick,
       ref,
       ...rest
-    } = props
+    } = { ...props, ...busyProps }
 
     return (
       <RoadieRoutedLink
@@ -139,6 +153,7 @@ export function Button({
       data-slot='button'
       className={classes}
       {...props}
+      {...busyProps}
     />
   )
 }
