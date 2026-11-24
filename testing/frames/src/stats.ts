@@ -108,11 +108,12 @@ export function missExcuse(
 
 /**
  * The line a local run prints for a run that was excused or carries a note,
- * since neither fails the test and so neither would show otherwise.
+ * since neither fails the test and so neither would show otherwise. Its
+ * dropped share is the one the budget reads.
  */
 export function frameNotice(
   scenario: string,
-  stats: Pick<FrameStats, 'frames' | 'p95' | 'droppedShare'>,
+  stats: Pick<FrameStats, 'frames' | 'p95' | 'steadyDroppedShare'>,
   misses: readonly string[],
   marks: MissMarks & RunNote
 ) {
@@ -125,7 +126,7 @@ export function frameNotice(
       ? `, accepted: ${excuse}`
       : `, filed as ${excuse}`
   const note = marks.note ? `. Note: ${marks.note}` : ''
-  return `FRAMES ${scenario}: p95 ${stats.p95}ms, ${percent(stats.droppedShare)} dropped. ${verdict}${excused}${note}`
+  return `FRAMES ${scenario}: p95 ${stats.p95}ms, ${percent(stats.steadyDroppedShare)} dropped. ${verdict}${excused}${note}`
 }
 
 const percent = (share: number) => `${Math.round(share * 1000) / 10}%`

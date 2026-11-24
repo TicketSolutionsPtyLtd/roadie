@@ -128,7 +128,13 @@ describe('missExcuse', () => {
 })
 
 describe('frameNotice', () => {
-  const run = { frames: 60, p95: 33.3, droppedShare: 0.083 }
+  // The share the budget reads, with the worst frame set aside.
+  const run = {
+    frames: 60,
+    p95: 33.3,
+    droppedShare: 0.1,
+    steadyDroppedShare: 0.083
+  }
   const over = ['p95 33.3ms is over 17.5ms']
   const line = 'FRAMES Dialog, open: p95 33.3ms, 8.3% dropped.'
 

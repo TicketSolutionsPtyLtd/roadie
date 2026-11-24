@@ -40,7 +40,8 @@ it('scrolls 10,000 rows at 60fps', async () => {
 - An excused run doesn't fail, so the file prints a line for each one when
   its tests end, met or missed. `note: '…'` keeps a short remark with a run,
   such as its style time. A run with a note prints the same way, and the
-  table gains a Note column.
+  table gains a Note column. The line's dropped share sets the worst frame
+  aside, as the budget does, so it can read lower than the table's.
 
   ```text
   FRAMES Dialog, open: p95 33.3ms, 8.3% dropped. Missed (p95 33.3ms is over 17.5ms), accepted: the full-page backdrop blur, kept by design (INNO-1522)
@@ -76,8 +77,9 @@ of that work.
   that moves, is a miss at the machine's full speed.
 - Drawing is in software (`--disable-gpu`), with no GPU to keep a promoted
   layer as a texture. A fix that promotes a layer, such as
-  `will-change: transform`, shows no gain here. A carousel of ticket cards
-  dropped about three frames in four with it and without.
+  `will-change: transform`, shows no gain here. In the audit for INNO-1649,
+  a carousel of ticket cards dropped about three frames in four with it and
+  without.
 - A pass says nothing about a GPU, WebKit, Firefox, or a real phone. CI runs
   Chromium only. Before a release that changes a filter, blur, or mask, run
   WebKit and try the change on a real phone.
