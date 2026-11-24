@@ -126,16 +126,17 @@ describe('checkBudget', () => {
       assert.match(report.message, line)
     })
 
-  test('says what grew, by how much, and the command that accepts it', () => {
+  test('says what grew, what shrank, and the command that accepts both', () => {
     const { message } = check(
-      { './menu': sizes(57_204) },
-      { './menu': { ...sizes(57_204), full: 60_100 } }
+      { './menu': sizes(57_204), './tabs': sizes(10_000) },
+      { './menu': { ...sizes(57_204), full: 60_100 }, './tabs': sizes(9_000) }
     )
     assert.match(
       message,
       /menu +full +57,204 B to 60,100 B \(\+2,896 B, \+5\.1%\)/
     )
     assert.doesNotMatch(message, /menu +(own|initial)/)
+    assert.match(message, /Smaller than the budget[^]*tabs +own +10,000 B to 9/)
     assert.match(message, /pnpm --filter @oztix\/roadie-components size:update/)
   })
 
