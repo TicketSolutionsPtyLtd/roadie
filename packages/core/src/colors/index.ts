@@ -11,6 +11,8 @@ export {
   getOklchHueSync,
   getOklchChromaSync,
   getAccentChromaSync,
+  accentFromPixels,
+  type AccentFromPixelsOptions,
   type Oklch
 } from './srgb-to-oklch'
 export { getContrastColor } from './contrast'
