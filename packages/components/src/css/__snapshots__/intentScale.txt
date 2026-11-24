@@ -1,0 +1,1486 @@
+light :root
+  --intent-0: neutral-0
+  --intent-1: neutral-1
+  --intent-10: neutral-10
+  --intent-11: neutral-11
+  --intent-12: neutral-12
+  --intent-13: neutral-13
+  --intent-2: neutral-2
+  --intent-2a: color-mix(in oklch,neutral-9 6%,transparent)
+  --intent-3: neutral-3
+  --intent-3a: color-mix(in oklch,neutral-9 11%,transparent)
+  --intent-4: neutral-4
+  --intent-4a: color-mix(in oklch,neutral-9 17%,transparent)
+  --intent-5: neutral-5
+  --intent-5a: color-mix(in oklch,neutral-9 23%,transparent)
+  --intent-6: neutral-6
+  --intent-7: neutral-7
+  --intent-8: neutral-8
+  --intent-9: neutral-9
+  --intent-bg-floating: neutral-1
+  --intent-bg-inverted: neutral-12
+  --intent-bg-normal: neutral-1
+  --intent-bg-raised: neutral-1
+  --intent-bg-strong: neutral-13
+  --intent-bg-strong-active: neutral-12
+  --intent-bg-strong-hover: neutral-11
+  --intent-bg-subtle: color-mix(in oklch,neutral-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,neutral-9 6%,transparent)
+  --intent-bg-sunken: neutral-2
+  --intent-border-inverted: neutral-12
+  --intent-border-normal: neutral-7
+  --intent-border-strong: neutral-9
+  --intent-border-subtle: neutral-6
+  --intent-border-subtler: neutral-5
+  --intent-hue: 247
+  --intent-link-own: 
+  --intent-link-text: neutral-13
+  --intent-mark-bg: neutral-13
+  --intent-mark-text: neutral-0
+  --intent-text-inverted: neutral-0
+  --intent-text-normal: neutral-12
+  --intent-text-on-strong: neutral-0
+  --intent-text-strong: neutral-13
+  --intent-text-subtle: neutral-11
+  --intent-text-subtler: neutral-10
+light scope
+  --intent-0: scope-neutral-0
+  --intent-1: scope-neutral-1
+  --intent-10: scope-neutral-10
+  --intent-11: scope-neutral-11
+  --intent-12: scope-neutral-12
+  --intent-13: scope-neutral-13
+  --intent-2: scope-neutral-2
+  --intent-2a: color-mix(in oklch,scope-neutral-9 6%,transparent)
+  --intent-3: scope-neutral-3
+  --intent-3a: color-mix(in oklch,scope-neutral-9 11%,transparent)
+  --intent-4: scope-neutral-4
+  --intent-4a: color-mix(in oklch,scope-neutral-9 17%,transparent)
+  --intent-5: scope-neutral-5
+  --intent-5a: color-mix(in oklch,scope-neutral-9 23%,transparent)
+  --intent-6: scope-neutral-6
+  --intent-7: scope-neutral-7
+  --intent-8: scope-neutral-8
+  --intent-9: scope-neutral-9
+  --intent-bg-floating: scope-neutral-1
+  --intent-bg-inverted: scope-neutral-12
+  --intent-bg-normal: scope-neutral-1
+  --intent-bg-raised: scope-neutral-1
+  --intent-bg-strong: scope-neutral-13
+  --intent-bg-strong-active: scope-neutral-12
+  --intent-bg-strong-hover: scope-neutral-11
+  --intent-bg-subtle: color-mix(in oklch,scope-neutral-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,scope-neutral-9 6%,transparent)
+  --intent-bg-sunken: scope-neutral-2
+  --intent-border-inverted: scope-neutral-12
+  --intent-border-normal: scope-neutral-7
+  --intent-border-strong: scope-neutral-9
+  --intent-border-subtle: scope-neutral-6
+  --intent-border-subtler: scope-neutral-5
+  --intent-hue: 140
+  --intent-link-own: 
+  --intent-link-text: scope-neutral-13
+  --intent-mark-bg: scope-neutral-13
+  --intent-mark-text: scope-neutral-0
+  --intent-text-inverted: scope-neutral-0
+  --intent-text-normal: scope-neutral-12
+  --intent-text-on-strong: scope-neutral-0
+  --intent-text-strong: scope-neutral-13
+  --intent-text-subtle: scope-neutral-11
+  --intent-text-subtler: scope-neutral-10
+light scope .intent-neutral
+  --intent-0: scope-neutral-0
+  --intent-1: scope-neutral-1
+  --intent-10: scope-neutral-10
+  --intent-11: scope-neutral-11
+  --intent-12: scope-neutral-12
+  --intent-13: scope-neutral-13
+  --intent-2: scope-neutral-2
+  --intent-2a: color-mix(in oklch,scope-neutral-9 6%,transparent)
+  --intent-3: scope-neutral-3
+  --intent-3a: color-mix(in oklch,scope-neutral-9 11%,transparent)
+  --intent-4: scope-neutral-4
+  --intent-4a: color-mix(in oklch,scope-neutral-9 17%,transparent)
+  --intent-5: scope-neutral-5
+  --intent-5a: color-mix(in oklch,scope-neutral-9 23%,transparent)
+  --intent-6: scope-neutral-6
+  --intent-7: scope-neutral-7
+  --intent-8: scope-neutral-8
+  --intent-9: scope-neutral-9
+  --intent-bg-floating: scope-neutral-1
+  --intent-bg-inverted: scope-neutral-12
+  --intent-bg-normal: scope-neutral-1
+  --intent-bg-raised: scope-neutral-1
+  --intent-bg-strong: scope-neutral-13
+  --intent-bg-strong-active: scope-neutral-12
+  --intent-bg-strong-hover: scope-neutral-11
+  --intent-bg-subtle: color-mix(in oklch,scope-neutral-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,scope-neutral-9 6%,transparent)
+  --intent-bg-sunken: scope-neutral-2
+  --intent-border-inverted: scope-neutral-12
+  --intent-border-normal: scope-neutral-7
+  --intent-border-strong: scope-neutral-9
+  --intent-border-subtle: scope-neutral-6
+  --intent-border-subtler: scope-neutral-5
+  --intent-hue: 140
+  --intent-link-own: scope-neutral-9
+  --intent-link-text: scope-neutral-13
+  --intent-mark-bg: scope-neutral-13
+  --intent-mark-text: scope-neutral-0
+  --intent-text-inverted: scope-neutral-0
+  --intent-text-normal: scope-neutral-12
+  --intent-text-on-strong: scope-neutral-0
+  --intent-text-strong: scope-neutral-13
+  --intent-text-subtle: scope-neutral-11
+  --intent-text-subtler: scope-neutral-10
+light scope .intent-brand
+  --intent-text-on-strong: scope-neutral-light-0
+light scope .intent-brand-secondary
+  --intent-bg-strong: color-mix(in oklab,brand-secondary-9 90%,scope-neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,brand-secondary-9 60%,scope-neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,brand-secondary-9 75%,scope-neutral-light-0)
+light scope .intent-brand-purple
+  --intent-text-on-strong: scope-neutral-light-0
+light scope .intent-brand-blue
+  --intent-text-on-strong: scope-neutral-light-0
+light scope .intent-brand-orange
+  --intent-bg-strong: color-mix(in oklab,brand-secondary-9 90%,scope-neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,brand-secondary-9 60%,scope-neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,brand-secondary-9 75%,scope-neutral-light-0)
+light scope .intent-accent
+  --intent-0: scope-accent-0
+  --intent-1: scope-accent-1
+  --intent-10: scope-accent-10
+  --intent-11: scope-accent-11
+  --intent-12: scope-accent-12
+  --intent-13: scope-accent-13
+  --intent-2: scope-accent-2
+  --intent-2a: color-mix(in oklch,scope-accent-9 6%,transparent)
+  --intent-3: scope-accent-3
+  --intent-3a: color-mix(in oklch,scope-accent-9 11%,transparent)
+  --intent-4: scope-accent-4
+  --intent-4a: color-mix(in oklch,scope-accent-9 17%,transparent)
+  --intent-5: scope-accent-5
+  --intent-5a: color-mix(in oklch,scope-accent-9 23%,transparent)
+  --intent-6: scope-accent-6
+  --intent-7: scope-accent-7
+  --intent-8: scope-accent-8
+  --intent-9: scope-accent-9
+  --intent-bg-floating: scope-accent-1
+  --intent-bg-inverted: scope-accent-12
+  --intent-bg-normal: scope-accent-1
+  --intent-bg-raised: scope-accent-1
+  --intent-bg-strong: scope-accent-9
+  --intent-bg-strong-active: scope-accent-12
+  --intent-bg-strong-hover: scope-accent-11
+  --intent-bg-subtle: color-mix(in oklch,scope-accent-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,scope-accent-9 6%,transparent)
+  --intent-bg-sunken: scope-accent-2
+  --intent-border-inverted: scope-accent-12
+  --intent-border-normal: scope-accent-7
+  --intent-border-strong: scope-accent-9
+  --intent-border-subtle: scope-accent-6
+  --intent-border-subtler: scope-accent-5
+  --intent-hue: 140
+  --intent-link-own: scope-accent-9
+  --intent-link-text: scope-accent-11
+  --intent-mark-bg: scope-accent-light-5
+  --intent-mark-text: scope-accent-light-13
+  --intent-text-inverted: scope-accent-0
+  --intent-text-normal: scope-accent-12
+  --intent-text-on-strong: scope-neutral-light-0
+  --intent-text-strong: scope-accent-13
+  --intent-text-subtle: scope-accent-11
+  --intent-text-subtler: scope-accent-10
+light scope .intent-danger
+  --intent-text-on-strong: scope-neutral-light-0
+light scope .intent-success
+  --intent-bg-strong: color-mix(in oklab,success-9 90%,scope-neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,success-9 60%,scope-neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,success-9 75%,scope-neutral-light-0)
+light scope .intent-warning
+  --intent-bg-strong-active: color-mix(in oklab,warning-9 70%,scope-neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,warning-9 85%,scope-neutral-light-0)
+light scope .intent-info
+  --intent-text-on-strong: scope-neutral-light-0
+light .intent-neutral
+  --intent-0: neutral-0
+  --intent-1: neutral-1
+  --intent-10: neutral-10
+  --intent-11: neutral-11
+  --intent-12: neutral-12
+  --intent-13: neutral-13
+  --intent-2: neutral-2
+  --intent-2a: color-mix(in oklch,neutral-9 6%,transparent)
+  --intent-3: neutral-3
+  --intent-3a: color-mix(in oklch,neutral-9 11%,transparent)
+  --intent-4: neutral-4
+  --intent-4a: color-mix(in oklch,neutral-9 17%,transparent)
+  --intent-5: neutral-5
+  --intent-5a: color-mix(in oklch,neutral-9 23%,transparent)
+  --intent-6: neutral-6
+  --intent-7: neutral-7
+  --intent-8: neutral-8
+  --intent-9: neutral-9
+  --intent-bg-floating: neutral-1
+  --intent-bg-inverted: neutral-12
+  --intent-bg-normal: neutral-1
+  --intent-bg-raised: neutral-1
+  --intent-bg-strong: neutral-13
+  --intent-bg-strong-active: neutral-12
+  --intent-bg-strong-hover: neutral-11
+  --intent-bg-subtle: color-mix(in oklch,neutral-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,neutral-9 6%,transparent)
+  --intent-bg-sunken: neutral-2
+  --intent-border-inverted: neutral-12
+  --intent-border-normal: neutral-7
+  --intent-border-strong: neutral-9
+  --intent-border-subtle: neutral-6
+  --intent-border-subtler: neutral-5
+  --intent-hue: 247
+  --intent-link-own: neutral-9
+  --intent-link-text: neutral-13
+  --intent-mark-bg: neutral-13
+  --intent-mark-text: neutral-0
+  --intent-text-inverted: neutral-0
+  --intent-text-normal: neutral-12
+  --intent-text-on-strong: neutral-0
+  --intent-text-strong: neutral-13
+  --intent-text-subtle: neutral-11
+  --intent-text-subtler: neutral-10
+light .intent-danger .intent-neutral
+light [&_.probe]:intent-neutral
+light data-[checked]:intent-neutral
+light .intent-brand
+  --intent-0: brand-0
+  --intent-1: brand-1
+  --intent-10: brand-10
+  --intent-11: brand-11
+  --intent-12: brand-12
+  --intent-13: brand-13
+  --intent-2: brand-2
+  --intent-2a: color-mix(in oklch,brand-9 6%,transparent)
+  --intent-3: brand-3
+  --intent-3a: color-mix(in oklch,brand-9 11%,transparent)
+  --intent-4: brand-4
+  --intent-4a: color-mix(in oklch,brand-9 17%,transparent)
+  --intent-5: brand-5
+  --intent-5a: color-mix(in oklch,brand-9 23%,transparent)
+  --intent-6: brand-6
+  --intent-7: brand-7
+  --intent-8: brand-8
+  --intent-9: brand-9
+  --intent-bg-floating: brand-1
+  --intent-bg-inverted: brand-12
+  --intent-bg-normal: brand-1
+  --intent-bg-raised: brand-1
+  --intent-bg-strong: brand-9
+  --intent-bg-strong-active: brand-12
+  --intent-bg-strong-hover: brand-11
+  --intent-bg-subtle: color-mix(in oklch,brand-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,brand-9 6%,transparent)
+  --intent-bg-sunken: brand-2
+  --intent-border-inverted: brand-12
+  --intent-border-normal: brand-7
+  --intent-border-strong: brand-9
+  --intent-border-subtle: brand-6
+  --intent-border-subtler: brand-5
+  --intent-hue: 247
+  --intent-link-own: brand-9
+  --intent-link-text: brand-11
+  --intent-mark-bg: brand-light-5
+  --intent-mark-text: brand-light-13
+  --intent-text-inverted: brand-0
+  --intent-text-normal: brand-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: brand-13
+  --intent-text-subtle: brand-11
+  --intent-text-subtler: brand-10
+light .intent-danger .intent-brand
+light [&_.probe]:intent-brand
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-brand
+light .intent-brand-secondary
+  --intent-0: brand-secondary-0
+  --intent-1: brand-secondary-1
+  --intent-10: brand-secondary-10
+  --intent-11: brand-secondary-11
+  --intent-12: brand-secondary-12
+  --intent-13: brand-secondary-13
+  --intent-2: brand-secondary-2
+  --intent-2a: color-mix(in oklch,brand-secondary-9 6%,transparent)
+  --intent-3: brand-secondary-3
+  --intent-3a: color-mix(in oklch,brand-secondary-9 11%,transparent)
+  --intent-4: brand-secondary-4
+  --intent-4a: color-mix(in oklch,brand-secondary-9 17%,transparent)
+  --intent-5: brand-secondary-5
+  --intent-5a: color-mix(in oklch,brand-secondary-9 23%,transparent)
+  --intent-6: brand-secondary-6
+  --intent-7: brand-secondary-7
+  --intent-8: brand-secondary-8
+  --intent-9: brand-secondary-9
+  --intent-bg-floating: brand-secondary-1
+  --intent-bg-inverted: brand-secondary-12
+  --intent-bg-normal: brand-secondary-1
+  --intent-bg-raised: brand-secondary-1
+  --intent-bg-strong: color-mix(in oklab,brand-secondary-9 90%,neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,brand-secondary-9 60%,neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,brand-secondary-9 75%,neutral-light-0)
+  --intent-bg-subtle: color-mix(in oklch,brand-secondary-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,brand-secondary-9 6%,transparent)
+  --intent-bg-sunken: brand-secondary-2
+  --intent-border-inverted: brand-secondary-12
+  --intent-border-normal: brand-secondary-7
+  --intent-border-strong: brand-secondary-9
+  --intent-border-subtle: brand-secondary-6
+  --intent-border-subtler: brand-secondary-5
+  --intent-hue: 42
+  --intent-link-own: brand-secondary-9
+  --intent-link-text: brand-secondary-11
+  --intent-mark-bg: brand-secondary-light-5
+  --intent-mark-text: brand-secondary-light-13
+  --intent-text-inverted: brand-secondary-0
+  --intent-text-normal: brand-secondary-12
+  --intent-text-on-strong: brand-secondary-13
+  --intent-text-strong: brand-secondary-13
+  --intent-text-subtle: brand-secondary-11
+  --intent-text-subtler: brand-secondary-10
+light .intent-danger .intent-brand-secondary
+light [&_.probe]:intent-brand-secondary
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-brand-secondary
+light .intent-brand-purple
+  --intent-0: info-0
+  --intent-1: info-1
+  --intent-10: info-10
+  --intent-11: info-11
+  --intent-12: info-12
+  --intent-13: info-13
+  --intent-2: info-2
+  --intent-2a: color-mix(in oklch,info-9 6%,transparent)
+  --intent-3: info-3
+  --intent-3a: color-mix(in oklch,info-9 11%,transparent)
+  --intent-4: info-4
+  --intent-4a: color-mix(in oklch,info-9 17%,transparent)
+  --intent-5: info-5
+  --intent-5a: color-mix(in oklch,info-9 23%,transparent)
+  --intent-6: info-6
+  --intent-7: info-7
+  --intent-8: info-8
+  --intent-9: info-9
+  --intent-bg-floating: info-1
+  --intent-bg-inverted: info-12
+  --intent-bg-normal: info-1
+  --intent-bg-raised: info-1
+  --intent-bg-strong: info-9
+  --intent-bg-strong-active: info-12
+  --intent-bg-strong-hover: info-11
+  --intent-bg-subtle: color-mix(in oklch,info-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,info-9 6%,transparent)
+  --intent-bg-sunken: info-2
+  --intent-border-inverted: info-12
+  --intent-border-normal: info-7
+  --intent-border-strong: info-9
+  --intent-border-subtle: info-6
+  --intent-border-subtler: info-5
+  --intent-hue: 303
+  --intent-link-own: info-9
+  --intent-link-text: info-11
+  --intent-mark-bg: info-light-5
+  --intent-mark-text: info-light-13
+  --intent-text-inverted: info-0
+  --intent-text-normal: info-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: info-13
+  --intent-text-subtle: info-11
+  --intent-text-subtler: info-10
+light .intent-danger .intent-brand-purple
+light [&_.probe]:intent-brand-purple
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-brand-purple
+light .intent-brand-blue
+  --intent-0: brand-0
+  --intent-1: brand-1
+  --intent-10: brand-10
+  --intent-11: brand-11
+  --intent-12: brand-12
+  --intent-13: brand-13
+  --intent-2: brand-2
+  --intent-2a: color-mix(in oklch,brand-9 6%,transparent)
+  --intent-3: brand-3
+  --intent-3a: color-mix(in oklch,brand-9 11%,transparent)
+  --intent-4: brand-4
+  --intent-4a: color-mix(in oklch,brand-9 17%,transparent)
+  --intent-5: brand-5
+  --intent-5a: color-mix(in oklch,brand-9 23%,transparent)
+  --intent-6: brand-6
+  --intent-7: brand-7
+  --intent-8: brand-8
+  --intent-9: brand-9
+  --intent-bg-floating: brand-1
+  --intent-bg-inverted: brand-12
+  --intent-bg-normal: brand-1
+  --intent-bg-raised: brand-1
+  --intent-bg-strong: brand-9
+  --intent-bg-strong-active: brand-12
+  --intent-bg-strong-hover: brand-11
+  --intent-bg-subtle: color-mix(in oklch,brand-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,brand-9 6%,transparent)
+  --intent-bg-sunken: brand-2
+  --intent-border-inverted: brand-12
+  --intent-border-normal: brand-7
+  --intent-border-strong: brand-9
+  --intent-border-subtle: brand-6
+  --intent-border-subtler: brand-5
+  --intent-hue: 247
+  --intent-link-own: brand-9
+  --intent-link-text: brand-11
+  --intent-mark-bg: brand-light-5
+  --intent-mark-text: brand-light-13
+  --intent-text-inverted: brand-0
+  --intent-text-normal: brand-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: brand-13
+  --intent-text-subtle: brand-11
+  --intent-text-subtler: brand-10
+light .intent-danger .intent-brand-blue
+light [&_.probe]:intent-brand-blue
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-brand-blue
+light .intent-brand-orange
+  --intent-0: brand-secondary-0
+  --intent-1: brand-secondary-1
+  --intent-10: brand-secondary-10
+  --intent-11: brand-secondary-11
+  --intent-12: brand-secondary-12
+  --intent-13: brand-secondary-13
+  --intent-2: brand-secondary-2
+  --intent-2a: color-mix(in oklch,brand-secondary-9 6%,transparent)
+  --intent-3: brand-secondary-3
+  --intent-3a: color-mix(in oklch,brand-secondary-9 11%,transparent)
+  --intent-4: brand-secondary-4
+  --intent-4a: color-mix(in oklch,brand-secondary-9 17%,transparent)
+  --intent-5: brand-secondary-5
+  --intent-5a: color-mix(in oklch,brand-secondary-9 23%,transparent)
+  --intent-6: brand-secondary-6
+  --intent-7: brand-secondary-7
+  --intent-8: brand-secondary-8
+  --intent-9: brand-secondary-9
+  --intent-bg-floating: brand-secondary-1
+  --intent-bg-inverted: brand-secondary-12
+  --intent-bg-normal: brand-secondary-1
+  --intent-bg-raised: brand-secondary-1
+  --intent-bg-strong: color-mix(in oklab,brand-secondary-9 90%,neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,brand-secondary-9 60%,neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,brand-secondary-9 75%,neutral-light-0)
+  --intent-bg-subtle: color-mix(in oklch,brand-secondary-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,brand-secondary-9 6%,transparent)
+  --intent-bg-sunken: brand-secondary-2
+  --intent-border-inverted: brand-secondary-12
+  --intent-border-normal: brand-secondary-7
+  --intent-border-strong: brand-secondary-9
+  --intent-border-subtle: brand-secondary-6
+  --intent-border-subtler: brand-secondary-5
+  --intent-hue: 42
+  --intent-link-own: brand-secondary-9
+  --intent-link-text: brand-secondary-11
+  --intent-mark-bg: brand-secondary-light-5
+  --intent-mark-text: brand-secondary-light-13
+  --intent-text-inverted: brand-secondary-0
+  --intent-text-normal: brand-secondary-12
+  --intent-text-on-strong: brand-secondary-13
+  --intent-text-strong: brand-secondary-13
+  --intent-text-subtle: brand-secondary-11
+  --intent-text-subtler: brand-secondary-10
+light .intent-danger .intent-brand-orange
+light [&_.probe]:intent-brand-orange
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-brand-orange
+light .intent-accent
+  --intent-0: accent-0
+  --intent-1: accent-1
+  --intent-10: accent-10
+  --intent-11: accent-11
+  --intent-12: accent-12
+  --intent-13: accent-13
+  --intent-2: accent-2
+  --intent-2a: color-mix(in oklch,accent-9 6%,transparent)
+  --intent-3: accent-3
+  --intent-3a: color-mix(in oklch,accent-9 11%,transparent)
+  --intent-4: accent-4
+  --intent-4a: color-mix(in oklch,accent-9 17%,transparent)
+  --intent-5: accent-5
+  --intent-5a: color-mix(in oklch,accent-9 23%,transparent)
+  --intent-6: accent-6
+  --intent-7: accent-7
+  --intent-8: accent-8
+  --intent-9: accent-9
+  --intent-bg-floating: accent-1
+  --intent-bg-inverted: accent-12
+  --intent-bg-normal: accent-1
+  --intent-bg-raised: accent-1
+  --intent-bg-strong: accent-9
+  --intent-bg-strong-active: accent-12
+  --intent-bg-strong-hover: accent-11
+  --intent-bg-subtle: color-mix(in oklch,accent-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,accent-9 6%,transparent)
+  --intent-bg-sunken: accent-2
+  --intent-border-inverted: accent-12
+  --intent-border-normal: accent-7
+  --intent-border-strong: accent-9
+  --intent-border-subtle: accent-6
+  --intent-border-subtler: accent-5
+  --intent-hue: 247
+  --intent-link-own: accent-9
+  --intent-link-text: accent-11
+  --intent-mark-bg: accent-light-5
+  --intent-mark-text: accent-light-13
+  --intent-text-inverted: accent-0
+  --intent-text-normal: accent-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: accent-13
+  --intent-text-subtle: accent-11
+  --intent-text-subtler: accent-10
+light .intent-danger .intent-accent
+light [&_.probe]:intent-accent
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-accent
+light .intent-danger
+  --intent-0: danger-0
+  --intent-1: danger-1
+  --intent-10: danger-10
+  --intent-11: danger-11
+  --intent-12: danger-12
+  --intent-13: danger-13
+  --intent-2: danger-2
+  --intent-2a: color-mix(in oklch,danger-9 6%,transparent)
+  --intent-3: danger-3
+  --intent-3a: color-mix(in oklch,danger-9 11%,transparent)
+  --intent-4: danger-4
+  --intent-4a: color-mix(in oklch,danger-9 17%,transparent)
+  --intent-5: danger-5
+  --intent-5a: color-mix(in oklch,danger-9 23%,transparent)
+  --intent-6: danger-6
+  --intent-7: danger-7
+  --intent-8: danger-8
+  --intent-9: danger-9
+  --intent-bg-floating: danger-1
+  --intent-bg-inverted: danger-12
+  --intent-bg-normal: danger-1
+  --intent-bg-raised: danger-1
+  --intent-bg-strong: danger-10
+  --intent-bg-strong-active: danger-12
+  --intent-bg-strong-hover: danger-11
+  --intent-bg-subtle: color-mix(in oklch,danger-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,danger-9 6%,transparent)
+  --intent-bg-sunken: danger-2
+  --intent-border-inverted: danger-12
+  --intent-border-normal: danger-7
+  --intent-border-strong: danger-9
+  --intent-border-subtle: danger-6
+  --intent-border-subtler: danger-5
+  --intent-hue: 28
+  --intent-link-own: danger-9
+  --intent-link-text: danger-11
+  --intent-mark-bg: danger-light-5
+  --intent-mark-text: danger-light-13
+  --intent-text-inverted: danger-0
+  --intent-text-normal: danger-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: danger-13
+  --intent-text-subtle: danger-11
+  --intent-text-subtler: danger-10
+light .intent-danger .intent-danger
+light [&_.probe]:intent-danger
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-danger
+light .intent-success
+  --intent-0: success-0
+  --intent-1: success-1
+  --intent-10: success-10
+  --intent-11: success-11
+  --intent-12: success-12
+  --intent-13: success-13
+  --intent-2: success-2
+  --intent-2a: color-mix(in oklch,success-9 6%,transparent)
+  --intent-3: success-3
+  --intent-3a: color-mix(in oklch,success-9 11%,transparent)
+  --intent-4: success-4
+  --intent-4a: color-mix(in oklch,success-9 17%,transparent)
+  --intent-5: success-5
+  --intent-5a: color-mix(in oklch,success-9 23%,transparent)
+  --intent-6: success-6
+  --intent-7: success-7
+  --intent-8: success-8
+  --intent-9: success-9
+  --intent-bg-floating: success-1
+  --intent-bg-inverted: success-12
+  --intent-bg-normal: success-1
+  --intent-bg-raised: success-1
+  --intent-bg-strong: color-mix(in oklab,success-9 90%,neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,success-9 60%,neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,success-9 75%,neutral-light-0)
+  --intent-bg-subtle: color-mix(in oklch,success-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,success-9 6%,transparent)
+  --intent-bg-sunken: success-2
+  --intent-border-inverted: success-12
+  --intent-border-normal: success-7
+  --intent-border-strong: success-9
+  --intent-border-subtle: success-6
+  --intent-border-subtler: success-5
+  --intent-hue: 185
+  --intent-link-own: success-9
+  --intent-link-text: success-11
+  --intent-mark-bg: success-light-5
+  --intent-mark-text: success-light-13
+  --intent-text-inverted: success-0
+  --intent-text-normal: success-12
+  --intent-text-on-strong: success-13
+  --intent-text-strong: success-13
+  --intent-text-subtle: success-11
+  --intent-text-subtler: success-10
+light .intent-danger .intent-success
+light [&_.probe]:intent-success
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-success
+light .intent-warning
+  --intent-0: warning-0
+  --intent-1: warning-1
+  --intent-10: warning-10
+  --intent-11: warning-11
+  --intent-12: warning-12
+  --intent-13: warning-13
+  --intent-2: warning-2
+  --intent-2a: color-mix(in oklch,warning-9 6%,transparent)
+  --intent-3: warning-3
+  --intent-3a: color-mix(in oklch,warning-9 11%,transparent)
+  --intent-4: warning-4
+  --intent-4a: color-mix(in oklch,warning-9 17%,transparent)
+  --intent-5: warning-5
+  --intent-5a: color-mix(in oklch,warning-9 23%,transparent)
+  --intent-6: warning-6
+  --intent-7: warning-7
+  --intent-8: warning-8
+  --intent-9: warning-9
+  --intent-bg-floating: warning-1
+  --intent-bg-inverted: warning-12
+  --intent-bg-normal: warning-1
+  --intent-bg-raised: warning-1
+  --intent-bg-strong: warning-9
+  --intent-bg-strong-active: color-mix(in oklab,warning-9 70%,neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,warning-9 85%,neutral-light-0)
+  --intent-bg-subtle: color-mix(in oklch,warning-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,warning-9 6%,transparent)
+  --intent-bg-sunken: warning-2
+  --intent-border-inverted: warning-12
+  --intent-border-normal: warning-7
+  --intent-border-strong: warning-9
+  --intent-border-subtle: warning-6
+  --intent-border-subtler: warning-5
+  --intent-hue: 86
+  --intent-link-own: warning-9
+  --intent-link-text: warning-11
+  --intent-mark-bg: warning-light-5
+  --intent-mark-text: warning-light-13
+  --intent-text-inverted: warning-0
+  --intent-text-normal: warning-12
+  --intent-text-on-strong: warning-13
+  --intent-text-strong: warning-13
+  --intent-text-subtle: warning-11
+  --intent-text-subtler: warning-10
+light .intent-danger .intent-warning
+light [&_.probe]:intent-warning
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-warning
+light .intent-info
+  --intent-0: info-0
+  --intent-1: info-1
+  --intent-10: info-10
+  --intent-11: info-11
+  --intent-12: info-12
+  --intent-13: info-13
+  --intent-2: info-2
+  --intent-2a: color-mix(in oklch,info-9 6%,transparent)
+  --intent-3: info-3
+  --intent-3a: color-mix(in oklch,info-9 11%,transparent)
+  --intent-4: info-4
+  --intent-4a: color-mix(in oklch,info-9 17%,transparent)
+  --intent-5: info-5
+  --intent-5a: color-mix(in oklch,info-9 23%,transparent)
+  --intent-6: info-6
+  --intent-7: info-7
+  --intent-8: info-8
+  --intent-9: info-9
+  --intent-bg-floating: info-1
+  --intent-bg-inverted: info-12
+  --intent-bg-normal: info-1
+  --intent-bg-raised: info-1
+  --intent-bg-strong: info-9
+  --intent-bg-strong-active: info-12
+  --intent-bg-strong-hover: info-11
+  --intent-bg-subtle: color-mix(in oklch,info-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,info-9 6%,transparent)
+  --intent-bg-sunken: info-2
+  --intent-border-inverted: info-12
+  --intent-border-normal: info-7
+  --intent-border-strong: info-9
+  --intent-border-subtle: info-6
+  --intent-border-subtler: info-5
+  --intent-hue: 303
+  --intent-link-own: info-9
+  --intent-link-text: info-11
+  --intent-mark-bg: info-light-5
+  --intent-mark-text: info-light-13
+  --intent-text-inverted: info-0
+  --intent-text-normal: info-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: info-13
+  --intent-text-subtle: info-11
+  --intent-text-subtler: info-10
+light .intent-danger .intent-info
+light [&_.probe]:intent-info
+  --intent-bg-floating: neutral-1
+light data-[checked]:intent-info
+dark :root
+  --intent-0: neutral-0
+  --intent-1: neutral-1
+  --intent-10: neutral-10
+  --intent-11: neutral-11
+  --intent-12: neutral-12
+  --intent-13: neutral-13
+  --intent-2: neutral-2
+  --intent-2a: color-mix(in oklch,neutral-9 10%,transparent)
+  --intent-3: neutral-3
+  --intent-3a: color-mix(in oklch,neutral-9 18%,transparent)
+  --intent-4: neutral-4
+  --intent-4a: color-mix(in oklch,neutral-9 28%,transparent)
+  --intent-5: neutral-5
+  --intent-5a: color-mix(in oklch,neutral-9 38%,transparent)
+  --intent-6: neutral-6
+  --intent-7: neutral-7
+  --intent-8: neutral-8
+  --intent-9: neutral-9
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+  --intent-bg-inverted: neutral-12
+  --intent-bg-normal: neutral-2
+  --intent-bg-raised: neutral-4
+  --intent-bg-strong: neutral-13
+  --intent-bg-strong-active: neutral-12
+  --intent-bg-strong-hover: neutral-11
+  --intent-bg-subtle: color-mix(in oklch,neutral-9 18%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,neutral-9 10%,transparent)
+  --intent-bg-sunken: neutral-0
+  --intent-border-inverted: neutral-12
+  --intent-border-normal: neutral-8
+  --intent-border-strong: neutral-10
+  --intent-border-subtle: neutral-7
+  --intent-border-subtler: neutral-5
+  --intent-hue: 247
+  --intent-link-own: 
+  --intent-link-text: neutral-13
+  --intent-mark-bg: neutral-13
+  --intent-mark-text: neutral-0
+  --intent-text-inverted: neutral-0
+  --intent-text-normal: neutral-12
+  --intent-text-on-strong: neutral-0
+  --intent-text-strong: neutral-13
+  --intent-text-subtle: neutral-11
+  --intent-text-subtler: neutral-10
+dark scope
+  --intent-0: scope-neutral-0
+  --intent-1: scope-neutral-1
+  --intent-10: scope-neutral-10
+  --intent-11: scope-neutral-11
+  --intent-12: scope-neutral-12
+  --intent-13: scope-neutral-13
+  --intent-2: scope-neutral-2
+  --intent-2a: color-mix(in oklch,scope-neutral-9 10%,transparent)
+  --intent-3: scope-neutral-3
+  --intent-3a: color-mix(in oklch,scope-neutral-9 18%,transparent)
+  --intent-4: scope-neutral-4
+  --intent-4a: color-mix(in oklch,scope-neutral-9 28%,transparent)
+  --intent-5: scope-neutral-5
+  --intent-5a: color-mix(in oklch,scope-neutral-9 38%,transparent)
+  --intent-6: scope-neutral-6
+  --intent-7: scope-neutral-7
+  --intent-8: scope-neutral-8
+  --intent-9: scope-neutral-9
+  --intent-bg-floating: color-mix(in oklch,scope-neutral-9 20%,scope-neutral-4)
+  --intent-bg-inverted: scope-neutral-12
+  --intent-bg-normal: scope-neutral-2
+  --intent-bg-raised: scope-neutral-4
+  --intent-bg-strong: scope-neutral-13
+  --intent-bg-strong-active: scope-neutral-12
+  --intent-bg-strong-hover: scope-neutral-11
+  --intent-bg-subtle: color-mix(in oklch,scope-neutral-9 18%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,scope-neutral-9 10%,transparent)
+  --intent-bg-sunken: scope-neutral-0
+  --intent-border-inverted: scope-neutral-12
+  --intent-border-normal: scope-neutral-8
+  --intent-border-strong: scope-neutral-10
+  --intent-border-subtle: scope-neutral-7
+  --intent-border-subtler: scope-neutral-5
+  --intent-hue: 140
+  --intent-link-own: 
+  --intent-link-text: scope-neutral-13
+  --intent-mark-bg: scope-neutral-13
+  --intent-mark-text: scope-neutral-0
+  --intent-text-inverted: scope-neutral-0
+  --intent-text-normal: scope-neutral-12
+  --intent-text-on-strong: scope-neutral-0
+  --intent-text-strong: scope-neutral-13
+  --intent-text-subtle: scope-neutral-11
+  --intent-text-subtler: scope-neutral-10
+dark scope .intent-neutral
+  --intent-0: scope-neutral-0
+  --intent-1: scope-neutral-1
+  --intent-10: scope-neutral-10
+  --intent-11: scope-neutral-11
+  --intent-12: scope-neutral-12
+  --intent-13: scope-neutral-13
+  --intent-2: scope-neutral-2
+  --intent-2a: color-mix(in oklch,scope-neutral-9 10%,transparent)
+  --intent-3: scope-neutral-3
+  --intent-3a: color-mix(in oklch,scope-neutral-9 18%,transparent)
+  --intent-4: scope-neutral-4
+  --intent-4a: color-mix(in oklch,scope-neutral-9 28%,transparent)
+  --intent-5: scope-neutral-5
+  --intent-5a: color-mix(in oklch,scope-neutral-9 38%,transparent)
+  --intent-6: scope-neutral-6
+  --intent-7: scope-neutral-7
+  --intent-8: scope-neutral-8
+  --intent-9: scope-neutral-9
+  --intent-bg-floating: color-mix(in oklch,scope-neutral-9 20%,scope-neutral-4)
+  --intent-bg-inverted: scope-neutral-12
+  --intent-bg-normal: scope-neutral-2
+  --intent-bg-raised: scope-neutral-4
+  --intent-bg-strong: scope-neutral-13
+  --intent-bg-strong-active: scope-neutral-12
+  --intent-bg-strong-hover: scope-neutral-11
+  --intent-bg-subtle: color-mix(in oklch,scope-neutral-9 18%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,scope-neutral-9 10%,transparent)
+  --intent-bg-sunken: scope-neutral-0
+  --intent-border-inverted: scope-neutral-12
+  --intent-border-normal: scope-neutral-8
+  --intent-border-strong: scope-neutral-10
+  --intent-border-subtle: scope-neutral-7
+  --intent-border-subtler: scope-neutral-5
+  --intent-hue: 140
+  --intent-link-own: scope-neutral-9
+  --intent-link-text: scope-neutral-13
+  --intent-mark-bg: scope-neutral-13
+  --intent-mark-text: scope-neutral-0
+  --intent-text-inverted: scope-neutral-0
+  --intent-text-normal: scope-neutral-12
+  --intent-text-on-strong: scope-neutral-0
+  --intent-text-strong: scope-neutral-13
+  --intent-text-subtle: scope-neutral-11
+  --intent-text-subtler: scope-neutral-10
+dark scope .intent-brand
+  --intent-text-on-strong: scope-neutral-light-0
+dark scope .intent-brand-secondary
+  --intent-bg-strong: color-mix(in oklab,brand-secondary-9 90%,scope-neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,brand-secondary-9 60%,scope-neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,brand-secondary-9 75%,scope-neutral-light-0)
+dark scope .intent-brand-purple
+  --intent-text-on-strong: scope-neutral-light-0
+dark scope .intent-brand-blue
+  --intent-text-on-strong: scope-neutral-light-0
+dark scope .intent-brand-orange
+  --intent-bg-strong: color-mix(in oklab,brand-secondary-9 90%,scope-neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,brand-secondary-9 60%,scope-neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,brand-secondary-9 75%,scope-neutral-light-0)
+dark scope .intent-accent
+  --intent-0: scope-accent-0
+  --intent-1: scope-accent-1
+  --intent-10: scope-accent-10
+  --intent-11: scope-accent-11
+  --intent-12: scope-accent-12
+  --intent-13: scope-accent-13
+  --intent-2: scope-accent-2
+  --intent-2a: color-mix(in oklch,scope-accent-9 9%,transparent)
+  --intent-3: scope-accent-3
+  --intent-3a: color-mix(in oklch,scope-accent-9 15%,transparent)
+  --intent-4: scope-accent-4
+  --intent-4a: color-mix(in oklch,scope-accent-9 23%,transparent)
+  --intent-5: scope-accent-5
+  --intent-5a: color-mix(in oklch,scope-accent-9 31%,transparent)
+  --intent-6: scope-accent-6
+  --intent-7: scope-accent-7
+  --intent-8: scope-accent-8
+  --intent-9: scope-accent-9
+  --intent-bg-floating: color-mix(in oklch,scope-accent-9 20%,scope-accent-2)
+  --intent-bg-inverted: scope-accent-12
+  --intent-bg-normal: scope-accent-2
+  --intent-bg-raised: scope-accent-2
+  --intent-bg-strong: scope-accent-9
+  --intent-bg-strong-active: scope-accent-7
+  --intent-bg-strong-hover: scope-accent-8
+  --intent-bg-subtle: color-mix(in oklch,scope-accent-9 15%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,scope-accent-9 9%,transparent)
+  --intent-bg-sunken: scope-accent-0
+  --intent-border-inverted: scope-accent-12
+  --intent-border-normal: scope-accent-7
+  --intent-border-strong: scope-accent-9
+  --intent-border-subtle: scope-accent-6
+  --intent-border-subtler: scope-accent-5
+  --intent-hue: 140
+  --intent-link-own: scope-accent-9
+  --intent-link-text: scope-accent-11
+  --intent-mark-bg: scope-accent-light-5
+  --intent-mark-text: scope-accent-light-13
+  --intent-text-inverted: scope-accent-0
+  --intent-text-normal: scope-accent-12
+  --intent-text-on-strong: scope-neutral-light-0
+  --intent-text-strong: scope-accent-13
+  --intent-text-subtle: scope-accent-11
+  --intent-text-subtler: scope-accent-10
+dark scope .intent-danger
+  --intent-text-on-strong: scope-neutral-light-0
+dark scope .intent-success
+  --intent-bg-strong: color-mix(in oklab,success-9 90%,scope-neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,success-9 60%,scope-neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,success-9 75%,scope-neutral-light-0)
+dark scope .intent-warning
+  --intent-bg-strong-active: color-mix(in oklab,warning-9 70%,scope-neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,warning-9 85%,scope-neutral-light-0)
+dark scope .intent-info
+  --intent-text-on-strong: scope-neutral-light-0
+dark .intent-neutral
+  --intent-0: neutral-0
+  --intent-1: neutral-1
+  --intent-10: neutral-10
+  --intent-11: neutral-11
+  --intent-12: neutral-12
+  --intent-13: neutral-13
+  --intent-2: neutral-2
+  --intent-2a: color-mix(in oklch,neutral-9 10%,transparent)
+  --intent-3: neutral-3
+  --intent-3a: color-mix(in oklch,neutral-9 18%,transparent)
+  --intent-4: neutral-4
+  --intent-4a: color-mix(in oklch,neutral-9 28%,transparent)
+  --intent-5: neutral-5
+  --intent-5a: color-mix(in oklch,neutral-9 38%,transparent)
+  --intent-6: neutral-6
+  --intent-7: neutral-7
+  --intent-8: neutral-8
+  --intent-9: neutral-9
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+  --intent-bg-inverted: neutral-12
+  --intent-bg-normal: neutral-2
+  --intent-bg-raised: neutral-4
+  --intent-bg-strong: neutral-13
+  --intent-bg-strong-active: neutral-12
+  --intent-bg-strong-hover: neutral-11
+  --intent-bg-subtle: color-mix(in oklch,neutral-9 18%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,neutral-9 10%,transparent)
+  --intent-bg-sunken: neutral-0
+  --intent-border-inverted: neutral-12
+  --intent-border-normal: neutral-8
+  --intent-border-strong: neutral-10
+  --intent-border-subtle: neutral-7
+  --intent-border-subtler: neutral-5
+  --intent-hue: 247
+  --intent-link-own: neutral-9
+  --intent-link-text: neutral-13
+  --intent-mark-bg: neutral-13
+  --intent-mark-text: neutral-0
+  --intent-text-inverted: neutral-0
+  --intent-text-normal: neutral-12
+  --intent-text-on-strong: neutral-0
+  --intent-text-strong: neutral-13
+  --intent-text-subtle: neutral-11
+  --intent-text-subtler: neutral-10
+dark .intent-danger .intent-neutral
+dark [&_.probe]:intent-neutral
+dark data-[checked]:intent-neutral
+dark .intent-brand
+  --intent-0: brand-0
+  --intent-1: brand-1
+  --intent-10: brand-10
+  --intent-11: brand-11
+  --intent-12: brand-12
+  --intent-13: brand-13
+  --intent-2: brand-2
+  --intent-2a: color-mix(in oklch,brand-9 9%,transparent)
+  --intent-3: brand-3
+  --intent-3a: color-mix(in oklch,brand-9 15%,transparent)
+  --intent-4: brand-4
+  --intent-4a: color-mix(in oklch,brand-9 23%,transparent)
+  --intent-5: brand-5
+  --intent-5a: color-mix(in oklch,brand-9 31%,transparent)
+  --intent-6: brand-6
+  --intent-7: brand-7
+  --intent-8: brand-8
+  --intent-9: brand-9
+  --intent-bg-floating: color-mix(in oklch,brand-9 20%,brand-2)
+  --intent-bg-inverted: brand-12
+  --intent-bg-normal: brand-2
+  --intent-bg-raised: brand-2
+  --intent-bg-strong: brand-9
+  --intent-bg-strong-active: brand-7
+  --intent-bg-strong-hover: brand-8
+  --intent-bg-subtle: color-mix(in oklch,brand-9 15%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,brand-9 9%,transparent)
+  --intent-bg-sunken: brand-0
+  --intent-border-inverted: brand-12
+  --intent-border-normal: brand-7
+  --intent-border-strong: brand-9
+  --intent-border-subtle: brand-6
+  --intent-border-subtler: brand-5
+  --intent-hue: 247
+  --intent-link-own: brand-9
+  --intent-link-text: brand-11
+  --intent-mark-bg: brand-light-5
+  --intent-mark-text: brand-light-13
+  --intent-text-inverted: brand-0
+  --intent-text-normal: brand-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: brand-13
+  --intent-text-subtle: brand-11
+  --intent-text-subtler: brand-10
+dark .intent-danger .intent-brand
+dark [&_.probe]:intent-brand
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-brand
+dark .intent-brand-secondary
+  --intent-0: brand-secondary-0
+  --intent-1: brand-secondary-1
+  --intent-10: brand-secondary-10
+  --intent-11: brand-secondary-11
+  --intent-12: brand-secondary-12
+  --intent-13: brand-secondary-13
+  --intent-2: brand-secondary-2
+  --intent-2a: color-mix(in oklch,brand-secondary-9 6%,transparent)
+  --intent-3: brand-secondary-3
+  --intent-3a: color-mix(in oklch,brand-secondary-9 11%,transparent)
+  --intent-4: brand-secondary-4
+  --intent-4a: color-mix(in oklch,brand-secondary-9 17%,transparent)
+  --intent-5: brand-secondary-5
+  --intent-5a: color-mix(in oklch,brand-secondary-9 23%,transparent)
+  --intent-6: brand-secondary-6
+  --intent-7: brand-secondary-7
+  --intent-8: brand-secondary-8
+  --intent-9: brand-secondary-9
+  --intent-bg-floating: color-mix(in oklch,brand-secondary-9 20%,brand-secondary-2)
+  --intent-bg-inverted: brand-secondary-12
+  --intent-bg-normal: brand-secondary-2
+  --intent-bg-raised: brand-secondary-2
+  --intent-bg-strong: color-mix(in oklab,brand-secondary-9 90%,neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,brand-secondary-9 60%,neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,brand-secondary-9 75%,neutral-light-0)
+  --intent-bg-subtle: color-mix(in oklch,brand-secondary-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,brand-secondary-9 6%,transparent)
+  --intent-bg-sunken: brand-secondary-0
+  --intent-border-inverted: brand-secondary-12
+  --intent-border-normal: brand-secondary-7
+  --intent-border-strong: brand-secondary-9
+  --intent-border-subtle: brand-secondary-6
+  --intent-border-subtler: brand-secondary-5
+  --intent-hue: 42
+  --intent-link-own: brand-secondary-9
+  --intent-link-text: brand-secondary-11
+  --intent-mark-bg: brand-secondary-light-5
+  --intent-mark-text: brand-secondary-light-13
+  --intent-text-inverted: brand-secondary-0
+  --intent-text-normal: brand-secondary-12
+  --intent-text-on-strong: brand-secondary-0
+  --intent-text-strong: brand-secondary-13
+  --intent-text-subtle: brand-secondary-11
+  --intent-text-subtler: brand-secondary-10
+dark .intent-danger .intent-brand-secondary
+dark [&_.probe]:intent-brand-secondary
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-brand-secondary
+dark .intent-brand-purple
+  --intent-0: info-0
+  --intent-1: info-1
+  --intent-10: info-10
+  --intent-11: info-11
+  --intent-12: info-12
+  --intent-13: info-13
+  --intent-2: info-2
+  --intent-2a: color-mix(in oklch,info-9 7%,transparent)
+  --intent-3: info-3
+  --intent-3a: color-mix(in oklch,info-9 13%,transparent)
+  --intent-4: info-4
+  --intent-4a: color-mix(in oklch,info-9 20%,transparent)
+  --intent-5: info-5
+  --intent-5a: color-mix(in oklch,info-9 27%,transparent)
+  --intent-6: info-6
+  --intent-7: info-7
+  --intent-8: info-8
+  --intent-9: info-9
+  --intent-bg-floating: color-mix(in oklch,info-9 20%,info-2)
+  --intent-bg-inverted: info-12
+  --intent-bg-normal: info-2
+  --intent-bg-raised: info-2
+  --intent-bg-strong: info-9
+  --intent-bg-strong-active: info-7
+  --intent-bg-strong-hover: info-8
+  --intent-bg-subtle: color-mix(in oklch,info-9 13%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,info-9 7%,transparent)
+  --intent-bg-sunken: info-0
+  --intent-border-inverted: info-12
+  --intent-border-normal: info-7
+  --intent-border-strong: info-9
+  --intent-border-subtle: info-6
+  --intent-border-subtler: info-5
+  --intent-hue: 303
+  --intent-link-own: info-9
+  --intent-link-text: info-11
+  --intent-mark-bg: info-light-5
+  --intent-mark-text: info-light-13
+  --intent-text-inverted: info-0
+  --intent-text-normal: info-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: info-13
+  --intent-text-subtle: info-11
+  --intent-text-subtler: info-10
+dark .intent-danger .intent-brand-purple
+dark [&_.probe]:intent-brand-purple
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-brand-purple
+dark .intent-brand-blue
+  --intent-0: brand-0
+  --intent-1: brand-1
+  --intent-10: brand-10
+  --intent-11: brand-11
+  --intent-12: brand-12
+  --intent-13: brand-13
+  --intent-2: brand-2
+  --intent-2a: color-mix(in oklch,brand-9 9%,transparent)
+  --intent-3: brand-3
+  --intent-3a: color-mix(in oklch,brand-9 15%,transparent)
+  --intent-4: brand-4
+  --intent-4a: color-mix(in oklch,brand-9 23%,transparent)
+  --intent-5: brand-5
+  --intent-5a: color-mix(in oklch,brand-9 31%,transparent)
+  --intent-6: brand-6
+  --intent-7: brand-7
+  --intent-8: brand-8
+  --intent-9: brand-9
+  --intent-bg-floating: color-mix(in oklch,brand-9 20%,brand-2)
+  --intent-bg-inverted: brand-12
+  --intent-bg-normal: brand-2
+  --intent-bg-raised: brand-2
+  --intent-bg-strong: brand-9
+  --intent-bg-strong-active: brand-7
+  --intent-bg-strong-hover: brand-8
+  --intent-bg-subtle: color-mix(in oklch,brand-9 15%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,brand-9 9%,transparent)
+  --intent-bg-sunken: brand-0
+  --intent-border-inverted: brand-12
+  --intent-border-normal: brand-7
+  --intent-border-strong: brand-9
+  --intent-border-subtle: brand-6
+  --intent-border-subtler: brand-5
+  --intent-hue: 247
+  --intent-link-own: brand-9
+  --intent-link-text: brand-11
+  --intent-mark-bg: brand-light-5
+  --intent-mark-text: brand-light-13
+  --intent-text-inverted: brand-0
+  --intent-text-normal: brand-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: brand-13
+  --intent-text-subtle: brand-11
+  --intent-text-subtler: brand-10
+dark .intent-danger .intent-brand-blue
+dark [&_.probe]:intent-brand-blue
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-brand-blue
+dark .intent-brand-orange
+  --intent-0: brand-secondary-0
+  --intent-1: brand-secondary-1
+  --intent-10: brand-secondary-10
+  --intent-11: brand-secondary-11
+  --intent-12: brand-secondary-12
+  --intent-13: brand-secondary-13
+  --intent-2: brand-secondary-2
+  --intent-2a: color-mix(in oklch,brand-secondary-9 6%,transparent)
+  --intent-3: brand-secondary-3
+  --intent-3a: color-mix(in oklch,brand-secondary-9 11%,transparent)
+  --intent-4: brand-secondary-4
+  --intent-4a: color-mix(in oklch,brand-secondary-9 17%,transparent)
+  --intent-5: brand-secondary-5
+  --intent-5a: color-mix(in oklch,brand-secondary-9 23%,transparent)
+  --intent-6: brand-secondary-6
+  --intent-7: brand-secondary-7
+  --intent-8: brand-secondary-8
+  --intent-9: brand-secondary-9
+  --intent-bg-floating: color-mix(in oklch,brand-secondary-9 20%,brand-secondary-2)
+  --intent-bg-inverted: brand-secondary-12
+  --intent-bg-normal: brand-secondary-2
+  --intent-bg-raised: brand-secondary-2
+  --intent-bg-strong: color-mix(in oklab,brand-secondary-9 90%,neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,brand-secondary-9 60%,neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,brand-secondary-9 75%,neutral-light-0)
+  --intent-bg-subtle: color-mix(in oklch,brand-secondary-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,brand-secondary-9 6%,transparent)
+  --intent-bg-sunken: brand-secondary-0
+  --intent-border-inverted: brand-secondary-12
+  --intent-border-normal: brand-secondary-7
+  --intent-border-strong: brand-secondary-9
+  --intent-border-subtle: brand-secondary-6
+  --intent-border-subtler: brand-secondary-5
+  --intent-hue: 42
+  --intent-link-own: brand-secondary-9
+  --intent-link-text: brand-secondary-11
+  --intent-mark-bg: brand-secondary-light-5
+  --intent-mark-text: brand-secondary-light-13
+  --intent-text-inverted: brand-secondary-0
+  --intent-text-normal: brand-secondary-12
+  --intent-text-on-strong: brand-secondary-0
+  --intent-text-strong: brand-secondary-13
+  --intent-text-subtle: brand-secondary-11
+  --intent-text-subtler: brand-secondary-10
+dark .intent-danger .intent-brand-orange
+dark [&_.probe]:intent-brand-orange
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-brand-orange
+dark .intent-accent
+  --intent-0: accent-0
+  --intent-1: accent-1
+  --intent-10: accent-10
+  --intent-11: accent-11
+  --intent-12: accent-12
+  --intent-13: accent-13
+  --intent-2: accent-2
+  --intent-2a: color-mix(in oklch,accent-9 9%,transparent)
+  --intent-3: accent-3
+  --intent-3a: color-mix(in oklch,accent-9 15%,transparent)
+  --intent-4: accent-4
+  --intent-4a: color-mix(in oklch,accent-9 23%,transparent)
+  --intent-5: accent-5
+  --intent-5a: color-mix(in oklch,accent-9 31%,transparent)
+  --intent-6: accent-6
+  --intent-7: accent-7
+  --intent-8: accent-8
+  --intent-9: accent-9
+  --intent-bg-floating: color-mix(in oklch,accent-9 20%,accent-2)
+  --intent-bg-inverted: accent-12
+  --intent-bg-normal: accent-2
+  --intent-bg-raised: accent-2
+  --intent-bg-strong: accent-9
+  --intent-bg-strong-active: accent-7
+  --intent-bg-strong-hover: accent-8
+  --intent-bg-subtle: color-mix(in oklch,accent-9 15%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,accent-9 9%,transparent)
+  --intent-bg-sunken: accent-0
+  --intent-border-inverted: accent-12
+  --intent-border-normal: accent-7
+  --intent-border-strong: accent-9
+  --intent-border-subtle: accent-6
+  --intent-border-subtler: accent-5
+  --intent-hue: 247
+  --intent-link-own: accent-9
+  --intent-link-text: accent-11
+  --intent-mark-bg: accent-light-5
+  --intent-mark-text: accent-light-13
+  --intent-text-inverted: accent-0
+  --intent-text-normal: accent-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: accent-13
+  --intent-text-subtle: accent-11
+  --intent-text-subtler: accent-10
+dark .intent-danger .intent-accent
+dark [&_.probe]:intent-accent
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-accent
+dark .intent-danger
+  --intent-0: danger-0
+  --intent-1: danger-1
+  --intent-10: danger-10
+  --intent-11: danger-11
+  --intent-12: danger-12
+  --intent-13: danger-13
+  --intent-2: danger-2
+  --intent-2a: color-mix(in oklch,danger-9 7%,transparent)
+  --intent-3: danger-3
+  --intent-3a: color-mix(in oklch,danger-9 13%,transparent)
+  --intent-4: danger-4
+  --intent-4a: color-mix(in oklch,danger-9 20%,transparent)
+  --intent-5: danger-5
+  --intent-5a: color-mix(in oklch,danger-9 27%,transparent)
+  --intent-6: danger-6
+  --intent-7: danger-7
+  --intent-8: danger-8
+  --intent-9: danger-9
+  --intent-bg-floating: color-mix(in oklch,danger-9 20%,danger-2)
+  --intent-bg-inverted: danger-12
+  --intent-bg-normal: danger-2
+  --intent-bg-raised: danger-2
+  --intent-bg-strong: danger-10
+  --intent-bg-strong-active: danger-7
+  --intent-bg-strong-hover: danger-8
+  --intent-bg-subtle: color-mix(in oklch,danger-9 13%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,danger-9 7%,transparent)
+  --intent-bg-sunken: danger-0
+  --intent-border-inverted: danger-12
+  --intent-border-normal: danger-7
+  --intent-border-strong: danger-9
+  --intent-border-subtle: danger-6
+  --intent-border-subtler: danger-5
+  --intent-hue: 28
+  --intent-link-own: danger-9
+  --intent-link-text: danger-11
+  --intent-mark-bg: danger-light-5
+  --intent-mark-text: danger-light-13
+  --intent-text-inverted: danger-0
+  --intent-text-normal: danger-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: danger-13
+  --intent-text-subtle: danger-11
+  --intent-text-subtler: danger-10
+dark .intent-danger .intent-danger
+dark [&_.probe]:intent-danger
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-danger
+dark .intent-success
+  --intent-0: success-0
+  --intent-1: success-1
+  --intent-10: success-10
+  --intent-11: success-11
+  --intent-12: success-12
+  --intent-13: success-13
+  --intent-2: success-2
+  --intent-2a: color-mix(in oklch,success-9 7%,transparent)
+  --intent-3: success-3
+  --intent-3a: color-mix(in oklch,success-9 12%,transparent)
+  --intent-4: success-4
+  --intent-4a: color-mix(in oklch,success-9 19%,transparent)
+  --intent-5: success-5
+  --intent-5a: color-mix(in oklch,success-9 25%,transparent)
+  --intent-6: success-6
+  --intent-7: success-7
+  --intent-8: success-8
+  --intent-9: success-9
+  --intent-bg-floating: color-mix(in oklch,success-9 20%,success-2)
+  --intent-bg-inverted: success-12
+  --intent-bg-normal: success-2
+  --intent-bg-raised: success-2
+  --intent-bg-strong: color-mix(in oklab,success-9 90%,neutral-light-0)
+  --intent-bg-strong-active: color-mix(in oklab,success-9 60%,neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,success-9 75%,neutral-light-0)
+  --intent-bg-subtle: color-mix(in oklch,success-9 12%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,success-9 7%,transparent)
+  --intent-bg-sunken: success-0
+  --intent-border-inverted: success-12
+  --intent-border-normal: success-7
+  --intent-border-strong: success-9
+  --intent-border-subtle: success-6
+  --intent-border-subtler: success-5
+  --intent-hue: 185
+  --intent-link-own: success-9
+  --intent-link-text: success-11
+  --intent-mark-bg: success-light-5
+  --intent-mark-text: success-light-13
+  --intent-text-inverted: success-0
+  --intent-text-normal: success-12
+  --intent-text-on-strong: success-0
+  --intent-text-strong: success-13
+  --intent-text-subtle: success-11
+  --intent-text-subtler: success-10
+dark .intent-danger .intent-success
+dark [&_.probe]:intent-success
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-success
+dark .intent-warning
+  --intent-0: warning-0
+  --intent-1: warning-1
+  --intent-10: warning-10
+  --intent-11: warning-11
+  --intent-12: warning-12
+  --intent-13: warning-13
+  --intent-2: warning-2
+  --intent-2a: color-mix(in oklch,warning-9 6%,transparent)
+  --intent-3: warning-3
+  --intent-3a: color-mix(in oklch,warning-9 11%,transparent)
+  --intent-4: warning-4
+  --intent-4a: color-mix(in oklch,warning-9 17%,transparent)
+  --intent-5: warning-5
+  --intent-5a: color-mix(in oklch,warning-9 23%,transparent)
+  --intent-6: warning-6
+  --intent-7: warning-7
+  --intent-8: warning-8
+  --intent-9: warning-9
+  --intent-bg-floating: color-mix(in oklch,warning-9 20%,warning-2)
+  --intent-bg-inverted: warning-12
+  --intent-bg-normal: warning-2
+  --intent-bg-raised: warning-2
+  --intent-bg-strong: warning-9
+  --intent-bg-strong-active: color-mix(in oklab,warning-9 70%,neutral-light-0)
+  --intent-bg-strong-hover: color-mix(in oklab,warning-9 85%,neutral-light-0)
+  --intent-bg-subtle: color-mix(in oklch,warning-9 11%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,warning-9 6%,transparent)
+  --intent-bg-sunken: warning-0
+  --intent-border-inverted: warning-12
+  --intent-border-normal: warning-7
+  --intent-border-strong: warning-9
+  --intent-border-subtle: warning-6
+  --intent-border-subtler: warning-5
+  --intent-hue: 86
+  --intent-link-own: warning-9
+  --intent-link-text: warning-11
+  --intent-mark-bg: warning-light-5
+  --intent-mark-text: warning-light-13
+  --intent-text-inverted: warning-0
+  --intent-text-normal: warning-12
+  --intent-text-on-strong: warning-0
+  --intent-text-strong: warning-13
+  --intent-text-subtle: warning-11
+  --intent-text-subtler: warning-10
+dark .intent-danger .intent-warning
+dark [&_.probe]:intent-warning
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-warning
+dark .intent-info
+  --intent-0: info-0
+  --intent-1: info-1
+  --intent-10: info-10
+  --intent-11: info-11
+  --intent-12: info-12
+  --intent-13: info-13
+  --intent-2: info-2
+  --intent-2a: color-mix(in oklch,info-9 7%,transparent)
+  --intent-3: info-3
+  --intent-3a: color-mix(in oklch,info-9 13%,transparent)
+  --intent-4: info-4
+  --intent-4a: color-mix(in oklch,info-9 20%,transparent)
+  --intent-5: info-5
+  --intent-5a: color-mix(in oklch,info-9 27%,transparent)
+  --intent-6: info-6
+  --intent-7: info-7
+  --intent-8: info-8
+  --intent-9: info-9
+  --intent-bg-floating: color-mix(in oklch,info-9 20%,info-2)
+  --intent-bg-inverted: info-12
+  --intent-bg-normal: info-2
+  --intent-bg-raised: info-2
+  --intent-bg-strong: info-9
+  --intent-bg-strong-active: info-7
+  --intent-bg-strong-hover: info-8
+  --intent-bg-subtle: color-mix(in oklch,info-9 13%,transparent)
+  --intent-bg-subtler: color-mix(in oklch,info-9 7%,transparent)
+  --intent-bg-sunken: info-0
+  --intent-border-inverted: info-12
+  --intent-border-normal: info-7
+  --intent-border-strong: info-9
+  --intent-border-subtle: info-6
+  --intent-border-subtler: info-5
+  --intent-hue: 303
+  --intent-link-own: info-9
+  --intent-link-text: info-11
+  --intent-mark-bg: info-light-5
+  --intent-mark-text: info-light-13
+  --intent-text-inverted: info-0
+  --intent-text-normal: info-12
+  --intent-text-on-strong: neutral-light-0
+  --intent-text-strong: info-13
+  --intent-text-subtle: info-11
+  --intent-text-subtler: info-10
+dark .intent-danger .intent-info
+dark [&_.probe]:intent-info
+  --intent-bg-floating: color-mix(in oklch,neutral-9 20%,neutral-4)
+dark data-[checked]:intent-info
