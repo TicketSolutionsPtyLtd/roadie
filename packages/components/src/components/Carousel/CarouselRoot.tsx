@@ -163,7 +163,9 @@ export function CarouselRoot({
   const [emblaRef, api] = useEmblaCarousel(resolvedOpts, plugins)
 
   const [selectedIndex, setSelectedIndex] = useState(0)
-  const [slideCount, setSlideCount] = useState(0)
+  // Null until Carousel.Content counts its slides, as on the server.
+  const [countedSlides, setSlideCount] = useState<number | null>(null)
+  const slideCount = countedSlides ?? 0
   const [snapCount, setSnapCount] = useState(0)
   const [labelId, setLabelId] = useState<string | undefined>(undefined)
   const [slidesInView, setSlidesInView] = useState<number[]>([0])
@@ -292,9 +294,13 @@ export function CarouselRoot({
       ? Math.min(Math.max(0, selectedIndex), effectiveSnapCount - 1)
       : 0
   const canGoToPrev = effectiveSnapCount > 1 && (loop || clampedIndex > 0)
+  // Until the slides are counted, there's taken to be somewhere to scroll, so
+  // the server paints the controls and dots at their final size.
+  const counted = countedSlides !== null
+  const canScroll = !counted || effectiveSnapCount > 1
   const canGoToNext =
-    effectiveSnapCount > 1 && (loop || clampedIndex < effectiveSnapCount - 1)
-  const canScroll = effectiveSnapCount > 1
+    !counted ||
+    (effectiveSnapCount > 1 && (loop || clampedIndex < effectiveSnapCount - 1))
 
   const actions = useMemo<CarouselActions>(
     () => ({

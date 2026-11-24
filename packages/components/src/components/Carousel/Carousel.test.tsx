@@ -4,6 +4,7 @@ import { waitFor } from '@testing-library/dom'
 import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { EmblaCarouselType } from 'embla-carousel'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -55,6 +56,32 @@ describe('Carousel', () => {
     const region = getByRole('region')
     expect(region).toHaveAttribute('aria-roledescription', 'carousel')
     expect(region).toHaveAttribute('aria-label', 'Test carousel')
+  })
+
+  it('renders the controls and dots on the server, as Embla has not measured yet', () => {
+    const html = renderToString(
+      <Carousel aria-label='Shows'>
+        <Carousel.Header>
+          <Carousel.Dots />
+          <Carousel.Controls>
+            <Carousel.Previous />
+            <Carousel.Next />
+          </Carousel.Controls>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>Show 1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const server = document.createElement('div')
+    server.innerHTML = html
+    const part = (slot: string) => server.querySelector(`[data-slot="${slot}"]`)
+    for (const slot of ['dots', 'controls', 'previous', 'next']) {
+      expect(part(`carousel-${slot}`)).toBeInstanceOf(HTMLElement)
+      expect(part(`carousel-${slot}`)).not.toHaveAttribute('data-hidden')
+    }
+    expect(part('carousel-next')).not.toHaveAttribute('aria-disabled')
+    expect(part('carousel-previous')).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('renders one slide per Carousel.Item with "N of M" label', () => {

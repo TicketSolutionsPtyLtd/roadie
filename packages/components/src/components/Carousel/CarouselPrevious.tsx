@@ -4,8 +4,11 @@ import type { ReactNode } from 'react'
 
 import { CaretLeftIcon, CaretUpIcon } from '@phosphor-icons/react/ssr'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { IconButton, type IconButtonProps } from '../Button/IconButton'
 import { useCarouselContext } from './CarouselContext'
+import { carouselHiddenClass } from './variants'
 
 export type CarouselNavButtonProps = Omit<
   IconButtonProps,
@@ -35,16 +38,16 @@ export function CarouselPrevious({
   ...props
 }: CarouselNavButtonProps) {
   const { direction, canScroll, canGoToPrev, goToPrev } = useCarouselContext()
-  if (!canScroll) return null
   const Icon = direction === 'vertical' ? CaretUpIcon : CaretLeftIcon
   return (
     <IconButton
       size='icon-sm'
-      className={className}
+      className={cn(carouselHiddenClass, className)}
       aria-label={ariaLabel}
       aria-disabled={!canGoToPrev || undefined}
       data-disabled={!canGoToPrev || undefined}
       data-slot='carousel-previous'
+      data-hidden={!canScroll || undefined}
       onClick={canGoToPrev ? goToPrev : undefined}
       {...props}
     >

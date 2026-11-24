@@ -33,7 +33,8 @@ export type CarouselState = {
   /**
    * True when there is somewhere to scroll to. False when every slide
    * already fits in the viewport (snapCount <= 1), in which case
-   * Previous / Next / Dots / Controls all hide themselves.
+   * Previous / Next / Dots / Controls all hide themselves. True before
+   * Carousel.Content has counted its slides, as on the server.
    */
   canScroll: boolean
   isPlaying: boolean

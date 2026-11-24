@@ -5,7 +5,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useCarouselContext } from './CarouselContext'
-import { carouselDotsVariants } from './variants'
+import { carouselDotsVariants, carouselHiddenClass } from './variants'
 
 export type CarouselDotsProps = ComponentProps<'div'> & {
   /**
@@ -33,14 +33,18 @@ export function dotWindow(count: number, selected: number, max?: number) {
 export function CarouselDots({ className, max, ...props }: CarouselDotsProps) {
   const { direction, snapCount, selectedIndex, canScroll, goTo } =
     useCarouselContext()
-  if (!canScroll) return null
   const { start, size } = dotWindow(snapCount, selectedIndex, max)
   return (
     <div
       role='group'
       aria-label='Choose slide to display'
       data-slot='carousel-dots'
-      className={cn(carouselDotsVariants({ direction }), className)}
+      data-hidden={!canScroll || undefined}
+      className={cn(
+        carouselDotsVariants({ direction }),
+        carouselHiddenClass,
+        className
+      )}
       {...props}
     >
       {Array.from({ length: size }, (_, offset) => {

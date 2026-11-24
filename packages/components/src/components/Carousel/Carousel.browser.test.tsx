@@ -283,6 +283,42 @@ describe('Carousel navigation', () => {
       screen.queryByRole('group', { name: 'Choose slide to display' })
     ).toBeNull()
   })
+
+  it('hides Previous, Next, and dots by attribute, out of the tab order, once every slide fits', async () => {
+    render(
+      <>
+        <button type='button'>Before</button>
+        <Carousel aria-label='Shows'>
+          <Carousel.Header>
+            <Carousel.Title>Shows</Carousel.Title>
+            <Carousel.Dots className='flex' />
+            <Carousel.Controls className='flex'>
+              <Carousel.Previous className='flex' />
+              <Carousel.Next className='flex' />
+            </Carousel.Controls>
+          </Carousel.Header>
+          <Carousel.Content>
+            <Carousel.Item>Show 1</Carousel.Item>
+          </Carousel.Content>
+          <Ready />
+        </Carousel>
+        <button type='button'>After</button>
+      </>
+    )
+    await expect.element(page.getByText('Ready')).toBeInTheDocument()
+    for (const slot of ['dots', 'controls', 'previous', 'next']) {
+      const part = document.querySelector(`[data-slot="carousel-${slot}"]`)
+      expect(part).toHaveAttribute('data-hidden')
+      expect(part).not.toBeVisible()
+    }
+    button('Before').focus()
+    await userEvent.tab()
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-slot="carousel-content"]')
+    )
+    await userEvent.tab()
+    expect(document.activeElement).toBe(button('After'))
+  })
 })
 
 describe('Carousel overflow', () => {

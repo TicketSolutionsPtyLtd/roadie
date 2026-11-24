@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useCarouselContext } from './CarouselContext'
+import { carouselHiddenClass } from './variants'
 
 export type CarouselControlsProps = ComponentProps<'div'> & {
   /**
@@ -21,11 +22,15 @@ export function CarouselControls({
   ...props
 }: CarouselControlsProps) {
   const { canScroll } = useCarouselContext()
-  if (!forceVisible && !canScroll) return null
   return (
     <div
       data-slot='carousel-controls'
-      className={cn('hidden items-center gap-2 md:flex', className)}
+      data-hidden={(!forceVisible && !canScroll) || undefined}
+      className={cn(
+        'hidden items-center gap-2 md:flex',
+        carouselHiddenClass,
+        className
+      )}
       {...props}
     />
   )

@@ -2,9 +2,12 @@
 
 import { CaretDownIcon, CaretRightIcon } from '@phosphor-icons/react/ssr'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { IconButton } from '../Button/IconButton'
 import { useCarouselContext } from './CarouselContext'
 import type { CarouselNavButtonProps } from './CarouselPrevious'
+import { carouselHiddenClass } from './variants'
 
 export function CarouselNext({
   className,
@@ -13,16 +16,16 @@ export function CarouselNext({
   ...props
 }: CarouselNavButtonProps) {
   const { direction, canScroll, canGoToNext, goToNext } = useCarouselContext()
-  if (!canScroll) return null
   const Icon = direction === 'vertical' ? CaretDownIcon : CaretRightIcon
   return (
     <IconButton
       size='icon-sm'
-      className={className}
+      className={cn(carouselHiddenClass, className)}
       aria-label={ariaLabel}
       aria-disabled={!canGoToNext || undefined}
       data-disabled={!canGoToNext || undefined}
       data-slot='carousel-next'
+      data-hidden={!canScroll || undefined}
       onClick={canGoToNext ? goToNext : undefined}
       {...props}
     >
