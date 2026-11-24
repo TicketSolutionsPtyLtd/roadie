@@ -89,18 +89,19 @@ describe('Sortable', () => {
     expect(button.closest('[data-slot="sortable-item"]')?.tagName).toBe('LI')
   })
 
-  // Each row ends with how many keys, presses and clicks the handle hears.
+  // Each row ends with whether the menu skips its transition, as it does for
+  // a keyboard's click, and how many keys, presses and clicks the handle hears.
   it.each([
-    ['Enter', '{Enter}', 'menuitem', 'Move B up', 2],
-    ['Space', ' ', 'menuitem', 'Move B up', 2],
-    ['the down arrow', '{ArrowDown}', 'menuitem', 'Move B up', 1],
-    ['the up arrow', '{ArrowUp}', 'menuitem', 'Move B to bottom', 1],
+    ['Enter', '{Enter}', 'menuitem', 'Move B up', true, 2],
+    ['Space', ' ', 'menuitem', 'Move B up', true, 2],
+    ['the down arrow', '{ArrowDown}', 'menuitem', 'Move B up', false, 1],
+    ['the up arrow', '{ArrowUp}', 'menuitem', 'Move B to bottom', false, 1],
     // A press that became a drag sent no click, so it opens nothing later.
-    ['Enter after a drag', '{Enter}', 'menuitem', 'Move B up', 3],
-    ['a press', null, 'menu', 'Reorder B', 2]
+    ['Enter after a drag', '{Enter}', 'menuitem', 'Move B up', true, 3],
+    ['a press', null, 'menu', 'Reorder B', false, 2]
   ])(
     'opens on %s with focus where that puts it, hearing it once',
-    async (name, key, role, focused, events) => {
+    async (name, key, role, focused, instant, events) => {
       const heard = vi.fn()
       const above = vi.fn()
       const ref = { current: null as HTMLButtonElement | null }
@@ -123,6 +124,9 @@ describe('Sortable', () => {
       await waitFor(() => expect(target).toHaveFocus())
       expect(ref.current).toBe(handle('B'))
       expect(handle('B')).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.getByRole('menu').hasAttribute('data-instant')).toBe(
+        instant
+      )
       expect(heard).toHaveBeenCalledTimes(events)
       expect(above).toHaveBeenCalledTimes(events)
       await user.keyboard('{Escape}')

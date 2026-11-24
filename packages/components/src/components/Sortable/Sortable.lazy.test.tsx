@@ -113,7 +113,8 @@ describe('Sortable handle before its Move menu has loaded', () => {
   ])('opens nothing late once %s', async (_, moveOn) => {
     const user = userEvent.setup()
     const list = await setup()
-    await user.click(list.handle('Song 2'))
+    list.handle('Song 2').focus()
+    await user.keyboard('{ArrowDown}')
     moveOn(list)
     await list.arrive()
     expect(list.screen.queryByRole('menu')).toBeNull()
