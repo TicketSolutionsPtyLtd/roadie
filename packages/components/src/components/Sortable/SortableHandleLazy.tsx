@@ -7,6 +7,7 @@ import { DotsSixIcon, DotsSixVerticalIcon } from '@phosphor-icons/react/ssr'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { mergeRefs } from '../../utils/mergeRefs'
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { IconButton } from '../Button/IconButton'
 import {
   SortableItemContext,
@@ -43,6 +44,12 @@ export function SortableHandleLazy(props: SortableHandleProps) {
   // pull focus back.
   const asked = useRef<SortableMenuOpening | null>(null)
   const pressed = useRef<Event | null>(null)
+  // Read when the menu lands: a list disabled meanwhile keeps its plain
+  // button, and the focus on it.
+  const disabled = useRef(item.disabled)
+  useIsomorphicLayoutEffect(() => {
+    disabled.current = item.disabled
+  }, [item.disabled])
   const { setHandle } = item
   const { ref: forwarded } = props
   const ref = useMemo(
@@ -68,7 +75,7 @@ export function SortableHandleLazy(props: SortableHandleProps) {
   } = props
   const DotsIcon = root.axis === 'vertical' ? DotsSixVerticalIcon : DotsSixIcon
   function show(module: HandleModule) {
-    if (!asked.current) return
+    if (!asked.current || disabled.current) return
     setMenu({ ...module, opening: asked.current })
     asked.current = null
   }
@@ -110,6 +117,7 @@ export function SortableHandleLazy(props: SortableHandleProps) {
       }}
       onKeyDown={(event) => {
         onKeyDown?.(event)
+        if (event.key === 'Escape') asked.current = null
         if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
         // As the menu's trigger does, or the key scrolls the page too.
         event.preventDefault()

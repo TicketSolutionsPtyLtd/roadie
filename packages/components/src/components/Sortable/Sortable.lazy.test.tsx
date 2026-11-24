@@ -109,7 +109,12 @@ describe('Sortable handle before its Move menu has loaded', () => {
       'its handle is pressed again',
       ({ fireEvent, handle }) => fireEvent.pointerDown(handle('Song 2'))
     ],
-    ['its list is disabled', ({ disable }) => disable()]
+    ['its list is disabled', ({ disable }) => disable()],
+    [
+      'Escape is pressed',
+      ({ fireEvent, handle }) =>
+        fireEvent.keyDown(handle('Song 2'), { key: 'Escape' })
+    ]
   ])('opens nothing late once %s', async (_, moveOn) => {
     const user = userEvent.setup()
     const list = await setup()
@@ -118,6 +123,8 @@ describe('Sortable handle before its Move menu has loaded', () => {
     moveOn(list)
     await list.arrive()
     expect(list.screen.queryByRole('menu')).toBeNull()
+    // Nor swaps the button, which would drop focus to the page.
+    expect(list.withMenu).not.toHaveBeenCalled()
   })
 
   it('renders one handle with a menu, not twenty, as a row of 20 moves', async () => {
