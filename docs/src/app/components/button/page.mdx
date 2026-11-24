@@ -143,7 +143,7 @@ function SendTickets() {
 render(<SendTickets />)
 ```
 
-The look comes from `aria-busy='true'` on any element with the `btn` class, so markup that isn't React, such as the deprecated `LinkButton` or a link in a Vue widget, gets it from the attribute. The element's behaviour is then yours: pair it with `aria-disabled='true'` and stop the click.
+The look comes from `aria-busy='true'` on any element with the `btn` class, so markup without the prop, such as the deprecated `LinkButton` or a link in a Vue widget, gets it from the attribute. The element's behaviour is then yours: pair it with `aria-disabled='true'` and stop the click.
 
 ### Href
 
