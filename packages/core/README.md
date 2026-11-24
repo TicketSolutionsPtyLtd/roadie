@@ -42,8 +42,12 @@ Dark mode swaps every token when `<html>` has the `dark` class, so there are
 no `dark:` variants. Tailwind's default palette is off: use semantic colours
 such as `bg-normal`, `text-subtle` and `border-normal`.
 
-`@oztix/roadie-core/css/compiled` is a prebuilt sheet of Roadie's own
-utilities for hosts that can't run Tailwind v4.
+`@oztix/roadie-core/css/compiled` is a prebuilt sheet for hosts that can't run
+Tailwind v4. It holds the base styles and only the utilities
+`src/css/safelist.html` names, with the tokens they use. Any other utility,
+such as `grid`, `gap-2`, or `p-6`, does nothing, so lay out in the host's own
+CSS. The sheet is minified and its nesting is flattened, so it needs no browser
+support for CSS nesting.
 
 ## JavaScript
 

@@ -1,0 +1,5 @@
+/* What `build:css` compiles into `dist/roadie.compiled.css`. `source(none)`
+   stops Tailwind scanning the package for class names, and sits here, not in
+   `roadie.css`, so an app that imports that still scans its own sources. */
+@import '../src/css/roadie.css' source(none);
+@source '../src/css/safelist.html';

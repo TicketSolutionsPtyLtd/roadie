@@ -6,6 +6,7 @@
       "outputs": ["$TURBO_EXTENDS$", "src/tokens/tokens.json"],
       "inputs": [
         "$TURBO_EXTENDS$",
+        "scripts/css-compiled.css",
         "!src/tokens/tokens.json",
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.react.json",
@@ -34,6 +35,7 @@
     "build:quiet": {
       "inputs": [
         "$TURBO_EXTENDS$",
+        "scripts/css-compiled.css",
         "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
         "!src/**/fixtures.{ts,tsx}"
       ]

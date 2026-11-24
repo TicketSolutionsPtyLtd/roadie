@@ -101,7 +101,7 @@
     "clean": "rm -rf node_modules dist",
     "build": "pnpm generate:tokens && pnpm generate:manifest --alongside \"tsdown && node scripts/records-json-schema.mjs && pnpm build:css\"",
     "build:quiet": "tsdown --log-level warn && node scripts/records-json-schema.mjs && pnpm build:css",
-    "build:css": "tailwindcss -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
+    "build:css": "tailwindcss -i scripts/css-compiled.css -o dist/roadie.compiled.css --minify",
     "generate:tokens": "node scripts/generate-tokens.mjs",
     "generate:manifest": "node scripts/manifest/generate.ts --tokens",
     "check:package": "pnpm check:exports && pnpm check:pack",
@@ -159,13 +159,13 @@
     {
       "name": "css/compiled",
       "path": "dist/roadie.compiled.css",
-      "limit": "20.8 KB"
+      "limit": "19.3 KB"
     },
     {
       "name": "css/compiled uncompressed",
       "path": "dist/roadie.compiled.css",
       "brotli": false,
-      "limit": "216 KB"
+      "limit": "182 KB"
     },
     {
       "name": "css with no sources scanned",
