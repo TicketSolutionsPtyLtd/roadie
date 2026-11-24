@@ -1,0 +1,3 @@
+/* The foundations floor: what `@import '@oztix/roadie-core/css'` costs an app's
+   Tailwind build before it scans a source file. Size Limit budgets it. */
+@import '../src/css/roadie.css' source(none);
