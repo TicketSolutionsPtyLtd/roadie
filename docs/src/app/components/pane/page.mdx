@@ -116,7 +116,8 @@ keeps a width that reads well.
 `readable` is 65 characters of the pane's own text size. If the body text is
 larger than the pane's, set its size on the `Pane` so the measure counts the
 right characters. Content is centred; `measureAlign='start'` holds it to the
-start instead.
+start instead. `Pane.Body` and anything beside it fill the measure, as content
+placed straight in the pane does.
 
 ```tsx-live
 <div className='h-80 overflow-hidden rounded-2xl border border-subtle'>
@@ -124,10 +125,12 @@ start instead.
     <Pane.Header>
       <Pane.Title>Settings</Pane.Title>
     </Pane.Header>
-    <Field>
-      <Field.Label>Display name</Field.Label>
-      <Field.Input defaultValue='Sam Okafor' />
-    </Field>
+    <Pane.Body>
+      <Field>
+        <Field.Label>Display name</Field.Label>
+        <Field.Input defaultValue='Sam Okafor' />
+      </Field>
+    </Pane.Body>
   </Pane>
 </div>
 ```
