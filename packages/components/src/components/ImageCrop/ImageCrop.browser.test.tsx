@@ -790,6 +790,62 @@ describe('ImageCrop in free-form', () => {
     renderCrop({ aspectRatio: undefined, ...props })
   const corner = (name: string) => screen.getByRole('button', { name })
 
+  // A touch on a handle, dispatched, in px from the handle's centre.
+  const press = (handle: HTMLElement) => {
+    const box = rect(handle)
+    const send = (type: string, x: number, y: number) =>
+      handle.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 7,
+          pointerType: 'touch',
+          isPrimary: true,
+          clientX: box.x + box.width / 2 + x,
+          clientY: box.y + box.height / 2 + y,
+          bubbles: true,
+          cancelable: true
+        })
+      )
+    send('pointerdown', 0, 0)
+    return {
+      move: (x: number, y: number) => send('pointermove', x, y),
+      up: (x: number, y: number) => send('pointerup', x, y)
+    }
+  }
+
+  it('lets a control win over a handle held down', async () => {
+    const { onValueChange, last } = await renderFree()
+    const drag = press(corner('Bottom right corner'))
+    drag.move(-40, -20)
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    const calls = onValueChange.mock.calls.length
+    expect(last().rotation).toBe(270)
+    drag.move(-80, -40)
+    drag.up(-80, -40)
+    expect(onValueChange).toHaveBeenCalledTimes(calls)
+    expect(last().rotation).toBe(270)
+  })
+
+  it('resizes from a handle pressed while a wheel zoom settles', async () => {
+    const { stage, last } = await renderFree()
+    stage.focus()
+    const { x, y, width, height } = rect(stage)
+    stage.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -100,
+        clientX: x + width / 2,
+        clientY: y + height / 2,
+        bubbles: true,
+        cancelable: true
+      })
+    )
+    const drag = press(corner('Bottom right corner'))
+    drag.move(-40, 0)
+    drag.up(-40, 0)
+    // Zoomed in by the wheel, then narrowed by the drag, in one report.
+    expect(last().zoom).toBeGreaterThan(freeZoom)
+    expect(last().area.width / last().area.height).toBeLessThan(1.4)
+  })
+
   it('starts with the whole image and four corner handles', async () => {
     const { stage, last } = await renderFree()
     expect(last().area).toEqual({ x: 0, y: 0, width: 2400, height: 1600 })

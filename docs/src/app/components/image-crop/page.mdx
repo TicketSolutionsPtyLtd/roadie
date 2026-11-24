@@ -49,7 +49,7 @@ Past an edge or a zoom limit the image gives way, then springs back when you let
 
 ### Free-form
 
-Leave out `aspectRatio` and the frame starts as the whole image, with handles on its corners and edges. Drag one to resize the crop about its centre; when you let go, the frame grows back to fill the crop area and the image zooms with it. A quarter turn turns the frame too, and Reset goes back to the whole image. `minWidth` and `minHeight` each cap their own side. A homepage image can be any shape.
+Leave out `aspectRatio` and the frame starts as the whole image, with handles on its corners and edges. Drag one to resize the crop about its centre; when you let go, the frame grows back to fill the crop area and the image zooms with it. A quarter turn turns the frame too, and Reset goes back to the whole image. `minWidth` and `minHeight` each set the smallest their own side can be. A homepage image can be any shape.
 
 ```tsx-live width=180
 <ImageCrop

@@ -253,6 +253,7 @@ export function ImageCropStage({
       springs.current = crop.springs
       live.current = null
       gesture.current = null
+      resizing.current = null
       settle()
     }
     if (shown && !live.current) {
@@ -503,7 +504,7 @@ export function ImageCropStage({
   // at. On release the frame grows back to fill the stage, and the image
   // zooms with it.
   const startResize = (event: PointerEvent<HTMLElement>, edge: Edge) => {
-    if (!scene || !shown || live.current || gesture.current) return
+    if (!scene || !shown || gesture.current) return
     if (event.pointerType === 'mouse' && event.button !== 0) return
     // The Stage leaves a handled pointer alone, so it doesn't pan too.
     event.preventDefault()
@@ -517,7 +518,8 @@ export function ImageCropStage({
     resizing.current = {
       pointerId: event.pointerId,
       edge,
-      start: shown,
+      // A wheel zoom still settling carries on as this resize, reported once.
+      start: live.current?.value ?? shown,
       frame: scene.frame,
       from: { x: event.clientX, y: event.clientY }
     }
