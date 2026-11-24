@@ -8,7 +8,7 @@ import {
   useState
 } from 'react'
 
-import { XIcon } from '@phosphor-icons/react'
+import { CheckIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -26,10 +26,11 @@ export type FileUploadItemProps = ComponentProps<'div'>
 export function FileUploadItem({
   className,
   style,
+  children,
   ...props
 }: FileUploadItemProps) {
   const {
-    item: { id },
+    item: { id, status, progress },
     leaving,
     enterIndex,
     onLeft,
@@ -70,7 +71,7 @@ export function FileUploadItem({
       <div className='min-h-0'>
         <div
           className={cn(
-            'flex h-full origin-top animate-pop-in items-center gap-3 rounded-xl emphasis-normal p-2',
+            'relative flex h-full origin-top animate-pop-in items-center gap-3 rounded-xl emphasis-normal p-2',
             className
           )}
           style={{
@@ -78,7 +79,17 @@ export function FileUploadItem({
             ...style
           }}
           {...props}
-        />
+        >
+          {children}
+          {status === 'uploading' && (
+            // A hairline along the row's foot as the file uploads.
+            <span
+              aria-hidden
+              className='absolute inset-x-3 bottom-0 h-0.5 origin-left rounded-full bg-strong transition-[scale] duration-moderate ease-out'
+              style={{ scale: `${progress} 1` }}
+            />
+          )}
+        </div>
       </div>
     </li>
   )
@@ -127,6 +138,69 @@ export function FileUploadItemSize({
 }
 
 FileUploadItemSize.displayName = 'FileUpload.ItemSize'
+
+export type FileUploadItemStatusProps = ComponentProps<'span'>
+
+/**
+ * The file's upload, laid over `FileUpload.ItemPreview`: a ring while it
+ * waits and uploads, then a check that pops in once it's done. Renders
+ * nothing when `onUpload` isn't uploading the file.
+ */
+export function FileUploadItemStatus({
+  className,
+  ...props
+}: FileUploadItemStatusProps) {
+  const {
+    item: { file, status, progress }
+  } = useFileUploadItem('FileUpload.ItemStatus')
+  if (status !== 'queued' && status !== 'uploading' && status !== 'done')
+    return null
+  return (
+    <span
+      data-slot='file-upload-item-status'
+      data-status={status}
+      className={cn(
+        'absolute inset-0 grid place-items-center text-strong group-data-image/preview:text-(--color-neutral-light-0)',
+        className
+      )}
+      {...props}
+    >
+      {status === 'done' ? (
+        <span
+          role='img'
+          aria-label='Uploaded'
+          className='absolute right-1 bottom-1 grid size-5 emphasis-strong place-items-center rounded-full transition-[scale] duration-slow ease-spring-lively intent-success starting:scale-0'
+        >
+          <CheckIcon weight='bold' className='size-3' />
+        </span>
+      ) : (
+        <svg
+          role='progressbar'
+          aria-label={`${status === 'queued' ? 'Waiting to upload' : 'Uploading'} ${file.name}`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
+          viewBox='0 0 34 34'
+          className='size-8 -rotate-90 fill-none stroke-current stroke-[3.5]'
+          strokeLinecap='round'
+        >
+          <circle cx='17' cy='17' r='14' opacity={0.35} />
+          <circle
+            cx='17'
+            cy='17'
+            r='14'
+            pathLength={1}
+            strokeDasharray={1}
+            strokeDashoffset={1 - progress}
+            className='transition-[stroke-dashoffset] duration-moderate ease-out'
+          />
+        </svg>
+      )}
+    </span>
+  )
+}
+
+FileUploadItemStatus.displayName = 'FileUpload.ItemStatus'
 
 export type FileUploadItemRemoveProps = Omit<IconButtonProps, 'aria-label'> & {
   'aria-label'?: string

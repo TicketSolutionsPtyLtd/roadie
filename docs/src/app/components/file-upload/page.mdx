@@ -43,6 +43,39 @@ With no children, `FileUpload` is a dropzone with the chosen file listed under i
 </Field>
 ```
 
+### Upload
+
+Give `onUpload` a function that uploads one file, and the field uploads each file as it's added. When several join the value at once, such as through a controlled `value`, three upload at a time and the rest wait. It's called with the file and `{ signal, onProgress }`: report progress from 0 to 1, and stop when `signal` aborts, as it does when the file is removed. What it resolves becomes the row's `result`, such as the stored file's URL. A function that only takes the file, such as the editor's `onUploadImage`, works too. While a file waits and uploads, a ring over its preview fills and a hairline runs along its row, and a check pops in once it's done. Files the field starts with, from `value` or `defaultValue`, don't upload. Roadie never fetches: this example's network is fake.
+
+```tsx-live width=140
+function UploadExample() {
+  // Swap this for your upload, such as a PUT to presigned storage.
+  const upload = (file, { signal, onProgress }) =>
+    new Promise((resolve, reject) => {
+      let progress = 0
+      const tick = setInterval(() => {
+        progress += 0.04 + Math.random() * 0.08
+        onProgress(progress)
+        if (progress < 1) return
+        clearInterval(tick)
+        resolve({ url: `https://assets.example/${file.name}` })
+      }, 200)
+      signal.addEventListener('abort', () => {
+        clearInterval(tick)
+        reject(signal.reason)
+      })
+    })
+
+  return (
+    <Field>
+      <Field.Label>Event poster</Field.Label>
+      <FileUpload name='poster' accept='image/*,.pdf' onUpload={upload} />
+      <Field.HelperText>An image or PDF. It uploads once you add it.</Field.HelperText>
+    </Field>
+  )
+}
+```
+
 ### Single-image slot
 
 For one image, stack `FileUpload.Dropzone` and `FileUpload.List` in the same grid cell of a box with the image's aspect ratio. Once there's an image, its preview covers the dropzone, which still takes a click or a drop to replace it. Its focus ring shows around the preview. A replaced image fades out over its replacement, since the rows share the cell. The row is `FileUpload.Item` with `FileUpload.ItemPreview` and `FileUpload.ItemRemove`, restyled by `className`. Give the preview `alt` text, since no name sits beside it.
@@ -114,7 +147,7 @@ For one plain file in a dense form, compose the bar instead, as the [guidelines]
 
 #### Rows
 
-`FileUpload.List` takes a child function, as Autocomplete's list does, called with each `{ file, id }`. Compose the row from `FileUpload.Item`, `.ItemPreview`, `.ItemName`, `.ItemSize` and `.ItemRemove`. Return a `FileUpload.Item` to get the motion; any other markup goes as soon as its file does. Rows pop in, staggered after the files added with them, and a removed row fades and collapses before it goes.
+`FileUpload.List` takes a child function, as Autocomplete's list does, called with each `{ file, id, status, progress, result }`. `status` is `idle` when `onUpload` isn't uploading the file, then `queued`, `uploading` and `done`. Compose the row from `FileUpload.Item`, `.ItemPreview`, `.ItemName`, `.ItemSize` and `.ItemRemove`, and put `.ItemStatus` inside `.ItemPreview` to lay the ring and check over it. Return a `FileUpload.Item` to get the motion; any other markup goes as soon as its file does. Rows pop in, staggered after the files added with them, and a removed row fades and collapses before it goes.
 
 ```tsx-live width=140
 <Field>
@@ -124,7 +157,9 @@ For one plain file in a dense form, compose the bar instead, as the [guidelines]
     <FileUpload.List>
       {() => (
         <FileUpload.Item>
-          <FileUpload.ItemPreview className='size-10' />
+          <FileUpload.ItemPreview className='size-10'>
+            <FileUpload.ItemStatus />
+          </FileUpload.ItemPreview>
           <FileUpload.ItemName className='flex-1' />
           <FileUpload.ItemSize />
           <FileUpload.ItemRemove />
@@ -186,6 +221,7 @@ A `FileUpload.Trigger` on its own is a plain button, for a toolbar or a row of a
 
 - Dragging is never the only way in. `FileUpload.Dropzone` is a button: Tab reaches it, and Enter, Space or a click opens the picker. `Field.Label` and its title name it, such as "Guest list Drop a file, or choose one". Pasting a file works anywhere inside the field.
 - Each row's Remove is named for its file, such as "Remove guests.csv". After it, focus moves to the next row's Remove, the previous row's when it was the last, or the dropzone or Trigger when no files are left. A row that's collapsing is inert, so it takes no focus.
+- A polite live region says when files are added and when each one has uploaded, with the total once there's more than one, such as "april.csv uploaded. 1 of 2 uploaded." It never reads out each percent. The ring is a progress bar named for its file, such as "Uploading april.csv", for anyone who moves to it.
 - `FileUpload.ItemPreview` has empty alt text by default, since the name sits beside it. Give it `alt` when it stands alone, as in the single-image slot.
 - `FileUpload.Trigger` is a real button, so it works with a keyboard, switch access and voice control. `Field.Label`, the chosen file and the button's own text name it together, such as "Guest list guests.csv 2 kB Replace".
 - The bar's click target is `FileUpload.Value`, a label for the hidden input, so the bar adds no focus stop. Its only stops are Clear and Trigger. Clear is named for the file, such as "Remove guests.csv", and focus moves to the Trigger after it.

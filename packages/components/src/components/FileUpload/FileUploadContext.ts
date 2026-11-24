@@ -9,6 +9,8 @@ export type FileUploadContextValue = {
   open: () => void
   clear: () => void
   remove: (file: File) => void
+  /** Each file's upload, once `onUpload` has queued it. */
+  uploads: ReadonlyMap<File, FileUploadUpload>
   inputId: string
   valueId: string
   triggerRef: RefObject<HTMLElement | null>
@@ -28,8 +30,27 @@ export function useFileUploadContext(part: string) {
   return context
 }
 
-/** A file in `FileUpload.List`, with an id that stays the same while it's there. */
-export type FileUploadItem = { file: File; id: string }
+/** Where a file's upload is. `idle` means `onUpload` isn't uploading it. */
+export type FileUploadStatus =
+  | 'idle'
+  | 'queued'
+  | 'uploading'
+  | 'done'
+  | 'error'
+
+export type FileUploadUpload = {
+  status: FileUploadStatus
+  /** From 0 to 1, as `onUpload` reports it. */
+  progress: number
+  /** What `onUpload` resolved, once it's done. */
+  result?: unknown
+}
+
+/**
+ * A file in `FileUpload.List`, with an id that stays the same while it's
+ * there, and its upload.
+ */
+export type FileUploadItem = FileUploadUpload & { file: File; id: string }
 
 export const FileUploadItemContext = createContext<{
   item: FileUploadItem
