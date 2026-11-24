@@ -76,7 +76,7 @@ Leave out `aspectRatio` and the frame starts as the whole image, with handles on
 
 ### Straighten
 
-`ImageCrop.Straighten` is a dial that tilts the image up to 45° either way, on top of its quarter turns, to level a horizon or a stage. It zooms in just enough to keep the frame covered, and a drag snaps to level near 0°. The angle is part of `rotation`, so a 3° tilt after one turn left is `273`. The default controls include it; here it's on its own with Reset.
+`ImageCrop.Straighten` is a dial that tilts the image up to 45° either way, on top of its quarter turns, to level a horizon or a stage. It zooms in just enough to keep the frame covered, and a drag snaps to level within 3px of 0°. The angle is part of `rotation`, so a 3° tilt after one turn left is `273`. The default controls include it; here it's on its own with Reset.
 
 ```tsx-live width=180
 <ImageCrop src='/brand/photography/03.webp' aspectRatio={2}>

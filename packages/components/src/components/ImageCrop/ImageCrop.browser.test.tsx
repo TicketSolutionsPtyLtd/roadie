@@ -763,6 +763,20 @@ describe('ImageCrop gestures that overlap', () => {
     expect(last().zoom).toBe(zoom)
   })
 
+  it('lets a dial key win over a wheel zoom still settling', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    stage.focus()
+    wheel(stage)
+    screen.getByRole('slider', { name: 'Straighten' }).focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(last().rotation).toBe(1)
+    // Nothing happens to wait on: the wheel's 150ms settle must pass unreported.
+    // eslint-disable-next-line roadie/no-fixed-sleep
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(last().rotation).toBe(1)
+  })
+
   it('keeps the slider preview on screen through a re-render', async () => {
     await commands.parkPointer()
     const { stage } = await renderCrop()
@@ -835,7 +849,7 @@ describe('ImageCrop straighten dial', () => {
     expect(imageOf(stage).style.transform).toContain('rotate(-2deg)')
   })
 
-  it('snaps to 0° within 0.8° on a drag, and reports once on release', async () => {
+  it('snaps to 0° within 3px on a drag, and reports once on release', async () => {
     await commands.parkPointer()
     const { stage, onValueChange, last } = await renderCrop()
     const track = rect(dial().closest('[data-slot="slider-control"]')!)
@@ -853,10 +867,9 @@ describe('ImageCrop straighten dial', () => {
       /rotate\((9|10|11)(\.\d+)?deg\)/
     )
     expect(onValueChange).toHaveBeenCalledTimes(1)
-    // Firefox rounds pointers to whole px, about 0.7° here, so aim well
-    // inside the detent.
+    // 2px is about 1.4° here, well past the old 0.8° detent.
     await commands.pointer([
-      { type: 'move', x: centre + perDegree * 0.3, y, steps: 4 },
+      { type: 'move', x: centre + 2, y, steps: 4 },
       { type: 'up' }
     ])
     expect(onValueChange).toHaveBeenCalledTimes(1)
@@ -894,6 +907,20 @@ describe('ImageCrop straighten dial', () => {
     expect(onValueChange).toHaveBeenCalledTimes(4)
     expect(last().rotation).toBeGreaterThan(308)
     expect(last().rotation).toBeLessThan(313)
+  })
+
+  it('says a tilt to 45° after a turn as the dial does', async () => {
+    await renderCrop()
+    const status = screen.getByRole('status')
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    dial().focus()
+    await userEvent.keyboard('{End}')
+    expect(dial()).toHaveAttribute('aria-valuenow', '45')
+    await waitFor(() =>
+      expect(status.textContent).toMatch(
+        /, turned 90 degrees left, straightened 45 degrees right\.$/
+      )
+    )
   })
 
   it('says a tilt to 45° as the dial does', async () => {
