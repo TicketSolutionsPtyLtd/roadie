@@ -20,7 +20,7 @@ import { ImageCrop } from '@oztix/roadie-components/image-crop'
 
 ### Default
 
-The frame stays still and the image moves under it. Drag to pan. Focus the crop area, then scroll, press `+` or `-`, or use the arrow keys. The image always covers the frame, so there are never empty corners. `src` takes a URL, or a `File` or `Blob` such as one from `FileUpload`.
+The frame stays still and the image moves under it. Drag to pan. Focus the crop area, then scroll, press `+` or `-`, or use the arrow keys. The image always covers the frame, so there are never empty corners. `src` takes a URL, or a `File` or `Blob` such as one from `FileUpload`. To crop a picked image and put the result back into a form, follow the [image field recipe](/components/file-upload#image-field), which saves the crop with `cropImage`.
 
 ```tsx-live width=180
 <ImageCrop

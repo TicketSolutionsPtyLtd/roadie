@@ -124,6 +124,121 @@ For one image, stack `FileUpload.Dropzone` and `FileUpload.List` in the same gri
 </Field>
 ```
 
+### Image field
+
+The image field recipe crops an image to its slot before it joins the form, in four parts:
+
+1. A single-image slot, as above, with a controlled `value`.
+2. `validate` turns away an image smaller than the slot needs, before any cropping.
+3. A pick opens [ImageCrop](/components/image-crop) in a `Dialog` rather than joining the value. Crop on the slot opens it again on the original.
+4. Save runs `cropImage` from `@oztix/roadie-core/image`, and the cropped `File` goes into the value.
+
+With `onUpload`, the cropped file uploads once it joins the value, and the original never does.
+
+```tsx-live width=140
+function EventImageField() {
+  const [files, setFiles] = useState([])
+  const [original, setOriginal] = useState(null)
+  const [cropping, setCropping] = useState(false)
+  const [crop, setCrop] = useState(null)
+
+  // Event images are 2:1, and at least 1200 × 600px once cropped.
+  const validate = async (file) => {
+    const image = await createImageBitmap(file)
+    const { width, height } = image
+    image.close()
+    return width < 1200 || height < 600
+      ? `${file.name} is ${width} × ${height}px. Choose an image at least 1200 × 600px.`
+      : null
+  }
+
+  const save = async () => {
+    const blob = await cropImage(original, crop, {
+      width: 1200,
+      type: 'image/jpeg',
+      quality: 0.9
+    })
+    const name = original.name.replace(/\.\w+$/, '.jpg')
+    setFiles([new File([blob], name, { type: blob.type })])
+    setCropping(false)
+  }
+
+  return (
+    <Field>
+      <Field.Label>Event image</Field.Label>
+      <FileUpload
+        name='eventImage'
+        accept='image/jpeg,image/png,image/webp'
+        validate={validate}
+        value={files}
+        onValueChange={([file]) => {
+          if (!file) return setFiles([])
+          setOriginal(file)
+          setCrop(null)
+          setCropping(true)
+        }}
+        className='aspect-2/1 w-full *:col-start-1 *:row-start-1'
+      >
+        <FileUpload.Dropzone
+          title='Drop an image, or choose one'
+          className='h-full content-center'
+        />
+        <FileUpload.List className='pointer-events-none h-full *:col-start-1 *:row-start-1'>
+          {(item) => (
+            <FileUpload.Item className='relative border-0 p-0'>
+              <FileUpload.ItemPreview
+                alt={`Event image: ${item.file.name}`}
+                className='size-full rounded-xl'
+              />
+              <span className='pointer-events-auto absolute top-2 right-2 flex gap-2'>
+                <IconButton
+                  size='sm'
+                  aria-label={`Crop ${item.file.name}`}
+                  className='emphasis-floating is-translucent'
+                  onClick={() => setCropping(true)}
+                >
+                  <CropIcon weight='bold' className='size-4' />
+                </IconButton>
+                <FileUpload.ItemRemove className='emphasis-floating is-translucent' />
+              </span>
+            </FileUpload.Item>
+          )}
+        </FileUpload.List>
+      </FileUpload>
+      <Field.HelperText>A JPG, PNG or WebP, at least 1200 × 600px. You'll crop it to 2:1.</Field.HelperText>
+      <Field.ErrorText />
+      <Dialog open={cropping} onOpenChange={setCropping}>
+        <Dialog.Content size='lg'>
+          <Dialog.Header>
+            <Dialog.Title>Crop event image</Dialog.Title>
+            <Dialog.Description>Drag to move the image, and scroll or pinch to zoom.</Dialog.Description>
+          </Dialog.Header>
+          <Dialog.Body>
+            {original && (
+              <ImageCrop
+                src={original}
+                aspectRatio={2}
+                minWidth={1200}
+                minHeight={600}
+                defaultValue={crop ?? undefined}
+                onValueChange={setCrop}
+                label='Event image'
+              />
+            )}
+          </Dialog.Body>
+          <Dialog.Footer>
+            <Dialog.Close render={<Button>Cancel</Button>} />
+            <Button intent='accent' emphasis='strong' disabled={!crop} onClick={save}>
+              Save crop
+            </Button>
+          </Dialog.Footer>
+        </Dialog.Content>
+      </Dialog>
+    </Field>
+  )
+}
+```
+
 ### States
 
 `Field` sets `invalid`, `required` and `disabled` for the whole field.
