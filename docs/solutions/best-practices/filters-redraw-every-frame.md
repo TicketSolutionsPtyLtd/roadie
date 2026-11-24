@@ -37,24 +37,31 @@ are small.
 
 For the ticket that meant:
 
-- The edge and the three shadows are one `box-shadow` on the root, which
-  follows its rounded corners.
+- The three shadows are a `box-shadow` on the root, which follows its
+  rounded corners.
+- The edge can't be on the root: a root ring runs straight across the mouth
+  of each notch, because only the parts know where the join is. So each part
+  draws its outer sides as `inset` box-shadows, with its outer corners taking
+  the card's radius (`border-*-radius: inherit`), so the edge follows them.
+  The edge is mixed solid with the fill, since the parts draw it inside
+  their own boxes, over the fill.
 - The notches are holes in the parts (a scoop corner, or a mask where
   `corner-shape` isn't supported), smaller by the edge's width (one pixel on
   raised and normal, none on subtle and subtler), and each notched part
   paints the edge in that ring as a `radial-gradient` in its background.
-- Where the drop-shadows piled up in the notch, they gave it a darker line
-  than the outer edge. Raised tickets keep that with a `--card-rim` colour,
-  darker than `--card-edge`.
 
-The only thing lost is the faint shadow the filters cast into the notch
-itself.
+What's lost: the faint shadow the filters cast into each notch, and on
+raised tickets the root's soft shadow still passes across a notch's mouth
+where the filters left it clean. That's faint at the sides, and most visible
+under the bottom notch of a horizontal ticket.
 
 ## Guard
 
 `CardTicket.perf.browser.test.tsx` slides a carousel of tickets and scrolls
 a list of 40 on the frame harness. Before the change, the carousel's p95
 frame was 83ms with 56% of frames dropped, and the list's 50ms with 16%
-dropped; after, both are 16.8ms with none dropped. It runs only with
-`--perf`, so `CardTicket.browser.test.tsx` also checks that the ticket has
-no `filter` and still draws its edge around the notch, in every engine.
+dropped; after, both are 16.7ms with none dropped. Keeping only the four zero-blur
+edge filters measured a 366ms first frame and 27% of frames dropped. The
+perf test runs only with `--perf`, so `CardTicket.browser.test.tsx` also
+checks, in every engine, that the ticket has no `filter`, draws its edge
+around the card and the notch, and leaves each notch's mouth open.

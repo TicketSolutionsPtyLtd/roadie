@@ -104,10 +104,32 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
         const { host, card } = renderTicket()
         const sample = await capture(host)
         const { left, width, top } = card.getBoundingClientRect()
+        const fill = sample(left + width / 2, top + 8)
+        // The edge is a pixel wide, so take the most distinct pixel across it.
+        const edge = Math.max(
+          ...[-1, -0.5, 0, 0.4, 1].map((offset) => {
+            const pixel = sample(left + width / 2, top + offset)
+            return Math.min(distance(pixel, fill), distance(pixel, BACKDROP))
+          })
+        )
 
-        expect(
-          distance(sample(left + width / 2, top - 1), BACKDROP)
-        ).toBeGreaterThan(8)
+        expect(edge).toBeGreaterThan(8)
+      }
+    )
+
+    it.runIf(emphasis === 'raised' || emphasis === 'normal')(
+      'leaves the mouth of each notch open, with no edge across it',
+      async () => {
+        const { host, card, footer } = renderTicket()
+        const sample = await capture(host)
+        const { left, right } = card.getBoundingClientRect()
+        const join = footer.getBoundingClientRect().top
+        // An edge across the mouth measured 24 on raised and 62 on normal.
+        // Raised casts a faint shadow past the side, so it gets some room.
+        const open = emphasis === 'normal' ? 2 : 16
+
+        expect(distance(sample(left - 1, join), BACKDROP)).toBeLessThan(open)
+        expect(distance(sample(right, join), BACKDROP)).toBeLessThan(open)
       }
     )
 
@@ -451,6 +473,24 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
         distance(sample(join, bottom - NOTCH_RADIUS - 6), fill)
       ).toBeLessThanOrEqual(2)
     })
+
+    it.runIf(emphasis === 'raised' || emphasis === 'normal').each([
+      ['horizontal', 560],
+      ['auto', 720]
+    ] as const)(
+      'leaves the mouth of each notch open when %s',
+      async (direction, width) => {
+        const { host, card, footer } = renderTicket(direction, width)
+        const sample = await capture(host)
+        const { top, bottom } = card.getBoundingClientRect()
+        const join = footer.getBoundingClientRect().left
+
+        expect(distance(sample(join, top - 1), BACKDROP)).toBeLessThan(2)
+        // Raised's shadow runs under the card, the bottom notch's mouth too.
+        if (emphasis === 'normal')
+          expect(distance(sample(join, bottom), BACKDROP)).toBeLessThan(2)
+      }
+    )
 
     it('stacks in a narrow container and splits in a wide one on auto', async () => {
       const narrow = renderTicket('auto', 352)
