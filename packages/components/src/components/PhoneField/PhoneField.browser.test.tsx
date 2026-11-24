@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { PhoneField, type PhoneFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -83,6 +83,44 @@ describe('PhoneField layout', () => {
   })
 })
 
+describe('PhoneField states', () => {
+  const edge = (element: HTMLElement) => getComputedStyle(element).borderColor
+
+  it('draws the ring around both controls while the picker has focus', async ({
+    skip
+  }) => {
+    const { group, picker } = mount()
+    screen.getByRole('button', { name: 'Before' }).focus()
+    await userEvent.keyboard('{Tab}')
+    if (!document.hasFocus()) skip('the test frame has no document focus')
+
+    expect(document.activeElement).toBe(picker)
+    expect(ringWidth(group)).toBeGreaterThan(0)
+  })
+
+  it('takes the danger outline when its Field is invalid', () => {
+    const { group: plain } = mount()
+    const rest = edge(plain)
+    cleanup()
+    render(
+      <Field invalid>
+        <Field.Label>Mobile number</Field.Label>
+        <PhoneField />
+      </Field>
+    )
+    const group = screen.getByRole('group', { name: 'Mobile number' })
+
+    expect(edge(group)).not.toBe(rest)
+  })
+
+  it('dims a disabled field once, not the picker twice', () => {
+    const { group, picker } = mount({ disabled: true })
+
+    expect(getComputedStyle(group).opacity).toBe('0.5')
+    expect(getComputedStyle(picker).opacity).toBe('1')
+  })
+})
+
 describe('PhoneField picker', () => {
   it('lists every country by name, drawing only the rows in view', async () => {
     const { picker } = mount()
@@ -133,16 +171,37 @@ describe('PhoneField picker', () => {
     expect(await search()).toHaveValue('')
   })
 
-  it('keeps the popup on screen in a 320px column', async () => {
-    const { picker } = mount()
-    await userEvent.click(picker)
-    await expect.poll(() => options().length).toBeGreaterThan(0)
+  it('keeps the popup on a 320px screen', async () => {
+    await page.viewport(320, 568)
+    try {
+      const { picker } = mount()
+      await userEvent.click(picker)
+      await expect.poll(() => options().length).toBeGreaterThan(0)
 
-    const popup = document
-      .querySelector('[data-slot="combobox-popup"]')!
-      .getBoundingClientRect()
-    expect(popup.left).toBeGreaterThanOrEqual(0)
-    expect(popup.right).toBeLessThanOrEqual(window.innerWidth)
+      const popup = document
+        .querySelector('[data-slot="combobox-popup"]')!
+        .getBoundingClientRect()
+      expect(popup.left).toBeGreaterThanOrEqual(0)
+      expect(popup.right).toBeLessThanOrEqual(320)
+      expect(popup.top).toBeGreaterThanOrEqual(0)
+      expect(popup.bottom).toBeLessThanOrEqual(568)
+    } finally {
+      await page.viewport(1920, 1080)
+    }
+  })
+
+  it.each([
+    [15, false],
+    [16, true]
+  ])('draws %i countries with windowing %s', async (count, windowed) => {
+    const codes = ['AU', 'NZ', 'GB', 'US', 'IE', 'SG', 'CA', 'FR', 'DE', 'IT']
+      .concat(['ES', 'JP', 'KR', 'ID', 'IN', 'BR'])
+      .slice(0, count)
+    const { picker } = mount({ countries: codes })
+    await userEvent.click(picker)
+
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    expect(options()[0]?.hasAttribute('aria-setsize')).toBe(windowed)
   })
 
   it('returns focus to the picker when Escape closes it', async ({ skip }) => {

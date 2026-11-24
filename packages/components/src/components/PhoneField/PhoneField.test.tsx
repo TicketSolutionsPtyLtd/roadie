@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -127,7 +127,7 @@ describe('PhoneField', () => {
         aria-label='Mobile'
         countries={['AU', 'NZ']}
         searchLabel='Find a country'
-        emptyLabel='Nothing matches'
+        emptyMessage='Nothing matches'
       />
     )
 
@@ -327,6 +327,326 @@ describe('PhoneField', () => {
     })
   })
 
+  function submitted(field: React.ReactNode) {
+    const onSubmit = vi.fn()
+    render(
+      <>
+        <form
+          id='checkout'
+          onSubmit={(event) => {
+            event.preventDefault()
+            onSubmit(Object.fromEntries(new FormData(event.currentTarget)))
+          }}
+        >
+          <button type='submit'>Save</button>
+        </form>
+        {field}
+      </>
+    )
+    return onSubmit
+  }
+
+  it('submits a number it was given, untouched, from outside its form', async () => {
+    const user = userEvent.setup()
+    const onSubmit = submitted(
+      <PhoneField
+        aria-label='Mobile'
+        name='mobile'
+        form='checkout'
+        defaultValue='+61412345678'
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(onSubmit).toHaveBeenCalledWith({ mobile: '+61412345678' })
+  })
+
+  it('lets the number name its country over the country it is given', async () => {
+    const user = userEvent.setup()
+    const onSubmit = submitted(
+      <PhoneField
+        aria-label='Mobile'
+        name='mobile'
+        form='checkout'
+        country='AU'
+        defaultValue='+64211234567'
+      />
+    )
+
+    expect(picker()).toHaveAccessibleName('Country code: New Zealand +64')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(onSubmit).toHaveBeenCalledWith({ mobile: '+64211234567' })
+  })
+
+  it('shows and submits what it reports when a paste changes a given country', async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    const onSubmit = submitted(
+      <PhoneField
+        aria-label='Mobile'
+        name='mobile'
+        form='checkout'
+        country='AU'
+        onValueChange={onValueChange}
+      />
+    )
+
+    await user.click(number())
+    await user.paste('0064 21 123 4567')
+
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      '+64211234567',
+      expect.objectContaining({ country: 'NZ' })
+    )
+    expect(number()).toHaveValue('21 123 4567')
+    expect(picker()).toHaveAccessibleName('Country code: New Zealand +64')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(onSubmit).toHaveBeenCalledWith({ mobile: '+64211234567' })
+  })
+
+  it('keeps a chosen country that shares the pasted dial code', async () => {
+    const user = userEvent.setup()
+    const onCountryChange = vi.fn()
+    render(
+      <PhoneField
+        aria-label='Mobile'
+        defaultCountry='CA'
+        onCountryChange={onCountryChange}
+      />
+    )
+
+    await user.click(number())
+    await user.paste('+1 416 555 0123')
+
+    expect(picker()).toHaveAccessibleName('Country code: Canada +1')
+    expect(onCountryChange).not.toHaveBeenCalled()
+  })
+
+  it('follows a dial code as it is typed, without touching the text', async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(<PhoneField aria-label='Mobile' onValueChange={onValueChange} />)
+
+    await user.type(number(), '+64 21 123 4567')
+
+    expect(number()).toHaveValue('+64 21 123 4567')
+    expect(picker()).toHaveAccessibleName('Country code: New Zealand +64')
+    expect(onValueChange).toHaveBeenLastCalledWith('+64211234567', {
+      country: 'NZ',
+      national: '211234567',
+      possible: true
+    })
+  })
+
+  it('keeps every digit when a plus is typed in front of a number', async () => {
+    const user = userEvent.setup()
+    render(<PhoneField aria-label='Mobile' />)
+    await user.type(number(), '412 345 678')
+
+    await user.type(number(), '+', {
+      initialSelectionStart: 0,
+      initialSelectionEnd: 0
+    })
+
+    expect(number()).toHaveValue('+412 345 678')
+  })
+
+  it('swaps a typed dial code for the country picked after it', async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      <PhoneField
+        aria-label='Mobile'
+        countries={['AU', 'NZ']}
+        onValueChange={onValueChange}
+      />
+    )
+    await user.type(number(), '+64 412 345 678')
+
+    await user.click(picker())
+    await user.click(await screen.findByRole('option', { name: /Australia/ }))
+
+    expect(number()).toHaveValue('412 345 678')
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      '+61412345678',
+      expect.objectContaining({ country: 'AU' })
+    )
+  })
+
+  it('keeps a number whose dial code it does not know', async () => {
+    const user = userEvent.setup()
+    const onSubmit = submitted(
+      <PhoneField
+        aria-label='Mobile'
+        name='mobile'
+        form='checkout'
+        defaultValue='+80012345678'
+      />
+    )
+
+    expect(number()).toHaveValue('+80012345678')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(onSubmit).toHaveBeenCalledWith({ mobile: '+80012345678' })
+  })
+
+  it.each(['', 'AUS', 'xx'])(
+    'falls back to Australia for the country %j',
+    (code) => {
+      render(<PhoneField aria-label='Mobile' defaultCountry={code} />)
+      expect(picker()).toHaveAccessibleName('Country code: Australia +61')
+    }
+  )
+
+  it('names countries in Australian English for a locale it cannot read', () => {
+    render(<PhoneField aria-label='Mobile' locale='en_AU' />)
+    expect(picker()).toHaveAccessibleName('Country code: Australia +61')
+  })
+
+  it('shows a country that countries leaves out when the number is from there', () => {
+    render(
+      <PhoneField
+        aria-label='Mobile'
+        countries={['AU', 'NZ']}
+        defaultValue='+447400123456'
+      />
+    )
+    expect(picker()).toHaveAccessibleName('Country code: United Kingdom +44')
+  })
+
+  it('reads countries in any case, once each, and skips codes it does not know', async () => {
+    const user = userEvent.setup()
+    render(
+      <PhoneField aria-label='Mobile' countries={['nz', 'xx', 'NZ', 'au']} />
+    )
+
+    await user.click(picker())
+    const options = await screen.findAllByRole('option')
+
+    expect(options.map((option) => option.textContent)).toEqual([
+      expect.stringContaining('New Zealand'),
+      expect.stringContaining('Australia')
+    ])
+  })
+
+  it('finds a country by its two-letter code and marks the chosen one', async () => {
+    const user = userEvent.setup()
+    render(<PhoneField aria-label='Mobile' countries={['AU', 'NZ', 'GB']} />)
+
+    await user.click(picker())
+    expect(
+      await screen.findByRole('option', { name: /Australia/ })
+    ).toHaveAttribute('aria-selected', 'true')
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search countries' }),
+      'gb'
+    )
+
+    const options = await screen.findAllByRole('option')
+    expect(options.map((option) => option.textContent)).toEqual([
+      expect.stringContaining('United Kingdom')
+    ])
+  })
+
+  it('opens from the keyboard with focus in a named search', async () => {
+    const user = userEvent.setup()
+    render(<PhoneField aria-label='Mobile' countries={['AU', 'NZ']} />)
+
+    await user.tab()
+    await user.keyboard('{Enter}')
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Country code' })
+    ).toBeVisible()
+    await waitFor(() =>
+      expect(
+        screen.getByRole('combobox', { name: 'Search countries' })
+      ).toHaveFocus()
+    )
+  })
+
+  it('keeps the field label, error and required off the search', async () => {
+    const user = userEvent.setup()
+    renderInField(
+      { countries: ['AU', 'NZ'] },
+      { invalid: true, required: true }
+    )
+
+    await user.click(picker())
+    const search = await screen.findByRole('combobox', {
+      name: 'Search countries'
+    })
+
+    expect(search).not.toBeInvalid()
+    expect(search).not.toBeRequired()
+    expect(search).not.toHaveAccessibleDescription()
+    expect(search.id).not.toBe(number().id)
+  })
+
+  it('shows a read only number and keeps its country', async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      <PhoneField
+        aria-label='Mobile'
+        readOnly
+        countries={['AU', 'NZ']}
+        defaultValue='+61412345678'
+        onValueChange={onValueChange}
+      />
+    )
+
+    expect(number()).toHaveAttribute('readonly')
+    await user.click(picker())
+    const other = screen.queryByRole('option', { name: /New Zealand/ })
+    if (other) await user.click(other)
+
+    expect(picker()).toHaveAccessibleName('Country code: Australia +61')
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('turns off both controls and leaves a form when disabled', async () => {
+    const user = userEvent.setup()
+    const onSubmit = submitted(
+      <PhoneField
+        aria-label='Mobile'
+        name='mobile'
+        form='checkout'
+        defaultValue='+61412345678'
+        disabled
+      />
+    )
+
+    expect(number()).toBeDisabled()
+    expect(picker()).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(onSubmit).toHaveBeenCalledWith({})
+  })
+
+  it('puts className on the group, and ref and placeholder on the number', () => {
+    const ref = createRef<HTMLInputElement>()
+    render(
+      <PhoneField
+        aria-label='Mobile'
+        className='max-w-sm'
+        placeholder='0400 000 000'
+        ref={ref}
+      />
+    )
+
+    expect(screen.getByRole('group', { name: 'Mobile' })).toHaveClass(
+      'max-w-sm'
+    )
+    expect(ref.current).toBe(number())
+    expect(number()).toHaveAttribute('placeholder', '0400 000 000')
+  })
+
+  it('marks the group invalid outside a Field', () => {
+    render(<PhoneField aria-label='Mobile' aria-invalid />)
+
+    expect(screen.getByRole('group', { name: 'Mobile' })).toBeInvalid()
+  })
+
   it('reaches the picker, then the number, by Tab', async () => {
     const user = userEvent.setup()
     render(<PhoneField aria-label='Mobile' />)
@@ -337,10 +657,10 @@ describe('PhoneField', () => {
     expect(number()).toHaveFocus()
   })
 
-  it('is a telephone input that autofills the national number', () => {
+  it('is a telephone input that autofills a whole number', () => {
     render(<PhoneField aria-label='Mobile' />)
 
     expect(number()).toHaveAttribute('type', 'tel')
-    expect(number()).toHaveAttribute('autocomplete', 'tel-national')
+    expect(number()).toHaveAttribute('autocomplete', 'tel')
   })
 })

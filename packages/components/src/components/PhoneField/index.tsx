@@ -49,7 +49,7 @@ export type PhoneFieldProps = Omit<
   defaultValue?: string
   /** Called on every edit and country change, with the E.164 number, or `''` until there are digits. */
   onValueChange?: (value: string, details: PhoneFieldValueDetails) => void
-  /** The chosen country's ISO code. Pair with `onCountryChange`. */
+  /** The chosen country's ISO code. A number with its own dial code wins over it. Pair with `onCountryChange`. */
   country?: string
   /**
    * The country to start with when the number doesn't name one.
@@ -57,9 +57,9 @@ export type PhoneFieldProps = Omit<
    * @default 'AU'
    */
   defaultCountry?: string
-  /** Called when someone picks a country, or pastes a number from another one. */
+  /** Called when someone picks a country, or enters a number from another one. */
   onCountryChange?: (country: string) => void
-  /** ISO codes that narrow the picker, in the order given. Every country, by name, when left off. */
+  /** ISO codes that narrow the picker, in the order given. Every country, by name, when left off or empty. */
   countries?: readonly string[]
   /**
    * The language country names are in.
@@ -84,23 +84,54 @@ export type PhoneFieldProps = Omit<
    *
    * @default 'No countries found'
    */
-  emptyLabel?: string
-  /** @default 'md' */
+  emptyMessage?: string
+  /**
+   * The field's height, matching `Input`.
+   *
+   * @default 'md'
+   */
   size?: 'sm' | 'md' | 'lg'
+  /** The form field the E.164 number submits under. */
+  name?: string
+  /** Turns off both controls and leaves the number out of a form. */
+  disabled?: boolean
+  /** Shows the number and its country without letting either change. */
+  readOnly?: boolean
+  /** Classes for the outline around both controls. */
+  className?: string
 }
 
 type Country = { code: string; dialCode: string; name: string }
-
-// Past this many countries the list draws only the rows in view.
-const VIRTUALIZE_PAST = 15
-
-const countryText = (country: Country) => `${country.name} +${country.dialCode}`
 
 type Draft = {
   text: string
   country: string
   /** The value last given or reported, so a different one is someone else's change. */
   expected: string | undefined
+  /** The `country` prop last seen, so the draft follows it only when it changes. */
+  given: string | undefined
+}
+
+const FALLBACK_COUNTRY = 'AU'
+const FALLBACK_LOCALE = 'en-AU'
+const VIRTUALIZE_PAST = 15
+
+const dialCodes = /* @__PURE__ */ new Map(
+  phoneCountries.map(({ code, dialCode }) => [code, dialCode])
+)
+
+const knownCountry = (code: string | undefined) => {
+  const upper = code?.toUpperCase()
+  return upper !== undefined && dialCodes.has(upper) ? upper : undefined
+}
+
+// Intl throws on a tag it can't read, such as en_AU.
+function readableLocale(locale: string) {
+  try {
+    return Intl.getCanonicalLocales(locale)[0] ?? FALLBACK_LOCALE
+  } catch {
+    return FALLBACK_LOCALE
+  }
 }
 
 // Regional indicator letters, which fonts draw as the country's flag.
@@ -109,27 +140,14 @@ const flagOf = (code: string) =>
     ...[...code].map((letter) => 0x1f1a5 + letter.charCodeAt(0))
   )
 
-const dialCodes = /* @__PURE__ */ new Map(
-  phoneCountries.map(({ code, dialCode }) => [code, dialCode])
-)
-
-function draftOf(value: string, country: string) {
-  const parsed = parsePhone(value, country)
-  const national = formatPhone(parsed.e164, 'national')
-  return {
-    country: parsed.country ?? country,
-    // Only grouped countries have a national form; the rest show their digits.
-    text: national.startsWith('+') ? parsed.national : national
-  }
-}
-
-// The same leading plus or 00 that parsePhone reads as international.
-const INTERNATIONAL = /^[^\d+\uff0b]*(?:[+\uff0b]|00)/
+// The same two tests parsePhone uses for an international number.
+const PLUS = /^[^\d+＋]*[+＋]/
+const isInternational = (text: string) =>
+  PLUS.test(text) || text.replace(/\D/g, '').startsWith('00')
 
 // What follows the dial code, as typed, so a pasted number keeps its spacing.
 function afterDialCode(text: string, dialCode: string) {
-  const zeros = INTERNATIONAL.exec(text)?.[0].endsWith('00') ? 2 : 0
-  let left = dialCode.length + zeros
+  let left = dialCode.length + (PLUS.test(text) ? 0 : 2)
   let index = 0
   while (index < text.length && left > 0) {
     if (/\d/.test(text[index] ?? '')) left -= 1
@@ -138,46 +156,75 @@ function afterDialCode(text: string, dialCode: string) {
   return text.slice(index).replace(/^[\s)-]+/, '')
 }
 
+function read(text: string, country: string) {
+  const parsed = parsePhone(text, country)
+  // A number whose dial code the table lacks is kept as its digits, not lost.
+  const unknown =
+    isInternational(text) && parsed.national ? `+${parsed.national}` : ''
+  return { ...parsed, value: parsed.e164 || unknown }
+}
+
+function draftOf(value: string, country: string) {
+  const parsed = parsePhone(value, country)
+  if (!parsed.e164) return { country, text: value.trim() }
+  const national = formatPhone(parsed.e164, 'national')
+  return {
+    country: parsed.country ?? country,
+    // Only grouped countries have a national form; the rest show their digits.
+    text: national.startsWith('+') ? parsed.national : national
+  }
+}
+
 /** A phone number field with a country code picker. Its value is E.164. */
 export function PhoneField({
   value,
   defaultValue = '',
   onValueChange,
   country: countryProp,
-  defaultCountry = 'AU',
+  defaultCountry,
   onCountryChange,
   countries,
-  locale = 'en-AU',
+  locale: localeProp = FALLBACK_LOCALE,
   countryLabel = 'Country code',
   searchLabel = 'Search countries',
-  emptyLabel = 'No countries found',
+  emptyMessage = 'No countries found',
   size = 'md',
   name,
+  form,
   disabled: disabledProp,
+  readOnly,
   className,
+  style,
   onChange,
   ...props
 }: PhoneFieldProps) {
   const field = useFieldContext()
   const fieldProps = useFieldInputProps()
   const disabled = disabledProp ?? field.disabled ?? false
+  const locale = readableLocale(localeProp)
+  const given = knownCountry(countryProp)
 
   const [draft, setDraft] = useState<Draft>(() => ({
     ...draftOf(
       value ?? defaultValue,
-      (countryProp ?? defaultCountry).toUpperCase()
+      given ?? knownCountry(defaultCountry) ?? FALLBACK_COUNTRY
     ),
-    expected: value
+    expected: value,
+    given
   }))
   let current = draft
-  if (value !== undefined && value !== draft.expected) {
-    current = { ...draftOf(value, draft.country), expected: value }
-    setDraft(current)
-  }
+  if (value !== undefined && value !== current.expected)
+    current = {
+      ...current,
+      ...draftOf(value, current.country),
+      expected: value
+    }
+  if (given !== current.given)
+    current = { ...current, country: given ?? current.country, given }
+  if (current !== draft) setDraft(current)
 
-  const country = countryProp?.toUpperCase() ?? current.country
+  const { country } = current
   const dialCode = dialCodes.get(country) ?? ''
-  const e164 = parsePhone(current.text, country).e164
 
   const listed = countries?.join(',')
   const options = useMemo(() => {
@@ -187,12 +234,10 @@ export function PhoneField({
       dialCode: dialCodes.get(code) ?? '',
       name: names.of(code) ?? code
     })
-    if (listed !== undefined)
-      return listed
-        .split(',')
-        .map((code) => code.toUpperCase())
-        .filter((code) => dialCodes.has(code))
-        .map(named)
+    const narrowed = [
+      ...new Set((listed ?? '').split(',').map((code) => code.toUpperCase()))
+    ].filter((code) => dialCodes.has(code))
+    if (narrowed.length > 0) return narrowed.map(named)
     return [...dialCodes.keys()]
       .map(named)
       .sort((a, b) => a.name.localeCompare(b.name, locale))
@@ -209,51 +254,83 @@ export function PhoneField({
     [options, country, dialCode, locale]
   )
 
-  const report = (text: string, picked: string) => {
-    const typed = parsePhone(text, picked)
-    // A number with its own dial code names its country, and only the rest stays in the box.
-    const next =
-      INTERNATIONAL.test(text) && typed.country !== null
-        ? {
-            country: typed.country,
-            text: afterDialCode(text, dialCodes.get(typed.country) ?? '')
-          }
-        : { country: picked, text }
-    const parsed = parsePhone(next.text, next.country)
-    setDraft({ ...next, expected: parsed.e164 })
-    if (next.country !== country) onCountryChange?.(next.country)
-    onValueChange?.(parsed.e164, {
-      country: next.country,
-      national: parsed.national,
-      possible: parsed.possible
+  const report = (text: string, nextCountry: string) => {
+    const next = read(text, nextCountry)
+    setDraft({ ...current, text, country: nextCountry, expected: next.value })
+    if (nextCountry !== country) onCountryChange?.(nextCountry)
+    onValueChange?.(next.value, {
+      country: nextCountry,
+      national: next.national,
+      possible: next.possible
     })
   }
+
+  const countryIn = (text: string) =>
+    isInternational(text) ? parsePhone(text, country).country : null
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange?.(event)
+    const text = event.target.value
+    const own = countryIn(text)
+    if (own === null) return report(text, country)
+    // Typing leaves the text alone, caret and all; a paste or autofill replaces it, so only then does the dial code go.
+    const kind = (event.nativeEvent as InputEvent).inputType
+    const typing = kind?.startsWith('insertText') || kind?.startsWith('delete')
+    report(typing ? text : afterDialCode(text, dialCodes.get(own) ?? ''), own)
+  }
+
+  const pick = (picked: string) => {
+    const own = countryIn(current.text)
+    report(
+      own === null
+        ? current.text
+        : afterDialCode(current.text, dialCodes.get(own) ?? ''),
+      picked
+    )
+  }
+
+  const label = props['aria-label']
+  const invalid =
+    field.invalid ||
+    props['aria-invalid'] === true ||
+    props['aria-invalid'] === 'true'
 
   return (
     <div
       data-slot='phone-field'
       role='group'
-      aria-labelledby={field.labelId || undefined}
-      aria-invalid={field.invalid || undefined}
+      aria-label={label}
+      aria-labelledby={label ? undefined : field.labelId || undefined}
+      aria-invalid={invalid || undefined}
       data-disabled={disabled ? '' : undefined}
       className={cn(phoneFieldVariants({ size }), className)}
+      style={style}
     >
       <Combobox<Country>
         items={options}
         virtualized={options.length > VIRTUALIZE_PAST}
         value={chosen}
         onValueChange={(picked) => {
-          if (picked) report(current.text, picked.code)
+          if (picked) pick(picked.code)
         }}
-        itemToStringLabel={countryText}
+        itemToStringLabel={(option) =>
+          `${option.name} +${option.dialCode} ${option.code}`
+        }
         isItemEqualToValue={(a, b) => a.code === b.code}
         locale={locale}
         disabled={disabled}
+        readOnly={readOnly}
       >
         <ComboboxPrimitive.Trigger
           data-slot='phone-field-country'
-          aria-label={`${countryLabel}: ${countryText(chosen)}`}
-          className='is-interactive flex h-full shrink-0 items-center gap-1 rounded-lg emphasis-subtler px-2'
+          aria-label={`${countryLabel}: ${chosen.name} +${dialCode}`}
+          // Engines name a few countries differently, so the server's name can differ.
+          suppressHydrationWarning
+          className={cn(
+            'flex h-full shrink-0 items-center gap-1 rounded-lg px-2 emphasis-subtler',
+            // The group already dims a disabled field; is-interactive would dim the picker twice.
+            !disabled && 'is-interactive'
+          )}
         >
           <span aria-hidden='true'>{flagOf(country)}</span>
           <span className='tabular-nums'>+{dialCode}</span>
@@ -261,7 +338,10 @@ export function PhoneField({
         </ComboboxPrimitive.Trigger>
         <Combobox.Portal>
           <Combobox.Positioner align='start'>
-            <Combobox.Popup className='grid max-h-80 w-72 grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0'>
+            <Combobox.Popup
+              aria-label={countryLabel}
+              className='grid max-h-[min(var(--available-height),--spacing(80))] w-72 grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0'
+            >
               <Combobox.Input
                 data-slot='phone-field-search'
                 id={undefined}
@@ -283,10 +363,11 @@ export function PhoneField({
                       <span className='text-subtle tabular-nums'>
                         +{option.dialCode}
                       </span>
+                      <Combobox.ItemIndicator />
                     </Combobox.Item>
                   )}
                 </Combobox.List>
-                <Combobox.Empty>{emptyLabel}</Combobox.Empty>
+                <Combobox.Empty>{emptyMessage}</Combobox.Empty>
               </div>
             </Combobox.Popup>
           </Combobox.Positioner>
@@ -296,19 +377,24 @@ export function PhoneField({
         data-slot='phone-field-input'
         type='tel'
         inputMode='tel'
-        autoComplete='tel-national'
-        className='h-full min-w-0 flex-1 rounded-lg bg-transparent px-2 outline-none placeholder:text-subtler'
+        autoComplete='tel'
+        className='h-full min-w-0 flex-1 rounded-lg bg-transparent px-2 outline-none placeholder:text-subtle'
         {...fieldProps}
         {...props}
+        form={form}
         disabled={disabled}
+        readOnly={readOnly}
         value={current.text}
-        onChange={(event: ChangeEvent<HTMLInputElement>) => {
-          onChange?.(event)
-          report(event.target.value, country)
-        }}
+        onChange={handleChange}
       />
       {name !== undefined && (
-        <input type='hidden' name={name} value={e164} disabled={disabled} />
+        <input
+          type='hidden'
+          name={name}
+          form={form}
+          value={read(current.text, country).value}
+          disabled={disabled}
+        />
       )}
     </div>
   )

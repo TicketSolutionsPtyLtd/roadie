@@ -20,7 +20,7 @@ import { PhoneField } from '@oztix/roadie-components/phone-field'
 
 ### Default
 
-Pick a country and type the number as you'd dial it at home. The value is always [E.164](/foundations/forms#phone-numbers): a plus, the dial code, and the number without the prefix used to dial it inside the country. Paste a number that starts with a plus and the country follows it.
+Pick a country and type the number as you'd dial it at home. The value is always [E.164](/foundations/forms#phone-numbers): a plus, the dial code, and the number without the prefix used to dial it inside the country. A number that starts with a plus or `00` names its own country, so the picker follows it, and a pasted one leaves only the national part in the box.
 
 ```tsx-live
 <Field>
@@ -31,7 +31,7 @@ Pick a country and type the number as you'd dial it at home. The value is always
 
 ### Countries
 
-`defaultCountry` sets the country the field starts on, and `countries` narrows the picker to the codes you give, in that order. Leave `countries` off to list every country by name. The picker has a search, which finds a country by its name or its dial code, and a long list draws only the rows in view.
+`defaultCountry` sets the country the field starts on, and `countries` narrows the picker to the codes you give, in that order. Leave `countries` off to list every country by name. The picker has a search, which finds a country by its name, its dial code, or its two-letter code, and a list past 15 countries draws only the rows in view. `countries` narrows what can be picked, not what can be shown: a number from another country still shows that country.
 
 ```tsx-live
 <Field>
@@ -168,10 +168,11 @@ async function isValidMobile(e164: string) {
 
 - The field is a `group`, named by `Field.Label`. Inside it the number is a `tel` input with the same name, and the picker is named by `countryLabel` and the chosen country, such as "Country code: Australia +61".
 - `Field.Label` focuses the number. Tab reaches the picker first, then the number.
-- `Field.HelperText`, `Field.ErrorText`, `required`, and `invalid` apply to the number only, so a screen reader hears the error once.
+- `Field.HelperText`, `Field.ErrorText`, and `required` apply to the number only, so a screen reader hears the error once. `invalid` marks the number, and the group so its outline turns danger.
 - The picker opens with `Enter`, `Space`, or the arrow keys, and focus moves to its search. Type a name or a dial code, move through the matches with the arrow keys, and pick one with `Enter`. `Escape` closes it and returns focus to the picker.
-- `searchLabel` names the search and `emptyLabel` is what it says when nothing matches. Set them, with `countryLabel` and `locale`, to translate the picker.
+- The picker's popup is a dialog named by `countryLabel`. `searchLabel` names the search and `emptyMessage` is what it says when nothing matches. Set them, with `countryLabel` and `locale`, to translate the picker.
 - Flags are decoration and hidden from screen readers. The dial code is always shown as text, since some systems draw flags as two letters.
-- Outside a `Field`, give the number an `aria-label`.
+- Outside a `Field`, give the field an `aria-label`. It names the group and the number.
+- The number autofills as `tel`, so a saved number with its dial code picks its own country.
 
 <PropsDefinitions component='PhoneField' />
