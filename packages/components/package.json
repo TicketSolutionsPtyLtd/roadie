@@ -236,6 +236,10 @@
       "types": "./dist/components/Pattern/index.d.ts",
       "import": "./dist/components/Pattern/index.js"
     },
+    "./phone-field": {
+      "types": "./dist/components/PhoneField/index.d.ts",
+      "import": "./dist/components/PhoneField/index.js"
+    },
     "./popover": {
       "types": "./dist/components/Popover/index.d.ts",
       "import": "./dist/components/Popover/index.js"
