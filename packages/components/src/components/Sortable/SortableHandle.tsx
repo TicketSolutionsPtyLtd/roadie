@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useRef, useState } from 'react'
+import { use, useMemo, useRef, useState } from 'react'
 
 import {
   ArrowDownIcon,
@@ -18,6 +18,8 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeRefs } from '../../utils/mergeRefs'
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import type { ButtonHrefProps } from '../Button/Button'
 import { IconButton, type IconButtonProps } from '../Button/IconButton'
 import { MenuContent } from '../Menu/MenuContent'
@@ -25,7 +27,11 @@ import { MenuItem } from '../Menu/MenuItem'
 import { MenuRoot } from '../Menu/MenuRoot'
 import { MenuSeparator } from '../Menu/MenuSeparator'
 import { MenuTrigger } from '../Menu/MenuTrigger'
-import { SortableItemContext, useSortableRoot } from './SortableContext'
+import {
+  SortableItemContext,
+  SortableOpeningContext,
+  useSortableRoot
+} from './SortableContext'
 import {
   type MoveDirection,
   type TextDirection,
@@ -68,6 +74,7 @@ export function SortableHandle({
   size = 'sm',
   emphasis = 'subtler',
   onClick,
+  onKeyDown,
   onPointerDown,
   ...props
 }: SortableHandleProps) {
@@ -81,6 +88,27 @@ export function SortableHandle({
   // events: WebKit sends a tap no mouse events once its pointerdown is
   // cancelled, as a drawer does.
   const pressedRef = useRef(false)
+  const [trigger, setTrigger] = useState<HTMLElement | null>(null)
+  const ref = useMemo(() => mergeRefs(setHandle, setTrigger), [setHandle])
+  const first = useRef(use(SortableOpeningContext))
+  const replaying = useRef(false)
+  // `SortableHandleLazy` loads this handle once something asks for the menu.
+  // That landed on the plain button this one replaces, so it is sent again
+  // here. Base UI then opens the menu as it does for that key or press: on
+  // its first or last item, at once, or with the page left free to scroll
+  // under a finger.
+  useIsomorphicLayoutEffect(() => {
+    const asked = first.current
+    if (!asked || !trigger) return
+    first.current = undefined
+    if (disabled) return
+    replaying.current = true
+    for (const event of asked) {
+      const Again = event.constructor as typeof Event
+      trigger.dispatchEvent(new Again(event.type, event))
+    }
+    replaying.current = false
+  }, [trigger, disabled])
   // Read on open, as lists join and leave the group without re-rendering this one.
   const targets = open && !disabled ? root.transferTargets(value) : []
   const DotsIcon = root.axis === 'vertical' ? DotsSixVerticalIcon : DotsSixIcon
@@ -96,13 +124,20 @@ export function SortableHandle({
       <MenuTrigger
         data-slot='sortable-handle'
         disabled={disabled}
-        ref={setHandle}
+        ref={ref}
         onPointerDown={(event) => {
-          onPointerDown?.(event)
+          if (replaying.current) event.stopPropagation()
+          else onPointerDown?.(event)
           pressedRef.current = event.button === 0 && !open
         }}
+        onKeyDown={(event) => {
+          // The plain button heard it the first time, as did everything above it.
+          if (replaying.current) event.stopPropagation()
+          else onKeyDown?.(event)
+        }}
         onClick={(event) => {
-          onClick?.(event)
+          if (replaying.current) event.stopPropagation()
+          else onClick?.(event)
           if (!pressedRef.current) return
           pressedRef.current = false
           setOpen(true)

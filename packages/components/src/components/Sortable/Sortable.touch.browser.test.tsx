@@ -12,6 +12,7 @@ import { userEvent } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
+import { tapOn } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Lanes, type Transfer, listed } from './lanesTestUtils'
 
@@ -27,6 +28,19 @@ afterEach(async () => {
 
 const handle = (name: string) =>
   screen.getByRole('button', { name: `Reorder ${name}` })
+
+describe('Sortable Move menu on a touch screen', () => {
+  // Base UI locks the page a task after a mouse or a key opens a menu, and
+  // leaves it free under a finger, which swipes outside the menu to close it.
+  it('opens on the first tap of a handle and leaves the page free to scroll', async () => {
+    render(<Lanes />)
+    await tapOn(handle('Date'), 'centre')
+    const menu = await screen.findByRole('menu')
+    await waitFor(() => expect(menu).toHaveFocus())
+    for (const scroller of [document.documentElement, document.body])
+      expect(getComputedStyle(scroller).overflowY).toBe('visible')
+  })
+})
 
 describe('Sortable connected lists on a touch screen', () => {
   // Playwright can't start a native drag from a finger, so this drags with
