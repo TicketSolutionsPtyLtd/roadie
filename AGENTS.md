@@ -178,6 +178,10 @@ These rules aren't on those pages.
 - Dev-only warnings check `process.env.NODE_ENV` behind a
   `typeof process !== 'undefined'` guard
   ([why](docs/solutions/build-errors/cross-bundler-dev-env-check.md)).
+- The React Compiler skips a component or hook it can't compile, such as one
+  that holds a `??=` or a `try`/`finally`, and says nothing.
+  `node --test scripts/compiler-skips.test.mjs` fails on a skip that isn't on
+  its list: rewrite what it names rather than add to the list.
 
 ## Docs pages
 
