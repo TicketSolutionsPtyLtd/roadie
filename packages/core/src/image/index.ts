@@ -18,3 +18,4 @@ export {
   type CropSize,
   type ImageCropValue
 } from './crop'
+export { cropImage, type CropImageOptions } from './cropImage'
