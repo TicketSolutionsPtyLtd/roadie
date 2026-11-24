@@ -67,6 +67,24 @@ describe('cropImage', () => {
     })
   })
 
+  it('turns the image upside down', async () => {
+    const value = cropValueAt(
+      { area: { x: 0, y: 0, width: 200, height: 100 } },
+      { width: 200, height: 100 },
+      image,
+      180
+    )
+    const { topLeft, topRight, bottomRight, bottomLeft } = await corners(
+      await cropImage(await fourColours(), value)
+    )
+    expect({ topLeft, topRight, bottomRight, bottomLeft }).toEqual({
+      topLeft: YELLOW,
+      topRight: BLUE,
+      bottomRight: RED,
+      bottomLeft: GREEN
+    })
+  })
+
   it('crops to the area', async () => {
     const value = cropValueAt(
       { area: { x: 100, y: 0, width: 100, height: 50 } },

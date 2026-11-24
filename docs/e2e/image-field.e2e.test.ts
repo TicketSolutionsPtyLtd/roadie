@@ -29,7 +29,7 @@ async function open() {
   await page.goto(`${ORIGIN}${BASE_PATH}/components/file-upload/`)
   await settled(page)
   await page.locator('#image-field').scrollIntoViewIfNeeded()
-  const input = page.locator('input[name=eventImage]')
+  const input = page.locator('input[name=image]')
   await input.waitFor({ state: 'attached' })
   return { page, input }
 }
@@ -55,14 +55,11 @@ describe('Image field recipe', () => {
     })
     expect(posted).toEqual({ name: '08.jpg', type: 'image/jpeg' })
     // The saved crop is 1200 × 600, the recipe's output width at 2:1.
-    const size = await preview.evaluate(async (image: HTMLImageElement) => {
-      const [file] =
-        document.querySelector<HTMLInputElement>('input[name=eventImage]')
-          ?.files ?? []
-      const bitmap = await createImageBitmap(file!)
-      return { width: bitmap.width, height: bitmap.height, alt: image.alt }
+    const size = await input.evaluate(async (element: HTMLInputElement) => {
+      const bitmap = await createImageBitmap(element.files![0]!)
+      return { width: bitmap.width, height: bitmap.height }
     })
-    expect(size).toMatchObject({ width: 1200, height: 600 })
+    expect(size).toEqual({ width: 1200, height: 600 })
   })
 
   it('turns away an image smaller than the slot, without opening the crop', async () => {
