@@ -40,9 +40,9 @@ For the ticket that meant:
 - The edge and the three shadows are one `box-shadow` on the root, which
   follows its rounded corners.
 - The notches are holes in the parts (a scoop corner, or a mask where
-  `corner-shape` isn't supported), one pixel smaller than before, and each
-  notched part paints the edge in that last pixel as a `radial-gradient`
-  ring in its background.
+  `corner-shape` isn't supported), smaller by the edge's width (one pixel on
+  raised and normal, none on subtle and subtler), and each notched part
+  paints the edge in that ring as a `radial-gradient` in its background.
 - Where the drop-shadows piled up in the notch, they gave it a darker line
   than the outer edge. Raised tickets keep that with a `--card-rim` colour,
   darker than `--card-edge`.
