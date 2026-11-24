@@ -104,7 +104,7 @@ Hover and focus states use the intent color scale automatically via `is-interact
 
 ### Pending
 
-Set `pending` while the button's action is under way. It stops responding to clicks and keys, keeps focus and its place in the tab order, and stays the same size. After 200ms its label fades and a spinner in the label's colour takes its place, so a fast response never flashes a loader. A pending submit button doesn't submit its form, even from `Enter` in a field. `disabled` wins over `pending`.
+Set `pending` while the button's action is under way. It stops responding to clicks and keys, keeps focus and its place in the tab order, and stays the same size. After 200ms its label fades and a spinner in the label's colour takes its place, so a fast response never flashes a loader. With reduced motion, the spinner shows at once and holds still. A pending submit button doesn't submit its form, even from `Enter` in a field. `disabled` wins over `pending`.
 
 ```tsx-live layout=row
 <Button emphasis='strong' pending>Strong</Button>

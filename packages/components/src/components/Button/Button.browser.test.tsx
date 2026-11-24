@@ -16,6 +16,9 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
+// Zero alpha as each engine writes it: rgba(…, 0), color(… / 0), oklab(… / 0).
+const TRANSPARENT = /^rgba\(.+, 0\)$|\/ 0\)$/
+
 const ROW = 80
 const buttons: [string, ReactNode][] = [
   ['Button', <Button key='b'>Save</Button>],
@@ -224,26 +227,62 @@ describe('a pending button', () => {
     )
     const button = screen.getByRole('button')
     const ring = getComputedStyle(button, '::before')
-    // Nothing yet: a fast response never flashes a spinner.
-    expect(ring.opacity).toBe('0')
-    expect(getComputedStyle(screen.getByTestId('icon')).opacity).toBe('1')
-
     await expect.poll(() => ring.opacity, { timeout: 2000 }).toBe('1')
     await expect
       .poll(() => getComputedStyle(screen.getByTestId('icon')).opacity, {
         timeout: 2000
       })
       .toBe('0')
-    // Transparent ink, whatever the channels it faded from.
     await expect
       .poll(() => getComputedStyle(button).webkitTextFillColor, {
         timeout: 2000
       })
-      .toMatch(/, 0\)$/)
+      .toMatch(TRANSPARENT)
     expect(ring.borderTopColor).toBe(getComputedStyle(button).color)
     expect(ring.borderRadius).not.toBe('0px')
     expect(getComputedStyle(button).opacity).toBe('1')
     expect(getComputedStyle(button).filter).toBe('none')
+  })
+
+  it('waits 200ms before the ring replaces the label', () => {
+    render(
+      <Button emphasis='strong' pending>
+        {icon}
+        Save
+      </Button>
+    )
+    const button = screen.getByRole('button')
+    const ring = getComputedStyle(button, '::before')
+    const label = getComputedStyle(screen.getByTestId('icon'))
+    const animations = button.getAnimations({ subtree: true })
+    const at = (ms: number) => {
+      for (const animation of animations) {
+        animation.pause()
+        animation.currentTime = ms
+      }
+    }
+
+    at(190)
+    expect(ring.opacity).toBe('0')
+    expect(label.opacity).toBe('1')
+    expect(getComputedStyle(button).webkitTextFillColor).not.toMatch(
+      TRANSPARENT
+    )
+
+    at(400)
+    expect(ring.opacity).toBe('1')
+    expect(label.opacity).toBe('0')
+    expect(getComputedStyle(button).webkitTextFillColor).toMatch(TRANSPARENT)
+  })
+
+  it('spins the ring', () => {
+    render(<Button pending>Save</Button>)
+    expect(
+      getComputedStyle(
+        screen.getByRole('button'),
+        '::before'
+      ).animationIterationCount.split(', ')
+    ).toContain('infinite')
   })
 
   it('centres the ring', async () => {

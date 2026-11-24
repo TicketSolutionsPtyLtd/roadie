@@ -15,6 +15,9 @@ afterEach(async () => {
   await commands.reduceMotion(false)
 })
 
+// Zero alpha as each engine writes it: rgba(…, 0), color(… / 0), oklab(… / 0).
+const TRANSPARENT = /^rgba\(.+, 0\)$|\/ 0\)$/
+
 describe('btn with aria-busy', () => {
   it('draws the pending look on plain markup', async () => {
     render(
@@ -30,10 +33,9 @@ describe('btn with aria-busy', () => {
     await expect
       .poll(() => getComputedStyle(link, '::before').opacity, { timeout: 2000 })
       .toBe('1')
-    // Transparent ink, whatever the channels it faded from.
     await expect
       .poll(() => getComputedStyle(link).webkitTextFillColor, { timeout: 2000 })
-      .toMatch(/, 0\)$/)
+      .toMatch(TRANSPARENT)
   })
 
   it('holds the ring still for someone who reduces motion', async () => {

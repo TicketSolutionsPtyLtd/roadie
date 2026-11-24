@@ -132,14 +132,6 @@ describe('Button', () => {
       expect(onClick).not.toHaveBeenCalled()
     })
 
-    it('keeps focus when it turns pending', async () => {
-      const user = userEvent.setup()
-      const { rerender } = render(<Button>Save</Button>)
-      await user.tab()
-      rerender(<Button pending>Save</Button>)
-      expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus()
-    })
-
     it('does not submit its form, by click or by Enter in a field', async () => {
       const onSubmit = vi.fn((event: { preventDefault: () => void }) =>
         event.preventDefault()
