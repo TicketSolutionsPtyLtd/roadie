@@ -858,7 +858,7 @@ describe('ImageCrop in free-form', () => {
         'aria-roledescription',
         'resize handle'
       )
-    expectCovered(stage)
+    await waitFor(() => expectCovered(stage))
   })
 
   it('resizes about the centre from a corner, then fills the stage', async () => {
@@ -884,7 +884,7 @@ describe('ImageCrop in free-form', () => {
     // Taller than the bounds' shape now, so it fills their height.
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
     expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
-    expectCovered(stage)
+    await waitFor(() => expectCovered(stage))
   })
 
   it('resizes one side from an edge', async () => {
@@ -901,7 +901,7 @@ describe('ImageCrop in free-form', () => {
     expect(last().area.width).toBeCloseTo(2400 - 100 / freeZoom, 0)
     expect(last().area.height).toBeCloseTo(1600)
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expectCovered(stage)
+    await waitFor(() => expectCovered(stage))
   })
 
   it('zooms in to keep the image covering a frame dragged past it', async () => {
@@ -919,7 +919,7 @@ describe('ImageCrop in free-form', () => {
     expect(last().area.height).toBeCloseTo(1600)
     expect(last().area.width).toBeLessThan(2400)
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expectCovered(stage)
+    await waitFor(() => expectCovered(stage))
   })
 
   it('resizes with the arrow keys on a corner, and stops at the minimum', async () => {
@@ -941,7 +941,7 @@ describe('ImageCrop in free-form', () => {
     // A key on a handle is the handle's, not the stage's.
     expect(last().area.y).toBe(0)
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expectCovered(stage)
+    await waitFor(() => expectCovered(stage))
   })
 
   it('stops a drag at a frame two handles wide', async () => {
@@ -957,7 +957,7 @@ describe('ImageCrop in free-form', () => {
     expect(rect(frameOf(stage)).height).toBeCloseTo(88, 0)
     await commands.pointer([{ type: 'up' }])
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expectCovered(stage)
+    await waitFor(() => expectCovered(stage))
   })
 
   it('stops the arrow keys at a frame two handles wide, as a drag does', async () => {
@@ -965,8 +965,9 @@ describe('ImageCrop in free-form', () => {
     corner('Bottom right corner').focus()
     for (let i = 0; i < 10; i++)
       await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expect(rect(frameOf(stage)).width).toBeGreaterThanOrEqual(87.5)
+    await waitFor(() =>
+      expect(rect(frameOf(stage)).width).toBeGreaterThanOrEqual(87.5)
+    )
     expect(last().area.width * last().zoom).toBeGreaterThanOrEqual(87.5)
   })
 
@@ -976,13 +977,14 @@ describe('ImageCrop in free-form', () => {
     await userEvent.keyboard('r')
     expect(last().area.width).toBeCloseTo(1600)
     expect(last().area.height).toBeCloseTo(2400)
+    // onValueChange runs before the render that springs the frame, so wait
+    // for the frame itself rather than the settle, which may not have begun.
+    await waitFor(() => expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0))
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
-    expectCovered(stage)
+    await waitFor(() => expectCovered(stage))
     screen.getByRole('button', { name: 'Reset crop' }).click()
     await waitFor(() => expect(last().rotation).toBe(0))
     expect(last().area).toEqual({ x: 0, y: 0, width: 2400, height: 1600 })
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expect(rect(frameOf(stage)).width).toBeCloseTo(544)
+    await waitFor(() => expect(rect(frameOf(stage)).width).toBeCloseTo(544))
   })
 })
