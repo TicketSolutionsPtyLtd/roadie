@@ -164,6 +164,11 @@
       "limit": "560 B"
     },
     {
+      "name": "image",
+      "path": "dist/image/index.js",
+      "limit": "1.65 KB"
+    },
+    {
       "name": "records",
       "path": "dist/records/index.js",
       "limit": "44.5 KB"

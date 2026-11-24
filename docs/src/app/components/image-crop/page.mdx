@@ -23,7 +23,7 @@ import { ImageCrop } from "@oztix/roadie-components/image-crop";
 
 The frame stays still and the image moves under it. Drag to pan, and pinch or double-tap to zoom, on a touch screen or a trackpad. The controls under the crop area zoom, turn the image 90° left, and reset the crop once it has changed. Focus the crop area to scroll, press `+`, `-` or `R`, or use the arrow keys.
 
-Past an edge or a zoom limit the image gives way, then springs back when you let go, so there are never empty corners. The size chip shows the crop in the image's own pixels. `src` takes a URL, or a `File` or `Blob` such as one from `FileUpload`.
+Past an edge or a zoom limit the image gives way, then springs back when you let go, so there are never empty corners. The size chip shows the crop in the image's own pixels. `src` takes a URL, or a `File` or `Blob` such as one from `FileUpload`. To crop a picked image and put the result back into a form, follow the [image field recipe](/components/file-upload#image-field), which saves the crop with `cropImage`.
 
 ```tsx-live width=180
 <ImageCrop
