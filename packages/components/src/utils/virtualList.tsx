@@ -52,11 +52,13 @@ const FilteredRows = lazy(loadRows)
 export function useVirtualListRoot(virtualized: boolean | undefined) {
   const scrollToIndex = useRef<ScrollToIndex | null>(null)
   // Base UI clears a pointer's highlight when its row scrolls out of the
-  // window and unmounts, or the pointer leaves, then straight away highlights
-  // the first row with no reason. Following that would snap the list back to
-  // its top as someone scrolls it, so a highlight in the two frames after a
-  // pointer clears one is let be, unless it's the keyboard's.
-  const cleared = useRef(0)
+  // window and unmounts, or the pointer leaves, then in the same task
+  // highlights the first row again with no reason. Following that would snap
+  // the list back to its top as someone scrolls it, so a highlight just after
+  // a pointer clears one is let be, unless it's the keyboard's. The hold lasts
+  // two frames at most, a margin, so it can't outlast the pointer.
+  const held = useRef(false)
+  const holds = useRef(0)
   useEffect(() => {
     if (virtualized) void loadRows()
   }, [virtualized])
@@ -65,16 +67,17 @@ export function useVirtualListRoot(virtualized: boolean | undefined) {
       if (details.index < 0) holdAfterClear()
       return
     }
-    const held = cleared.current !== 0 && details.reason !== 'keyboard'
-    cleared.current = 0
-    if (virtualized && !held && details.index >= 0)
+    const skip = held.current && details.reason !== 'keyboard'
+    held.current = false
+    if (virtualized && !skip && details.index >= 0)
       scrollToIndex.current?.(details.index)
   }
   function holdAfterClear() {
-    const hold = (cleared.current += 1)
+    const hold = (holds.current += 1)
+    held.current = true
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
-        if (cleared.current === hold) cleared.current = 0
+        if (holds.current === hold) held.current = false
       })
     )
   }

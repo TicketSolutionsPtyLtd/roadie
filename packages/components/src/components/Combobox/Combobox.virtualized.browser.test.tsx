@@ -155,6 +155,8 @@ describe('Combobox virtualized', () => {
     expect(row.bottom).toBeLessThanOrEqual(box.bottom + 1)
   })
 
+  // Untyped, nothing re-highlights after the pointer, so this guards against
+  // a hover alone scrolling the list.
   it('stays where it is scrolled with the pointer resting on a venue', async () => {
     render(<Venues />)
     await userEvent.click(screen.getByRole('combobox'))
