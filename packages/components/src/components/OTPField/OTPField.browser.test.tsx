@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { OTPField } from '.'
@@ -43,5 +44,34 @@ describe('OTPField slots', () => {
       .getAllByRole('textbox')
       .map((slot) => slot.getBoundingClientRect().width)
     expect(widths).toEqual([48, 40])
+  })
+})
+
+describe('OTPField autoFocus', () => {
+  it('focuses the first slot on mount', () => {
+    render(<OTPField length={4} aria-label='Code' autoFocus />)
+    expect(document.activeElement).toBe(screen.getAllByRole('textbox')[0])
+  })
+
+  it('focuses the first of the slots you compose', () => {
+    render(
+      <OTPField length={2} aria-label='Code' autoFocus>
+        <OTPField.Input />
+        <OTPField.Input />
+      </OTPField>
+    )
+    expect(document.activeElement).toBe(screen.getAllByRole('textbox')[0])
+  })
+
+  it('leaves focus alone without it', () => {
+    render(<OTPField length={4} aria-label='Code' />)
+    expect(document.body).toBe(document.activeElement)
+  })
+
+  it('moves to the next slot as the code is typed', async () => {
+    const user = userEvent.setup()
+    render(<OTPField length={4} aria-label='Code' autoFocus />)
+    await user.keyboard('1')
+    expect(document.activeElement).toBe(screen.getAllByRole('textbox')[1])
   })
 })

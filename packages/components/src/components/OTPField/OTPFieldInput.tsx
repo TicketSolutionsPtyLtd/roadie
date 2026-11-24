@@ -99,7 +99,11 @@ export function OTPFieldInput({
       render={(inputProps, state) =>
         renderSlot(
           render,
-          { ...inputProps, ...slotLabel(inputProps, state, context.label) },
+          {
+            ...inputProps,
+            ...slotLabel(inputProps, state, context.label),
+            ...(context.autoFocus && state.index === 0 && { autoFocus: true })
+          },
           state
         )
       }
