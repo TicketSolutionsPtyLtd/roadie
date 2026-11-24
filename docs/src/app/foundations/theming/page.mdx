@@ -362,9 +362,9 @@ export default async function CollectionPage({ params }) {
 
 To tint an event's page from its artwork, take the accent from the image's
 pixels with `accentFromPixels` from `@oztix/roadie-core/colors`. It finds the
-image's most vivid hue and returns a hex for `accentColor`, or `null` when the
-image is grey, near white, near black, or transparent, which keeps the accent
-around it.
+image's dominant hue, where a vivid pixel counts for far more than a muted
+one, and returns a hex for `accentColor`, or `null` when the image is grey,
+near white, near black, or transparent, which keeps the accent around it.
 
 Do it once on the server, where the image is uploaded or first served, and
 store the hex with the event. The page then renders its accent in the first
