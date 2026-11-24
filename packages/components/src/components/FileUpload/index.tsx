@@ -8,6 +8,7 @@ import {
   FileUploadItemRemove,
   FileUploadItemSize
 } from './FileUploadItem'
+import { FileUploadItemPreview } from './FileUploadItemPreview'
 import { FileUploadList } from './FileUploadList'
 import { FileUploadRoot } from './FileUploadRoot'
 import { FileUploadTrigger } from './FileUploadTrigger'
@@ -20,6 +21,7 @@ const FileUpload = FileUploadRoot as typeof FileUploadRoot & {
   Value: typeof FileUploadValue
   List: typeof FileUploadList
   Item: typeof FileUploadItem
+  ItemPreview: typeof FileUploadItemPreview
   ItemName: typeof FileUploadItemName
   ItemSize: typeof FileUploadItemSize
   ItemRemove: typeof FileUploadItemRemove
@@ -33,6 +35,7 @@ FileUpload.Control = FileUploadControl
 FileUpload.Value = FileUploadValue
 FileUpload.List = FileUploadList
 FileUpload.Item = FileUploadItem
+FileUpload.ItemPreview = FileUploadItemPreview
 FileUpload.ItemName = FileUploadItemName
 FileUpload.ItemSize = FileUploadItemSize
 FileUpload.ItemRemove = FileUploadItemRemove
@@ -51,6 +54,7 @@ export type {
   FileUploadItemSizeProps,
   FileUploadItemRemoveProps
 } from './FileUploadItem'
+export type { FileUploadItemPreviewProps } from './FileUploadItemPreview'
 export type { FileUploadItem } from './FileUploadContext'
 export type { FileUploadClearProps } from './FileUploadClear'
 export type { FileUploadTriggerProps } from './FileUploadTrigger'
