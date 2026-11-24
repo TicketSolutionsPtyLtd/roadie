@@ -8,6 +8,7 @@ import { globSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import type { CDPSession } from 'playwright'
+import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { BaseSequencer, type BrowserCommand } from 'vitest/node'
 
@@ -232,6 +233,20 @@ const serverRender: BrowserCommand<[file: string, name: string]> = async (
   return renderToString(createElement(fixtures[name]!))
 }
 
+// Images served late, or never, as a slow network does, for the hydration tests.
+const lateImage: Plugin = {
+  name: 'late-image',
+  configureServer: ({ middlewares }) => {
+    middlewares.use('/late-image.svg', (_, response) => {
+      const svg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"/>'
+      response.setHeader('Content-Type', 'image/svg+xml')
+      setTimeout(() => response.end(svg), 200)
+    })
+    middlewares.use('/stalled-image.svg', () => {})
+  }
+}
+
 const browserTest = {
   enabled: true,
   headless: true,
@@ -264,7 +279,7 @@ const optimizeDeps = {
 }
 
 export default defineConfig({
-  plugins: [react(), babel({ presets: [reactCompilerPreset] })],
+  plugins: [react(), babel({ presets: [reactCompilerPreset] }), lateImage],
   resolve: {
     dedupe: ['react', 'react-dom']
   },
