@@ -35,16 +35,16 @@
   /* Pending: the action is under way (Button's `pending`, or `aria-busy` on
        any .btn, so the look never comes without the semantics). The label keeps
        its box, so the size holds. After 200ms, so a fast response never flashes
-       a loader, the button gives a small press, its label shrinks and fades, and
-       a ring in its colour springs in and spins in its place. Each moves its own
+       a loader, its label shrinks and fades and a ring in its colour springs in
+       and spins in its place. The press doesn't wait: it answers the click at
+       once, whether or not a loader follows. Each moves its own
        property (scale, rotate), so the motions compose rather than replace each
        other. Reduced motion shows the ring at once, still. */
   .btn[aria-busy='true'] {
     animation:
       btn-pending-ink var(--duration-normal) var(--ease-exit)
         var(--duration-moderate) forwards,
-      btn-pending-press var(--duration-slow) var(--ease-spring)
-        var(--duration-moderate);
+      btn-pending-press var(--duration-slow) var(--ease-spring);
 
     /* Opacity, not visibility, so a label in a child stays the name. */
     & > * {
