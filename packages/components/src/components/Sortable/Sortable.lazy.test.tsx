@@ -12,7 +12,7 @@ async function setup() {
   vi.resetModules()
   const requested = vi.fn()
   const arrived = Promise.withResolvers<void>()
-  vi.doMock('./SortableMoveMenu', async (importOriginal) => {
+  vi.doMock('./SortableHandle', async (importOriginal) => {
     requested()
     await arrived.promise
     return importOriginal()
@@ -48,7 +48,7 @@ async function setup() {
     arrive: () =>
       act(async () => {
         arrived.resolve()
-        await import('./SortableMoveMenu')
+        await import('./SortableHandle')
       })
   }
 }

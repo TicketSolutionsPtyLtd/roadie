@@ -1,19 +1,19 @@
 // No 'use client': dot access must work from server components.
 import { SortableDropZone } from './SortableDropZone'
-import { SortableHandle } from './SortableHandle'
+import { SortableHandleLazy } from './SortableHandleLazy'
 import { SortableItem } from './SortableItem'
 import { SortableRoot } from './SortableRoot'
 
 const Sortable = SortableRoot as typeof SortableRoot & {
   Root: typeof SortableRoot
   Item: typeof SortableItem
-  Handle: typeof SortableHandle
+  Handle: typeof SortableHandleLazy
   DropZone: typeof SortableDropZone
 }
 
 Sortable.Root = SortableRoot
 Sortable.Item = SortableItem
-Sortable.Handle = SortableHandle
+Sortable.Handle = SortableHandleLazy
 Sortable.DropZone = SortableDropZone
 
 export { Sortable }

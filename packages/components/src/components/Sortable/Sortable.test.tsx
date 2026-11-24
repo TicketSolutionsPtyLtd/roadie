@@ -92,12 +92,15 @@ describe('Sortable', () => {
     ['Enter', '{Enter}', 'Move SKU up'],
     ['Space', ' ', 'Move SKU up'],
     ['the down arrow', '{ArrowDown}', 'Move SKU up'],
-    ['the up arrow', '{ArrowUp}', 'Move SKU to bottom']
+    ['the up arrow', '{ArrowUp}', 'Move SKU to bottom'],
+    // A press that became a drag sends no click, so it opens nothing later.
+    ['Enter after a drag', '{Enter}', 'Move SKU up']
   ])(
     'opens on %s with focus on the item that key starts at',
-    async (_, key, item) => {
+    async (name, key, item) => {
       const user = userEvent.setup()
       render(<Columns />)
+      if (name.endsWith('drag')) fireEvent.pointerDown(handle('SKU'))
       handle('SKU').focus()
       await user.keyboard(key)
       const focused = await screen.findByRole('menuitem', { name: item })
@@ -134,39 +137,48 @@ describe('Sortable', () => {
     await user.keyboard('{Escape}')
     await waitFor(() => expect(handle('SKU')).toHaveFocus())
     expect(attributes('SKU')).toEqual(attributes('Date'))
+    expect(handle('SKU').innerHTML).toBe(handle('Date').innerHTML)
     expect(handle('Date')).toHaveAttribute('aria-expanded', 'false')
   })
 
   it.each([
-    ['Enter', '{Enter}', { clicks: 1, above: 2 }],
-    ['the down arrow', '{ArrowDown}', { clicks: 0, above: 1 }]
+    ['Enter', '{Enter}', { keyDown: 1, pointerDown: 0, click: 1, above: 2 }],
+    [
+      'the down arrow',
+      '{ArrowDown}',
+      { keyDown: 1, pointerDown: 0, click: 0, above: 1 }
+    ],
+    ['a press', null, { keyDown: 0, pointerDown: 1, click: 1, above: 2 }]
   ])(
     'hears %s once on a handle it opens the menu of for the first time',
     async (_, key, times) => {
-      const heard = { click: vi.fn(), keyDown: vi.fn(), above: vi.fn() }
+      const heard = { keyDown: vi.fn(), pointerDown: vi.fn(), click: vi.fn() }
+      const above = vi.fn()
       const ref = { current: null as HTMLButtonElement | null }
       const user = userEvent.setup()
       render(
         <Sortable items={['A']} onReorder={() => {}}>
-          <div onClick={heard.above} onKeyDown={heard.above}>
+          <div onKeyDown={above} onPointerDown={above} onClick={above}>
             <Sortable.Item value='A' label='A'>
               <Sortable.Handle
                 ref={ref}
-                onClick={heard.click}
                 onKeyDown={heard.keyDown}
+                onPointerDown={heard.pointerDown}
+                onClick={heard.click}
               />
             </Sortable.Item>
           </div>
         </Sortable>
       )
       expect(ref.current).toBe(handle('A'))
-      handle('A').focus()
-      await user.keyboard(key)
+      if (key) handle('A').focus()
+      await (key ? user.keyboard(key) : user.click(handle('A')))
       await screen.findByRole('menu')
       expect(ref.current).toBe(handle('A'))
-      expect(heard.keyDown).toHaveBeenCalledTimes(1)
-      expect(heard.click).toHaveBeenCalledTimes(times.clicks)
-      expect(heard.above).toHaveBeenCalledTimes(times.above)
+      expect(heard.keyDown).toHaveBeenCalledTimes(times.keyDown)
+      expect(heard.pointerDown).toHaveBeenCalledTimes(times.pointerDown)
+      expect(heard.click).toHaveBeenCalledTimes(times.click)
+      expect(above).toHaveBeenCalledTimes(times.above)
     }
   )
 

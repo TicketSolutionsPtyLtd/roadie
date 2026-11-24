@@ -12,6 +12,7 @@ import { userEvent } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
+import { tapOn } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Lanes, type Transfer, listed } from './lanes.testUtils'
 
@@ -27,6 +28,27 @@ afterEach(async () => {
 
 const handle = (name: string) =>
   screen.getByRole('button', { name: `Reorder ${name}` })
+
+describe('Sortable Move menu on a touch screen', () => {
+  // Base UI locks the page a task after a mouse or keyboard opens a menu, and
+  // leaves it free for a finger to swipe the menu away.
+  it.each(['first', 'second'])(
+    'opens on the %s tap of a handle and leaves the page free to scroll',
+    async (tap) => {
+      render(<Lanes />)
+      if (tap === 'second') {
+        await tapOn(handle('Date'), 'centre')
+        await userEvent.keyboard('{Escape}')
+        await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+      }
+      await tapOn(handle('Date'), 'centre')
+      const menu = await screen.findByRole('menu')
+      await waitFor(() => expect(menu).toHaveFocus())
+      for (const scroller of [document.documentElement, document.body])
+        expect(getComputedStyle(scroller).overflowY).toBe('visible')
+    }
+  )
+})
 
 describe('Sortable connected lists on a touch screen', () => {
   // Playwright can't start a native drag from a finger, so this drags with

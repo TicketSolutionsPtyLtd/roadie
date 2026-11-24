@@ -41,7 +41,7 @@ function Setlist() {
 }
 
 describe('Sortable render budget', () => {
-  beforeAll(() => import('./SortableMoveMenu'), 20_000)
+  beforeAll(() => import('./SortableHandle'), 20_000)
   beforeEach(() => menuRendered.mockClear())
 
   it('renders no Move menu for a list nobody has reordered', () => {

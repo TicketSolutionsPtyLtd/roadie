@@ -582,6 +582,21 @@ describe('Sortable Move menu', () => {
     }
   })
 
+  it('returns focus to a handle a click opened the menu of, and still drags by it', async () => {
+    render(<Columns />)
+    await userEvent.click(handle('Price'))
+    await waitFor(() => expect(screen.getByRole('menu')).toHaveFocus())
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(handle('Price')).toHaveFocus())
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+    await userEvent.dragAndDrop(handle('Price'), item('Event'), {
+      targetPosition: { x: 40, y: 4 }
+    })
+    await waitFor(() =>
+      expect(order()).toEqual(['Date', 'Price', 'Event', 'SKU'])
+    )
+  })
+
   it('moves by keyboard and keeps focus on the handle', async () => {
     const onReorder = vi.fn<Reorder>()
     render(<Columns onReorder={onReorder} />)

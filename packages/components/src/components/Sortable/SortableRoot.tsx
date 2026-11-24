@@ -10,7 +10,7 @@ import {
   SortableRootContext,
   type SortableRootContextValue
 } from './SortableContext'
-import { SortableHandle, preloadMoveMenu } from './SortableHandle'
+import { SortableHandleLazy } from './SortableHandleLazy'
 import { SortableItem } from './SortableItem'
 import {
   type SortableDrop,
@@ -237,7 +237,7 @@ export function SortableRoot({
       lockItem: actions.lockItem,
       takeFocus: actions.takeFocus,
       Item: SortableItem,
-      Handle: SortableHandle
+      Handle: SortableHandleLazy
     }),
     [items, axis, dir, disabled, group, actions]
   )
@@ -249,7 +249,7 @@ export function SortableRoot({
   // So the first press on a handle finds its menu loaded, on touch too, where
   // nothing comes before the press.
   useEffect(() => {
-    if (!disabled) return whenIdle(preloadMoveMenu)
+    if (!disabled) return whenIdle(SortableHandleLazy.preload)
   }, [disabled])
 
   useEffect(() => {
