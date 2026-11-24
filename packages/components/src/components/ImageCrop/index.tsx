@@ -4,6 +4,7 @@ import { ImageCropReset } from './ImageCropReset'
 import { ImageCropRoot } from './ImageCropRoot'
 import { ImageCropRotate } from './ImageCropRotate'
 import { ImageCropStage } from './ImageCropStage'
+import { ImageCropStraighten } from './ImageCropStraighten'
 import { ImageCropZoom } from './ImageCropZoom'
 
 const ImageCrop = ImageCropRoot as typeof ImageCropRoot & {
@@ -12,6 +13,7 @@ const ImageCrop = ImageCropRoot as typeof ImageCropRoot & {
   Controls: typeof ImageCropControls
   Zoom: typeof ImageCropZoom
   Rotate: typeof ImageCropRotate
+  Straighten: typeof ImageCropStraighten
   Reset: typeof ImageCropReset
 }
 
@@ -20,6 +22,7 @@ ImageCrop.Stage = ImageCropStage
 ImageCrop.Controls = ImageCropControls
 ImageCrop.Zoom = ImageCropZoom
 ImageCrop.Rotate = ImageCropRotate
+ImageCrop.Straighten = ImageCropStraighten
 ImageCrop.Reset = ImageCropReset
 
 export { ImageCrop }
@@ -28,6 +31,7 @@ export type { ImageCropStageProps } from './ImageCropStage'
 export type { ImageCropControlsProps } from './ImageCropControls'
 export type { ImageCropZoomProps } from './ImageCropZoom'
 export type { ImageCropRotateProps } from './ImageCropRotate'
+export type { ImageCropStraightenProps } from './ImageCropStraighten'
 export type { ImageCropResetProps } from './ImageCropReset'
 export type { ImageCropShape } from './ImageCropContext'
 export type { ImageCropValue } from '@oztix/roadie-core/image'

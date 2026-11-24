@@ -2,11 +2,7 @@
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
 
-import {
-  RecordsConfirm,
-  needsConfirm,
-  reportActionError
-} from './RecordsConfirm'
+import { RecordsConfirm, attempt, needsConfirm } from './RecordsConfirm'
 import { useRecordsContext } from './context'
 import { formatCount, selectionExact } from './count'
 import { deselect, pageState, withinMatching } from './selection'
@@ -119,14 +115,7 @@ export function useBulkActions({
     const { scopedQuery: query, request, timeZone, now } = records
     const revision = queryRevision.current.count
     setRunning(index)
-    try {
-      await action.onAction({
-        selection: submitted,
-        query,
-        request: { version: request.version, query: request.query },
-        timeZone,
-        now
-      })
+    const settle = () => {
       const current = latest.current
       // A selection taken against a newer query isn't what the action took.
       if (server && queryRevision.current.count !== revision) return
@@ -150,11 +139,18 @@ export function useBulkActions({
       if (barRef.current?.contains(document.activeElement)) focusSurvivor()
       if (current.selecting) current.setSelecting(false)
       else current.clearSelection()
-    } catch (error) {
-      reportActionError(error)
-    } finally {
-      setRunning(null)
     }
+    await attempt(
+      () =>
+        action.onAction({
+          selection: submitted,
+          query,
+          request: { version: request.version, query: request.query },
+          timeZone,
+          now
+        }),
+      { next: settle, done: () => setRunning(null) }
+    )
   }
   const start = (index: number) =>
     needsConfirm(actions[index]!) ? setConfirming(index) : void run(index)

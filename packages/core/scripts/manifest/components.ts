@@ -149,7 +149,7 @@ function publicPartsOf(indexFile: string, compound: string) {
 export function componentFiles(entryFile: string) {
   const dir = path.dirname(entryFile)
   return readdirSync(dir)
-    .filter((name) => name.endsWith('.tsx') && !name.includes('.test.'))
+    .filter((name) => name.endsWith('.tsx') && !/\.(test|ssr)\./.test(name))
     .sort()
     .map((name) => path.join(dir, name))
 }

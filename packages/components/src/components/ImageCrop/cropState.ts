@@ -167,6 +167,17 @@ export function zoomRange(scene: CropScene, rotation: number) {
 }
 
 /**
+ * The straighten in a rotation: how far it is from the nearest quarter turn,
+ * from -45° up to 45°, clockwise positive.
+ */
+export function straightenOf(rotation: number): number {
+  const angle =
+    Math.round((((((rotation + 45) % 90) + 90) % 90) - 45) * 1e9) / 1e9
+  // 45° is also -45° from the next turn; it reads as the one not turned at all.
+  return angle === -45 && Math.round(rotation) % 360 === 45 ? 45 : angle
+}
+
+/**
  * Turns the image by `degrees` (negative is left) about the frame's centre,
  * keeping the spot under it. It zooms in if the turned image needs it, and
  * a crop that covered the frame exactly still does.
@@ -176,7 +187,9 @@ export function rotateBy(
   degrees: number,
   scene: CropScene
 ): ImageCropValue {
-  const rotation = (((value.rotation + degrees) % 360) + 360) % 360
+  // Rounded, as adding 360 leaves float noise in a tenth (9.699999999999989).
+  const angle = (((value.rotation + degrees) % 360) + 360) % 360
+  const rotation = (Math.round(angle * 1e9) / 1e9) % 360
   const from = boxOf(scene.image, value.rotation)
   const to = boxOf(scene.image, rotation)
   const { x, y } = centreOf(value)

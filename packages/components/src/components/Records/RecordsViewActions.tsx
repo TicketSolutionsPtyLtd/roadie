@@ -17,7 +17,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { Button } from '../Button'
 import { Menu } from '../Menu'
 import { Tooltip } from '../Tooltip'
-import { reportActionError } from './RecordsConfirm'
+import { attempt } from './RecordsConfirm'
 import {
   RecordsViewDelete,
   RecordsViewName,
@@ -71,13 +71,10 @@ export function RecordsViewActions({
   const runSave = async () => {
     if (!onSave || !baseline) return
     setSaving(true)
-    try {
-      await onSave({ ...view, id: baseline.id, name: baseline.name })
-    } catch (error) {
-      reportActionError(error)
-    } finally {
-      setSaving(false)
-    }
+    await attempt(
+      () => onSave({ ...view, id: baseline.id, name: baseline.name }),
+      { done: () => setSaving(false) }
+    )
   }
   const asNew = (name: string) => {
     const copy: RecordView = { ...view, name }
