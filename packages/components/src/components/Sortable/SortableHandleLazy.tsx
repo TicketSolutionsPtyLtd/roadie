@@ -33,6 +33,9 @@ export function SortableHandleLazy(props: SortableHandleProps) {
   const [menu, setMenu] = useState<
     (HandleModule & { opening: SortableMenuOpening }) | null
   >(null)
+  // What asked for a menu that is still loading. It lapses once the handle
+  // is pressed again or loses focus, or the menu would open over a drag or
+  // pull focus back.
   const asked = useRef<SortableMenuOpening | null>(null)
   const pressed = useRef<Event | null>(null)
   const { setHandle } = item
@@ -65,11 +68,6 @@ export function SortableHandleLazy(props: SortableHandleProps) {
     if (loaded) show(loaded)
     else void load().then(show, () => {})
   }
-  // A menu still loading would open over a drag or pull focus back, so what
-  // asked for it lapses once the handle is pressed again or loses focus.
-  const lapse = () => {
-    asked.current = null
-  }
 
   return (
     <IconButton
@@ -94,11 +92,11 @@ export function SortableHandleLazy(props: SortableHandleProps) {
       }}
       onBlur={(event) => {
         rest.onBlur?.(event)
-        lapse()
+        asked.current = null
       }}
       onPointerDown={(event) => {
         onPointerDown?.(event)
-        lapse()
+        asked.current = null
         pressed.current = event.nativeEvent
       }}
       onKeyDown={(event) => {

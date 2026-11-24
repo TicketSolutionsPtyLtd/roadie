@@ -12,6 +12,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Sortable, type SortableHandleProps, type SortableMove } from '.'
+import budget from '../../../size-budget.json'
 import { List } from '../List'
 import { Lanes } from './lanes.testUtils'
 
@@ -88,38 +89,46 @@ describe('Sortable', () => {
     expect(button.closest('[data-slot="sortable-item"]')?.tagName).toBe('LI')
   })
 
+  // Each row ends with how many keys, presses and clicks the handle hears.
   it.each([
-    ['Enter', '{Enter}', 'Move SKU up'],
-    ['Space', ' ', 'Move SKU up'],
-    ['the down arrow', '{ArrowDown}', 'Move SKU up'],
-    ['the up arrow', '{ArrowUp}', 'Move SKU to bottom'],
-    // A press that became a drag sends no click, so it opens nothing later.
-    ['Enter after a drag', '{Enter}', 'Move SKU up']
+    ['Enter', '{Enter}', 'menuitem', 'Move B up', 2],
+    ['Space', ' ', 'menuitem', 'Move B up', 2],
+    ['the down arrow', '{ArrowDown}', 'menuitem', 'Move B up', 1],
+    ['the up arrow', '{ArrowUp}', 'menuitem', 'Move B to bottom', 1],
+    // A press that became a drag sent no click, so it opens nothing later.
+    ['Enter after a drag', '{Enter}', 'menuitem', 'Move B up', 3],
+    ['a press', null, 'menu', 'Reorder B', 2]
   ])(
-    'opens on %s with focus on the item that key starts at',
-    async (name, key, item) => {
+    'opens on %s with focus where that puts it, hearing it once',
+    async (name, key, role, focused, events) => {
+      const heard = vi.fn()
+      const above = vi.fn()
+      const ref = { current: null as HTMLButtonElement | null }
+      const all = { onKeyDown: heard, onPointerDown: heard, onClick: heard }
       const user = userEvent.setup()
-      render(<Columns />)
-      if (name.endsWith('drag')) fireEvent.pointerDown(handle('SKU'))
-      handle('SKU').focus()
-      await user.keyboard(key)
-      const focused = await screen.findByRole('menuitem', { name: item })
-      await waitFor(() => expect(focused).toHaveFocus())
-      expect(handle('SKU')).toHaveAttribute('aria-expanded', 'true')
+      render(
+        <Sortable items={['A', 'B', 'C']} onReorder={() => {}}>
+          <div onKeyDown={above} onPointerDown={above} onClick={above}>
+            <Sortable.Item value='B' label='B'>
+              <Sortable.Handle ref={ref} {...all} />
+            </Sortable.Item>
+          </div>
+        </Sortable>
+      )
+      expect(ref.current).toBe(handle('B'))
+      if (name.endsWith('drag')) fireEvent.pointerDown(handle('B'))
+      if (key) handle('B').focus()
+      await (key ? user.keyboard(key) : user.click(handle('B')))
+      const target = await screen.findByRole(role, { name: focused })
+      await waitFor(() => expect(target).toHaveFocus())
+      expect(ref.current).toBe(handle('B'))
+      expect(handle('B')).toHaveAttribute('aria-expanded', 'true')
+      expect(heard).toHaveBeenCalledTimes(events)
+      expect(above).toHaveBeenCalledTimes(events)
       await user.keyboard('{Escape}')
-      await waitFor(() => expect(handle('SKU')).toHaveFocus())
+      await waitFor(() => expect(handle('B')).toHaveFocus())
     }
   )
-
-  it('opens on a press with focus on the menu, and names the menu after its handle', async () => {
-    const user = userEvent.setup()
-    render(<Columns />)
-    await user.click(handle('SKU'))
-    const menu = await screen.findByRole('menu', { name: 'Reorder SKU' })
-    await waitFor(() => expect(menu).toHaveFocus())
-    await user.keyboard('{Escape}')
-    await waitFor(() => expect(handle('SKU')).toHaveFocus())
-  })
 
   it('keeps the page still on the arrow key that opens the menu', () => {
     render(<Columns />)
@@ -140,47 +149,6 @@ describe('Sortable', () => {
     expect(handle('SKU').innerHTML).toBe(handle('Date').innerHTML)
     expect(handle('Date')).toHaveAttribute('aria-expanded', 'false')
   })
-
-  it.each([
-    ['Enter', '{Enter}', { keyDown: 1, pointerDown: 0, click: 1, above: 2 }],
-    [
-      'the down arrow',
-      '{ArrowDown}',
-      { keyDown: 1, pointerDown: 0, click: 0, above: 1 }
-    ],
-    ['a press', null, { keyDown: 0, pointerDown: 1, click: 1, above: 2 }]
-  ])(
-    'hears %s once on a handle it opens the menu of for the first time',
-    async (_, key, times) => {
-      const heard = { keyDown: vi.fn(), pointerDown: vi.fn(), click: vi.fn() }
-      const above = vi.fn()
-      const ref = { current: null as HTMLButtonElement | null }
-      const user = userEvent.setup()
-      render(
-        <Sortable items={['A']} onReorder={() => {}}>
-          <div onKeyDown={above} onPointerDown={above} onClick={above}>
-            <Sortable.Item value='A' label='A'>
-              <Sortable.Handle
-                ref={ref}
-                onKeyDown={heard.keyDown}
-                onPointerDown={heard.pointerDown}
-                onClick={heard.click}
-              />
-            </Sortable.Item>
-          </div>
-        </Sortable>
-      )
-      expect(ref.current).toBe(handle('A'))
-      if (key) handle('A').focus()
-      await (key ? user.keyboard(key) : user.click(handle('A')))
-      await screen.findByRole('menu')
-      expect(ref.current).toBe(handle('A'))
-      expect(heard.keyDown).toHaveBeenCalledTimes(times.keyDown)
-      expect(heard.pointerDown).toHaveBeenCalledTimes(times.pointerDown)
-      expect(heard.click).toHaveBeenCalledTimes(times.click)
-      expect(above).toHaveBeenCalledTimes(times.above)
-    }
-  )
 
   it('lists the moves and disables the ones past the ends', async () => {
     render(<Columns />)
@@ -568,4 +536,10 @@ describe('Sortable Move to another list', () => {
     expect(moves(menu)).toEqual([])
     expect(within(menu).queryByRole('separator')).toBeNull()
   })
+})
+
+it("keeps the Move menu out of a sortable list's first load", () => {
+  const { full, initial } = budget['./sortable']
+  // Base UI's menu is about 39 kB of brotli, none of it loaded with the list.
+  expect(full - initial).toBeGreaterThan(30_000)
 })

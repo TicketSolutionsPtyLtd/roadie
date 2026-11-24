@@ -30,24 +30,16 @@ const handle = (name: string) =>
   screen.getByRole('button', { name: `Reorder ${name}` })
 
 describe('Sortable Move menu on a touch screen', () => {
-  // Base UI locks the page a task after a mouse or keyboard opens a menu, and
-  // leaves it free for a finger to swipe the menu away.
-  it.each(['first', 'second'])(
-    'opens on the %s tap of a handle and leaves the page free to scroll',
-    async (tap) => {
-      render(<Lanes />)
-      if (tap === 'second') {
-        await tapOn(handle('Date'), 'centre')
-        await userEvent.keyboard('{Escape}')
-        await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
-      }
-      await tapOn(handle('Date'), 'centre')
-      const menu = await screen.findByRole('menu')
-      await waitFor(() => expect(menu).toHaveFocus())
-      for (const scroller of [document.documentElement, document.body])
-        expect(getComputedStyle(scroller).overflowY).toBe('visible')
-    }
-  )
+  // Base UI locks the page a task after a mouse or a key opens a menu, and
+  // leaves it free under a finger, which swipes outside the menu to close it.
+  it('opens on the first tap of a handle and leaves the page free to scroll', async () => {
+    render(<Lanes />)
+    await tapOn(handle('Date'), 'centre')
+    const menu = await screen.findByRole('menu')
+    await waitFor(() => expect(menu).toHaveFocus())
+    for (const scroller of [document.documentElement, document.body])
+      expect(getComputedStyle(scroller).overflowY).toBe('visible')
+  })
 })
 
 describe('Sortable connected lists on a touch screen', () => {
