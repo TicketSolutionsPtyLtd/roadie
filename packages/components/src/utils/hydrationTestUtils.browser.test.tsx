@@ -1,4 +1,4 @@
-import { type ReactNode, useSyncExternalStore } from 'react'
+import { type ReactElement, type ReactNode, useEffect, useState } from 'react'
 
 import { renderToString } from 'react-dom/server'
 import { expect, test } from 'vitest'
@@ -6,16 +6,14 @@ import { server } from 'vitest/browser'
 
 import { hydrationShift } from './hydrationTestUtils'
 
-// The check counts frames, which Linux WebKit doesn't run while a page is idle.
+// Chromium only, as its one caller is: Linux WebKit runs no frames while idle.
 const it = test.skipIf(server.browser !== 'chromium')
 
-const subscribe = () => () => {}
-const onClient = () => true
-const onServer = () => false
-
-/** Renders `render(false)` on the server and `render(true)` once hydrated. */
+/** `render(true)` a frame after hydrating, as an effect that measures does. */
 function Probe({ render }: { render: (mounted: boolean) => ReactNode }) {
-  return render(useSyncExternalStore(subscribe, onClient, onServer))
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => void requestAnimationFrame(() => setMounted(true)), [])
+  return render(mounted)
 }
 
 const box = (slot: string, height = 40, transition?: string) => (
@@ -28,7 +26,7 @@ const room = (...slots: ReactNode[]) => (
 it.each<[string, (mounted: boolean) => ReactNode, string[]]>([
   [
     'nothing for a slot that appears in room already there',
-    (mounted) => room(box('body'), mounted && box('late')),
+    (mounted) => room(box('body'), box('late', mounted ? 40 : 0)),
     []
   ],
   [
@@ -56,10 +54,18 @@ it.each<[string, (mounted: boolean) => ReactNode, string[]]>([
   expect(await hydrationShift(renderToString(ui), ui)).toEqual(expected)
 })
 
-it('hydrationShift reports a hydration error', async () => {
-  const found = await hydrationShift(
-    renderToString(<p data-slot='body'>Server</p>),
-    <p data-slot='body'>Client</p>
-  )
-  expect(found.join('\n')).toMatch(/Hydration failed/)
+it.each<[string, ReactElement, ReactElement, RegExp]>([
+  ['text', <p>Server</p>, <p>Client</p>, /Hydration failed/],
+  ['attribute', <p lang='en' />, <p lang='fr' />, /some attributes/]
+])('hydrationShift reports a mismatched %s', async (_, sent, ui, error) => {
+  const found = await hydrationShift(renderToString(sent), ui)
+  expect(found.join('\n')).toMatch(error)
+})
+
+it('hydrationShift runs inline scripts before it hydrates', async () => {
+  const fix = "document.currentScript.previousSibling.textContent = 'Client'"
+  const script = <script key='fix' dangerouslySetInnerHTML={{ __html: fix }} />
+  const page = (text: string) => [<p key='text'>{text}</p>, script]
+  const html = renderToString(page('Server'))
+  expect(await hydrationShift(html, <>{page('Client')}</>)).toEqual([])
 })
