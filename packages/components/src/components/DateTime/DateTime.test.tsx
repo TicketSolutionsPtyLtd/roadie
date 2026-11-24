@@ -672,6 +672,51 @@ describe('DateTime with a timeStyle and no dateStyle', () => {
     for (const el of container.children) expect(el.textContent).toMatch(/Nov/)
   })
 
+  it('reads two days apart as two times, with no date and no day count', () => {
+    const { container } = render(
+      <DateTime
+        at={at}
+        to={new Date('2026-11-27T16:00:00Z')} // 2am Saturday Brisbane
+        timeZone={BNE}
+        timeStyle='medium'
+        showDuration
+      />
+    )
+    const times = container.querySelectorAll('time')
+    expect([...times].map((t) => t.textContent)).toEqual(['7:30pm', '2:00am'])
+    expect(times[1]).toHaveAttribute('dateTime', '2026-11-28T02:00:00+10:00')
+    expect(container.textContent).not.toMatch(/Nov|day/)
+  })
+
+  it('collapses ends a day apart that read the same, without a date', () => {
+    const { container } = render(
+      <DateTime
+        at={at}
+        to={new Date('2026-11-28T09:30:00Z')}
+        timeZone={BNE}
+        timeStyle='medium'
+      />
+    )
+    expect(container.querySelectorAll('time')).toHaveLength(1)
+    expect(container.textContent).toBe('7:30pm')
+  })
+
+  it('swaps the wrapper of a range through `render`, as `sameNight` does', () => {
+    const { container } = render(
+      <DateTime
+        at={at}
+        to={to}
+        timeZone={BNE}
+        timeStyle='medium'
+        render={<div data-testid='wrapper' />}
+      />
+    )
+    const wrapper = screen.getByTestId('wrapper')
+    expect(wrapper.tagName).toBe('DIV')
+    expect(wrapper.querySelectorAll('time')).toHaveLength(2)
+    expect(container.querySelectorAll('time')).toHaveLength(2)
+  })
+
   it('renders the time the same on the server', () => {
     const html = renderToString(
       <DateTime at={at} timeZone={BNE} timeStyle='medium' />

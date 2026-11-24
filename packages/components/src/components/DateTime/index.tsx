@@ -47,7 +47,8 @@ export interface DateTimeProps extends Omit<
    * A later moment, making this a range. Both ends are formatted together, so
    * the year rides on the later date. Two ends on the same day render as a
    * time range when a `timeStyle` is set, and collapse to one moment without
-   * one.
+   * one. With a `timeStyle` and no `dateStyle`, ends on different days read as
+   * two times too, unless they read the same, which collapse to one.
    */
   to?: Instantish | null
   /**
@@ -91,7 +92,8 @@ export interface DateTimeProps extends Omit<
   /**
    * On a range, append the calendar days it covers after a middot. Renders
    * nothing inside a single day, or past 30 days, where a count stops telling
-   * the reader anything.
+   * the reader anything, and nothing on a time alone, which has no days to
+   * count from.
    */
   showDuration?: boolean
   /**
