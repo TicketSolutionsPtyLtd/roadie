@@ -14,6 +14,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TEST_ONLY =
   /\.test\.|__screenshots__\/|__snapshots__\/|(?:^|\/)(?:testUtils|\w+TestUtils|fixtures|testChart|browserTesting)\.\w+$|\/_test\//
 const NAMED = /(?:function|const|let)\s+([A-Za-z_$][\w$]*)/
+const NO_MEMO = /^use no (?:memo|forget)$/
+const MODULE_OPTED_OUT =
+  "'use no memo' at the top of the file, which turns the compiler off for all of it"
 
 const OPTED_OUT = "'use no memo', on purpose: "
 const HOISTED = 'Compiler todo: a function referenced above its declaration'
@@ -74,7 +77,7 @@ async function skipsIn(config) {
     const lines = code.split('\n')
     const logEvent = (_, { kind, fnLoc, detail, data, reason }) => {
       if (kind === 'CompileSuccess') return
-      // A directive's skip is reported at the directive, below the name.
+      // A directive's skip is reported at the function's body, below the name.
       let line = fnLoc?.start.line ?? 0
       while (line > 1 && !NAMED.test(lines[line - 1])) line--
       const name = NAMED.exec(lines[line - 1])?.[1] ?? `line ${line}`
@@ -83,11 +86,12 @@ async function skipsIn(config) {
         detail?.options?.reason ?? detail?.reason ?? data ?? reason
       )
     }
-    babel.transformSync(code, {
+    const { ast } = babel.transformSync(code, {
       filename: path,
       babelrc: false,
       configFile: false,
       code: false,
+      ast: true,
       parserOpts: {
         plugins: file.endsWith('x') ? ['typescript', 'jsx'] : ['typescript']
       },
@@ -98,6 +102,10 @@ async function skipsIn(config) {
           { ...options, logger: { logEvent } }
         ])
     })
+    // Under one for the module, the compiler reports each function a success
+    // and leaves them all as written.
+    if (ast.program.directives.some(({ value }) => NO_MEMO.test(value.value)))
+      skips.set(`${basename(dir)}/${file}`, MODULE_OPTED_OUT)
   }
   return [...skips]
 }
