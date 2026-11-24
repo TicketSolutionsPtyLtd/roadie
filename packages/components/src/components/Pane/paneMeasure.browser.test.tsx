@@ -152,3 +152,39 @@ describe('a pane measure around Pane.Body', () => {
     }
   )
 })
+
+describe('a measured pane nested in a Pane.Body', () => {
+  // A button shrinks to its label in a measured pane; the outer pane's fill mustn't stretch it.
+  function buttonWidth(nested: boolean) {
+    const inner = (
+      <div style={{ height: 300, display: 'grid' }}>
+        <Pane measure='narrow'>
+          <button id='buy' type='button'>
+            Buy
+          </button>
+        </Pane>
+      </div>
+    )
+    const { container } = render(
+      <div style={{ width: WIDTH, height: 600, display: 'grid' }}>
+        {nested ? (
+          <Pane measure='wide'>
+            <Pane.Body>{inner}</Pane.Body>
+          </Pane>
+        ) : (
+          inner
+        )}
+      </div>
+    )
+    const width = container.querySelector('#buy')!.getBoundingClientRect().width
+    cleanup()
+    return width
+  }
+
+  it('lays out its content as it would on its own', () => {
+    const alone = buttonWidth(false)
+
+    expect(alone).toBeLessThan(384)
+    expect(buttonWidth(true)).toBeCloseTo(alone, 0)
+  })
+})
