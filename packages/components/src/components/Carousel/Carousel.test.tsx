@@ -84,6 +84,23 @@ describe('Carousel', () => {
     expect(part('carousel-previous')).toHaveAttribute('aria-disabled', 'true')
   })
 
+  it('hides the controls and dots once mounted with no Carousel.Content to count', () => {
+    const { container } = render(
+      <Carousel aria-label='Shows'>
+        <Carousel.Dots />
+        <Carousel.Controls>
+          <Carousel.Previous />
+          <Carousel.Next />
+        </Carousel.Controls>
+      </Carousel>
+    )
+    for (const slot of ['dots', 'controls', 'previous', 'next']) {
+      expect(
+        container.querySelector(`[data-slot="carousel-${slot}"]`)
+      ).toHaveAttribute('data-hidden')
+    }
+  })
+
   it('renders one slide per Carousel.Item with "N of M" label', () => {
     const { getAllByRole } = render(<Fixture count={3} />)
     const slides = getAllByRole('group', { name: /of/ })

@@ -87,6 +87,10 @@ function usePrefersReducedMotion(): boolean {
   )
 }
 
+const noSubscription = () => () => {}
+const inBrowser = () => true
+const onServer = () => false
+
 export type CarouselRootProps = Omit<ComponentProps<'div'>, 'onBlur'> & {
   /** Pass-through options for the Embla instance. */
   opts?: EmblaOptionsType
@@ -163,9 +167,8 @@ export function CarouselRoot({
   const [emblaRef, api] = useEmblaCarousel(resolvedOpts, plugins)
 
   const [selectedIndex, setSelectedIndex] = useState(0)
-  // Null until Carousel.Content counts its slides, as on the server.
-  const [countedSlides, setSlideCount] = useState<number | null>(null)
-  const slideCount = countedSlides ?? 0
+  const [slideCount, setSlideCount] = useState(0)
+  const hydrated = useSyncExternalStore(noSubscription, inBrowser, onServer)
   const [snapCount, setSnapCount] = useState(0)
   const [labelId, setLabelId] = useState<string | undefined>(undefined)
   const [slidesInView, setSlidesInView] = useState<number[]>([0])
@@ -294,12 +297,10 @@ export function CarouselRoot({
       ? Math.min(Math.max(0, selectedIndex), effectiveSnapCount - 1)
       : 0
   const canGoToPrev = effectiveSnapCount > 1 && (loop || clampedIndex > 0)
-  // Until the slides are counted, there's taken to be somewhere to scroll, so
-  // the server paints the controls and dots at their final size.
-  const counted = countedSlides !== null
-  const canScroll = !counted || effectiveSnapCount > 1
+  // Until hydrated, the controls render as if there's somewhere to scroll.
+  const canScroll = !hydrated || effectiveSnapCount > 1
   const canGoToNext =
-    !counted ||
+    !hydrated ||
     (effectiveSnapCount > 1 && (loop || clampedIndex < effectiveSnapCount - 1))
 
   const actions = useMemo<CarouselActions>(
