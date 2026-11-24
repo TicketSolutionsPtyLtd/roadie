@@ -638,3 +638,114 @@ describe.each<CarouselContentOverflow>(['subtle', 'hidden', 'visible'])(
     )
   }
 )
+
+describe('Carousel dots', () => {
+  function Holding({
+    count = 20,
+    max,
+    className
+  }: {
+    count?: number
+    max?: number
+    className?: string
+  }) {
+    return (
+      <div className={className} style={{ width: 400, padding: 32 }}>
+        <Carousel aria-label='Tickets' opts={{ slidesToScroll: 1 }}>
+          <Carousel.Header>
+            <Carousel.Title>Tickets</Carousel.Title>
+            <Carousel.Dots max={max} />
+          </Carousel.Header>
+          <Carousel.Content overflow='hidden'>
+            {Array.from({ length: count }, (_, index) => (
+              <Carousel.Item key={index}>Ticket {index + 1}</Carousel.Item>
+            ))}
+          </Carousel.Content>
+        </Carousel>
+      </div>
+    )
+  }
+
+  const dots = () =>
+    screen
+      .getAllByRole('button', { name: /^Go to slide/ })
+      .map((dot) => Number(dot.getAttribute('aria-label')!.split(' ').at(-1)))
+  const dot = (slide: number) =>
+    screen.getByRole('button', { name: `Go to slide ${slide}` })
+  const showing = (slide: number) =>
+    expect
+      .element(page.getByRole('button', { name: `Go to slide ${slide}` }))
+      .toHaveAttribute('aria-current', 'true')
+  const width = (slide: number) => dot(slide).getBoundingClientRect().width
+
+  it('draws a dot for every slide without max', async () => {
+    render(<Holding />)
+    await expect.poll(() => dots().length).toBe(20)
+  })
+
+  it('draws at most max dots, the window sliding to keep the current one in the middle', async () => {
+    render(<Holding max={7} />)
+    await expect.poll(dots).toEqual([1, 2, 3, 4, 5, 6, 7])
+
+    await userEvent.click(dot(7))
+    await showing(7)
+    expect(dots()).toEqual([4, 5, 6, 7, 8, 9, 10])
+
+    await userEvent.click(dot(10))
+    await showing(10)
+    expect(dots()).toEqual([7, 8, 9, 10, 11, 12, 13])
+
+    await userEvent.click(content())
+    await userEvent.keyboard('{End}')
+    await showing(20)
+    expect(dots()).toEqual([14, 15, 16, 17, 18, 19, 20])
+  })
+
+  it('draws the dot at an end of the window smaller while slides lie past it', async () => {
+    render(<Holding max={7} />)
+    await showing(1)
+    await expect.poll(() => width(7)).toBeLessThan(width(6))
+    expect(width(1)).toBeGreaterThan(width(2))
+
+    await userEvent.click(dot(7))
+    await showing(7)
+    await expect.poll(() => width(4)).toBeLessThan(width(5))
+    await expect.poll(() => width(10)).toBeLessThan(width(9))
+  })
+
+  it('draws every dot when there are no more slides than max', async () => {
+    render(<Holding count={5} max={7} />)
+    await expect.poll(dots).toEqual([1, 2, 3, 4, 5])
+    await expect.poll(() => width(5)).toBe(width(4))
+  })
+
+  it('fills the current dot with the accent on a neutral surface', async () => {
+    render(
+      <>
+        <Holding max={7} />
+        <span data-testid='accent' className='emphasis-strong intent-accent' />
+      </>
+    )
+    await showing(1)
+    const accent = getComputedStyle(
+      screen.getByTestId('accent')
+    ).backgroundColor
+    await expect
+      .poll(() => getComputedStyle(dot(1)).backgroundColor)
+      .toBe(accent)
+  })
+
+  it.each(['accent', 'brand', 'warning'] as const)(
+    'fills the current dot with the foreground of a strong %s surface',
+    async (intent) => {
+      render(<Holding max={7} className={`intent-${intent} emphasis-strong`} />)
+      await showing(1)
+      const surface = dot(1).closest('.emphasis-strong:not([data-slot])')!
+      const { color, backgroundColor } = getComputedStyle(surface)
+      await expect
+        .poll(() => getComputedStyle(dot(1)).backgroundColor)
+        .toBe(color)
+      expect(color).not.toBe(backgroundColor)
+    }
+  )
+})

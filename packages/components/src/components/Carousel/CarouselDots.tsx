@@ -7,12 +7,34 @@ import { cn } from '@oztix/roadie-core/utils'
 import { useCarouselContext } from './CarouselContext'
 import { carouselDotsVariants } from './variants'
 
-export type CarouselDotsProps = ComponentProps<'div'>
+export type CarouselDotsProps = ComponentProps<'div'> & {
+  /**
+   * The most dots to draw at once. With more slides than this, the dots show
+   * a window that slides to keep the current one in the middle, and the dot
+   * at each end of the window is drawn smaller while there are slides past
+   * it. Leave it off to draw a dot for every slide.
+   */
+  max?: number
+}
 
-export function CarouselDots({ className, ...props }: CarouselDotsProps) {
+/** The first dot to draw, and how many, to keep `selected` mid-window. */
+export function dotWindow(count: number, selected: number, max?: number) {
+  const size =
+    max !== undefined && Number.isFinite(max) && max >= 1
+      ? Math.min(Math.floor(max), count)
+      : count
+  const start = Math.max(
+    0,
+    Math.min(selected - Math.floor(size / 2), count - size)
+  )
+  return { start, size }
+}
+
+export function CarouselDots({ className, max, ...props }: CarouselDotsProps) {
   const { direction, snapCount, selectedIndex, canScroll, goTo } =
     useCarouselContext()
   if (!canScroll) return null
+  const { start, size } = dotWindow(snapCount, selectedIndex, max)
   return (
     <div
       role='group'
@@ -21,8 +43,12 @@ export function CarouselDots({ className, ...props }: CarouselDotsProps) {
       className={cn(carouselDotsVariants({ direction }), className)}
       {...props}
     >
-      {Array.from({ length: snapCount }, (_, index) => {
+      {Array.from({ length: size }, (_, offset) => {
+        const index = start + offset
         const isActive = index === selectedIndex
+        const isEdge =
+          (offset === 0 && start > 0) ||
+          (offset === size - 1 && start + size < snapCount)
         return (
           <button
             key={index}
@@ -33,10 +59,14 @@ export function CarouselDots({ className, ...props }: CarouselDotsProps) {
             data-slot='carousel-dot'
             onClick={() => goTo(index)}
             className={cn(
-              'is-interactive h-2 rounded-full transition-all',
+              'h-2 shrink-0 rounded-full transition-all',
+              // The current dot does nothing when pressed, so it has no hover.
+              // On a strong surface the accent can match the surface, so it
+              // takes the surface's own foreground instead.
               isActive
-                ? 'w-5 emphasis-strong intent-accent'
-                : 'w-2 emphasis-normal'
+                ? 'is-focusable w-5 emphasis-strong intent-accent in-[.emphasis-strong]:bg-current in-[.emphasis-strong]:text-inherit'
+                : 'is-interactive w-2 emphasis-normal',
+              isEdge && 'scale-50'
             )}
           />
         )
