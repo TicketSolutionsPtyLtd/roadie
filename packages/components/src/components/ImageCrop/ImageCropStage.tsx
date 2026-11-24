@@ -20,15 +20,25 @@ import {
   type CropScene,
   fitCrop,
   fitFrame,
+  moveTo,
   panBy,
+  rotateBy,
   sameCrop,
+  stretchCrop,
   transformOf,
+  zoomRange,
   zoomTo
 } from './cropState'
 
 export type ImageCropStageProps = ComponentProps<'div'>
 
+type Point = { x: number; y: number }
+
 const WHEEL_SETTLE_MS = 150
+// `--duration-slow`, which the spring runs for, with a frame to spare.
+const SPRING_MS = 320
+const DOUBLE_TAP_MS = 300
+const TAP_SLOP = 24
 const KEY_ZOOM = 1.1
 const radius = { rectangle: 'rounded-md', circle: 'rounded-full' }
 const corners = [
@@ -38,9 +48,21 @@ const corners = [
   'bottom-0 right-0 border-b-3 border-r-3 rounded-br-md'
 ]
 
+const midpoint = (points: Point[]) => ({
+  x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+  y: points.reduce((sum, p) => sum + p.y, 0) / points.length
+})
+const spread = ([a, b]: Point[]) =>
+  a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0
+
+function sizeOf(value: ImageCropValue) {
+  return `${Math.round(value.area.width)} × ${Math.round(value.area.height)}px`
+}
+
 /**
- * The crop area: the image under a fixed frame. Drag to pan, use the arrow
- * keys, `+` and `-`, or the wheel once it has focus.
+ * The crop area: the image under a fixed frame. Drag to pan and pinch to
+ * zoom, or use the arrow keys, `+`, `-` and `R`, or the wheel once it has
+ * focus.
  */
 export function ImageCropStage({
   className,
@@ -51,14 +73,34 @@ export function ImageCropStage({
   const crop = useImageCropContext('ImageCrop.Stage')
   const stageRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
+  const sizeRef = useRef<HTMLSpanElement>(null)
   const [stage, setStage] = useState<CropSize>()
   const [loaded, setLoaded] = useState<{ src: string; size: CropSize }>()
   const [active, setActive] = useState(false)
   const [, repaint] = useReducer((n: number) => n + 1, 0)
-  // The pointer mid-drag, where it went down, and the image it went down on.
-  const drag = useRef<{ id: number; x: number; y: number; src?: string }>(null)
-  // The value mid-gesture, and the image it was made on.
-  const live = useRef<{ src?: string; value: ImageCropValue }>(null)
+  // The pointers down, in screen px from the frame's centre.
+  const pointers = useRef(new Map<number, Point>())
+  // The gesture they make, from the value and points it started at.
+  const gesture = useRef<{
+    src?: string
+    start: ImageCropValue
+    from: Point
+    distance: number
+    at: number
+    moved: boolean
+  }>(null)
+  const lastTap = useRef<{ at: number } & Point>(null)
+  // The value mid-gesture, the image it was made on, and whether it ran past
+  // the zoom cap.
+  const live = useRef<{
+    src?: string
+    value: ImageCropValue
+    capped?: boolean
+  }>(null)
+  // The angle last painted, so a spring turns the short way round.
+  const turn = useRef(0)
+  const springs = useRef(crop.springs)
+  const settling = useRef<ReturnType<typeof setTimeout>>(undefined)
   const describedBy = useId()
 
   const image = loaded && loaded.src === crop.src ? loaded.size : undefined
@@ -69,21 +111,57 @@ export function ImageCropStage({
       ? { frame, image, min: crop.min }
       : undefined
   const shown = scene && fitCrop(crop.value, scene)
-  const latest = useRef({ scene, shown, src: crop.src, commit: crop.commit })
+  const range = scene && shown && zoomRange(scene, shown.rotation)
+  const capped = !!range && shown!.zoom >= range.max * 0.999 && !range.short
+  const latest = useRef({ scene, shown, stage, crop, plain: false })
 
-  // Mid-gesture only the transform changes, written here rather than rendered.
+  // Mid-gesture only the transform and the size change, written here rather
+  // than rendered.
   const paint = (value: ImageCropValue) => {
     const size = latest.current.scene?.image
-    if (imageRef.current && size)
-      imageRef.current.style.transform = transformOf(value, size)
+    if (!imageRef.current || !size) return
+    let angle = value.rotation
+    while (angle - turn.current > 180) angle -= 360
+    while (angle - turn.current < -180) angle += 360
+    turn.current = angle
+    imageRef.current.style.transform = transformOf(value, size, angle)
+    // The chip says something else at the cap, and the render owns that.
+    if (sizeRef.current && latest.current.plain)
+      sizeRef.current.textContent = sizeOf(value)
+  }
+
+  const unsettle = () => {
+    clearTimeout(settling.current)
+    delete stageRef.current?.dataset.settling
+  }
+  // Springs the next transform painted, set with it so the change animates.
+  const settle = () => {
+    if (!stageRef.current) return
+    stageRef.current.dataset.settling = ''
+    clearTimeout(settling.current)
+    settling.current = setTimeout(unsettle, SPRING_MS)
   }
 
   useLayoutEffect(() => {
-    latest.current = { scene, shown, src: crop.src, commit: crop.commit }
+    latest.current = {
+      scene,
+      shown,
+      stage,
+      crop,
+      plain: !!range && !range.short && !capped
+    }
+    crop.setScene(scene)
     // A gesture on the last image ends unreported, as a new one starts centred.
     if (live.current && live.current.src !== crop.src) live.current = null
+    // A control's change wins over a wheel zoom still settling.
+    if (springs.current !== crop.springs) {
+      springs.current = crop.springs
+      live.current = null
+      settle()
+    }
     if (shown && !live.current) paint(shown)
   })
+  useEffect(() => () => clearTimeout(settling.current), [])
 
   useLayoutEffect(() => {
     const element = stageRef.current
@@ -116,95 +194,179 @@ export function ImageCropStage({
   useEffect(() => {
     if (!shown || !crop.src || reported.current === crop.src) return
     reported.current = crop.src
-    if (!crop.value || !sameCrop(crop.value, shown)) crop.commit(shown)
+    if (!crop.value || !sameCrop(crop.value, shown))
+      crop.commit(shown, { quiet: true })
   }, [crop, shown])
 
   // Ends a gesture: report once, then paint whatever value the parent kept.
-  const finish = () => {
-    const value = live.current?.value
-    const { shown, commit } = latest.current
+  // A value stretched past a limit springs back.
+  const finish = (animate = false) => {
+    const ended = live.current
+    const { shown, crop } = latest.current
     live.current = null
     setActive(false)
-    if (value && !(shown && sameCrop(value, shown))) commit(value)
+    if (ended?.capped) crop.nudge()
+    if (animate) settle()
+    if (ended && !(shown && sameCrop(ended.value, shown)))
+      crop.commit(ended.value)
     repaint()
   }
+
+  // Controls show a value mid-drag through here.
+  useLayoutEffect(() => {
+    const { setPainter } = crop
+    setPainter((value) => {
+      unsettle()
+      setActive(!!value)
+      if (value) paint(value)
+      else repaint()
+    })
+    return () => setPainter(null)
+  })
 
   useEffect(() => {
     const element = stageRef.current
     if (!element) return
     let timer: ReturnType<typeof setTimeout> | undefined
     const onWheel = (event: WheelEvent) => {
-      const { scene, shown, src } = latest.current
-      if (document.activeElement !== element || !scene || !shown) return
-      // Focused, a wheel never scrolls the page, but it waits out a drag.
+      const { scene, shown, crop } = latest.current
+      // A trackpad pinch comes as a wheel with ctrlKey, and always zooms. A
+      // plain wheel zooms only once the stage has focus.
+      const pinch = event.ctrlKey
+      if ((!pinch && document.activeElement !== element) || !scene || !shown)
+        return
+      // A wheel never scrolls the page here, but it waits out a drag.
       event.preventDefault()
-      if (drag.current) return
+      if (gesture.current) return
+      unsettle()
       const rect = element.getBoundingClientRect()
       const lines = { 1: 16, 2: rect.height }[event.deltaMode] ?? 1
       const base = live.current?.value ?? shown
-      const value = zoomTo(
-        base,
-        base.zoom * Math.exp(-event.deltaY * lines * 0.002),
-        scene,
-        {
-          x: event.clientX - rect.left - rect.width / 2,
-          y: event.clientY - rect.top - rect.height / 2
-        }
-      )
-      live.current = { src, value }
+      const zoom =
+        base.zoom * Math.exp(-event.deltaY * lines * (pinch ? 0.01 : 0.002))
+      const value = zoomTo(base, zoom, scene, {
+        x: event.clientX - rect.left - rect.width / 2,
+        y: event.clientY - rect.top - rect.height / 2
+      })
+      const capped = zoom > zoomRange(scene, base.rotation).max * 1.001
+      live.current = { src: crop.src, value, capped }
       paint(value)
       setActive(true)
       clearTimeout(timer)
       timer = setTimeout(finish, WHEEL_SETTLE_MS)
     }
+    // Safari's own pinch would zoom the page.
+    const stopGesture = (event: Event) => event.preventDefault()
     element.addEventListener('wheel', onWheel, { passive: false })
+    for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
+      element.addEventListener(type, stopGesture)
     return () => {
       clearTimeout(timer)
       element.removeEventListener('wheel', onWheel)
+      for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
+        element.removeEventListener(type, stopGesture)
     }
     // It reads everything it needs through `latest`, so it binds once.
   }, [])
 
+  const pointOf = (event: PointerEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    return {
+      x: event.clientX - rect.left - rect.width / 2,
+      y: event.clientY - rect.top - rect.height / 2
+    }
+  }
+
+  // Starts the gesture again from the value on screen when a finger joins
+  // or lifts, so the image doesn't jump.
+  const begin = (at: number) => {
+    const points = [...pointers.current.values()]
+    const start = live.current?.value ?? shown
+    gesture.current =
+      points.length && start
+        ? {
+            // A gesture begun on the last image stays on it.
+            src: gesture.current?.src ?? crop.src,
+            start,
+            from: midpoint(points),
+            distance: spread(points),
+            at,
+            moved: !!gesture.current?.moved
+          }
+        : null
+  }
+
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     onPointerDown?.(event)
-    if (event.defaultPrevented || !shown || drag.current) return
+    if (event.defaultPrevented || !scene || !shown) return
     if (event.pointerType === 'mouse' && event.button !== 0) return
-    event.currentTarget.setPointerCapture(event.pointerId)
-    drag.current = {
-      id: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-      src: crop.src
+    const point = pointOf(event)
+    const tap = lastTap.current
+    lastTap.current = null
+    if (
+      !pointers.current.size &&
+      !live.current &&
+      tap &&
+      event.timeStamp - tap.at < DOUBLE_TAP_MS &&
+      Math.hypot(point.x - tap.x, point.y - tap.y) < TAP_SLOP
+    ) {
+      // Double-tap zooms to 2× at the tap, or back out to fit.
+      const { cover } = zoomRange(scene, shown.rotation)
+      unsettle()
+      crop.commit(
+        shown.zoom > cover * 1.08
+          ? zoomTo(shown, cover, scene)
+          : zoomTo(shown, cover * 2, scene, point),
+        { animate: true }
+      )
+      return
     }
+    // A synthetic pointer can't be captured, and needs no capture.
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      // Nothing to release either.
+    }
+    unsettle()
+    pointers.current.set(event.pointerId, point)
+    begin(event.timeStamp)
     setActive(true)
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const start = drag.current
-    if (!start || start.id !== event.pointerId || !scene || !shown) return
-    // A drag begun on the last image waits for the pointer to lift.
-    if (start.src !== crop.src) return
-    const value = panBy(
-      shown,
-      -(event.clientX - start.x) / shown.zoom,
-      -(event.clientY - start.y) / shown.zoom,
-      scene
-    )
-    live.current = { src: crop.src, value }
-    paint(value)
+    if (!pointers.current.has(event.pointerId)) return
+    pointers.current.set(event.pointerId, pointOf(event))
+    const start = gesture.current
+    // A gesture begun on the last image waits for the pointers to lift.
+    if (!start || start.src !== crop.src || !scene || !stage) return
+    const points = [...pointers.current.values()]
+    const to = midpoint(points)
+    const scale = start.distance ? spread(points) / start.distance : 1
+    if (Math.hypot(to.x - start.from.x, to.y - start.from.y) > 4 || scale !== 1)
+      start.moved = true
+    const raw = moveTo(start.start, start.from, to, scale, scene)
+    const { clamped, painted } = stretchCrop(raw, scene, stage)
+    const capped = raw.zoom > zoomRange(scene, raw.rotation).max * 1.001
+    live.current = { src: crop.src, value: clamped, capped }
+    paint(painted)
   }
 
   const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {
-    if (drag.current?.id !== event.pointerId) return
-    drag.current = null
-    finish()
+    if (!pointers.current.delete(event.pointerId)) return
+    const ended = gesture.current
+    if (pointers.current.size) return begin(event.timeStamp)
+    gesture.current = null
+    const tapped =
+      ended && !ended.moved && event.timeStamp - ended.at < DOUBLE_TAP_MS
+    lastTap.current = tapped ? { at: event.timeStamp, ...ended.from } : null
+    finish(true)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event)
     if (event.defaultPrevented || event.target !== event.currentTarget) return
     // A key mid-gesture would be overwritten when the gesture ends.
-    if (!scene || !shown || drag.current || live.current) return
+    if (!scene || !shown || gesture.current || live.current) return
     // Arrows move the image, as a drag does, so the crop moves the other way.
     const step = (event.shiftKey ? 50 : 10) / shown.zoom
     const moves: Record<string, [number, number]> = {
@@ -214,16 +376,23 @@ export function ImageCropStage({
       ArrowDown: [0, -step]
     }
     const move = moves[event.key]
+    const zoomIn = event.key === '+' || event.key === '='
     const next = move
       ? panBy(shown, move[0], move[1], scene)
-      : event.key === '+' || event.key === '='
+      : zoomIn
         ? zoomTo(shown, shown.zoom * KEY_ZOOM, scene)
         : event.key === '-' || event.key === '_'
           ? zoomTo(shown, shown.zoom / KEY_ZOOM, scene)
-          : undefined
+          : event.key === 'r' || event.key === 'R'
+            ? rotateBy(shown, -90, scene)
+            : undefined
     if (!next) return
     event.preventDefault()
-    if (!sameCrop(next, shown)) crop.commit(next)
+    if (zoomIn && capped) crop.nudge()
+    unsettle()
+    // Keys move at once; a turn springs, as the button's does.
+    if (!sameCrop(next, shown))
+      crop.commit(next, { animate: next.rotation !== shown.rotation })
   }
 
   return (
@@ -256,7 +425,7 @@ export function ImageCropStage({
           draggable={false}
           onLoad={readImage}
           className={cn(
-            'pointer-events-none absolute top-1/2 left-1/2 max-w-none origin-center will-change-transform',
+            'pointer-events-none absolute top-1/2 left-1/2 max-w-none origin-center will-change-transform group-data-settling/crop:transition-transform group-data-settling/crop:duration-slow group-data-settling/crop:ease-spring',
             !image && 'invisible'
           )}
           style={
@@ -272,6 +441,7 @@ export function ImageCropStage({
       {frame && (
         <div
           aria-hidden
+          data-slot='image-crop-frame'
           className={cn(
             'pointer-events-none absolute top-1/2 left-1/2 -translate-1/2 shadow-[0_0_0_1.5px_var(--color-neutral-light-0),0_0_0_100vmax_color-mix(in_oklab,var(--color-neutral-light-13)_60%,transparent)]',
             radius[crop.shape]
@@ -299,9 +469,33 @@ export function ImageCropStage({
             ))}
         </div>
       )}
+      {shown && range && (
+        // The live region says the size; this is for sighted people.
+        <span
+          key={crop.nudges}
+          ref={sizeRef}
+          aria-hidden
+          data-slot='image-crop-size'
+          data-capped={capped || range.short || undefined}
+          className={cn(
+            'pointer-events-none absolute top-3 left-3 rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums transition-colors duration-moderate ease-standard',
+            capped || range.short
+              ? 'intent-warning emphasis-strong'
+              : 'emphasis-floating is-translucent',
+            crop.nudges > 0 && 'animate-nudge'
+          )}
+        >
+          {range.short && crop.min
+            ? `Needs ${sizeOf({ ...shown, area: { ...shown.area, ...crop.min } })}`
+            : capped
+              ? `${sizeOf(shown)} · smallest crop`
+              : sizeOf(shown)}
+        </span>
+      )}
       <p id={describedBy} className='sr-only'>
-        Drag or use the arrow keys to move the image. Press plus or minus to
-        zoom, or scroll once the crop area has focus.
+        Drag or use the arrow keys to move the image. Pinch, press plus or
+        minus, or scroll once the crop area has focus to zoom. Press R to turn
+        it left.
       </p>
     </div>
   )
