@@ -236,65 +236,85 @@ export function FileUploadRoot({
 
   // Picks, drops and pastes all come through here. With one file allowed,
   // the first replaces it; with more, files join until the field is full.
-  const picks = useRef(0)
+  // `epoch` moves on a single pick, Clear, Remove or reorder, and a check
+  // still running from before it is dropped.
+  const epoch = useRef(0)
+  const latest = useRef(files)
+  useEffect(() => {
+    latest.current = files
+  }, [files])
+
   function take(picked: ArrayLike<File>) {
     const single = maxFiles === 1
-    const pick = ++picks.current
-    const taken: File[] = []
+    if (single) epoch.current++
+    const at = epoch.current
     const rejections: FileUploadRejection[] = []
-    for (const file of Array.from(picked).slice(0, single ? 1 : undefined)) {
-      const rejection =
-        checkFile(file, { accept, maxFileSize, minFileSize }) ??
-        (single || files.length + taken.length < maxFiles
-          ? null
-          : {
-              file,
-              code: 'too-many' as const,
-              message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
-            })
-      if (rejection) rejections.push(rejection)
-      else taken.push(file)
+    const checked = Array.from(picked)
+      .slice(0, single ? 1 : undefined)
+      .filter((file) => {
+        const rejection = checkFile(file, { accept, maxFileSize, minFileSize })
+        if (rejection) rejections.push(rejection)
+        return !rejection
+      })
+    const report = (turnedAway: FileUploadRejection[]) => {
+      if (!turnedAway.length) return
+      setError(turnedAway.map(({ message }) => message).join(' '))
+      onReject?.(turnedAway)
     }
-    const settle = (passed: File[], turnedAway: FileUploadRejection[]) => {
-      if (passed.length) commit(single ? passed : [...files, ...passed])
-      if (turnedAway.length) {
-        setError(turnedAway.map(({ message }) => message).join(' '))
-        onReject?.(turnedAway)
-      }
+    // Counts the field's files as they are when the checks land.
+    const land = (
+      passed: File[],
+      turnedAway: FileUploadRejection[],
+      keepError = false
+    ) => {
+      const current = single ? [] : latest.current
+      const taken = passed.slice(0, Math.max(maxFiles - current.length, 0))
+      if (taken.length) update([...current, ...taken], keepError)
+      report([
+        ...turnedAway,
+        ...passed.slice(taken.length).map((file) => ({
+          file,
+          code: 'too-many' as const,
+          message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
+        }))
+      ])
     }
-    if (!validate || !taken.length) settle(taken, rejections)
-    else
+    if (!validate || !checked.length) land(checked, rejections)
+    else {
+      // The rules' rejections show while the rest are checked.
+      report(rejections)
       Promise.all(
-        taken.map((file) =>
+        checked.map((file) =>
           Promise.resolve()
             .then(() => validate(file))
             .catch(() => `${file.name} couldn't be checked. Try another file.`)
         )
       ).then((messages) => {
-        if (pick !== picks.current) return
-        settle(
-          taken.filter((_, index) => !messages[index]),
-          [
-            ...rejections,
-            ...taken.flatMap((file, index) => {
-              const message = messages[index]
-              return message
-                ? [{ file, code: 'invalid' as const, message }]
-                : []
-            })
-          ]
+        if (at !== epoch.current) return
+        land(
+          checked.filter((_, index) => !messages[index]),
+          checked.flatMap((file, index) => {
+            const message = messages[index]
+            return message ? [{ file, code: 'invalid' as const, message }] : []
+          }),
+          rejections.length > 0
         )
       })
+    }
     // The input shows only the value; an accepted pick reaches it on re-render.
     syncInput()
   }
 
-  function commit(next: File[], keepError = false) {
-    // A check still running loses to any change since its pick.
-    picks.current++
+  function update(next: File[], keepError = false) {
+    latest.current = next
     if (!keepError) setError(null)
     setUncontrolled(next)
     onValueChange?.(next)
+  }
+
+  function commit(next: File[], keepError = false) {
+    epoch.current++
+    update(next, keepError)
   }
 
   const isDisabled = Boolean(disabled || field.disabled)

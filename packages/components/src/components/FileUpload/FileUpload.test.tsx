@@ -92,6 +92,73 @@ describe('FileUpload', () => {
     ])
   })
 
+  it('adds both of two quick picks once their checks land', async () => {
+    const onValueChange = vi.fn()
+    const passes: ((message: null) => void)[] = []
+    const march = csv('march.csv')
+    const april = csv('april.csv')
+    const { container } = render(
+      <FileUpload
+        maxFiles={3}
+        validate={() => new Promise<null>((resolve) => passes.push(resolve))}
+        onValueChange={onValueChange}
+      >
+        <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+      </FileUpload>
+    )
+    await userEvent.upload(fileInput(container), march)
+    await userEvent.upload(fileInput(container), april)
+    await act(async () => passes[1]!(null))
+    await act(async () => passes[0]!(null))
+    expect(onValueChange).toHaveBeenLastCalledWith([april, march])
+  })
+
+  it("doesn't count a file validate turns away against maxFiles", async () => {
+    const onValueChange = vi.fn()
+    const bad = csv('bad.csv')
+    const good = csv('good.csv')
+    const { container } = render(
+      <FileUpload
+        maxFiles={2}
+        defaultValue={[csv('march.csv')]}
+        validate={async (file) => (file === bad ? 'bad.csv is empty.' : null)}
+        onValueChange={onValueChange}
+      >
+        <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+      </FileUpload>
+    )
+    await userEvent.upload(fileInput(container), [bad, good])
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenCalledWith([expect.anything(), good])
+    )
+  })
+
+  it('shows a rule rejection at once, and keeps it when the rest land', async () => {
+    let pass: (message: null) => void = () => {}
+    const { container } = render(
+      <Field>
+        <Field.Label>Payments</Field.Label>
+        <FileUpload
+          maxFiles={3}
+          maxFileSize={5}
+          validate={() => new Promise<null>((resolve) => (pass = resolve))}
+        >
+          <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+        </FileUpload>
+        <Field.ErrorText />
+      </Field>
+    )
+    await userEvent.upload(fileInput(container), [
+      csv('big.csv', 10),
+      csv('small.csv', 1)
+    ])
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'big.csv is over'
+    )
+    await act(async () => pass(null))
+    expect(screen.getByRole('alert')).toHaveTextContent('big.csv is over')
+  })
+
   it("doesn't run validate on a file another rule turns away", async () => {
     const validate = vi.fn(() => null)
     const { container } = render(
