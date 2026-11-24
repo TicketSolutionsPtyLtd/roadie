@@ -14,6 +14,8 @@ export type FileUploadContextValue = {
   maxFiles: number
   /** Each file's upload, once `onUpload` has queued it. */
   uploads: ReadonlyMap<File, FileUploadUpload>
+  /** Queues a failed upload again. */
+  retry: (file: File) => void
   inputId: string
   valueId: string
   triggerRef: RefObject<HTMLElement | null>
@@ -47,6 +49,8 @@ export type FileUploadUpload = {
   progress: number
   /** What `onUpload` resolved, once it's done. */
   result?: unknown
+  /** What `onUpload` rejected with, once it has failed. */
+  error?: unknown
 }
 
 /**

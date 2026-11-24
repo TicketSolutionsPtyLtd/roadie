@@ -21,6 +21,7 @@ import {
   FileUploadItem,
   FileUploadItemName,
   FileUploadItemRemove,
+  FileUploadItemRetry,
   FileUploadItemSize,
   FileUploadItemStatus
 } from './FileUploadItem'
@@ -39,15 +40,22 @@ const idFor = (file: File) => {
   return id
 }
 
-const defaultItem = () => (
+const defaultItem = ({ status }: Item) => (
   <FileUploadItem>
     <FileUploadItemPreview>
       <FileUploadItemStatus />
     </FileUploadItemPreview>
     <span className='grid min-w-0 flex-1'>
       <FileUploadItemName />
-      <FileUploadItemSize />
+      {status === 'error' ? (
+        <span className='text-sm text-subtle'>
+          This file couldn't upload. Try again.
+        </span>
+      ) : (
+        <FileUploadItemSize />
+      )}
     </span>
+    <FileUploadItemRetry />
     <FileUploadItemRemove />
   </FileUploadItem>
 )

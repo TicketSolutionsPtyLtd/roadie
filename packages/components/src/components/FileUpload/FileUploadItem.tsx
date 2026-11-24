@@ -10,11 +10,16 @@ import {
   useState
 } from 'react'
 
-import { CheckIcon, XIcon } from '@phosphor-icons/react'
+import { ArrowClockwiseIcon, CheckIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { IconButton, type IconButtonProps } from '../Button'
+import {
+  Button,
+  type ButtonProps,
+  IconButton,
+  type IconButtonProps
+} from '../Button'
 import { SortableRootContext } from '../Sortable/SortableContext'
 import { useFileUploadContext, useFileUploadItem } from './FileUploadContext'
 import { formatFileSize } from './checkFile'
@@ -79,6 +84,8 @@ export function FileUploadItem({
       <div
         className={cn(
           'relative flex h-full origin-top animate-pop-in items-center gap-3 rounded-xl emphasis-normal p-2',
+          // No shake: a failed upload isn't the person's mistake.
+          status === 'error' && 'intent-danger',
           className
         )}
         style={{
@@ -216,12 +223,63 @@ export function FileUploadItemStatus({
 
 FileUploadItemStatus.displayName = 'FileUpload.ItemStatus'
 
+export type FileUploadItemRetryProps = Omit<
+  ButtonProps,
+  'href' | 'external' | 'target' | 'rel' | 'download'
+>
+
+/**
+ * Uploads a failed file again, without picking it again. It shows only once
+ * the upload has failed, and focus moves to the row's Cancel, or the
+ * Dropzone or Trigger in a row without one.
+ */
+export function FileUploadItemRetry({
+  onClick,
+  children,
+  ...props
+}: FileUploadItemRetryProps) {
+  const { retry, disabled, triggerRef } = useFileUploadContext(
+    'FileUpload.ItemRetry'
+  )
+  const { item } = useFileUploadItem('FileUpload.ItemRetry')
+  if (item.status !== 'error') return null
+  return (
+    <Button
+      data-slot='file-upload-item-retry'
+      size='sm'
+      emphasis='subtle'
+      aria-label={`Retry ${item.file.name}`}
+      disabled={disabled}
+      onClick={(event) => {
+        onClick?.(event)
+        if (event.defaultPrevented) return
+        const remove = event.currentTarget
+          .closest('[data-slot=file-upload-item]')
+          ?.querySelector<HTMLElement>('[data-slot=file-upload-item-remove]')
+        retry(item.file)
+        ;(remove ?? triggerRef.current)?.focus({ preventScroll: true })
+      }}
+      {...props}
+    >
+      {children ?? (
+        <>
+          <ArrowClockwiseIcon weight='bold' className='size-4' />
+          Retry
+        </>
+      )}
+    </Button>
+  )
+}
+
+FileUploadItemRetry.displayName = 'FileUpload.ItemRetry'
+
 export type FileUploadItemRemoveProps = Omit<IconButtonProps, 'aria-label'> & {
   'aria-label'?: string
 }
 
 /**
- * Takes the file out of the value. Focus moves to the next row's Remove, the
+ * Takes the file out of the value, and reads Cancel while it waits or
+ * uploads, which aborts the upload. Focus moves to the next row's Remove, the
  * previous row's when it was the last, or the Dropzone or Trigger.
  */
 export function FileUploadItemRemove({
@@ -238,7 +296,7 @@ export function FileUploadItemRemove({
       data-slot='file-upload-item-remove'
       size='sm'
       emphasis='subtler'
-      aria-label={`Remove ${item.file.name}`}
+      aria-label={`${item.status === 'queued' || item.status === 'uploading' ? 'Cancel' : 'Remove'} ${item.file.name}`}
       disabled={disabled}
       onClick={(event) => {
         onClick?.(event)
