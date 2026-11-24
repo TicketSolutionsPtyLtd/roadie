@@ -46,10 +46,10 @@ export function RecordsHeader<Row extends object>({
   viewActions,
   className
 }: RecordsHeaderProps<Row>) {
-  const { toolbar, setToolbar } = useRecordsContext()
+  const { toolbar, setToolbar, scope } = useRecordsContext()
   const leaveSelect = useLeaveSelectOnEscape()
   const ref = useRef<HTMLDivElement>(null)
-  const top = useStickyTop(ref, null)
+  const top = useStickyTop(ref, null, scope)
   useSurface(ref)
   const narrow = useNarrow(ref)
   const [searchFocused, setSearchFocused] = useState(false)
@@ -69,7 +69,7 @@ export function RecordsHeader<Row extends object>({
     const element = ref.current
     if (toolbar === null && element) setToolbar((held) => held ?? element)
   }, [toolbar, setToolbar])
-  usePublishToolbarHeight(ref, toolbar)
+  usePublishToolbarHeight(ref, toolbar, scope)
 
   return (
     <div

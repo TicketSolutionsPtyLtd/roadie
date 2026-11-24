@@ -119,10 +119,6 @@ async function offsetsAt(spacer: number) {
 
 const SPACERS = [48, 96, 160]
 
-// The offsets as numbers, to compare a run before a change with one after.
-const log = (width: number, shape: Shape, spacer: number, at: object) =>
-  console.info(JSON.stringify({ width, shape, spacer, ...at }))
-
 describe.each([390, 1280])('Sticky offsets at %ipx', (width) => {
   it(
     'sticks the content under the pane header and the whole toolbar',
@@ -136,7 +132,6 @@ describe.each([390, 1280])('Sticky offsets at %ipx', (width) => {
         await expect
           .poll(() => offsetsAt(spacer).then(({ content }) => content))
           .toBe(paneHeader + at.toolbar)
-        log(width, 'pane', spacer, await offsetsAt(spacer))
       }
     }
   )
@@ -149,7 +144,6 @@ describe.each([390, 1280])('Sticky offsets at %ipx', (width) => {
       await expect
         .poll(() => offsetsAt(spacer).then(({ content }) => content))
         .toBe(at.toolbar)
-      log(width, 'page', spacer, await offsetsAt(spacer))
     }
   })
 
@@ -161,8 +155,81 @@ describe.each([390, 1280])('Sticky offsets at %ipx', (width) => {
       for (const spacer of SPACERS) {
         const at = await offsetsAt(spacer)
         expect(at.content).toBe(0)
-        log(width, 'box', spacer, at)
       }
+    }
+  )
+})
+
+function TwoInOnePane({ both }: { both: boolean }) {
+  const records = useRecords({
+    data: testShows(80),
+    fields: showFields,
+    getRowId: (row) => row.id
+  })
+  const set = (name: string) => (
+    <Records.Provider records={records} layouts={layouts} caption={name}>
+      <div data-testid={name}>
+        <Records.Header>
+          <Records.Search className='min-w-40 grow basis-0' />
+          <div data-slot='test-spacer' className='w-px' />
+        </Records.Header>
+        <Records.Content />
+      </div>
+    </Records.Provider>
+  )
+  return (
+    <Pane className='h-full'>
+      <Pane.Header>
+        <Pane.Title>Shows</Pane.Title>
+      </Pane.Header>
+      <Pane.Body>
+        {set('first')}
+        {both && set('second')}
+      </Pane.Body>
+    </Pane>
+  )
+}
+
+describe('Two sets of records in one pane', () => {
+  const within = (name: string, part: string) =>
+    document.querySelector<HTMLElement>(
+      `[data-testid="${name}"] [data-slot="${part}"]`
+    )!
+  const contentTop = (name: string) => top(within(name, 'record-table-head'))
+  const toolbarOf = (name: string) =>
+    within(name, 'records-header').offsetHeight
+
+  it(
+    'keeps each content under its own toolbar, and one’s leaving clears nothing of the other’s',
+    TIMEOUT,
+    async () => {
+      await page.viewport(1280, 800)
+      const view = render(
+        <div style={{ height: 640, width: 1280, display: 'grid' }}>
+          <TwoInOnePane both />
+        </div>
+      )
+      await expect.poll(() => slot('pane-header')).not.toBeNull()
+      within('first', 'test-spacer').style.height = '60px'
+      within('second', 'test-spacer').style.height = '160px'
+      await expect.poll(() => toolbarOf('second')).toBeGreaterThan(160)
+      const paneHeader = top(within('first', 'records-header'))
+      await expect
+        .poll(() => contentTop('first'))
+        .toBe(paneHeader + toolbarOf('first'))
+      await expect
+        .poll(() => contentTop('second'))
+        .toBe(paneHeader + toolbarOf('second'))
+      view.rerender(
+        <div style={{ height: 640, width: 1280, display: 'grid' }}>
+          <TwoInOnePane both={false} />
+        </div>
+      )
+      await expect
+        .poll(() => document.querySelector('[data-testid="second"]'))
+        .toBeNull()
+      await nudgeFrames()
+      expect(contentTop('first')).toBe(paneHeader + toolbarOf('first'))
     }
   )
 })
@@ -177,7 +244,6 @@ describe('A toolbar resize', () => {
       probeRenders = 0
       await offsetsAt(96)
       await offsetsAt(160)
-      console.info(`Records renders on two toolbar resizes: ${probeRenders}`)
       expect(probeRenders).toBe(0)
     }
   )

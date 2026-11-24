@@ -20,7 +20,7 @@ export type RecordsContextValue = {
   layouts: readonly AnyRecordLayout[]
   /** Accessible name for the records, such as the table's. */
   caption?: string
-  /** The mounted toolbar, so Content's header sticks under it. Its height is CSS, `--records-toolbar-height`, so a resize renders nothing. */
+  /** The mounted toolbar, so Content's header sticks under it. Its height is a custom property named by `scope`, so a resize renders nothing. */
   toolbar: HTMLElement | null
   setToolbar: Dispatch<SetStateAction<HTMLElement | null>>
   /** Whether Content fills its parent's height. */
