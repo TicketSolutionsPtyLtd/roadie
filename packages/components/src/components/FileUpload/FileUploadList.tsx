@@ -10,6 +10,8 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { SortableRootContext } from '../Sortable/SortableContext'
+import { SortableRoot } from '../Sortable/SortableRoot'
 import {
   FileUploadItemContext,
   type FileUploadItem as Item,
@@ -59,15 +61,18 @@ const defaultItem = ({ status }: Item) => (
 )
 
 /**
- * The chosen files, one row each, called with each file and its upload. A removed row stays until it has
- * collapsed, so the rows under it slide up rather than jump.
+ * The chosen files, one row each, called with each file and its upload. A
+ * removed row stays until it has collapsed, so the rows under it slide up
+ * rather than jump. When the field takes more than one file, each
+ * `FileUpload.Item` leads with a handle that drags it, or opens a Move menu.
  */
 export function FileUploadList({
   children = defaultItem,
   className,
   ...props
 }: FileUploadListProps) {
-  const { files, uploads } = useFileUploadContext('FileUpload.List')
+  const { files, uploads, maxFiles, reorder, labelId } =
+    useFileUploadContext('FileUpload.List')
   const [previous, setPrevious] = useState(files)
   // The files that arrived together, so each pops in after the one before.
   const [added, setAdded] = useState(files)
@@ -97,9 +102,10 @@ export function FileUploadList({
     rows.splice(Math.min(index, rows.length), 0, { file, leaving: true })
 
   if (!rows.length) return null
-  return (
+  const list = (
     <ul
       data-slot='file-upload-list'
+      aria-labelledby={labelId}
       className={cn('grid w-full justify-self-stretch', className)}
       {...props}
     >
@@ -128,6 +134,27 @@ export function FileUploadList({
         )
       })}
     </ul>
+  )
+  // Cleared, so a Sortable around the field doesn't make its rows its own.
+  if (maxFiles < 2)
+    return <SortableRootContext value={null}>{list}</SortableRootContext>
+  // Collapsing rows stay listed, disabled, so their element never remounts.
+  const ids = rows.map(({ file }) => idFor(file))
+  return (
+    <SortableRoot
+      items={ids}
+      label='files'
+      onReorder={(next) =>
+        reorder(
+          next.flatMap((id) => {
+            const file = files[files.map(idFor).indexOf(id)]
+            return file ? [file] : []
+          })
+        )
+      }
+    >
+      {list}
+    </SortableRoot>
   )
 }
 

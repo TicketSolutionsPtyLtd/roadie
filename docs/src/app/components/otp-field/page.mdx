@@ -117,6 +117,14 @@ Pass `OTPField.Input` and `OTPField.Separator` as children to lay the slots out 
 </Field>
 ```
 
+### Focus on arrival
+
+`autoFocus` focuses the first slot when the field mounts, for a screen whose one job is the code. With your own `OTPField.Input` children it still reaches the first one. The example here isn't live, since it would take focus from the page.
+
+```tsx
+<OTPField length={6} groupSize={3} aria-label='Login code' autoFocus />
+```
+
 ### Submit when complete
 
 `onValueComplete` fires once the last slot fills, whether the code was typed, pasted or autofilled. Use it to check the code straight away. `autoSubmit` submits the surrounding form instead.
@@ -183,6 +191,7 @@ render(<LoginCode />)
 - The root is a `group`. `Field.Label` names the group and the first slot, and the other slots are named by position, such as "Character 2 of 6". Outside `Field`, `aria-label` on the root does the same job.
 - Only the active slot is in the tab order, so Tab moves in and out of the whole code. Arrow Left and Arrow Right move one slot at a time, up to the first empty slot, and Backspace clears and steps back.
 - Each slot is a real `<input>`, so screen readers, password managers and SMS autofill see it. A hidden input carries the whole value for forms.
+- `autoFocus` moves focus on arrival, so use it only where the code is the screen's one task, such as after sending a code. Elsewhere it skips the reader past the page.
 - `Field.HelperText` or `Field.ErrorText` describes the group, and `invalid` sets `aria-invalid` on every slot.
 
 <PropsDefinitions component='OTPField' />

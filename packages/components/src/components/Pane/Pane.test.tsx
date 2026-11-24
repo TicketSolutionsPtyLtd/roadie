@@ -270,33 +270,22 @@ describe('Pane.Header', () => {
     )
   })
 
-  it('draws no header at all when it has no content of any kind', async () => {
-    await renderPane(
-      <Pane>
-        <Pane.Header />
-      </Pane>
-    )
-    expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
-  })
-
-  it('draws no header for a falsy conditional child', async () => {
-    const showAction = false
-    await renderPane(
-      <Pane>
-        <Pane.Header>{showAction && <Pane.Actions />}</Pane.Header>
-      </Pane>
-    )
-    expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
-  })
-
-  it('draws no header for an array of falsy and null children', async () => {
-    await renderPane(
-      <Pane>
-        <Pane.Header>{[false, null]}</Pane.Header>
-      </Pane>
-    )
-    expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
-  })
+  it.each([
+    ['nothing', <Pane.Header key='h' />],
+    ['a falsy conditional child', <Pane.Header key='h'>{false}</Pane.Header>],
+    [
+      'falsy and null children',
+      <Pane.Header key='h'>{[false, null]}</Pane.Header>
+    ]
+  ])(
+    'draws a header with %s in it, so the pane keeps its top',
+    async (_, header) => {
+      await renderPane(<Pane>{header}</Pane>)
+      expect(
+        document.querySelector('[data-slot="pane-header"]')
+      ).toBeInTheDocument()
+    }
+  )
 
   it('renders the header for a real child', async () => {
     await renderPane(
@@ -359,15 +348,15 @@ describe('Pane.Header', () => {
     expect(screen.queryByLabelText('Back')).toBeNull()
   })
 
-  it('takes the whole header with it when the back row is all there was', async () => {
+  it('keeps a Back-only header drawn as a title arrives', async () => {
     const { rerender } = await renderPane(
       <Pane>
         <Pane.Header backHref='/components' />
       </Pane>
     )
     const header = () => document.querySelector('[data-slot="pane-header"]')
-    expect(header()).toHaveClass('[display:var(--pane-back)]')
-    expect(header()).not.toHaveClass('grid')
+    const before = header()
+    expect(before).toBeInTheDocument()
 
     rerender(
       <Pane>
@@ -377,8 +366,8 @@ describe('Pane.Header', () => {
       </Pane>
     )
     await flush()
-    expect(header()).toHaveClass('grid')
-    expect(header()).not.toHaveClass('[display:var(--pane-back)]')
+    expect(header()).toBe(before)
+    expect(before).toHaveTextContent('Button')
   })
 })
 
@@ -622,7 +611,7 @@ describe('Pane.Header close affordance', () => {
     }
   })
 
-  it('leaves a header of only Back and Close to the edge property', async () => {
+  it('draws a header of only Back', async () => {
     render(
       <Navigator value='/a'>
         <Pane column='list'>List</Pane>
@@ -633,11 +622,10 @@ describe('Pane.Header close affordance', () => {
     )
     await flushViewportMeasurement()
     const header = document.querySelector('[data-slot="pane-header"]')
-    expect(header).toHaveClass('[display:var(--pane-edge)]')
-    expect(header).not.toHaveClass('grid')
+    expect(header).toContainElement(screen.getByLabelText('Back'))
   })
 
-  it('never offers Back or Close on an inspector, and draws no header for them alone', async () => {
+  it('never offers Back or Close on an inspector, and draws its header empty', async () => {
     render(
       <Navigator value='/a'>
         <Pane column='list'>List</Pane>
@@ -649,7 +637,9 @@ describe('Pane.Header close affordance', () => {
     await flushViewportMeasurement()
     expect(screen.queryByLabelText(/^Back/)).toBeNull()
     expect(screen.queryByLabelText('Close')).toBeNull()
-    expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
+    expect(
+      document.querySelector('[data-slot="pane-header"]')
+    ).toBeEmptyDOMElement()
   })
 
   it('still draws the header when Close is its only content', async () => {
@@ -662,10 +652,9 @@ describe('Pane.Header close affordance', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(document.querySelector('[data-slot="pane-header"]')).toHaveClass(
-      '[display:var(--pane-close)]'
-    )
-    expect(screen.getByLabelText('Close')).toBeInTheDocument()
+    expect(
+      document.querySelector('[data-slot="pane-header"]')
+    ).toContainElement(screen.getByLabelText('Close'))
   })
 })
 

@@ -75,6 +75,9 @@ Field wraps any form control, not just Input and Textarea. Use it with Select,
 RadioGroup, Combobox, and Autocomplete for consistent layout, labels, and error
 handling. Field provides `grid gap-1.5` spacing, label wiring, and
 `invalid`/`required`/`disabled` context that child controls inherit automatically.
+For an image that has to fit a slot, such as a 2:1 event image, use the
+[image field recipe](/components/file-upload#image-field): FileUpload, then
+ImageCrop in a Dialog, then the cropped file back in the field.
 
 ### Select in Field
 
