@@ -5,6 +5,7 @@ import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { useHeldOpen } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
+  isTyping,
   usePointerHighlight,
   useTypedQuery
 } from '../../utils/optionHighlight'
@@ -53,13 +54,11 @@ export function ComboboxRoot<
   items,
   ...props
 }: ComboboxRootProps<Value, Multiple, Item>) {
-  const [scrollToIndex, scrollToHighlight] = useVirtualListRoot(
-    props.virtualized
-  )
+  const [scrollToIndex, virtualList] = useVirtualListRoot(props.virtualized)
   const [byPointer, handleItemHighlighted] = usePointerHighlight<
     Parameters<NonNullable<typeof onItemHighlighted>>
   >((value, details) => {
-    scrollToHighlight(details)
+    virtualList.handleHighlight(details)
     onItemHighlighted?.(value, details)
   })
   const { typed, query, handleQueryChange, resetTyped } = useTypedQuery(
@@ -100,6 +99,12 @@ export function ComboboxRoot<
           items={rankedItems}
           onInputValueChange={(next, details) => {
             onInputValueChange?.(next, details)
+            if (
+              details.reason === 'input-change' &&
+              !details.isCanceled &&
+              isTyping(details.event)
+            )
+              virtualList.handleTyped()
             handleQueryChange(next, details)
           }}
           onValueChange={(next, details) => {

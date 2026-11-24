@@ -42,6 +42,16 @@ function Venues({ defaultValue }: { defaultValue?: string }) {
 }
 
 const options = () => screen.queryAllByRole('option')
+const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+
+/**
+ * Waits for `row` to scroll out of the window and unmount, or `list` to snap
+ * back to its top, then a few frames for the list to settle.
+ */
+async function settleOnceGone(row: HTMLElement, list: HTMLElement) {
+  await expect.poll(() => !row.isConnected || list.scrollTop < 1500).toBe(true)
+  for (let count = 0; count < 5; count++) await frame()
+}
 const active = () => {
   const id = screen.getByRole('combobox').getAttribute('aria-activedescendant')
   return id ? document.getElementById(id) : null
@@ -87,6 +97,33 @@ describe('Combobox virtualized', () => {
     expect(options().length).toBeLessThan(60)
   })
 
+  it('stays where it is scrolled with the pointer resting on a match', async () => {
+    render(<Venues />)
+    await userEvent.click(screen.getByRole('combobox'))
+    // Typing turns on highlighting the first match, which once snapped the list back.
+    await userEvent.keyboard('1')
+    await expect.poll(() => active()?.textContent).toBe(VENUES[0])
+    const popup = document.querySelector<HTMLElement>(
+      '[data-slot="combobox-popup"]'
+    )!
+    const scroller = [popup, ...popup.querySelectorAll<HTMLElement>('*')].find(
+      (element) => element.scrollHeight > element.clientHeight + 1
+    )!
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    scroller.scrollTop = 2000
+    await settleOnceGone(hovered, scroller)
+    // Measuring the rows drawn may nudge it, never back to the top.
+    expect(scroller.scrollTop).toBeGreaterThan(1500)
+    // Typing more still brings the first match into view.
+    await userEvent.keyboard('0')
+    await expect.poll(() => active()?.textContent).toBe(VENUES[9])
+    const row = active()!.getBoundingClientRect()
+    const box = scroller.getBoundingClientRect()
+    expect(row.top).toBeGreaterThanOrEqual(box.top - 1)
+    expect(row.bottom).toBeLessThanOrEqual(box.bottom + 1)
+  })
+
   it('picks a venue below the first window', async () => {
     render(<Venues />)
     const input = screen.getByRole<HTMLInputElement>('combobox')
@@ -96,6 +133,66 @@ describe('Combobox virtualized', () => {
     await expect.poll(() => active()?.textContent).toBe(LAST)
     await userEvent.keyboard('{Enter}')
     await expect.poll(() => input.value).toBe(LAST)
+  })
+
+  it('reopens on the chosen venue after the pointer left the list', async () => {
+    render(<Venues defaultValue={VENUES[1500]} />)
+    const trigger = document.querySelector<HTMLElement>(
+      '[data-slot="combobox-trigger"]'
+    )!
+    await userEvent.click(trigger)
+    await screen.findByRole('option', { name: VENUES[1500] })
+    await userEvent.hover(options()[0]!)
+    await userEvent.hover(screen.getByRole('combobox'))
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => options().length).toBe(0)
+    await userEvent.click(trigger)
+    const chosen = await screen.findByRole('option', { name: VENUES[1500] })
+    const popup = document.querySelector('[data-slot="combobox-popup"]')!
+    const row = chosen.getBoundingClientRect()
+    const box = popup.getBoundingClientRect()
+    expect(row.top).toBeGreaterThanOrEqual(box.top - 1)
+    expect(row.bottom).toBeLessThanOrEqual(box.bottom + 1)
+  })
+
+  // Untyped, nothing re-highlights after the pointer, so this guards against
+  // a hover alone scrolling the list.
+  it('stays where it is scrolled with the pointer resting on a venue', async () => {
+    render(<Venues />)
+    await userEvent.click(screen.getByRole('combobox'))
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    const popup = document.querySelector<HTMLElement>(
+      '[data-slot="combobox-popup"]'
+    )!
+    const scroller = [popup, ...popup.querySelectorAll<HTMLElement>('*')].find(
+      (element) => element.scrollHeight > element.clientHeight + 1
+    )!
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    scroller.scrollTop = 2000
+    await settleOnceGone(hovered, scroller)
+    expect(scroller.scrollTop).toBeGreaterThan(1500)
+  })
+
+  it('stays where it is scrolled after a second keystroke keeps the first match', async () => {
+    render(<Venues />)
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.keyboard('K')
+    await expect.poll(() => active()?.textContent).toBe(VENUES[0])
+    // The first match doesn't change, so no new highlight follows the keystroke.
+    await userEvent.keyboard('a')
+    await expect.poll(() => active()?.textContent).toBe(VENUES[0])
+    const popup = document.querySelector<HTMLElement>(
+      '[data-slot="combobox-popup"]'
+    )!
+    const scroller = [popup, ...popup.querySelectorAll<HTMLElement>('*')].find(
+      (element) => element.scrollHeight > element.clientHeight + 1
+    )!
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    scroller.scrollTop = 2000
+    await settleOnceGone(hovered, scroller)
+    expect(scroller.scrollTop).toBeGreaterThan(1500)
   })
 
   it('opens on the chosen venue when it sits below the first window', async () => {

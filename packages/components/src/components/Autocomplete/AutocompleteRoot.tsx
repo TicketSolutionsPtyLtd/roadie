@@ -7,6 +7,7 @@ import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomple
 import { useHeldOpen } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
+  isTyping,
   usePointerHighlight,
   useTypedQuery
 } from '../../utils/optionHighlight'
@@ -43,13 +44,11 @@ export function AutocompleteRoot({
   items,
   ...props
 }: AutocompleteRootProps) {
-  const [scrollToIndex, scrollToHighlight] = useVirtualListRoot(
-    props.virtualized
-  )
+  const [scrollToIndex, virtualList] = useVirtualListRoot(props.virtualized)
   const [byPointer, handleItemHighlighted] = usePointerHighlight<
     Parameters<NonNullable<typeof onItemHighlighted>>
   >((value, details) => {
-    scrollToHighlight(details)
+    virtualList.handleHighlight(details)
     onItemHighlighted?.(value, details)
   })
   const { typed, handleQueryChange, resetTyped } = useTypedQuery(props.open)
@@ -85,9 +84,11 @@ export function AutocompleteRoot({
         onValueChange={(next, details) => {
           onValueChange?.(next, details)
           setTextState(next)
-          if (details.reason === 'input-change')
+          if (details.reason === 'input-change') {
+            if (!details.isCanceled && isTyping(details.event))
+              virtualList.handleTyped()
             handleQueryChange(next, details)
-          else resetTyped(details)
+          } else resetTyped(details)
         }}
         {...props}
         children={

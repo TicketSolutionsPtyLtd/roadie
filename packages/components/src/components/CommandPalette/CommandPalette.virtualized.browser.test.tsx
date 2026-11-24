@@ -85,6 +85,40 @@ function GroupedVenues({
   )
 }
 
+function ScopedVenues() {
+  return (
+    <CommandPalette
+      defaultOpen
+      shortcut={false}
+      items={GROUPS.map((group) => ({ ...group, scope: group.label }))}
+      virtualized
+    >
+      <CommandPalette.Input placeholder='Search venues' />
+      <CommandPalette.Scopes>
+        {GROUPS.map((group) => (
+          <CommandPalette.Scope key={group.label} value={group.label}>
+            {group.label}
+          </CommandPalette.Scope>
+        ))}
+      </CommandPalette.Scopes>
+      <CommandPalette.List>
+        {(group: (typeof GROUPS)[number]) => (
+          <CommandPalette.Group key={group.label} items={group.items}>
+            <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+            <CommandPalette.Collection>
+              {(venue: string) => (
+                <CommandPalette.Item key={venue} value={venue}>
+                  {venue}
+                </CommandPalette.Item>
+              )}
+            </CommandPalette.Collection>
+          </CommandPalette.Group>
+        )}
+      </CommandPalette.List>
+    </CommandPalette>
+  )
+}
+
 const labels = () =>
   Array.from(
     document.querySelectorAll<HTMLElement>(
@@ -100,12 +134,27 @@ const scrollportTop = () => {
 
 const options = () => screen.queryAllByRole('option')
 
+/** Whether the highlighted command is drawn inside the list's scrollport. */
+const highlightedInView = () => {
+  const row = document.querySelector('[role="option"][data-highlighted]')
+  if (!row) return false
+  const list = screen.getByRole('listbox').getBoundingClientRect()
+  const { top, bottom } = row.getBoundingClientRect()
+  return top >= list.top && bottom <= list.bottom
+}
+
 const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 
 /**
- * Moves the pointer onto the search field. A pointer an earlier test left
- * resting on the list snaps it back to the top as it scrolls (INNO-1641).
+ * Waits for `row` to scroll out of the window and unmount, or `list` to snap
+ * back to its top, then a few frames for the list to settle.
  */
+async function settleOnceGone(row: HTMLElement, list: HTMLElement) {
+  await expect.poll(() => !row.isConnected || list.scrollTop < 1500).toBe(true)
+  for (let count = 0; count < 5; count++) await frame()
+}
+
+/** Moves the pointer onto the search field, so a test's scroll isn't a pointer's. */
 const pointerOffList = () => userEvent.hover(screen.getByRole('combobox'))
 
 /** Scrolls `list` until `VENUES[index]` is drawn, stepping since rows below are estimated until then. */
@@ -161,6 +210,26 @@ describe('CommandPalette virtualized', () => {
       .poll(() => options()[0]?.getAttribute('aria-setsize'))
       .toBe('1')
     expect(options()[0]).toHaveTextContent(VENUES[1500]!)
+  })
+
+  it('stays where it is scrolled with the pointer resting on a command', async () => {
+    render(<Venues />)
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    const list = screen.getByRole('listbox')
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    list.scrollTop = 2000
+    await settleOnceGone(hovered, list)
+    // Measuring the rows drawn may nudge it, never back to the top.
+    expect(list.scrollTop).toBeGreaterThan(1500)
+    expect(options()[0]).not.toHaveAttribute('aria-posinset', '1')
+    // Nor when the pointer leaves.
+    await pointerOffList()
+    for (let count = 0; count < 5; count++) await frame()
+    expect(list.scrollTop).toBeGreaterThan(1500)
+    // Typing still brings the first match into view.
+    await userEvent.keyboard('1')
+    await expect.poll(highlightedInView).toBe(true)
   })
 
   it('runs the last command, reached with the arrow keys', async () => {
@@ -295,9 +364,46 @@ describe('CommandPalette virtualized', () => {
       )
       .toBe(VENUES[4])
   })
+  it('shows the first match of a scope picked after the pointer rested on a command', async () => {
+    render(<ScopedVenues />)
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    const list = screen.getByRole('listbox')
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    list.scrollTop = 2000
+    await settleOnceGone(hovered, list)
+    await userEvent.click(screen.getByRole('button', { name: 'Rooms' }))
+    await expect
+      .poll(
+        () =>
+          document.querySelector('[role="option"][data-highlighted]')
+            ?.textContent
+      )
+      .toBe(VENUES[700])
+    await expect.poll(highlightedInView).toBe(true)
+  })
 })
 
 describe('CommandPalette virtualized, with groups', () => {
+  it('stays where it is scrolled with the pointer resting on a command', async () => {
+    render(<GroupedVenues />)
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    const list = screen.getByRole('listbox')
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    list.scrollTop = 2000
+    await settleOnceGone(hovered, list)
+    // Measuring the rows drawn may nudge it, never back to the top.
+    expect(list.scrollTop).toBeGreaterThan(1500)
+    expect(options()[0]).not.toHaveAttribute('aria-posinset', '1')
+    // Nor when the pointer leaves.
+    await pointerOffList()
+    for (let count = 0; count < 5; count++) await frame()
+    expect(list.scrollTop).toBeGreaterThan(1500)
+    // Typing still brings the first match into view.
+    await userEvent.keyboard('1')
+    await expect.poll(highlightedInView).toBe(true)
+  })
   it('windows grouped commands, each counted within its group', async () => {
     render(<GroupedVenues />)
     await expect.poll(() => options().length).toBeGreaterThan(0)

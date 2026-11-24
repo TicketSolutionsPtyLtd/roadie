@@ -51,14 +51,47 @@ const FilteredRows = lazy(loadRows)
 
 export function useVirtualListRoot(virtualized: boolean | undefined) {
   const scrollToIndex = useRef<ScrollToIndex | null>(null)
+  // Base UI clears a pointer's highlight when its row scrolls out of the
+  // window and unmounts, or the pointer leaves, then in the same task
+  // highlights the first row again with no reason. Following that would snap
+  // the list back to its top as someone scrolls it, so a highlight just after
+  // a pointer clears one is let be, unless it's the keyboard's. The hold lasts
+  // two frames at most, a margin, so it can't outlast the pointer.
+  const held = useRef(false)
+  const holds = useRef(0)
   useEffect(() => {
     if (virtualized) void loadRows()
   }, [virtualized])
   function handleHighlight(details: { reason: string; index: number }) {
-    if (virtualized && details.reason !== 'pointer' && details.index >= 0)
+    if (details.reason === 'pointer') {
+      if (details.index < 0) holdAfterClear()
+      return
+    }
+    const skip = held.current && details.reason !== 'keyboard'
+    held.current = false
+    if (virtualized && !skip && details.index >= 0)
       scrollToIndex.current?.(details.index)
   }
-  return [virtualized ? scrollToIndex : null, handleHighlight] as const
+  function holdAfterClear() {
+    const hold = (holds.current += 1)
+    held.current = true
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (holds.current === hold) held.current = false
+      })
+    )
+  }
+  /**
+   * Call on a typed query. Base UI returns a list it doesn't window to its
+   * top, where the first match is, but leaves a windowed one where it was.
+   */
+  function handleTyped() {
+    if (virtualized) scrollToIndex.current?.(0)
+  }
+  return [
+    virtualized ? scrollToIndex : null,
+    { handleHighlight, handleTyped }
+  ] as const
 }
 
 /**
