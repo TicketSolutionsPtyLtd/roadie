@@ -74,6 +74,8 @@ pnpm --filter @oztix/roadie-illustrations size
 
 `size` measures `dist`, so build first. Commit `drawings/<name>.ts`,
 `src/spot/svgs/<name>.svg`, its line in `src/spot/tags.json`, and the generated `src/spot/illustrations/` and
-`src/spot/index.ts` together. If the "Every spot illustration" budget in
-`.size-limit.json` fails, raise it to about 10% over.
+`src/spot/index.ts` together. If `size` fails on `./spot`, which grows with
+every illustration, run `pnpm --filter @oztix/roadie-illustrations size:update`
+and commit `size-budget.json`. Blocks bundles every illustration, so build it
+and do the same there if its `size` fails.
 Put the preview sheet in the PR as its evidence.

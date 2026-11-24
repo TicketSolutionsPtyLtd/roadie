@@ -76,8 +76,9 @@
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "size": "size-limit",
-    "size:check": "size-limit --limit"
+    "size": "node ../../scripts/size-budget.mjs --check",
+    "size:check": "node ../../scripts/size-budget.mjs --check",
+    "size:update": "node ../../scripts/size-budget.mjs --update"
   },
   "dependencies": {
     "@oztix/roadie-core": "workspace:*",
@@ -139,7 +140,6 @@
     "@oztix/roadie-core": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@phosphor-icons/vue": "2.2.1",
-    "@size-limit/preset-small-lib": "14.3.0",
     "@tanstack/react-query": "5.106.1",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
@@ -156,7 +156,6 @@
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-focus-lock": "2.13.7",
-    "size-limit": "14.3.0",
     "tsdown": "0.23.7",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.8",
@@ -164,42 +163,6 @@
     "vue": "3.5.45",
     "vue-tsc": "3.3.14"
   },
-  "size-limit": [
-    {
-      "name": "cart-drawer/core",
-      "path": "dist/cart-drawer/core/index.js",
-      "limit": "2.3 KB",
-      "ignore": [
-        "@oztix/roadie-core"
-      ]
-    },
-    {
-      "name": "cart-drawer/react",
-      "path": "dist/cart-drawer/react/index.js",
-      "limit": "9.5 KB",
-      "ignore": [
-        "react",
-        "react-dom",
-        "@oztix/roadie-core",
-        "@oztix/roadie-components",
-        "@tanstack/react-query",
-        "motion",
-        "@number-flow/react",
-        "react-focus-lock"
-      ]
-    },
-    {
-      "name": "cart-drawer/vue",
-      "path": "dist/cart-drawer/vue/index.js",
-      "limit": "15.3 KB",
-      "ignore": [
-        "vue",
-        "focus-trap",
-        "@number-flow/vue",
-        "@phosphor-icons/vue"
-      ]
-    }
-  ],
   "turbo": {
     "build": {
       "dependsOn": [
