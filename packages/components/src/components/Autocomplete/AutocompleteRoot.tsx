@@ -43,7 +43,7 @@ export function AutocompleteRoot({
   items,
   ...props
 }: AutocompleteRootProps) {
-  const [scrollToIndex, scrollToHighlight] = useVirtualListRoot(
+  const [scrollToIndex, scrollToHighlight, followTyped] = useVirtualListRoot(
     props.virtualized
   )
   const [byPointer, handleItemHighlighted] = usePointerHighlight<
@@ -85,9 +85,10 @@ export function AutocompleteRoot({
         onValueChange={(next, details) => {
           onValueChange?.(next, details)
           setTextState(next)
-          if (details.reason === 'input-change')
+          if (details.reason === 'input-change') {
+            followTyped()
             handleQueryChange(next, details)
-          else resetTyped(details)
+          } else resetTyped(details)
         }}
         {...props}
         children={

@@ -53,7 +53,7 @@ export function ComboboxRoot<
   items,
   ...props
 }: ComboboxRootProps<Value, Multiple, Item>) {
-  const [scrollToIndex, scrollToHighlight] = useVirtualListRoot(
+  const [scrollToIndex, scrollToHighlight, followTyped] = useVirtualListRoot(
     props.virtualized
   )
   const [byPointer, handleItemHighlighted] = usePointerHighlight<
@@ -100,6 +100,7 @@ export function ComboboxRoot<
           items={rankedItems}
           onInputValueChange={(next, details) => {
             onInputValueChange?.(next, details)
+            if (details.reason === 'input-change') followTyped()
             handleQueryChange(next, details)
           }}
           onValueChange={(next, details) => {
