@@ -40,6 +40,30 @@ const idFor = (file: File) => {
   return id
 }
 
+type Leaving = {
+  file: File
+  /** The row it sat under, or null when it was first. */
+  after: File | null
+  /** Its place when it left, in case the row above has gone too. */
+  index: number
+}
+
+/** The files' rows, with each collapsing row back under the row it left from. */
+function layRows(files: File[], leaving: Leaving[]) {
+  const rows = files.map((file) => ({ file, leaving: false }))
+  for (const { file, after, index } of leaving) {
+    const above = rows.findIndex((row) => row.file === after)
+    const at =
+      after === null
+        ? 0
+        : above === -1
+          ? Math.min(index, rows.length)
+          : above + 1
+    rows.splice(at, 0, { file, leaving: true })
+  }
+  return rows
+}
+
 const defaultItem = ({ status }: Item) => (
   <FileUploadItem>
     <FileUploadItemPreview>
@@ -76,14 +100,19 @@ export function FileUploadList({
   const [previous, setPrevious] = useState(files)
   // The files that arrived together, so each pops in after the one before.
   const [added, setAdded] = useState(files)
-  const [leaving, setLeaving] = useState<{ file: File; index: number }[]>([])
+  const [leaving, setLeaving] = useState<Leaving[]>([])
   if (previous !== files) {
     setPrevious(files)
     setAdded(files.filter((file) => !previous.includes(file)))
-    setLeaving((rows) => [
-      ...rows.filter(({ file }) => !files.includes(file)),
-      ...previous.flatMap((file, index) =>
-        files.includes(file) ? [] : [{ file, index }]
+    // Each removed row remembers the row it sat under, so it stays there
+    // through a reorder.
+    const shown = layRows(previous, leaving)
+    setLeaving([
+      ...leaving.filter(({ file }) => !files.includes(file)),
+      ...shown.flatMap((row, index) =>
+        row.leaving || files.includes(row.file)
+          ? []
+          : [{ file: row.file, after: shown[index - 1]?.file ?? null, index }]
       )
     ])
   }
@@ -97,9 +126,7 @@ export function FileUploadList({
       )
   }, [leaving])
 
-  const rows = files.map((file) => ({ file, leaving: false }))
-  for (const { file, index } of leaving)
-    rows.splice(Math.min(index, rows.length), 0, { file, leaving: true })
+  const rows = layRows(files, leaving)
 
   if (!rows.length) return null
   const list = (
@@ -138,11 +165,12 @@ export function FileUploadList({
   // Cleared, so a Sortable around the field doesn't make its rows its own.
   if (maxFiles < 2)
     return <SortableRootContext value={null}>{list}</SortableRootContext>
-  // Collapsing rows stay listed, disabled, so their element never remounts.
-  const ids = rows.map(({ file }) => idFor(file))
+  // Collapsing rows stay Sortable items, disabled, so their element never
+  // remounts, but they're left out of `items`, so the Move menu doesn't
+  // count them.
   return (
     <SortableRoot
-      items={ids}
+      items={files.map(idFor)}
       label='files'
       onReorder={(next) =>
         reorder(

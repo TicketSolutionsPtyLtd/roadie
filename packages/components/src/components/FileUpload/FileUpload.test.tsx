@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { FileUpload } from '.'
 import { Field } from '../Field'
@@ -111,6 +111,53 @@ describe('FileUpload', () => {
     await act(async () => passes[1]!(null))
     await act(async () => passes[0]!(null))
     expect(onValueChange).toHaveBeenLastCalledWith([april, march])
+  })
+
+  it('shows the files validate is still checking', async () => {
+    const passes: ((message: null) => void)[] = []
+    const { container } = render(
+      <FileUpload
+        maxFiles={3}
+        validate={() => new Promise<null>((resolve) => passes.push(resolve))}
+      >
+        <FileUpload.Dropzone />
+        <FileUpload.Trigger />
+      </FileUpload>
+    )
+    const zone = screen.getByRole('button', { name: /^Drop files/ })
+    const trigger = screen.getByRole('button', { name: 'Choose files' })
+    await userEvent.upload(fileInput(container), csv('march.csv'))
+    expect(zone).toHaveAttribute('aria-busy', 'true')
+    expect(trigger).toHaveAttribute('aria-busy', 'true')
+    expect(zone).toHaveTextContent('Checking march.csv…')
+    expect(screen.getByRole('status')).toHaveTextContent('Checking march.csv.')
+    expect(container.firstElementChild).toHaveAttribute('data-checking')
+
+    await userEvent.upload(fileInput(container), [
+      csv('april.csv'),
+      csv('may.csv')
+    ])
+    expect(zone).toHaveTextContent('Checking 3 files…')
+    await act(async () => passes.forEach((pass) => pass(null)))
+    expect(zone).not.toHaveAttribute('aria-busy')
+    expect(trigger).not.toHaveAttribute('aria-busy')
+    expect(zone).not.toHaveTextContent('Checking')
+    expect(container.firstElementChild).not.toHaveAttribute('data-checking')
+  })
+
+  it('stops showing a check that a Clear made stale', async () => {
+    const { container } = render(
+      <FileUpload
+        defaultValue={[csv('march.csv')]}
+        validate={() => new Promise<null>(() => {})}
+      >
+        {bar()}
+      </FileUpload>
+    )
+    await userEvent.upload(fileInput(container), csv('april.csv'))
+    expect(container.firstElementChild).toHaveAttribute('data-checking')
+    await userEvent.click(screen.getByRole('button', { name: /^Clear/ }))
+    expect(container.firstElementChild).not.toHaveAttribute('data-checking')
   })
 
   it("doesn't count a file validate turns away against maxFiles", async () => {
@@ -772,6 +819,61 @@ describe('FileUpload', () => {
         await screen.findByRole('menuitem', { name: 'Move set-1.csv down' })
       )
       expect(screen.getByText(message)).toBeInTheDocument()
+    })
+
+    it("doesn't open the picker once the field is full, and says so", async () => {
+      const { container } = render(
+        <FileUpload maxFiles={2} defaultValue={files(2)}>
+          <FileUpload.Dropzone />
+          <FileUpload.Trigger />
+        </FileUpload>
+      )
+      const click = vi.spyOn(fileInput(container), 'click')
+      const zone = screen.getByRole('button', {
+        name: 'Remove a file to add another 2 of 2'
+      })
+      const trigger = screen.getByRole('button', { name: 'Choose files' })
+      expect(zone).toHaveAttribute('aria-disabled', 'true')
+      expect(trigger).toHaveAttribute('aria-disabled', 'true')
+      const user = userEvent.setup()
+      await user.click(zone)
+      zone.focus()
+      await user.keyboard('{Enter} ')
+      // Disabled but still focusable, so the reason can be found.
+      trigger.focus()
+      expect(trigger).toHaveFocus()
+      await user.keyboard('{Enter}')
+      expect(click).not.toHaveBeenCalled()
+
+      await user.click(screen.getByRole('button', { name: 'Remove set-1.csv' }))
+      expect(zone).not.toHaveAttribute('aria-disabled')
+      expect(trigger).not.toHaveAttribute('aria-disabled')
+      await user.click(trigger)
+      expect(click).toHaveBeenCalled()
+    })
+
+    it('keeps a collapsing row under the file above it after a reorder', async () => {
+      // Collapses that never finish, so the removed row stays.
+      // jsdom has no getAnimations.
+      HTMLElement.prototype.getAnimations = () => [
+        { finished: new Promise(() => {}) } as unknown as Animation
+      ]
+      onTestFinished(() => {
+        delete (HTMLElement.prototype as Partial<HTMLElement>).getAnimations
+      })
+      render(<FileUpload maxFiles={6} defaultValue={files(3)} />)
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Remove set-2.csv' }))
+      await user.click(
+        screen.getByRole('button', { name: 'Reorder set-1.csv' })
+      )
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'Move set-1.csv down' })
+      )
+      const order = [
+        ...document.querySelectorAll('[data-slot=file-upload-item-name]')
+      ].map((name) => name.textContent)
+      expect(order).toEqual(['set-3.csv', 'set-1.csv', 'set-2.csv'])
     })
 
     it('reads Choose files on the Trigger', () => {
