@@ -8,7 +8,7 @@ import { PhoneField, type PhoneFieldProps } from '.'
 import { Field } from '../Field'
 
 const number = () => screen.getByRole('textbox')
-const picker = () => screen.getByRole('combobox')
+const picker = () => screen.getByRole('combobox', { name: /\+\d+$/ })
 
 function renderInField(props: PhoneFieldProps = {}, field = {}) {
   return render(
@@ -83,6 +83,7 @@ describe('PhoneField', () => {
     render(
       <PhoneField
         aria-label='Mobile'
+        countries={['AU', 'NZ', 'GB']}
         onValueChange={onValueChange}
         onCountryChange={onCountryChange}
       />
@@ -98,6 +99,46 @@ describe('PhoneField', () => {
       expect.objectContaining({ country: 'NZ', possible: true })
     )
     expect(number()).toHaveValue('021 123 4567')
+  })
+
+  it.each([
+    ['a name', 'king', 'United Kingdom'],
+    ['a dial code', '+64', 'New Zealand']
+  ])('finds a country by %s in the search', async (_, query, name) => {
+    const user = userEvent.setup()
+    render(<PhoneField aria-label='Mobile' countries={['AU', 'NZ', 'GB']} />)
+
+    await user.click(picker())
+    await user.type(
+      await screen.findByRole('combobox', { name: 'Search countries' }),
+      query
+    )
+
+    const options = await screen.findAllByRole('option')
+    expect(options.map((option) => option.textContent)).toEqual([
+      expect.stringContaining(name)
+    ])
+  })
+
+  it('says so when the search matches no country', async () => {
+    const user = userEvent.setup()
+    render(
+      <PhoneField
+        aria-label='Mobile'
+        countries={['AU', 'NZ']}
+        searchLabel='Find a country'
+        emptyLabel='Nothing matches'
+      />
+    )
+
+    await user.click(picker())
+    await user.type(
+      await screen.findByRole('combobox', { name: 'Find a country' }),
+      'zzz'
+    )
+
+    expect(await screen.findByText('Nothing matches')).toBeVisible()
+    expect(screen.queryAllByRole('option')).toHaveLength(0)
   })
 
   it('switches country for a pasted international number and keeps the national part', async () => {
@@ -198,21 +239,6 @@ describe('PhoneField', () => {
       expect.stringContaining('Australia'),
       expect.stringContaining('United Kingdom')
     ])
-  })
-
-  it('lists every country by name when countries is left off', async () => {
-    const user = userEvent.setup()
-    render(<PhoneField aria-label='Mobile' />)
-
-    await user.click(picker())
-    const names = (await screen.findAllByRole('option')).map(
-      (option) => option.textContent ?? ''
-    )
-
-    expect(names.length).toBeGreaterThan(230)
-    expect(names.findIndex((name) => name.includes('Australia'))).toBeLessThan(
-      names.findIndex((name) => name.includes('New Zealand'))
-    )
   })
 
   it('names countries in the locale', () => {

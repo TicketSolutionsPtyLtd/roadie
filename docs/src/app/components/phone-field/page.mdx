@@ -31,7 +31,7 @@ Pick a country and type the number as you'd dial it at home. The value is always
 
 ### Countries
 
-`defaultCountry` sets the country the field starts on, and `countries` narrows the picker to the codes you give, in that order. Leave `countries` off to list every country by name.
+`defaultCountry` sets the country the field starts on, and `countries` narrows the picker to the codes you give, in that order. Leave `countries` off to list every country by name. The picker has a search, which finds a country by its name or its dial code, and a long list draws only the rows in view.
 
 ```tsx-live
 <Field>
@@ -169,7 +169,8 @@ async function isValidMobile(e164: string) {
 - The field is a `group`, named by `Field.Label`. Inside it the number is a `tel` input with the same name, and the picker is named by `countryLabel` and the chosen country, such as "Country code: Australia +61".
 - `Field.Label` focuses the number. Tab reaches the picker first, then the number.
 - `Field.HelperText`, `Field.ErrorText`, `required`, and `invalid` apply to the number only, so a screen reader hears the error once.
-- The picker opens with `Enter`, `Space`, or the arrow keys, and typing a country's name jumps to it.
+- The picker opens with `Enter`, `Space`, or the arrow keys, and focus moves to its search. Type a name or a dial code, move through the matches with the arrow keys, and pick one with `Enter`. `Escape` closes it and returns focus to the picker.
+- `searchLabel` names the search and `emptyLabel` is what it says when nothing matches. Set them, with `countryLabel` and `locale`, to translate the picker.
 - Flags are decoration and hidden from screen readers. The dial code is always shown as text, since some systems draw flags as two letters.
 - Outside a `Field`, give the number an `aria-label`.
 

@@ -2,6 +2,8 @@
 
 import { type ChangeEvent, type ComponentProps, useMemo, useState } from 'react'
 
+import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
+import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 import { cva } from 'class-variance-authority'
 
 import {
@@ -11,8 +13,8 @@ import {
 } from '@oztix/roadie-core/phone'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { Combobox } from '../Combobox'
 import { useFieldContext, useFieldInputProps } from '../Field'
-import { Select } from '../Select'
 
 export const phoneFieldVariants = cva(
   'flex w-full items-center rounded-lg font-sans text-base emphasis-field is-interactive-field-group',
@@ -71,9 +73,28 @@ export type PhoneFieldProps = Omit<
    * @default 'Country code'
    */
   countryLabel?: string
+  /**
+   * The name and placeholder of the picker's search.
+   *
+   * @default 'Search countries'
+   */
+  searchLabel?: string
+  /**
+   * What the picker says when the search matches no country.
+   *
+   * @default 'No countries found'
+   */
+  emptyLabel?: string
   /** @default 'md' */
   size?: 'sm' | 'md' | 'lg'
 }
+
+type Country = { code: string; dialCode: string; name: string }
+
+// Past this many countries the list draws only the rows in view.
+const VIRTUALIZE_PAST = 15
+
+const countryText = (country: Country) => `${country.name} +${country.dialCode}`
 
 type Draft = {
   text: string
@@ -128,6 +149,8 @@ export function PhoneField({
   countries,
   locale = 'en-AU',
   countryLabel = 'Country code',
+  searchLabel = 'Search countries',
+  emptyLabel = 'No countries found',
   size = 'md',
   name,
   disabled: disabledProp,
@@ -159,7 +182,7 @@ export function PhoneField({
   const listed = countries?.join(',')
   const options = useMemo(() => {
     const names = new Intl.DisplayNames(locale, { type: 'region' })
-    const named = (code: string) => ({
+    const named = (code: string): Country => ({
       code,
       dialCode: dialCodes.get(code) ?? '',
       name: names.of(code) ?? code
@@ -174,13 +197,20 @@ export function PhoneField({
       .map(named)
       .sort((a, b) => a.name.localeCompare(b.name, locale))
   }, [listed, locale])
-  const countryName =
-    options.find((option) => option.code === country)?.name ??
-    new Intl.DisplayNames(locale, { type: 'region' }).of(country) ??
-    country
+  const chosen = useMemo(
+    () =>
+      options.find((option) => option.code === country) ?? {
+        code: country,
+        dialCode,
+        name:
+          new Intl.DisplayNames(locale, { type: 'region' }).of(country) ??
+          country
+      },
+    [options, country, dialCode, locale]
+  )
 
-  const report = (text: string, chosen: string) => {
-    const typed = parsePhone(text, chosen)
+  const report = (text: string, picked: string) => {
+    const typed = parsePhone(text, picked)
     // A number with its own dial code names its country, and only the rest stays in the box.
     const next =
       INTERNATIONAL.test(text) && typed.country !== null
@@ -188,7 +218,7 @@ export function PhoneField({
             country: typed.country,
             text: afterDialCode(text, dialCodes.get(typed.country) ?? '')
           }
-        : { country: chosen, text }
+        : { country: picked, text }
     const parsed = parsePhone(next.text, next.country)
     setDraft({ ...next, expected: parsed.e164 })
     if (next.country !== country) onCountryChange?.(next.country)
@@ -208,44 +238,60 @@ export function PhoneField({
       data-disabled={disabled ? '' : undefined}
       className={cn(phoneFieldVariants({ size }), className)}
     >
-      <Select<string>
-        value={country}
-        onValueChange={(chosen) => {
-          if (chosen) report(current.text, chosen)
+      <Combobox<Country>
+        items={options}
+        virtualized={options.length > VIRTUALIZE_PAST}
+        value={chosen}
+        onValueChange={(picked) => {
+          if (picked) report(current.text, picked.code)
         }}
+        itemToStringLabel={countryText}
+        isItemEqualToValue={(a, b) => a.code === b.code}
+        locale={locale}
         disabled={disabled}
-        invalid={false}
-        required={false}
       >
-        <Select.Trigger
+        <ComboboxPrimitive.Trigger
           data-slot='phone-field-country'
-          emphasis='subtler'
-          aria-label={`${countryLabel}: ${countryName} +${dialCode}`}
-          aria-labelledby={undefined}
-          aria-describedby={undefined}
-          aria-required={undefined}
-          className='h-full shrink-0 rounded-lg px-2'
+          aria-label={`${countryLabel}: ${countryText(chosen)}`}
+          className='is-interactive flex h-full shrink-0 items-center gap-1 rounded-lg emphasis-subtler px-2'
         >
-          <Select.Value>
-            <span aria-hidden='true'>{flagOf(country)}</span> +{dialCode}
-          </Select.Value>
-          <Select.Icon />
-        </Select.Trigger>
-        <Select.Content>
-          {options.map((option) => (
-            <Select.Item key={option.code} value={option.code}>
-              <span aria-hidden='true'>{flagOf(option.code)}</span>
-              <Select.ItemText className='min-w-0 flex-1 truncate'>
-                {option.name}
-              </Select.ItemText>
-              <span className='text-subtle tabular-nums'>
-                +{option.dialCode}
-              </span>
-              <Select.ItemIndicator />
-            </Select.Item>
-          ))}
-        </Select.Content>
-      </Select>
+          <span aria-hidden='true'>{flagOf(country)}</span>
+          <span className='tabular-nums'>+{dialCode}</span>
+          <CaretDownIcon weight='bold' className='size-4 text-subtle' />
+        </ComboboxPrimitive.Trigger>
+        <Combobox.Portal>
+          <Combobox.Positioner align='start'>
+            <Combobox.Popup className='grid max-h-80 w-72 grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0'>
+              <Combobox.Input
+                data-slot='phone-field-search'
+                id={undefined}
+                aria-label={searchLabel}
+                aria-invalid={undefined}
+                aria-required={undefined}
+                aria-describedby={undefined}
+                placeholder={searchLabel}
+                className='h-10 flex-none border-b border-subtle px-3 text-base'
+              />
+              <div className='overflow-y-auto p-1'>
+                <Combobox.List>
+                  {(option: Country) => (
+                    <Combobox.Item key={option.code} value={option}>
+                      <span aria-hidden='true'>{flagOf(option.code)}</span>
+                      <span className='min-w-0 flex-1 truncate'>
+                        {option.name}
+                      </span>
+                      <span className='text-subtle tabular-nums'>
+                        +{option.dialCode}
+                      </span>
+                    </Combobox.Item>
+                  )}
+                </Combobox.List>
+                <Combobox.Empty>{emptyLabel}</Combobox.Empty>
+              </div>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox>
       <input
         data-slot='phone-field-input'
         type='tel'
