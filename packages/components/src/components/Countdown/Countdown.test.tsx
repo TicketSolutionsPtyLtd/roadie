@@ -332,8 +332,8 @@ describe('Countdown on the server', () => {
   }
 
   it.each([
-    ['coarse words', {}, '2 minutes'],
-    ['short words', { durationStyle: 'short' as const }, '2m'],
+    ['coarse words', {}, '8 minutes'],
+    ['short words', { durationStyle: 'short' as const }, '8m'],
     ['a clock', { display: 'clock' as const }, '0:00']
   ])(
     'holds the room of %s, hidden from sight and screen readers',

@@ -221,7 +221,7 @@ export function Countdown({
  *
  * It holds the room the first reading takes, so what follows doesn't move.
  * Invisible and hidden from assistive tech: it is a guess, not a time. Every
- * digit is one wide in `tabular-nums`, so a single digit stands for any count
+ * digit is one wide in `tabular-nums` (where the font has it), so one digit stands for any count
  * under ten; a longer count grows from there.
  */
 function Placeholder({
@@ -248,7 +248,7 @@ function Placeholder({
         ? '0m 00s'
         : shape === 'clock'
           ? '0:00'
-          : formatDuration(2 * 60_000, durationStyle)}
+          : formatDuration(8 * 60_000, durationStyle)}
     </time>
   )
 }
