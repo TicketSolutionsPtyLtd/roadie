@@ -20,7 +20,7 @@ export interface CropImageOptions {
 export async function cropImage(
   source: string | Blob,
   { area, rotation }: ImageCropValue,
-  { width = Math.round(area.width), type, quality }: CropImageOptions = {}
+  { width: wide = area.width, type, quality }: CropImageOptions = {}
 ): Promise<Blob> {
   let blob = source as Blob
   if (typeof source === 'string') {
@@ -32,7 +32,9 @@ export async function cropImage(
   const bitmap = await createImageBitmap(blob, {
     imageOrientation: 'from-image'
   })
-  const height = Math.round((width * area.height) / area.width)
+  // A thin crop still makes at least a pixel each way, or encoding throws.
+  const width = Math.max(1, Math.round(wide))
+  const height = Math.max(1, Math.round((width * area.height) / area.width))
   const scale = width / area.width
   const angle = (rotation * Math.PI) / 180
   const cos = Math.abs(Math.cos(angle))
@@ -59,6 +61,8 @@ export async function cropImage(
   }
 
   const options = { type: type ?? (blob.type || 'image/png'), quality }
+  // Test for convertToBlob, not toBlob: Firefox's OffscreenCanvas also has a
+  // non-standard toBlob that never calls back.
   if ('convertToBlob' in canvas) return canvas.convertToBlob(options)
   return new Promise((resolve, reject) =>
     canvas.toBlob(

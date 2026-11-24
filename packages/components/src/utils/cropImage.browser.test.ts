@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { cropImage, cropValueAt } from '@oztix/roadie-core/image'
 
@@ -65,6 +65,52 @@ describe('cropImage', () => {
       bottomRight: GREEN,
       bottomLeft: YELLOW
     })
+  })
+
+  it('draws on a canvas element where there is no OffscreenCanvas', async () => {
+    const source = await fourColours()
+    vi.stubGlobal('OffscreenCanvas', undefined)
+    let blob: Blob
+    try {
+      blob = await cropImage(
+        source,
+        cropValueAt(
+          { area: { x: 0, y: 0, width: 100, height: 200 } },
+          { width: 100, height: 200 },
+          image,
+          90
+        )
+      )
+    } finally {
+      vi.unstubAllGlobals()
+    }
+    expect((await corners(blob)).topLeft).toBe(BLUE)
+  })
+
+  it('crops an image from a URL', async () => {
+    const url = URL.createObjectURL(await fourColours())
+    try {
+      const value = cropValueAt(
+        { area: { x: 0, y: 50, width: 100, height: 50 } },
+        { width: 100, height: 50 },
+        image
+      )
+      expect((await corners(await cropImage(url, value))).topLeft).toBe(BLUE)
+    } finally {
+      URL.revokeObjectURL(url)
+    }
+  })
+
+  it('makes at least a pixel each way from a thin crop', async () => {
+    const value = cropValueAt(
+      { area: { x: 0, y: 0, width: 200, height: 0.2 } },
+      { width: 200, height: 0.2 },
+      image
+    )
+    const bitmap = await createImageBitmap(
+      await cropImage(await fourColours(), value, { width: 10.6 })
+    )
+    expect([bitmap.width, bitmap.height]).toEqual([11, 1])
   })
 
   it('turns the image upside down', async () => {
