@@ -419,15 +419,13 @@ export function ImageCropStage({
     }
     const move = moves[event.key]
     const zoomIn = event.key === '+' || event.key === '='
-    const next = move
-      ? panBy(shown, move[0], move[1], scene)
-      : zoomIn
-        ? zoomTo(shown, shown.zoom * KEY_ZOOM, scene)
-        : event.key === '-' || event.key === '_'
-          ? zoomTo(shown, shown.zoom / KEY_ZOOM, scene)
-          : event.key === 'r' || event.key === 'R'
-            ? rotateBy(shown, -90, scene)
-            : undefined
+    let next: ImageCropValue | undefined
+    if (move) next = panBy(shown, move[0], move[1], scene)
+    else if (zoomIn) next = zoomTo(shown, shown.zoom * KEY_ZOOM, scene)
+    else if (event.key === '-' || event.key === '_')
+      next = zoomTo(shown, shown.zoom / KEY_ZOOM, scene)
+    else if (event.key === 'r' || event.key === 'R')
+      next = rotateBy(shown, -90, scene)
     if (!next) return
     event.preventDefault()
     if (zoomIn && capped) crop.nudge()
