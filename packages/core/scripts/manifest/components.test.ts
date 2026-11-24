@@ -1,4 +1,13 @@
-import { formatType, isOurs, splitDeprecation } from './components'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+
+import {
+  componentFiles,
+  formatType,
+  isOurs,
+  splitDeprecation
+} from './components'
 
 describe('splitDeprecation', () => {
   it.each([
@@ -66,5 +75,16 @@ describe('isOurs', () => {
     expect(isOurs('/repo/node_modules/@base-ui/react/button/Button.d.ts')).toBe(
       false
     )
+  })
+})
+
+describe('componentFiles', () => {
+  it("leaves out a folder's tests and hydration fixtures", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'component-files-'))
+    onTestFinished(() => rmSync(dir, { recursive: true }))
+    for (const name of ['index.tsx', 'Grid.test.tsx', 'Grid.ssr.tsx'])
+      writeFileSync(path.join(dir, name), '')
+    const entry = path.join(dir, 'index.tsx')
+    expect(componentFiles(entry)).toEqual([entry])
   })
 })
