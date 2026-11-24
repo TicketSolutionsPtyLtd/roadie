@@ -69,7 +69,9 @@ describe('DateTime', () => {
   })
 
   it('carries a machine value with the zone offset when a time is shown', () => {
-    render(<DateTime at={at} timeZone={BNE} timeStyle='medium' />)
+    render(
+      <DateTime at={at} timeZone={BNE} dateStyle='long' timeStyle='medium' />
+    )
     const el = screen.getByText('Fri 27 Nov 2026, 7:30pm')
     expect(el).toHaveAttribute('dateTime', '2026-11-27T19:30:00+10:00')
     // The attribute must identify the same instant, not a floating local time.
@@ -86,10 +88,17 @@ describe('DateTime', () => {
 
   it('renders the same instant differently per venue zone', () => {
     const { rerender } = render(
-      <DateTime at={at} timeZone='Australia/Perth' timeStyle='medium' />
+      <DateTime
+        at={at}
+        timeZone='Australia/Perth'
+        dateStyle='long'
+        timeStyle='medium'
+      />
     )
     expect(screen.getByText('Fri 27 Nov 2026, 5:30pm')).toBeInTheDocument()
-    rerender(<DateTime at={at} timeZone={BNE} timeStyle='medium' />)
+    rerender(
+      <DateTime at={at} timeZone={BNE} dateStyle='long' timeStyle='medium' />
+    )
     expect(screen.getByText('Fri 27 Nov 2026, 7:30pm')).toBeInTheDocument()
   })
 
@@ -284,6 +293,7 @@ describe('DateTime across midnight', () => {
         at={start}
         to={new Date('2026-11-30T12:00:00Z')}
         timeZone={BNE}
+        dateStyle='long'
         timeStyle='medium'
       />
     )
@@ -315,7 +325,7 @@ describe('DateTime stacked', () => {
 
   it('reads the same as the inline text, not the date run into the time', () => {
     const { container: inline } = render(
-      <DateTime at={at} timeZone={BNE} timeStyle='medium' />
+      <DateTime at={at} timeZone={BNE} dateStyle='long' timeStyle='medium' />
     )
     const { container } = render(
       <DateTime at={at} timeZone={BNE} timeStyle='medium' stacked />
@@ -401,7 +411,13 @@ describe('DateTime stacked', () => {
   it('stays inline across days, where one date can’t head both times', () => {
     const to = new Date('2026-11-29T12:00:00Z')
     const { container: inline } = render(
-      <DateTime at={at} to={to} timeZone={BNE} timeStyle='medium' />
+      <DateTime
+        at={at}
+        to={to}
+        timeZone={BNE}
+        dateStyle='long'
+        timeStyle='medium'
+      />
     )
     const { container } = render(
       <DateTime at={at} to={to} timeZone={BNE} timeStyle='medium' stacked />
@@ -598,5 +614,69 @@ describe('DateTime on a prerendering server', () => {
   it('renders a standalone date on the client without the year at once', () => {
     render(<DateTime at={at} timeZone={BNE} context='standalone' />)
     expect(screen.getByText('Fri 27 Nov')).toBeInTheDocument()
+  })
+})
+
+describe('DateTime with a timeStyle and no dateStyle', () => {
+  const to = new Date('2026-11-27T11:00:00Z') // 9pm Brisbane
+
+  it('renders the time alone, with the instant in `dateTime`', () => {
+    render(<DateTime at={at} timeZone={BNE} timeStyle='medium' />)
+    const el = screen.getByText('7:30pm')
+    expect(el.tagName).toBe('TIME')
+    expect(el).toHaveAttribute('dateTime', '2026-11-27T19:30:00+10:00')
+  })
+
+  it('still adds the date when a dateStyle comes with it', () => {
+    render(
+      <DateTime at={at} timeZone={BNE} dateStyle='long' timeStyle='medium' />
+    )
+    expect(screen.getByText('Fri 27 Nov 2026, 7:30pm')).toBeInTheDocument()
+  })
+
+  it('renders a range as two times, each with its own instant', () => {
+    const { container } = render(
+      <DateTime at={at} to={to} timeZone={BNE} timeStyle='medium' />
+    )
+    const times = container.querySelectorAll('time')
+    expect([...times].map((t) => t.textContent)).toEqual(['7:30pm', '9:00pm'])
+    expect([...times].map((t) => t.getAttribute('dateTime'))).toEqual([
+      '2026-11-27T19:30:00+10:00',
+      '2026-11-27T21:00:00+10:00'
+    ])
+    expect(container.textContent).not.toMatch(/Nov/)
+  })
+
+  it('collapses a range whose ends read the same to one time', () => {
+    const { container } = render(
+      <DateTime at={at} to={at} timeZone={BNE} timeStyle='medium' />
+    )
+    expect(container.querySelectorAll('time')).toHaveLength(1)
+    expect(container.textContent).toBe('7:30pm')
+  })
+
+  it('keeps the date for `stacked`, `sameNight` and `relative`, which need one', () => {
+    const { container } = render(
+      <>
+        <DateTime at={at} to={to} timeZone={BNE} timeStyle='medium' stacked />
+        <DateTime at={at} to={to} timeZone={BNE} timeStyle='medium' sameNight />
+        <DateTime
+          at={at}
+          timeZone={BNE}
+          timeStyle='medium'
+          relative
+          cutoffMs={1}
+        />
+      </>
+    )
+    for (const el of container.children) expect(el.textContent).toMatch(/Nov/)
+  })
+
+  it('renders the time the same on the server', () => {
+    const html = renderToString(
+      <DateTime at={at} timeZone={BNE} timeStyle='medium' />
+    )
+    expect(html).toContain('>7:30pm<')
+    expect(html).not.toContain('Nov')
   })
 })

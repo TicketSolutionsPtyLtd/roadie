@@ -58,12 +58,32 @@ Renders the `long` style. The `timeZone` is the venue's for an event time, and t
 <DateTime
   at={new Date('2026-11-27T09:30:00Z')}
   timeZone='Australia/Brisbane'
+  dateStyle='long'
   timeStyle='medium'
 />
 <DateTime
   at={new Date('2026-11-27T09:30:00Z')}
   timeZone='Australia/Brisbane'
+  dateStyle='long'
   timeStyle='short'
+/>
+```
+
+### A time alone
+
+A `timeStyle` with no `dateStyle` renders the time and nothing else, for a time under a day heading that already says the date. The `dateTime` attribute still carries the full instant, and a range with `to` renders each end in its own `time` element. `stacked`, `sameNight` and `relative` each say a date, so they keep one.
+
+```tsx-live layout=stack gap=2
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  timeZone='Australia/Brisbane'
+  timeStyle='medium'
+/>
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  to={new Date('2026-11-27T13:00:00Z')}
+  timeZone='Australia/Brisbane'
+  timeStyle='medium'
 />
 ```
 
@@ -97,11 +117,13 @@ The same instant, in two venues. This is why `timeZone` is required.
 <DateTime
   at={new Date('2026-11-27T15:00:00Z')}
   timeZone='Australia/Perth'
+  dateStyle='long'
   timeStyle='medium'
 />
 <DateTime
   at={new Date('2026-11-27T15:00:00Z')}
   timeZone='Australia/Sydney'
+  dateStyle='long'
   timeStyle='medium'
 />
 ```
@@ -135,6 +157,7 @@ A gig running 10pm to 3am is Saturday's gig. Repeating the date makes it look li
   at={new Date('2026-11-28T12:00:00Z')}
   to={new Date('2026-11-28T17:00:00Z')}
   timeZone='Australia/Brisbane'
+  dateStyle='long'
   timeStyle='medium'
 />
 <DateTime
@@ -178,7 +201,7 @@ Set `timeZone` from the moment itself. An event time belongs to its venue. A tim
 import { viewerTimeZone } from '@oztix/roadie-core/datetime'
 
 // An event time belongs to the venue
-<DateTime at={event.startsAt} timeZone={event.venue.timeZone} timeStyle='medium' />
+<DateTime at={event.startsAt} timeZone={event.venue.timeZone} dateStyle='long' timeStyle='medium' />
 
 // A timestamp belongs to the reader
 <DateTime at={note.addedAt} timeZone={viewerTimeZone()} relative />
@@ -211,7 +234,7 @@ space available.
 | _(omitted)_ |                 | The date alone is the answer.                                    |
 
 Omit `timeStyle` unless the reader can act on the time. A date range needs no
-`12:00am` on either end.
+`12:00am` on either end. Omit `dateStyle` when a heading already says the day.
 
 ### The year looks after itself
 

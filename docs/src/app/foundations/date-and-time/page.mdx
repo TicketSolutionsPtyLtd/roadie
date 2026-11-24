@@ -518,7 +518,7 @@ const noSubscription = () => () => {}
 // and hydration adds one, rather than the server and client disagreeing.
 const viewer = useSyncExternalStore(noSubscription, viewerTimeZone, () => null)
 
-<DateTime at={startsAt} timeZone={venue.timeZone} timeStyle='long' />
+<DateTime at={startsAt} timeZone={venue.timeZone} dateStyle='medium' timeStyle='long' />
 {viewer && viewer !== venue.timeZone && (
   <span className='text-subtle'>
     <DateTime at={startsAt} timeZone={viewer} dateStyle='medium' timeStyle='medium' />

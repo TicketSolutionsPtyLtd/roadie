@@ -55,8 +55,13 @@ export interface DateTimeProps extends Omit<
    * See /foundations/date-and-time.
    */
   timeZone: string
+  /** Omit with a `timeStyle` for the time alone, and `long` otherwise. */
   dateStyle?: DateStyle
-  /** Omit for a date with no time. */
+  /**
+   * Omit for a date with no time. Without a `dateStyle` it renders the time
+   * alone, for a time under a day heading. `stacked`, `sameNight` and
+   * `relative` each need a date, so they keep one.
+   */
   timeStyle?: TimeStyle
   locale?: string
   context?: FormatOptions['context']
@@ -136,7 +141,17 @@ export function DateTime({
     ...(!knowsToday && { showYear: true })
   }
 
-  const absolute = formatDateTime(at, opts)
+  // `stacked` and `sameNight` say the date once, and `relative` falls back to
+  // one, so each keeps the date a lone `timeStyle` used to carry.
+  const timeOnly =
+    timeStyle !== undefined &&
+    dateStyle === undefined &&
+    !relative &&
+    !stacked &&
+    !sameNight
+  const absolute = timeOnly
+    ? formatTimeOfDay(at, opts)
+    : formatDateTime(at, opts)
   const machine = formatMachine(at, opts)
 
   // The rendered string is the snapshot, not the clock, so React re-renders
@@ -203,11 +218,16 @@ export function DateTime({
         )
   }
 
-  // One night crossing midnight says the date once, so `render` swaps the
-  // wrapper rather than the `time` elements inside it.
-  if (to && sameNight && timeStyle) {
+  // One night crossing midnight says the date once, and a time-only range has
+  // none to say, so `render` swaps the wrapper rather than the `time` elements
+  // inside it. Ends that read the same fall through to one moment.
+  if (to && timeStyle && (sameNight || timeOnly)) {
     const endTime = formatTimeOfDay(to, opts)
-    if (absolute !== null && endTime !== null) {
+    if (
+      absolute !== null &&
+      endTime !== null &&
+      (!timeOnly || endTime !== absolute)
+    ) {
       return resolveRender(
         'span',
         {
@@ -232,7 +252,7 @@ export function DateTime({
     }
   }
 
-  const range = to ? formatDateRangeParts(at, to, opts) : null
+  const range = to && !timeOnly ? formatDateRangeParts(at, to, opts) : null
   if (to && range && range.to !== null) {
     const duration = showDuration ? formatDurationDays(at, to, opts) : null
     const toMachine = formatMachine(to, opts)
