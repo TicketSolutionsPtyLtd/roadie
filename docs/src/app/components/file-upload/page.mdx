@@ -32,7 +32,7 @@ With no children, `FileUpload` is a dropzone with the chosen file listed under i
 
 ### Rules
 
-`accept` takes the native syntax, such as `.csv`, `image/*` or `application/pdf`. `maxFileSize` and `minFileSize` are in bytes. A file that breaks a rule never joins the value: its message shows in `Field.ErrorText`, and `onReject` gets it with a code (`wrong-type`, `too-large` or `too-small`). Pick a file that isn't a CSV, or one over 1 MB, to see it.
+`accept` takes the native syntax, such as `.csv`, `image/*` or `application/pdf`. `maxFileSize` and `minFileSize` are in bytes. A file that breaks a rule never joins the value: its message shows in `Field.ErrorText`, and `onReject` gets it with a code (`wrong-type`, `too-large` or `too-small`). `validate` checks anything else, such as an image's pixel size or a CSV's columns, once the other rules pass. Return a message to turn the file away with the code `invalid`, or `null` to take it. It can be async, and a newer pick wins over a check still running. Pick a file that isn't a CSV, or one over 1 MB, to see it.
 
 ```tsx-live width=140
 <Field required>

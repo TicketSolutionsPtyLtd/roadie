@@ -38,6 +38,14 @@ export type FileUploadRootProps = Omit<
     defaultValue?: File[]
     /** Called with the new files once a pick passes every rule. */
     onValueChange?: (files: File[]) => void
+    /**
+     * Checks a file the other rules pass, such as an image's pixel size.
+     * Return a message to turn it away with the code `invalid`, or `null` to
+     * take it. It can be async; a newer pick wins over a check still running.
+     */
+    validate?: (
+      file: File
+    ) => string | null | undefined | Promise<string | null | undefined>
     /** Called with the files a pick turned away, each with its code and message. */
     onReject?: (rejections: FileUploadRejection[]) => void
     /** Which camera a phone opens instead of its file picker. Passed to the native input. */
@@ -82,6 +90,7 @@ export function FileUploadRoot({
   maxFileSize,
   minFileSize,
   onReject,
+  validate,
   capture,
   disabled,
   required,
@@ -223,14 +232,27 @@ export function FileUploadRoot({
   useEffect(syncInput, [syncInput])
 
   // Picks, drops and pastes all come through here. One file for now: the first.
+  const picks = useRef(0)
   function take(picked: ArrayLike<File>) {
     const file = picked[0]
-    const rejection =
-      file && checkFile(file, { accept, maxFileSize, minFileSize })
-    if (rejection) {
+    const pick = ++picks.current
+    const reject = (rejection: FileUploadRejection) => {
       setError(rejection.message)
       onReject?.([rejection])
-    } else if (file) commit([file])
+    }
+    const rejection =
+      file && checkFile(file, { accept, maxFileSize, minFileSize })
+    if (rejection) reject(rejection)
+    else if (file && !validate) commit([file])
+    else if (file)
+      Promise.resolve()
+        .then(() => validate!(file))
+        .catch(() => `${file.name} couldn't be checked. Try another file.`)
+        .then((message) => {
+          if (pick !== picks.current) return
+          if (message) reject({ file, code: 'invalid', message })
+          else commit([file])
+        })
     // The input shows only the value; an accepted pick reaches it on re-render.
     syncInput()
   }
