@@ -1197,6 +1197,15 @@ describe('ImageCrop in free-form', () => {
     await waitFor(() => expectCovered(stage))
   })
 
+  it('resizes about the centre with Alt on a corner key', async () => {
+    const { last } = await renderFree()
+    corner('Bottom right corner').focus()
+    await userEvent.keyboard('{Alt>}{ArrowLeft}{/Alt}')
+    // Both sides of the crop move, so it shrinks by twice the step.
+    expect(last().area.width).toBeCloseTo(2400 - 20 / freeZoom, 0)
+    expect(last().area.x + last().area.width / 2).toBeCloseTo(1200, 0)
+  })
+
   it('stops a drag at a frame two handles wide', async () => {
     await commands.parkPointer()
     const { stage } = await renderFree()

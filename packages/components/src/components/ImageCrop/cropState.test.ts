@@ -307,6 +307,27 @@ describe('dragCrop', () => {
     expect(far.value.zoom).toBeCloseTo(0.25)
   })
 
+  it('stops at the image edge past the side that moves', () => {
+    const area = { x: 600, y: 400, width: 1200, height: 800 }
+    const zoomed = fitCrop({ ...whole, area }, free)
+    const far = { x: 3000, y: 0 }
+    const out = dragCrop(zoomed, corner, far, free, options)
+    // The left edge stays at 600, so the right one stops at the image's 2400.
+    expect(out.value.area).toEqual({ x: 600, y: 400, width: 1800, height: 800 })
+  })
+
+  it('stops at the nearer image edge when centred', () => {
+    const area = { x: 200, y: 400, width: 800, height: 800 }
+    const zoomed = fitCrop({ ...whole, area }, free)
+    const far = { x: 3000, y: 0 }
+    const out = dragCrop(zoomed, corner, far, free, {
+      ...options,
+      centred: true
+    })
+    // The centre stays at 600, so the crop stops at the left edge, 0.
+    expect(out.value.area).toEqual({ x: 0, y: 400, width: 1200, height: 800 })
+  })
+
   it('stops at the minimum, and at two handles wide on screen', () => {
     const far = { x: -1000, y: -1000 }
     const min = { width: 800, height: 400 }
