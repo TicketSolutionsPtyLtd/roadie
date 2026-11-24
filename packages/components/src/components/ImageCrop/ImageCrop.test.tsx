@@ -56,7 +56,8 @@ describe('ImageCrop', () => {
     const controls = screen.getByRole('group', { name: 'Crop controls' })
     for (const name of ['Zoom out', 'Zoom in', 'Rotate left'])
       expect(screen.getByRole('button', { name })).toBeInTheDocument()
-    expect(screen.getByRole('slider', { name: 'Zoom' })).toBeInTheDocument()
+    for (const name of ['Zoom', 'Straighten'])
+      expect(screen.getByRole('slider', { name })).toBeInTheDocument()
     expect(controls.querySelector('[aria-label="Reset crop"]')).toHaveAttribute(
       'hidden'
     )
@@ -81,6 +82,7 @@ describe('ImageCrop', () => {
     ['Controls', <ImageCrop.Controls key='part' />],
     ['Zoom', <ImageCrop.Zoom key='part' />],
     ['Rotate', <ImageCrop.Rotate key='part' />],
+    ['Straighten', <ImageCrop.Straighten key='part' />],
     ['Reset', <ImageCrop.Reset key='part' />]
   ])('throws when %s is outside ImageCrop', (part, element) => {
     vi.spyOn(console, 'error').mockImplementation(() => {})

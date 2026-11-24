@@ -18,7 +18,14 @@ import {
 } from './ImageCropContext'
 import { ImageCropControls } from './ImageCropControls'
 import { ImageCropStage } from './ImageCropStage'
-import { type CropScene, fitCrop, minCrop, zoomRange } from './cropState'
+import { degreesText } from './ImageCropStraighten'
+import {
+  type CropScene,
+  fitCrop,
+  minCrop,
+  straightenOf,
+  zoomRange
+} from './cropState'
 
 // Long enough that a run of key presses is said once.
 const ANNOUNCE_MS = 500
@@ -85,10 +92,13 @@ function sameScene(a?: CropScene, b?: CropScene) {
 function describe(value: ImageCropValue, scene: CropScene) {
   const { width, height } = value.area
   const zoom = value.zoom / zoomRange(scene, value.rotation).cover
-  const left = (360 - value.rotation) % 360
+  const straighten = straightenOf(value.rotation)
+  const left = Math.round(360 - value.rotation + straighten) % 360
   return (
     `Crop ${Math.round(width)} by ${Math.round(height)} pixels, zoom ${Math.round(zoom * 100)} percent` +
-    (left ? `, turned ${left} degrees left.` : '.')
+    (left ? `, turned ${left} degrees left` : '') +
+    (straighten ? `, straightened ${degreesText(straighten)}` : '') +
+    '.'
   )
 }
 
