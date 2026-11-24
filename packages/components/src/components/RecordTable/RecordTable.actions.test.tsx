@@ -103,11 +103,14 @@ describe('RecordTable bulk actions', () => {
     render(<Bulk actions={[{ label: 'Export', onAction }]} />)
     await pick('Ocean Alley 1')
     await userEvent.click(screen.getByRole('button', { name: 'Export' }))
+    await waitFor(() => expect(reportError).toHaveBeenCalledWith(failure))
+    // Not toBeEnabled: the bar's buttons stay focusable while one runs.
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Export' })).toBeEnabled()
+      expect(
+        screen.getByRole('button', { name: 'Export' })
+      ).not.toHaveAttribute('aria-busy')
     )
     expect(bulkBar()!).toHaveTextContent('1 selected')
-    expect(reportError).toHaveBeenCalledWith(failure)
     reportError.mockRestore()
   })
 

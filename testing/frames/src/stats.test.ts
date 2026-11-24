@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   budgetMisses,
   defaultBudget,
+  frameNotice,
   missExcuse,
   summariseFrames
 } from './stats'
@@ -123,5 +124,56 @@ describe('missExcuse', () => {
 
   it('excuses nothing that gives no reason', () => {
     expect(missExcuse(120, {})).toBeUndefined()
+  })
+})
+
+describe('frameNotice', () => {
+  // The share the budget reads, with the worst frame set aside.
+  const run = {
+    frames: 60,
+    p95: 33.3,
+    droppedShare: 0.1,
+    steadyDroppedShare: 0.083
+  }
+  const over = ['p95 33.3ms is over 17.5ms']
+  const line = 'FRAMES Dialog, open: p95 33.3ms, 8.3% dropped.'
+
+  it.each([
+    [
+      'an accepted miss',
+      over,
+      { exception: 'backdrop blur kept by design' },
+      `${line} Missed (p95 33.3ms is over 17.5ms), accepted: backdrop blur kept by design`
+    ],
+    [
+      'a filed miss that met the budget this run',
+      [],
+      { knownMiss: 'INNO-9999' },
+      `${line} Met, filed as INNO-9999`
+    ],
+    [
+      'a note on a run nothing excuses',
+      [],
+      { note: 'style 165ms' },
+      `${line} Met. Note: style 165ms`
+    ],
+    [
+      'a note on an excused miss',
+      over,
+      { knownMiss: 'INNO-9999', note: 'style 165ms' },
+      `${line} Missed (p95 33.3ms is over 17.5ms), filed as INNO-9999. Note: style 165ms`
+    ]
+  ])('writes one line for %s', (_, misses, marks, expected) => {
+    expect(frameNotice('Dialog, open', run, misses, marks)).toBe(expected)
+  })
+
+  it('says nothing about a run with no excuse and no note', () => {
+    expect(frameNotice('Dialog, open', run, over, {})).toBeUndefined()
+  })
+
+  it('says nothing about an excuse on a run too short to judge', () => {
+    const short = { ...run, frames: 59 }
+    const marks = { exception: 'backdrop blur kept by design' }
+    expect(frameNotice('Dialog, open', short, over, marks)).toBeUndefined()
   })
 })

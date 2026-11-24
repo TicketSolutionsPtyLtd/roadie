@@ -47,6 +47,7 @@ import type {
   RecordsRow
 } from '../Records/types'
 import { RecordTableListRow } from './RecordTableListRow'
+import { ListPlaceContext } from './RecordTableRowPlace'
 import type { RecordTableNarrowLayout } from './narrow'
 
 type MeasureElement = (node: HTMLLIElement | null) => void
@@ -172,13 +173,9 @@ function NarrowRow({
   }
   if (shared.layout === 'list')
     return (
-      <RecordTableListRow
-        {...props}
-        row={record.row}
-        bleed={shared.bleed}
-        posInSet={posInSet}
-        setSize={setSize}
-      />
+      <ListPlaceContext value={{ posInSet, setSize }}>
+        <RecordTableListRow {...props} row={record.row} bleed={shared.bleed} />
+      </ListPlaceContext>
     )
   return (
     <CardItem

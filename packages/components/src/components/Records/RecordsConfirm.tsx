@@ -16,6 +16,29 @@ export const reportActionError = (error: unknown) =>
   // Older browsers and jsdom before 31 have no reportError.
   (window.reportError ?? console.error)(error)
 
+// Out here, as the React Compiler skips a component or hook that holds a `finally`.
+export async function attempt(
+  work: () => unknown,
+  {
+    next,
+    failed = reportActionError,
+    done
+  }: {
+    next?: () => void
+    failed?: (error: unknown) => void
+    done: () => void
+  }
+) {
+  try {
+    await work()
+    next?.()
+  } catch (error) {
+    failed(error)
+  } finally {
+    done()
+  }
+}
+
 export type RecordsConfirmProps = {
   action: Confirmable
   /** The records the action acts on, for the default title. */

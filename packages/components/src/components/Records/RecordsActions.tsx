@@ -9,11 +9,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { Button, IconButton } from '../Button'
 import { Menu } from '../Menu'
 import { Tooltip } from '../Tooltip'
-import {
-  RecordsConfirm,
-  needsConfirm,
-  reportActionError
-} from './RecordsConfirm'
+import { RecordsConfirm, attempt, needsConfirm } from './RecordsConfirm'
 import { useRecordsContext } from './context'
 import { useNarrow } from './narrow'
 import type { RecordsAction } from './types'
@@ -44,25 +40,23 @@ export function RecordsActions<Row extends object>({
     setRunning(index)
     // The latest records, so a confirm that rendered earlier acts on what shows now.
     const current = latestRecords.current
-    try {
-      // The consumer's Row narrows the shared instance, as Records.Root's does.
-      await action.onAction({
-        query: current.scopedQuery,
-        request: {
-          version: current.request.version,
-          query: current.request.query
-        },
-        timeZone: current.timeZone,
-        now: current.now,
-        records: current as unknown as Parameters<
-          typeof action.onAction
-        >[0]['records']
-      })
-    } catch (error) {
-      reportActionError(error)
-    } finally {
-      setRunning(null)
-    }
+    await attempt(
+      () =>
+        // The consumer's Row narrows the shared instance, as Records.Root's does.
+        action.onAction({
+          query: current.scopedQuery,
+          request: {
+            version: current.request.version,
+            query: current.request.query
+          },
+          timeZone: current.timeZone,
+          now: current.now,
+          records: current as unknown as Parameters<
+            typeof action.onAction
+          >[0]['records']
+        }),
+      { done: () => setRunning(null) }
+    )
   }
   const start = (index: number) =>
     needsConfirm(actions[index]!) ? setConfirming(index) : void run(index)

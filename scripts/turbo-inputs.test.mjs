@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TEST_ONLY =
-  /\.test\.|__screenshots__\/|__snapshots__\/|(?:^|\/)(?:testUtils|\w+TestUtils|fixtures|testChart|browserTesting)\.\w+$|\/_test\//
+  /\.(?:test|ssr)\.|__screenshots__\/|__snapshots__\/|(?:^|\/)(?:testUtils|\w+TestUtils|fixtures|testChart|browserTesting)\.\w+$|\/_test\//
 const IMPORT = /(?:from|import)\s*\(?\s*['"`]((?:\.{1,2}|@)\/[^'"`]+)['"`]/g
 
 // build:quiet is pnpm dev's build. The docs build hashes its source with the
