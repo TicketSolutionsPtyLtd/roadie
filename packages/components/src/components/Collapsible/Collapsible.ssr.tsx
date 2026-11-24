@@ -9,3 +9,16 @@ export const ClampedText = () => (
     </Collapsible.Text>
   </Collapsible>
 )
+
+const panel = (defaultOpen: boolean) => () => (
+  <Collapsible defaultOpen={defaultOpen}>
+    <Collapsible.Trigger>Show all ticket types</Collapsible.Trigger>
+    <Collapsible.Panel>
+      <p>General admission, $68.00</p>
+      <p>VIP, $120.00</p>
+    </Collapsible.Panel>
+  </Collapsible>
+)
+
+export const PanelOpen = panel(true)
+export const PanelClosed = panel(false)
