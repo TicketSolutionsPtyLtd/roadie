@@ -52,22 +52,31 @@ const FilteredRows = lazy(loadRows)
 export function useVirtualListRoot(virtualized: boolean | undefined) {
   const scrollToIndex = useRef<ScrollToIndex | null>(null)
   // Base UI clears a pointer's highlight when its row scrolls out of the
-  // window and unmounts, then highlights the first row again with no reason.
-  // Following that would snap the list to its top as someone scrolls it, so
-  // after a pointer only the keyboard scrolls it, until it opens again.
-  const pointed = useRef(false)
+  // window and unmounts, or the pointer leaves, then straight away highlights
+  // the first row with no reason. Following that would snap the list back to
+  // its top as someone scrolls it, so a highlight in the two frames after a
+  // pointer clears one is let be, unless it's the keyboard's.
+  const cleared = useRef(0)
   useEffect(() => {
     if (virtualized) void loadRows()
   }, [virtualized])
   function handleHighlight(details: { reason: string; index: number }) {
     if (details.reason === 'pointer') {
-      pointed.current = true
+      if (details.index < 0) holdAfterClear()
       return
     }
-    const follows = details.reason === 'keyboard' || !pointed.current
-    pointed.current = false
-    if (virtualized && follows && details.index >= 0)
+    const held = cleared.current !== 0 && details.reason !== 'keyboard'
+    cleared.current = 0
+    if (virtualized && !held && details.index >= 0)
       scrollToIndex.current?.(details.index)
+  }
+  function holdAfterClear() {
+    const hold = (cleared.current += 1)
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (cleared.current === hold) cleared.current = 0
+      })
+    )
   }
   /**
    * Call on a typed query. Base UI returns a list it doesn't window to its
@@ -76,13 +85,9 @@ export function useVirtualListRoot(virtualized: boolean | undefined) {
   function handleTyped() {
     if (virtualized) scrollToIndex.current?.(0)
   }
-  /** Call as the list opens, so it follows the highlight it opens on. */
-  function handleOpen() {
-    pointed.current = false
-  }
   return [
     virtualized ? scrollToIndex : null,
-    { handleHighlight, handleTyped, handleOpen }
+    { handleHighlight, handleTyped }
   ] as const
 }
 

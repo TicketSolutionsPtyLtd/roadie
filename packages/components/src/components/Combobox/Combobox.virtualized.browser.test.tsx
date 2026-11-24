@@ -155,6 +155,23 @@ describe('Combobox virtualized', () => {
     expect(row.bottom).toBeLessThanOrEqual(box.bottom + 1)
   })
 
+  it('stays where it is scrolled with the pointer resting on a venue', async () => {
+    render(<Venues />)
+    await userEvent.click(screen.getByRole('combobox'))
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    const popup = document.querySelector<HTMLElement>(
+      '[data-slot="combobox-popup"]'
+    )!
+    const scroller = [popup, ...popup.querySelectorAll<HTMLElement>('*')].find(
+      (element) => element.scrollHeight > element.clientHeight + 1
+    )!
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    scroller.scrollTop = 2000
+    await settleOnceGone(hovered, scroller)
+    expect(scroller.scrollTop).toBeGreaterThan(1500)
+  })
+
   it('stays where it is scrolled after a second keystroke keeps the first match', async () => {
     render(<Venues />)
     await userEvent.click(screen.getByRole('combobox'))

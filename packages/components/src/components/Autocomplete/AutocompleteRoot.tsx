@@ -71,8 +71,7 @@ export function AutocompleteRoot({
     props.defaultOpen,
     (open: boolean, details: OpenChangeDetails) => {
       onOpenChange?.(open, details)
-      if (open) virtualList.handleOpen()
-      else resetTyped(details)
+      if (!open) resetTyped(details)
     }
   )
   return (

@@ -86,8 +86,7 @@ export function ComboboxRoot<
     props.defaultOpen,
     (open: boolean, details: OpenChangeDetails) => {
       onOpenChange?.(open, details)
-      if (open) virtualList.handleOpen()
-      else resetTyped(details)
+      if (!open) resetTyped(details)
       handleRankOpenChange(open, details)
     }
   )

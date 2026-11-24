@@ -85,6 +85,40 @@ function GroupedVenues({
   )
 }
 
+function ScopedVenues() {
+  return (
+    <CommandPalette
+      defaultOpen
+      shortcut={false}
+      items={GROUPS.map((group) => ({ ...group, scope: group.label }))}
+      virtualized
+    >
+      <CommandPalette.Input placeholder='Search venues' />
+      <CommandPalette.Scopes>
+        {GROUPS.map((group) => (
+          <CommandPalette.Scope key={group.label} value={group.label}>
+            {group.label}
+          </CommandPalette.Scope>
+        ))}
+      </CommandPalette.Scopes>
+      <CommandPalette.List>
+        {(group: (typeof GROUPS)[number]) => (
+          <CommandPalette.Group key={group.label} items={group.items}>
+            <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+            <CommandPalette.Collection>
+              {(venue: string) => (
+                <CommandPalette.Item key={venue} value={venue}>
+                  {venue}
+                </CommandPalette.Item>
+              )}
+            </CommandPalette.Collection>
+          </CommandPalette.Group>
+        )}
+      </CommandPalette.List>
+    </CommandPalette>
+  )
+}
+
 const labels = () =>
   Array.from(
     document.querySelectorAll<HTMLElement>(
@@ -329,6 +363,24 @@ describe('CommandPalette virtualized', () => {
             ?.textContent
       )
       .toBe(VENUES[4])
+  })
+  it('shows the first match of a scope picked after the pointer rested on a command', async () => {
+    render(<ScopedVenues />)
+    await expect.poll(() => options().length).toBeGreaterThan(0)
+    const list = screen.getByRole('listbox')
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    list.scrollTop = 2000
+    await settleOnceGone(hovered, list)
+    await userEvent.click(screen.getByRole('button', { name: 'Rooms' }))
+    await expect
+      .poll(
+        () =>
+          document.querySelector('[role="option"][data-highlighted]')
+            ?.textContent
+      )
+      .toBe(VENUES[700])
+    await expect.poll(highlightedInView).toBe(true)
   })
 })
 
