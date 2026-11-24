@@ -15,7 +15,8 @@ const TEST = /\.test\.[cm]?[jt]sx?$/
 const NOT_JSDOM = /\.(?:browser|e2e|perf)\.test\./
 const BROWSER_TEST = /\.browser\.test\.[cm]?[jt]sx?$/
 const PERF_TEST = /\.perf\.browser\.test\./
-// Core has no browser tests: components' CSS suite tests its foundations.
+// Core's own browser tests don't cover its CSS: components' CSS suite tests its
+// foundations.
 const CORE_CSS = /^packages\/core\/src\/css\/.*\.css$/
 const CSS_SUITE = { short: 'components', folder: 'src/css/' }
 // core's vitest config runs these folders' tests, and its parity guards read skills/.
