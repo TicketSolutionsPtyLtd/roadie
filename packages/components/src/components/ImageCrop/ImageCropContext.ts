@@ -18,7 +18,8 @@ export type CommitOptions = {
 export type ImageCropContextValue = {
   /** The image URL, once a Blob has one. */
   src?: string
-  aspectRatio: number
+  /** The frame's ratio, or none for free-form. */
+  aspectRatio?: number
   shape: ImageCropShape
   min?: CropSize
   label: string

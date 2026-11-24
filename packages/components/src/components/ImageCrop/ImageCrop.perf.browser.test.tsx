@@ -81,6 +81,55 @@ describe('ImageCrop pans and pinches at 60fps on a slowed CPU', () => {
       root.querySelector('[data-slot="image-crop-size"]')!.textContent
     ).not.toBe('2400 × 1200px')
   })
+
+  it('resizes a free-form corner in and out for two seconds', async () => {
+    const photo = await makePhoto(2400, 1600)
+    const root = await mount(
+      <EventPage>
+        <div style={{ width: 640 }}>
+          <ImageCrop src={photo} label='Homepage image' />
+        </div>
+      </EventPage>,
+      { frames: 5 }
+    )
+    await expect
+      .poll(() => root.querySelector('[data-slot="image-crop-size"]'))
+      .not.toBeNull()
+    const handle = root.querySelector<HTMLElement>(
+      '[aria-label="Bottom right corner"]'
+    )!
+    const box = handle.getBoundingClientRect()
+    const send = (type: string, x: number, y: number) =>
+      handle.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 1,
+          pointerType: 'touch',
+          clientX: box.left + box.width / 2 + x,
+          clientY: box.top + box.height / 2 + y,
+          bubbles: true,
+          cancelable: true
+        })
+      )
+    const frames = 120
+    await expectFrameBudget(
+      'ImageCrop, free-form resize',
+      await measureFrames(
+        (index) => {
+          const t = index / frames
+          // In by up to 160 × 100px and back out, past the image near the end.
+          const x = -Math.sin(t * Math.PI) * 160
+          const y = -Math.sin(t * Math.PI) * 100 + t * 30
+          if (index === 0) send('pointerdown', 0, 0)
+          else if (index < frames) send('pointermove', x, y)
+          else send('pointerup', x, y)
+        },
+        { frames: frames + 1 }
+      )
+    )
+    expect(
+      root.querySelector('[data-slot="image-crop-size"]')!.textContent
+    ).not.toBe('2400 × 1600px')
+  })
 })
 
 describe('ImageCrop straightens at 60fps on a slowed CPU', () => {
