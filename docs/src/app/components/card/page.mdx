@@ -368,6 +368,76 @@ Every card has a `Card.Content`, which holds its body. `Card.Header` above it an
 </Card>
 ```
 
+### A document
+
+A card with no `href`, `onClick`, or `Card.Link` is a static surface: nothing
+in it responds to hover, press, or focus. That makes it the surface for a
+document, such as a tax invoice or a booking confirmation. Render it as an
+`<article>`, and set `Card.Content`'s padding with `className`, which replaces
+the default: tighter on a phone, roomier from `sm`.
+
+```tsx-live
+<Card render={<article />} className='max-w-xl'>
+  <Card.Content className='grid gap-6 p-5 text-sm sm:p-8'>
+    <header className='flex flex-wrap items-start justify-between gap-4'>
+      <Logo size='md' />
+      <div className='ms-auto grid gap-0.5 text-end'>
+        <p className='text-xs font-medium text-subtle'>Tax invoice</p>
+        <p className='text-display-ui-5 text-strong tabular-nums'>Order 1042</p>
+        <p className='text-subtle'>12 Mar 2026, 7:41 pm</p>
+      </div>
+    </header>
+    <dl className='grid gap-4 border-y border-subtle py-4 sm:grid-cols-2'>
+      <div className='grid content-start gap-0.5'>
+        <dt className='text-xs text-subtle'>Sold by</dt>
+        <dd className='text-strong'>Oztix</dd>
+      </div>
+      <div className='grid content-start gap-0.5'>
+        <dt className='text-xs text-subtle'>Billed to</dt>
+        <dd className='text-strong'>Sam Okafor</dd>
+        <dd className='text-subtle'>sam@example.com</dd>
+      </div>
+    </dl>
+    <section className='grid gap-3' aria-label='Quokka Thunder Weekender'>
+      <div className='grid gap-0.5'>
+        <p className='font-medium text-strong'>Quokka Thunder Weekender</p>
+        <p className='text-subtle'>Fri 3 to Sun 5 Apr 2026, Jumbuck Orchard Park</p>
+      </div>
+      <ul className='grid gap-3'>
+        <li className='flex items-start justify-between gap-4'>
+          <span className='grid gap-0.5'>
+            <span className='text-strong'>3-day pass</span>
+            <span className='text-xs text-subtle tabular-nums'>2 × $289.00</span>
+          </span>
+          <span className='shrink-0 text-strong tabular-nums'>$578.00</span>
+        </li>
+        <li className='flex items-start justify-between gap-4'>
+          <span className='grid gap-0.5'>
+            <span className='text-strong'>Camping</span>
+            <span className='text-xs text-subtle tabular-nums'>1 × $95.00</span>
+          </span>
+          <span className='shrink-0 text-strong tabular-nums'>$95.00</span>
+        </li>
+      </ul>
+    </section>
+    <div className='grid gap-2 rounded-lg p-4 emphasis-sunken'>
+      <div className='flex justify-between gap-4'>
+        <span className='text-subtle'>Booking fees</span>
+        <span className='text-strong tabular-nums'>$18.30</span>
+      </div>
+      <div className='flex items-baseline justify-between gap-4 border-t border-subtle pt-3'>
+        <span className='text-display-ui-6 text-strong'>Total</span>
+        <span className='text-display-ui-5 text-strong tabular-nums'>$691.30</span>
+      </div>
+      <p className='text-end text-xs text-subtle tabular-nums'>Includes GST of $62.85</p>
+    </div>
+    <p className='text-xs text-subtler'>
+      This is not a ticket and can't be used for entry.
+    </p>
+  </Card.Content>
+</Card>
+```
+
 ### With a main link
 
 `href` on `Card` makes the whole card one link, so nothing else inside it can be a link or a button. When a card also holds other actions, wrap its title in `Card.Link` instead. The link covers the card, so a click anywhere follows it, and the other links and buttons sit above it and stay clickable. The card takes its hover, press and focus states from the link, and screen readers hear a short link named by the title rather than the whole card.
