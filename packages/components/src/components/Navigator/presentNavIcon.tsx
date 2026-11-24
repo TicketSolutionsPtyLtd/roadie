@@ -16,7 +16,7 @@ type NavIconProps = {
 }
 
 // Duotone is the Navigator exception to the bold default (AGENTS.md → Iconography),
-// for primary destinations only; a secondary row keeps the weight it was given.
+// for primary destinations only.
 export function presentNavIcon(
   icon: ReactNode,
   size: string,
@@ -31,10 +31,15 @@ export function presentNavIcon(
   })
 }
 
+// A secondary row keeps the weight it was given. Phosphor defaults to regular,
+// and the lint rule lets a Navigator.Item take a bare icon, so bold fills the gap.
 export function presentSecondaryIcon(icon: ReactNode, size: string): ReactNode {
   if (!isValidElement<NavIconProps>(icon)) return icon
   const el = icon as ReactElement<NavIconProps>
-  return cloneElement(el, { className: cn(el.props.className, size) })
+  return cloneElement(el, {
+    weight: el.props.weight ?? 'bold',
+    className: cn(el.props.className, size)
+  })
 }
 
 export function badgeDot(badge: ReactElement<BadgeProps>): ReactElement {

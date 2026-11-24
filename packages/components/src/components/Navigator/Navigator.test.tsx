@@ -442,7 +442,7 @@ describe('destination visuals', () => {
     expect(within(tab).getByText('A')).toHaveClass('sr-only')
   })
 
-  it('leaves secondary-pane row icons at the weight given, sized size-5', async () => {
+  it('draws secondary-pane row icons bold unless given a weight, sized size-5', async () => {
     render(
       <Navigator value='/c'>
         <Navigator.Primary aria-label='Main'>
@@ -470,7 +470,7 @@ describe('destination visuals', () => {
     const icons = document.querySelectorAll(
       '[data-slot="navigator-secondary-items"] [data-testid="fake-icon"]'
     )
-    expect(icons[0]).toHaveAttribute('data-weight', 'none')
+    expect(icons[0]).toHaveAttribute('data-weight', 'bold')
     expect(icons[1]).toHaveAttribute('data-weight', 'fill')
     expect(icons[0]).toHaveClass('size-5', 'text-subtle')
   })
