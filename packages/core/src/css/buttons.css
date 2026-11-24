@@ -25,13 +25,19 @@
     width: 1rem;
     height: 1rem;
   }
+}
 
+/* Not in @utility btn: a utility's declarations decide where class sorting
+   puts it, and these would move `btn` ahead of `is-interactive` in every
+   app's markup. The utilities layer, so the undimming below outranks
+   is-interactive's disabled state. */
+@layer utilities {
   /* Pending: the action is under way (Button's `pending`, or `aria-busy` on
-     any .btn, so the look never comes without the semantics). The label keeps
-     its box, so the size holds. After 200ms, so a fast response never flashes
-     a loader, its ink fades and a ring in its colour spins in its place.
-     Reduced motion leaves the ring still. */
-  &[aria-busy='true'] {
+       any .btn, so the look never comes without the semantics). The label keeps
+       its box, so the size holds. After 200ms, so a fast response never flashes
+       a loader, its ink fades and a ring in its colour spins in its place.
+       Reduced motion leaves the ring still. */
+  .btn[aria-busy='true'] {
     animation: btn-pending-ink var(--duration-normal) var(--ease-exit)
       var(--duration-moderate) forwards;
 
@@ -42,9 +48,9 @@
     }
 
     /* Absolute with no insets: a flex container centres the static position,
-       so the button needn't become a containing block and a positioning class
-       on it still wins. ::before, since an interactive-within target's
-       overlay is ::after. */
+         so the button needn't become a containing block and a positioning class
+         on it still wins. ::before, since an interactive-within target's
+         overlay is ::after. */
     &::before {
       content: '';
       position: absolute;
@@ -62,7 +68,7 @@
   }
 
   /* Busy reads as working, not unavailable, so undo the disabled dimming. */
-  &[aria-busy='true']:is(:disabled, [data-disabled]) {
+  .btn[aria-busy='true']:is(:disabled, [data-disabled]) {
     opacity: 1;
     filter: none;
   }
