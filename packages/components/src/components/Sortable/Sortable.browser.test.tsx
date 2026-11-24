@@ -20,7 +20,7 @@ import { keepFramesRunning, releaseDragPointer } from '../../css/testUtils'
 import { List } from '../List'
 import { useStylesheet } from '../Pane/testUtils'
 import { Popover } from '../Popover'
-import { Lanes, type Transfer, listed } from './lanes.testUtils'
+import { Lanes, type Transfer, listed } from './lanesTestUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
