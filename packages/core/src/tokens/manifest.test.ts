@@ -148,6 +148,31 @@ describe('values', () => {
     expect(find('--intent-2a').byIntent?.neutral).toBeUndefined()
   })
 
+  it('scopes own-scale substitution to each top-level block without order dependence', () => {
+    const { tokens } = parseTokenManifest([
+      [
+        'test.css',
+        `
+        :root {
+          --intent-1: var(--color-neutral-1);
+          --intent-bg-normal: var(--intent-1);
+        }
+        :root {
+          --intent-1: var(--color-brand-1);
+          --intent-text-normal: var(--intent-1);
+        }
+        `
+      ]
+    ])
+    const get = (name: string) => tokens.find((t) => t.name === name)?.value
+    expect(get('--intent-bg-normal')).toEqual({
+      light: 'var(--color-neutral-1)'
+    })
+    expect(get('--intent-text-normal')).toEqual({
+      light: 'var(--color-brand-1)'
+    })
+  })
+
   it('keeps a token declared only in an @supports not block', () => {
     const { tokens } = parseTokenManifest([
       ['test.css', ':root { @supports not (x: y) { --only-fallback: red; } }']
