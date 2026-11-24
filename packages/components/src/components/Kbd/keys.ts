@@ -1,21 +1,22 @@
-import type { Icon } from '@phosphor-icons/react'
-import {
-  ArrowDownIcon,
-  ArrowFatUpIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  ArrowUpIcon,
-  BackspaceIcon,
-  CommandIcon,
-  ControlIcon,
-  KeyReturnIcon,
-  OptionIcon
-} from '@phosphor-icons/react/ssr'
+import type { ComponentType } from 'react'
 
+import {
+  ArrowDownGlyph,
+  ArrowFatUpGlyph,
+  ArrowLeftGlyph,
+  ArrowRightGlyph,
+  ArrowUpGlyph,
+  BackspaceGlyph,
+  CommandGlyph,
+  ControlGlyph,
+  type GlyphProps,
+  KeyReturnGlyph,
+  OptionGlyph
+} from './glyphs'
 import type { KeyPlatform } from './platform'
 
 export type KeyFace = {
-  glyph?: Icon
+  glyph?: ComponentType<GlyphProps>
   label?: string
   /** What a screen reader says for the key. */
   name: string
@@ -26,34 +27,34 @@ export type KeyFace = {
 type PlatformFaces = Record<KeyPlatform, KeyFace>
 
 const FACES: Record<string, KeyFace | PlatformFaces> = {
-  enter: { glyph: KeyReturnIcon, label: 'Enter', name: 'Enter' },
+  enter: { glyph: KeyReturnGlyph, label: 'Enter', name: 'Enter' },
   escape: { label: 'Esc', name: 'Escape' },
   tab: { label: 'Tab', name: 'Tab' },
   space: { label: 'Space', name: 'Space' },
-  backspace: { glyph: BackspaceIcon, name: 'Backspace' },
+  backspace: { glyph: BackspaceGlyph, name: 'Backspace' },
   delete: { label: 'Del', name: 'Delete' },
-  arrowup: { glyph: ArrowUpIcon, name: 'Up arrow' },
-  arrowdown: { glyph: ArrowDownIcon, name: 'Down arrow' },
-  arrowleft: { glyph: ArrowLeftIcon, name: 'Left arrow' },
-  arrowright: { glyph: ArrowRightIcon, name: 'Right arrow' },
+  arrowup: { glyph: ArrowUpGlyph, name: 'Up arrow' },
+  arrowdown: { glyph: ArrowDownGlyph, name: 'Down arrow' },
+  arrowleft: { glyph: ArrowLeftGlyph, name: 'Left arrow' },
+  arrowright: { glyph: ArrowRightGlyph, name: 'Right arrow' },
   mod: {
-    apple: { glyph: CommandIcon, name: 'Command' },
+    apple: { glyph: CommandGlyph, name: 'Command' },
     other: { label: 'Ctrl', name: 'Control' }
   },
   meta: {
-    apple: { glyph: CommandIcon, name: 'Command' },
+    apple: { glyph: CommandGlyph, name: 'Command' },
     other: { label: 'Win', name: 'Windows' }
   },
   shift: {
-    apple: { glyph: ArrowFatUpIcon, name: 'Shift' },
+    apple: { glyph: ArrowFatUpGlyph, name: 'Shift' },
     other: { label: 'Shift', name: 'Shift' }
   },
   alt: {
-    apple: { glyph: OptionIcon, name: 'Option' },
+    apple: { glyph: OptionGlyph, name: 'Option' },
     other: { label: 'Alt', name: 'Alt' }
   },
   ctrl: {
-    apple: { glyph: ControlIcon, name: 'Control' },
+    apple: { glyph: ControlGlyph, name: 'Control' },
     other: { label: 'Ctrl', name: 'Control' }
   }
 }
