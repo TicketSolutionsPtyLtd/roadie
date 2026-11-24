@@ -1061,8 +1061,12 @@ describe('ImageCrop in free-form', () => {
     expect(area.x + area.width / 2).toBeCloseTo(1200, 0)
     expect(area.y + area.height / 2).toBeCloseTo(800, 0)
     // Taller than the bounds' shape now, so it fills their height.
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    // The frame springs to the new shape after the release renders, and a
+    // slow engine can read it before the spring starts or mid-overshoot.
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    })
     await waitFor(() => expectCovered(stage))
   })
 
