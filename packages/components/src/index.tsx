@@ -125,6 +125,10 @@ export {
   ImageCrop,
   type ImageCropProps,
   type ImageCropStageProps,
+  type ImageCropControlsProps,
+  type ImageCropZoomProps,
+  type ImageCropRotateProps,
+  type ImageCropResetProps,
   type ImageCropShape,
   type ImageCropValue
 } from './components/ImageCrop'
