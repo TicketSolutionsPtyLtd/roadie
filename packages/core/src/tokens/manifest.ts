@@ -353,7 +353,7 @@ export function parseTokenManifest(
       found.findLast((o) => !o.dark)
     )
   }
-  const OWN_SCALE = /var\((--intent-\d+|--_[\w-]+)\)/g
+  const OWN_SCALE = /var\((--intent-\d+|--_mix-[\w-]+)\)/g
   // A value that reads a step dark mode sets again changes in dark mode too.
   for (const d of declarations.filter((o) => !o.dark && !o.unsupported)) {
     const darkAgain = [...d.value.matchAll(OWN_SCALE)].some(
