@@ -15,7 +15,6 @@ import { CaretLeftIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { isEmptyNode } from '../../utils/isEmptyNode'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { IconButton } from '../Button/IconButton'
@@ -47,7 +46,7 @@ export type PaneHeaderProps = ComponentProps<'header'> & {
 const backIcon = <CaretLeftIcon weight='bold' className='size-5' />
 const closeIcon = <XIcon weight='bold' className='size-5' />
 
-/** Sticky chrome at the top of a pane: Back, a compact title, and actions. */
+/** Sticky chrome at the top of a pane: Back, a compact title, and actions. Always one control tall, even empty, so the server's first paint is where the pane settles. */
 export function PaneHeader({
   backHref,
   backLabel,
@@ -108,19 +107,7 @@ export function PaneHeader({
       '[Roadie] Pane.Header has a Pane.Title and the pane a Pane.BodyTitle; the Pane.Title wins.'
   )
 
-  const hasOtherContent = !isEmptyNode(children) || bodyTitle !== null
-  const visible = showBack || showClose || hasOtherContent
-  const edgeOnly = hasOtherContent
-    ? 'none'
-    : showBack && showClose
-      ? 'both'
-      : showBack
-        ? 'back'
-        : showClose
-          ? 'close'
-          : 'none'
-
-  // DOM walk: the pane's ref attaches after this effect. Keyed on `visible`, as headers come and go.
+  // DOM walk: the pane's ref attaches after this effect.
   useLayoutEffect(() => {
     const header = headerRef.current
     // In the inspector's drawer there's no pane, so the drawer carries it.
@@ -146,9 +133,7 @@ export function PaneHeader({
       untrack?.()
       paneEl.style.removeProperty('--pane-header-height')
     }
-  }, [visible, inDrawer, trackHeader])
-
-  if (!visible) return null
+  }, [inDrawer, trackHeader])
 
   return (
     <header
@@ -156,7 +141,7 @@ export function PaneHeader({
       data-slot='pane-header'
       data-collapsed={String(collapsed)}
       className={cn(
-        paneHeaderVariants({ edgeOnly, collapsed }),
+        paneHeaderVariants({ collapsed }),
         inDrawer && paneHeaderInDrawerClass,
         className
       )}

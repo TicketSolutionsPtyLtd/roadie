@@ -394,9 +394,7 @@ describe('Navigator server render of depths', () => {
       'href',
       '/tickets/glamping'
     )
-    expect(sam!.querySelector('[data-slot="pane-header"]')).toHaveClass(
-      '[display:var(--pane-edge)]'
-    )
+    expect(sam!.querySelector('[data-slot="pane-header"]')).toHaveClass('grid')
   })
 
   it('hydrates without a mismatch or a depth change', async () => {
