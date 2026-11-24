@@ -28,6 +28,8 @@ declare module 'vitest/browser' {
       /** Keeps the finger still at `to` this long before lifting. */
       options?: { holdMs?: number }
     ) => Promise<void>
+    /** The HTML Node renders for one export of a fixture file under src. */
+    serverRender: (file: string, name: string) => Promise<string>
   }
 }
 
