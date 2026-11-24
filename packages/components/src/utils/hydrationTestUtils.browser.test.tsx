@@ -9,16 +9,20 @@ import { hydrationShift } from './hydrationTestUtils'
 // Chromium only, as its one caller is: Linux WebKit runs no frames while idle.
 const it = test.skipIf(server.browser !== 'chromium')
 
-/** `render(true)` a frame after hydrating, as an effect that measures does. */
+/** `render(true)` after four re-renders a frame apart, as chained effects do. */
 function Probe({ render }: { render: (mounted: boolean) => ReactNode }) {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => void requestAnimationFrame(() => setMounted(true)), [])
-  return render(mounted)
+  const [step, setStep] = useState(0)
+  useEffect(() => {
+    if (step < 4) requestAnimationFrame(() => setStep(step + 1))
+  }, [step])
+  return <div data-step={step}>{render(step === 4)}</div>
 }
 
 const box = (slot: string, height = 40, transition?: string) => (
   <div key={slot} data-slot={slot} style={{ height, transition }} />
 )
+const pause = (element: HTMLElement | null) =>
+  void element?.animate({ opacity: [0, 1] }, 1000).pause()
 const room = (...slots: ReactNode[]) => (
   <div style={{ height: 120 }}>{slots}</div>
 )
@@ -27,6 +31,11 @@ it.each<[string, (mounted: boolean) => ReactNode, string[]]>([
   [
     'nothing for a slot that appears in room already there',
     (mounted) => room(box('body'), box('late', mounted ? 40 : 0)),
+    []
+  ],
+  [
+    'nothing for an animation left paused',
+    () => room(box('body'), <div key='paused' ref={pause} />),
     []
   ],
   [

@@ -4,22 +4,31 @@ import { type Root, hydrateRoot } from 'react-dom/client'
 
 type Shot = Map<Element, { label: string; box: DOMRect }>
 
-// One more than the audit's 38 fixtures needed: each had settled within two.
-const SETTLE_FRAMES = 3
+// Settled is this many frames in a row with no DOM change and no transition.
+const QUIET_FRAMES = 3
 
 const hasBox = ({ width, height }: DOMRect) => width >= 1 && height >= 1
 const tenths = (value: number) => Math.round(value * 10) / 10
 
-/** `frames` frames, then any transition they started; never an endless one. */
-async function settle(host: HTMLElement, frames: number) {
-  for (let frame = 0; frame < frames; frame++)
-    await new Promise(requestAnimationFrame)
-  await Promise.all(
-    host
-      .getAnimations({ subtree: true })
-      .filter(({ effect }) => effect?.getComputedTiming().endTime !== Infinity)
-      .map((animation) => animation.finished.catch(() => {}))
-  )
+// A paused or endless animation never finishes, so neither is waited for.
+const ends = ({ playState, effect }: Animation) =>
+  playState === 'running' && effect?.getComputedTiming().endTime !== Infinity
+
+/** Resolves once effects, observers and the transitions they start are done. */
+async function settle(host: HTMLElement) {
+  let changed = true
+  const observer = new MutationObserver(() => (changed = true))
+  observer.observe(host, { subtree: true, childList: true, attributes: true })
+  for (let round = 0; changed; round++) {
+    if (round === 20) throw new Error('Still changing after 60 frames')
+    changed = false
+    for (let frame = 0; frame < QUIET_FRAMES; frame++)
+      await new Promise(requestAnimationFrame)
+    const easing = host.getAnimations({ subtree: true }).filter(ends)
+    changed ||= easing.length > 0
+    await Promise.all(easing.map(({ finished }) => finished.catch(() => {})))
+  }
+  observer.disconnect()
 }
 
 function measure(host: HTMLElement): Shot {
@@ -82,7 +91,7 @@ export async function hydrationShift(html: string, ui: ReactElement) {
     host.append(document.createRange().createContextualFragment(html))
     // Every face settles first, so a late font can't pass for a shift.
     await Promise.allSettled([...document.fonts].map((face) => face.load()))
-    await settle(host, 1)
+    await settle(host)
     const server = measure(host)
     console.error = report
     await new Promise<void>((onHydrated, onUncaughtError) => {
@@ -90,7 +99,7 @@ export async function hydrationShift(html: string, ui: ReactElement) {
       const tree = <Hydrated onHydrated={onHydrated}>{ui}</Hydrated>
       root = hydrateRoot(host, tree, { onRecoverableError, onUncaughtError })
     })
-    await settle(host, SETTLE_FRAMES)
+    await settle(host)
     return [...errors, ...shifts(server, measure(host))]
   } finally {
     console.error = consoleError
