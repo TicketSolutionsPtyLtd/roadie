@@ -1,5 +1,5 @@
 {
-  ".": { "own": 219282, "full": 445879, "initial": 406413 },
+  ".": { "own": 220293, "full": 446829, "initial": 407159 },
   "./accordion": { "own": 1782, "full": 10655, "initial": 10655 },
   "./autocomplete": { "own": 7464, "full": 66457, "initial": 54098 },
   "./avatar": { "own": 2129, "full": 14676, "initial": 14676 },
@@ -37,7 +37,7 @@
   "./highlight": { "own": 1044, "full": 9370, "initial": 9370 },
   "./icon-tile": { "own": 568, "full": 8953, "initial": 8953 },
   "./image": { "own": 2709, "full": 11162, "initial": 11162 },
-  "./image-crop": { "own": 10543, "full": 32839, "initial": 32839 },
+  "./image-crop": { "own": 11611, "full": 33925, "initial": 33925 },
   "./input": { "own": 415, "full": 8809, "initial": 8809 },
   "./kbd": { "own": 2436, "full": 14430, "initial": 14430 },
   "./label": { "own": 154, "full": 8377, "initial": 8377 },
