@@ -78,7 +78,7 @@ describe('test:gated stays in step with CI', () => {
   })
 
   test('filters no project where a CI script runs them all', () => {
-    assert.deepEqual(ciProjects(scriptsOf('packages/core')), [])
+    assert.deepEqual(ciProjects(scriptsOf('packages/lint-plugin')), [])
     assert.deepEqual(
       ciProjects({
         test: 'vitest run --project node',

@@ -17,13 +17,13 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { useImageCropContext } from './ImageCropContext'
 import {
+  type CropHandle,
   type CropScene,
+  dragCrop,
   fitCrop,
   fitFrame,
   moveTo,
   panBy,
-  resizeArea,
-  resizeTo,
   rotateBy,
   sameCrop,
   stretchCrop,
@@ -54,7 +54,7 @@ const corners = [
 
 // The handles of a free-form frame: which way each side moves, where it
 // sits, and its corner mark.
-type Edge = { x: -1 | 0 | 1; y: -1 | 0 | 1 }
+type Edge = CropHandle
 const cornerHandles: (Edge & { name: string; place: string; mark: string })[] =
   [
     {
@@ -157,12 +157,11 @@ export function ImageCropStage({
     at: number
     moved: boolean
   }>(null)
-  // A handle being dragged: which one, and the crop and frame it started at.
+  // A handle being dragged: which one, and the crop it started at.
   const resizing = useRef<{
     pointerId: number
     edge: Edge
     start: ImageCropValue
-    frame: CropSize
     from: Point
   }>(null)
   const lastTap = useRef<{ at: number } & Point>(null)
@@ -203,25 +202,27 @@ export function ImageCropStage({
   const latest = useRef({ scene, shown, stage, crop, plain: false })
 
   // Mid-gesture only the transform and the size change, written here rather
-  // than rendered.
-  const paint = (value: ImageCropValue) => {
+  // than rendered. `offset` moves the image with a frame off centre.
+  const paint = (value: ImageCropValue, offset?: Point) => {
     const size = latest.current.scene?.image
     if (!imageRef.current || !size) return
     let angle = value.rotation
     while (angle - turn.current > 180) angle -= 360
     while (angle - turn.current < -180) angle += 360
     turn.current = angle
-    imageRef.current.style.transform = transformOf(value, size, angle)
+    imageRef.current.style.transform = transformOf(value, size, angle, offset)
     // The chip says something else at the cap, and the render owns that.
     if (sizeRef.current && latest.current.plain)
       sizeRef.current.textContent = sizeOf(value)
   }
 
-  const paintFrame = (size: CropSize) => {
+  const paintFrame = (size: CropSize, offset?: Point) => {
     const element = frameRef.current
     if (!element) return
     element.style.width = `${size.width}px`
     element.style.height = `${size.height}px`
+    element.style.left = offset ? `calc(50% + ${offset.x}px)` : ''
+    element.style.top = offset ? `calc(50% + ${offset.y}px)` : ''
   }
 
   const unsettle = () => {
@@ -500,9 +501,10 @@ export function ImageCropStage({
     finish(true)
   }
 
-  // A handle drag resizes the frame about its centre at the zoom it started
-  // at. On release the frame grows back to fill the stage, and the image
-  // zooms with it.
+  // A handle drag moves its corner or edge while the opposite one stays put,
+  // or resizes about the centre with Alt, at the zoom it started at. Past the
+  // stage the image zooms out to fit. On release the frame springs back to
+  // the centre and grows to fill the stage, and the image zooms with it.
   const startResize = (event: PointerEvent<HTMLElement>, edge: Edge) => {
     if (!scene || !shown || gesture.current) return
     if (event.pointerType === 'mouse' && event.button !== 0) return
@@ -520,7 +522,6 @@ export function ImageCropStage({
       edge,
       // A wheel zoom still settling carries on as this resize, reported once.
       start: live.current?.value ?? shown,
-      frame: scene.frame,
       from: { x: event.clientX, y: event.clientY }
     }
     setActive(true)
@@ -530,22 +531,18 @@ export function ImageCropStage({
     const r = resizing.current
     if (!r || r.pointerId !== event.pointerId || !scene?.bounds || !stage)
       return
-    const side = (key: 'width' | 'height', axis: 'x' | 'y', client: number) =>
-      Math.min(
-        Math.max(
-          r.frame[key] + 2 * (client - r.from[axis]) * r.edge[axis],
-          MIN_FRAME
-        ),
-        scene.bounds![key]
-      )
-    const size = {
-      width: side('width', 'x', event.clientX),
-      height: side('height', 'y', event.clientY)
-    }
-    const { clamped, painted } = resizeTo(r.start, size, scene, stage)
+    const { value, frame, offset } = dragCrop(
+      r.start,
+      r.edge,
+      { x: event.clientX - r.from.x, y: event.clientY - r.from.y },
+      { ...scene, bounds: scene.bounds },
+      { centred: event.altKey, minFrame: MIN_FRAME }
+    )
+    const sized = { ...scene, frame }
+    const { clamped, painted } = stretchCrop(value, sized, stage)
     live.current = { src: crop.src, value: clamped }
-    paint(painted)
-    paintFrame(size)
+    paint(painted, offset)
+    paintFrame(frame, offset)
   }
 
   const endResize = (event: PointerEvent<HTMLElement>) => {
@@ -554,29 +551,31 @@ export function ImageCropStage({
     finish(true)
   }
 
-  // Arrows move a corner, so the crop grows as the corner moves out.
+  // Arrows move a corner as a drag does, so the crop grows as the corner
+  // moves out. The frame then fits the stage again. There's no Alt here, as
+  // Alt and an arrow go back or forward a page on Windows and Linux.
   const handleResizeKey = (event: KeyboardEvent<HTMLElement>, edge: Edge) => {
     const dir = resizeKeys[event.key]
     if (!dir || !scene?.bounds || !shown) return
     event.preventDefault()
     if (gesture.current || live.current) return
-    const step = (2 * (event.shiftKey ? 50 : 10)) / shown.zoom
-    const dw = step * dir[0] * edge.x
-    const dh = step * dir[1] * edge.y
-    // A side stops at two handles' width on screen, as a drag does.
-    const side = (key: 'width' | 'height', d: number) =>
-      Math.max(
-        shown.area[key] + d,
-        Math.min(shown.area[key], MIN_FRAME / shown.zoom)
-      )
-    const next = resizeArea(
+    const step = event.shiftKey ? 50 : 10
+    const by = { x: step * dir[0], y: step * dir[1] }
+    const { value, frame } = dragCrop(
       shown,
-      { width: side('width', dw), height: side('height', dh) },
-      { ...scene, bounds: scene.bounds }
+      edge,
+      by,
+      { ...scene, bounds: scene.bounds },
+      { minFrame: MIN_FRAME }
     )
+    const ratio = frame.width / frame.height
+    const next = fitCrop(value, {
+      ...scene,
+      frame: fitFrame(scene.bounds, ratio, 0)
+    })
     unsettle()
     if (!sameCrop(next, shown)) crop.commit(next, { animate: true })
-    else if (dw + dh < 0) crop.nudge()
+    else if (by.x * edge.x + by.y * edge.y < 0) crop.nudge()
   }
 
   const resizeEvents = {
@@ -665,7 +664,7 @@ export function ImageCropStage({
           ref={frameRef}
           data-slot='image-crop-frame'
           className={cn(
-            'pointer-events-none absolute top-1/2 left-1/2 -translate-1/2 group-data-settling/crop:transition-[width,height] group-data-settling/crop:duration-slow group-data-settling/crop:ease-spring shadow-[0_0_0_1.5px_var(--color-neutral-light-0),0_0_0_100vmax_color-mix(in_oklab,var(--color-neutral-light-13)_60%,transparent)]',
+            'pointer-events-none absolute top-1/2 left-1/2 -translate-1/2 group-data-settling/crop:transition-[width,height,left,top] group-data-settling/crop:duration-slow group-data-settling/crop:ease-spring shadow-[0_0_0_1.5px_var(--color-neutral-light-0),0_0_0_100vmax_color-mix(in_oklab,var(--color-neutral-light-13)_60%,transparent)]',
             radius[crop.shape]
           )}
           style={{ width: frame.width, height: frame.height }}
@@ -775,12 +774,14 @@ export function ImageCropStage({
       <p id={describedBy} className='sr-only'>
         Drag or use the arrow keys to move the image. Pinch, press plus or
         minus, or scroll once the crop area has focus to zoom. Press R to turn
-        it left.{free && ' Drag a corner or an edge to resize the crop.'}
+        it left.
+        {free &&
+          ' Drag a corner or an edge to resize the crop, or hold Alt to resize it about its centre.'}
       </p>
       {free && (
         <p id={handleHint} className='sr-only'>
-          Use the arrow keys to move the corner and resize the crop about its
-          centre. Hold Shift for bigger steps.
+          Use the arrow keys to move the corner and resize the crop, keeping the
+          opposite corner where it is. Hold Shift for bigger steps.
         </p>
       )}
     </div>

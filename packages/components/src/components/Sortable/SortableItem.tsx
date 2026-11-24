@@ -27,7 +27,7 @@ import { type SortableEdge, dropIndex } from './order'
 import { sortableDropIndicatorVariants, sortableItemVariants } from './variants'
 
 export type SortableItemProps = Omit<ComponentProps<'div'>, 'children'> & {
-  /** Identifies the item; one of the root's `items`. */
+  /** Identifies the item; one of the root's `items`, unless it's disabled, such as while it animates out. */
   value: string
   /** The item's name in the Move menu and announcements, as in "Move SKU down". */
   label?: string
@@ -119,6 +119,7 @@ export function SortableItem({
 
   useDevWarning(
     !listed &&
+      !itemDisabled &&
       `Roadie: Sortable.Item "${value}" is not in its Sortable's items, so it can't move.`
   )
 

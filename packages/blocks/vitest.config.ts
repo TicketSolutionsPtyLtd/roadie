@@ -32,6 +32,12 @@ const printMedia: BrowserCommand<[active: boolean]> = ({ page }, active) =>
 // test that needs nothing hovered parks it in the top-left corner first.
 const parkPointer: BrowserCommand<[]> = ({ page }) => page.mouse.move(0, 0)
 
+// Firefox matches no :focus-visible in a window an earlier file left unfocused.
+const focusPage: BrowserCommand<[]> = async ({ page, frame }) => {
+  await page.bringToFront()
+  await (await (await frame()).frameElement()).focus()
+}
+
 type PointerStep =
   | { type: 'move'; x: number; y: number; steps?: number }
   | { type: 'down' }
@@ -155,6 +161,7 @@ export default defineConfig({
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
             commands: {
+              focusPage,
               forcedColors,
               parkPointer,
               pointer,

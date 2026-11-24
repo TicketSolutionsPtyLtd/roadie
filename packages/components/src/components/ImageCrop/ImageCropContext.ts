@@ -13,6 +13,8 @@ export type CommitOptions = {
   animate?: boolean
   /** Leaves the live region quiet, as the report on load does. */
   quiet?: boolean
+  /** The angle the dial set, which says which end a 45° tilt is at. */
+  straighten?: number
 }
 
 export type ImageCropContextValue = {
@@ -31,6 +33,8 @@ export type ImageCropContextValue = {
   /** The given value, or none for the centred default. */
   value?: ImageCropValue
   commit: (value: ImageCropValue, options?: CommitOptions) => void
+  /** The straighten in a rotation, from -45° to 45°, as the dial shows it. */
+  straighten: (rotation: number) => number
   /** Bumped by each animated commit, so the Stage springs to it. */
   springs: number
   /** Shows a value mid-gesture, or goes back to `shown` with `null`. */
