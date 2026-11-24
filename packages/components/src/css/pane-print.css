@@ -1,0 +1,89 @@
+/* Printing a frame: the pane being read prints as a document. On screen the
+   frame is one viewport tall and each pane scrolls inside it, so a print would
+   be the navigator and a clipped screen of every pane. On paper the frame and
+   the top pane flow at their content's height across pages, and the chrome
+   for moving around (navigation, other panes, sticky bars, scrollbars) stays
+   off the page.
+
+   The top pane is the one a phone shows: the deepest one reached. The rules
+   that pick it follow pane-columns.css, which hides the same panes on a narrow
+   frame. Every declaration is !important, in the base layer: the frame's
+   sizes are utilities, Base UI and the pane write overflow inline, and the
+   screen layout positions stacked panes with !important in the components
+   layer. An important declaration in an earlier layer wins whatever the
+   specificity, as core's own print rule in reset.css does. */
+
+@layer base {
+  @media print {
+    [data-slot='navigator'],
+    [data-slot='navigator-content'],
+    [data-slot='navigator-panes'] {
+      display: block !important;
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: none !important;
+    }
+
+    [data-slot='navigator-primary'],
+    [data-slot='navigator-pending'],
+    [data-slot='navigator-page-ghost'],
+    [data-slot='toast-viewport'],
+    [data-slot='pane'][data-column='inspector'],
+    /* Panes the frame has stacked away, or that sit behind the top one. */
+    [data-slot='pane'][data-stack][data-stack-position]:not(
+        [data-stack-position='top']
+      ),
+    [data-slot='pane'][data-stack][data-stack-position='top']:has(
+        ~ [data-stack][data-stack-position='top']
+      ),
+    [data-slot='navigator-panes'][data-level='0']:has(
+        [data-stack][data-level='0'][data-stack-position]
+      )
+      [data-stack][data-level='0']:not([data-stack-position]),
+    [data-slot='navigator-panes'][data-level='1']:has(
+        [data-stack][data-level='1'][data-stack-position]
+      )
+      [data-stack][data-level='1']:not([data-stack-position]),
+    [data-slot='pane-back'],
+    [data-slot='pane-close'],
+    [data-slot='pane-actions'],
+    [data-slot='pane-search'],
+    [data-slot='pane-title-compact'],
+    [data-slot='pane-footer'],
+    [data-slot='pane-scroll-sentinels'],
+    [data-slot='pane'] > [data-slot='scroll-area-scrollbar'] {
+      display: none !important;
+    }
+
+    [data-slot='pane'] {
+      position: static !important;
+      inset: auto !important;
+      margin: 0 !important;
+      translate: none !important;
+      transform: none !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      visibility: visible !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      border-color: transparent !important;
+      background: none !important;
+    }
+
+    [data-slot='pane-viewport'] {
+      height: auto !important;
+      overflow: visible !important;
+      padding-bottom: 0 !important;
+    }
+
+    [data-slot='pane-header'] {
+      position: static !important;
+      background: none !important;
+      backdrop-filter: none !important;
+    }
+  }
+}
