@@ -135,6 +135,47 @@ describe('Combobox virtualized', () => {
     await expect.poll(() => input.value).toBe(LAST)
   })
 
+  it('reopens on the chosen venue after the pointer left the list', async () => {
+    render(<Venues defaultValue={VENUES[1500]} />)
+    const trigger = document.querySelector<HTMLElement>(
+      '[data-slot="combobox-trigger"]'
+    )!
+    await userEvent.click(trigger)
+    await screen.findByRole('option', { name: VENUES[1500] })
+    await userEvent.hover(options()[0]!)
+    await userEvent.hover(screen.getByRole('combobox'))
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => options().length).toBe(0)
+    await userEvent.click(trigger)
+    const chosen = await screen.findByRole('option', { name: VENUES[1500] })
+    const popup = document.querySelector('[data-slot="combobox-popup"]')!
+    const row = chosen.getBoundingClientRect()
+    const box = popup.getBoundingClientRect()
+    expect(row.top).toBeGreaterThanOrEqual(box.top - 1)
+    expect(row.bottom).toBeLessThanOrEqual(box.bottom + 1)
+  })
+
+  it('stays where it is scrolled after a second keystroke keeps the first match', async () => {
+    render(<Venues />)
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.keyboard('K')
+    await expect.poll(() => active()?.textContent).toBe(VENUES[0])
+    // The first match doesn't change, so no new highlight follows the keystroke.
+    await userEvent.keyboard('a')
+    await expect.poll(() => active()?.textContent).toBe(VENUES[0])
+    const popup = document.querySelector<HTMLElement>(
+      '[data-slot="combobox-popup"]'
+    )!
+    const scroller = [popup, ...popup.querySelectorAll<HTMLElement>('*')].find(
+      (element) => element.scrollHeight > element.clientHeight + 1
+    )!
+    const hovered = options()[2]!
+    await userEvent.hover(hovered)
+    scroller.scrollTop = 2000
+    await settleOnceGone(hovered, scroller)
+    expect(scroller.scrollTop).toBeGreaterThan(1500)
+  })
+
   it('opens on the chosen venue when it sits below the first window', async () => {
     render(<Venues defaultValue={VENUES[1500]} />)
     await userEvent.click(

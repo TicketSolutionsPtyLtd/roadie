@@ -54,9 +54,8 @@ export function useVirtualListRoot(virtualized: boolean | undefined) {
   // Base UI clears a pointer's highlight when its row scrolls out of the
   // window and unmounts, then highlights the first row again with no reason.
   // Following that would snap the list to its top as someone scrolls it, so
-  // after a pointer only the keyboard or a typed query scrolls it.
+  // after a pointer only the keyboard scrolls it, until it opens again.
   const pointed = useRef(false)
-  const typed = useRef(false)
   useEffect(() => {
     if (virtualized) void loadRows()
   }, [virtualized])
@@ -65,25 +64,25 @@ export function useVirtualListRoot(virtualized: boolean | undefined) {
       pointed.current = true
       return
     }
-    const follows =
-      details.reason === 'keyboard' || typed.current || !pointed.current
+    const follows = details.reason === 'keyboard' || !pointed.current
     pointed.current = false
-    typed.current = false
     if (virtualized && follows && details.index >= 0)
       scrollToIndex.current?.(details.index)
   }
   /**
    * Call on a typed query. Base UI returns a list it doesn't window to its
-   * top, so its first match shows, but leaves a windowed one where it was.
+   * top, where the first match is, but leaves a windowed one where it was.
    */
   function handleTyped() {
-    typed.current = true
     if (virtualized) scrollToIndex.current?.(0)
+  }
+  /** Call as the list opens, so it follows the highlight it opens on. */
+  function handleOpen() {
+    pointed.current = false
   }
   return [
     virtualized ? scrollToIndex : null,
-    handleHighlight,
-    handleTyped
+    { handleHighlight, handleTyped, handleOpen }
   ] as const
 }
 

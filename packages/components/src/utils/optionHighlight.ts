@@ -26,7 +26,7 @@ export function usePointerHighlight<Args extends [unknown, { reason: string }]>(
 type QueryChangeDetails = { reason: string; event: Event; isCanceled: boolean }
 
 // Mirrors Base UI's own test: autofill isn't typing.
-function isTyping(event: Event) {
+export function isTyping(event: Event) {
   if (event.type === 'compositionend') return true
   const { inputType } = event as InputEvent
   return !!inputType && inputType !== 'insertReplacementText'
