@@ -16,6 +16,7 @@ import { Button, IconButton } from '../Button'
 import { Dialog } from '../Dialog'
 import { Drawer } from '../Drawer'
 import { Field } from '../Field'
+import { attempt } from './RecordsConfirm'
 
 export type ViewDialog = 'save-as' | 'rename' | 'delete'
 
@@ -53,16 +54,15 @@ function useRun(failed: string, onDone: () => void) {
     running.current = true
     setPending(true)
     setError(null)
-    try {
-      await action()
-      onDone()
-    } catch (caught) {
+    await attempt(action, {
+      next: onDone,
       // Shown in the dialog, which is where the person is looking.
-      setError(messageOf(caught, failed))
-    } finally {
-      running.current = false
-      setPending(false)
-    }
+      failed: (caught) => setError(messageOf(caught, failed)),
+      done: () => {
+        running.current = false
+        setPending(false)
+      }
+    })
   }
   return { pending, error, setError, run }
 }
@@ -227,9 +227,7 @@ export function RecordsViewName({
             type='submit'
             form={formId}
             emphasis='strong'
-            disabled={pending}
-            focusableWhenDisabled
-            aria-busy={pending || undefined}
+            pending={pending}
           >
             {copy.submit}
           </Button>
@@ -279,9 +277,7 @@ export function RecordsViewDelete({
           <Button
             intent='danger'
             emphasis='strong'
-            disabled={pending}
-            focusableWhenDisabled
-            aria-busy={pending || undefined}
+            pending={pending}
             onClick={() => void run(onConfirm)}
           >
             {copy.submit}

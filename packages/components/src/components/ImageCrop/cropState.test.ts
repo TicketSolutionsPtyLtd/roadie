@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 
 import {
   MAX_ZOOM_OVER_COVER,
+  dragCrop,
   fitCrop,
   fitFrame,
   minCrop,
   moveTo,
   panBy,
-  resizeArea,
-  resizeTo,
   rotateBy,
   sameCrop,
+  straightenOf,
   stretchCrop,
   transformOf,
   zoomRange,
@@ -174,6 +174,13 @@ describe('rotateBy', () => {
     expect(value.rotation).toBe(0)
     expect(sameCrop(value, start)).toBe(true)
   })
+
+  it('reports a straighten in tenths without float noise', () => {
+    const tilted = rotateBy(start, 9.7, scene)
+    expect(tilted.rotation).toBe(9.7)
+    expect(rotateBy(tilted, -4, scene).rotation).toBe(5.7)
+    expect(rotateBy(start, -0.3, scene).rotation).toBe(359.7)
+  })
 })
 
 describe('moveTo', () => {
@@ -215,6 +222,23 @@ describe('stretchCrop', () => {
   })
 })
 
+describe('straightenOf', () => {
+  it.each([
+    [0, 0],
+    [3, 3],
+    [357, -3],
+    [270, 0],
+    [273.5, 3.5],
+    [44.9, 44.9],
+    [45, 45],
+    [135, -45],
+    [315, -45],
+    [180.1 + 0.2, 0.3]
+  ])('reads %s° as %s° from the nearest quarter turn', (rotation, angle) => {
+    expect(straightenOf(rotation)).toBeCloseTo(angle, 9)
+  })
+})
+
 // Free-form: the frame takes the whole 3:2 image's shape inside 600 × 600.
 const bounds = { width: 600, height: 600 }
 const free = { ...scene, frame: { width: 600, height: 400 }, bounds }
@@ -228,52 +252,89 @@ describe('minCrop in free-form', () => {
   })
 })
 
-describe('resizeArea', () => {
-  it('resizes about the centre and fits the frame to the new shape', () => {
-    const next = resizeArea(whole, { width: 1200, height: 1600 }, free)
-    expect(next.area).toEqual({ x: 600, y: 0, width: 1200, height: 1600 })
-    // 3:4 fills the bounds' height.
-    expect(next.zoom).toBeCloseTo(600 / 1600)
+describe('dragCrop', () => {
+  const corner = { x: 1, y: 1 } as const
+  const options = { minFrame: 88 }
+
+  it('keeps the opposite corner on the image, and moves the frame off centre', () => {
+    const { value, frame, offset } = dragCrop(
+      whole,
+      corner,
+      { x: -100, y: -100 },
+      free,
+      options
+    )
+    expect(value.area).toEqual({ x: 0, y: 0, width: 2000, height: 1200 })
+    expect(value.zoom).toBe(0.25)
+    expect(frame).toEqual({ width: 500, height: 300 })
+    expect(offset).toEqual({ x: -50, y: -50 })
   })
 
-  it('stops at the minimum, and at the image', () => {
+  it('resizes about the centre when centred', () => {
+    const { value, offset } = dragCrop(
+      whole,
+      corner,
+      { x: -100, y: -100 },
+      free,
+      { ...options, centred: true }
+    )
+    expect(value.area).toEqual({ x: 400, y: 400, width: 1600, height: 800 })
+    expect(offset).toEqual({ x: 0, y: 0 })
+  })
+
+  it('moves one side from an edge', () => {
+    const { value, offset } = dragCrop(
+      whole,
+      { x: 1, y: 0 },
+      { x: -100, y: 50 },
+      free,
+      options
+    )
+    expect(value.area).toEqual({ x: 0, y: 0, width: 2000, height: 1600 })
+    expect(offset).toEqual({ x: -50, y: 0 })
+  })
+
+  it('grows past the bounds by zooming out, as far as the image goes', () => {
+    const area = { x: 0, y: 0, width: 1200, height: 800 }
+    const zoomed = fitCrop({ ...whole, area }, free)
+    expect(zoomed.zoom).toBe(0.5)
+    const out = dragCrop(zoomed, corner, { x: 300, y: 0 }, free, options)
+    expect(out.value.area).toEqual({ x: 0, y: 0, width: 1800, height: 800 })
+    expect(out.value.zoom).toBeCloseTo(1 / 3)
+    expect(out.frame.width).toBeCloseTo(600)
+    const far = dragCrop(zoomed, corner, { x: 3000, y: 0 }, free, options)
+    expect(far.value.area).toEqual({ x: 0, y: 0, width: 2400, height: 800 })
+    expect(far.value.zoom).toBeCloseTo(0.25)
+  })
+
+  it('stops at the image edge past the side that moves', () => {
+    const area = { x: 600, y: 400, width: 1200, height: 800 }
+    const zoomed = fitCrop({ ...whole, area }, free)
+    const far = { x: 3000, y: 0 }
+    const out = dragCrop(zoomed, corner, far, free, options)
+    // The left edge stays at 600, so the right one stops at the image's 2400.
+    expect(out.value.area).toEqual({ x: 600, y: 400, width: 1800, height: 800 })
+  })
+
+  it('stops at the nearer image edge when centred', () => {
+    const area = { x: 200, y: 400, width: 800, height: 800 }
+    const zoomed = fitCrop({ ...whole, area }, free)
+    const far = { x: 3000, y: 0 }
+    const out = dragCrop(zoomed, corner, far, free, {
+      ...options,
+      centred: true
+    })
+    // The centre stays at 600, so the crop stops at the left edge, 0.
+    expect(out.value.area).toEqual({ x: 0, y: 400, width: 1200, height: 800 })
+  })
+
+  it('stops at the minimum, and at two handles wide on screen', () => {
+    const far = { x: -1000, y: -1000 }
     const min = { width: 800, height: 400 }
-    const small = resizeArea(
-      whole,
-      { width: 100, height: 100 },
-      { ...free, min }
-    )
-    expect(small.area.width).toBe(800)
-    expect(small.area.height).toBe(400)
-    const big = resizeArea(whole, { width: 5000, height: 5000 }, free)
-    expect(big.area).toEqual(whole.area)
-  })
-})
-
-describe('resizeTo', () => {
-  const stage = { width: 700, height: 700 }
-
-  it('keeps the zoom and centre for a frame inside the image', () => {
-    const { clamped } = resizeTo(
-      whole,
-      { width: 300, height: 400 },
-      free,
-      stage
-    )
-    expect(clamped.zoom).toBe(whole.zoom)
-    expect(clamped.area).toEqual({ x: 600, y: 0, width: 1200, height: 1600 })
-  })
-
-  it('zooms in when the frame would pass the image, and gives way first', () => {
-    const { clamped, painted } = resizeTo(
-      whole,
-      { width: 600, height: 600 },
-      free,
-      stage
-    )
-    expect(clamped.zoom).toBeCloseTo(600 / 1600)
-    expect(painted.zoom).toBeGreaterThan(whole.zoom)
-    expect(painted.zoom).toBeLessThan(clamped.zoom)
+    const small = dragCrop(whole, corner, far, { ...free, min }, options)
+    expect(small.value.area).toEqual({ x: 0, y: 0, width: 800, height: 400 })
+    const tiny = dragCrop(whole, corner, far, free, options)
+    expect(tiny.frame).toEqual({ width: 88, height: 88 })
   })
 })
 

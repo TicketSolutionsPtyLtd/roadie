@@ -763,6 +763,20 @@ describe('ImageCrop gestures that overlap', () => {
     expect(last().zoom).toBe(zoom)
   })
 
+  it('lets a dial key win over a wheel zoom still settling', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    stage.focus()
+    wheel(stage)
+    screen.getByRole('slider', { name: 'Straighten' }).focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(last().rotation).toBe(1)
+    // Nothing happens to wait on: the wheel's 150ms settle must pass unreported.
+    // eslint-disable-next-line roadie/no-fixed-sleep
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(last().rotation).toBe(1)
+  })
+
   it('keeps the slider preview on screen through a re-render', async () => {
     await commands.parkPointer()
     const { stage } = await renderCrop()
@@ -785,6 +799,198 @@ describe('ImageCrop gestures that overlap', () => {
   })
 })
 
+describe('ImageCrop straighten dial', () => {
+  const dial = () => screen.getByRole('slider', { name: 'Straighten' })
+
+  it('steps 1° with the arrows, 5° with Shift, and reaches ±45° with Home and End', async () => {
+    const { onValueChange, last } = await renderCrop()
+    expect(dial()).toHaveAttribute('aria-valuetext', '0 degrees')
+    dial().focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(last().rotation).toBe(1)
+    expect(dial()).toHaveAttribute('aria-valuetext', '1 degree right')
+    await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
+    expect(last().rotation).toBe(356)
+    expect(dial()).toHaveAttribute('aria-valuetext', '4 degrees left')
+    await userEvent.keyboard('{End}')
+    expect(last().rotation).toBe(45)
+    expect(dial()).toHaveAttribute('aria-valuenow', '45')
+    await userEvent.keyboard('{Home}')
+    expect(last().rotation).toBe(315)
+    expect(dial()).toHaveAttribute('aria-valuenow', '-45')
+    expect(onValueChange).toHaveBeenCalledTimes(5)
+  })
+
+  it('zooms in to keep the frame covered', async () => {
+    const { stage, last } = await renderCrop()
+    dial().focus()
+    await userEvent.keyboard('{Shift>}{ArrowRight}{ArrowRight}{/Shift}')
+    expect(last().rotation).toBe(10)
+    expect(last().zoom).toBeGreaterThan(cover * 1.05)
+    await nextFrames()
+    // A turned image's box is bigger than it, so check the frame's corners
+    // are inside the image itself. Hit-testing skips it without pointer events.
+    const frame = rect(frameOf(stage))
+    const image = imageOf(stage)
+    image.style.pointerEvents = 'auto'
+    for (const [x, y] of [
+      [frame.left + 1, frame.top + 1],
+      [frame.right - 1, frame.top + 1],
+      [frame.left + 1, frame.bottom - 1],
+      [frame.right - 1, frame.bottom - 1]
+    ])
+      expect(document.elementsFromPoint(x!, y!)).toContain(image)
+  })
+
+  it('paints the angle the short way round, past 0°', async () => {
+    const { stage } = await renderCrop()
+    dial().focus()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
+    expect(imageOf(stage).style.transform).toContain('rotate(-2deg)')
+  })
+
+  it('snaps to 0° within 3px on a drag, and reports once on release', async () => {
+    await commands.parkPointer()
+    const { stage, onValueChange, last } = await renderCrop()
+    const track = rect(dial().closest('[data-slot="slider-control"]')!)
+    const y = track.top + track.height / 2
+    const centre = track.left + track.width / 2
+    // The track runs 90° across its width, less the thumb's padding.
+    const perDegree = (track.width - 16) / 90
+    await commands.pointer([
+      { type: 'move', x: centre, y },
+      { type: 'down' },
+      { type: 'move', x: centre + perDegree * 10, y, steps: 4 }
+    ])
+    await nextFrames()
+    expect(imageOf(stage).style.transform).toMatch(
+      /rotate\((9|10|11)(\.\d+)?deg\)/
+    )
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    // 2px is about 1.4° here, well past the old 0.8° detent.
+    await commands.pointer([
+      { type: 'move', x: centre + 2, y, steps: 4 },
+      { type: 'up' }
+    ])
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    expect(dial()).toHaveAttribute('aria-valuenow', '0')
+    await commands.pointer([
+      { type: 'move', x: centre, y },
+      { type: 'down' },
+      { type: 'move', x: centre - perDegree * 3, y, steps: 4 },
+      { type: 'up' }
+    ])
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(360 - last().rotation).toBeGreaterThan(2)
+    expect(360 - last().rotation).toBeLessThan(4)
+  })
+
+  it('drags back from 45° after a turn without turning a quarter', async () => {
+    await commands.parkPointer()
+    const { onValueChange, last } = await renderCrop()
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    dial().focus()
+    await userEvent.keyboard('{End}')
+    expect(last().rotation).toBe(315)
+    expect(dial()).toHaveAttribute('aria-valuenow', '45')
+    const thumb = rect(dial().parentElement!)
+    const y = thumb.top + thumb.height / 2
+    const x = thumb.left + thumb.width / 2
+    const track = rect(dial().closest('[data-slot="slider-control"]')!)
+    const perDegree = (track.width - 16) / 90
+    await commands.pointer([
+      { type: 'move', x, y },
+      { type: 'down' },
+      { type: 'move', x: x - perDegree * 5, y, steps: 4 },
+      { type: 'up' }
+    ])
+    expect(onValueChange).toHaveBeenCalledTimes(4)
+    expect(last().rotation).toBeGreaterThan(308)
+    expect(last().rotation).toBeLessThan(313)
+  })
+
+  it('says a tilt to 45° after a turn as the dial does', async () => {
+    await renderCrop()
+    const status = screen.getByRole('status')
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    dial().focus()
+    await userEvent.keyboard('{End}')
+    expect(dial()).toHaveAttribute('aria-valuenow', '45')
+    await waitFor(() =>
+      expect(status.textContent).toMatch(
+        /, turned 90 degrees left, straightened 45 degrees right\.$/
+      )
+    )
+  })
+
+  it('says a tilt to 45° as the dial does', async () => {
+    await renderCrop()
+    const status = screen.getByRole('status')
+    dial().focus()
+    await userEvent.keyboard('{End}')
+    await waitFor(() =>
+      expect(status.textContent).toMatch(
+        /percent, straightened 45 degrees right\.$/
+      )
+    )
+  })
+
+  it('keeps the straighten through a quarter turn, and Reset clears it', async () => {
+    const { last } = await renderCrop()
+    dial().focus()
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    expect(last().rotation).toBe(273)
+    expect(dial()).toHaveAttribute('aria-valuenow', '3')
+    await userEvent.click(screen.getByRole('button', { name: 'Reset crop' }))
+    expect(last().rotation).toBe(0)
+    expect(dial()).toHaveAttribute('aria-valuenow', '0')
+  })
+
+  it('says the angle once it settles', async () => {
+    await renderCrop()
+    const status = screen.getByRole('status')
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    dial().focus()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
+    await waitFor(() =>
+      expect(status.textContent).toMatch(
+        /, turned 90 degrees left, straightened 2 degrees left\.$/
+      )
+    )
+  })
+
+  it.each([320, 400, 480, 560])(
+    'keeps the controls inside a %ipx crop, with room for -44.5°',
+    async (width) => {
+      const area = { x: 400, y: 400, width: 800, height: 400 }
+      render(
+        <div style={{ width }}>
+          <ImageCrop
+            src={photo}
+            aspectRatio={2}
+            defaultValue={{ area, percent: area, zoom: 1, rotation: 315.5 }}
+          />
+        </div>
+      )
+      await waitFor(() =>
+        expect(dial()).toHaveAttribute('aria-valuenow', '-44.5')
+      )
+      const controls = screen.getByRole('group', { name: 'Crop controls' })
+      const box = rect(controls.parentElement!)
+      expect(rect(controls).left).toBeGreaterThanOrEqual(box.left)
+      expect(rect(controls).right).toBeLessThanOrEqual(box.right)
+      const readouts = [
+        ...controls.querySelectorAll<HTMLElement>('[aria-hidden]')
+      ].filter((part) => part.textContent === '-44.5°' && part.clientWidth)
+      // A wide crop shows the angle beside the dial.
+      if (width === 560) expect(readouts).toHaveLength(1)
+      for (const part of readouts)
+        expect(part.scrollWidth).toBeLessThanOrEqual(part.clientWidth)
+    }
+  )
+})
+
 // Free-form: the 3:2 photo's frame is 544 × 362.67 inside the 544 × 384 bounds.
 describe('ImageCrop in free-form', () => {
   const freeZoom = 544 / 2400
@@ -793,11 +999,12 @@ describe('ImageCrop in free-form', () => {
   const corner = (name: string) => screen.getByRole('button', { name })
 
   // A touch on a handle, dispatched, in px from the handle's centre.
-  const press = (handle: HTMLElement) => {
+  const press = (handle: HTMLElement, keys: { altKey?: boolean } = {}) => {
     const box = rect(handle)
     const send = (type: string, x: number, y: number) =>
       handle.dispatchEvent(
         new PointerEvent(type, {
+          ...keys,
           pointerId: 7,
           pointerType: 'touch',
           isPrimary: true,
@@ -861,29 +1068,60 @@ describe('ImageCrop in free-form', () => {
     await waitFor(() => expectCovered(stage))
   })
 
-  it('resizes about the centre from a corner, then fills the stage', async () => {
+  it('resizes from a corner, keeping the opposite one still, then fills the stage', async () => {
     await commands.parkPointer()
     const { stage, onValueChange, last } = await renderFree()
     const frame = rect(frameOf(stage))
+    const image = rect(imageOf(stage))
     await commands.pointer([
       { type: 'move', x: frame.right, y: frame.bottom },
       { type: 'down' },
       { type: 'move', x: frame.right - 72, y: frame.bottom - 40, steps: 4 }
     ])
-    // Both sides shrink by twice the drag, and the image stays put.
-    expect(rect(frameOf(stage)).width).toBeCloseTo(544 - 144, 0)
-    expect(rect(frameOf(stage)).height).toBeCloseTo(frame.height - 80, 0)
+    // The top left corner and the image stay put; the dragged corner follows.
+    const held = rect(frameOf(stage))
+    expect(held.left).toBeCloseTo(frame.left, 0)
+    expect(held.top).toBeCloseTo(frame.top, 0)
+    expect(held.width).toBeCloseTo(544 - 72, 0)
+    expect(held.height).toBeCloseTo(frame.height - 40, 0)
+    expect(rect(imageOf(stage)).left).toBeCloseTo(image.left, 0)
+    expect(rect(imageOf(stage)).top).toBeCloseTo(image.top, 0)
     expect(onValueChange).toHaveBeenCalledTimes(1)
     await commands.pointer([{ type: 'up' }])
     expect(onValueChange).toHaveBeenCalledTimes(2)
     const { area } = last()
-    expect(area.width).toBeCloseTo(400 / freeZoom, 0)
-    expect(area.height).toBeCloseTo((frame.height - 80) / freeZoom, 0)
+    expect(area.x).toBeCloseTo(0, 0)
+    expect(area.y).toBeCloseTo(0, 0)
+    expect(area.width).toBeCloseTo(472 / freeZoom, 0)
+    expect(area.height).toBeCloseTo((frame.height - 40) / freeZoom, 0)
+    // Wider than the bounds' shape, so it springs back to the centre and
+    // fills their width. Wait for the frame itself, not only the settle.
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).width).toBeCloseTo(544, 0)
+      expect(rect(frameOf(stage)).left).toBeCloseTo(frame.left, 0)
+    })
+    await waitFor(() => expectCovered(stage))
+  })
+
+  it('resizes about the centre with Alt held', async () => {
+    const { stage, last } = await renderFree()
+    const frame = rect(frameOf(stage))
+    const drag = press(corner('Bottom right corner'), { altKey: true })
+    drag.move(-72, -40)
+    // Both sides shrink by twice the drag, and the frame stays centred.
+    expect(rect(frameOf(stage)).width).toBeCloseTo(544 - 144, 0)
+    expect(rect(frameOf(stage)).height).toBeCloseTo(frame.height - 80, 0)
+    expect(rect(frameOf(stage)).left).toBeCloseTo(frame.left + 72, 0)
+    drag.up(-72, -40)
+    const { area } = last()
     expect(area.x + area.width / 2).toBeCloseTo(1200, 0)
     expect(area.y + area.height / 2).toBeCloseTo(800, 0)
     // Taller than the bounds' shape now, so it fills their height.
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    })
     await waitFor(() => expectCovered(stage))
   })
 
@@ -898,27 +1136,67 @@ describe('ImageCrop in free-form', () => {
       { type: 'move', x: frame.right - 50, y: middle, steps: 4 },
       { type: 'up' }
     ])
-    expect(last().area.width).toBeCloseTo(2400 - 100 / freeZoom, 0)
+    expect(last().area.x).toBeCloseTo(0, 0)
+    expect(last().area.width).toBeCloseTo(2400 - 50 / freeZoom, 0)
     expect(last().area.height).toBeCloseTo(1600)
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    })
     await waitFor(() => expectCovered(stage))
   })
 
-  it('zooms in to keep the image covering a frame dragged past it', async () => {
+  it('stops a frame dragged past the image at its edge', async () => {
     await commands.parkPointer()
-    const { stage, last } = await renderFree()
+    const { stage, onValueChange } = await renderFree()
     const frame = rect(frameOf(stage))
     await commands.pointer([
       { type: 'move', x: frame.right, y: frame.bottom },
       { type: 'down' },
       { type: 'move', x: frame.right, y: frame.bottom + 40, steps: 4 }
     ])
-    // The frame stops at the bounds, 384px tall, mid-drag.
-    expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    // The whole image already shows, so there is nothing more to take in.
+    expect(rect(frameOf(stage)).height).toBeCloseTo(frame.height, 0)
     await commands.pointer([{ type: 'up' }])
-    expect(last().area.height).toBeCloseTo(1600)
-    expect(last().area.width).toBeLessThan(2400)
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    await waitFor(() => expectCovered(stage))
+  })
+
+  it('grows the crop past the crop area, zooming out to fit, as the keys do', async () => {
+    const { stage, last } = await renderFree()
+    // Narrow the crop with the keys, so the frame fills the stage's height
+    // zoomed in, with less room beside it than the drag needs.
+    corner('Bottom right corner').focus()
+    await userEvent.keyboard(
+      '{Shift>}{ArrowLeft}{ArrowLeft}{ArrowLeft}{/Shift}'
+    )
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    })
+    const room = (rect(stage).right - rect(frameOf(stage)).right) / 2
+    const before = last()
+    expect(before.area.width).toBeLessThan(2000)
+    const drag = press(corner('Bottom right corner'))
+    drag.move(room + 60, 0)
+    // The frame stays inside the stage while the image zooms out under it.
+    expect(rect(frameOf(stage)).right).toBeLessThanOrEqual(rect(stage).right)
+    expect(rect(frameOf(stage)).height).toBeLessThan(384)
+    drag.up(room + 60, 0)
+    expect(last().area.x).toBeCloseTo(0, 0)
+    expect(last().area.width).toBeCloseTo(
+      before.area.width + (room + 60) / before.zoom,
+      0
+    )
+    expect(last().area.height).toBeCloseTo(1600, 0)
+    // It springs back to fill the stage one way or the other.
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      const { width, height } = rect(frameOf(stage))
+      const ratio = last().area.width / last().area.height
+      expect(width / height).toBeCloseTo(ratio, 2)
+      expect(Math.max(width / 544, height / 384)).toBeCloseTo(1, 2)
+    })
     await waitFor(() => expectCovered(stage))
   })
 
@@ -927,8 +1205,10 @@ describe('ImageCrop in free-form', () => {
     corner('Bottom right corner').focus()
     await userEvent.keyboard('{ArrowLeft}')
     expect(onValueChange).toHaveBeenCalledTimes(2)
-    expect(last().area.width).toBeCloseTo(2400 - 20 / freeZoom, 0)
-    await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
+    // The corner moves 10px, and the opposite one stays put.
+    expect(last().area.width).toBeCloseTo(2400 - 10 / freeZoom, 0)
+    expect(last().area.x).toBe(0)
+    await userEvent.keyboard('{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}')
     expect(last().area.width).toBe(2000)
     const calls = onValueChange.mock.calls.length
     expect(sizeOf(stage)).not.toHaveClass('animate-nudge')

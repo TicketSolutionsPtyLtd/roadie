@@ -530,7 +530,7 @@ when building custom interactive UI.
   <Guideline.Do>
     For slow or high-stakes operations, show a loader. Commit to it for at
     least 300ms. Delay its appearance by 200ms to avoid flash on fast
-    responses.
+    responses. For an action in a button, use [Button's `pending`](/components/button#pending), which waits the 200ms for you.
   </Guideline.Do>
   <Guideline.Dont>
     Show a spinner for 50ms then immediately remove it. Flicker creates

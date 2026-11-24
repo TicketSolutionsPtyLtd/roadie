@@ -2,7 +2,7 @@
   "./cart": { "own": 2145, "full": 3467, "initial": 3467 },
   "./cart-drawer/core": { "own": 2145, "full": 3467, "initial": 3467 },
   "./cart-drawer/react": { "own": 8338, "full": 105906, "initial": 105906 },
-  "./cart-drawer/vue": { "own": 11992, "full": 51047, "initial": 45311 },
+  "./cart-drawer/vue": { "own": 11992, "full": 51076, "initial": 45320 },
   "./cart-contents/react": { "own": 4039, "full": 84791, "initial": 84791 },
   "./cart-contents/vue": { "own": 6104, "full": 22563, "initial": 16682 }
 }

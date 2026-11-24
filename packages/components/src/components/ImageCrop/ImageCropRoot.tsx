@@ -18,7 +18,14 @@ import {
 } from './ImageCropContext'
 import { ImageCropControls } from './ImageCropControls'
 import { ImageCropStage } from './ImageCropStage'
-import { type CropScene, fitCrop, minCrop, zoomRange } from './cropState'
+import { degreesText } from './ImageCropStraighten'
+import {
+  type CropScene,
+  fitCrop,
+  minCrop,
+  straightenOf,
+  zoomRange
+} from './cropState'
 
 // Long enough that a run of key presses is said once.
 const ANNOUNCE_MS = 500
@@ -82,13 +89,15 @@ function sameScene(a?: CropScene, b?: CropScene) {
 }
 
 /** What the live region says once a crop settles. */
-function describe(value: ImageCropValue, scene: CropScene) {
+function describe(value: ImageCropValue, scene: CropScene, straighten: number) {
   const { width, height } = value.area
   const zoom = value.zoom / zoomRange(scene, value.rotation).cover
-  const left = (360 - value.rotation) % 360
+  const left = Math.round(360 - value.rotation + straighten) % 360
   return (
     `Crop ${Math.round(width)} by ${Math.round(height)} pixels, zoom ${Math.round(zoom * 100)} percent` +
-    (left ? `, turned ${left} degrees left.` : '.')
+    (left ? `, turned ${left} degrees left` : '') +
+    (straighten ? `, straightened ${degreesText(straighten)}` : '') +
+    '.'
   )
 }
 
@@ -137,13 +146,22 @@ export function ImageCropRoot({
   const announcing = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(announcing.current), [])
   const min = minCrop(aspectRatio, minWidth, minHeight)
+  // ±45° is the same picture as the next quarter turn's ∓45°, so a tilt
+  // there reads as the end the dial was last set to.
+  const [end, setEnd] = useState(0)
+  const straighten = (rotation: number, last = end) => {
+    const angle = straightenOf(rotation)
+    return Math.abs(angle) === 45 && Math.abs(last) === 45 ? last : angle
+  }
 
   const commit = (next: ImageCropValue, options: CommitOptions = {}) => {
     if (value === undefined) setUncontrolled(next)
     if (options.animate) spring()
+    const last = options.straighten ?? end
+    if (options.straighten !== undefined) setEnd(options.straighten)
     clearTimeout(announcing.current)
     if (scene && !options.quiet) {
-      const said = describe(next, scene)
+      const said = describe(next, scene, straighten(next.rotation, last))
       announcing.current = setTimeout(() => setMessage(said), ANNOUNCE_MS)
     }
     onValueChange?.(next)
@@ -175,6 +193,7 @@ export function ImageCropRoot({
         shown: scene && fitCrop(current, scene),
         value: current,
         commit,
+        straighten,
         springs,
         preview,
         setPainter,

@@ -167,6 +167,17 @@ export function zoomRange(scene: CropScene, rotation: number) {
 }
 
 /**
+ * The straighten in a rotation: how far it is from the nearest quarter turn,
+ * from -45° up to 45°, clockwise positive.
+ */
+export function straightenOf(rotation: number): number {
+  const angle =
+    Math.round((((((rotation + 45) % 90) + 90) % 90) - 45) * 1e9) / 1e9
+  // 45° is also -45° from the next turn; it reads as the one not turned at all.
+  return angle === -45 && Math.round(rotation) % 360 === 45 ? 45 : angle
+}
+
+/**
  * Turns the image by `degrees` (negative is left) about the frame's centre,
  * keeping the spot under it. It zooms in if the turned image needs it, and
  * a crop that covered the frame exactly still does.
@@ -176,7 +187,9 @@ export function rotateBy(
   degrees: number,
   scene: CropScene
 ): ImageCropValue {
-  const rotation = (((value.rotation + degrees) % 360) + 360) % 360
+  // Rounded, as adding 360 leaves float noise in a tenth (9.699999999999989).
+  const angle = (((value.rotation + degrees) % 360) + 360) % 360
+  const rotation = (Math.round(angle * 1e9) / 1e9) % 360
   const from = boxOf(scene.image, value.rotation)
   const to = boxOf(scene.image, rotation)
   const { x, y } = centreOf(value)
@@ -207,41 +220,74 @@ export function rotateBy(
   return fitCrop(around(centre, zoom, rotation, turned), turned)
 }
 
-/**
- * A free-form crop resized on screen to `size` px about its centre, at the
- * zoom it started at. Past a limit the image gives way, as `stretchCrop`
- * says, and `clamped` is the crop to keep.
- */
-export function resizeTo(
-  start: ImageCropValue,
-  size: CropSize,
-  scene: CropScene,
-  stage: CropSize
-) {
-  const sized = { ...scene, frame: size }
-  const raw = around(centreOf(start), start.zoom, start.rotation, sized)
-  return stretchCrop(raw, sized, stage)
-}
+/** A free-form handle: which way each side moves, or 0 for a side that stays. */
+export type CropHandle = { x: -1 | 0 | 1; y: -1 | 0 | 1 }
 
 /**
- * A free-form crop resized to `size` natural px about its centre, within the
- * minimum and the turned image, with the frame that fits it in the bounds.
+ * A free-form crop resized from `handle` moved `by` screen px. The opposite
+ * corner or edge stays put on the image, or the centre does with `centred`,
+ * and the frame moves off the stage's centre by `offset` to match. Past the
+ * bounds the crop keeps growing and the image zooms out to fit it, as far as
+ * the image goes. A side stops at the minimum, and at `minFrame` on screen.
+ * The value is unclamped: clamp it with `fitCrop`, or show it with
+ * `stretchCrop`, in a scene with `frame`.
  */
-export function resizeArea(
-  value: ImageCropValue,
-  size: CropSize,
-  scene: CropScene & { bounds: CropSize }
-): ImageCropValue {
-  const box = boxOf(scene.image, value.rotation)
-  // Cover wins over the minimum when the image is smaller than it.
-  const side = (key: 'width' | 'height') =>
-    Math.min(Math.max(size[key], scene.min?.[key] ?? 1), box[key])
-  const width = side('width')
-  const height = side('height')
-  const frame = fitFrame(scene.bounds, width / height, 0)
-  const { x, y } = centreOf(value)
-  const area = { x: x - width / 2, y: y - height / 2, width, height }
-  return fitCrop({ ...value, area }, { ...scene, frame })
+export function dragCrop(
+  start: ImageCropValue,
+  handle: CropHandle,
+  by: { x: number; y: number },
+  scene: CropScene & { bounds: CropSize },
+  { centred = false, minFrame = 0 } = {}
+) {
+  const { zoom, area } = start
+  const box = boxOf(scene.image, start.rotation)
+  const centre = centreOf(start)
+  const axes = { x: 'width', y: 'height' } as const
+  const size = { width: area.width, height: area.height }
+  const fixed = { ...centre }
+  let scale = 1
+  for (const axis of ['x', 'y'] as const) {
+    const key = axes[axis]
+    const side = handle[axis]
+    if (!side) continue
+    if (!centred) fixed[axis] -= (side * area[key]) / 2
+    // From the point that stays to the image's edge.
+    const room = centred
+      ? 2 * Math.min(fixed[axis], box[key] - fixed[axis])
+      : side > 0
+        ? box[key] - fixed[axis]
+        : fixed[axis]
+    const want = Math.max(
+      area[key] + ((centred ? 2 : 1) * by[axis] * side) / zoom,
+      Math.min(area[key], minFrame / zoom)
+    )
+    // Cover wins over the minimum when the image is smaller than it.
+    size[key] = Math.max(
+      Math.min(want, Math.max(room, area[key]), box[key]),
+      Math.min(scene.min?.[key] ?? 1, box[key])
+    )
+    // The most the frame can be on screen with this point kept still.
+    const most = centred
+      ? scene.bounds[key]
+      : (area[key] * zoom + scene.bounds[key]) / 2
+    scale = Math.min(scale, most / (size[key] * zoom))
+  }
+  const to = zoom * scale
+  const frame = { width: size.width * to, height: size.height * to }
+  const offset = { x: 0, y: 0 }
+  const moved = { ...centre }
+  for (const axis of ['x', 'y'] as const) {
+    const key = axes[axis]
+    const side = handle[axis]
+    if (!side || centred) continue
+    moved[axis] = fixed[axis] + (side * size[key]) / 2
+    offset[axis] = (side * (frame[key] - area[key] * zoom)) / 2
+  }
+  const crop = {
+    area: { x: moved.x - size.width / 2, y: moved.y - size.height / 2, ...size }
+  }
+  const value = cropValueAt(crop, frame, scene.image, start.rotation)
+  return { value, frame, offset }
 }
 
 /**
@@ -295,17 +341,18 @@ export function stretchCrop(
 /**
  * The image's CSS transform, with the image centred on the frame before it.
  * `turn` paints the rotation as an equal angle, so a spring can take the
- * short way round.
+ * short way round, and `offset` follows a frame moved off the centre.
  */
 export function transformOf(
   value: ImageCropValue,
   image: CropSize,
-  turn = value.rotation
+  turn = value.rotation,
+  offset = { x: 0, y: 0 }
 ): string {
   const { area, zoom } = value
   const box = boxOf(image, value.rotation)
-  const x = (box.width / 2 - area.x - area.width / 2) * zoom
-  const y = (box.height / 2 - area.y - area.height / 2) * zoom
+  const x = (box.width / 2 - area.x - area.width / 2) * zoom + offset.x
+  const y = (box.height / 2 - area.y - area.height / 2) * zoom + offset.y
   return `translate3d(${x}px, ${y}px, 0) rotate(${turn}deg) scale(${zoom})`
 }
 

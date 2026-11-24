@@ -8,7 +8,8 @@
         "$TURBO_ROOT$/docs/src/app/**/page.mdx",
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.react.json",
-        "!src/**/{testUtils,*TestUtils}.{ts,tsx}"
+        "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
+        "!src/**/*.ssr.tsx"
       ]
     },
     "build:quiet": {
@@ -19,7 +20,14 @@
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.react.json",
         "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
+        "!src/**/*.ssr.tsx",
         "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*"
+      ]
+    },
+    "test:browser": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/packages/{blocks,charts,editor,widgets}/src/**/*.{ts,tsx,css,vue,html,svg}"
       ]
     }
   }

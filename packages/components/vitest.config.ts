@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
@@ -6,6 +8,7 @@ import { globSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import type { CDPSession } from 'playwright'
+import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { BaseSequencer, type BrowserCommand } from 'vitest/node'
 
@@ -214,6 +217,36 @@ const swipe: BrowserCommand<
   await session.detach()
 }
 
+// Hydration fixtures render here, in Node, where a server has no window.
+const serverRender: BrowserCommand<[file: string, name: string]> = async (
+  { project },
+  file,
+  name
+) => {
+  const load = <T>(id: string) => project.import<T>(id)
+  const { createElement } = await load<typeof import('react')>('react')
+  const { renderToString } =
+    await load<typeof import('react-dom/server')>('react-dom/server')
+  const fixtures = await load<Record<string, ComponentType>>(
+    fileURLToPath(new URL(file, SRC))
+  )
+  return renderToString(createElement(fixtures[name]!))
+}
+
+// Images served late, or never, as a slow network does, for the hydration tests.
+const lateImage: Plugin = {
+  name: 'late-image',
+  configureServer: ({ middlewares }) => {
+    middlewares.use('/late-image.svg', (_, response) => {
+      const svg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"/>'
+      response.setHeader('Content-Type', 'image/svg+xml')
+      setTimeout(() => response.end(svg), 200)
+    })
+    middlewares.use('/stalled-image.svg', () => {})
+  }
+}
+
 const browserTest = {
   enabled: true,
   headless: true,
@@ -229,7 +262,8 @@ const browserTest = {
     focusPage,
     pointer,
     tap,
-    swipe
+    swipe,
+    serverRender
   }
 }
 
@@ -245,7 +279,7 @@ const optimizeDeps = {
 }
 
 export default defineConfig({
-  plugins: [react(), babel({ presets: [reactCompilerPreset] })],
+  plugins: [react(), babel({ presets: [reactCompilerPreset] }), lateImage],
   resolve: {
     dedupe: ['react', 'react-dom']
   },

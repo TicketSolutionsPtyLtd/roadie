@@ -20,7 +20,7 @@ import { keepFramesRunning, releaseDragPointer } from '../../css/testUtils'
 import { List } from '../List'
 import { useStylesheet } from '../Pane/testUtils'
 import { Popover } from '../Popover'
-import { Lanes, type Transfer, listed } from './lanes.testUtils'
+import { Lanes, type Transfer, listed } from './lanesTestUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
@@ -580,6 +580,21 @@ describe('Sortable Move menu', () => {
     } finally {
       await stopFrames()
     }
+  })
+
+  it('returns focus to a handle a click opened the menu of, and still drags by it', async () => {
+    render(<Columns />)
+    await userEvent.click(handle('Price'))
+    await waitFor(() => expect(screen.getByRole('menu')).toHaveFocus())
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(handle('Price')).toHaveFocus())
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+    await userEvent.dragAndDrop(handle('Price'), item('Event'), {
+      targetPosition: { x: 40, y: 4 }
+    })
+    await waitFor(() =>
+      expect(order()).toEqual(['Date', 'Price', 'Event', 'SKU'])
+    )
   })
 
   it('moves by keyboard and keeps focus on the handle', async () => {
