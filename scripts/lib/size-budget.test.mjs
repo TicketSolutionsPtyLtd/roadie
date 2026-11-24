@@ -77,12 +77,12 @@ describe('bundle', () => {
       assert.equal(has(await bundle(entry, metric)), expected)
     })
 
-  write('dist/broken.js', `export { gone } from 'not-installed'\n`)
+  write('dist/broken.js', `import 'not-installed'\nimport('lazy-gone')\n`)
   const broken = join(root, 'dist/broken.js')
 
   for (const metric of ['full', 'initial'])
     test(`${metric} fails on a dependency that is not installed`, async () => {
-      await assert.rejects(bundle(broken, metric), /not-installed/)
+      await assert.rejects(bundle(broken, metric), /not-installed, lazy-gone/)
     })
 })
 
