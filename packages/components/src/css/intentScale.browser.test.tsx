@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, expect, it } from 'vitest'
 
@@ -33,12 +35,12 @@ const SCALES = [
 ]
 
 // tokens.css declares the neutral and accent scales again on a scope, for
-// its own accent, so the scope gets its own names for those two.
-function tokenNames(scope = '') {
+// its own accent, and every scale again on a .dark element, so each gets its
+// own names for the scales it declares.
+function tokenNames(prefix = '', own = /^(neutral|accent)$/) {
   const names: Record<string, string> = {}
   for (const scale of SCALES) {
-    const name =
-      scope && /^(neutral|accent)$/.test(scale) ? scope + scale : scale
+    const name = prefix && own.test(scale) ? prefix + scale : scale
     for (let step = 0; step <= 13; step++) {
       names[`--color-${scale}-${step}`] = `${name}-${step}`
       names[`--color-${scale}-light-${step}`] = `${name}-light-${step}`
@@ -112,12 +114,23 @@ function Contexts() {
       <div
         data-case='scope'
         data-accent-scope=''
-        style={{ ...tokenNames('scope-'), '--accent-hue': '140' }}
+        style={
+          { ...tokenNames('scope-'), '--accent-hue': '140' } as CSSProperties
+        }
       >
         {INTENTS.map(([intent]) => (
           <div
             key={intent}
             data-case={`scope .intent-${intent}`}
+            className={`intent-${intent}`}
+          />
+        ))}
+      </div>
+      <div data-case='.dark' className='dark' style={tokenNames('dark-', /./)}>
+        {INTENTS.map(([intent]) => (
+          <div
+            key={intent}
+            data-case={`.dark .intent-${intent}`}
             className={`intent-${intent}`}
           />
         ))}
