@@ -63,6 +63,39 @@ describe('FileUpload', () => {
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
   })
 
+  it("doesn't run validate on a file another rule turns away", async () => {
+    const validate = vi.fn(() => null)
+    const { container } = render(
+      <FileUpload accept='image/*' validate={validate}>
+        <FileUpload.Trigger>Choose an image</FileUpload.Trigger>
+      </FileUpload>
+    )
+    await userEvent
+      .setup({ applyAccept: false })
+      .upload(fileInput(container), csv())
+    expect(validate).not.toHaveBeenCalled()
+  })
+
+  it("doesn't bring a file back when the field is cleared during its check", async () => {
+    const onValueChange = vi.fn()
+    let pass: (message: null) => void = () => {}
+    const { container } = render(
+      <FileUpload
+        defaultValue={[csv('march.csv')]}
+        validate={() => new Promise<null>((resolve) => (pass = resolve))}
+        onValueChange={onValueChange}
+      >
+        <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+        <FileUpload.Clear />
+      </FileUpload>
+    )
+    await userEvent.upload(fileInput(container), csv('april.csv'))
+    await userEvent.click(screen.getByRole('button', { name: /^Remove/ }))
+    expect(onValueChange).toHaveBeenLastCalledWith([])
+    await act(async () => pass(null))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the latest pick when an earlier check finishes after it', async () => {
     const onValueChange = vi.fn()
     let passSlow: (message: null) => void = () => {}
