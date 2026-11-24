@@ -21,6 +21,7 @@ import {
   FileUploadItemRemove,
   FileUploadItemSize
 } from './FileUploadItem'
+import { FileUploadItemPreview } from './FileUploadItemPreview'
 
 export type FileUploadListProps = Omit<ComponentProps<'ul'>, 'children'> & {
   /** Renders each file. Defaults to a row with its preview, name, size and Remove. */
@@ -37,6 +38,7 @@ const idFor = (file: File) => {
 
 const defaultItem = () => (
   <FileUploadItem>
+    <FileUploadItemPreview />
     <span className='grid min-w-0 flex-1'>
       <FileUploadItemName />
       <FileUploadItemSize />

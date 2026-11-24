@@ -478,6 +478,7 @@ export {
   type FileUploadItemNameProps,
   type FileUploadItemSizeProps,
   type FileUploadItemRemoveProps,
+  type FileUploadItemPreviewProps,
   type FileUploadItem,
   type FileUploadRejection,
   type FileUploadRejectionCode
