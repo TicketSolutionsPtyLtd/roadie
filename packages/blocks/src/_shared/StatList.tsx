@@ -2,7 +2,10 @@ import type { CSSProperties } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { type SpotIllustrationName, spotIllustration } from './illustrations'
+import {
+  SpotIllustrationByName,
+  type SpotIllustrationName
+} from './illustrations'
 
 export type StatItem = {
   /** The number as written, such as `7 million+` or `4.9 out of 5`. Over four words, it's set a step smaller. */
@@ -47,15 +50,16 @@ export function StatList({ items }: { items: readonly StatItem[] }) {
       className='grid grid-cols-[repeat(auto-fill,minmax(min(100%,max(16rem,calc((100%-(var(--stats-per-row)-1)*2rem)/var(--stats-per-row)))),1fr))] gap-x-8 gap-y-2'
     >
       {items.map(({ value, label, illustration }, index) => {
-        const Illustration = spotIllustration(illustration)
         return (
           <li key={`${index}-${value}-${label}`} className='@container min-w-0'>
             {/* The column's width, the same across a row, decides whether the
                 illustration sits beside the figure or above it, never the text. */}
             <div className='grid justify-items-start gap-2 py-1 @xs:flex @xs:items-center @xs:gap-4'>
-              {Illustration && (
-                <Illustration outline className='size-16 shrink-0' />
-              )}
+              <SpotIllustrationByName
+                name={illustration}
+                outline
+                className='size-16 shrink-0'
+              />
               <div className='min-w-0'>
                 <p
                   className={cn(
