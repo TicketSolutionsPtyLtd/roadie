@@ -1,5 +1,6 @@
 declare module 'vitest/browser' {
   interface BrowserCommands {
+    focusPage: () => Promise<void>
     forcedColors: (active: boolean) => Promise<void>
     parkPointer: () => Promise<void>
     pointer: (
