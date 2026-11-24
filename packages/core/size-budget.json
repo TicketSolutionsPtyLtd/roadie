@@ -1,0 +1,18 @@
+{
+  ".": { "own": 2081, "full": 38790, "initial": 9698 },
+  "./colors": { "own": 2174, "full": 31336, "initial": 29764 },
+  "./theme": { "own": 1182, "full": 1182, "initial": 1182 },
+  "./navigator": { "own": 303, "full": 303, "initial": 303 },
+  "./utils": { "own": 773, "full": 8397, "initial": 8397 },
+  "./image": { "own": 1563, "full": 1563, "initial": 1563 },
+  "./datetime": { "own": 9375, "full": 9375, "initial": 9375 },
+  "./number": { "own": 509, "full": 509, "initial": 509 },
+  "./phone": { "own": 2218, "full": 2218, "initial": 2218 },
+  "./dataviz": { "own": 5796, "full": 5796, "initial": 5796 },
+  "./dashboard": { "own": 12516, "full": 35534, "initial": 35534 },
+  "./dashboard-layout": { "own": 2258, "full": 2258, "initial": 2258 },
+  "./records": { "own": 20091, "full": 42069, "initial": 42069 },
+  "./records/meilisearch": { "own": 1474, "full": 1474, "initial": 1474 },
+  "./records/elasticsearch": { "own": 1303, "full": 1303, "initial": 1303 },
+  "./records/json-schema": { "own": 1372, "full": 24755, "initial": 24755 }
+}

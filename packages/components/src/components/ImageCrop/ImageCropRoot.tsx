@@ -29,8 +29,11 @@ export type ImageCropRootProps = Omit<
 > & {
   /** The image: a URL, or a File or Blob such as one from `FileUpload`. */
   src: string | Blob
-  /** The frame's width over its height, so `2` for a 2:1 event image. */
-  aspectRatio: number
+  /**
+   * The frame's width over its height, so `2` for a 2:1 event image. Leave it
+   * out for free-form, where the frame's edges and corners resize it.
+   */
+  aspectRatio?: number
   /** The frame's mask. The value is always a rectangle. */
   shape?: ImageCropShape
   /** The narrowest crop in the image's own pixels. Zoom stops before the crop drops below it. */
@@ -100,9 +103,9 @@ function sameValue(a?: ImageCropValue, b?: ImageCropValue) {
 }
 
 /**
- * Crops an image to a fixed ratio: the image pans, zooms and turns under a
- * frame. With no children it renders `ImageCrop.Stage` and
- * `ImageCrop.Controls`.
+ * Crops an image to a fixed ratio, or free-form with no `aspectRatio`: the
+ * image pans, zooms and turns under a frame. With no children it renders
+ * `ImageCrop.Stage` and `ImageCrop.Controls`.
  */
 export function ImageCropRoot({
   src,

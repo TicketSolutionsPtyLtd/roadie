@@ -53,9 +53,8 @@ pnpm --filter docs dev
 - Each package's public API is the `exports` block in its `package.json`.
   Docs and consumers import per-component subpaths, never the root barrel.
 - A JS subpath needs a `tsdown.config.ts` entry unless a wildcard covers it.
-- A JS subpath in components needs its row in the generated
-  `packages/components/size-budget.json`, or `size` fails. Build, then run
-  `pnpm --filter @oztix/roadie-components size:update`.
+- A JS subpath needs its row in its package's generated `size-budget.json`,
+  or `size` fails. Build, then run `pnpm --filter <package> size:update`.
 - A CSS `@utility` must be named in its package's `src/css/safelist.html` (core
   and charts), or Tailwind purges it and the compiled sheet comes out empty.
 - A utility in a family where one class replaces another (intent, emphasis,

@@ -78,21 +78,21 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Wire new public subpaths everywhere they ship from:** an `exports`
   entry in `package.json`; for JavaScript, a `tsdown.config.ts` entry unless
   a wildcard already covers it (components does) and a size budget.
-  Components keeps a generated table, `size-budget.json`, of each subpath's
-  brotli bytes: its own code (`own`), with its dependencies (`full`), and
-  without what only an `import()` reaches (`initial`). `size` allows 3% or
-  300 B of growth, whichever is larger. For a new subpath, or growth you
-  meant, build, run `pnpm --filter @oztix/roadie-components size:update`,
-  and commit the file. The other packages use Size Limit
-  (`.size-limit.json`, or the `size-limit` field in `package.json` for core
-  and widgets). There, set a budget, or raise one, to about 10% above what you
-  measure, never just above it, or the next small change crosses it again.
+  Each package keeps a generated table, `size-budget.json`, of each JS
+  subpath's brotli bytes: its own code (`own`), with its dependencies
+  (`full`), and without what only an `import()` reaches (`initial`). `size`
+  allows 3% or 300 B of growth, whichever is larger. For a new subpath, or
+  growth you meant, build, run `pnpm --filter <package> size:update`, and
+  commit the file. After taking `main`, build and run the update again;
+  never merge the table by hand.
   New `@utility` classes also go in `src/css/safelist.html`. Core's CSS has
-  budgets in the same field (`roadie.compiled.css`, brotli and raw, and what
-  importing `@oztix/roadie-core/css` costs an app before Tailwind scans a
-  source file), so after changing it, build core and run
-  `pnpm --filter @oztix/roadie-core size`, which reads the compiled sheet from
-  `dist`.
+  hand-set Size Limit budgets in the `size-limit` field of its `package.json`
+  (`roadie.compiled.css`, brotli and raw, and what importing
+  `@oztix/roadie-core/css` costs an app before Tailwind scans a source file).
+  Set one, or raise one, to about 10% above what you measure, never just
+  above it, or the next small change crosses it again. After changing core's
+  CSS, build core and run `pnpm --filter @oztix/roadie-core size`, which reads
+  the compiled sheet from `dist`.
 - **Changing Turbo config?** Read the installed turbo's `docs/README.md`
   first; the installed version may differ from what you know.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
