@@ -442,7 +442,7 @@ describe('destination visuals', () => {
     expect(within(tab).getByText('A')).toHaveClass('sr-only')
   })
 
-  it('renders secondary-pane rows duotone at size-5', async () => {
+  it('draws secondary-pane row icons bold unless given a weight, sized size-5', async () => {
     render(
       <Navigator value='/c'>
         <Navigator.Primary aria-label='Main'>
@@ -453,6 +453,13 @@ describe('destination visuals', () => {
               <Navigator.Item value='/c/x' href='/c/x' icon={<FakeIcon />}>
                 X
               </Navigator.Item>
+              <Navigator.Item
+                value='/c/y'
+                href='/c/y'
+                icon={<FakeIcon weight='fill' />}
+              >
+                Y
+              </Navigator.Item>
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
@@ -460,11 +467,12 @@ describe('destination visuals', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    const icon = document.querySelector(
+    const icons = document.querySelectorAll(
       '[data-slot="navigator-secondary-items"] [data-testid="fake-icon"]'
     )
-    expect(icon).toHaveAttribute('data-weight', 'duotone')
-    expect(icon).toHaveClass('size-5', 'text-subtle')
+    expect(icons[0]).toHaveAttribute('data-weight', 'bold')
+    expect(icons[1]).toHaveAttribute('data-weight', 'fill')
+    expect(icons[0]).toHaveClass('size-5', 'text-subtle')
   })
 
   it('gives idle vertical tiles a hover surface, and the current tile none', async () => {
