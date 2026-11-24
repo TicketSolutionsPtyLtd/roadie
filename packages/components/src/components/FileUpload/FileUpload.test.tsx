@@ -159,6 +159,33 @@ describe('FileUpload', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('big.csv is over')
   })
 
+  it("keeps the rules' messages beside the ones validate adds", async () => {
+    const onReject = vi.fn()
+    const { container } = render(
+      <Field>
+        <Field.Label>Payments</Field.Label>
+        <FileUpload
+          maxFiles={3}
+          maxFileSize={5}
+          validate={async (file) => `${file.name} is empty.`}
+          onReject={onReject}
+        >
+          <FileUpload.Trigger>Choose CSVs</FileUpload.Trigger>
+        </FileUpload>
+        <Field.ErrorText />
+      </Field>
+    )
+    await userEvent.upload(fileInput(container), [
+      csv('big.csv', 10),
+      csv('small.csv', 1)
+    ])
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('small.csv is empty.')
+    )
+    expect(screen.getByRole('alert')).toHaveTextContent('big.csv is over')
+    expect(onReject).toHaveBeenCalledTimes(2)
+  })
+
   it("doesn't run validate on a file another rule turns away", async () => {
     const validate = vi.fn(() => null)
     const { container } = render(

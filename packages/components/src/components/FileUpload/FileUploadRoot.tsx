@@ -240,9 +240,11 @@ export function FileUploadRoot({
   // still running from before it is dropped.
   const epoch = useRef(0)
   const latest = useRef(files)
+  // After every render, so a controlled value the parent didn't take is
+  // read back too.
   useEffect(() => {
     latest.current = files
-  }, [files])
+  })
 
   function take(picked: ArrayLike<File>) {
     const single = maxFiles === 1
@@ -256,28 +258,37 @@ export function FileUploadRoot({
         if (rejection) rejections.push(rejection)
         return !rejection
       })
-    const report = (turnedAway: FileUploadRejection[]) => {
+    // `shown` are this pick's rejections already reported, kept in the message.
+    const report = (
+      turnedAway: FileUploadRejection[],
+      shown: FileUploadRejection[] = []
+    ) => {
       if (!turnedAway.length) return
-      setError(turnedAway.map(({ message }) => message).join(' '))
+      setError(
+        [...shown, ...turnedAway].map(({ message }) => message).join(' ')
+      )
       onReject?.(turnedAway)
     }
     // Counts the field's files as they are when the checks land.
     const land = (
       passed: File[],
       turnedAway: FileUploadRejection[],
-      keepError = false
+      shown: FileUploadRejection[] = []
     ) => {
       const current = single ? [] : latest.current
       const taken = passed.slice(0, Math.max(maxFiles - current.length, 0))
-      if (taken.length) update([...current, ...taken], keepError)
-      report([
-        ...turnedAway,
-        ...passed.slice(taken.length).map((file) => ({
-          file,
-          code: 'too-many' as const,
-          message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
-        }))
-      ])
+      if (taken.length) update([...current, ...taken], shown.length > 0)
+      report(
+        [
+          ...turnedAway,
+          ...passed.slice(taken.length).map((file) => ({
+            file,
+            code: 'too-many' as const,
+            message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
+          }))
+        ],
+        shown
+      )
     }
     if (!validate || !checked.length) land(checked, rejections)
     else {
@@ -297,7 +308,7 @@ export function FileUploadRoot({
             const message = messages[index]
             return message ? [{ file, code: 'invalid' as const, message }] : []
           }),
-          rejections.length > 0
+          rejections
         )
       })
     }
