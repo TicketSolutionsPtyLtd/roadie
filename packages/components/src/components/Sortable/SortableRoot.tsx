@@ -5,11 +5,12 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useDirection } from '@base-ui/react/direction-provider'
 
 import { useDevWarning } from '../../utils/useDevWarning'
+import { whenIdle } from '../Records/idle'
 import {
   SortableRootContext,
   type SortableRootContextValue
 } from './SortableContext'
-import { SortableHandle } from './SortableHandle'
+import { SortableHandle, preloadMoveMenu } from './SortableHandle'
 import { SortableItem } from './SortableItem'
 import {
   type SortableDrop,
@@ -244,6 +245,12 @@ export function SortableRoot({
   useEffect(() => {
     if (shared !== undefined) return joinGroup(shared, actions.self)
   }, [shared, actions])
+
+  // So the first press on a handle finds its menu loaded, on touch too, where
+  // nothing comes before the press.
+  useEffect(() => {
+    if (!disabled) return whenIdle(preloadMoveMenu)
+  }, [disabled])
 
   useEffect(() => {
     if (disabled) return

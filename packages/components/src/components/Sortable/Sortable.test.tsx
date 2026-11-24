@@ -88,6 +88,87 @@ describe('Sortable', () => {
     expect(button.closest('[data-slot="sortable-item"]')?.tagName).toBe('LI')
   })
 
+  it.each([
+    ['Enter', '{Enter}', 'Move SKU up'],
+    ['Space', ' ', 'Move SKU up'],
+    ['the down arrow', '{ArrowDown}', 'Move SKU up'],
+    ['the up arrow', '{ArrowUp}', 'Move SKU to bottom']
+  ])(
+    'opens on %s with focus on the item that key starts at',
+    async (_, key, item) => {
+      const user = userEvent.setup()
+      render(<Columns />)
+      handle('SKU').focus()
+      await user.keyboard(key)
+      const focused = await screen.findByRole('menuitem', { name: item })
+      await waitFor(() => expect(focused).toHaveFocus())
+      expect(handle('SKU')).toHaveAttribute('aria-expanded', 'true')
+      await user.keyboard('{Escape}')
+      await waitFor(() => expect(handle('SKU')).toHaveFocus())
+    }
+  )
+
+  it('opens on a press with focus on the menu, and names the menu after its handle', async () => {
+    const user = userEvent.setup()
+    render(<Columns />)
+    await user.click(handle('SKU'))
+    const menu = await screen.findByRole('menu', { name: 'Reorder SKU' })
+    await waitFor(() => expect(menu).toHaveFocus())
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(handle('SKU')).toHaveFocus())
+  })
+
+  it('keeps the page still on the arrow key that opens the menu', () => {
+    render(<Columns />)
+    expect(fireEvent.keyDown(handle('SKU'), { key: 'ArrowDown' })).toBe(false)
+  })
+
+  it('leaves a handle as it was once its menu has opened and closed', async () => {
+    const attributes = (name: string) =>
+      Array.from(handle(name).attributes)
+        .filter(({ name }) => name !== 'id' && name !== 'aria-label')
+        .map(({ name, value }) => `${name}=${value}`)
+        .sort()
+    render(<Columns />)
+    const { user } = await openMenu('SKU')
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(handle('SKU')).toHaveFocus())
+    expect(attributes('SKU')).toEqual(attributes('Date'))
+    expect(handle('Date')).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('hears each press and key on a handle once, whether or not its menu had loaded', async () => {
+    const heard = { click: vi.fn(), keyDown: vi.fn(), above: vi.fn() }
+    const ref = { current: null as HTMLButtonElement | null }
+    const user = userEvent.setup()
+    render(
+      <Sortable items={['A', 'B']} onReorder={() => {}}>
+        <div onClick={heard.above} onKeyDown={heard.above}>
+          <Sortable.Item value='A' label='A'>
+            <Sortable.Handle
+              ref={ref}
+              onClick={heard.click}
+              onKeyDown={heard.keyDown}
+            />
+          </Sortable.Item>
+        </div>
+      </Sortable>
+    )
+    expect(ref.current).toBe(handle('A'))
+    handle('A').focus()
+    await user.keyboard('{ArrowDown}')
+    await screen.findByRole('menu')
+    expect(ref.current).toBe(handle('A'))
+    expect(heard.keyDown).toHaveBeenCalledTimes(1)
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(handle('A')).toHaveFocus())
+    heard.above.mockClear()
+    await user.click(handle('A'))
+    await screen.findByRole('menu')
+    expect(heard.click).toHaveBeenCalledTimes(1)
+    expect(heard.above).toHaveBeenCalledTimes(1)
+  })
+
   it('lists the moves and disables the ones past the ends', async () => {
     render(<Columns />)
     const { menu } = await openMenu('Date')
