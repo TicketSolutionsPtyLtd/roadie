@@ -3,6 +3,7 @@ import {
   afterAll,
   afterEach,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   it,
@@ -13,6 +14,7 @@ import { commands, userEvent } from 'vitest/browser'
 
 import { FileUpload } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { releaseDragPointer } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -395,5 +397,77 @@ describe('FileUpload previews', () => {
     const src = (await screen.findByRole('presentation')).getAttribute('src')
     unmount()
     expect(revoke).toHaveBeenCalledWith(src)
+  })
+})
+
+describe('FileUpload with several files', () => {
+  // After a drop the drag library covers the pointer until it moves.
+  beforeEach(() => commands.pointer([{ type: 'move', x: 1, y: 1, steps: 2 }]))
+  afterEach(releaseDragPointer)
+
+  const centre = (element: Element) => {
+    const box = element.getBoundingClientRect()
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+  }
+  const names = () =>
+    screen
+      .getAllByRole('listitem')
+      .map(
+        (row) =>
+          row.querySelector('[data-slot=file-upload-item-name]')!.textContent
+      )
+
+  it('reorders a file by dragging its handle', async () => {
+    const onValueChange = vi.fn()
+    const files = ['rider.csv', 'stage.csv', 'runsheet.csv'].map(csv)
+    render(
+      <FileUpload
+        maxFiles={6}
+        defaultValue={files}
+        onValueChange={onValueChange}
+      />
+    )
+    // Let the rows pop in first, so they hold still under the pointer.
+    settle(screen.getByRole('list'))
+    const from = centre(
+      screen.getByRole('button', { name: 'Reorder rider.csv' })
+    )
+    const target = screen.getAllByRole('listitem')[2]!.getBoundingClientRect()
+    await commands.pointer([
+      { type: 'move', ...from },
+      { type: 'down' },
+      { type: 'move', x: from.x, y: from.y + 6, steps: 3 },
+      { type: 'move', x: from.x, y: from.y + 12, steps: 3 },
+      {
+        type: 'move',
+        x: target.left + target.width / 2,
+        y: target.top + target.height * 0.8,
+        steps: 6
+      },
+      { type: 'up' }
+    ])
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith([
+        files[1],
+        files[2],
+        files[0]
+      ])
+    )
+    expect(names()).toEqual(['stage.csv', 'runsheet.csv', 'rider.csv'])
+  })
+
+  it('still collapses a removed row', async () => {
+    render(
+      <FileUpload maxFiles={6} defaultValue={[csv('a.csv'), csv('b.csv')]} />
+    )
+    const row = screen.getAllByRole('listitem')[0]!
+    expect(getComputedStyle(row).transitionProperty).toContain(
+      'grid-template-rows'
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Remove a.csv' }))
+    expect(row).toHaveAttribute('data-leaving')
+    expect(row.getAnimations().length).toBeGreaterThan(0)
+    settle(row)
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(1))
   })
 })

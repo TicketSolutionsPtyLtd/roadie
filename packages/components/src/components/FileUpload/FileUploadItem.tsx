@@ -2,6 +2,8 @@
 
 import {
   type ComponentProps,
+  cloneElement,
+  use,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -13,6 +15,7 @@ import { XIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { IconButton, type IconButtonProps } from '../Button'
+import { SortableRootContext } from '../Sortable/SortableContext'
 import { useFileUploadContext, useFileUploadItem } from './FileUploadContext'
 import { formatFileSize } from './checkFile'
 
@@ -26,16 +29,19 @@ export type FileUploadItemProps = ComponentProps<'div'>
 export function FileUploadItem({
   className,
   style,
+  children,
   ...props
 }: FileUploadItemProps) {
   const {
-    item: { id },
+    item: { id, file },
     leaving,
     enterIndex,
     onLeft,
     claim
   } = useFileUploadItem('FileUpload.Item')
   const itemRef = useRef<HTMLLIElement>(null)
+  // Set by `FileUpload.List` when the field takes more than one file.
+  const sortable = use(SortableRootContext)
   // Fixed at mount: a later change would replay the pop-in.
   const [delay] = useState(enterIndex)
   useLayoutEffect(() => {
@@ -58,29 +64,40 @@ export function FileUploadItem({
     }
   }, [leaving, onLeft])
 
-  return (
+  const row = (
     <li
       ref={itemRef}
       data-slot='file-upload-item'
       data-leaving={leaving || undefined}
       inert={leaving}
-      className='grid grid-rows-[1fr] pb-2 transition-[grid-template-rows,padding-bottom,opacity] duration-slow ease-spring last:pb-0 data-leaving:grid-rows-[0fr] data-leaving:overflow-hidden data-leaving:pb-0 data-leaving:opacity-0'
-    >
-      {/* Unpadded, so the row's padding and border collapse with it. */}
-      <div className='min-h-0'>
-        <div
-          className={cn(
-            'flex h-full origin-top animate-pop-in items-center gap-3 rounded-xl emphasis-normal p-2',
-            className
-          )}
-          style={{
-            animationDelay: `calc(var(--stagger-base) * ${delay})`,
-            ...style
-          }}
-          {...props}
-        />
+      className='grid grid-rows-[1fr] pb-2 duration-slow ease-spring last:pb-0 data-leaving:grid-rows-[0fr] data-leaving:overflow-hidden data-leaving:pb-0 data-leaving:opacity-0 motion-safe:transition-[grid-template-rows,padding-bottom,opacity]'
+    />
+  )
+  // Unpadded, so the row's padding and border collapse with it.
+  const content = (
+    <div className='min-h-0'>
+      <div
+        className={cn(
+          'flex h-full origin-top animate-pop-in items-center gap-3 rounded-xl emphasis-normal p-2',
+          className
+        )}
+        style={{
+          animationDelay: `calc(var(--stagger-base) * ${delay})`,
+          ...style
+        }}
+        {...props}
+      >
+        {sortable && <sortable.Handle size='xs' />}
+        {children}
       </div>
-    </li>
+    </div>
+  )
+  return sortable ? (
+    <sortable.Item value={id} label={file.name} disabled={leaving} render={row}>
+      {content}
+    </sortable.Item>
+  ) : (
+    cloneElement(row, undefined, content)
   )
 }
 

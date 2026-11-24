@@ -9,6 +9,9 @@ export type FileUploadContextValue = {
   open: () => void
   clear: () => void
   remove: (file: File) => void
+  /** Sets the files in a new order. */
+  reorder: (files: File[]) => void
+  maxFiles: number
   inputId: string
   valueId: string
   triggerRef: RefObject<HTMLElement | null>

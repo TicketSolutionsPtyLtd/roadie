@@ -36,6 +36,8 @@ export type FileUploadRootProps = Omit<
     onValueChange?: (files: File[]) => void
     /** Called with the files a pick turned away, each with its code and message. */
     onReject?: (rejections: FileUploadRejection[]) => void
+    /** How many files the field holds. Above 1, picks add to the files, and they can be reordered. @default 1 */
+    maxFiles?: number
     /** Which camera a phone opens instead of its file picker. Passed to the native input. */
     capture?: 'user' | 'environment'
     disabled?: boolean
@@ -57,6 +59,7 @@ export function FileUploadRoot({
   maxFileSize,
   minFileSize,
   onReject,
+  maxFiles = 1,
   capture,
   disabled,
   required,
@@ -85,15 +88,30 @@ export function FileUploadRoot({
   }, [files])
   useEffect(syncInput, [syncInput])
 
-  // Picks, drops and pastes all come through here. One file for now: the first.
+  // Picks, drops and pastes all come through here. With one file allowed,
+  // the first replaces it; with more, files join until the field is full.
   function take(picked: ArrayLike<File>) {
-    const file = picked[0]
-    const rejection =
-      file && checkFile(file, { accept, maxFileSize, minFileSize })
-    if (rejection) {
-      setError(rejection.message)
-      onReject?.([rejection])
-    } else if (file) commit([file])
+    const single = maxFiles === 1
+    const taken: File[] = []
+    const rejections: FileUploadRejection[] = []
+    for (const file of Array.from(picked).slice(0, single ? 1 : undefined)) {
+      const rejection =
+        checkFile(file, { accept, maxFileSize, minFileSize }) ??
+        (single || files.length + taken.length < maxFiles
+          ? null
+          : {
+              file,
+              code: 'too-many' as const,
+              message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
+            })
+      if (rejection) rejections.push(rejection)
+      else taken.push(file)
+    }
+    if (taken.length) commit(single ? taken : [...files, ...taken])
+    if (rejections.length) {
+      setError(rejections.map(({ message }) => message).join(' '))
+      onReject?.(rejections)
+    }
     // The input shows only the value; an accepted pick reaches it on re-render.
     syncInput()
   }
@@ -138,6 +156,8 @@ export function FileUploadRoot({
             triggerRef.current?.focus()
           },
           remove: (file) => commit(files.filter((each) => each !== file)),
+          reorder: commit,
+          maxFiles,
           inputId,
           valueId: `${ownId}-value`,
           triggerRef,
@@ -160,6 +180,7 @@ export function FileUploadRoot({
         id={inputId}
         name={name}
         accept={accept}
+        multiple={maxFiles > 1}
         capture={capture}
         required={Boolean(required || field.required)}
         disabled={isDisabled}

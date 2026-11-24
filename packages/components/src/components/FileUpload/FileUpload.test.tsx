@@ -456,4 +456,83 @@ describe('FileUpload', () => {
       await waitFor(() => expect(screen.queryByRole('list')).toBeNull())
     })
   })
+
+  describe('several files', () => {
+    const files = (count: number) =>
+      Array.from({ length: count }, (_, index) => csv(`set-${index + 1}.csv`))
+
+    it('adds picks to the files, and turns away a seventh over maxFiles={6}', async () => {
+      const onValueChange = vi.fn()
+      const onReject = vi.fn()
+      const six = files(6)
+      const { container } = render(
+        <Field>
+          <Field.Label>Event documents</Field.Label>
+          <FileUpload
+            maxFiles={6}
+            onValueChange={onValueChange}
+            onReject={onReject}
+          />
+          <Field.ErrorText />
+        </Field>
+      )
+      const input = fileInput(container)
+      expect(input).toHaveAttribute('multiple')
+      const user = userEvent.setup()
+      await user.upload(input, six.slice(0, 4))
+      expect(onValueChange).toHaveBeenLastCalledWith(six.slice(0, 4))
+      expect(
+        screen.getByRole('button', {
+          name: /Drop files, or choose them 4 of 6/
+        })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('list', { name: 'Event documents' })
+      ).toBeInTheDocument()
+
+      const seventh = csv('set-7.csv')
+      await user.upload(input, [...six.slice(4), seventh])
+      expect(onValueChange).toHaveBeenLastCalledWith(six)
+      expect(onReject).toHaveBeenCalledWith([
+        expect.objectContaining({ file: seventh, code: 'too-many' })
+      ])
+      expect(
+        await screen.findByText(
+          "set-7.csv wasn't added, as the field takes up to 6 files."
+        )
+      ).toBeInTheDocument()
+    })
+
+    it('reorders the files from the Move menu', async () => {
+      const onValueChange = vi.fn()
+      const [first, second, third] = files(3) as [File, File, File]
+      render(
+        <FileUpload
+          maxFiles={6}
+          defaultValue={[first, second, third]}
+          onValueChange={onValueChange}
+        />
+      )
+      const user = userEvent.setup()
+      await user.click(
+        screen.getByRole('button', { name: 'Reorder set-1.csv' })
+      )
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'Move set-1.csv down' })
+      )
+      expect(onValueChange).toHaveBeenLastCalledWith([second, first, third])
+      expect(
+        screen.getAllByRole('listitem').map((row) => row.textContent)
+      ).toEqual([
+        expect.stringContaining('set-2.csv'),
+        expect.stringContaining('set-1.csv'),
+        expect.stringContaining('set-3.csv')
+      ])
+    })
+
+    it('leaves a single-file list without handles', () => {
+      render(<FileUpload defaultValue={[csv()]} />)
+      expect(screen.queryByRole('button', { name: /^Reorder/ })).toBeNull()
+    })
+  })
 })
