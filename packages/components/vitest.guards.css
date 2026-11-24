@@ -11,6 +11,7 @@
 @source '../editor/src';
 @source '../widgets/src';
 @source not '../*/src/**/*.test.{ts,tsx}';
+@source not '../*/src/**/{fixtures,testUtils,*TestUtils}.{ts,tsx}';
 @source not './dist';
 @source not '../charts/dist';
 @source not '../editor/dist';

@@ -102,19 +102,19 @@ const ALLOWED: Allowance[] = [
     cover: ONE_OFF
   },
   {
-    rule: /--(scroll-area|toggle-group)-fade-/,
+    rule: /^\.(data-\\\[orientation\S+:)?\\\[mask-image\\:linear-gradient\S+--(scroll-area|toggle-group)-fade-/,
     property: 'mask',
     why: 'ScrollArea/variants.ts and ToggleGroup/variants.ts: a faded scroll edge',
     cover: 'Toolbar.perf, a faded ScrollArea; none for ToggleGroup’s own'
   },
   {
-    rule: /\[data-variant="ticket"\] > \*$/,
+    rule: /^\[data-slot="card"\]\[data-variant="ticket"\] > \*$/,
     property: 'mask',
     why: 'components card-ticket.css: the notches where corner-shape is missing',
     cover: 'none; Chromium never draws it, so it takes a WebKit run'
   },
   {
-    rule: /collapsible-text-content/,
+    rule: /^\[data-slot="collapsible-text-content"\] &\[data-clamped\]\[data-overflowing\]$/,
     property: 'mask',
     why: 'components collapsible-text.css: the fade on the last clamped line',
     cover: 'none'
@@ -132,7 +132,7 @@ const ALLOWED: Allowance[] = [
     cover: 'Calendar.perf'
   },
   {
-    rule: /navigator-pending/,
+    rule: /^\[data-slot="navigator-pending"\]::before$/,
     property: 'will-change',
     why: 'components navigator-pending.css: the spinner on one pending link',
     cover: 'one at a time, not repeated'
@@ -260,6 +260,8 @@ describe('Roadie CSS and paint cost', () => {
     const sites = sitesIn(roadieCss)
     const used = new Set(sites.map(allowanceFor))
     expect(ALLOWED.filter((allowance) => !used.has(allowance))).toEqual([])
+    // Fails once #994 lands, so the ticket's exception goes with it.
+    expect(sites.some(isTicketChain)).toBe(true)
   })
 
   it('ships no filter chain over three functions', () => {
