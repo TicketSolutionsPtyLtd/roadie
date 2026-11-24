@@ -552,7 +552,8 @@ export function ImageCropStage({
   }
 
   // Arrows move a corner as a drag does, so the crop grows as the corner
-  // moves out. The frame then fits the stage again.
+  // moves out. The frame then fits the stage again. There's no Alt here, as
+  // Alt and an arrow go back or forward a page on Windows and Linux.
   const handleResizeKey = (event: KeyboardEvent<HTMLElement>, edge: Edge) => {
     const dir = resizeKeys[event.key]
     if (!dir || !scene?.bounds || !shown) return
@@ -565,7 +566,7 @@ export function ImageCropStage({
       edge,
       by,
       { ...scene, bounds: scene.bounds },
-      { centred: event.altKey, minFrame: MIN_FRAME }
+      { minFrame: MIN_FRAME }
     )
     const ratio = frame.width / frame.height
     const next = fitCrop(value, {
@@ -780,8 +781,7 @@ export function ImageCropStage({
       {free && (
         <p id={handleHint} className='sr-only'>
           Use the arrow keys to move the corner and resize the crop, keeping the
-          opposite corner where it is. Hold Shift for bigger steps, or Alt to
-          resize about the centre.
+          opposite corner where it is. Hold Shift for bigger steps.
         </p>
       )}
     </div>
