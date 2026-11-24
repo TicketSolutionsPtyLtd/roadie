@@ -13,10 +13,9 @@
  * its output matches `colorjs.io` to 4 decimal places, verified by
  * parity tests in `srgb-to-oklch.test.ts`.
  *
- * `accentFromPixels` lives here too, for the same reason: it builds into
- * this shared chunk, not into `colors/index.js`, whose own body imports
- * colorjs.io for `getContrastColor`, so it costs an app about 1 kB instead
- * of 28 kB. The size budget for it catches a move that undoes this.
+ * `accentFromPixels` and `getContrastColor` build on it for the same
+ * reason, so neither costs an app colorjs.io's 28 kB. The `initial` size
+ * budget for `./colors` catches a static import that undoes this.
  *
  * This file is intentionally zero-dependency and synchronous. Do not
  * add colorjs.io here: the whole point is to skip the async import.

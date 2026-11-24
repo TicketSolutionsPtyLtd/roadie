@@ -136,4 +136,31 @@ describe('getContrastColor', () => {
   it('accepts uppercase hex', () => {
     expect(getContrastColor('#0091EB')).toBe('white')
   })
+
+  it.each(['ff0000', '#ff000', '#ff00000', '#gggggg', '#', '', 'nonsense'])(
+    'throws a TypeError for %j, which is no colour',
+    (background) => {
+      expect(() => getContrastColor(background)).toThrow(TypeError)
+    }
+  )
+
+  it.each([
+    'red',
+    'transparent',
+    'rgb(255 0 0)',
+    'rgba(255, 0, 0, 0.5)',
+    'hsl(0 100% 50%)',
+    'hwb(0 0% 0%)',
+    'lab(50 40 60)',
+    'lch(50 60 40)',
+    'oklab(0.6 0.1 0.1)',
+    'oklch(0.639 0.19 250)',
+    'color(srgb 1 0 0)'
+  ])('throws a TypeError for %j, a colour that is not a hex', (background) => {
+    expect(() => getContrastColor(background)).toThrow(TypeError)
+  })
+
+  it('names the input it could not read', () => {
+    expect(() => getContrastColor('red')).toThrow('Invalid hex colour: red')
+  })
 })
