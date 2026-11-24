@@ -11,7 +11,7 @@ const SOURCES = import.meta.glob<string>(
 
 // A type-only import loads nothing, so it isn't followed.
 const VALUE_IMPORT =
-  /(?:^|\n)(?:import|export)\s+(?!type\s)[^'"]*?from\s+'(\.[^']+)'/g
+  /(?:^|\n)(?:import|export)\s+(?!type\s)(?:[\w$*, ]*(?:\{[^}]*\})?\s*from\s+)?['"](\.[^'"]*)['"]/g
 
 // React's server build has no createContext, so calling it as a module loads throws.
 const CREATES_CONTEXT = /\bcreateContext\s*[<(]/
@@ -29,7 +29,9 @@ function contextsOnServer(sources: Sources, entry: string) {
     if (/^['"]use client['"]/.test(source)) continue
     if (CREATES_CONTEXT.test(source)) found.push(file)
     for (const match of source.matchAll(VALUE_IMPORT)) {
-      const path = `.${new URL(match[1]!, `file:///${file}`).pathname}`
+      const { pathname } = new URL(match[1]!, `file:///${file}`)
+      // '.' and '..' name a folder, whose path ends in a slash.
+      const path = `.${pathname.replace(/\/$/, '')}`
       stack.push(
         `${path}.ts`,
         `${path}.tsx`,
@@ -75,7 +77,34 @@ describe('a Server Component importing an entry', () => {
     ).toEqual([])
   })
 
-  it('follows no type-only import', () => {
-    expect(found("export type { Rows } from './rows'", rows)).toEqual([])
+  it.each([
+    "import './rows'",
+    "export * from './rows'",
+    "import Rows, { type Row } from './rows'",
+    'import { Rows } from "./rows"'
+  ])('follows %s', (index) => {
+    expect(found(index, rows)).toEqual(['./Row.tsx'])
+  })
+
+  it('follows an import of a folder to its index', () => {
+    expect(
+      contextsOnServer(
+        {
+          './index.ts': "export { Row } from './row/Row'",
+          './row/Row.tsx': "import { Place } from '.'",
+          './row/index.ts': "export { Place } from '../place'",
+          './place/index.tsx': 'export const Place = createContext<number>(0)'
+        },
+        './index.ts'
+      )
+    ).toEqual(['./place/index.tsx'])
+  })
+
+  it.each([
+    "export type { Rows } from './rows'",
+    "import type { Rows } from './rows'",
+    "export { Rows }\nexport type { Row } from './rows'"
+  ])('follows no type-only import, as in %j', (index) => {
+    expect(found(index, rows)).toEqual([])
   })
 })
