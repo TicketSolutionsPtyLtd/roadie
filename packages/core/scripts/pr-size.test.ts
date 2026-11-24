@@ -23,20 +23,21 @@ describe('countChangedLines', () => {
     })
   })
 
-  it('leaves out lock files, snapshots, generated CSS, changesets, and changelogs', () => {
+  it('leaves out lock files, snapshots, generated CSS and size budgets, changesets, and changelogs', () => {
     const numstat = [
       '900\t800\tpnpm-lock.yaml',
       '10\t0\tskills-lock.json',
       '120\t0\tpackages/charts/src/BarChart/__snapshots__/scan-rate-dark.svg',
       '40\t40\tpackages/components/src/Foo/Foo.test.tsx.snap',
       '300\t300\tpackages/core/src/css/dataviz.css',
+      '60\t30\tpackages/components/size-budget.json',
       '5\t0\t.changeset/new-thing.md',
       '12\t0\tpackages/charts/CHANGELOG.md',
       '7\t2\tpackages/core/src/dataviz/palette.ts'
     ].join('\n')
     expect(countChangedLines(numstat)).toEqual({
       total: 9,
-      excludedLines: 2527,
+      excludedLines: 2617,
       files: 1
     })
   })

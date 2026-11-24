@@ -22,6 +22,8 @@ import {
   fitFrame,
   moveTo,
   panBy,
+  resizeArea,
+  resizeTo,
   rotateBy,
   sameCrop,
   stretchCrop,
@@ -40,6 +42,8 @@ const SPRING_MS = 320
 const DOUBLE_TAP_MS = 300
 const TAP_SLOP = 24
 const KEY_ZOOM = 1.1
+// Two handles' width, so the corners never overlap.
+const MIN_FRAME = 88
 const radius = { rectangle: 'rounded-md', circle: 'rounded-full' }
 const corners = [
   'top-0 left-0 border-t-3 border-l-3 rounded-tl-md',
@@ -47,6 +51,69 @@ const corners = [
   'bottom-0 left-0 border-b-3 border-l-3 rounded-bl-md',
   'bottom-0 right-0 border-b-3 border-r-3 rounded-br-md'
 ]
+
+// The handles of a free-form frame: which way each side moves, where it
+// sits, and its corner mark.
+type Edge = { x: -1 | 0 | 1; y: -1 | 0 | 1 }
+const cornerHandles: (Edge & { name: string; place: string; mark: string })[] =
+  [
+    {
+      x: -1,
+      y: -1,
+      name: 'Top left corner',
+      place: 'top-0 left-0 cursor-nwse-resize',
+      mark: 'top-1/2 left-1/2 border-t-3 border-l-3 rounded-tl-md'
+    },
+    {
+      x: 1,
+      y: -1,
+      name: 'Top right corner',
+      place: 'top-0 left-full cursor-nesw-resize',
+      mark: 'top-1/2 right-1/2 border-t-3 border-r-3 rounded-tr-md'
+    },
+    {
+      x: -1,
+      y: 1,
+      name: 'Bottom left corner',
+      place: 'top-full left-0 cursor-nesw-resize',
+      mark: 'bottom-1/2 left-1/2 border-b-3 border-l-3 rounded-bl-md'
+    },
+    {
+      x: 1,
+      y: 1,
+      name: 'Bottom right corner',
+      place: 'top-full left-full cursor-nwse-resize',
+      mark: 'bottom-1/2 right-1/2 border-b-3 border-r-3 rounded-br-md'
+    }
+  ]
+const edgeHandles: (Edge & { place: string })[] = [
+  {
+    x: 0,
+    y: -1,
+    place: 'top-0 inset-x-11 h-11 -translate-y-1/2 cursor-ns-resize'
+  },
+  {
+    x: 0,
+    y: 1,
+    place: 'top-full inset-x-11 h-11 -translate-y-1/2 cursor-ns-resize'
+  },
+  {
+    x: -1,
+    y: 0,
+    place: 'left-0 inset-y-11 w-11 -translate-x-1/2 cursor-ew-resize'
+  },
+  {
+    x: 1,
+    y: 0,
+    place: 'left-full inset-y-11 w-11 -translate-x-1/2 cursor-ew-resize'
+  }
+]
+const resizeKeys: Record<string, [number, number]> = {
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1]
+}
 
 const midpoint = (points: Point[]) => ({
   x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
@@ -73,6 +140,7 @@ export function ImageCropStage({
   const crop = useImageCropContext('ImageCrop.Stage')
   const stageRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
   const sizeRef = useRef<HTMLSpanElement>(null)
   const [stage, setStage] = useState<CropSize>()
   const [loaded, setLoaded] = useState<{ src: string; size: CropSize }>()
@@ -89,6 +157,14 @@ export function ImageCropStage({
     at: number
     moved: boolean
   }>(null)
+  // A handle being dragged: which one, and the crop and frame it started at.
+  const resizing = useRef<{
+    pointerId: number
+    edge: Edge
+    start: ImageCropValue
+    frame: CropSize
+    from: Point
+  }>(null)
   const lastTap = useRef<{ at: number } & Point>(null)
   // The value mid-gesture, the image it was made on, whether it ran past
   // the zoom cap, and the unclamped value a drag or pinch carries on from.
@@ -104,13 +180,22 @@ export function ImageCropStage({
   const springs = useRef(crop.springs)
   const settling = useRef<ReturnType<typeof setTimeout>>(undefined)
   const describedBy = useId()
+  const handleHint = useId()
 
   const image = loaded && loaded.src === crop.src ? loaded.size : undefined
-  const frame =
-    stage && fitFrame(stage, crop.aspectRatio, stage.width < 480 ? 24 : 48)
+  const inset = stage && stage.width < 480 ? 24 : 48
+  const bounds = stage && {
+    width: Math.max(stage.width - inset * 2, 0),
+    height: Math.max(stage.height - inset * 2, 0)
+  }
+  // A free-form frame takes the crop's shape, or the whole image's to start.
+  const free = !crop.aspectRatio
+  const area = crop.value?.area ?? image
+  const ratio = crop.aspectRatio ?? (area && area.width / area.height)
+  const frame = bounds && ratio ? fitFrame(bounds, ratio, 0) : undefined
   const scene: CropScene | undefined =
     frame && image && frame.width > 0
-      ? { frame, image, min: crop.min }
+      ? { frame, image, min: crop.min, bounds: free ? bounds : undefined }
       : undefined
   const shown = scene && fitCrop(crop.value, scene)
   const range = scene && shown && zoomRange(scene, shown.rotation)
@@ -130,6 +215,13 @@ export function ImageCropStage({
     // The chip says something else at the cap, and the render owns that.
     if (sizeRef.current && latest.current.plain)
       sizeRef.current.textContent = sizeOf(value)
+  }
+
+  const paintFrame = (size: CropSize) => {
+    const element = frameRef.current
+    if (!element) return
+    element.style.width = `${size.width}px`
+    element.style.height = `${size.height}px`
   }
 
   const unsettle = () => {
@@ -161,9 +253,13 @@ export function ImageCropStage({
       springs.current = crop.springs
       live.current = null
       gesture.current = null
+      resizing.current = null
       settle()
     }
-    if (shown && !live.current) paint(shown)
+    if (shown && !live.current) {
+      paint(shown)
+      if (frame) paintFrame(frame)
+    }
   })
   useEffect(
     () => () => {
@@ -404,6 +500,92 @@ export function ImageCropStage({
     finish(true)
   }
 
+  // A handle drag resizes the frame about its centre at the zoom it started
+  // at. On release the frame grows back to fill the stage, and the image
+  // zooms with it.
+  const startResize = (event: PointerEvent<HTMLElement>, edge: Edge) => {
+    if (!scene || !shown || gesture.current) return
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+    // The Stage leaves a handled pointer alone, so it doesn't pan too.
+    event.preventDefault()
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      // A synthetic pointer can't be captured, and needs no capture.
+    }
+    clearTimeout(wheeling.current)
+    unsettle()
+    resizing.current = {
+      pointerId: event.pointerId,
+      edge,
+      // A wheel zoom still settling carries on as this resize, reported once.
+      start: live.current?.value ?? shown,
+      frame: scene.frame,
+      from: { x: event.clientX, y: event.clientY }
+    }
+    setActive(true)
+  }
+
+  const moveResize = (event: PointerEvent<HTMLElement>) => {
+    const r = resizing.current
+    if (!r || r.pointerId !== event.pointerId || !scene?.bounds || !stage)
+      return
+    const side = (key: 'width' | 'height', axis: 'x' | 'y', client: number) =>
+      Math.min(
+        Math.max(
+          r.frame[key] + 2 * (client - r.from[axis]) * r.edge[axis],
+          MIN_FRAME
+        ),
+        scene.bounds![key]
+      )
+    const size = {
+      width: side('width', 'x', event.clientX),
+      height: side('height', 'y', event.clientY)
+    }
+    const { clamped, painted } = resizeTo(r.start, size, scene, stage)
+    live.current = { src: crop.src, value: clamped }
+    paint(painted)
+    paintFrame(size)
+  }
+
+  const endResize = (event: PointerEvent<HTMLElement>) => {
+    if (resizing.current?.pointerId !== event.pointerId) return
+    resizing.current = null
+    finish(true)
+  }
+
+  // Arrows move a corner, so the crop grows as the corner moves out.
+  const handleResizeKey = (event: KeyboardEvent<HTMLElement>, edge: Edge) => {
+    const dir = resizeKeys[event.key]
+    if (!dir || !scene?.bounds || !shown) return
+    event.preventDefault()
+    if (gesture.current || live.current) return
+    const step = (2 * (event.shiftKey ? 50 : 10)) / shown.zoom
+    const dw = step * dir[0] * edge.x
+    const dh = step * dir[1] * edge.y
+    // A side stops at two handles' width on screen, as a drag does.
+    const side = (key: 'width' | 'height', d: number) =>
+      Math.max(
+        shown.area[key] + d,
+        Math.min(shown.area[key], MIN_FRAME / shown.zoom)
+      )
+    const next = resizeArea(
+      shown,
+      { width: side('width', dw), height: side('height', dh) },
+      { ...scene, bounds: scene.bounds }
+    )
+    unsettle()
+    if (!sameCrop(next, shown)) crop.commit(next, { animate: true })
+    else if (dw + dh < 0) crop.nudge()
+  }
+
+  const resizeEvents = {
+    onPointerMove: moveResize,
+    onPointerUp: endResize,
+    onPointerCancel: endResize,
+    onLostPointerCapture: endResize
+  }
+
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event)
     if (event.defaultPrevented || event.target !== event.currentTarget) return
@@ -480,15 +662,16 @@ export function ImageCropStage({
       )}
       {frame && (
         <div
-          aria-hidden
+          ref={frameRef}
           data-slot='image-crop-frame'
           className={cn(
-            'pointer-events-none absolute top-1/2 left-1/2 -translate-1/2 shadow-[0_0_0_1.5px_var(--color-neutral-light-0),0_0_0_100vmax_color-mix(in_oklab,var(--color-neutral-light-13)_60%,transparent)]',
+            'pointer-events-none absolute top-1/2 left-1/2 -translate-1/2 group-data-settling/crop:transition-[width,height] group-data-settling/crop:duration-slow group-data-settling/crop:ease-spring shadow-[0_0_0_1.5px_var(--color-neutral-light-0),0_0_0_100vmax_color-mix(in_oklab,var(--color-neutral-light-13)_60%,transparent)]',
             radius[crop.shape]
           )}
           style={{ width: frame.width, height: frame.height }}
         >
           <div
+            aria-hidden
             className={cn(
               'absolute inset-0 overflow-hidden opacity-0 transition-opacity duration-moderate ease-standard group-data-active/crop:opacity-100',
               radius[crop.shape]
@@ -497,16 +680,66 @@ export function ImageCropStage({
             <div className='absolute inset-y-0 left-1/3 w-1/3 border-x border-(--color-neutral-light-0)/50' />
             <div className='absolute inset-x-0 top-1/3 h-1/3 border-y border-(--color-neutral-light-0)/50' />
           </div>
-          {crop.shape === 'rectangle' &&
+          {free ? (
+            <>
+              {edgeHandles.map((edge) => (
+                <span
+                  key={edge.place}
+                  aria-hidden
+                  data-slot='image-crop-handle'
+                  className={cn(
+                    'pointer-events-auto absolute grid place-items-center',
+                    edge.place
+                  )}
+                  onPointerDown={(event) => startResize(event, edge)}
+                  {...resizeEvents}
+                >
+                  <span
+                    className={cn(
+                      'rounded-full bg-(--color-neutral-light-0)',
+                      edge.x ? 'h-6 w-0.75' : 'h-0.75 w-6'
+                    )}
+                  />
+                </span>
+              ))}
+              {cornerHandles.map((corner) => (
+                <button
+                  key={corner.name}
+                  type='button'
+                  aria-label={corner.name}
+                  aria-roledescription='resize handle'
+                  aria-describedby={handleHint}
+                  data-slot='image-crop-handle'
+                  className={cn(
+                    'pointer-events-auto absolute size-11 -translate-1/2 rounded-full is-focusable',
+                    corner.place
+                  )}
+                  onPointerDown={(event) => startResize(event, corner)}
+                  onKeyDown={(event) => handleResizeKey(event, corner)}
+                  {...resizeEvents}
+                >
+                  <span
+                    className={cn(
+                      'absolute -m-0.75 size-4.5 border-(--color-neutral-light-0)',
+                      corner.mark
+                    )}
+                  />
+                </button>
+              ))}
+            </>
+          ) : (
+            crop.shape === 'rectangle' &&
             corners.map((corner) => (
               <span
                 key={corner}
+                aria-hidden
                 className={cn(
                   'absolute -m-0.75 size-4.5 border-(--color-neutral-light-0)',
                   corner
                 )}
               />
-            ))}
+            ))
+          )}
         </div>
       )}
       {shown && range && (
@@ -526,7 +759,14 @@ export function ImageCropStage({
           )}
         >
           {range.short && crop.min
-            ? `Needs ${sizeOf({ ...shown, area: { ...shown.area, ...crop.min } })}`
+            ? `Needs ${sizeOf({
+                ...shown,
+                area: {
+                  ...shown.area,
+                  width: Math.max(shown.area.width, crop.min.width),
+                  height: Math.max(shown.area.height, crop.min.height)
+                }
+              })}`
             : capped
               ? `${sizeOf(shown)} · smallest crop`
               : sizeOf(shown)}
@@ -535,8 +775,14 @@ export function ImageCropStage({
       <p id={describedBy} className='sr-only'>
         Drag or use the arrow keys to move the image. Pinch, press plus or
         minus, or scroll once the crop area has focus to zoom. Press R to turn
-        it left.
+        it left.{free && ' Drag a corner or an edge to resize the crop.'}
       </p>
+      {free && (
+        <p id={handleHint} className='sr-only'>
+          Use the arrow keys to move the corner and resize the crop about its
+          centre. Hold Shift for bigger steps.
+        </p>
+      )}
     </div>
   )
 }
