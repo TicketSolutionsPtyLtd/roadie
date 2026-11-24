@@ -46,7 +46,7 @@ import type {
   RecordsRangeState,
   RecordsRow
 } from '../Records/types'
-import { RecordTableListRow } from './RecordTableListRow'
+import { ListPlaceContext, RecordTableListRow } from './RecordTableListRow'
 import type { RecordTableNarrowLayout } from './narrow'
 
 type MeasureElement = (node: HTMLLIElement | null) => void
@@ -170,15 +170,12 @@ function NarrowRow({
     timeZone: shared.timeZone,
     parts: shared.parts
   }
+  const place = useMemo(() => ({ posInSet, setSize }), [posInSet, setSize])
   if (shared.layout === 'list')
     return (
-      <RecordTableListRow
-        {...props}
-        row={record.row}
-        bleed={shared.bleed}
-        posInSet={posInSet}
-        setSize={setSize}
-      />
+      <ListPlaceContext value={place}>
+        <RecordTableListRow {...props} row={record.row} bleed={shared.bleed} />
+      </ListPlaceContext>
     )
   return (
     <CardItem

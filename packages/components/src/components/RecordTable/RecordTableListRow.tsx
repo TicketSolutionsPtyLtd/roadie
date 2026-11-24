@@ -1,4 +1,12 @@
-import { Fragment, type ReactNode, memo, useRef } from 'react'
+import {
+  type ComponentProps,
+  Fragment,
+  type ReactNode,
+  createContext,
+  memo,
+  use,
+  useRef
+} from 'react'
 
 import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
@@ -24,10 +32,6 @@ export type RecordTableListRowProps = {
   parts: RecordCardParts
   /** The viewer's zone, for dates. */
   timeZone?: string
-  /** One-based place in the whole list, when the list holds only some of its rows. */
-  posInSet?: number
-  /** The whole list's length, or -1 while unknown. */
-  setSize?: number
   /** Undefined when the records can't be selected. */
   selected?: boolean
   /** Select mode: a checkbox takes the leading slot and covers the row. */
@@ -45,14 +49,26 @@ const hasValue = (part: RecordPart, row: object) =>
   part.cell !== undefined ||
   formatRecordValue(row, part.field, { timeZone: 'UTC' }) !== null
 
+/** A row's place, when the list holds only some of its rows. */
+export const ListPlaceContext = createContext<{
+  /** One-based place in the whole list. */
+  posInSet?: number
+  /** The whole list's length, or -1 while unknown. */
+  setSize?: number
+}>({})
+
+// Not props of the memoised row: a search that only moves a row re-renders this element alone.
+function ListRowElement(props: ComponentProps<'li'>) {
+  const { posInSet, setSize } = use(ListPlaceContext)
+  return <li {...props} aria-posinset={posInSet} aria-setsize={setSize} />
+}
+
 /** A record as one line of a list: leading, title and description, trailing. */
 export const RecordTableListRow = memo(function RecordTableListRow({
   id,
   row,
   parts,
   timeZone,
-  posInSet,
-  setSize,
   selected,
   selecting = false,
   onToggle,
@@ -81,14 +97,12 @@ export const RecordTableListRow = memo(function RecordTableListRow({
   ].flatMap((part) => (part ? [part] : []))
   const leading = value(parts.leading)
   return (
-    <li
+    <ListRowElement
       ref={itemRef}
       data-slot='record-table-list-row'
       className='[--record-table-row-end-radius:var(--radius-xl)]'
       data-row-id={id}
       data-selected={selected || undefined}
-      aria-posinset={posInSet}
-      aria-setsize={setSize}
     >
       <div
         className={cn(
@@ -155,7 +169,7 @@ export const RecordTableListRow = memo(function RecordTableListRow({
           </div>
         )}
       </div>
-    </li>
+    </ListRowElement>
   )
 })
 RecordTableListRow.displayName = 'RecordTableListRow'

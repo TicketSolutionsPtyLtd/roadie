@@ -10,7 +10,7 @@ import {
 import { useRangeWindow, useRowWindow } from '../Records/rowWindow'
 import type { RecordsRangeState, RecordsRow } from '../Records/types'
 import { RecordTableRangeError } from './RecordTableRangeError'
-import { RecordTableRow } from './RecordTableRow'
+import { RecordTableRow, RowIndexContext } from './RecordTableRow'
 import { RecordTableSkeletonRow } from './RecordTableStates'
 import type { ColumnLayout } from './layout'
 import type { RecordTableColumn } from './types'
@@ -51,19 +51,20 @@ function Row({
   rowIndex?: number
 }) {
   return (
-    <RecordTableRow
-      id={row.id}
-      record={row.row}
-      columns={shared.columns}
-      layout={shared.layout}
-      title={shared.title}
-      timeZone={shared.timeZone}
-      selected={shared.isSelected?.(row.id)}
-      onToggle={shared.onToggle}
-      rowActions={shared.rowActions}
-      href={shared.getRowHref?.(row.row)}
-      rowIndex={rowIndex}
-    />
+    <RowIndexContext value={rowIndex}>
+      <RecordTableRow
+        id={row.id}
+        record={row.row}
+        columns={shared.columns}
+        layout={shared.layout}
+        title={shared.title}
+        timeZone={shared.timeZone}
+        selected={shared.isSelected?.(row.id)}
+        onToggle={shared.onToggle}
+        rowActions={shared.rowActions}
+        href={shared.getRowHref?.(row.row)}
+      />
+    </RowIndexContext>
   )
 }
 

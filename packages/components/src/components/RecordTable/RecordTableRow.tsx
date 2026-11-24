@@ -1,8 +1,11 @@
 import {
   type CSSProperties,
+  type ComponentProps,
   type MouseEvent,
   type ReactNode,
+  createContext,
   memo,
+  use,
   useRef
 } from 'react'
 
@@ -113,8 +116,14 @@ type RecordTableRowProps = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   href?: string
-  /** One-based, counting the header row, when the table holds only some of its rows. */
-  rowIndex?: number
+}
+
+/** One-based, counting the header row, when the table holds only some of its rows. */
+export const RowIndexContext = createContext<number | undefined>(undefined)
+
+// Not a prop of the memoised row: a search that only moves a row re-renders this element alone.
+function RowElement(props: ComponentProps<'div'>) {
+  return <div role='row' aria-rowindex={use(RowIndexContext)} {...props} />
 }
 
 // Memoised so rows a change doesn't touch skip re-rendering.
@@ -128,8 +137,7 @@ export const RecordTableRow = memo(function RecordTableRow({
   selected,
   onToggle,
   rowActions,
-  href,
-  rowIndex
+  href
 }: RecordTableRowProps) {
   const rowRef = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(rowRef)
@@ -144,10 +152,8 @@ export const RecordTableRow = memo(function RecordTableRow({
       selectable ? (range) => onToggle(id, range) : undefined
     )
   return (
-    <div
+    <RowElement
       ref={rowRef}
-      role='row'
-      aria-rowindex={rowIndex}
       data-slot='record-table-row'
       data-row-id={id}
       data-selected={selected || undefined}
@@ -245,7 +251,7 @@ export const RecordTableRow = memo(function RecordTableRow({
           />
         </div>
       )}
-    </div>
+    </RowElement>
   )
 })
 RecordTableRow.displayName = 'RecordTableRow'
