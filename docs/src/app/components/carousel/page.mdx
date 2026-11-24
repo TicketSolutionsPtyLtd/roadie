@@ -810,6 +810,35 @@ A simpler hero pattern: drop `Carousel.Controls` and let the dots handle navigat
 </Carousel>
 ```
 
+### Many slides
+
+A dot per slide stops working once there are more than a handful, such as a buyer's 24 tickets. Pass `max` to draw at most that many dots: the window slides to keep the current dot in the middle, and the dot at each end shrinks while there are slides past it. Leave `max` off to draw a dot for every slide.
+
+Inside an `emphasis-strong` surface, the current dot takes the text colour of the surface it sits on, so it stays visible when the band behind it is the accent. That holds through a card or other surface inside the band. Elsewhere the current dot is the accent, and the other dots follow the surface's intent.
+
+```tsx-live
+<div className='grid grid-cols-1 rounded-2xl p-4 intent-accent emphasis-strong'>
+  <Carousel aria-label='Your tickets' opts={{ slidesToScroll: 1 }}>
+    <Carousel.Header>
+      <Carousel.Title>Your tickets</Carousel.Title>
+      <Carousel.Dots max={7} />
+    </Carousel.Header>
+    <Carousel.Content overflow='hidden'>
+      {Array.from({ length: 24 }, (_, i) => (
+        <Carousel.Item key={i}>
+          <Card emphasis='raised' intent='neutral'>
+            <Card.Content>
+              <Card.Title>General admission</Card.Title>
+              <Card.Description>Ticket {i + 1} of 24</Card.Description>
+            </Card.Content>
+          </Card>
+        </Carousel.Item>
+      ))}
+    </Carousel.Content>
+  </Carousel>
+</div>
+```
+
 ### Vertical
 
 Pass `direction='vertical'` to flip the axis. The Previous/Next icons swap to up/down carets automatically.
@@ -908,13 +937,14 @@ Carousel is a compound component. Available parts:
 | `Carousel.Item`                       | A single slide. Set the width with Tailwind `basis-*` utilities.                                                                                                                                                                   |
 | `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). Auto-hide when there's nothing to scroll to.                                                                                                                                                   |
 | `Carousel.PlayPause`                  | Play/pause toggle. Renders only when `autoPlay` is set.                                                                                                                                                                            |
-| `Carousel.Dots`                       | One button per scroll snap position (which can be fewer than `slideCount` when multi-visible layouts group slides into viewport-sized pages, the Roadie default). Auto-hides when there's nothing to scroll to.                   |
+| `Carousel.Dots`                       | One button per scroll snap position (which can be fewer than `slideCount` when multi-visible layouts group slides into viewport-sized pages, the Roadie default), or a sliding window of at most `max`. Auto-hides when there's nothing to scroll to. |
 
 ## Guidelines
 
 - **Slide sizing is the consumer's job.** Set width on each `Carousel.Item` via Tailwind `basis-*` utilities (e.g. `basis-1/2 md:basis-1/3`). Don't try to size the carousel itself.
 - **Let `Carousel.Content` handle the gutter.** The default `overflow='subtle'` applies `-mx-4 px-4 sm:-mx-6 sm:px-6` plus fade-to-background gradients on the left and right edges, so slides visibly bleed past the viewport and fade into the page without leaving half-clipped cards. Use `overflow='hidden'` for a hard clip or `overflow='visible'` to let overflow extend indefinitely into surrounding margin.
 - **Compose the Header instead of stacking divs.** `<Carousel.Header>` accepts up to three children placed by source order: title, dots, controls. On mobile it collapses to a flex row with the controls hidden, so the dots automatically pin to the right.
+- **Window the dots for long sets.** Past about ten snaps, a dot per slide is too small to aim at and too long to read. Pass `max` to `Carousel.Dots`, 7 for most strips.
 - **Nav UI hides when it's not needed.** `Carousel.Controls`, `Carousel.Previous`, `Carousel.Next`, and `Carousel.Dots` all render `null` when every slide already fits in the viewport. No special handling required at the consumer.
 - **Use `Carousel.PlayPause` whenever `autoPlay` is set.** WCAG 2.2.2 requires a persistent pause control for any auto-updating content. Place it first inside `Carousel.Controls` so it is the first tab stop.
 - **Direct children only.** `Carousel.Content` walks its children with `Children.map` to inject per-item context. Fragments and conditionally rendered children are not unwrapped. Render an array of `Carousel.Item` directly.

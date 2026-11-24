@@ -19,6 +19,7 @@ import {
 } from './FileUploadContext'
 import { FileUploadDropzone } from './FileUploadDropzone'
 import { FileUploadList } from './FileUploadList'
+import { FileUploadPageDrop } from './FileUploadPageDrop'
 import {
   type FileRules,
   type FileUploadRejection,
@@ -38,12 +39,22 @@ export type FileUploadRootProps = Omit<
     defaultValue?: File[]
     /** Called with the new files once a pick passes every rule. */
     onValueChange?: (files: File[]) => void
+    /**
+     * Checks a file the other rules pass, such as an image's pixel size.
+     * Return a message to turn it away with the code `invalid`, or `null` to
+     * take it. It can be async; a newer pick wins over a check still running.
+     */
+    validate?: (
+      file: File
+    ) => string | null | undefined | Promise<string | null | undefined>
     /** Called with the files a pick turned away, each with its code and message. */
     onReject?: (rejections: FileUploadRejection[]) => void
     /** How many files the field holds. Above 1, picks add to the files, and they can be reordered. @default 1 */
     maxFiles?: number
     /** Which camera a phone opens instead of its file picker. Passed to the native input. */
     capture?: 'user' | 'environment'
+    /** Takes files dropped anywhere on the page, with an overlay that names the field while they're dragged in. Give it to one field per page. */
+    pageDrop?: boolean
     disabled?: boolean
     required?: boolean
     /**
@@ -84,8 +95,10 @@ export function FileUploadRoot({
   maxFileSize,
   minFileSize,
   onReject,
+  validate,
   maxFiles = 1,
   capture,
+  pageDrop,
   disabled,
   required,
   onUpload,
@@ -227,36 +240,96 @@ export function FileUploadRoot({
 
   // Picks, drops and pastes all come through here. With one file allowed,
   // the first replaces it; with more, files join until the field is full.
+  // `epoch` moves on a single pick, Clear, Remove or reorder, and a check
+  // still running from before it is dropped.
+  const epoch = useRef(0)
+  const latest = useRef(files)
+  // After every render, so a controlled value the parent didn't take is
+  // read back too.
+  useEffect(() => {
+    latest.current = files
+  })
+
   function take(picked: ArrayLike<File>) {
     const single = maxFiles === 1
-    const taken: File[] = []
+    if (single) epoch.current++
+    const at = epoch.current
     const rejections: FileUploadRejection[] = []
-    for (const file of Array.from(picked).slice(0, single ? 1 : undefined)) {
-      const rejection =
-        checkFile(file, { accept, maxFileSize, minFileSize }) ??
-        (single || files.length + taken.length < maxFiles
-          ? null
-          : {
-              file,
-              code: 'too-many' as const,
-              message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
-            })
-      if (rejection) rejections.push(rejection)
-      else taken.push(file)
+    const checked = Array.from(picked)
+      .slice(0, single ? 1 : undefined)
+      .filter((file) => {
+        const rejection = checkFile(file, { accept, maxFileSize, minFileSize })
+        if (rejection) rejections.push(rejection)
+        return !rejection
+      })
+    // `shown` are this pick's rejections already reported, kept in the message.
+    const report = (
+      turnedAway: FileUploadRejection[],
+      shown: FileUploadRejection[] = []
+    ) => {
+      if (!turnedAway.length) return
+      setError(
+        [...shown, ...turnedAway].map(({ message }) => message).join(' ')
+      )
+      onReject?.(turnedAway)
     }
-    if (taken.length) commit(single ? taken : [...files, ...taken])
-    if (rejections.length) {
-      setError(rejections.map(({ message }) => message).join(' '))
-      onReject?.(rejections)
+    // Counts the field's files as they are when the checks land.
+    const land = (
+      passed: File[],
+      turnedAway: FileUploadRejection[],
+      shown: FileUploadRejection[] = []
+    ) => {
+      const current = single ? [] : latest.current
+      const taken = passed.slice(0, Math.max(maxFiles - current.length, 0))
+      if (taken.length) update([...current, ...taken], shown.length > 0)
+      report(
+        [
+          ...turnedAway,
+          ...passed.slice(taken.length).map((file) => ({
+            file,
+            code: 'too-many' as const,
+            message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
+          }))
+        ],
+        shown
+      )
+    }
+    if (!validate || !checked.length) land(checked, rejections)
+    else {
+      // The rules' rejections show while the rest are checked.
+      report(rejections)
+      Promise.all(
+        checked.map((file) =>
+          Promise.resolve()
+            .then(() => validate(file))
+            .catch(() => `${file.name} couldn't be checked. Try another file.`)
+        )
+      ).then((messages) => {
+        if (at !== epoch.current) return
+        land(
+          checked.filter((_, index) => !messages[index]),
+          checked.flatMap((file, index) => {
+            const message = messages[index]
+            return message ? [{ file, code: 'invalid' as const, message }] : []
+          }),
+          rejections
+        )
+      })
     }
     // The input shows only the value; an accepted pick reaches it on re-render.
     syncInput()
   }
 
-  function commit(next: File[], keepError = false) {
+  function update(next: File[], keepError = false) {
+    latest.current = next
     if (!keepError) setError(null)
     setUncontrolled(next)
     onValueChange?.(next)
+  }
+
+  function commit(next: File[], keepError = false) {
+    epoch.current++
+    update(next, keepError)
   }
 
   const isDisabled = Boolean(disabled || field.disabled)
@@ -308,6 +381,7 @@ export function FileUploadRoot({
           describedBy: describedBy || undefined
         }}
       >
+        {pageDrop && <FileUploadPageDrop accept={accept} />}
         {children ?? (
           <>
             <FileUploadDropzone />

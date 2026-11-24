@@ -81,7 +81,12 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   (`.size-limit.json`, or the `size-limit` field in `package.json` for core
   and widgets). Set a new budget, or raise one, to about 10% above what you
   measure, never just above it, or the next small change crosses it again.
-  New `@utility` classes also go in `src/css/safelist.html`.
+  New `@utility` classes also go in `src/css/safelist.html`. Core's CSS has
+  budgets in the same field (`roadie.compiled.css`, brotli and raw, and what
+  importing `@oztix/roadie-core/css` costs an app before Tailwind scans a
+  source file), so after changing it, build core and run
+  `pnpm --filter @oztix/roadie-core size`, which reads the compiled sheet from
+  `dist`.
 - **Changing Turbo config?** Read the installed turbo's `docs/README.md`
   first; the installed version may differ from what you know.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
