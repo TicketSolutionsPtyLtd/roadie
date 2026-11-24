@@ -45,8 +45,8 @@ const slot = (name: string, root: ParentNode = document) =>
   root.querySelector<HTMLElement>(`[data-slot="${name}"]`)
 
 /** Whether the element takes up any room on the page. */
-const laidOut = (element: HTMLElement | null) =>
-  element !== null &&
+const laidOut = (element: HTMLElement | null | undefined) =>
+  element != null &&
   element.getClientRects().length > 0 &&
   getComputedStyle(element).visibility === 'visible'
 
