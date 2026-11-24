@@ -12,6 +12,10 @@ export type FileUploadContextValue = {
   /** Sets the files in a new order. */
   reorder: (files: File[]) => void
   maxFiles: number
+  /** Holds `maxFiles` files, when that's more than one, so the picker stays shut. */
+  full: boolean
+  /** The files `validate` is still checking, before they join the value. */
+  checking: File[]
   /** Each file's upload, once `onUpload` has queued it. */
   uploads: ReadonlyMap<File, FileUploadUpload>
   /** Queues a failed upload again. */

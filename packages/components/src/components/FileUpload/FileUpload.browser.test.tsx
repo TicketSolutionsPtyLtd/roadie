@@ -45,6 +45,12 @@ async function dragFiles(target: Element, files: File[], drop = true) {
   if (drop) target.dispatchEvent(new DragEvent('drop', init))
 }
 
+/** Holds every transition under element where it is, so a collapsing row stays. */
+const hold = (element: Element) => {
+  for (const animation of element.getAnimations({ subtree: true }))
+    animation.pause()
+}
+
 /** Jumps every transition under element to its end. */
 const settle = (element: Element) => {
   for (const animation of element.getAnimations({ subtree: true }))
@@ -470,6 +476,26 @@ describe('FileUpload with several files', () => {
     expect(row.getAnimations().length).toBeGreaterThan(0)
     settle(row)
     await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(1))
+  })
+
+  it('counts only the rows staying in the Move menu while one collapses', async () => {
+    render(
+      <FileUpload
+        maxFiles={6}
+        defaultValue={['rider.csv', 'stage.csv', 'runsheet.csv'].map(csv)}
+      />
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove runsheet.csv' })
+    )
+    // Still collapsing, so the count must already leave it out.
+    hold(document.querySelector('li[data-leaving]')!)
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Reorder stage.csv' })
+    )
+    expect(
+      await screen.findByRole('menuitem', { name: 'Move stage.csv down' })
+    ).toHaveAttribute('aria-disabled', 'true')
   })
 })
 

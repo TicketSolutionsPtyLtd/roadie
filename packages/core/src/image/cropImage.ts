@@ -10,6 +10,13 @@ export interface CropImageOptions {
   type?: string
   /** From 0 to 1, for lossy types such as JPEG and WebP. */
   quality?: number
+  /**
+   * A CSS colour drawn behind the image, which shows wherever the crop runs
+   * past a turned image's edge. Defaults to white for JPEG, which has no
+   * alpha, so those corners and the edge's antialiasing don't come out black.
+   * Other types stay see-through there unless one is given.
+   */
+  background?: string
 }
 
 /**
@@ -20,7 +27,7 @@ export interface CropImageOptions {
 export async function cropImage(
   source: string | Blob,
   { area, rotation }: ImageCropValue,
-  { width: wide = area.width, type, quality }: CropImageOptions = {}
+  { width: wide = area.width, type, quality, background }: CropImageOptions = {}
 ): Promise<Blob> {
   let blob = source as Blob
   if (typeof source === 'string') {
@@ -28,6 +35,8 @@ export async function cropImage(
     if (!response.ok) throw new Error(`Couldn't load ${source}.`)
     blob = await response.blob()
   }
+  const options = { type: type ?? (blob.type || 'image/png'), quality }
+  const fill = background ?? (options.type === 'image/jpeg' ? '#fff' : null)
   // Turned as its EXIF says, as an `<img>` and ImageCrop show it.
   const bitmap = await createImageBitmap(blob, {
     imageOrientation: 'from-image'
@@ -51,6 +60,10 @@ export async function cropImage(
     const context = canvas.getContext('2d') as
       | CanvasRenderingContext2D
       | OffscreenCanvasRenderingContext2D
+    if (fill) {
+      context.fillStyle = fill
+      context.fillRect(0, 0, width, height)
+    }
     context.imageSmoothingQuality = 'high'
     context.scale(scale, scale)
     context.translate(boxWidth / 2 - area.x, boxHeight / 2 - area.y)
@@ -60,7 +73,6 @@ export async function cropImage(
     bitmap.close()
   }
 
-  const options = { type: type ?? (blob.type || 'image/png'), quality }
   // Test for convertToBlob, not toBlob: Firefox's OffscreenCanvas also has a
   // non-standard toBlob that never calls back.
   if ('convertToBlob' in canvas) return canvas.convertToBlob(options)

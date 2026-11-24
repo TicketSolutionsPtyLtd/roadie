@@ -121,6 +121,7 @@ export function FileUploadRoot({
   // starts with don't.
   const [uploads, setUploads] = useState<ReadonlyMap<File, Upload>>(new Map())
   const [previous, setPrevious] = useState(files)
+  const [checking, setChecking] = useState<File[]>([])
   const [said, say] = useState('')
   const [alarm, raise] = useState('')
   if (previous !== files) {
@@ -252,7 +253,10 @@ export function FileUploadRoot({
 
   function take(picked: ArrayLike<File>) {
     const single = maxFiles === 1
-    if (single) epoch.current++
+    if (single) {
+      epoch.current++
+      setChecking([])
+    }
     const at = epoch.current
     const rejections: FileUploadRejection[] = []
     const checked = Array.from(picked)
@@ -298,6 +302,10 @@ export function FileUploadRoot({
     else {
       // The rules' rejections show while the rest are checked.
       report(rejections)
+      setChecking((files) => [...files, ...checked])
+      say(
+        `Checking ${checked.length > 1 ? `${checked.length} files` : checked[0]!.name}.`
+      )
       Promise.all(
         checked.map((file) =>
           Promise.resolve()
@@ -305,6 +313,7 @@ export function FileUploadRoot({
             .catch(() => `${file.name} couldn't be checked. Try another file.`)
         )
       ).then((messages) => {
+        setChecking((files) => files.filter((file) => !checked.includes(file)))
         if (at !== epoch.current) return
         land(
           checked.filter((_, index) => !messages[index]),
@@ -329,10 +338,13 @@ export function FileUploadRoot({
 
   function commit(next: File[], keepError = false) {
     epoch.current++
+    // Checks still running are dropped when they land.
+    setChecking([])
     update(next, keepError)
   }
 
   const isDisabled = Boolean(disabled || field.disabled)
+  const full = maxFiles > 1 && files.length >= maxFiles
   const invalid = Boolean(field.invalid) || error !== null
   const describedBy = invalid ? field.errorTextId : field.helperTextId
 
@@ -341,6 +353,8 @@ export function FileUploadRoot({
       data-slot='file-upload'
       data-disabled={isDisabled || undefined}
       data-invalid={invalid || undefined}
+      data-full={full || undefined}
+      data-checking={checking.length > 0 || undefined}
       className={cn('grid justify-items-start gap-2', className)}
       onPaste={(event) => {
         onPaste?.(event)
@@ -360,7 +374,9 @@ export function FileUploadRoot({
         value={{
           files,
           take,
-          open: () => inputRef.current?.click(),
+          open: () => {
+            if (!full) inputRef.current?.click()
+          },
           clear: () => {
             commit([])
             triggerRef.current?.focus()
@@ -369,6 +385,8 @@ export function FileUploadRoot({
           // A reorder leaves any rejection showing.
           reorder: (next) => commit(next, true),
           maxFiles,
+          full,
+          checking,
           uploads,
           retry: (file) =>
             patch(file, { status: 'queued', progress: 0, error: undefined }),
