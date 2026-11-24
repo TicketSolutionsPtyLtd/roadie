@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -47,6 +47,41 @@ describe('FileUpload', () => {
     await user.upload(input, file)
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
     expect(input).toHaveAttribute('name', 'payments')
+  })
+
+  it('takes a file that validate passes', async () => {
+    const onValueChange = vi.fn()
+    const validate = vi.fn(async () => null)
+    const { container } = render(
+      <FileUpload validate={validate} onValueChange={onValueChange}>
+        <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+      </FileUpload>
+    )
+    const file = csv()
+    await userEvent.upload(fileInput(container), file)
+    expect(validate).toHaveBeenCalledWith(file)
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([file]))
+  })
+
+  it('keeps the latest pick when an earlier check finishes after it', async () => {
+    const onValueChange = vi.fn()
+    let passSlow: (message: null) => void = () => {}
+    const validate = vi.fn((file: File) =>
+      file.name === 'slow.csv'
+        ? new Promise<null>((resolve) => (passSlow = resolve))
+        : Promise.resolve(null)
+    )
+    const { container } = render(
+      <FileUpload validate={validate} onValueChange={onValueChange}>
+        <FileUpload.Trigger>Choose a CSV</FileUpload.Trigger>
+      </FileUpload>
+    )
+    const fast = csv('fast.csv')
+    await userEvent.upload(fileInput(container), csv('slow.csv'))
+    await userEvent.upload(fileInput(container), fast)
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith([fast]))
+    await act(async () => passSlow(null))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
   })
 
   it('replaces the first file with a second pick', async () => {
@@ -101,6 +136,25 @@ describe('FileUpload', () => {
       props: { minFileSize: 1040 },
       file: csv('payments.csv', 1030),
       message: 'payments.csv is under 1.1 kB.'
+    },
+    {
+      code: 'invalid',
+      props: {
+        validate: async (file: File) =>
+          `${file.name} has no Email column.` as string | null
+      },
+      file: csv('payments.csv'),
+      message: 'payments.csv has no Email column.'
+    },
+    {
+      code: 'invalid',
+      props: {
+        validate: async (): Promise<string | null> => {
+          throw new Error('decode failed')
+        }
+      },
+      file: csv('payments.csv'),
+      message: "payments.csv couldn't be checked. Try another file."
     }
   ])(
     'rejects with $code and shows its message in Field.ErrorText',
