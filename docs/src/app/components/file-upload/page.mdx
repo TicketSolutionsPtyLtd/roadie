@@ -45,7 +45,7 @@ With no children, `FileUpload` is a dropzone with the chosen file listed under i
 
 ### Several files
 
-`maxFiles` sets how many files the field holds; it's 1 by default. Above 1, picks, drops and pastes add to the files rather than replace them, the dropzone counts them ("2 of 6"), and a file past the limit is turned away with `too-many`. Each row leads with a handle: drag it to reorder the files, or click it, or press Enter, for a Move menu. The value keeps the order, and so does the form post.
+`maxFiles` sets how many files the field holds; it's 1 by default. Above 1, picks, drops and pastes add to the files rather than replace them, the dropzone counts them ("2 of 6"), a `FileUpload.Trigger` reads "Choose files", and a file past the limit is turned away with `too-many`. Each row leads with a handle: drag it to reorder the files, or click it, or press Enter, for a Move menu. The value keeps the order, and so does the form post.
 
 ```tsx-live width=140
 <Field>

@@ -10,6 +10,7 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { SortableRootContext } from '../Sortable/SortableContext'
 import { SortableRoot } from '../Sortable/SortableRoot'
 import {
   FileUploadItemContext,
@@ -117,7 +118,9 @@ export function FileUploadList({
       })}
     </ul>
   )
-  if (maxFiles < 2) return list
+  // Cleared, so a Sortable around the field doesn't make its rows its own.
+  if (maxFiles < 2)
+    return <SortableRootContext value={null}>{list}</SortableRootContext>
   // Collapsing rows stay listed, disabled, so their element never remounts.
   const ids = rows.map(({ file }) => idFor(file))
   return (

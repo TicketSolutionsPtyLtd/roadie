@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { FileUpload } from '.'
 import { Field } from '../Field'
+import { Sortable } from '../Sortable'
 
 const csv = (name = 'payments.csv', size = 10) =>
   new File(['x'.repeat(size)], name, { type: 'text/csv' })
@@ -530,9 +531,49 @@ describe('FileUpload', () => {
       ])
     })
 
-    it('leaves a single-file list without handles', () => {
-      render(<FileUpload defaultValue={[csv()]} />)
+    it('leaves a single-file list without handles, even inside a Sortable', () => {
+      render(
+        <Sortable items={['row']} onReorder={() => {}}>
+          <Sortable.Item value='row' label='row'>
+            <FileUpload defaultValue={[csv()]} />
+          </Sortable.Item>
+        </Sortable>
+      )
       expect(screen.queryByRole('button', { name: /^Reorder/ })).toBeNull()
+    })
+
+    it('keeps a rejection showing while the files are reordered', async () => {
+      const [first, second] = files(2) as [File, File]
+      const { container } = render(
+        <Field>
+          <Field.Label>Event documents</Field.Label>
+          <FileUpload maxFiles={2} defaultValue={[first, second]} />
+          <Field.ErrorText />
+        </Field>
+      )
+      const user = userEvent.setup()
+      await user.upload(fileInput(container), csv('extra.csv'))
+      const message =
+        "extra.csv wasn't added, as the field takes up to 2 files."
+      expect(await screen.findByText(message)).toBeInTheDocument()
+      await user.click(
+        screen.getByRole('button', { name: 'Reorder set-1.csv' })
+      )
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'Move set-1.csv down' })
+      )
+      expect(screen.getByText(message)).toBeInTheDocument()
+    })
+
+    it('reads Choose files on the Trigger', () => {
+      render(
+        <FileUpload maxFiles={3} defaultValue={[csv()]}>
+          <FileUpload.Trigger />
+        </FileUpload>
+      )
+      expect(
+        screen.getByRole('button', { name: /Choose files$/ })
+      ).toBeInTheDocument()
     })
   })
 })

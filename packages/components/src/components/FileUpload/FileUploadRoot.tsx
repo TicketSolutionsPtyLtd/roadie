@@ -116,8 +116,8 @@ export function FileUploadRoot({
     syncInput()
   }
 
-  function commit(next: File[]) {
-    setError(null)
+  function commit(next: File[], keepError = false) {
+    if (!keepError) setError(null)
     setUncontrolled(next)
     onValueChange?.(next)
   }
@@ -156,7 +156,8 @@ export function FileUploadRoot({
             triggerRef.current?.focus()
           },
           remove: (file) => commit(files.filter((each) => each !== file)),
-          reorder: commit,
+          // A reorder leaves any rejection showing.
+          reorder: (next) => commit(next, true),
           maxFiles,
           inputId,
           valueId: `${ownId}-value`,
