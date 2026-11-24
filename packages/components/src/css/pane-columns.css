@@ -284,11 +284,9 @@
   [data-slot='pane'][data-depth]:not([data-stack]) {
     --pane-back: none;
     --pane-close: none;
-    --pane-edge: none;
   }
   [data-slot='pane'][data-depth]:not([data-stack], [data-depth='0']) {
     --pane-back: grid;
-    --pane-edge: grid;
   }
   [data-slot='pane'][data-depth] [data-slot='pane-back'] {
     display: var(--pane-back);
@@ -490,7 +488,6 @@
   :where([data-slot='pane'][data-stack]) {
     --pane-back: none;
     --pane-close: none;
-    --pane-edge: none;
     position: absolute !important;
     inset: var(--pane-stack-inset, 0px);
     inset-inline-start: var(
@@ -554,7 +551,6 @@
       [data-stack][data-level='1'][data-stack-position='top'][data-depth='1']
   ) {
     --pane-back: grid;
-    --pane-edge: grid;
   }
   @container panes (width >= 46.25rem) {
     :where(
@@ -612,7 +608,6 @@
       ) {
       --pane-back: none;
       --pane-close: none;
-      --pane-edge: none;
       --pane-r: calc(var(--pane-depth) - var(--pane-base));
       --pane-behind: clamp(0, var(--pane-start) - var(--pane-r), 1);
       --pane-ahead: clamp(0, var(--pane-r) - var(--pane-end), 1);
@@ -679,7 +674,6 @@
     [data-slot='pane'][data-stack][data-depth='deep'] {
       --pane-back: grid;
       --pane-close: none;
-      --pane-edge: grid;
       position: absolute !important;
       inset: var(--pane-stack-inset, 0px);
       inset-inline-start: var(
@@ -774,37 +768,31 @@
   @container style(--pane-back-at: 1) {
     [data-slot='pane'][data-stack][data-depth='1'] {
       --pane-back: grid;
-      --pane-edge: grid;
     }
   }
   @container style(--pane-back-at: 2) {
     [data-slot='pane'][data-stack][data-depth='2'] {
       --pane-back: grid;
-      --pane-edge: grid;
     }
   }
   @container style(--pane-back-at: 3) {
     [data-slot='pane'][data-stack][data-depth='3'] {
       --pane-back: grid;
-      --pane-edge: grid;
     }
   }
   @container style(--pane-close-at: 1) {
     [data-slot='pane'][data-stack][data-depth='1'] {
       --pane-close: grid;
-      --pane-edge: grid;
     }
   }
   @container style(--pane-close-at: 2) {
     [data-slot='pane'][data-stack][data-depth='2'] {
       --pane-close: grid;
-      --pane-edge: grid;
     }
   }
   @container style(--pane-close-at: 3) {
     [data-slot='pane'][data-stack][data-depth='3'] {
       --pane-close: grid;
-      --pane-edge: grid;
     }
   }
 

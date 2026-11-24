@@ -394,8 +394,8 @@ describe('Navigator server render of depths', () => {
       'href',
       '/tickets/glamping'
     )
-    expect(sam!.querySelector('[data-slot="pane-header"]')).toHaveClass(
-      '[display:var(--pane-edge)]'
+    expect(sam!.querySelector('[data-slot="pane-header"]')).toContainElement(
+      back
     )
   })
 
