@@ -157,7 +157,7 @@ The image field recipe crops an image to its slot before it joins the form, in f
 1. A single-image slot, as above, with a controlled `value`.
 2. `validate` turns away an image smaller than the slot needs, before any cropping.
 3. A pick opens [ImageCrop](/components/image-crop) in a `Dialog` rather than joining the value. Crop on the slot opens it again on the original.
-4. Save runs `cropImage` from `@oztix/roadie-core/image`, and the cropped `File` goes into the value.
+4. Save runs `cropImage` from `@oztix/roadie-core/image`, and the cropped `File` goes into the value. JPEG has no transparency, so `cropImage` fills behind a straightened crop with white, or with the CSS colour given as `background`.
 
 With `onUpload`, the cropped file uploads once it joins the value, and the original never does.
 
