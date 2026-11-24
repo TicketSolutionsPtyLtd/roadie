@@ -192,11 +192,8 @@ describe('Pane.Header', () => {
       </Pane>
     )
     const header = document.querySelector('[data-slot="pane-header"]')
+    // paneChrome.browser.test.tsx checks the fill it paints.
     expect(header).not.toHaveClass('bg-inherit')
-    expect(header).toHaveClass(
-      'is-translucent',
-      '[--raised-fill:var(--pane-surface,var(--intent-bg-normal))]'
-    )
   })
 
   it('lands actions opposite the back affordance in the top row', async () => {
