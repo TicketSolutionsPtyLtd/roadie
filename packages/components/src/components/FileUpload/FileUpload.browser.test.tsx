@@ -302,3 +302,98 @@ describe('FileUpload list', () => {
       .toBeNull()
   })
 })
+
+/** A real PNG, so the browser decodes it. */
+async function png(name: string, width = 400, height = 200) {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const context = canvas.getContext('2d')!
+  context.fillStyle = 'rebeccapurple'
+  context.fillRect(0, 0, width, height)
+  const blob = await new Promise<Blob>((resolve) =>
+    canvas.toBlob((made) => resolve(made!), 'image/png')
+  )
+  return new File([blob], name, { type: 'image/png' })
+}
+
+describe('FileUpload previews', () => {
+  it('shows a preview only once it has decoded, scaled to cover the tile', async () => {
+    // Wide, so a width-only resize would leave it short of the square tile.
+    const poster = await png('poster.png', 1600, 400)
+    // The img as it joins the page.
+    const seen: { complete: boolean; width: number; height: number }[] = []
+    const observer = new MutationObserver(() => {
+      const img = document.querySelector('img')
+      if (img && !seen.length)
+        seen.push({
+          complete: img.complete,
+          width: img.naturalWidth,
+          height: img.naturalHeight
+        })
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    onTestFinished(() => observer.disconnect())
+    render(<FileUpload defaultValue={[poster]} />)
+    await waitFor(() => expect(seen).toHaveLength(1))
+    const tile = document.querySelector('[data-slot=file-upload-item-preview]')!
+    const side = Math.ceil(tile.clientHeight * devicePixelRatio)
+    expect(seen[0]).toEqual({ complete: true, width: side * 4, height: side })
+  })
+
+  it('keeps a large image inside a single-image slot', async () => {
+    render(
+      <div style={{ width: 300 }}>
+        <FileUpload
+          defaultValue={[await png('poster.png', 2400, 1200)]}
+          className='aspect-2/1 w-full *:col-start-1 *:row-start-1'
+        >
+          <FileUpload.Dropzone className='h-full' />
+          <FileUpload.List className='h-full *:col-start-1 *:row-start-1'>
+            {() => (
+              <FileUpload.Item className='p-0'>
+                <FileUpload.ItemPreview className='size-full' />
+              </FileUpload.Item>
+            )}
+          </FileUpload.List>
+        </FileUpload>
+      </div>
+    )
+    const img = await screen.findByRole('presentation')
+    await waitFor(() => expect(img).toHaveProperty('complete', true))
+    const slot = document.querySelector('[data-slot=file-upload]')!
+    settle(slot)
+    const outer = slot.getBoundingClientRect()
+    const box = img.getBoundingClientRect()
+    expect(outer.height).toBe(150)
+    expect(box.top).toBeGreaterThanOrEqual(outer.top)
+    expect(box.bottom).toBeLessThanOrEqual(outer.bottom)
+    expect(box.right).toBeLessThanOrEqual(outer.right)
+    expect(box.height).toBeGreaterThan(140)
+  })
+
+  it('revokes the preview URL once a removed row has gone', async () => {
+    const revoke = vi.spyOn(URL, 'revokeObjectURL')
+    onTestFinished(() => revoke.mockRestore())
+    render(<FileUpload defaultValue={[await png('poster.png')]} />)
+    const src = (await screen.findByRole('presentation')).getAttribute('src')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove poster.png' })
+    )
+    expect(revoke).not.toHaveBeenCalledWith(src)
+    settle(screen.getByRole('listitem', { hidden: true }))
+    // React runs an unmounted row's clean-up after the frame that removed it.
+    await waitFor(() => expect(revoke).toHaveBeenCalledWith(src))
+  })
+
+  it('revokes the preview URL when the field unmounts', async () => {
+    const revoke = vi.spyOn(URL, 'revokeObjectURL')
+    onTestFinished(() => revoke.mockRestore())
+    const { unmount } = render(
+      <FileUpload defaultValue={[await png('poster.png')]} />
+    )
+    const src = (await screen.findByRole('presentation')).getAttribute('src')
+    unmount()
+    expect(revoke).toHaveBeenCalledWith(src)
+  })
+})

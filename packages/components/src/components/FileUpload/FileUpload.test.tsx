@@ -343,6 +343,31 @@ describe('FileUpload', () => {
     const pdf = new File(['x'.repeat(2048)], 'rider.pdf', {
       type: 'application/pdf'
     })
+    const poster = new File(['x'], 'poster.png', { type: 'image/png' })
+
+    it('previews an image and gives a PDF an icon, each with its name and size', async () => {
+      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:poster')
+      vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+      HTMLImageElement.prototype.decode = vi.fn(async () => {})
+      const { container } = render(
+        <FileUpload value={[poster, pdf]}>
+          <FileUpload.List />
+        </FileUpload>
+      )
+      const [image, document] = screen.getAllByRole('listitem') as [
+        HTMLElement,
+        HTMLElement
+      ]
+      expect(image).toHaveTextContent('poster.png1 byte')
+      expect(document).toHaveTextContent('rider.pdf2 kB')
+      await waitFor(() =>
+        expect(image.querySelector('img')).toHaveAttribute('src', 'blob:poster')
+      )
+      expect(document.querySelector('img')).toBeNull()
+      expect(document.querySelector('svg')).toBeInTheDocument()
+      expect(container.querySelectorAll('img')).toHaveLength(1)
+      vi.restoreAllMocks()
+    })
 
     it('renders each file through a child function', () => {
       render(
