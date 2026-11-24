@@ -9,7 +9,7 @@ import {
   isActiveValue
 } from './NavigatorContext'
 import { opensElsewhere } from './opensElsewhere'
-import { presentNavIcon } from './presentNavIcon'
+import { presentSecondaryIcon } from './presentNavIcon'
 import { type SecondaryRow, secondaryRows } from './secondaryData'
 import { textOf } from './splitSecondary'
 import { useSecondary } from './useNavigatorSecondary'
@@ -41,7 +41,9 @@ const SecondaryItemsRow = memo(function SecondaryItemsRow({
       title={row.label}
       description={showDescriptions ? row.description : undefined}
       leading={
-        row.icon ? presentNavIcon(row.icon, 'size-5 text-subtle') : undefined
+        row.icon
+          ? presentSecondaryIcon(row.icon, 'size-5 text-subtle')
+          : undefined
       }
       trailing={row.badge}
       href={row.href}

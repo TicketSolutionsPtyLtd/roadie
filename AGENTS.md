@@ -120,7 +120,8 @@ Each rule has a foundations page with the detail.
   classes (`size-4` by default), and `/ssr` imports in server components. `fill`
   is only for selected states and `duotone` only in a tile or graphic above 48px
   (an `IconTile` above `lg`, or an `EmptyState` tile at its default size);
-  Navigator applies duotone to its destinations itself.
+  Navigator applies duotone to its primary destinations (the rail, the bar and
+  More) itself; secondary rows keep the weight given, bold by default.
 - **Text.** Raw `<p>` and `<h1>` to `<h6>` with `text-display-ui-*` or
   `text-display-prose-*`. There are no Text or Heading components; `Prose`
   renders CMS or markdown content. SpotIllustration colours are fixed.

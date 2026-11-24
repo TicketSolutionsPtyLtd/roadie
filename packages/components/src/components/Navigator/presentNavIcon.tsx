@@ -15,7 +15,8 @@ type NavIconProps = {
   'data-slot'?: string
 }
 
-// Duotone is the Navigator exception to the bold default (AGENTS.md → Iconography).
+// Duotone is the Navigator exception to the bold default (AGENTS.md → Iconography),
+// for primary destinations only; a secondary row keeps the weight it was given.
 export function presentNavIcon(
   icon: ReactNode,
   size: string,
@@ -28,6 +29,12 @@ export function presentNavIcon(
     className: cn(el.props.className, size),
     ...(dataSlot ? { 'data-slot': dataSlot } : {})
   })
+}
+
+export function presentSecondaryIcon(icon: ReactNode, size: string): ReactNode {
+  if (!isValidElement<NavIconProps>(icon)) return icon
+  const el = icon as ReactElement<NavIconProps>
+  return cloneElement(el, { className: cn(el.props.className, size) })
 }
 
 export function badgeDot(badge: ReactElement<BadgeProps>): ReactElement {
