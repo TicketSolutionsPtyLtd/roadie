@@ -4,7 +4,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 /**
  * Cards drawn before the columns are measured. A window always draws at least
- * this many (it adds ten rows beyond the screen), so none is ever removed.
+ * this many (it adds ten rows beyond the screen), so none is removed at the top.
  */
 export const FIRST_CARDS = 10
 

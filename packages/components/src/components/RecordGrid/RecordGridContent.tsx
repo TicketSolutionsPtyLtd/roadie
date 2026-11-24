@@ -278,12 +278,15 @@ function useColumnCount(bodyRef: RefObject<HTMLElement | null>) {
         getComputedStyle(document.documentElement).fontSize
       )
       const height = card?.getBoundingClientRect().height ?? 0
-      const rowRem = height > 0 && root > 0 ? height / root : undefined
-      setGrid((now) =>
-        now?.columns === Math.max(1, tracks) && now.rowRem === rowRem
+      // Kept once read: later cards, scrolled to or resized, would only re-estimate.
+      setGrid((now) => {
+        const columns = Math.max(1, tracks)
+        const rowRem =
+          now?.rowRem ?? (height > 0 && root > 0 ? height / root : undefined)
+        return now?.columns === columns && now.rowRem === rowRem
           ? now
-          : { columns: Math.max(1, tracks), rowRem }
-      )
+          : { columns, rowRem }
+      })
     }
     read()
     const observer = new ResizeObserver(read)
