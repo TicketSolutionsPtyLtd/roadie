@@ -2,10 +2,11 @@
 
 import { type RefObject, useLayoutEffect, useState } from 'react'
 
-import type { RecordsToolbarBox } from './context'
 import { findStickyContainer } from './scrollParent'
 
 const PANE_HEADER = 'var(--pane-header-height, 0px)'
+const TOOLBAR_HEIGHT = '--records-toolbar-height'
+const TOOLBAR = `var(${TOOLBAR_HEIGHT}, 0px)`
 
 const sum = (parts: string[]) =>
   parts.length === 0
@@ -20,7 +21,7 @@ const sum = (parts: string[]) =>
  */
 export function useStickyTop(
   ref: RefObject<HTMLElement | null>,
-  toolbar: RecordsToolbarBox | null,
+  toolbar: HTMLElement | null,
   /** Changes when the part may have moved to another scroll box. */
   placement?: unknown
 ) {
@@ -31,9 +32,38 @@ export function useStickyTop(
     const container = findStickyContainer(element)
     const parts: string[] = []
     if (container?.dataset.slot === 'pane-viewport') parts.push(PANE_HEADER)
-    if (toolbar && findStickyContainer(toolbar.element) === container)
-      parts.push(`${toolbar.height}px`)
+    if (toolbar && findStickyContainer(toolbar) === container)
+      parts.push(TOOLBAR)
     setTop(sum(parts))
   }, [ref, toolbar, placement])
   return top
+}
+
+/**
+ * Publishes the toolbar's height as `--records-toolbar-height` while it is
+ * the one `toolbar` names, written straight to the style so a resize renders
+ * nothing. It goes on the Records root, or without one on the box the toolbar
+ * sticks in, which holds every part that sticks under it.
+ */
+export function usePublishToolbarHeight(
+  ref: RefObject<HTMLElement | null>,
+  toolbar: HTMLElement | null
+) {
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!element || element !== toolbar) return
+    const target =
+      element.closest<HTMLElement>('[data-slot="records"]') ??
+      findStickyContainer(element) ??
+      document.documentElement
+    const measure = () =>
+      target.style.setProperty(TOOLBAR_HEIGHT, `${element.offsetHeight}px`)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(element, { box: 'border-box' })
+    return () => {
+      observer.disconnect()
+      target.style.removeProperty(TOOLBAR_HEIGHT)
+    }
+  }, [ref, toolbar])
 }

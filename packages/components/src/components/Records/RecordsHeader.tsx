@@ -17,7 +17,7 @@ import { useRecordsContext } from './context'
 import { useNarrow } from './narrow'
 import { SearchFocusContext } from './searchFocus'
 import { useLeaveSelectOnEscape } from './selectMode'
-import { useStickyTop } from './stickyTop'
+import { usePublishToolbarHeight, useStickyTop } from './stickyTop'
 import type { RecordsAction } from './types'
 
 export type RecordsHeaderProps<Row extends object = object> = {
@@ -54,34 +54,22 @@ export function RecordsHeader<Row extends object>({
   const narrow = useNarrow(ref)
   const [searchFocused, setSearchFocused] = useState(false)
 
-  // The content's header stacks under this height while both are stuck.
+  // The content's header stacks under this toolbar while both are stuck.
   useLayoutEffect(() => {
     const element = ref.current
     if (!element) return
-    const measure = () => {
-      const height = element.offsetHeight
-      setToolbar((held) =>
-        // The first toolbar mounted keeps the place another one would take.
-        (held?.element === element && held.height === height) ||
-        (held && held.element !== element && held.element.isConnected)
-          ? held
-          : { element, height }
-      )
-    }
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(element, { box: 'border-box' })
-    return () => {
-      observer.disconnect()
-      setToolbar((held) => (held?.element === element ? null : held))
-    }
+    // The first toolbar mounted keeps the place another one would take.
+    setToolbar((held) =>
+      held && held !== element && held.isConnected ? held : element
+    )
+    return () => setToolbar((held) => (held === element ? null : held))
   }, [setToolbar])
   // Takes the place another toolbar left, which this one's own effect won't notice.
   useLayoutEffect(() => {
     const element = ref.current
-    if (toolbar === null && element)
-      setToolbar((held) => held ?? { element, height: element.offsetHeight })
+    if (toolbar === null && element) setToolbar((held) => held ?? element)
   }, [toolbar, setToolbar])
+  usePublishToolbarHeight(ref, toolbar)
 
   return (
     <div
