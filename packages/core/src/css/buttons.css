@@ -35,15 +35,20 @@
   /* Pending: the action is under way (Button's `pending`, or `aria-busy` on
        any .btn, so the look never comes without the semantics). The label keeps
        its box, so the size holds. After 200ms, so a fast response never flashes
-       a loader, its ink fades and a ring in its colour spins in its place.
-       Reduced motion leaves the ring still. */
+       a loader, the button gives a small press, its label shrinks and fades, and
+       a ring in its colour springs in and spins in its place. Each moves its own
+       property (scale, rotate), so the motions compose rather than replace each
+       other. Reduced motion shows the ring at once, still. */
   .btn[aria-busy='true'] {
-    animation: btn-pending-ink var(--duration-normal) var(--ease-exit)
-      var(--duration-moderate) forwards;
+    animation:
+      btn-pending-ink var(--duration-normal) var(--ease-exit)
+        var(--duration-moderate) forwards,
+      btn-pending-press var(--duration-slow) var(--ease-spring)
+        var(--duration-moderate);
 
     /* Opacity, not visibility, so a label in a child stays the name. */
     & > * {
-      animation: fade-out var(--duration-normal) var(--ease-exit)
+      animation: btn-pending-out var(--duration-normal) var(--ease-exit)
         var(--duration-moderate) forwards;
     }
 
@@ -61,9 +66,9 @@
       border-radius: 9999px;
       pointer-events: none;
       animation:
-        fade-in var(--duration-normal) var(--ease-enter)
+        btn-pending-in var(--duration-slow) var(--ease-spring-lively)
           var(--duration-moderate) backwards,
-        var(--animate-spin);
+        btn-pending-spin 0.7s linear infinite;
     }
   }
 
@@ -71,6 +76,32 @@
   .btn[aria-busy='true']:is(:disabled, [data-disabled]) {
     opacity: 1;
     filter: none;
+  }
+}
+
+@keyframes btn-pending-press {
+  40% {
+    scale: 0.97;
+  }
+}
+
+@keyframes btn-pending-out {
+  to {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+@keyframes btn-pending-in {
+  from {
+    opacity: 0;
+    scale: 0.3;
+  }
+}
+
+@keyframes btn-pending-spin {
+  to {
+    rotate: 1turn;
   }
 }
 

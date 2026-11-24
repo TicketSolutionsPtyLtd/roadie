@@ -171,6 +171,18 @@ describe('icons in a component inside a Button', () => {
 })
 
 describe('a pending button', () => {
+  // Every animation but the endless spin, such as the press, which scales the
+  // drawn box while it runs.
+  const settled = (button: HTMLElement) =>
+    Promise.all(
+      button
+        .getAnimations({ subtree: true })
+        .filter(
+          (animation) =>
+            animation.effect?.getComputedTiming().iterations !== Infinity
+        )
+        .map((animation) => animation.finished)
+    )
   const box = (element: Element) => {
     const { width, height } = element.getBoundingClientRect()
     return { width, height }
@@ -207,12 +219,10 @@ describe('a pending button', () => {
         rerender(shape(true, size))
         expect(button).toHaveAttribute('aria-busy', 'true')
         expect(box(button)).toEqual(rest)
-        // And once the spinner has replaced the label.
-        await expect
-          .poll(() => getComputedStyle(button, '::before').opacity, {
-            timeout: 2000
-          })
-          .toBe('1')
+        // And once the spinner has replaced the label. The press is a scale,
+        // which moves the drawn box but not the layout, so wait it out.
+        await settled(button)
+        expect(getComputedStyle(button, '::before').opacity).toBe('1')
         expect(box(button)).toEqual(rest)
       }
     )
@@ -244,7 +254,7 @@ describe('a pending button', () => {
     expect(getComputedStyle(button).filter).toBe('none')
   })
 
-  it('waits 200ms before the ring replaces the label', () => {
+  it('waits 200ms, then springs the ring in as the label leaves', () => {
     render(
       <Button emphasis='strong' pending>
         {icon}
@@ -269,7 +279,7 @@ describe('a pending button', () => {
       TRANSPARENT
     )
 
-    at(400)
+    at(600)
     expect(ring.opacity).toBe('1')
     expect(label.opacity).toBe('0')
     expect(getComputedStyle(button).webkitTextFillColor).toMatch(TRANSPARENT)
@@ -288,6 +298,7 @@ describe('a pending button', () => {
   it('centres the ring', async () => {
     render(<Button pending>Save changes</Button>)
     const button = screen.getByRole('button')
+    await settled(button)
     const ring = getComputedStyle(button, '::before')
     const { width, height } = box(button)
     // Inset from every edge equally, so the ring sits in the middle.
