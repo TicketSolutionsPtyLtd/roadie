@@ -26,8 +26,7 @@ const shows = testShows(50)
 const renderedIds = () =>
   new Set(cellRenders.mock.calls.map(([id]) => id as string))
 
-// Searching a page of 100 for "H" keeps 58 of its rows and brings in 42. Says
-// whose cells rendered: rows the page kept (`again`) and rows that `arrived`.
+// Searching a page of 100 for "H" keeps 58 of its rows and brings in 42.
 function narrowPage() {
   const first = renderedIds()
   cellRenders.mockClear()
