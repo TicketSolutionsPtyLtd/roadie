@@ -196,7 +196,10 @@ export function rotateBy(
           )
         }
       : scene
-  const zoom = fitted ? zoomRange(turned, rotation).cover : value.zoom
+  // The turned frame can be a different size, so the zoom follows it and the
+  // crop keeps its size.
+  const scale = turned === scene ? 1 : turned.frame.width / scene.frame.height
+  const zoom = fitted ? zoomRange(turned, rotation).cover : value.zoom * scale
   const centre = {
     x: to.width / 2 + dx * cos - dy * sin,
     y: to.height / 2 + dx * sin + dy * cos

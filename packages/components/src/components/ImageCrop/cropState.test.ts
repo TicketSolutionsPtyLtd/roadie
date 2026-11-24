@@ -284,4 +284,14 @@ describe('rotateBy in free-form', () => {
     expect(turned.area.width).toBeCloseTo(1600)
     expect(turned.area.height).toBeCloseTo(2400)
   })
+
+  it('keeps a zoomed-in crop the same size when the bounds are not square', () => {
+    // 600 × 450 bounds: the 3:2 frame is 600 × 400, and turned it is 300 × 450.
+    const wide = { ...free, bounds: { width: 600, height: 450 } }
+    const zoomed = zoomTo(fitCrop(undefined, wide), 0.5, wide)
+    expect(zoomed.area.width).toBeCloseTo(1200)
+    const turned = rotateBy(zoomed, -90, wide)
+    expect(turned.area.width).toBeCloseTo(800)
+    expect(turned.area.height).toBeCloseTo(1200)
+  })
 })
