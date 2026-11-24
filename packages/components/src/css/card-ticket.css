@@ -44,9 +44,13 @@
     /* The parts read variables the card sets, not `&:has(footer) > *`: a
        selector after a :has() restyles its matches across the page whenever
        anything changes, and `*` matches everything. Reset first, so a nested
-       footer-less ticket doesn't inherit them. */
+       footer-less ticket doesn't inherit them, and so a nested ticket's parts
+       take no notch or corner shape from the part it sits in. */
     --card-part-fill: initial;
     --card-part-transition: initial;
+    --ticket-notch-a: initial;
+    --ticket-notch-b: initial;
+    --ticket-scoop-shape: initial;
     --ticket-root-edge: var(--card-edge-width);
     --ticket-part-edge: 0px;
 

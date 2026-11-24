@@ -280,6 +280,60 @@ describe('Card ticket without a footer', () => {
 })
 
 describe('Card ticket nested in a ticket with a footer', () => {
+  // A notched part hands its notches and corner shapes to its own children:
+  // the side column has them at its left corners, the body at its bottom ones.
+  it.each([
+    ['the side column of a horizontal ticket', 'horizontal'],
+    ['the body of a vertical ticket', 'vertical']
+  ] as const)('takes no notch or corner from %s', async (_, direction) => {
+    const inner = (
+      <Card variant='ticket' emphasis='normal' data-testid='inner'>
+        <Card.Header>
+          <Card.Title>Inner</Card.Title>
+        </Card.Header>
+        <Card.Content>
+          <p>Seat 12</p>
+        </Card.Content>
+        <Card.Footer>
+          <p>Sam Okafor</p>
+        </Card.Footer>
+      </Card>
+    )
+    // The backdrop, so anything cut from the inner ticket shows.
+    const backdrop = { background: `rgb(${BACKDROP})` }
+    const { container } = render(
+      <div data-testid='host' style={{ padding: 24, width: 640, ...backdrop }}>
+        <Card variant='ticket' emphasis='raised' direction={direction}>
+          <Card.Content style={direction === 'vertical' ? backdrop : {}}>
+            {direction === 'vertical' ? inner : <p>General admission</p>}
+          </Card.Content>
+          <Card.Footer style={direction === 'horizontal' ? backdrop : {}}>
+            {direction === 'horizontal' ? inner : <p>Sam Okafor</p>}
+          </Card.Footer>
+        </Card>
+      </div>
+    )
+    const host = container.querySelector<HTMLElement>('[data-testid=host]')!
+    const card = host.querySelector<HTMLElement>('[data-testid=inner]')!
+    const header = card.querySelector<HTMLElement>('[data-slot=card-header]')!
+    const sample = await capture(host)
+    const { left, right } = card.getBoundingClientRect()
+    const { top, bottom } = header.getBoundingClientRect()
+    const fill = sample(left + 4, (top + bottom) / 2)
+
+    expect(edgeAtCorner(sample, card, 'top-left')).toBeGreaterThan(8)
+    expect(edgeAtCorner(sample, card, 'top-right')).toBeGreaterThan(8)
+    for (const radius of [4, 6, 8, 10, 11, 12, 13, 14]) {
+      const offset = radius * Math.SQRT1_2
+      expect(
+        distance(sample(left + offset, bottom - offset), fill)
+      ).toBeLessThanOrEqual(4)
+      expect(
+        distance(sample(right - 1 - offset, bottom - offset), fill)
+      ).toBeLessThanOrEqual(4)
+    }
+  })
+
   it('leaves its own parts unfilled when it has no footer', () => {
     const { container } = render(
       <Card variant='ticket' emphasis='raised'>
