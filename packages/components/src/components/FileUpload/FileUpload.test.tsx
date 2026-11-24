@@ -156,7 +156,9 @@ describe('FileUpload', () => {
     )
     await userEvent.upload(fileInput(container), csv('april.csv'))
     expect(container.firstElementChild).toHaveAttribute('data-checking')
-    await userEvent.click(screen.getByRole('button', { name: /^Clear/ }))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove march.csv' })
+    )
     expect(container.firstElementChild).not.toHaveAttribute('data-checking')
   })
 
@@ -826,6 +828,7 @@ describe('FileUpload', () => {
         <FileUpload maxFiles={2} defaultValue={files(2)}>
           <FileUpload.Dropzone />
           <FileUpload.Trigger />
+          <FileUpload.List />
         </FileUpload>
       )
       const click = vi.spyOn(fileInput(container), 'click')

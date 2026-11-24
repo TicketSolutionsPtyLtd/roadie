@@ -32,7 +32,7 @@ With no children, `FileUpload` is a dropzone with the chosen file listed under i
 
 ### Rules
 
-`accept` takes the native syntax, such as `.csv`, `image/*` or `application/pdf`. `maxFileSize` and `minFileSize` are in bytes. A file that breaks a rule never joins the value: its message shows in `Field.ErrorText`, and `onReject` gets it with a code (`too-many`, `wrong-type`, `too-large` or `too-small`). `validate` checks anything else, such as an image's pixel size or a CSV's columns, once the other rules pass. Return a message to turn the file away with the code `invalid`, or `null` to take it. It can be async, and a newer pick wins over a check still running. Pick a file that isn't a CSV, or one over 1 MB, to see it.
+`accept` takes the native syntax, such as `.csv`, `image/*` or `application/pdf`. `maxFileSize` and `minFileSize` are in bytes. A file that breaks a rule never joins the value: its message shows in `Field.ErrorText`, and `onReject` gets it with a code (`too-many`, `wrong-type`, `too-large` or `too-small`). `validate` checks anything else, such as an image's pixel size or a CSV's columns, once the other rules pass. Return a message to turn the file away with the code `invalid`, or `null` to take it. It can be async, and a newer pick wins over a check still running. While it checks, the dropzone says what, such as "Checking rider.pdf…", and the field has `data-checking`. Pick a file that isn't a CSV, or one over 1 MB, to see it.
 
 ```tsx-live width=140
 <Field required>
@@ -45,7 +45,7 @@ With no children, `FileUpload` is a dropzone with the chosen file listed under i
 
 ### Several files
 
-`maxFiles` sets how many files the field holds; it's 1 by default. Above 1, picks, drops and pastes add to the files rather than replace them, the dropzone counts them ("2 of 6"), a `FileUpload.Trigger` reads "Choose files", and a file past the limit is turned away with `too-many`. Each row leads with a handle: drag it to reorder the files, or click it, or press Enter, for a Move menu. The value keeps the order, and so does the form post.
+`maxFiles` sets how many files the field holds; it's 1 by default. Above 1, picks, drops and pastes add to the files rather than replace them, the dropzone counts them ("2 of 6"), a `FileUpload.Trigger` reads "Choose files", and a file past the limit is turned away with `too-many`. Each row leads with a handle: drag it to reorder the files, or click it, or press Enter, for a Move menu. The value keeps the order, and so does the form post. Once the field holds `maxFiles` files, the picker stays shut: the dropzone reads "Remove a file to add another", it and the Trigger are disabled but stay focusable, and the field has `data-full`. A drop or paste on a full field is still turned away with `too-many`, so the message says why.
 
 ```tsx-live width=140
 <Field>
@@ -387,6 +387,7 @@ A `FileUpload.Trigger` on its own is a plain button, for a toolbar or a row of a
 - Dragging is never the only way in. `FileUpload.Dropzone` is a button: Tab reaches it, and Enter, Space or a click opens the picker. `Field.Label` and its title name it, such as "Guest list Drop a file, or choose one". Pasting a file works anywhere inside the field.
 - `pageDrop` adds a target, never the only way in: the dropzone, paste and the picker still work. Its overlay is hidden from assistive tech, since it only shows mid-drag.
 - With `maxFiles` above 1, each row's handle is named for its file, such as "Reorder rider.pdf". Dragging it is never the only way: a click, Enter or Space opens a Move menu, and focus stays on the handle once the file moves. The list is named by `Field.Label`, and the dropzone's name ends with the count, such as "Event documents Drop files, or choose them 2 of 6".
+- A full field's dropzone and Trigger keep their place in the tab order with `aria-disabled`, so the count and "Remove a file to add another" can still be read. While `validate` checks, both are `aria-busy`, and the polite live region says "Checking rider.pdf."
 - Each row's Remove is named for its file, such as "Remove guests.csv". After it, focus moves to the next row's Remove, the previous row's when it was the last, or the dropzone or Trigger when no files are left. A row that's collapsing is inert, so it takes no focus.
 - A polite live region says when files are added and when each one has uploaded, with the total once there's more than one, such as "april.csv uploaded. 1 of 2 uploaded." It never reads out each percent. A failed upload is announced at once, such as "april.csv couldn't upload. Retry is available."
 - While a file uploads, its Remove is named Cancel, such as "Cancel april.csv". Retry is named for its file, such as "Retry april.csv", and focus moves to the row's Cancel after it, or to the dropzone or Trigger when the row has none. The ring is a progress bar named for its file, such as "Uploading april.csv", for anyone who moves to it.
