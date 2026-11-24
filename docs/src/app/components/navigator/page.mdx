@@ -321,13 +321,13 @@ function SecondaryNav() {
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
                 Events
                 <Navigator.Secondary aria-label='Events pages'>
-                  <Navigator.Item value='/events/upcoming' href='/events/upcoming'>
+                  <Navigator.Item value='/events/upcoming' href='/events/upcoming' icon={<StarIcon />}>
                     Upcoming
                   </Navigator.Item>
-                  <Navigator.Item value='/events/past' href='/events/past'>
+                  <Navigator.Item value='/events/past' href='/events/past' icon={<ArrowCounterClockwiseIcon />}>
                     Past
                   </Navigator.Item>
-                  <Navigator.Item value='/events/drafts' href='/events/drafts'>
+                  <Navigator.Item value='/events/drafts' href='/events/drafts' icon={<PencilSimpleIcon />}>
                     Drafts
                   </Navigator.Item>
                 </Navigator.Secondary>
@@ -967,8 +967,11 @@ turn and the phone pull-back.
   `onValueChange` only when no route owns the state.
 - Write pinned items last. The vertical navigation always tabs through brand,
   Search, cluster, then pinned items, so source order should match.
-- Pass bare icons to items. Navigator renders them duotone at `size-6`. Give
-  `Navigator.MenuItem` icons `weight='bold'`. An item without an icon shows its
+- Pass bare icons to items. Navigator renders primary destinations duotone at
+  `size-6`, in More too, since a folded destination keeps its icon. Secondary
+  rows, from `Navigator.Secondary` and `Navigator.SecondaryItems`, keep the
+  weight given, bold by default. Give `Navigator.MenuItem` icons
+  `weight='bold'`. An item without an icon shows its
   label's first letter.
 - An item links to its declared `href`, in More too, so tapping a top-level
   item goes to that destination's route from any of its pages. A phone has two
