@@ -1,4 +1,8 @@
-export type FileUploadRejectionCode = 'wrong-type' | 'too-large' | 'too-small'
+export type FileUploadRejectionCode =
+  | 'too-many'
+  | 'wrong-type'
+  | 'too-large'
+  | 'too-small'
 
 export type FileUploadRejection = {
   file: File

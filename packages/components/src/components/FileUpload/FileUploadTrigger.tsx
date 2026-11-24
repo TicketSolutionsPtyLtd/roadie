@@ -13,7 +13,7 @@ export type FileUploadTriggerProps = Omit<
   'href' | 'external' | 'target' | 'rel' | 'download'
 >
 
-/** The button that opens the file picker. It reads "Choose file", or "Replace" once there's one. */
+/** The button that opens the file picker. It reads "Choose file", or "Replace" once there's one, and "Choose files" when the field takes more than one. */
 export function FileUploadTrigger({
   id,
   ref,
@@ -52,7 +52,12 @@ export function FileUploadTrigger({
       }}
       {...props}
     >
-      {children ?? (context.files.length ? 'Replace' : 'Choose file')}
+      {children ??
+        (context.maxFiles > 1
+          ? 'Choose files'
+          : context.files.length
+            ? 'Replace'
+            : 'Choose file')}
     </Button>
   )
 }
