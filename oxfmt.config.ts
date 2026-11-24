@@ -51,6 +51,7 @@ export default defineConfig({
     'pnpm-lock.yaml',
     'packages/core/src/tokens/tokens.json',
     'packages/core/src/css/dataviz.css',
+    'packages/*/size-budget.json',
     '**/tokens/figma/mode-tokens-*.json',
     '**/tokens/panda/default.json',
     '*.d.ts',
