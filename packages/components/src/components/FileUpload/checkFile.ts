@@ -3,6 +3,7 @@ export type FileUploadRejectionCode =
   | 'wrong-type'
   | 'too-large'
   | 'too-small'
+  | 'invalid'
 
 export type FileUploadRejection = {
   file: File
