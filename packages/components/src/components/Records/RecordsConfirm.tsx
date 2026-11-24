@@ -16,11 +16,7 @@ export const reportActionError = (error: unknown) =>
   // Older browsers and jsdom before 31 have no reportError.
   (window.reportError ?? console.error)(error)
 
-/**
- * Awaits `work`, then calls `then`. A rejection or a throw goes to `failed`,
- * and `done` runs either way. A plain function, as the React Compiler skips
- * a component that holds a `finally`.
- */
+// Out here, as the React Compiler skips a component or hook that holds a `finally`.
 export async function attempt(
   work: () => unknown,
   {
