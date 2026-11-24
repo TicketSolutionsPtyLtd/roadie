@@ -1,0 +1,23 @@
+{
+  ".": { "own": 27041, "full": 238470, "initial": 208410 },
+  "./bar-chart": { "own": 9470, "full": 74321, "initial": 56720 },
+  "./chart": { "own": 2545, "full": 34670, "initial": 34670 },
+  "./chart-legend": { "own": 596, "full": 8818, "initial": 8818 },
+  "./chart-patterns": { "own": 553, "full": 553, "initial": 553 },
+  "./chart-tooltip": { "own": 711, "full": 8933, "initial": 8933 },
+  "./dashboard-view": { "own": 26866, "full": 238284, "initial": 208349 },
+  "./donut-chart": { "own": 8477, "full": 71888, "initial": 54253 },
+  "./funnel": { "own": 8511, "full": 71016, "initial": 53566 },
+  "./heatmap": { "own": 7407, "full": 64782, "initial": 47125 },
+  "./histogram": { "own": 8135, "full": 66866, "initial": 49196 },
+  "./line-chart": { "own": 12036, "full": 75292, "initial": 57830 },
+  "./ranked-bars": { "own": 9087, "full": 72182, "initial": 54582 },
+  "./scatter": { "own": 8104, "full": 67131, "initial": 49426 },
+  "./small-multiples": { "own": 14679, "full": 80884, "initial": 63280 },
+  "./stacked-area": { "own": 10026, "full": 73053, "initial": 55439 },
+  "./stacked-bars": { "own": 9379, "full": 72122, "initial": 54488 },
+  "./chart-document": { "own": 20960, "full": 77526, "initial": 77526 },
+  "./examples": { "own": 5489, "full": 35162, "initial": 35162 },
+  "./static": { "own": 19813, "full": 49344, "initial": 49344 },
+  "./tables": { "own": 5361, "full": 10678, "initial": 10678 }
+}
