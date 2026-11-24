@@ -814,7 +814,7 @@ A simpler hero pattern: drop `Carousel.Controls` and let the dots handle navigat
 
 A dot per slide stops working once there are more than a handful, such as a buyer's 24 tickets. Pass `max` to draw at most that many dots: the window slides to keep the current dot in the middle, and the dot at each end shrinks while there are slides past it. Leave `max` off to draw a dot for every slide.
 
-On an `emphasis-strong` surface the current dot takes the surface's own text colour, so it stays visible when the surface is the accent. Elsewhere it's the accent, and the other dots follow the surface's intent.
+Inside an `emphasis-strong` surface, the current dot takes the text colour of the surface it sits on, so it stays visible when the band behind it is the accent. That holds through a card or other surface inside the band. Elsewhere the current dot is the accent, and the other dots follow the surface's intent.
 
 ```tsx-live
 <div className='grid grid-cols-1 rounded-2xl p-4 intent-accent emphasis-strong'>

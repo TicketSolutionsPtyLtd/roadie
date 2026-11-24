@@ -60,7 +60,7 @@ export function CarouselDots({ className, max, ...props }: CarouselDotsProps) {
             data-slot='carousel-dot'
             onClick={() => goTo(index)}
             className={cn(
-              'h-2 shrink-0 rounded-full transition-all',
+              'h-2 rounded-full transition-all',
               // The current dot does nothing when pressed, so it has no hover.
               // On a strong surface the accent can match the surface, so it
               // takes the surface's own foreground instead.
