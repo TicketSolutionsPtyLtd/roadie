@@ -26,14 +26,6 @@ const PROPERTIES = [
 const MAX_CHAIN = 3
 const ONE_OFF = 'one-off overlay, not repeated'
 
-// The one chain over three. #994 removes it (INNO-1658, INNO-1674); whoever
-// lands that deletes this exception, as 'lists nothing that no longer ships' says.
-const TICKET_CHAIN: Site = {
-  property: 'filter',
-  rule: '[data-slot="card"][data-variant="ticket"]',
-  functions: 7
-}
-
 const ALLOWED: Allowance[] = [
   {
     rule: /^\.is-interactive(-field(-group)?)? &:disabled, &\[data-disabled\]$/,
@@ -183,26 +175,15 @@ function sitesIn(css: string) {
   return [...sites.values()]
 }
 
-const isTicketChain = (site: Site) =>
-  site.property === TICKET_CHAIN.property &&
-  site.rule === TICKET_CHAIN.rule &&
-  site.functions <= TICKET_CHAIN.functions
-
 const allowanceFor = (site: Site) =>
   ALLOWED.find(
     ({ rule, property }) => property === site.property && rule.test(site.rule)
   )
 
-const unlisted = (sites: Site[]) =>
-  sites.filter((site) => !isTicketChain(site) && !allowanceFor(site))
+const unlisted = (sites: Site[]) => sites.filter((site) => !allowanceFor(site))
 
 const longChains = (sites: Site[]) =>
-  sites.filter(
-    (site) =>
-      site.property !== 'mask' &&
-      site.functions > MAX_CHAIN &&
-      !isTicketChain(site)
-  )
+  sites.filter((site) => site.property !== 'mask' && site.functions > MAX_CHAIN)
 
 describe('Roadie CSS and paint cost', () => {
   it('reads what a rule costs, through nesting and Tailwind’s variables', () => {
@@ -249,8 +230,6 @@ describe('Roadie CSS and paint cost', () => {
     const sites = sitesIn(roadieCss)
     const used = new Set(sites.map(allowanceFor))
     expect(ALLOWED.filter((allowance) => !used.has(allowance))).toEqual([])
-    // Fails once #994 lands, so the ticket's exception goes with it.
-    expect(sites.some(isTicketChain)).toBe(true)
   })
 
   it('ships no filter chain over three functions', () => {
