@@ -12,14 +12,21 @@ const EVENTS = Array.from({ length: 60 }, (_, index) => ({
  * A page of event cards behind the component, so an overlay's backdrop, blur,
  * and restyle cost what they would on a real screen. Each is a real Card with
  * a Card.Link, so the card's own `:has()` rules are live behind every overlay.
+ * `variant='ticket'` gives each a footer, so its notches are drawn.
  */
-export function EventPage({ children }: { children?: ReactNode }) {
+export function EventPage({
+  children,
+  variant = 'default'
+}: {
+  children?: ReactNode
+  variant?: 'default' | 'ticket'
+}) {
   return (
     <div className='grid gap-4 p-4' style={{ width: 1440 }}>
       {children}
       <div className='grid grid-cols-4 gap-4'>
         {EVENTS.map((event, index) => (
-          <Card key={event.title} emphasis='raised'>
+          <Card key={event.title} variant={variant} emphasis='raised'>
             <Card.Content className='grid gap-2'>
               <div className='aspect-video rounded-lg emphasis-subtle' />
               <Card.Title>
@@ -31,6 +38,11 @@ export function EventPage({ children }: { children?: ReactNode }) {
                 {event.venue} · {event.date}
               </Card.Description>
             </Card.Content>
+            {variant === 'ticket' && (
+              <Card.Footer>
+                <p className='text-sm text-subtle'>Admit one</p>
+              </Card.Footer>
+            )}
           </Card>
         ))}
       </div>
