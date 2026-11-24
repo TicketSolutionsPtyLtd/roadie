@@ -71,7 +71,7 @@ Renders the `long` style. The `timeZone` is the venue's for an event time, and t
 
 ### A time alone
 
-A `timeStyle` with no `dateStyle` renders the time and nothing else, for a time under a day heading that already says the date. The `dateTime` attribute still carries the full instant, and a range with `to` renders each end in its own `time` element, without a date or a `showDuration` count. Ends that read the same collapse to one time. `stacked`, `sameNight` and `relative` each say a date, so they keep one.
+A `timeStyle` with no `dateStyle` renders the time and nothing else, for a time under a day heading that already says the date. The `dateTime` attribute still carries the full instant, and a range with `to` renders each end in its own `time` element, without a date or a `showDuration` count. Ends at the same instant collapse to one time. `stacked`, `sameNight` and `relative` each say a date, so they keep one.
 
 ```tsx-live layout=stack gap=2
 <DateTime

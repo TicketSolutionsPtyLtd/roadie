@@ -48,7 +48,7 @@ export interface DateTimeProps extends Omit<
    * the year rides on the later date. Two ends on the same day render as a
    * time range when a `timeStyle` is set, and collapse to one moment without
    * one. With a `timeStyle` and no `dateStyle`, ends on different days read as
-   * two times too, unless they read the same, which collapse to one.
+   * two times too, unless they are the same instant, which collapse to one.
    */
   to?: Instantish | null
   /**
@@ -222,13 +222,13 @@ export function DateTime({
 
   // One night crossing midnight says the date once, and a time-only range has
   // none to say, so `render` swaps the wrapper rather than the `time` elements
-  // inside it. Ends that read the same fall through to one moment.
+  // inside it. Ends at the same instant fall through to one moment.
   if (to && timeStyle && (sameNight || timeOnly)) {
     const endTime = formatTimeOfDay(to, opts)
     if (
       absolute !== null &&
       endTime !== null &&
-      (!timeOnly || endTime !== absolute)
+      (!timeOnly || formatMachine(to, opts) !== machine)
     ) {
       return resolveRender(
         'span',

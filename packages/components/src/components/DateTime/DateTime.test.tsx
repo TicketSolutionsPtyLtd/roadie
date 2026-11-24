@@ -647,7 +647,7 @@ describe('DateTime with a timeStyle and no dateStyle', () => {
     expect(container.textContent).not.toMatch(/Nov/)
   })
 
-  it('collapses a range whose ends read the same to one time', () => {
+  it('collapses a range whose ends are the same instant to one time', () => {
     const { container } = render(
       <DateTime at={at} to={at} timeZone={BNE} timeStyle='medium' />
     )
@@ -688,7 +688,7 @@ describe('DateTime with a timeStyle and no dateStyle', () => {
     expect(container.textContent).not.toMatch(/Nov|day/)
   })
 
-  it('collapses ends a day apart that read the same, without a date', () => {
+  it('keeps ends a day apart that read the same as two times, so the day is not lost', () => {
     const { container } = render(
       <DateTime
         at={at}
@@ -697,8 +697,9 @@ describe('DateTime with a timeStyle and no dateStyle', () => {
         timeStyle='medium'
       />
     )
-    expect(container.querySelectorAll('time')).toHaveLength(1)
-    expect(container.textContent).toBe('7:30pm')
+    const times = container.querySelectorAll('time')
+    expect([...times].map((t) => t.textContent)).toEqual(['7:30pm', '7:30pm'])
+    expect(times[1]).toHaveAttribute('dateTime', '2026-11-28T19:30:00+10:00')
   })
 
   it('swaps the wrapper of a range through `render`, as `sameNight` does', () => {
