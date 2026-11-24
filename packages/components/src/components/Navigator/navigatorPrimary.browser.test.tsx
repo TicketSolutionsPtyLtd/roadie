@@ -218,6 +218,19 @@ describe('Navigator.Search on a large screen', () => {
     rerender(<SearchRail expanded={false} />)
     await settle()
     expect(getComputedStyle(kbd()).opacity).toBe('0')
+    // Hidden, it takes no width, so the collapsed tile keeps its round shape.
+    expect(kbd().getBoundingClientRect().width).toBe(0)
+    // Its icon lines up with the other collapsed tiles' icons.
+    const iconLeft = (el: HTMLElement) =>
+      el
+        .querySelector('[data-slot="navigator-item-icon"]')!
+        .getBoundingClientRect().left
+    const shows = within(vertical()).getByRole('link', { name: 'Shows' })
+    expect(iconLeft(searchTile())).toBeCloseTo(iconLeft(shows), 0)
+    expect(searchTile().getBoundingClientRect().width).toBeCloseTo(
+      shows.getBoundingClientRect().width,
+      0
+    )
   })
 
   it('opens the palette and puts focus in its input', async () => {
