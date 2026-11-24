@@ -58,7 +58,7 @@ With no children, `FileUpload` is a dropzone with the chosen file listed under i
 
 ### Drop anywhere on the page
 
-Where uploading is the page's main job, `pageDrop` lets the whole window take files. While they're dragged in, an overlay names the field and counts them, such as "Drop to add 3 files to Event documents", and turns danger when every file is a type the field won't take. Over a dropzone it steps aside, and the dropzone takes the drop. Give it to one field per page; a second one warns in development. The type check needs MIME types in `accept`, since a file's name, and so its extension, stays hidden until the drop.
+Where uploading is the page's main job, `pageDrop` lets the whole window take files. While they're dragged in, an overlay names the field and counts them, such as "Drop to add 3 files to Event documents", and turns danger when every file is a type the field won't take or the field is full. Over a dropzone it steps aside, and the dropzone takes the drop. Give it to one field per page: a second one warns in development, and the window has room for only one. The type check needs MIME types in `accept`, since a file's name, and so its extension, stays hidden until the drop.
 
 ```tsx-live width=140
 <Field>

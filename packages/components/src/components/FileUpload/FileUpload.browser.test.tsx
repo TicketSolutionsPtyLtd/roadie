@@ -557,6 +557,38 @@ describe('FileUpload pageDrop', () => {
     await waitFor(() => expect(overlay()).toBeNull())
   })
 
+  it('names the field without its required mark, and counts only the room left', async () => {
+    render(
+      <Field required>
+        <Field.Label showIndicator>Event documents</Field.Label>
+        <FileUpload
+          pageDrop
+          maxFiles={3}
+          defaultValue={[pdf('rider.pdf'), pdf('stage.pdf')]}
+        />
+      </Field>
+    )
+    await dragFiles(document.body, [pdf('a.pdf'), pdf('b.pdf')], false)
+    await waitFor(() =>
+      expect(overlay()?.textContent).toBe(
+        'Drop to add a file to Event documents'
+      )
+    )
+  })
+
+  it('turns danger when the field is full', async () => {
+    render(
+      <FileUpload
+        pageDrop
+        maxFiles={2}
+        defaultValue={[pdf('a.pdf'), pdf('b.pdf')]}
+      />
+    )
+    await dragFiles(document.body, [pdf('c.pdf')], false)
+    await waitFor(() => expect(overlay()).toHaveAttribute('data-wrong'))
+    expect(overlay()).toHaveTextContent('This field is full')
+  })
+
   it('steps aside over the dropzone, which takes the drop itself', async () => {
     const onValueChange = vi.fn()
     render(<Page onValueChange={onValueChange} />)

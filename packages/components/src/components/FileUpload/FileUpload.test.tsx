@@ -588,7 +588,7 @@ describe('FileUpload', () => {
       </>
     )
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('more than one FileUpload has pageDrop')
+      expect.stringContaining('only one FileUpload on a page can have pageDrop')
     )
     warn.mockRestore()
   })
