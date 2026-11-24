@@ -129,9 +129,10 @@ async function measureStep(scenario: string, step: () => void) {
   return { scenario, frames, style }
 }
 
-// The style a push of empty panes costs, measured in CI's Perf workflow,
-// plus 10%. A push over content should cost near this (F6 in INNO-1649).
-const STYLE_CAP = 45
+// A push of empty panes cost 32ms of style in CI's Perf workflow (CPU 2x);
+// this is that plus 10%. A push over content should cost near it once
+// INNO-1677 lands (F6 in INNO-1649).
+const STYLE_CAP = 35
 
 const PUSHES: {
   name: string
@@ -141,15 +142,15 @@ const PUSHES: {
   knownMiss?: string
 }[] = [
   { name: 'empty panes', content: 'empty', onPush: false },
-  // Locally: push p95 33.3ms, 4.8% dropped, style 155ms, the long frames
-  // all as it starts, then a clean slide; pop met, style 160ms.
+  // In CI: push p95 49.9ms, 6.3% dropped, style 218ms, the long frames all
+  // as it starts, then a clean slide; pop met, style 203ms.
   {
     name: '100 list rows',
     content: 'rows',
     onPush: false,
     knownMiss: 'INNO-1677'
   },
-  // Locally: push p95 33.3ms, 4.8% dropped, style 161ms; pop met, style 76ms.
+  // In CI: push p95 33.3ms, 3.3% dropped, style 220ms; pop met, style 81ms.
   {
     name: 'a RecordTable of 100 the push mounts',
     content: 'table',
@@ -221,7 +222,7 @@ describe('Pane scrolls under its translucent chrome at 60fps on a slowed CPU', (
     )!
     const header = root.querySelector<HTMLElement>('[data-slot="pane-header"]')!
     expect(getComputedStyle(header).backdropFilter).not.toBe('none')
-    // Locally: p95 16.8ms, then one 75ms long task (an 83ms frame) as the
+    // In CI: p95 16.8ms, 2.5% dropped, and one 108ms long task as the
     // scroll starts, which the worst-frame allowance would hide without
     // `longestTask`.
     await expectFrameBudget(
