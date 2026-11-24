@@ -481,8 +481,12 @@ export {
   type FileUploadItemProps,
   type FileUploadItemNameProps,
   type FileUploadItemSizeProps,
+  type FileUploadItemStatusProps,
   type FileUploadItemRemoveProps,
+  type FileUploadItemRetryProps,
+  type FileUploadItemPreviewProps,
   type FileUploadItem,
+  type FileUploadStatus,
   type FileUploadRejection,
   type FileUploadRejectionCode
 } from './components/FileUpload'

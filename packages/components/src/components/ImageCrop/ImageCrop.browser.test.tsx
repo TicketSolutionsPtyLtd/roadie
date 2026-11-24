@@ -339,7 +339,9 @@ describe('ImageCrop with a pointer', () => {
     // It springs on --ease-spring, so it is still on its way back for a moment.
     expect(stage).toHaveAttribute('data-settling')
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expectCovered(stage)
+    // On a loaded runner the spring can start a frame late, so it lands by
+    // the end of its transition rather than exactly when the stage settles.
+    await waitFor(() => expectCovered(stage))
   })
 })
 

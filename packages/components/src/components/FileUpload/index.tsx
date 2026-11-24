@@ -6,8 +6,11 @@ import {
   FileUploadItem,
   FileUploadItemName,
   FileUploadItemRemove,
-  FileUploadItemSize
+  FileUploadItemRetry,
+  FileUploadItemSize,
+  FileUploadItemStatus
 } from './FileUploadItem'
+import { FileUploadItemPreview } from './FileUploadItemPreview'
 import { FileUploadList } from './FileUploadList'
 import { FileUploadRoot } from './FileUploadRoot'
 import { FileUploadTrigger } from './FileUploadTrigger'
@@ -20,9 +23,12 @@ const FileUpload = FileUploadRoot as typeof FileUploadRoot & {
   Value: typeof FileUploadValue
   List: typeof FileUploadList
   Item: typeof FileUploadItem
+  ItemPreview: typeof FileUploadItemPreview
   ItemName: typeof FileUploadItemName
   ItemSize: typeof FileUploadItemSize
+  ItemStatus: typeof FileUploadItemStatus
   ItemRemove: typeof FileUploadItemRemove
+  ItemRetry: typeof FileUploadItemRetry
   Clear: typeof FileUploadClear
   Trigger: typeof FileUploadTrigger
 }
@@ -33,9 +39,12 @@ FileUpload.Control = FileUploadControl
 FileUpload.Value = FileUploadValue
 FileUpload.List = FileUploadList
 FileUpload.Item = FileUploadItem
+FileUpload.ItemPreview = FileUploadItemPreview
 FileUpload.ItemName = FileUploadItemName
 FileUpload.ItemSize = FileUploadItemSize
+FileUpload.ItemStatus = FileUploadItemStatus
 FileUpload.ItemRemove = FileUploadItemRemove
+FileUpload.ItemRetry = FileUploadItemRetry
 FileUpload.Clear = FileUploadClear
 FileUpload.Trigger = FileUploadTrigger
 
@@ -49,9 +58,12 @@ export type {
   FileUploadItemProps,
   FileUploadItemNameProps,
   FileUploadItemSizeProps,
-  FileUploadItemRemoveProps
+  FileUploadItemStatusProps,
+  FileUploadItemRemoveProps,
+  FileUploadItemRetryProps
 } from './FileUploadItem'
-export type { FileUploadItem } from './FileUploadContext'
+export type { FileUploadItemPreviewProps } from './FileUploadItemPreview'
+export type { FileUploadItem, FileUploadStatus } from './FileUploadContext'
 export type { FileUploadClearProps } from './FileUploadClear'
 export type { FileUploadTriggerProps } from './FileUploadTrigger'
 export type { FileUploadRejection, FileUploadRejectionCode } from './checkFile'

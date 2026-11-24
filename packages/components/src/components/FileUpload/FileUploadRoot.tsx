@@ -4,6 +4,7 @@ import {
   type ComponentProps,
   useCallback,
   useEffect,
+  useEffectEvent,
   useId,
   useRef,
   useState
@@ -12,7 +13,10 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext, useFieldControlError } from '../Field/FieldContext'
-import { FileUploadContext } from './FileUploadContext'
+import {
+  FileUploadContext,
+  type FileUploadUpload as Upload
+} from './FileUploadContext'
 import { FileUploadDropzone } from './FileUploadDropzone'
 import { FileUploadList } from './FileUploadList'
 import {
@@ -36,11 +40,34 @@ export type FileUploadRootProps = Omit<
     onValueChange?: (files: File[]) => void
     /** Called with the files a pick turned away, each with its code and message. */
     onReject?: (rejections: FileUploadRejection[]) => void
+    /** How many files the field holds. Above 1, picks add to the files, and they can be reordered. @default 1 */
+    maxFiles?: number
     /** Which camera a phone opens instead of its file picker. Passed to the native input. */
     capture?: 'user' | 'environment'
     disabled?: boolean
     required?: boolean
+    /**
+     * Uploads a file added after the field mounts, three at a time. Report
+     * progress from 0 to 1 with `onProgress`, and stop when `signal` aborts,
+     * as it does when the file leaves the value. What it resolves becomes the
+     * item's `result`.
+     */
+    onUpload?: (
+      file: File,
+      options: { signal: AbortSignal; onProgress: (progress: number) => void }
+    ) => Promise<unknown>
   }
+
+/** Starts queued uploads until three are running. */
+function promote(map: Map<File, Upload>) {
+  let running = [...map.values()].filter(
+    ({ status }) => status === 'uploading'
+  ).length
+  for (const [file, upload] of map)
+    if (upload.status === 'queued' && running++ < 3)
+      map.set(file, { ...upload, status: 'uploading' })
+  return map
+}
 
 /**
  * A file field. It holds the chosen files and keeps a native file input in
@@ -57,9 +84,11 @@ export function FileUploadRoot({
   maxFileSize,
   minFileSize,
   onReject,
+  maxFiles = 1,
   capture,
   disabled,
   required,
+  onUpload,
   className,
   children,
   onPaste,
@@ -75,6 +104,117 @@ export function FileUploadRoot({
   const ownId = useId()
   const inputId = field.fieldId || `${ownId}-input`
 
+  // Files that join the value after mount queue for `onUpload`; the ones it
+  // starts with don't.
+  const [uploads, setUploads] = useState<ReadonlyMap<File, Upload>>(new Map())
+  const [previous, setPrevious] = useState(files)
+  const [said, say] = useState('')
+  const [alarm, raise] = useState('')
+  if (previous !== files) {
+    setPrevious(files)
+    const added = files.filter((file) => !previous.includes(file))
+    if (added.length)
+      say(
+        `${added.length > 1 ? `${added.length} files` : added[0]!.name} added.`
+      )
+    setUploads((map) => {
+      const next = new Map([...map].filter(([file]) => files.includes(file)))
+      if (onUpload)
+        for (const file of added)
+          next.set(file, { status: 'queued', progress: 0 })
+      return promote(next)
+    })
+  }
+
+  // Says which uploads have just finished or failed, counting every one that
+  // landed in the same render. A failure leaving clears its message, so the
+  // same file failing again is said again.
+  const [settled, setSettled] = useState(uploads)
+  if (settled !== uploads) {
+    setSettled(uploads)
+    const turned = (to: string) =>
+      [...uploads]
+        .filter(
+          ([file, { status }]) =>
+            status === to && settled.get(file)?.status !== to
+        )
+        .map(([file]) => file.name)
+        .join(', ')
+    const landed = turned('done')
+    const failed = turned('error')
+    if (failed) raise(`${failed} couldn't upload. Retry is available.`)
+    else if (
+      [...settled].some(
+        ([file, { status }]) =>
+          status === 'error' && uploads.get(file)?.status !== 'error'
+      )
+    )
+      raise('')
+    const done = [...uploads.values()].filter(
+      ({ status }) => status === 'done'
+    ).length
+    if (landed)
+      say(
+        `${landed} uploaded.${uploads.size > 1 ? ` ${done} of ${uploads.size} uploaded.` : ''}`
+      )
+  }
+
+  const patch = (file: File, change: Partial<Upload>) =>
+    setUploads((map) => {
+      const was = map.get(file)
+      return was ? promote(new Map(map).set(file, { ...was, ...change })) : map
+    })
+
+  const controllers = useRef(new Map<File, AbortController>())
+  const start = useEffectEvent((file: File) => {
+    if (!onUpload) return
+    const controller = new AbortController()
+    const { signal } = controller
+    controllers.current.set(file, controller)
+    // Run after this effect, so a throw inside rejects like a failed upload.
+    Promise.resolve()
+      .then(() =>
+        onUpload(file, {
+          signal,
+          onProgress: (progress) =>
+            signal.aborted ||
+            patch(file, { progress: Math.min(Math.max(progress, 0), 1) })
+        })
+      )
+      .then(
+        (result) => {
+          if (signal.aborted) return
+          controllers.current.delete(file)
+          patch(file, { status: 'done', progress: 1, result })
+        },
+        (error: unknown) => {
+          if (signal.aborted) return
+          controllers.current.delete(file)
+          patch(file, { status: 'error', error })
+        }
+      )
+  })
+
+  useEffect(() => {
+    // A file that left the value stops uploading.
+    for (const [file, controller] of controllers.current)
+      if (!uploads.has(file)) {
+        controller.abort()
+        controllers.current.delete(file)
+      }
+    for (const [file, { status }] of uploads)
+      if (status === 'uploading' && !controllers.current.has(file)) start(file)
+  }, [uploads])
+
+  useEffect(() => {
+    const running = controllers.current
+    return () => {
+      running.forEach((controller) => controller.abort())
+      // Shown again, as from a hidden Activity, the uploads start over.
+      running.clear()
+    }
+  }, [])
+
   const syncInput = useCallback(() => {
     const input = inputRef.current
     // jsdom has no DataTransfer.
@@ -85,21 +225,36 @@ export function FileUploadRoot({
   }, [files])
   useEffect(syncInput, [syncInput])
 
-  // Picks, drops and pastes all come through here. One file for now: the first.
+  // Picks, drops and pastes all come through here. With one file allowed,
+  // the first replaces it; with more, files join until the field is full.
   function take(picked: ArrayLike<File>) {
-    const file = picked[0]
-    const rejection =
-      file && checkFile(file, { accept, maxFileSize, minFileSize })
-    if (rejection) {
-      setError(rejection.message)
-      onReject?.([rejection])
-    } else if (file) commit([file])
+    const single = maxFiles === 1
+    const taken: File[] = []
+    const rejections: FileUploadRejection[] = []
+    for (const file of Array.from(picked).slice(0, single ? 1 : undefined)) {
+      const rejection =
+        checkFile(file, { accept, maxFileSize, minFileSize }) ??
+        (single || files.length + taken.length < maxFiles
+          ? null
+          : {
+              file,
+              code: 'too-many' as const,
+              message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
+            })
+      if (rejection) rejections.push(rejection)
+      else taken.push(file)
+    }
+    if (taken.length) commit(single ? taken : [...files, ...taken])
+    if (rejections.length) {
+      setError(rejections.map(({ message }) => message).join(' '))
+      onReject?.(rejections)
+    }
     // The input shows only the value; an accepted pick reaches it on re-render.
     syncInput()
   }
 
-  function commit(next: File[]) {
-    setError(null)
+  function commit(next: File[], keepError = false) {
+    if (!keepError) setError(null)
     setUncontrolled(next)
     onValueChange?.(next)
   }
@@ -138,6 +293,12 @@ export function FileUploadRoot({
             triggerRef.current?.focus()
           },
           remove: (file) => commit(files.filter((each) => each !== file)),
+          // A reorder leaves any rejection showing.
+          reorder: (next) => commit(next, true),
+          maxFiles,
+          uploads,
+          retry: (file) =>
+            patch(file, { status: 'queued', progress: 0, error: undefined }),
           inputId,
           valueId: `${ownId}-value`,
           triggerRef,
@@ -160,6 +321,7 @@ export function FileUploadRoot({
         id={inputId}
         name={name}
         accept={accept}
+        multiple={maxFiles > 1}
         capture={capture}
         required={Boolean(required || field.required)}
         disabled={isDisabled}
@@ -170,6 +332,12 @@ export function FileUploadRoot({
         // The browser focuses an empty required input when a form submits.
         onFocus={() => triggerRef.current?.focus()}
       />
+      <p role='status' className='sr-only'>
+        {said}
+      </p>
+      <p aria-live='assertive' className='sr-only'>
+        {alarm}
+      </p>
     </div>
   )
 }

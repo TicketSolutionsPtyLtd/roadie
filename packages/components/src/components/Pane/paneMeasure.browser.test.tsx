@@ -99,3 +99,92 @@ describe('a pane measure', () => {
     expect(headerTitle.left - pane.left).toBeCloseTo(INSET, 0)
   })
 })
+
+describe('a pane measure around Pane.Body', () => {
+  // Short content, so a body that shrink wraps shows it.
+  function renderBody(measure: PaneMeasure, measureAlign?: PaneMeasureAlign) {
+    const { container } = render(
+      <div style={{ width: WIDTH, height: 600, display: 'grid' }}>
+        <Pane measure={measure} measureAlign={measureAlign}>
+          <Pane.Header />
+          <Pane.BodyTitle>Gigs</Pane.BodyTitle>
+          <Pane.Body>
+            <div id='card'>Sold out</div>
+          </Pane.Body>
+        </Pane>
+      </div>
+    )
+    const box = (selector: string) =>
+      container.querySelector(selector)!.getBoundingClientRect()
+    const pane = container.querySelector<HTMLElement>('[data-slot="pane"]')!
+    const probe = document.createElement('span')
+    probe.style.cssText = 'position:absolute;width:var(--pane-measure)'
+    pane.append(probe)
+    const measured = probe.getBoundingClientRect().width
+    probe.remove()
+    return {
+      pane: box('[data-slot="pane"]'),
+      body: box('[data-slot="pane-body"]'),
+      card: box('#card'),
+      title: box('[data-slot="pane-body-title"]'),
+      measured
+    }
+  }
+
+  it.each([
+    ['narrow', 'center'],
+    ['readable', 'center'],
+    ['wide', 'center'],
+    ['narrow', 'start'],
+    ['readable', 'start'],
+    ['wide', 'start']
+  ] as const)(
+    'fills the %s measure, aligned to the %s, with its title',
+    (measure, align) => {
+      const { pane, body, card, title, measured } = renderBody(measure, align)
+      const left = align === 'start' ? INSET : (pane.width - measured) / 2
+
+      expect(measured).toBeGreaterThan(0)
+      for (const box of [body, card, title]) {
+        expect(box.width).toBeCloseTo(measured, 0)
+        expect(box.left - pane.left).toBeCloseTo(left, 0)
+      }
+    }
+  )
+})
+
+describe('a measured pane nested in a Pane.Body', () => {
+  // A button shrinks to its label in a measured pane; the outer pane's fill mustn't stretch it.
+  function buttonWidth(nested: boolean) {
+    const inner = (
+      <div style={{ height: 300, display: 'grid' }}>
+        <Pane measure='narrow'>
+          <button id='buy' type='button'>
+            Buy
+          </button>
+        </Pane>
+      </div>
+    )
+    const { container } = render(
+      <div style={{ width: WIDTH, height: 600, display: 'grid' }}>
+        {nested ? (
+          <Pane measure='wide'>
+            <Pane.Body>{inner}</Pane.Body>
+          </Pane>
+        ) : (
+          inner
+        )}
+      </div>
+    )
+    const width = container.querySelector('#buy')!.getBoundingClientRect().width
+    cleanup()
+    return width
+  }
+
+  it('lays out its content as it would on its own', () => {
+    const alone = buttonWidth(false)
+
+    expect(alone).toBeLessThan(384)
+    expect(buttonWidth(true)).toBeCloseTo(alone, 0)
+  })
+})
