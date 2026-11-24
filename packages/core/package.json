@@ -164,6 +164,11 @@
       "limit": "560 B"
     },
     {
+      "name": "image",
+      "path": "dist/image/index.js",
+      "limit": "1.65 KB"
+    },
+    {
       "name": "records",
       "path": "dist/records/index.js",
       "limit": "44.5 KB"
@@ -212,6 +217,12 @@
       "path": "node_modules/.cache/roadie/roadie.floor.css",
       "rolldown": false,
       "limit": "11.2 KB"
+    },
+    {
+      "name": "colors accentFromPixels",
+      "path": "dist/colors/index.js",
+      "import": "{ accentFromPixels }",
+      "limit": "920 B"
     }
   ]
 }

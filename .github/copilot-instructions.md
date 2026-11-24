@@ -53,7 +53,7 @@ linters already enforce.
   event, festival, tour or promoter name not listed in
   `docs/contributing/EXAMPLE_DATA.md`.
 - New public subpaths are wired into `package.json` exports, the build
-  config and the package's Size Limit budget.
+  config and the package's size budget.
 
 ## Deliberate decisions (don't flag)
 
