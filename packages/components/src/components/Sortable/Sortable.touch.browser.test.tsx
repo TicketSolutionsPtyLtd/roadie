@@ -13,7 +13,7 @@ import { userEvent } from 'vitest/browser'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
-import { Lanes, type Transfer, listed } from './lanes.testUtils'
+import { Lanes, type Transfer, listed } from './lanesTestUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
