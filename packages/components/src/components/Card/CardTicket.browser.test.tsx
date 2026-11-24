@@ -99,6 +99,19 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
     })
 
     it.runIf(emphasis === 'raised' || emphasis === 'normal')(
+      'draws its edge around the card',
+      async () => {
+        const { host, card } = renderTicket()
+        const sample = await capture(host)
+        const { left, width, top } = card.getBoundingClientRect()
+
+        expect(
+          distance(sample(left + width / 2, top - 1), BACKDROP)
+        ).toBeGreaterThan(8)
+      }
+    )
+
+    it.runIf(emphasis === 'raised' || emphasis === 'normal')(
       'draws its edge around the notch',
       async () => {
         const { host, card, footer } = renderTicket()
