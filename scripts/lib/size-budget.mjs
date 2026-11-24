@@ -12,7 +12,7 @@ import { rolldown } from 'rolldown'
 export const BUDGET_FILE = 'size-budget.json'
 const METRICS = ['own', 'full', 'initial']
 // The app brings these, and mjml only runs in Node, so no subpath pays for them.
-const PROVIDED = /^(react|react-dom|vue)(\/.*)?$|^mjml|^node:/
+const PROVIDED = /^(react|react-dom|vue|mjml)(\/.*)?$|^node:/
 const isBare = (id) =>
   !id.startsWith('.') && !id.startsWith('\0') && !isAbsolute(id)
 const allowance = (bytes) => Math.max(bytes * 0.03, 300)

@@ -77,12 +77,13 @@ describe('bundle', () => {
       assert.equal(has(await bundle(entry, metric)), expected)
     })
 
-  write('dist/broken.js', `import 'not-installed'\nimport('lazy-gone')\n`)
+  // mjml-gone shares only a prefix with mjml, which the bundle leaves out.
+  write('dist/broken.js', `import 'mjml-gone'\nimport('lazy-gone')\n`)
   const broken = join(root, 'dist/broken.js')
 
   for (const metric of ['full', 'initial'])
     test(`${metric} fails on a dependency that is not installed`, async () => {
-      await assert.rejects(bundle(broken, metric), /not-installed, lazy-gone/)
+      await assert.rejects(bundle(broken, metric), /mjml-gone, lazy-gone/)
     })
 })
 
