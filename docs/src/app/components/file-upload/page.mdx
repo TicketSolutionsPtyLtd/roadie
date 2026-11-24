@@ -45,7 +45,7 @@ With no children, `FileUpload` is a dropzone with the chosen file listed under i
 
 ### Upload
 
-Give `onUpload` a function that uploads one file, and the field uploads each file as it's added, three at a time. It's called with the file and `{ signal, onProgress }`: report progress from 0 to 1, and stop when `signal` aborts, as it does when the file is removed. What it resolves becomes the row's `result`, such as the stored file's URL. A function that only takes the file, such as the editor's `onUploadImage`, works too. While a file waits and uploads, a ring over its preview fills and a hairline runs along its row, and a check pops in once it's done. Files the field starts with, from `value` or `defaultValue`, don't upload. Roadie never fetches: this example's network is fake.
+Give `onUpload` a function that uploads one file, and the field uploads each file as it's added. When several join the value at once, such as through a controlled `value`, three upload at a time and the rest wait. It's called with the file and `{ signal, onProgress }`: report progress from 0 to 1, and stop when `signal` aborts, as it does when the file is removed. What it resolves becomes the row's `result`, such as the stored file's URL. A function that only takes the file, such as the editor's `onUploadImage`, works too. While a file waits and uploads, a ring over its preview fills and a hairline runs along its row, and a check pops in once it's done. Files the field starts with, from `value` or `defaultValue`, don't upload. Roadie never fetches: this example's network is fake.
 
 ```tsx-live width=140
 function UploadExample() {

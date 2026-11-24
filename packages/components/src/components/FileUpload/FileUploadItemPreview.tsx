@@ -122,7 +122,7 @@ export function FileUploadItemPreview({
         <img
           src={src}
           alt={alt}
-          className='absolute inset-0 size-full object-cover transition-[filter,scale] duration-slow ease-spring group-data-busy/preview:scale-106 group-data-busy/preview:brightness-75 group-data-busy/preview:saturate-40'
+          className='absolute inset-0 size-full object-cover transition-[filter,scale] duration-slow ease-spring group-data-busy/preview:scale-106 group-data-busy/preview:brightness-50 group-data-busy/preview:saturate-40'
         />
       ) : (
         // An image shows its icon only while it decodes, or when it can't.

@@ -131,6 +131,63 @@ describe('FileUpload uploads', () => {
     expect(status).toHaveTextContent('march.csv uploaded. 2 of 2 uploaded.')
   })
 
+  it('counts uploads that finish together', async () => {
+    const { onUpload, calls } = network()
+    const files = [csv('march.csv'), csv('april.csv')]
+    const { rerender } = render(<FileUpload value={[]} onUpload={onUpload} />)
+    rerender(<FileUpload value={files} onUpload={onUpload} />)
+    await waitFor(() => expect(calls).toHaveLength(2))
+    await act(async () => {
+      calls[0]!.resolve(null)
+      calls[1]!.resolve(null)
+    })
+    expect(screen.getByRole('status')).toHaveTextContent('2 of 2 uploaded.')
+  })
+
+  it('marks a failed upload and starts the next in its place', async () => {
+    const { onUpload, calls } = network()
+    const files = ['a', 'b', 'c', 'd'].map((name) => csv(`${name}.csv`))
+    const { rerender } = render(
+      <FileUpload value={[]} onUpload={onUpload}>
+        <FileUpload.List>{(item) => <li>{item.status}</li>}</FileUpload.List>
+      </FileUpload>
+    )
+    rerender(
+      <FileUpload value={files} onUpload={onUpload}>
+        <FileUpload.List>{(item) => <li>{item.status}</li>}</FileUpload.List>
+      </FileUpload>
+    )
+    await waitFor(() => expect(calls).toHaveLength(3))
+    await act(async () => calls[0]!.reject(new Error('offline')))
+    expect(screen.getAllByRole('listitem')[0]).toHaveTextContent('error')
+    expect(calls).toHaveLength(4)
+  })
+
+  it('starts the next upload when an uploading file is removed, and never announces it', async () => {
+    const { onUpload, calls } = network()
+    const files = ['a', 'b', 'c', 'd'].map((name) => csv(`${name}.csv`))
+    const { rerender } = render(<FileUpload value={[]} onUpload={onUpload} />)
+    rerender(<FileUpload value={files} onUpload={onUpload} />)
+    await waitFor(() => expect(calls).toHaveLength(3))
+    rerender(<FileUpload value={files.slice(1)} onUpload={onUpload} />)
+    expect(calls[0]!.signal.aborted).toBe(true)
+    await waitFor(() => expect(calls).toHaveLength(4))
+    await act(async () => calls[0]!.resolve(null))
+    expect(screen.getByRole('status')).not.toHaveTextContent('a.csv uploaded')
+  })
+
+  it("names a waiting file's ring for the wait", async () => {
+    const { onUpload } = network()
+    const files = ['a', 'b', 'c', 'd'].map((name) => csv(`${name}.csv`))
+    const { rerender } = render(<FileUpload value={[]} onUpload={onUpload} />)
+    rerender(<FileUpload value={files} onUpload={onUpload} />)
+    expect(
+      await screen.findByRole('progressbar', {
+        name: 'Waiting to upload d.csv'
+      })
+    ).toBeInTheDocument()
+  })
+
   it('says a single file was uploaded without a total', async () => {
     const { container } = render(<FileUpload onUpload={async () => null} />)
     await pick(container, csv('march.csv'))

@@ -122,21 +122,29 @@ export function FileUploadRoot({
     })
   }
 
+  // Says which uploads have just finished, counting every one that landed
+  // in the same render.
+  const [settled, setSettled] = useState(uploads)
+  if (settled !== uploads) {
+    setSettled(uploads)
+    const landed = [...uploads].filter(
+      ([file, { status }]) =>
+        status === 'done' && settled.get(file)?.status !== 'done'
+    )
+    const done = [...uploads.values()].filter(
+      ({ status }) => status === 'done'
+    ).length
+    if (landed.length)
+      say(
+        `${landed.map(([file]) => file.name).join(', ')} uploaded.${uploads.size > 1 ? ` ${done} of ${uploads.size} uploaded.` : ''}`
+      )
+  }
+
   const patch = (file: File, change: Partial<Upload>) =>
     setUploads((map) => {
       const was = map.get(file)
       return was ? promote(new Map(map).set(file, { ...was, ...change })) : map
     })
-
-  const finish = useEffectEvent((file: File) => {
-    const done =
-      [...uploads.values()].filter(({ status }) => status === 'done').length + 1
-    say(
-      uploads.size > 1
-        ? `${file.name} uploaded. ${done} of ${uploads.size} uploaded.`
-        : `${file.name} uploaded.`
-    )
-  })
 
   const controllers = useRef(new Map<File, AbortController>())
   const start = useEffectEvent((file: File) => {
@@ -144,8 +152,9 @@ export function FileUploadRoot({
     const controller = new AbortController()
     const { signal } = controller
     controllers.current.set(file, controller)
-    new Promise((resolve) =>
-      resolve(
+    // Run after this effect, so a throw inside rejects like a failed upload.
+    Promise.resolve()
+      .then(() =>
         onUpload(file, {
           signal,
           onProgress: (progress) =>
@@ -153,19 +162,18 @@ export function FileUploadRoot({
             patch(file, { progress: Math.min(Math.max(progress, 0), 1) })
         })
       )
-    ).then(
-      (result) => {
-        if (signal.aborted) return
-        controllers.current.delete(file)
-        patch(file, { status: 'done', progress: 1, result })
-        finish(file)
-      },
-      () => {
-        if (signal.aborted) return
-        controllers.current.delete(file)
-        patch(file, { status: 'error' })
-      }
-    )
+      .then(
+        (result) => {
+          if (signal.aborted) return
+          controllers.current.delete(file)
+          patch(file, { status: 'done', progress: 1, result })
+        },
+        () => {
+          if (signal.aborted) return
+          controllers.current.delete(file)
+          patch(file, { status: 'error' })
+        }
+      )
   })
 
   useEffect(() => {
@@ -181,7 +189,11 @@ export function FileUploadRoot({
 
   useEffect(() => {
     const running = controllers.current
-    return () => running.forEach((controller) => controller.abort())
+    return () => {
+      running.forEach((controller) => controller.abort())
+      // Shown again, as from a hidden Activity, the uploads start over.
+      running.clear()
+    }
   }, [])
 
   const syncInput = useCallback(() => {

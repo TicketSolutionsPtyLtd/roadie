@@ -176,7 +176,7 @@ export function FileUploadItemStatus({
       ) : (
         <svg
           role='progressbar'
-          aria-label={`Uploading ${file.name}`}
+          aria-label={`${status === 'queued' ? 'Waiting to upload' : 'Uploading'} ${file.name}`}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(progress * 100)}
