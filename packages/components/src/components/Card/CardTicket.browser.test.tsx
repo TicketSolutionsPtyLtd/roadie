@@ -175,6 +175,44 @@ describe('Card ticket nested in a ticket with a footer', () => {
     const part = inner.querySelector<HTMLElement>('[data-slot=card-content]')!
     expect(getComputedStyle(part).backgroundColor).toBe('rgba(0, 0, 0, 0)')
   })
+
+  it('draws the edge around its notches in its own colour', () => {
+    const { container } = render(
+      <>
+        <Card variant='ticket' emphasis='normal' data-testid='alone'>
+          <Card.Content>
+            <p>Alone</p>
+          </Card.Content>
+          <Card.Footer>
+            <p>Sam Okafor</p>
+          </Card.Footer>
+        </Card>
+        <Card variant='ticket' emphasis='raised'>
+          <Card.Content>
+            <Card variant='ticket' emphasis='normal' data-testid='inner'>
+              <Card.Content>
+                <p>Inner</p>
+              </Card.Content>
+              <Card.Footer>
+                <p>Sam Okafor</p>
+              </Card.Footer>
+            </Card>
+          </Card.Content>
+          <Card.Footer>
+            <p>Sam Okafor</p>
+          </Card.Footer>
+        </Card>
+      </>
+    )
+    const rim = (id: string) =>
+      getComputedStyle(
+        container.querySelector(
+          `[data-testid=${id}] > [data-slot=card-content]`
+        )!
+      ).backgroundImage
+
+    expect(rim('inner')).toBe(rim('alone'))
+  })
 })
 
 describe('Card ticket with a tall body', () => {

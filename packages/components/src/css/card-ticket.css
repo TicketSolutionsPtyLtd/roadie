@@ -16,6 +16,7 @@
     --card-edge-width: 0px;
     --card-shadow-color: oklch(0.3 0.05 var(--intent-hue) / 0.06);
     --card-edge: transparent;
+    --card-rim: initial;
     --card-shadow-2: transparent;
     --card-shadow-4: transparent;
     --card-shadow-8: transparent;
