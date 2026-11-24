@@ -20,7 +20,7 @@ async function settle(host: HTMLElement) {
     if (round === 20) throw new Error('Still changing after 20 rounds')
     html = host.innerHTML
     const easing = host.getAnimations({ subtree: true }).filter(ends)
-    await Promise.all(easing.map(({ finished }) => finished.catch(() => {})))
+    await Promise.allSettled(easing.map(({ finished }) => finished))
     for (let frame = 0; frame < QUIET_FRAMES; frame++)
       await new Promise(requestAnimationFrame)
   }
