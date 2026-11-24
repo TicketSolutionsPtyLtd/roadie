@@ -714,3 +714,71 @@ describe('ImageCrop controls', () => {
     expect(screen.getByRole('slider', { name: 'Zoom' })).toBeInTheDocument()
   })
 })
+
+describe('ImageCrop gestures that overlap', () => {
+  const wheel = (stage: HTMLElement) => {
+    const box = rect(stage)
+    stage.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -60,
+        clientX: box.x + box.width / 2,
+        clientY: box.y + box.height / 2,
+        bubbles: true,
+        cancelable: true
+      })
+    )
+  }
+
+  it('folds a settling wheel zoom into the drag that follows, reporting once', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    stage.focus()
+    wheel(stage)
+    const touch = fingers(stage)
+    touch.down(1, 0, 0)
+    touch.move(1, 20, 0)
+    // Long past the wheel's settle time, with the finger still down.
+    // Nothing happens to wait on: the wheel's 150ms settle must pass unreported.
+    // eslint-disable-next-line roadie/no-fixed-sleep
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    touch.up(1, 20, 0)
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(last().zoom).toBeGreaterThan(cover)
+  })
+
+  it('lets the slider win over a wheel zoom still settling', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    stage.focus()
+    wheel(stage)
+    const slider = screen.getByRole('slider', { name: 'Zoom' })
+    slider.focus()
+    await userEvent.keyboard('{End}')
+    const zoom = last().zoom
+    // Nothing happens to wait on: the wheel's 150ms settle must pass unreported.
+    // eslint-disable-next-line roadie/no-fixed-sleep
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(last().zoom).toBe(zoom)
+  })
+
+  it('keeps the slider preview on screen through a re-render', async () => {
+    await commands.parkPointer()
+    const { stage } = await renderCrop()
+    const track = document
+      .querySelector('[data-slot="slider-control"]')!
+      .getBoundingClientRect()
+    await commands.pointer([
+      { type: 'move', x: track.left + 2, y: track.top + track.height / 2 },
+      { type: 'down' },
+      {
+        type: 'move',
+        x: track.right - 10,
+        y: track.top + track.height / 2,
+        steps: 4
+      }
+    ])
+    await nextFrames()
+    expect(rect(imageOf(stage)).width).toBeGreaterThan(2400 * cover * 1.5)
+    await commands.pointer([{ type: 'up' }])
+  })
+})

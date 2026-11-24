@@ -90,13 +90,15 @@ export function ImageCropStage({
     moved: boolean
   }>(null)
   const lastTap = useRef<{ at: number } & Point>(null)
-  // The value mid-gesture, the image it was made on, and whether it ran past
-  // the zoom cap.
+  // The value mid-gesture, the image it was made on, whether it ran past
+  // the zoom cap, and the unclamped value a drag or pinch carries on from.
   const live = useRef<{
     src?: string
     value: ImageCropValue
     capped?: boolean
+    raw?: ImageCropValue
   }>(null)
+  const wheeling = useRef<ReturnType<typeof setTimeout>>(undefined)
   // The angle last painted, so a spring turns the short way round.
   const turn = useRef(0)
   const springs = useRef(crop.springs)
@@ -153,15 +155,23 @@ export function ImageCropStage({
     crop.setScene(scene)
     // A gesture on the last image ends unreported, as a new one starts centred.
     if (live.current && live.current.src !== crop.src) live.current = null
-    // A control's change wins over a wheel zoom still settling.
+    // A control's change wins over a gesture under way, which waits for
+    // the pointers to lift.
     if (springs.current !== crop.springs) {
       springs.current = crop.springs
       live.current = null
+      gesture.current = null
       settle()
     }
     if (shown && !live.current) paint(shown)
   })
-  useEffect(() => () => clearTimeout(settling.current), [])
+  useEffect(
+    () => () => {
+      clearTimeout(settling.current)
+      clearTimeout(wheeling.current)
+    },
+    []
+  )
 
   useLayoutEffect(() => {
     const element = stageRef.current
@@ -216,8 +226,11 @@ export function ImageCropStage({
   useLayoutEffect(() => {
     const { setPainter } = crop
     setPainter((value) => {
+      // It wins over a wheel zoom still settling.
+      clearTimeout(wheeling.current)
       unsettle()
       setActive(!!value)
+      live.current = value && { src: latest.current.crop.src, value }
       if (value) paint(value)
       else repaint()
     })
@@ -227,7 +240,6 @@ export function ImageCropStage({
   useEffect(() => {
     const element = stageRef.current
     if (!element) return
-    let timer: ReturnType<typeof setTimeout> | undefined
     const onWheel = (event: WheelEvent) => {
       const { scene, shown, crop } = latest.current
       // A trackpad pinch comes as a wheel with ctrlKey, and always zooms. A
@@ -252,19 +264,46 @@ export function ImageCropStage({
       live.current = { src: crop.src, value, capped }
       paint(value)
       setActive(true)
-      clearTimeout(timer)
-      timer = setTimeout(finish, WHEEL_SETTLE_MS)
+      clearTimeout(wheeling.current)
+      wheeling.current = setTimeout(finish, WHEEL_SETTLE_MS)
     }
-    // Safari's own pinch would zoom the page.
-    const stopGesture = (event: Event) => event.preventDefault()
+    // Safari pinches a trackpad with its own gesture events, not a wheel,
+    // and would zoom the page. On a touch screen pointers do the pinch.
+    let base: ImageCropValue | null = null
+    const onGesture = (event: Event) => {
+      event.preventDefault()
+      const { scene, shown, crop } = latest.current
+      if (gesture.current || !scene || !shown) return
+      const { type, scale, clientX, clientY } = event as Event &
+        Record<'scale' | 'clientX' | 'clientY', number>
+      if (type === 'gesturestart') {
+        clearTimeout(wheeling.current)
+        unsettle()
+        base = live.current?.value ?? shown
+        return
+      }
+      if (!base) return
+      if (type === 'gestureend') {
+        base = null
+        return finish()
+      }
+      const rect = element.getBoundingClientRect()
+      const zoom = base.zoom * scale
+      const value = zoomTo(base, zoom, scene, {
+        x: clientX - rect.left - rect.width / 2,
+        y: clientY - rect.top - rect.height / 2
+      })
+      const capped = zoom > zoomRange(scene, base.rotation).max * 1.001
+      live.current = { src: crop.src, value, capped }
+      paint(value)
+      setActive(true)
+    }
+    const gestures = ['gesturestart', 'gesturechange', 'gestureend']
     element.addEventListener('wheel', onWheel, { passive: false })
-    for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
-      element.addEventListener(type, stopGesture)
+    for (const type of gestures) element.addEventListener(type, onGesture)
     return () => {
-      clearTimeout(timer)
       element.removeEventListener('wheel', onWheel)
-      for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
-        element.removeEventListener(type, stopGesture)
+      for (const type of gestures) element.removeEventListener(type, onGesture)
     }
     // It reads everything it needs through `latest`, so it binds once.
   }, [])
@@ -281,7 +320,8 @@ export function ImageCropStage({
   // or lifts, so the image doesn't jump.
   const begin = (at: number) => {
     const points = [...pointers.current.values()]
-    const start = live.current?.value ?? shown
+    // Carries on from the stretched value, not the clamped one.
+    const start = live.current?.raw ?? live.current?.value ?? shown
     gesture.current =
       points.length && start
         ? {
@@ -327,6 +367,8 @@ export function ImageCropStage({
     } catch {
       // Nothing to release either.
     }
+    // A wheel zoom still settling carries on as this gesture, reported once.
+    clearTimeout(wheeling.current)
     unsettle()
     pointers.current.set(event.pointerId, point)
     begin(event.timeStamp)
@@ -347,7 +389,7 @@ export function ImageCropStage({
     const raw = moveTo(start.start, start.from, to, scale, scene)
     const { clamped, painted } = stretchCrop(raw, scene, stage)
     const capped = raw.zoom > zoomRange(scene, raw.rotation).max * 1.001
-    live.current = { src: crop.src, value: clamped, capped }
+    live.current = { src: crop.src, value: clamped, capped, raw }
     paint(painted)
   }
 
