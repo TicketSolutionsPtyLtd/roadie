@@ -972,11 +972,12 @@ describe('ImageCrop in free-form', () => {
   const corner = (name: string) => screen.getByRole('button', { name })
 
   // A touch on a handle, dispatched, in px from the handle's centre.
-  const press = (handle: HTMLElement) => {
+  const press = (handle: HTMLElement, keys: { altKey?: boolean } = {}) => {
     const box = rect(handle)
     const send = (type: string, x: number, y: number) =>
       handle.dispatchEvent(
         new PointerEvent(type, {
+          ...keys,
           pointerId: 7,
           pointerType: 'touch',
           isPrimary: true,
@@ -1040,29 +1041,56 @@ describe('ImageCrop in free-form', () => {
     await waitFor(() => expectCovered(stage))
   })
 
-  it('resizes about the centre from a corner, then fills the stage', async () => {
+  it('resizes from a corner, keeping the opposite one still, then fills the stage', async () => {
     await commands.parkPointer()
     const { stage, onValueChange, last } = await renderFree()
     const frame = rect(frameOf(stage))
+    const image = rect(imageOf(stage))
     await commands.pointer([
       { type: 'move', x: frame.right, y: frame.bottom },
       { type: 'down' },
       { type: 'move', x: frame.right - 72, y: frame.bottom - 40, steps: 4 }
     ])
-    // Both sides shrink by twice the drag, and the image stays put.
-    expect(rect(frameOf(stage)).width).toBeCloseTo(544 - 144, 0)
-    expect(rect(frameOf(stage)).height).toBeCloseTo(frame.height - 80, 0)
+    // The top left corner and the image stay put; the dragged corner follows.
+    const held = rect(frameOf(stage))
+    expect(held.left).toBeCloseTo(frame.left, 0)
+    expect(held.top).toBeCloseTo(frame.top, 0)
+    expect(held.width).toBeCloseTo(544 - 72, 0)
+    expect(held.height).toBeCloseTo(frame.height - 40, 0)
+    expect(rect(imageOf(stage)).left).toBeCloseTo(image.left, 0)
+    expect(rect(imageOf(stage)).top).toBeCloseTo(image.top, 0)
     expect(onValueChange).toHaveBeenCalledTimes(1)
     await commands.pointer([{ type: 'up' }])
     expect(onValueChange).toHaveBeenCalledTimes(2)
     const { area } = last()
-    expect(area.width).toBeCloseTo(400 / freeZoom, 0)
-    expect(area.height).toBeCloseTo((frame.height - 80) / freeZoom, 0)
+    expect(area.x).toBeCloseTo(0, 0)
+    expect(area.y).toBeCloseTo(0, 0)
+    expect(area.width).toBeCloseTo(472 / freeZoom, 0)
+    expect(area.height).toBeCloseTo((frame.height - 40) / freeZoom, 0)
+    // Wider than the bounds' shape, so it springs back to the centre and
+    // fills their width. Wait for the frame itself, not only the settle.
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).width).toBeCloseTo(544, 0)
+      expect(rect(frameOf(stage)).left).toBeCloseTo(frame.left, 0)
+    })
+    await waitFor(() => expectCovered(stage))
+  })
+
+  it('resizes about the centre with Alt held', async () => {
+    const { stage, last } = await renderFree()
+    const frame = rect(frameOf(stage))
+    const drag = press(corner('Bottom right corner'), { altKey: true })
+    drag.move(-72, -40)
+    // Both sides shrink by twice the drag, and the frame stays centred.
+    expect(rect(frameOf(stage)).width).toBeCloseTo(544 - 144, 0)
+    expect(rect(frameOf(stage)).height).toBeCloseTo(frame.height - 80, 0)
+    expect(rect(frameOf(stage)).left).toBeCloseTo(frame.left + 72, 0)
+    drag.up(-72, -40)
+    const { area } = last()
     expect(area.x + area.width / 2).toBeCloseTo(1200, 0)
     expect(area.y + area.height / 2).toBeCloseTo(800, 0)
     // Taller than the bounds' shape now, so it fills their height.
-    // The frame springs to the new shape after the release renders, and a
-    // slow engine can read it before the spring starts or mid-overshoot.
     await waitFor(() => {
       expect(stage).not.toHaveAttribute('data-settling')
       expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
@@ -1081,27 +1109,67 @@ describe('ImageCrop in free-form', () => {
       { type: 'move', x: frame.right - 50, y: middle, steps: 4 },
       { type: 'up' }
     ])
-    expect(last().area.width).toBeCloseTo(2400 - 100 / freeZoom, 0)
+    expect(last().area.x).toBeCloseTo(0, 0)
+    expect(last().area.width).toBeCloseTo(2400 - 50 / freeZoom, 0)
     expect(last().area.height).toBeCloseTo(1600)
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    })
     await waitFor(() => expectCovered(stage))
   })
 
-  it('zooms in to keep the image covering a frame dragged past it', async () => {
+  it('stops a frame dragged past the image at its edge', async () => {
     await commands.parkPointer()
-    const { stage, last } = await renderFree()
+    const { stage, onValueChange } = await renderFree()
     const frame = rect(frameOf(stage))
     await commands.pointer([
       { type: 'move', x: frame.right, y: frame.bottom },
       { type: 'down' },
       { type: 'move', x: frame.right, y: frame.bottom + 40, steps: 4 }
     ])
-    // The frame stops at the bounds, 384px tall, mid-drag.
-    expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    // The whole image already shows, so there is nothing more to take in.
+    expect(rect(frameOf(stage)).height).toBeCloseTo(frame.height, 0)
     await commands.pointer([{ type: 'up' }])
-    expect(last().area.height).toBeCloseTo(1600)
-    expect(last().area.width).toBeLessThan(2400)
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    await waitFor(() => expectCovered(stage))
+  })
+
+  it('grows the crop past the crop area, zooming out to fit, as the keys do', async () => {
+    const { stage, last } = await renderFree()
+    // Narrow the crop with the keys, so the frame fills the stage's height
+    // zoomed in, with less room beside it than the drag needs.
+    corner('Bottom right corner').focus()
+    await userEvent.keyboard(
+      '{Shift>}{ArrowLeft}{ArrowLeft}{ArrowLeft}{/Shift}'
+    )
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    })
+    const room = (rect(stage).right - rect(frameOf(stage)).right) / 2
+    const before = last()
+    expect(before.area.width).toBeLessThan(2000)
+    const drag = press(corner('Bottom right corner'))
+    drag.move(room + 60, 0)
+    // The frame stays inside the stage while the image zooms out under it.
+    expect(rect(frameOf(stage)).right).toBeLessThanOrEqual(rect(stage).right)
+    expect(rect(frameOf(stage)).height).toBeLessThan(384)
+    drag.up(room + 60, 0)
+    expect(last().area.x).toBeCloseTo(0, 0)
+    expect(last().area.width).toBeCloseTo(
+      before.area.width + (room + 60) / before.zoom,
+      0
+    )
+    expect(last().area.height).toBeCloseTo(1600, 0)
+    // It springs back to fill the stage one way or the other.
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      const { width, height } = rect(frameOf(stage))
+      const ratio = last().area.width / last().area.height
+      expect(width / height).toBeCloseTo(ratio, 2)
+      expect(Math.max(width / 544, height / 384)).toBeCloseTo(1, 2)
+    })
     await waitFor(() => expectCovered(stage))
   })
 
@@ -1110,8 +1178,10 @@ describe('ImageCrop in free-form', () => {
     corner('Bottom right corner').focus()
     await userEvent.keyboard('{ArrowLeft}')
     expect(onValueChange).toHaveBeenCalledTimes(2)
-    expect(last().area.width).toBeCloseTo(2400 - 20 / freeZoom, 0)
-    await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
+    // The corner moves 10px, and the opposite one stays put.
+    expect(last().area.width).toBeCloseTo(2400 - 10 / freeZoom, 0)
+    expect(last().area.x).toBe(0)
+    await userEvent.keyboard('{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}')
     expect(last().area.width).toBe(2000)
     const calls = onValueChange.mock.calls.length
     expect(sizeOf(stage)).not.toHaveClass('animate-nudge')
