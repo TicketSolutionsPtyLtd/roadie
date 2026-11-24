@@ -21,7 +21,8 @@ import {
   FileUploadItem,
   FileUploadItemName,
   FileUploadItemRemove,
-  FileUploadItemSize
+  FileUploadItemSize,
+  FileUploadItemStatus
 } from './FileUploadItem'
 import { FileUploadItemPreview } from './FileUploadItemPreview'
 
@@ -40,7 +41,9 @@ const idFor = (file: File) => {
 
 const defaultItem = () => (
   <FileUploadItem>
-    <FileUploadItemPreview />
+    <FileUploadItemPreview>
+      <FileUploadItemStatus />
+    </FileUploadItemPreview>
     <span className='grid min-w-0 flex-1'>
       <FileUploadItemName />
       <FileUploadItemSize />
@@ -50,17 +53,17 @@ const defaultItem = () => (
 )
 
 /**
- * The chosen files, one row each. A removed row stays until it has
- * collapsed, so the rows under it slide up rather than jump. When the field
- * takes more than one file, each `FileUpload.Item` leads with a handle that
- * drags it, or opens a Move menu.
+ * The chosen files, one row each, called with each file and its upload. A
+ * removed row stays until it has collapsed, so the rows under it slide up
+ * rather than jump. When the field takes more than one file, each
+ * `FileUpload.Item` leads with a handle that drags it, or opens a Move menu.
  */
 export function FileUploadList({
   children = defaultItem,
   className,
   ...props
 }: FileUploadListProps) {
-  const { files, maxFiles, reorder, labelId } =
+  const { files, uploads, maxFiles, reorder, labelId } =
     useFileUploadContext('FileUpload.List')
   const [previous, setPrevious] = useState(files)
   // The files that arrived together, so each pops in after the one before.
@@ -99,7 +102,13 @@ export function FileUploadList({
       {...props}
     >
       {rows.map(({ file, leaving }) => {
-        const item = { file, id: idFor(file) }
+        const item: Item = {
+          status: 'idle',
+          progress: 0,
+          ...uploads.get(file),
+          file,
+          id: idFor(file)
+        }
         return (
           <FileUploadItemContext
             key={item.id}

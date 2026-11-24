@@ -62,7 +62,7 @@ async function previewUrl(file: File, width: number, height: number) {
 }
 
 /**
- * A thumbnail of an image file, drawn at the tile's size off the main thread
+ * A thumbnail of an image file, dimmed while it uploads, drawn at the tile's size off the main thread
  * and shown once it has decoded, so it never paints half loaded. Any other
  * file gets an icon for its type. Its object URL is revoked when the row goes.
  */
@@ -70,9 +70,10 @@ export function FileUploadItemPreview({
   ref,
   alt = '',
   className,
+  children,
   ...props
 }: FileUploadItemPreviewProps) {
-  const { file } = useFileUploadItem('FileUpload.ItemPreview').item
+  const { file, status } = useFileUploadItem('FileUpload.ItemPreview').item
   const tileRef = useRef<HTMLDivElement>(null)
   const [src, setSrc] = useState<string>()
   const image = file.type.startsWith('image/')
@@ -108,8 +109,10 @@ export function FileUploadItemPreview({
     <div
       ref={mergeRefs(ref, tileRef)}
       data-slot='file-upload-item-preview'
+      data-image={src ? true : undefined}
+      data-busy={status === 'queued' || status === 'uploading' || undefined}
       className={cn(
-        'relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg emphasis-subtle text-subtle',
+        'group/preview relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg emphasis-subtle text-subtle',
         className
       )}
       {...props}
@@ -119,12 +122,13 @@ export function FileUploadItemPreview({
         <img
           src={src}
           alt={alt}
-          className='absolute inset-0 size-full object-cover'
+          className='absolute inset-0 size-full object-cover transition-[filter,scale] duration-slow ease-spring group-data-busy/preview:scale-106 group-data-busy/preview:brightness-50 group-data-busy/preview:saturate-40'
         />
       ) : (
         // An image shows its icon only while it decodes, or when it can't.
         fileIcon(file)
       )}
+      {children}
     </div>
   )
 }
