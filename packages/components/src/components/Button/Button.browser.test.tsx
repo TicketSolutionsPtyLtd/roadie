@@ -285,6 +285,23 @@ describe('a pending button', () => {
     expect(getComputedStyle(button).webkitTextFillColor).toMatch(TRANSPARENT)
   })
 
+  it('shrinks a text label away, and springs it back when it rests', async () => {
+    const { container, rerender } = render(<Button>Save changes</Button>)
+    rerender(<Button pending>Save changes</Button>)
+    const label = container.querySelector<HTMLElement>(
+      '[data-slot="button-label"]'
+    )!
+    await settled(screen.getByRole('button'))
+    expect(getComputedStyle(label).scale).toBe('0.6')
+    expect(getComputedStyle(label).opacity).toBe('0')
+    rerender(<Button>Save changes</Button>)
+    // On its way back, then whole again.
+    expect(getComputedStyle(label).opacity).not.toBe('1')
+    await settled(screen.getByRole('button'))
+    expect(getComputedStyle(label).opacity).toBe('1')
+    expect(['1', 'none']).toContain(getComputedStyle(label).scale)
+  })
+
   it('spins the ring', () => {
     render(<Button pending>Save</Button>)
     expect(

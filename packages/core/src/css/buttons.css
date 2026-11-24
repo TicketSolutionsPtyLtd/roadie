@@ -32,6 +32,15 @@
    app's markup. The utilities layer, so the undimming below outranks
    is-interactive's disabled state. */
 @layer utilities {
+  /* Zero specificity, so a child's own transition wins. Runs both ways: the
+     label shrinks out when the button goes pending, and springs back up when
+     it rests. */
+  :where(.btn) > * {
+    transition:
+      opacity var(--duration-normal) var(--ease-standard),
+      scale var(--duration-slow) var(--ease-spring-lively);
+  }
+
   /* Pending: the action is under way (Button's `pending`, or `aria-busy` on
        any .btn, so the look never comes without the semantics). The label keeps
        its box, so the size holds. After 200ms, so a fast response never flashes
@@ -46,10 +55,18 @@
         var(--duration-moderate) forwards,
       btn-pending-press var(--duration-slow) var(--ease-spring);
 
-    /* Opacity, not visibility, so a label in a child stays the name. */
+    /* Opacity, not visibility, so a label in a child stays the name.
+       Button wraps a text label in a span, since a bare text node can't scale. */
     & > * {
-      animation: btn-pending-out var(--duration-normal) var(--ease-exit)
-        var(--duration-moderate) forwards;
+      opacity: 0;
+      scale: 0.6;
+      transition-delay: var(--duration-moderate);
+
+      /* A label that mounts pending, or is just wrapped, starts whole. */
+      @starting-style {
+        opacity: 1;
+        scale: 1;
+      }
     }
 
     /* Absolute with no insets: a flex container centres the static position,
@@ -82,13 +99,6 @@
 @keyframes btn-pending-press {
   40% {
     scale: 0.97;
-  }
-}
-
-@keyframes btn-pending-out {
-  to {
-    opacity: 0;
-    scale: 0.6;
   }
 }
 

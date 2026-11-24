@@ -150,6 +150,23 @@ describe('Button', () => {
       expect(onSubmit).not.toHaveBeenCalled()
     })
 
+    it('leaves the label as plain text until it first goes pending', () => {
+      const { container, rerender } = render(<Button>Save</Button>)
+      expect(
+        container.querySelector('[data-slot="button-label"]')
+      ).not.toBeInTheDocument()
+      rerender(<Button pending>Save</Button>)
+      expect(
+        container.querySelector('[data-slot="button-label"]')
+      ).toHaveTextContent('Save')
+      // Kept once it rests again, so the label can spring back.
+      rerender(<Button>Save</Button>)
+      expect(
+        container.querySelector('[data-slot="button-label"]')
+      ).toHaveTextContent('Save')
+      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
+    })
+
     it('adds nothing when false', () => {
       render(<Button pending={false}>Save</Button>)
       const button = screen.getByRole('button', { name: 'Save' })

@@ -1,6 +1,14 @@
 'use client'
 
-import { type MouseEvent, type RefAttributes, useEffect, useRef } from 'react'
+import {
+  Children,
+  type MouseEvent,
+  type ReactNode,
+  type RefAttributes,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
 
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { type VariantProps, cva } from 'class-variance-authority'
@@ -105,6 +113,12 @@ export function Button({
   const classes = cn(buttonVariants({ intent, emphasis, size, className }))
   // Disabled but focusable, so focus stays put through a keyboard submit.
   const busy = pending && !props.disabled
+  // CSS can't scale a bare text node, so a label is wrapped once the button
+  // first goes pending, and stays wrapped so it can spring back. A button that
+  // never pends keeps its text as is.
+  const [labelled, setLabelled] = useState(false)
+  if (busy && !labelled) setLabelled(true)
+  const children = labelled ? wrapLabel(props.children) : props.children
   const busyProps = busy
     ? { disabled: true, focusableWhenDisabled: true, 'aria-busy': true }
     : undefined
@@ -118,7 +132,7 @@ export function Button({
       onClick,
       ref,
       ...rest
-    } = { ...props, ...busyProps }
+    } = { ...props, ...busyProps, children }
 
     return (
       <RoadieRoutedLink
@@ -154,7 +168,19 @@ export function Button({
       className={classes}
       {...props}
       {...busyProps}
-    />
+    >
+      {children}
+    </ButtonPrimitive>
+  )
+}
+
+function wrapLabel(children: ReactNode) {
+  return Children.map(children, (child) =>
+    typeof child === 'string' || typeof child === 'number' ? (
+      <span data-slot='button-label'>{child}</span>
+    ) : (
+      child
+    )
   )
 }
 
