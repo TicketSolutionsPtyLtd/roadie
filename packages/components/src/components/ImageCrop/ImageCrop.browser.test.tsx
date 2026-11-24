@@ -785,6 +785,185 @@ describe('ImageCrop gestures that overlap', () => {
   })
 })
 
+describe('ImageCrop straighten dial', () => {
+  const dial = () => screen.getByRole('slider', { name: 'Straighten' })
+
+  it('steps 1° with the arrows, 5° with Shift, and reaches ±45° with Home and End', async () => {
+    const { onValueChange, last } = await renderCrop()
+    expect(dial()).toHaveAttribute('aria-valuetext', '0 degrees')
+    dial().focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(last().rotation).toBe(1)
+    expect(dial()).toHaveAttribute('aria-valuetext', '1 degree right')
+    await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
+    expect(last().rotation).toBe(356)
+    expect(dial()).toHaveAttribute('aria-valuetext', '4 degrees left')
+    await userEvent.keyboard('{End}')
+    expect(last().rotation).toBe(45)
+    expect(dial()).toHaveAttribute('aria-valuenow', '45')
+    await userEvent.keyboard('{Home}')
+    expect(last().rotation).toBe(315)
+    expect(dial()).toHaveAttribute('aria-valuenow', '-45')
+    expect(onValueChange).toHaveBeenCalledTimes(5)
+  })
+
+  it('zooms in to keep the frame covered', async () => {
+    const { stage, last } = await renderCrop()
+    dial().focus()
+    await userEvent.keyboard('{Shift>}{ArrowRight}{ArrowRight}{/Shift}')
+    expect(last().rotation).toBe(10)
+    expect(last().zoom).toBeGreaterThan(cover * 1.05)
+    await nextFrames()
+    // A turned image's box is bigger than it, so check the frame's corners
+    // are inside the image itself. Hit-testing skips it without pointer events.
+    const frame = rect(frameOf(stage))
+    const image = imageOf(stage)
+    image.style.pointerEvents = 'auto'
+    for (const [x, y] of [
+      [frame.left + 1, frame.top + 1],
+      [frame.right - 1, frame.top + 1],
+      [frame.left + 1, frame.bottom - 1],
+      [frame.right - 1, frame.bottom - 1]
+    ])
+      expect(document.elementsFromPoint(x!, y!)).toContain(image)
+  })
+
+  it('paints the angle the short way round, past 0°', async () => {
+    const { stage } = await renderCrop()
+    dial().focus()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
+    expect(imageOf(stage).style.transform).toContain('rotate(-2deg)')
+  })
+
+  it('snaps to 0° within 0.8° on a drag, and reports once on release', async () => {
+    await commands.parkPointer()
+    const { stage, onValueChange, last } = await renderCrop()
+    const track = rect(dial().closest('[data-slot="slider-control"]')!)
+    const y = track.top + track.height / 2
+    const centre = track.left + track.width / 2
+    // The track runs 90° across its width, less the thumb's padding.
+    const perDegree = (track.width - 16) / 90
+    await commands.pointer([
+      { type: 'move', x: centre, y },
+      { type: 'down' },
+      { type: 'move', x: centre + perDegree * 10, y, steps: 4 }
+    ])
+    await nextFrames()
+    expect(imageOf(stage).style.transform).toMatch(
+      /rotate\((9|10|11)(\.\d+)?deg\)/
+    )
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    // Firefox rounds pointers to whole px, about 0.7° here, so aim well
+    // inside the detent.
+    await commands.pointer([
+      { type: 'move', x: centre + perDegree * 0.3, y, steps: 4 },
+      { type: 'up' }
+    ])
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    expect(dial()).toHaveAttribute('aria-valuenow', '0')
+    await commands.pointer([
+      { type: 'move', x: centre, y },
+      { type: 'down' },
+      { type: 'move', x: centre - perDegree * 3, y, steps: 4 },
+      { type: 'up' }
+    ])
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(360 - last().rotation).toBeGreaterThan(2)
+    expect(360 - last().rotation).toBeLessThan(4)
+  })
+
+  it('drags back from 45° after a turn without turning a quarter', async () => {
+    await commands.parkPointer()
+    const { onValueChange, last } = await renderCrop()
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    dial().focus()
+    await userEvent.keyboard('{End}')
+    expect(last().rotation).toBe(315)
+    expect(dial()).toHaveAttribute('aria-valuenow', '45')
+    const thumb = rect(dial().parentElement!)
+    const y = thumb.top + thumb.height / 2
+    const x = thumb.left + thumb.width / 2
+    const track = rect(dial().closest('[data-slot="slider-control"]')!)
+    const perDegree = (track.width - 16) / 90
+    await commands.pointer([
+      { type: 'move', x, y },
+      { type: 'down' },
+      { type: 'move', x: x - perDegree * 5, y, steps: 4 },
+      { type: 'up' }
+    ])
+    expect(onValueChange).toHaveBeenCalledTimes(4)
+    expect(last().rotation).toBeGreaterThan(308)
+    expect(last().rotation).toBeLessThan(313)
+  })
+
+  it('says a tilt to 45° as the dial does', async () => {
+    await renderCrop()
+    const status = screen.getByRole('status')
+    dial().focus()
+    await userEvent.keyboard('{End}')
+    await waitFor(() =>
+      expect(status.textContent).toMatch(
+        /percent, straightened 45 degrees right\.$/
+      )
+    )
+  })
+
+  it('keeps the straighten through a quarter turn, and Reset clears it', async () => {
+    const { last } = await renderCrop()
+    dial().focus()
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    expect(last().rotation).toBe(273)
+    expect(dial()).toHaveAttribute('aria-valuenow', '3')
+    await userEvent.click(screen.getByRole('button', { name: 'Reset crop' }))
+    expect(last().rotation).toBe(0)
+    expect(dial()).toHaveAttribute('aria-valuenow', '0')
+  })
+
+  it('says the angle once it settles', async () => {
+    await renderCrop()
+    const status = screen.getByRole('status')
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    dial().focus()
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
+    await waitFor(() =>
+      expect(status.textContent).toMatch(
+        /, turned 90 degrees left, straightened 2 degrees left\.$/
+      )
+    )
+  })
+
+  it.each([320, 400, 480, 560])(
+    'keeps the controls inside a %ipx crop, with room for -44.5°',
+    async (width) => {
+      const area = { x: 400, y: 400, width: 800, height: 400 }
+      render(
+        <div style={{ width }}>
+          <ImageCrop
+            src={photo}
+            aspectRatio={2}
+            defaultValue={{ area, percent: area, zoom: 1, rotation: 315.5 }}
+          />
+        </div>
+      )
+      await waitFor(() =>
+        expect(dial()).toHaveAttribute('aria-valuenow', '-44.5')
+      )
+      const controls = screen.getByRole('group', { name: 'Crop controls' })
+      const box = rect(controls.parentElement!)
+      expect(rect(controls).left).toBeGreaterThanOrEqual(box.left)
+      expect(rect(controls).right).toBeLessThanOrEqual(box.right)
+      const readouts = [
+        ...controls.querySelectorAll<HTMLElement>('[aria-hidden]')
+      ].filter((part) => part.textContent === '-44.5°' && part.clientWidth)
+      // A wide crop shows the angle beside the dial.
+      if (width === 560) expect(readouts).toHaveLength(1)
+      for (const part of readouts)
+        expect(part.scrollWidth).toBeLessThanOrEqual(part.clientWidth)
+    }
+  )
+})
+
 // Free-form: the 3:2 photo's frame is 544 × 362.67 inside the 544 × 384 bounds.
 describe('ImageCrop in free-form', () => {
   const freeZoom = 544 / 2400
@@ -882,8 +1061,12 @@ describe('ImageCrop in free-form', () => {
     expect(area.x + area.width / 2).toBeCloseTo(1200, 0)
     expect(area.y + area.height / 2).toBeCloseTo(800, 0)
     // Taller than the bounds' shape now, so it fills their height.
-    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
-    expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    // The frame springs to the new shape after the release renders, and a
+    // slow engine can read it before the spring starts or mid-overshoot.
+    await waitFor(() => {
+      expect(stage).not.toHaveAttribute('data-settling')
+      expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    })
     await waitFor(() => expectCovered(stage))
   })
 
