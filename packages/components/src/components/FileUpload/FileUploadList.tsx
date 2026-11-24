@@ -51,7 +51,14 @@ type Leaving = {
 /** The files' rows, with each collapsing row back under the row it left from. */
 function layRows(files: File[], leaving: Leaving[]) {
   const rows = files.map((file) => ({ file, leaving: false }))
-  for (const { file, after, index } of leaving) {
+  const pending = [...leaving]
+  while (pending.length) {
+    // A row whose row above is collapsing too goes in after that one, so it
+    // finds it.
+    const next = pending.findIndex(
+      ({ after }) => !pending.some(({ file }) => file === after)
+    )
+    const { file, after, index } = pending.splice(Math.max(next, 0), 1)[0]!
     const above = rows.findIndex((row) => row.file === after)
     const at =
       after === null

@@ -879,6 +879,24 @@ describe('FileUpload', () => {
       expect(order).toEqual(['set-3.csv', 'set-1.csv', 'set-2.csv'])
     })
 
+    it('keeps a collapsing row under the row above it when that one goes too', async () => {
+      // Collapses that never finish, so the removed rows stay.
+      HTMLElement.prototype.getAnimations = () => [
+        { finished: new Promise(() => {}) } as unknown as Animation
+      ]
+      onTestFinished(() => {
+        delete (HTMLElement.prototype as Partial<HTMLElement>).getAnimations
+      })
+      render(<FileUpload maxFiles={6} defaultValue={files(3)} />)
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Remove set-2.csv' }))
+      await user.click(screen.getByRole('button', { name: 'Remove set-1.csv' }))
+      const order = [
+        ...document.querySelectorAll('[data-slot=file-upload-item-name]')
+      ].map((name) => name.textContent)
+      expect(order).toEqual(['set-1.csv', 'set-2.csv', 'set-3.csv'])
+    })
+
     it('reads Choose files on the Trigger', () => {
       render(
         <FileUpload maxFiles={3} defaultValue={[csv()]}>
