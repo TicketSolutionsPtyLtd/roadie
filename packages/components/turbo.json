@@ -25,7 +25,7 @@
     "test:browser": {
       "inputs": [
         "$TURBO_EXTENDS$",
-        "$TURBO_ROOT$/packages/{blocks,charts,editor,widgets}/src/**/*.{ts,tsx,css,vue,html}"
+        "$TURBO_ROOT$/packages/{blocks,charts,editor,widgets}/src/**/*.{ts,tsx,css,vue,html,svg}"
       ]
     }
   }

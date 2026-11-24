@@ -11,14 +11,14 @@ import roadieCss from '../../vitest.guards.css?inline'
 // restyles everything, a tag every such element, and `[data-slot=…]` every
 // Roadie element, since Chromium keeps the attribute name and not its value.
 
-// Limits: a string scan, not a selector parser. It reads every package's CSS
-// and class strings as vitest.guards.css compiles them, which also scans test
-// files, so a class string only a test mentions can trip it; docs CSS isn't
-// read. It runs with components' browser tests, so a change to blocks,
-// charts, editor or widgets alone is checked by the next full run, not by
-// that pull request. It knows nested rules, :is(), :where(), :not() and
-// :has() nesting and escapes, not namespaces or `of S` in :nth-child(). See
-// docs/solutions/best-practices/has-invalidation-scales-with-page.md.
+// Limits: a string scan, not a selector parser. It reads the CSS and class
+// strings of core, components, blocks, charts, editor and widgets as
+// vitest.guards.css compiles them, test files left out; illustrations and
+// docs aren't read. It runs with components' browser tests, so a change to
+// blocks, charts, editor or widgets alone is checked by the next full run,
+// not by that pull request. It knows nested rules, :is(), :where(), :not()
+// and :has() nesting and escapes, not namespaces or `of S` in :nth-child().
+// See docs/solutions/best-practices/has-invalidation-scales-with-page.md.
 const RARE_ATTRIBUTES = new Set([
   'data-column',
   'data-level',

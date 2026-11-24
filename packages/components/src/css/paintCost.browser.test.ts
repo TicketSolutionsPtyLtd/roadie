@@ -11,10 +11,11 @@ import roadieCss from '../../vitest.guards.css?inline'
 
 // Limits: it reads the declarations vitest.guards.css compiles, so it can't
 // count the elements that carry a class, add up a filter built from several
-// utilities on one element, or see an inline style (Image's blurred
-// placeholder, the email preview's dark inversion). A `none`, an `auto` and a
-// filter utility that adds no function cost nothing and are skipped. It runs
-// with components' browser tests, like the :has() guard beside it.
+// utilities on one element, follow a variable another rule sets, or see an
+// inline style (Image's blurred placeholder, the email preview's dark
+// inversion). It doesn't read mask-border. A `none`, an `auto` and a filter
+// utility that adds no function cost nothing and are skipped. It runs with
+// components' browser tests, like the :has() guard beside it.
 type Property = 'filter' | 'backdrop-filter' | 'mask' | 'will-change'
 type Site = { property: Property; rule: string; functions: number }
 type Allowance = {
@@ -46,7 +47,7 @@ const TICKET_CHAIN: Site = {
 
 const ALLOWED: Allowance[] = [
   {
-    rule: /^\.is-interactive(-field(-group)?)? /,
+    rule: /^\.is-interactive(-field(-group)?)? &:disabled, &\[data-disabled\]$/,
     property: 'filter',
     why: 'core interactions.css: one grayscale() on a disabled control',
     cover:
@@ -68,7 +69,7 @@ const ALLOWED: Allowance[] = [
     rule: /group-data-busy.+(brightness-50|saturate-40)\)$/,
     property: 'filter',
     why: 'FileUpload/FileUploadItemPreview.tsx: a thumbnail dims as it uploads',
-    cover: 'none; FileUpload.perf drags files that have finished'
+    cover: 'FileUpload.perf: six thumbnails dim while their uploads progress'
   },
   {
     rule: /^\.data-disabled.+grayscale-30\[data-disabled\]$/,
@@ -104,7 +105,7 @@ const ALLOWED: Allowance[] = [
     rule: /--(scroll-area|toggle-group)-fade-/,
     property: 'mask',
     why: 'ScrollArea/variants.ts and ToggleGroup/variants.ts: a faded scroll edge',
-    cover: 'none'
+    cover: 'Toolbar.perf, a faded ScrollArea; none for ToggleGroup’s own'
   },
   {
     rule: /\[data-variant="ticket"\] > \*$/,
@@ -139,10 +140,12 @@ const ALLOWED: Allowance[] = [
 ]
 
 // How many functions a value chains. Tailwind builds a filter from variables
-// the same rule sets, so each is read in place.
+// the same rule sets, so each is read in place; one set elsewhere counts once.
 function functionsIn(style: CSSStyleDeclaration, value: string) {
-  const chain = value.replace(/var\((--tw-[\w-]+),\s*\)/g, (_, name: string) =>
-    style.getPropertyValue(name)
+  const chain = value.replace(
+    /var\((--[\w-]+)(,\s*)?\)/g,
+    (whole, name: string, empty?: string) =>
+      style.getPropertyValue(name) || (empty ? '' : whole)
   )
   let depth = 0
   let count = 0
@@ -167,8 +170,11 @@ function sitesIn(css: string) {
       const functions = functionsIn(style, value)
       const property = name === 'mask-image' ? 'mask' : name
       const layer = name === 'will-change' && value !== '' && value !== 'auto'
+      // A media query or a later keyframe can set it again: the longest counts.
+      const key = `${property} ${rule}`
+      const most = Math.max(functions, sites.get(key)?.functions ?? 0)
       if (functions || layer)
-        sites.set(`${property} ${rule}`, { property, rule, functions })
+        sites.set(key, { property, rule, functions: most })
     }
   }
   const walk = (rules: CSSRuleList, scope: string) => {
@@ -213,6 +219,8 @@ describe('Roadie CSS and paint cost', () => {
   it('reads what a rule costs, through nesting and Tailwind’s variables', () => {
     const sites = sitesIn(`
       .chain { filter: blur(1px) blur(1px) blur(1px) blur(1px) }
+      @media print { .chain { filter: blur(1px) } }
+      .held { --held: blur(1px) blur(1px) blur(1px) blur(1px); filter: var(--held) }
       .veil { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px) }
       .tw { --tw-blur: blur(8px); filter: var(--tw-blur,) var(--tw-invert,) }
       .nest { @media (width > 0) { .in { color: red } mask: url(a.svg) } }
@@ -224,6 +232,7 @@ describe('Roadie CSS and paint cost', () => {
 
     expect(sites).toEqual([
       { property: 'filter', rule: '.chain', functions: 4 },
+      { property: 'filter', rule: '.held', functions: 4 },
       { property: 'backdrop-filter', rule: '.veil', functions: 1 },
       { property: 'filter', rule: '.tw', functions: 1 },
       { property: 'mask', rule: '.nest', functions: 1 },
@@ -231,8 +240,16 @@ describe('Roadie CSS and paint cost', () => {
       { property: 'filter', rule: '@keyframes glow', functions: 1 }
     ])
     // A chain of four fails whether or not it is listed.
-    expect(longChains(sites).map(({ rule }) => rule)).toEqual(['.chain'])
+    expect(longChains(sites).map(({ rule }) => rule)).toEqual([
+      '.chain',
+      '.held'
+    ])
     expect(unlisted(sites)).toEqual(sites)
+  })
+
+  it('allows a listed rule only the declaration it names', () => {
+    const hover = '.is-interactive { &:hover { filter: blur(1px) } }'
+    expect(unlisted(sitesIn(hover))).toHaveLength(1)
   })
 
   it('ships no filter, backdrop-filter, mask or will-change that isn’t listed', () => {
