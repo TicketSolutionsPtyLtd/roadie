@@ -18,18 +18,21 @@ export function frameTable(runs: LabelledRun[]) {
   ]
   const find = (run: LabelledRun, scenario: string) =>
     run.records.findLast((record) => record.scenario === scenario)
+  const noted = runs.some((run) => run.records.some((record) => record.note))
   const header = [
     'Scenario',
     ...runs.map((run) => {
       const cpus = [...new Set(run.records.map((record) => record.cpu))]
       return `${run.label} (${cpus.map((cpu) => `${cpu}x`).join(', ')})`
     }),
-    'Budget'
+    'Budget',
+    ...(noted ? ['Note'] : [])
   ]
   const rows = scenarios.map((scenario) => [
     scenario,
     ...runs.map((run) => cell(find(run, scenario))),
-    budgetCell(runs.map((run) => [run.label, find(run, scenario)] as const))
+    budgetCell(runs.map((run) => [run.label, find(run, scenario)] as const)),
+    ...(noted ? [noteCell(runs, (run) => find(run, scenario)?.note)] : [])
   ])
   return [header, header.map(() => '---'), ...rows]
     .map((row) => `| ${row.map(escapePipes).join(' | ')} |`)
@@ -50,6 +53,19 @@ function budgetCell(results: (readonly [string, FrameRecord | undefined])[]) {
   const ticket = first('knownMiss')
   return ticket ? `${verdict}, filed as ${ticket}` : verdict
 }
+
+// One run needs no label to say whose note it is.
+const noteCell = (
+  runs: LabelledRun[],
+  noteOf: (run: LabelledRun) => string | undefined
+) =>
+  runs
+    .flatMap((run) => {
+      const note = noteOf(run)
+      if (!note) return []
+      return [runs.length > 1 ? `${run.label}: ${note}` : note]
+    })
+    .join('; ')
 
 const escapePipes = (text: string) => text.replaceAll('|', '\\|')
 
