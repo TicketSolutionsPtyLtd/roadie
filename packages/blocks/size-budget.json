@@ -1,7 +1,7 @@
 {
   "./alternating-rows": { "own": 3955, "full": 23773, "initial": 23773 },
   "./call-to-action": { "own": 4214, "full": 108687, "initial": 108687 },
-  "./cards": { "own": 5608, "full": 109687, "initial": 109687 },
+  "./cards": { "own": 5624, "full": 109715, "initial": 109715 },
   "./faq": { "own": 3438, "full": 22289, "initial": 22289 },
   "./gallery": { "own": 5386, "full": 40016, "initial": 40016 },
   "./hero": { "own": 6340, "full": 114402, "initial": 114402 },
