@@ -47,8 +47,9 @@ export function CarouselDots({ className, max, ...props }: CarouselDotsProps) {
         const index = start + offset
         const isActive = index === selectedIndex
         const isEdge =
-          (offset === 0 && start > 0) ||
-          (offset === size - 1 && start + size < snapCount)
+          !isActive &&
+          ((offset === 0 && start > 0) ||
+            (offset === size - 1 && start + size < snapCount))
         return (
           <button
             key={index}

@@ -705,7 +705,10 @@ describe('Carousel dots', () => {
     render(<Holding max={7} />)
     await showing(1)
     await expect.poll(() => width(7)).toBeLessThan(width(6))
-    expect(width(1)).toBeGreaterThan(width(2))
+
+    await userEvent.click(dot(4))
+    await showing(4)
+    await expect.poll(() => width(1)).toBe(width(2))
 
     await userEvent.click(dot(7))
     await showing(7)
@@ -713,10 +716,34 @@ describe('Carousel dots', () => {
     await expect.poll(() => width(10)).toBeLessThan(width(9))
   })
 
+  it('never shrinks the current dot, even with a window of two', async () => {
+    render(<Holding max={2} />)
+    await showing(1)
+    const current = width(1)
+
+    await userEvent.click(dot(2))
+    await showing(2)
+    await expect.poll(() => width(2)).toBe(current)
+  })
+
   it('draws every dot when there are no more slides than max', async () => {
     render(<Holding count={5} max={7} />)
     await expect.poll(dots).toEqual([1, 2, 3, 4, 5])
     await expect.poll(() => width(5)).toBe(width(4))
+  })
+
+  it('lifts the other dots on hover, but not the current one', async () => {
+    render(<Holding max={7} />)
+    await showing(1)
+    const transform = (slide: number) => getComputedStyle(dot(slide)).transform
+
+    await userEvent.hover(dot(2))
+    await expect.poll(() => transform(2)).not.toBe('none')
+
+    // Once dot 2 has settled, a lift on the current dot would have finished.
+    await userEvent.hover(dot(1))
+    await expect.poll(() => transform(2)).toBe('none')
+    expect(transform(1)).toBe('none')
   })
 
   it('fills the current dot with the accent on a neutral surface', async () => {
