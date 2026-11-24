@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
@@ -214,6 +216,22 @@ const swipe: BrowserCommand<
   await session.detach()
 }
 
+// Hydration fixtures render here, in Node, where a server has no window.
+const serverRender: BrowserCommand<[file: string, name: string]> = async (
+  { project },
+  file,
+  name
+) => {
+  const load = <T>(id: string) => project.import<T>(id)
+  const { createElement } = await load<typeof import('react')>('react')
+  const { renderToString } =
+    await load<typeof import('react-dom/server')>('react-dom/server')
+  const fixtures = await load<Record<string, ComponentType>>(
+    fileURLToPath(new URL(file, SRC))
+  )
+  return renderToString(createElement(fixtures[name]!))
+}
+
 const browserTest = {
   enabled: true,
   headless: true,
@@ -229,7 +247,8 @@ const browserTest = {
     focusPage,
     pointer,
     tap,
-    swipe
+    swipe,
+    serverRender
   }
 }
 
