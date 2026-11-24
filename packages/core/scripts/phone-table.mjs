@@ -1,20 +1,16 @@
 import { Metadata } from 'libphonenumber-js/core'
-// Writes src/phone/table.ts from libphonenumber's metadata, which is a dev
-// dependency only: the table is the few facts the browser needs, so the
-// library itself never ships. Run `node scripts/phone-table.mjs` after bumping
-// libphonenumber-js.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
 
+// Writes src/phone/table.ts from libphonenumber-js, so the library itself never ships; rerun it after a bump.
 const require = createRequire(import.meta.url)
 const metadata = require('libphonenumber-js/metadata.min.json')
 const { version } = JSON.parse(
   readFileSync(require.resolve('libphonenumber-js/package.json'), 'utf8')
 )
 
-// Countries whose numbers formatPhone groups. Each one adds its patterns to
-// every bundle that imports the phone module, so the list stays short.
+// Each country here adds its grouping patterns to every bundle that imports the phone module.
 export const GROUPED_COUNTRIES = ['AU', 'NZ']
 
 const planOf = (country) => {
@@ -28,13 +24,12 @@ function digitSource(seed) {
   let state = seed
   return () => {
     state = (state * 1664525 + 1013904223) % 2 ** 32
-    return String(state % 10)
+    // The low bits of this generator alternate odd and even.
+    return String((state >>> 16) % 10)
   }
 }
 
-// Whether a real national number can begin with the trunk prefix, as Gabon's
-// and Russia's can. Probed against the country's own pattern, since reading
-// that out of a regex isn't practical.
+// Probes the country's own pattern for a number that begins with the trunk prefix, as Russia's 812 does.
 function numbersStartWithTrunk(plan, trunk, lengths) {
   const pattern = new RegExp(`^(?:${plan.nationalNumberPattern()})$`)
   const nextDigit = digitSource(lengths.length + trunk.length)
@@ -59,8 +54,7 @@ export function phoneRows() {
   for (const [dialCode, countries] of Object.entries(
     metadata.country_calling_codes
   )) {
-    // libphonenumber judges a shared dial code by its main country's lengths,
-    // so Jersey's numbers are measured as the United Kingdom's are.
+    // libphonenumber measures a shared dial code by its main country, so Jersey's numbers fit as the United Kingdom's do.
     const lengths = planOf(countries[0]).possibleLengths()
     for (const country of countries) {
       if (!metadata.countries[country]) continue

@@ -1,4 +1,5 @@
 import {
+  type CountryCode,
   getExampleNumber,
   isPossiblePhoneNumber,
   parsePhoneNumberWithError
@@ -23,8 +24,10 @@ describe('the phone table', () => {
 
 describe('against libphonenumber', () => {
   const samples = phoneCountries.flatMap(({ code }) => {
-    const example = getExampleNumber(code as never, examples)
-    return example ? [[code, example.number, example.nationalNumber]] : []
+    const example = getExampleNumber(code as CountryCode, examples)
+    return example
+      ? [[code, example.number, example.nationalNumber] as const]
+      : []
   })
 
   it('has an example mobile for nearly every country', () => {
@@ -43,12 +46,27 @@ describe('against libphonenumber', () => {
     }
   )
 
-  // libphonenumber reads these three with patterns the table doesn't carry:
-  // Bonaire and Tristan da Cunha by their leading digits inside a shared dial
-  // code, and Gabon's optional prefix by a regex.
-  const NEEDS_PATTERNS = ['BQ', 'GA', 'TA']
+  // Argentina's mobile 15 and Belarus's 80 are rewritten by regexes the table doesn't carry.
+  const NATIONAL_NEEDS_PATTERNS = ['AR', 'BY']
+  const readsNational = (code: string, e164: string) =>
+    expect(
+      parsePhone(parsePhoneNumberWithError(e164).formatNational(), code).e164
+    ).toBe(e164)
 
-  const lengthsAround = (code: string, e164: string) => {
+  it.each(samples.filter(([code]) => !NATIONAL_NEEDS_PATTERNS.includes(code)))(
+    'reads the example mobile for %s as it is written at home',
+    (code, e164) => readsNational(code, e164)
+  )
+
+  it.fails.each(
+    samples.filter(([code]) => NATIONAL_NEEDS_PATTERNS.includes(code))
+  )('reads the example mobile for %s as it is written at home', (code, e164) =>
+    readsNational(code, e164)
+  )
+
+  // Bonaire and Tristan da Cunha are told apart by leading digits, and Gabon's prefix by a regex.
+  const LENGTHS_NEED_PATTERNS = ['BQ', 'GA', 'TA']
+  const fitsWhereTheirsDoes = (code: string, e164: string) => {
     const candidates = [
       e164.slice(0, -3),
       e164.slice(0, -2),
@@ -57,36 +75,31 @@ describe('against libphonenumber', () => {
       `${e164}12`,
       `${e164}123`
     ]
-    return {
-      ours: candidates.map((number) => parsePhone(number, code).possible),
-      theirs: candidates.map((number) => isPossiblePhoneNumber(number))
-    }
+    expect(
+      candidates.map((number) => parsePhone(number, code).possible)
+    ).toEqual(candidates.map((number) => isPossiblePhoneNumber(number)))
   }
 
-  it.each(samples.filter(([code]) => !NEEDS_PATTERNS.includes(code!)))(
+  it.each(samples.filter(([code]) => !LENGTHS_NEED_PATTERNS.includes(code)))(
     'finds lengths around the %s example possible only where libphonenumber does',
-    (code, e164) => {
-      const { ours, theirs } = lengthsAround(code!, e164!)
-      expect(ours).toEqual(theirs)
-    }
+    (code, e164) => fitsWhereTheirsDoes(code, e164)
   )
 
-  it.each(NEEDS_PATTERNS)(
-    'still differs from libphonenumber around the %s example',
-    (code) => {
-      const sample = samples.find(([sampled]) => sampled === code)!
-      const { ours, theirs } = lengthsAround(code, sample[1]!)
-      expect(ours).not.toEqual(theirs)
-    }
+  it.fails.each(
+    samples.filter(([code]) => LENGTHS_NEED_PATTERNS.includes(code))
+  )(
+    'finds lengths around the %s example possible only where libphonenumber does',
+    (code, e164) => fitsWhereTheirsDoes(code, e164)
   )
 
-  it.each(
-    samples.filter(([code]) => (GROUPED_COUNTRIES as string[]).includes(code!))
-  )('groups the example mobile for %s as libphonenumber does', (_, e164) => {
-    const parsed = parsePhoneNumberWithError(e164!)
-    expect(formatPhone(e164!)).toBe(parsed.formatInternational())
-    expect(formatPhone(e164!, 'national')).toBe(parsed.formatNational())
-  })
+  it.each(samples.filter(([code]) => GROUPED_COUNTRIES.includes(code)))(
+    'groups the example mobile for %s as libphonenumber does',
+    (_, e164) => {
+      const parsed = parsePhoneNumberWithError(e164)
+      expect(formatPhone(e164)).toBe(parsed.formatInternational())
+      expect(formatPhone(e164, 'national')).toBe(parsed.formatNational())
+    }
+  )
 
   it.each(['+61298765432', '+611800123456', '+6493001234', '+64800123456'])(
     'groups %s as libphonenumber does',

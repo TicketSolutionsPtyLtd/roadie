@@ -8,11 +8,11 @@ export type PhoneCountry = {
 }
 
 export type PhoneParse = {
-  /** The number's country, or `null` when neither the input nor the default names one Roadie knows. */
+  /** The number's country, or `null` when its dial code, or the default without one, isn't a country Roadie knows. */
   country: string | null
-  /** The digits after the dial code, with no trunk prefix. */
+  /** The digits after the dial code, with no trunk prefix, or every digit when there is no country. */
   national: string
-  /** `+`, the dial code and the national number, or `''` when there is no country or no digits. */
+  /** `+`, the dial code, and the national number, or `''` when there is no country or no digits. */
   e164: string
   /** The national number's length fits its country. Not a check that the number exists. */
   possible: boolean
@@ -25,7 +25,7 @@ type Plan = {
   /** Each length a national number can be, as a base 36 digit. */
   lengths: string
   trunk: string
-  /** Real numbers can start with the trunk prefix, as Gabon's do. */
+  /** Real numbers can start with the trunk prefix, as Russia's 812 does. */
   trunkInNumbers: boolean
 }
 
@@ -60,13 +60,17 @@ export const phoneCountries: readonly PhoneCountry[] = /* @__PURE__ */ [
   .sort((a, b) => (a.code < b.code ? -1 : 1))
 
 const fits = (plan: Plan, length: number) =>
-  length > 0 && plan.lengths.includes(length.toString(36))
+  length > 0 && length < 36 && plan.lengths.includes(length.toString(36))
 
-// A leading trunk prefix goes, unless the country's numbers can start with it and this one is a full number as typed.
+// A leading trunk prefix goes, unless the country's numbers can start with it and only the number as typed is a full one.
 function dropTrunk(plan: Plan, digits: string) {
   if (!plan.trunk || !digits.startsWith(plan.trunk)) return digits
-  if (plan.trunkInNumbers && fits(plan, digits.length)) return digits
-  return digits.slice(plan.trunk.length)
+  const dropped = digits.slice(plan.trunk.length)
+  return plan.trunkInNumbers &&
+    fits(plan, digits.length) &&
+    !fits(plan, dropped.length)
+    ? digits
+    : dropped
 }
 
 // Calling codes are prefix-free, so at most one length matches.
@@ -86,7 +90,7 @@ const nothing = (country: string | null, national: string): PhoneParse => ({
 })
 
 /**
- * Reads what someone typed or pasted as a phone number. Spaces, brackets and
+ * Reads what someone typed or pasted as a phone number. Spaces, brackets, and
  * hyphens are ignored, a leading `+` or `00` makes it international, and
  * anything else belongs to `defaultCountry`.
  */
@@ -94,8 +98,8 @@ export function parsePhone(input: string, defaultCountry?: string): PhoneParse {
   const digits = input.replace(/\D/g, '')
   const fallback = defaultCountry?.toUpperCase()
   const known = fallback !== undefined && plans.has(fallback) ? fallback : null
-  // The plus can sit inside a bracket, as in (+61).
-  const plus = /^[\s(]*\+/.test(input)
+  // A paste can lead with a bracket, a label, or marks nobody can see.
+  const plus = /^[^\d+\uff0b]*[+\uff0b]/.test(input)
   const international = plus || digits.startsWith('00')
 
   if (!international) {
@@ -133,7 +137,8 @@ function complete(
 
 /** Whether an E.164 number's length fits its country. The server decides whether it is real. */
 export function isPossiblePhone(e164: string): boolean {
-  return e164.startsWith('+') && parsePhone(e164).possible
+  const parsed = parsePhone(e164)
+  return parsed.possible && parsed.e164 === e164
 }
 
 /**
