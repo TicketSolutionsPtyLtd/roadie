@@ -34,7 +34,8 @@ describe('the OTP field page’s send a new code example', () => {
 
     const example = page
       .locator('[data-live-example=rendered]')
-      .filter({ hasText: 'We sent a code to' })
+      // Two other examples on the page also say "We sent a code to".
+      .filter({ hasText: 'sam@example.com' })
     const wait = example.getByText('Send a new code in')
     const send = example.getByRole('button', { name: 'Send a new code' })
     await wait.scrollIntoViewIfNeeded()
