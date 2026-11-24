@@ -40,6 +40,7 @@ import {
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { gridParts } from './parts'
 import type { GridLayoutConfig } from './types'
+import { FIRST_CARDS, GridFiller, UNMEASURED_CLASS } from './unmeasured'
 
 const columnsClass = cn(
   'grid grid-cols-[repeat(auto-fill,minmax(min(16rem,100%),1fr))]',
@@ -172,10 +173,19 @@ type ListProps = {
   busy?: boolean
   bodyRef?: Ref<HTMLUListElement>
   padding?: WindowPadding
+  /** Before the columns are measured, when the grid answers to its own width. */
+  unmeasured?: boolean
   children: ReactNode
 }
 
-function GridList({ caption, busy, bodyRef, padding, children }: ListProps) {
+function GridList({
+  caption,
+  busy,
+  bodyRef,
+  padding,
+  unmeasured,
+  children
+}: ListProps) {
   return (
     <ul
       ref={bodyRef}
@@ -184,7 +194,7 @@ function GridList({ caption, busy, bodyRef, padding, children }: ListProps) {
       aria-label={caption}
       aria-busy={busy || undefined}
       data-slot='record-grid-body'
-      className={cn(columnsClass, 'text-sm')}
+      className={cn(columnsClass, 'text-sm', unmeasured && UNMEASURED_CLASS)}
       style={padding}
     >
       {children}
@@ -247,9 +257,13 @@ function GridCard({
   )
 }
 
-/** How many columns the grid lays out, read from its computed tracks so CSS alone decides them. */
+/**
+ * How many columns the grid lays out, read from its computed tracks so CSS
+ * alone decides them. Undefined until it has: never a guess, as a count too
+ * low sizes the whole window wrong.
+ */
 function useColumnCount(bodyRef: RefObject<HTMLElement | null>) {
-  const [columns, setColumns] = useState(1)
+  const [columns, setColumns] = useState<number>()
   useLayoutEffect(() => {
     const body = bodyRef.current
     if (!body) return
@@ -283,7 +297,8 @@ function VirtualGrid({
   busy?: boolean
 }) {
   const columnsRef = useRef<HTMLUListElement>(null)
-  const columns = useColumnCount(columnsRef)
+  const measured = useColumnCount(columnsRef)
+  const columns = measured ?? 1
   const getItemKey = useCallback(
     // With the count too, so heights measured at another width start over.
     (row: number) => `${columns}:${rows[row * columns]!.id}`,
@@ -297,7 +312,26 @@ function VirtualGrid({
   useHeldHeight(bodyRef, true)
   const setRefs = useBodyRef(bodyRef, columnsRef)
   const { cells, padding } = recordsWindow(view, { rows, columns })
-  console.log('DBG', typeof window, columns, view.total, view.margin, view.items.length, view.items[0]?.start, view.items.at(-1)?.end, JSON.stringify(padding))
+  // On the server and until the layout effect reads the tracks: the first cards,
+  // and the room for the rest at whatever width CSS lays out.
+  if (measured === undefined)
+    return (
+      <GridList {...listProps} bodyRef={setRefs} unmeasured>
+        {rows.slice(0, FIRST_CARDS).map((record, index) => (
+          <GridCard
+            key={record.id}
+            shared={shared}
+            record={record}
+            posInSet={firstIndex + index}
+            setSize={setSize}
+          />
+        ))}
+        <GridFiller
+          records={rows.length}
+          row={gridRowSize(shared.parts.image !== undefined)}
+        />
+      </GridList>
+    )
   return (
     <GridList {...listProps} bodyRef={setRefs} padding={padding}>
       {cells.map(({ key, index, row, leads, record }) => (
@@ -333,7 +367,7 @@ function RangeGrid({
   busy?: boolean
 }) {
   const columnsRef = useRef<HTMLUListElement>(null)
-  const columns = useColumnCount(columnsRef)
+  const columns = useColumnCount(columnsRef) ?? 1
   const byRow = useGridRange(range, columns)
   const reportRow = useCallback(
     (gridRow: number) => onRow?.(gridRow * columns),
