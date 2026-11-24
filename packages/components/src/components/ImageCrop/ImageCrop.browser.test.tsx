@@ -853,8 +853,10 @@ describe('ImageCrop straighten dial', () => {
       /rotate\((9|10|11)(\.\d+)?deg\)/
     )
     expect(onValueChange).toHaveBeenCalledTimes(1)
+    // Firefox rounds pointers to whole px, about 0.7° here, so aim well
+    // inside the detent.
     await commands.pointer([
-      { type: 'move', x: centre + perDegree * 0.6, y, steps: 4 },
+      { type: 'move', x: centre + perDegree * 0.3, y, steps: 4 },
       { type: 'up' }
     ])
     expect(onValueChange).toHaveBeenCalledTimes(1)
