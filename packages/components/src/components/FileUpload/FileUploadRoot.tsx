@@ -123,21 +123,36 @@ export function FileUploadRoot({
     })
   }
 
-  // Says which uploads have just finished, counting every one that landed
-  // in the same render.
+  // Says which uploads have just finished or failed, counting every one that
+  // landed in the same render. A failure leaving clears its message, so the
+  // same file failing again is said again.
   const [settled, setSettled] = useState(uploads)
   if (settled !== uploads) {
     setSettled(uploads)
-    const landed = [...uploads].filter(
-      ([file, { status }]) =>
-        status === 'done' && settled.get(file)?.status !== 'done'
+    const turned = (to: string) =>
+      [...uploads]
+        .filter(
+          ([file, { status }]) =>
+            status === to && settled.get(file)?.status !== to
+        )
+        .map(([file]) => file.name)
+        .join(', ')
+    const landed = turned('done')
+    const failed = turned('error')
+    if (failed) raise(`${failed} couldn't upload. Retry is available.`)
+    else if (
+      [...settled].some(
+        ([file, { status }]) =>
+          status === 'error' && uploads.get(file)?.status !== 'error'
+      )
     )
+      raise('')
     const done = [...uploads.values()].filter(
       ({ status }) => status === 'done'
     ).length
-    if (landed.length)
+    if (landed)
       say(
-        `${landed.map(([file]) => file.name).join(', ')} uploaded.${uploads.size > 1 ? ` ${done} of ${uploads.size} uploaded.` : ''}`
+        `${landed} uploaded.${uploads.size > 1 ? ` ${done} of ${uploads.size} uploaded.` : ''}`
       )
   }
 
@@ -173,7 +188,6 @@ export function FileUploadRoot({
           if (signal.aborted) return
           controllers.current.delete(file)
           patch(file, { status: 'error', error })
-          raise(`${file.name} couldn't upload. Retry is available.`)
         }
       )
   })
@@ -262,10 +276,8 @@ export function FileUploadRoot({
           },
           remove: (file) => commit(files.filter((each) => each !== file)),
           uploads,
-          retry: (file) => {
-            raise('')
-            patch(file, { status: 'queued', progress: 0, error: undefined })
-          },
+          retry: (file) =>
+            patch(file, { status: 'queued', progress: 0, error: undefined }),
           inputId,
           valueId: `${ownId}-value`,
           triggerRef,

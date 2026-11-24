@@ -216,14 +216,17 @@ export type FileUploadItemRetryProps = Omit<
 
 /**
  * Uploads a failed file again, without picking it again. It shows only once
- * the upload has failed, and focus moves to the row's Cancel.
+ * the upload has failed, and focus moves to the row's Cancel, or the
+ * Dropzone or Trigger in a row without one.
  */
 export function FileUploadItemRetry({
   onClick,
   children,
   ...props
 }: FileUploadItemRetryProps) {
-  const { retry, disabled } = useFileUploadContext('FileUpload.ItemRetry')
+  const { retry, disabled, triggerRef } = useFileUploadContext(
+    'FileUpload.ItemRetry'
+  )
   const { item } = useFileUploadItem('FileUpload.ItemRetry')
   if (item.status !== 'error') return null
   return (
@@ -240,7 +243,7 @@ export function FileUploadItemRetry({
           .closest('[data-slot=file-upload-item]')
           ?.querySelector<HTMLElement>('[data-slot=file-upload-item-remove]')
         retry(item.file)
-        remove?.focus({ preventScroll: true })
+        ;(remove ?? triggerRef.current)?.focus({ preventScroll: true })
       }}
       {...props}
     >

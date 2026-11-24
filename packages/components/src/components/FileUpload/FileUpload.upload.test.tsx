@@ -103,17 +103,6 @@ describe('FileUpload uploads', () => {
     await screen.findByRole('img', { name: 'Uploaded' })
   })
 
-  it('aborts the upload of a file that leaves the value', async () => {
-    const { onUpload, calls } = network()
-    const { container } = render(<FileUpload onUpload={onUpload} />)
-    await pick(container, csv('march.csv'))
-    await waitFor(() => expect(calls).toHaveLength(1))
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Cancel march.csv' })
-    )
-    expect(calls[0]!.signal.aborted).toBe(true)
-  })
-
   it('says what was added and uploaded, with the total, but not each percent', async () => {
     const { onUpload, calls } = network()
     const files = [csv('march.csv'), csv('april.csv')]
@@ -244,6 +233,89 @@ describe('FileUpload uploads', () => {
     expect(
       container.querySelector('[aria-live=assertive]')
     ).toBeEmptyDOMElement()
+  })
+
+  it('reads Cancel for a file still waiting its turn', async () => {
+    const { onUpload } = network()
+    const files = ['a', 'b', 'c', 'd'].map((name) => csv(`${name}.csv`))
+    const { rerender } = render(<FileUpload value={[]} onUpload={onUpload} />)
+    rerender(<FileUpload value={files} onUpload={onUpload} />)
+    expect(
+      await screen.findByRole('button', { name: 'Cancel d.csv' })
+    ).toBeInTheDocument()
+  })
+
+  it('announces failures that land together, and the same file failing again', async () => {
+    const { onUpload, calls } = network()
+    const files = [csv('march.csv'), csv('april.csv')]
+    const { container, rerender } = render(
+      <FileUpload value={[]} onUpload={onUpload}>
+        <FileUpload.List>
+          {(item) => (
+            <FileUpload.Item data-testid={item.file.name}>
+              {String(item.error)}
+              <FileUpload.ItemRetry />
+            </FileUpload.Item>
+          )}
+        </FileUpload.List>
+      </FileUpload>
+    )
+    rerender(
+      <FileUpload value={files} onUpload={onUpload}>
+        <FileUpload.List>
+          {(item) => (
+            <FileUpload.Item data-testid={item.file.name}>
+              {String(item.error)}
+              <FileUpload.ItemRetry />
+            </FileUpload.Item>
+          )}
+        </FileUpload.List>
+      </FileUpload>
+    )
+    await waitFor(() => expect(calls).toHaveLength(2))
+    await act(async () => {
+      calls[0]!.reject(new Error('503'))
+      calls[1]!.reject(new Error('504'))
+    })
+    const alarm = container.querySelector('[aria-live=assertive]')
+    expect(alarm).toHaveTextContent(
+      "march.csv, april.csv couldn't upload. Retry is available."
+    )
+    expect(screen.getByTestId('march.csv')).toHaveClass('intent-danger')
+    expect(screen.getByTestId('april.csv')).toHaveTextContent('Error: 504')
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Retry march.csv' })
+    )
+    await waitFor(() => expect(calls).toHaveLength(3))
+    expect(alarm).toBeEmptyDOMElement()
+    await act(async () => calls[2]!.reject(new Error('503')))
+    expect(alarm).toHaveTextContent(
+      "march.csv couldn't upload. Retry is available."
+    )
+  })
+
+  it('moves focus to the trigger after Retry in a row with no Remove', async () => {
+    const { onUpload, calls } = network()
+    const { container } = render(
+      <FileUpload onUpload={onUpload}>
+        <FileUpload.Trigger />
+        <FileUpload.List>
+          {() => (
+            <FileUpload.Item>
+              <FileUpload.ItemRetry />
+            </FileUpload.Item>
+          )}
+        </FileUpload.List>
+      </FileUpload>
+    )
+    await pick(container, csv('march.csv'))
+    await waitFor(() => expect(calls).toHaveLength(1))
+    await act(async () => calls[0]!.reject(new Error('503')))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Retry march.csv' })
+    )
+    expect(screen.getByRole('button', { name: /Replace/ })).toHaveFocus()
   })
 
   it('says a single file was uploaded without a total', async () => {
