@@ -67,8 +67,9 @@ End every selector that runs past a `:has()` on something narrow:
    use `var(--x, revert-layer)`.
 2. **A class.** `[li:has(+li)>&]:rounded-b-none` or
    `in-[[data-slot=x]:has(…)]:…` both end on the generated class. Prefer
-   `in-[…:has()]` to `group-has-*`, which compiles to `:is(… *)`, and to
-   `has-[…]:[&_…]` descendants, which end on whatever they select.
+   `in-[…:has()]` to `group-has-*`, which Tailwind 4.3.3 and earlier compile
+   to `:is(… *)` (an app compiles Roadie's classes with its own Tailwind),
+   and to `has-[…]:[&_…]` descendants, which end on whatever they select.
 3. **A rare attribute, named first.** `[data-level='0'][data-slot='panes']`,
    not `[data-slot='panes'][data-level='0']`.
 4. **No unkeyed `:has(~ …)`.** Give the compound a tag, class or attribute,
@@ -91,6 +92,8 @@ an anchor fires, so a variable is better there.
 ## Guard
 
 `packages/components/src/css/hasInvalidation.browser.test.ts` fails on a
-broad subject after a `:has()` and on an unkeyed `:has(~ …)`. Perf
+broad subject after a `:has()`, on an unkeyed `:has(~ …)`, and on a
+`group-has-*` or `peer-has-*` class, in the CSS and class strings of core,
+components, blocks, charts, editor and widgets. Perf
 scenarios that time a click, a tick and a hover on a 30,000-element page
 under Navigator and Pane land with RecordTable.

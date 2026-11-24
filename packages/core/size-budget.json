@@ -1,6 +1,6 @@
 {
   ".": { "own": 2081, "full": 38790, "initial": 9698 },
-  "./colors": { "own": 2174, "full": 31336, "initial": 29764 },
+  "./colors": { "own": 2236, "full": 31398, "initial": 2235 },
   "./theme": { "own": 1182, "full": 1182, "initial": 1182 },
   "./navigator": { "own": 303, "full": 303, "initial": 303 },
   "./utils": { "own": 773, "full": 8397, "initial": 8397 },

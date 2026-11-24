@@ -27,6 +27,100 @@
   }
 }
 
+/* Not in @utility btn: a utility's declarations decide where class sorting
+   puts it, and these would move `btn` ahead of `is-interactive` in every
+   app's markup. The utilities layer, so the undimming below outranks
+   is-interactive's disabled state. */
+@layer utilities {
+  /* Zero specificity, so a child's own transition wins. Runs both ways: the
+     label shrinks out when the button goes pending, and springs back up when
+     it rests. */
+  :where(.btn) > * {
+    transition:
+      opacity var(--duration-normal) var(--ease-standard),
+      scale var(--duration-slow) var(--ease-spring-lively);
+  }
+
+  /* Pending: the action is under way (Button's `pending`, or `aria-busy` on
+       any .btn, so the look never comes without the semantics). The label keeps
+       its box, so the size holds. After 200ms, so a fast response never flashes
+       a loader, its label shrinks and fades and a ring in its colour springs in
+       and spins in its place. The press doesn't wait: it answers the click at
+       once, whether or not a loader follows. Each moves its own
+       property (scale, rotate), so the motions compose rather than replace each
+       other. Reduced motion shows the ring at once, still. */
+  .btn[aria-busy='true'] {
+    animation:
+      btn-pending-ink var(--duration-normal) var(--ease-exit)
+        var(--duration-moderate) forwards,
+      btn-pending-press var(--duration-slow) var(--ease-spring);
+
+    /* Opacity, not visibility, so a label in a child stays the name.
+       Button wraps a text label in a span, since a bare text node can't scale. */
+    & > * {
+      opacity: 0;
+      scale: 0.6;
+      transition-delay: var(--duration-moderate);
+
+      /* A label that mounts pending, or is just wrapped, starts whole. */
+      @starting-style {
+        opacity: 1;
+        scale: 1;
+      }
+    }
+
+    /* Absolute with no insets: a flex container centres the static position,
+         so the button needn't become a containing block and a positioning class
+         on it still wins. ::before, since an interactive-within target's
+         overlay is ::after. */
+    &::before {
+      content: '';
+      position: absolute;
+      width: 1em;
+      height: 1em;
+      border: 2px solid color-mix(in oklch, currentColor 25%, transparent);
+      border-top-color: currentColor;
+      border-radius: 9999px;
+      pointer-events: none;
+      animation:
+        btn-pending-in var(--duration-slow) var(--ease-spring-lively)
+          var(--duration-moderate) backwards,
+        btn-pending-spin 0.7s linear infinite;
+    }
+  }
+
+  /* Busy reads as working, not unavailable, so undo the disabled dimming. */
+  .btn[aria-busy='true']:is(:disabled, [data-disabled]) {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@keyframes btn-pending-press {
+  40% {
+    scale: 0.97;
+  }
+}
+
+@keyframes btn-pending-in {
+  from {
+    opacity: 0;
+    scale: 0.3;
+  }
+}
+
+@keyframes btn-pending-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@keyframes btn-pending-ink {
+  to {
+    -webkit-text-fill-color: transparent;
+  }
+}
+
 /* ─── Text button sizes ─── */
 
 @utility btn-xs {

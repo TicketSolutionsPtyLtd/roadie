@@ -25,6 +25,15 @@ Import the package's CSS after Roadie's, so Tailwind keeps the illustration colo
 
 Each illustration is its own module, so an app ships only the ones it imports. `@oztix/roadie-components/spot-illustrations` is deprecated. It has 12 of these, with older art.
 
+When content names the illustration, such as a CMS field, load it by name, so a browser fetches only that one. On a server every illustration is loaded already, so a server render never waits:
+
+```tsx
+import {
+  isSpotIllustrationName,
+  loadSpotIllustration
+} from '@oztix/roadie-illustrations/spot/load'
+```
+
 ## Examples
 
 ### Default

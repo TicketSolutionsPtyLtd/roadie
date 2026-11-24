@@ -55,3 +55,11 @@ export type SortableItemContextValue = {
 
 export const SortableItemContext =
   createContext<SortableItemContextValue | null>(null)
+
+/** The events that asked a handle for its menu: an arrow key, a keyboard click, or a press and its click. */
+export type SortableMenuOpening = readonly Event[]
+
+/** Set around the handle `SortableHandleLazy` loads, which opens its menu the way they asked. */
+export const SortableOpeningContext = createContext<
+  SortableMenuOpening | undefined
+>(undefined)

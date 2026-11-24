@@ -380,6 +380,7 @@
     "!dist/**/*.d.ts.map",
     "src/css",
     "!src/**/*.test.*",
+    "!src/**/__snapshots__",
     "!src/**/{testUtils,*TestUtils}.*"
   ],
   "publishConfig": {

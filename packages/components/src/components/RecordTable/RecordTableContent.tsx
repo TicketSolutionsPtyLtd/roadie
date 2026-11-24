@@ -128,6 +128,7 @@ export function RecordTableContent({
     records,
     caption,
     toolbar,
+    scope,
     bulkMounted,
     setBulkSlot,
     frameRef,
@@ -139,7 +140,7 @@ export function RecordTableContent({
   const totalsClipRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  const headTop = useStickyTop(headRef, toolbar, boxed)
+  const headTop = useStickyTop(headRef, toolbar, scope, boxed)
   // On the table, so the head and pinned cells inherit it.
   useSurface(contentRef, boxed)
   const allColumns = config.columns

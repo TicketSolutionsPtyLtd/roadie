@@ -575,6 +575,43 @@ render(<Loading />)
   such as a fetch without Suspense or a mutation. It sets `aria-busy` on the
   pane.
 
+### Printing
+
+Printing a page prints the pane being read as a document. Inside a `Navigator`
+that is the top pane, the one a phone shows, with its title and all of its
+content flowing across as many pages as it needs. The navigation, the other
+panes, the inspector, and the pane's Back, Close, actions, search, footer, and
+scrollbar stay off the paper. A `Pane` outside a `Navigator` prints whole the
+same way. Nothing needs a prop: it's how every pane prints.
+
+Hide anything else in the pane that has no place on paper, such as a Print or
+Download button, with `print:hidden`. To name the PDF someone saves from the
+print dialog, set `document.title` before you call `window.print()`, and put it
+back after.
+
+```tsx
+function PrintInvoice({ number }) {
+  return (
+    <Button
+      className='print:hidden'
+      onClick={() => {
+        const title = document.title
+        document.title = `Tax invoice ${number}`
+        window.addEventListener('afterprint', () => (document.title = title), {
+          once: true
+        })
+        window.print()
+      }}
+    >
+      Print
+    </Button>
+  )
+}
+```
+
+To print a pane that isn't the top one, such as the list while a detail is open
+beside it, close the detail first.
+
 ## Guidelines
 
 <Guidelines>

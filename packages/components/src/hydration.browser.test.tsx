@@ -1,14 +1,12 @@
-import type { ComponentType } from 'react'
-
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page, server } from 'vitest/browser'
 
 import roadieCss from '../vitest.browser.css?inline'
 import { useStylesheet } from './components/Pane/testUtils'
-import { hydrationShift } from './utils/hydrationTestUtils'
+import { type Fixture, hydrationShift } from './utils/hydrationTestUtils'
 
 // One file per component, each export a fixture: a component with no props.
-const files = import.meta.glob<Record<string, ComponentType>>(
+const files = import.meta.glob<Record<string, Fixture>>(
   './components/*/*.ssr.tsx',
   { eager: true }
 )
@@ -19,9 +17,16 @@ const fixtures = Object.entries(files).flatMap(([file, exports]) =>
 let removeStylesheet = () => {}
 beforeAll(() => {
   removeStylesheet = useStylesheet(roadieCss)
+  // Every run reads as a Mac, the keyboard whose keys shift, on any machine.
+  const userAgentData = { platform: 'macOS' }
+  Object.defineProperty(navigator, 'userAgentData', {
+    value: userAgentData,
+    configurable: true
+  })
 })
 afterAll(async () => {
   removeStylesheet()
+  Reflect.deleteProperty(navigator, 'userAgentData')
   await page.viewport(1920, 1080)
 })
 
@@ -36,7 +41,8 @@ describe.skipIf(server.browser !== 'chromium').each([390, 1280])(
       { timeout: 20_000 },
       async ({ file, name, Fixture }) => {
         const html = await commands.serverRender(file, name)
-        expect(await hydrationShift(html, <Fixture />)).toEqual([])
+        const allowance = Fixture.allowance?.[width]
+        expect(await hydrationShift(html, <Fixture />, allowance)).toEqual([])
       }
     )
   }

@@ -227,9 +227,7 @@ export function RecordsViewName({
             type='submit'
             form={formId}
             emphasis='strong'
-            disabled={pending}
-            focusableWhenDisabled
-            aria-busy={pending || undefined}
+            pending={pending}
           >
             {copy.submit}
           </Button>
@@ -279,9 +277,7 @@ export function RecordsViewDelete({
           <Button
             intent='danger'
             emphasis='strong'
-            disabled={pending}
-            focusableWhenDisabled
-            aria-busy={pending || undefined}
+            pending={pending}
             onClick={() => void run(onConfirm)}
           >
             {copy.submit}
