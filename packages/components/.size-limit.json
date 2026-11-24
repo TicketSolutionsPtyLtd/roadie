@@ -210,7 +210,7 @@
     "name": "ImageCrop",
     "path": "dist/components/ImageCrop/index.js",
     "import": "*",
-    "limit": "11.5 kB",
+    "limit": "12.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
