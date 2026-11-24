@@ -158,6 +158,15 @@ export function zoomRange(scene: CropScene, rotation: number) {
 }
 
 /**
+ * The straighten in a rotation: how far it is from the nearest quarter turn,
+ * from -45° up to 45°, clockwise positive.
+ */
+export function straightenOf(rotation: number): number {
+  const angle = ((((rotation + 45) % 90) + 90) % 90) - 45
+  return Math.round(angle * 1e9) / 1e9
+}
+
+/**
  * Turns the image by `degrees` (negative is left) about the frame's centre,
  * keeping the spot under it. It zooms in if the turned image needs it, and
  * a crop that covered the frame exactly still does.

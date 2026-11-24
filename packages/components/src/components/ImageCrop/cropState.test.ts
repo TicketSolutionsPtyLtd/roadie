@@ -9,6 +9,7 @@ import {
   panBy,
   rotateBy,
   sameCrop,
+  straightenOf,
   stretchCrop,
   transformOf,
   zoomRange,
@@ -210,5 +211,21 @@ describe('stretchCrop', () => {
   it('leaves a value inside the limits alone', () => {
     const { clamped, painted } = stretchCrop(start, scene, stage)
     expect(painted).toEqual(clamped)
+  })
+})
+
+describe('straightenOf', () => {
+  it.each([
+    [0, 0],
+    [3, 3],
+    [357, -3],
+    [270, 0],
+    [273.5, 3.5],
+    [44.9, 44.9],
+    [45, -45],
+    [315, -45],
+    [180.1 + 0.2, 0.3]
+  ])('reads %s° as %s° from the nearest quarter turn', (rotation, angle) => {
+    expect(straightenOf(rotation)).toBeCloseTo(angle, 9)
   })
 })
