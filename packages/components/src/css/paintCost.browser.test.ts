@@ -2,20 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import roadieCss from '../../vitest.guards.css?inline'
 
-// A filter, backdrop-filter or mask is drawn again on every frame its element
-// moves or changes, and will-change holds a layer in memory. The ticket
-// card's seven chained drop-shadows dropped 70.6% of a carousel's frames with
-// nothing here to notice: four in a chain is borderline and five drops 47%.
-// So every one a package ships is listed below, with why it is cheap enough
-// and the frame test that shows it, and a new one fails until it is listed.
-
-// Limits: it reads the declarations vitest.guards.css compiles, so it can't
-// count the elements that carry a class, add up a filter built from several
-// utilities on one element, follow a variable another rule sets, or see an
-// inline style (Image's blurred placeholder, the email preview's dark
-// inversion). It doesn't read mask-border. A `none`, an `auto` and a filter
-// utility that adds no function cost nothing and are skipped. It runs with
-// components' browser tests, like the :has() guard beside it.
+// Every filter, backdrop-filter, mask and will-change a package ships is
+// listed, with the frame test that covers it: the ticket card's seven chained
+// drop-shadows dropped 70.6% of a carousel's frames, and five drop 47%.
+// Limits: compiled declarations only, so not inline styles, a filter summed
+// across utilities on one element, a variable another rule sets, or mask-border.
 type Property = 'filter' | 'backdrop-filter' | 'mask' | 'will-change'
 type Site = { property: Property; rule: string; functions: number }
 type Allowance = {
@@ -35,10 +26,8 @@ const PROPERTIES = [
 const MAX_CHAIN = 3
 const ONE_OFF = 'one-off overlay, not repeated'
 
-// The one chain over three that ships: the ticket card's seven drop-shadows,
-// the frame loss above. PR #994 draws them without a filter; INNO-1658 then
-// adds the Card frame test and INNO-1674 puts the ticket back on emphasis-*.
-// Whoever lands that fix deletes this exception with it.
+// The one chain over three. #994 removes it (INNO-1658, INNO-1674); whoever
+// lands that deletes this exception, as 'lists nothing that no longer ships' says.
 const TICKET_CHAIN: Site = {
   property: 'filter',
   rule: '[data-slot="card"][data-variant="ticket"]',
