@@ -84,8 +84,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   New `@utility` classes also go in `src/css/safelist.html`. Core's CSS has
   budgets in the same field (`roadie.compiled.css`, brotli and raw, and what
   importing `@oztix/roadie-core/css` costs an app before Tailwind scans a
-  source file), so run `pnpm --filter @oztix/roadie-core size` after changing
-  it.
+  source file), so after changing it, build core and run
+  `pnpm --filter @oztix/roadie-core size`, which reads the compiled sheet from
+  `dist`.
 - **Changing Turbo config?** Read the installed turbo's `docs/README.md`
   first; the installed version may differ from what you know.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
