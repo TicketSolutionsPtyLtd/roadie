@@ -17,15 +17,24 @@ export interface CropScene {
   image: CropSize
   /** The smallest crop in natural px. */
   min?: CropSize
+  /**
+   * The largest the frame can be, in px. Set only in free-form, where the
+   * frame takes the crop's shape.
+   */
+  bounds?: CropSize
 }
 
-/** The minimum crop at `aspectRatio`, from whichever of the two sides is set. */
+/**
+ * The minimum crop at `aspectRatio`, from whichever of the two sides is set.
+ * In free-form, with no ratio, each side is its own minimum.
+ */
 export function minCrop(
-  aspectRatio: number,
+  aspectRatio: number | undefined,
   minWidth?: number,
   minHeight?: number
 ): CropSize | undefined {
   if (!minWidth && !minHeight) return undefined
+  if (!aspectRatio) return { width: minWidth ?? 0, height: minHeight ?? 0 }
   const width = Math.max(minWidth ?? 0, (minHeight ?? 0) * aspectRatio)
   return { width, height: width / aspectRatio }
 }
@@ -175,12 +184,61 @@ export function rotateBy(
   const dy = y - from.height / 2
   const { cos, sin } = turnOf(degrees)
   const fitted = value.zoom <= zoomRange(scene, value.rotation).cover * 1.001
-  const zoom = fitted ? zoomRange(scene, rotation).cover : value.zoom
+  // A free-form frame turns with a quarter turn, so the crop keeps its shape.
+  const turned =
+    scene.bounds && Math.abs(degrees) % 180 === 90
+      ? {
+          ...scene,
+          frame: fitFrame(
+            scene.bounds,
+            scene.frame.height / scene.frame.width,
+            0
+          )
+        }
+      : scene
+  const zoom = fitted ? zoomRange(turned, rotation).cover : value.zoom
   const centre = {
     x: to.width / 2 + dx * cos - dy * sin,
     y: to.height / 2 + dx * sin + dy * cos
   }
-  return fitCrop(around(centre, zoom, rotation, scene), scene)
+  return fitCrop(around(centre, zoom, rotation, turned), turned)
+}
+
+/**
+ * A free-form crop resized on screen to `size` px about its centre, at the
+ * zoom it started at. Past a limit the image gives way, as `stretchCrop`
+ * says, and `clamped` is the crop to keep.
+ */
+export function resizeTo(
+  start: ImageCropValue,
+  size: CropSize,
+  scene: CropScene,
+  stage: CropSize
+) {
+  const sized = { ...scene, frame: size }
+  const raw = around(centreOf(start), start.zoom, start.rotation, sized)
+  return stretchCrop(raw, sized, stage)
+}
+
+/**
+ * A free-form crop resized to `size` natural px about its centre, within the
+ * minimum and the turned image, with the frame that fits it in the bounds.
+ */
+export function resizeArea(
+  value: ImageCropValue,
+  size: CropSize,
+  scene: CropScene & { bounds: CropSize }
+): ImageCropValue {
+  const box = boxOf(scene.image, value.rotation)
+  // Cover wins over the minimum when the image is smaller than it.
+  const side = (key: 'width' | 'height') =>
+    Math.min(Math.max(size[key], scene.min?.[key] ?? 1), box[key])
+  const width = side('width')
+  const height = side('height')
+  const frame = fitFrame(scene.bounds, width / height, 0)
+  const { x, y } = centreOf(value)
+  const area = { x: x - width / 2, y: y - height / 2, width, height }
+  return fitCrop({ ...value, area }, { ...scene, frame })
 }
 
 /**

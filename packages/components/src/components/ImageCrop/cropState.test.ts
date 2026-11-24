@@ -7,6 +7,8 @@ import {
   minCrop,
   moveTo,
   panBy,
+  resizeArea,
+  resizeTo,
   rotateBy,
   sameCrop,
   stretchCrop,
@@ -210,5 +212,76 @@ describe('stretchCrop', () => {
   it('leaves a value inside the limits alone', () => {
     const { clamped, painted } = stretchCrop(start, scene, stage)
     expect(painted).toEqual(clamped)
+  })
+})
+
+// Free-form: the frame takes the whole 3:2 image's shape inside 600 × 600.
+const bounds = { width: 600, height: 600 }
+const free = { ...scene, frame: { width: 600, height: 400 }, bounds }
+const whole = fitCrop(undefined, free)
+
+describe('minCrop in free-form', () => {
+  it('keeps each side its own minimum', () => {
+    expect(minCrop(undefined, 800)).toEqual({ width: 800, height: 0 })
+    expect(minCrop(undefined, 800, 300)).toEqual({ width: 800, height: 300 })
+    expect(minCrop(undefined)).toBeUndefined()
+  })
+})
+
+describe('resizeArea', () => {
+  it('resizes about the centre and fits the frame to the new shape', () => {
+    const next = resizeArea(whole, { width: 1200, height: 1600 }, free)
+    expect(next.area).toEqual({ x: 600, y: 0, width: 1200, height: 1600 })
+    // 3:4 fills the bounds' height.
+    expect(next.zoom).toBeCloseTo(600 / 1600)
+  })
+
+  it('stops at the minimum, and at the image', () => {
+    const min = { width: 800, height: 400 }
+    const small = resizeArea(
+      whole,
+      { width: 100, height: 100 },
+      { ...free, min }
+    )
+    expect(small.area.width).toBe(800)
+    expect(small.area.height).toBe(400)
+    const big = resizeArea(whole, { width: 5000, height: 5000 }, free)
+    expect(big.area).toEqual(whole.area)
+  })
+})
+
+describe('resizeTo', () => {
+  const stage = { width: 700, height: 700 }
+
+  it('keeps the zoom and centre for a frame inside the image', () => {
+    const { clamped } = resizeTo(
+      whole,
+      { width: 300, height: 400 },
+      free,
+      stage
+    )
+    expect(clamped.zoom).toBe(whole.zoom)
+    expect(clamped.area).toEqual({ x: 600, y: 0, width: 1200, height: 1600 })
+  })
+
+  it('zooms in when the frame would pass the image, and gives way first', () => {
+    const { clamped, painted } = resizeTo(
+      whole,
+      { width: 600, height: 600 },
+      free,
+      stage
+    )
+    expect(clamped.zoom).toBeCloseTo(600 / 1600)
+    expect(painted.zoom).toBeGreaterThan(whole.zoom)
+    expect(painted.zoom).toBeLessThan(clamped.zoom)
+  })
+})
+
+describe('rotateBy in free-form', () => {
+  it('turns the frame with a quarter turn, so the whole image still shows', () => {
+    const turned = rotateBy(whole, -90, free)
+    expect(turned.rotation).toBe(270)
+    expect(turned.area.width).toBeCloseTo(1600)
+    expect(turned.area.height).toBeCloseTo(2400)
   })
 })
