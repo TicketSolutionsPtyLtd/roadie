@@ -22,8 +22,8 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  type SpotIllustrationName,
-  spotIllustration
+  SpotIllustrationByName,
+  type SpotIllustrationName
 } from '../_shared/illustrations'
 import {
   cycledMarkIntent,
@@ -159,8 +159,7 @@ function Illustration({
   name: SpotIllustrationName | undefined
   className: string
 }) {
-  const Drawing = spotIllustration(name)
-  return Drawing ? <Drawing outline className={className} /> : null
+  return <SpotIllustrationByName name={name} outline className={className} />
 }
 
 // A tile that draws its own photo has no surface to tint, so a linked one grows its photo instead.

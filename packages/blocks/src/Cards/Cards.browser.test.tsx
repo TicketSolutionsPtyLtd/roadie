@@ -1,8 +1,10 @@
 import type { ComponentType } from 'react'
 
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
+
+import { loadSpotIllustration } from '@oztix/roadie-illustrations/spot/load'
 
 import { Cards, type CardsItem, type CardsPreset, type CardsProps } from '.'
 import { BlocksProvider } from '../Provider'
@@ -18,6 +20,9 @@ import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
+
+// These tests measure a block as soon as it renders, so its illustration loads first.
+beforeAll(() => loadSpotIllustration('Ticket'))
 
 describeBlockFrame('cards', 'plain', Cards as ComponentType<never>, {
   cards: [{ title: 'Fast payouts' }]
