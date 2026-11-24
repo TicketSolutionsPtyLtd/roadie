@@ -46,6 +46,63 @@ async function capture(host: HTMLElement) {
 const distance = (a: Pixel, b: readonly number[]) =>
   Math.max(...a.map((channel, index) => Math.abs(channel - b[index]!)))
 
+// The fill and the backdrop are both near full in red and blue, and the edge
+// is darker than either, even where it blends into them along a curve.
+const darkness = ([red, , blue]: Pixel) => 255 - Math.min(red, blue)
+
+type Side = 'top' | 'right' | 'bottom' | 'left'
+
+/** The darkest of the two pixels just inside a side of the card, at `along`
+ * (a y for the left and right sides, an x for the top and bottom). Only
+ * inside, since a raised card's shadow darkens the backdrop past its sides. */
+function edgeInside(
+  sample: (x: number, y: number) => Pixel,
+  box: DOMRect,
+  side: Side,
+  along: number
+) {
+  // A sample reads the pixel whose top-left corner is nearest the point.
+  return Math.max(
+    ...[0, 1].map((depth) => {
+      if (side === 'top') return darkness(sample(along, box.top + depth))
+      if (side === 'bottom')
+        return darkness(sample(along, box.bottom - 1 - depth))
+      if (side === 'left') return darkness(sample(box.left + depth, along))
+      return darkness(sample(box.right - 1 - depth, along))
+    })
+  )
+}
+
+/** The darkest pixel across the card's rounded corner, on its diagonal. */
+function edgeAtCorner(
+  sample: (x: number, y: number) => Pixel,
+  card: HTMLElement,
+  corner: 'top-left' | 'top-right' | 'bottom-right' | 'bottom-left'
+) {
+  const box = card.getBoundingClientRect()
+  const radius = parseFloat(getComputedStyle(card).borderTopLeftRadius)
+  const inset = radius * (1 - Math.SQRT1_2)
+  const [vertical, horizontal] = corner.split('-')
+  const x = horizontal === 'left' ? box.left + inset : box.right - inset
+  const y = vertical === 'top' ? box.top + inset : box.bottom - inset
+  const inward = [
+    horizontal === 'left' ? 1 : -1,
+    vertical === 'top' ? 1 : -1
+  ] as const
+  return Math.max(
+    ...[-1, -0.5, 0, 0.5, 1, 1.5, 2].map((depth) =>
+      darkness(sample(x + inward[0] * depth, y + inward[1] * depth))
+    )
+  )
+}
+
+const CORNERS = [
+  'top-left',
+  'top-right',
+  'bottom-right',
+  'bottom-left'
+] as const
+
 describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
   'Card ticket, %s emphasis',
   (emphasis) => {
@@ -114,6 +171,38 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
         )
 
         expect(edge).toBeGreaterThan(8)
+      }
+    )
+
+    it.runIf(emphasis === 'raised' || emphasis === 'normal')(
+      'draws its edge along every outer side of each part',
+      async () => {
+        const { host, card, body, footer } = renderTicket()
+        const sample = await capture(host)
+        const box = card.getBoundingClientRect()
+        const centre = box.left + box.width / 2
+
+        expect(edgeInside(sample, box, 'top', centre)).toBeGreaterThan(8)
+        expect(edgeInside(sample, box, 'bottom', centre)).toBeGreaterThan(8)
+        for (const part of [body, footer]) {
+          const { top, bottom } = part.getBoundingClientRect()
+          const middle = (top + bottom) / 2
+          expect(edgeInside(sample, box, 'left', middle)).toBeGreaterThan(8)
+          expect(edgeInside(sample, box, 'right', middle)).toBeGreaterThan(8)
+        }
+      }
+    )
+
+    // Raised casts a shadow past its lower corners, which a missing edge
+    // would pass for, so normal stands in for both.
+    it.runIf(emphasis === 'normal')(
+      'draws its edge around each rounded corner',
+      async () => {
+        const { host, card } = renderTicket()
+        const sample = await capture(host)
+
+        for (const corner of CORNERS)
+          expect(edgeAtCorner(sample, card, corner)).toBeGreaterThan(8)
       }
     )
 
@@ -489,6 +578,31 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
         // Raised's shadow runs under the card, the bottom notch's mouth too.
         if (emphasis === 'normal')
           expect(distance(sample(join, bottom), BACKDROP)).toBeLessThan(2)
+      }
+    )
+
+    it.runIf(emphasis === 'raised' || emphasis === 'normal').each([
+      ['horizontal', 560],
+      ['auto', 720]
+    ] as const)(
+      'draws its edge along every outer side of each part when %s',
+      async (direction, width) => {
+        const { host, card, body, footer } = renderTicket(direction, width)
+        const sample = await capture(host)
+        const box = card.getBoundingClientRect()
+        const middle = box.top + box.height / 2
+
+        expect(edgeInside(sample, box, 'left', middle)).toBeGreaterThan(8)
+        expect(edgeInside(sample, box, 'right', middle)).toBeGreaterThan(8)
+        for (const part of [body, footer]) {
+          const { left, right } = part.getBoundingClientRect()
+          const centre = (left + right) / 2
+          expect(edgeInside(sample, box, 'top', centre)).toBeGreaterThan(8)
+          expect(edgeInside(sample, box, 'bottom', centre)).toBeGreaterThan(8)
+        }
+        if (emphasis === 'normal')
+          for (const corner of CORNERS)
+            expect(edgeAtCorner(sample, card, corner)).toBeGreaterThan(8)
       }
     )
 
