@@ -54,7 +54,8 @@ describe('Sortable registration', () => {
       expect(screen.queryByRole('menu')).not.toBeInTheDocument()
     )
 
-    expect(dnd.sortableDraggable).toHaveBeenCalledTimes(3)
+    // Once more, for Date: its first menu loaded a new button to drag it by.
+    expect(dnd.sortableDraggable).toHaveBeenCalledTimes(4)
     expect(dnd.sortableDropTarget).toHaveBeenCalledTimes(3)
     expect(dnd.sortableMonitor).toHaveBeenCalledTimes(1)
   })

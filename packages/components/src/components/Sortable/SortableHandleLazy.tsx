@@ -8,8 +8,13 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { mergeRefs } from '../../utils/mergeRefs'
 import { IconButton } from '../Button/IconButton'
-import { SortableItemContext, useSortableRoot } from './SortableContext'
-import type { SortableHandleProps, SortableMenuOpening } from './SortableHandle'
+import {
+  SortableItemContext,
+  type SortableMenuOpening,
+  SortableOpeningContext,
+  useSortableRoot
+} from './SortableContext'
+import type { SortableHandleProps } from './SortableHandle'
 import { handleLabel } from './order'
 import { sortableHandleVariants } from './variants'
 
@@ -22,8 +27,8 @@ const load = () =>
   import('./SortableHandle').then((module) => (loaded = module))
 
 /**
- * Drags its item, and opens a Move menu on click or Enter for anyone not
- * dragging with a pointer.
+ * `Sortable.Handle`: a plain menu button until something asks for its Move
+ * menu, then the handle that has one.
  */
 export function SortableHandleLazy(props: SortableHandleProps) {
   const root = useSortableRoot('Sortable.Handle')
@@ -46,7 +51,11 @@ export function SortableHandleLazy(props: SortableHandleProps) {
   )
 
   if (menu)
-    return <menu.SortableHandle id={id} {...props} opening={menu.opening} />
+    return (
+      <SortableOpeningContext value={menu.opening}>
+        <menu.SortableHandle id={id} {...props} />
+      </SortableOpeningContext>
+    )
 
   const {
     className,
@@ -119,6 +128,5 @@ export function SortableHandleLazy(props: SortableHandleProps) {
   )
 }
 
-SortableHandleLazy.displayName = 'Sortable.Handle'
 // A failed load is tried again by the next press, pointer, or focus.
 SortableHandleLazy.preload = () => void load().catch(() => {})

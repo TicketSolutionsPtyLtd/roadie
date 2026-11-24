@@ -27,7 +27,11 @@ import { MenuItem } from '../Menu/MenuItem'
 import { MenuRoot } from '../Menu/MenuRoot'
 import { MenuSeparator } from '../Menu/MenuSeparator'
 import { MenuTrigger } from '../Menu/MenuTrigger'
-import { SortableItemContext, useSortableRoot } from './SortableContext'
+import {
+  SortableItemContext,
+  SortableOpeningContext,
+  useSortableRoot
+} from './SortableContext'
 import {
   type MoveDirection,
   type TextDirection,
@@ -46,9 +50,6 @@ export type SortableHandleProps = Omit<
   'aria-label'?: string
 }
 
-/** The events that asked a handle for its menu: an arrow key, a keyboard click, or a press and its click. */
-export type SortableMenuOpening = readonly Event[]
-
 function moveIcon(direction: MoveDirection, dir: TextDirection) {
   const start = dir === 'rtl' ? ArrowLineRightIcon : ArrowLineLeftIcon
   const end = dir === 'rtl' ? ArrowLineLeftIcon : ArrowLineRightIcon
@@ -65,9 +66,8 @@ function moveIcon(direction: MoveDirection, dir: TextDirection) {
 }
 
 /**
- * `Sortable.Handle` with its Move menu. `SortableHandleLazy` loads it in
- * place of its plain button once something asks for the menu, which is
- * `opening`.
+ * Drags its item, and opens a Move menu on click or Enter for anyone not
+ * dragging with a pointer.
  */
 export function SortableHandle({
   className,
@@ -76,9 +76,8 @@ export function SortableHandle({
   onClick,
   onKeyDown,
   onPointerDown,
-  opening,
   ...props
-}: SortableHandleProps & { opening?: SortableMenuOpening }) {
+}: SortableHandleProps) {
   const root = useSortableRoot('Sortable.Handle')
   const item = use(SortableItemContext)
   if (!item) throw new Error('Sortable.Handle must be inside a Sortable.Item')
@@ -91,12 +90,13 @@ export function SortableHandle({
   const pressedRef = useRef(false)
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
   const ref = useMemo(() => mergeRefs(setHandle, setTrigger), [setHandle])
-  const first = useRef(opening)
+  const first = useRef(use(SortableOpeningContext))
   const replaying = useRef(false)
-  // What asked for the menu landed on the button this one replaces, so it is
-  // sent again here. Base UI then opens the menu as it does for that key or
-  // press: on its first or last item, at once, or with the page left free to
-  // scroll under a finger.
+  // `SortableHandleLazy` loads this handle once something asks for the menu.
+  // That landed on the plain button this one replaces, so it is sent again
+  // here. Base UI then opens the menu as it does for that key or press: on
+  // its first or last item, at once, or with the page left free to scroll
+  // under a finger.
   useIsomorphicLayoutEffect(() => {
     const asked = first.current
     if (!asked || !trigger) return
@@ -188,5 +188,4 @@ export function SortableHandle({
   )
 }
 
-// Not `Sortable.Handle`: that name, and its place in the docs, is the lazy one's.
-SortableHandle.displayName = 'Sortable.Handle (menu)'
+SortableHandle.displayName = 'Sortable.Handle'
