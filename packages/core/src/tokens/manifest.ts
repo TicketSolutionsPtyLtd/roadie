@@ -202,6 +202,8 @@ type Declaration = {
   unsupported: boolean
   theme: boolean
   utility?: string
+  /** The outermost block it sits in, so values read their own block's scale. */
+  block: string
 }
 
 type Block = { prelude: string; start: number }
@@ -267,6 +269,7 @@ function walk(
       modern: preludes.some((p) => p.startsWith('@supports (color: oklch')),
       unsupported: preludes.some((p) => p.startsWith('@supports not')),
       theme: preludes.some((p) => p.startsWith('@theme')),
+      block: preludes[0] ?? '',
       utility: preludes
         .find((p) => p.startsWith('@utility'))
         ?.slice(9)
@@ -333,6 +336,37 @@ export function parseTokenManifest(
       if (!descriptions.has(m[1]!)) descriptions.set(m[1]!, m[2]!)
     }
   }
+
+  // An intent writes its roles against its own scale (`--intent-0` to
+  // `--intent-13`) and internal alpha shares (`--_mix-*`), declared in the
+  // same block. Read each role as the step it resolves to there.
+  const sameBlock = (d: Declaration, name: string) => {
+    const found = declarations.filter(
+      (o) =>
+        o.name === name &&
+        o.sheet === d.sheet &&
+        o.block === d.block &&
+        !o.unsupported
+    )
+    return (
+      (d.dark ? found.findLast((o) => o.dark) : undefined) ??
+      found.findLast((o) => !o.dark)
+    )
+  }
+  const OWN_SCALE = /var\((--intent-\d+|--_[\w-]+)\)/g
+  // A value that reads a step dark mode sets again changes in dark mode too.
+  for (const d of declarations.filter((o) => !o.dark && !o.unsupported)) {
+    const darkAgain = [...d.value.matchAll(OWN_SCALE)].some(
+      ([, name]) => sameBlock({ ...d, dark: true }, name!)?.dark
+    )
+    if (darkAgain && sameBlock({ ...d, dark: true }, d.name)?.dark !== true)
+      declarations.push({ ...d, dark: true })
+  }
+  for (const d of declarations)
+    d.value = d.value.replace(
+      OWN_SCALE,
+      (text, name: string) => sameBlock(d, name)?.value ?? text
+    )
 
   for (const [utility, applied] of applies) {
     const copied = declarations.filter(

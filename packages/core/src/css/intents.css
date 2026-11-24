@@ -10,9 +10,10 @@
    intent applied through a variant ([&_h2]:intent-success,
    data-[checked]:intent-accent) sets its roles on the element it reaches.
 
-   Internal: --_mix-2a to --_mix-5a are each alpha step's share of step 9.
-   Every intent sets the light shares and only the dark mode that changes
-   them sets them again. Nothing outside this sheet reads them.
+   Internal: --_mix-2a to --_mix-5a are each alpha step's share of step 9,
+   set only inside the intent utilities. Every intent sets the light shares
+   and only the dark mode that changes them sets them again. Nothing outside
+   this sheet reads them.
 
    --intent-text-on-strong is the label colour for strong fills. It takes
    whichever polarity reaches APCA Lc 60 on the fill, the same in both
@@ -75,14 +76,10 @@
   --intent-text-on-strong: var(--intent-0);
 
   /* Alpha scale steps (visible on any surface) */
-  --_mix-2a: 6%;
-  --_mix-3a: 11%;
-  --_mix-4a: 17%;
-  --_mix-5a: 23%;
-  --intent-2a: color-mix(in oklch, var(--intent-9) var(--_mix-2a), transparent);
-  --intent-3a: color-mix(in oklch, var(--intent-9) var(--_mix-3a), transparent);
-  --intent-4a: color-mix(in oklch, var(--intent-9) var(--_mix-4a), transparent);
-  --intent-5a: color-mix(in oklch, var(--intent-9) var(--_mix-5a), transparent);
+  --intent-2a: color-mix(in oklch, var(--intent-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--intent-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--intent-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--intent-9) 23%, transparent);
 
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
@@ -98,21 +95,24 @@
 /* Dark mode: bump surfaces up for depth separation, and borders a step
    further from them, since dark steps sit closer together and shadows
    barely show. Each intent's alpha ladder steps up in proportion until its
-   subtle tint stands about 0.065 of lightness off the dark page. */
+   subtle tint stands about 0.065 of lightness off the dark page.
+   Written against the neutral scale, not --intent-*: a .dark element below
+   the root inherits --intent-0 to --intent-13 already resolved light, so
+   these read its own dark tokens instead. */
 .dark,
 .dark [data-accent-scope] {
-  --intent-bg-normal: var(--intent-2);
-  --intent-bg-raised: var(--intent-4);
-  --intent-bg-sunken: var(--intent-0);
+  --intent-bg-normal: var(--color-neutral-2);
+  --intent-bg-raised: var(--color-neutral-4);
+  --intent-bg-sunken: var(--color-neutral-0);
 
-  --intent-border-subtle: var(--intent-7);
-  --intent-border-normal: var(--intent-8);
-  --intent-border-strong: var(--intent-10);
+  --intent-border-subtle: var(--color-neutral-7);
+  --intent-border-normal: var(--color-neutral-8);
+  --intent-border-strong: var(--color-neutral-10);
 
-  --_mix-2a: 10%;
-  --_mix-3a: 18%;
-  --_mix-4a: 28%;
-  --_mix-5a: 38%;
+  --intent-2a: color-mix(in oklch, var(--color-neutral-9) 10%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-neutral-9) 18%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-neutral-9) 28%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-neutral-9) 38%, transparent);
 }
 
 /* Floating surfaces sit above raised ones. Shadows barely show on dark, so
