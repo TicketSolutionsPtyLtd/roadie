@@ -9,6 +9,15 @@ const maps: Record<string, object> = {
   'dist/c.js.map': {
     sources: ['../src/c.ts', '../src/d.ts'],
     sourcesContent: ['code', null]
+  },
+  'dist/e.js.map': {
+    sources: [
+      '../src/e.ts',
+      '../../../node_modules/.pnpm/aria-query@5.3.2/node_modules/aria-query/lib/index.js',
+      '../../../node_modules/.pnpm/aria-query@5.3.2/node_modules/aria-query/lib/roles.js',
+      '../../../node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/index.js'
+    ],
+    sourcesContent: ['code', 'code', 'code', 'code']
   }
 }
 const read = (file: string) => JSON.stringify(maps[file])
@@ -29,7 +38,20 @@ describe('packProblems', () => {
     'dist/a.test.d.ts',
     'dist/testUtils.d.ts',
     'dist/testUtils-Bx1.js',
+    'dist/Sortable/lanes.testUtils.js',
+    'dist/Sortable/lanes.testUtils.d.ts',
+    'dist/lanes.testUtils-Bx1.js',
+    'dist/Sortable.lanesTestUtils.js',
+    'dist/lanes-test-utils.js',
+    'dist/lanes_testUtils.js',
+    'dist/lanes.test_utils.js',
     'dist/test-utils/index.js',
+    'dist/testUtils/index.js',
+    'dist/Sortable/lanes.testUtils/index.js',
+    'dist/_test/browser.js',
+    'dist/Hero/fixtures.js',
+    'dist/plot/testChart.js',
+    'dist/plot/browserTesting.d.ts',
     'dist/test/setup.js',
     'dist/tests/setup.js'
   ])('flags %s as a test file', (file) => {
@@ -43,9 +65,71 @@ describe('packProblems', () => {
     'dist/latest.d.ts',
     'dist/contest/index.js',
     'dist/latestUtils.js',
-    'dist/contestUtils.js'
+    'dist/contestUtils.js',
+    'dist/contest-utils.js',
+    'dist/Contest/latest.utils.js',
+    'dist/contest_utils/index.js',
+    'dist/prefixtures.js',
+    'dist/plot/hitTesting.js',
+    'dist/plot/testCharts.js'
   ])('ships %s', (file) => {
     expect(packProblems([file], read)).toEqual([])
+  })
+
+  it.each([
+    [
+      'dist/node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/index.js',
+      '@testing-library/dom'
+    ],
+    ['dist/node_modules/aria-query/lib/index.js', 'aria-query'],
+    ['dist/node_modules/vitest/dist/index.js', 'vitest'],
+    ['node_modules/vitest/dist/index.js', 'vitest'],
+    [
+      'dist/node_modules/.pnpm/axe-core@4.14.0/node_modules/axe-core/axe.js',
+      'axe-core'
+    ],
+    ['dist/node_modules/@vitest/spy/dist/index.js', '@vitest/spy']
+  ])('flags %s as part of a test library', (file, library) => {
+    expect(packProblems([file], read)).toEqual([
+      `${file} is from ${library}, a test library`
+    ])
+  })
+
+  it('names each test library once, with how many files it adds', () => {
+    const lib =
+      'dist/node_modules/.pnpm/aria-query@5.3.0/node_modules/aria-query/lib'
+    expect(
+      packProblems(
+        [`${lib}/index.js`, 'dist/index.js', `${lib}/a.js`, `${lib}/b.js`],
+        read
+      )
+    ).toEqual([
+      `${lib}/index.js and 2 more are from aria-query, a test library`
+    ])
+  })
+
+  it("counts a test library's own map as one of its files, unread", () => {
+    const lib = 'dist/node_modules/aria-query/lib'
+    expect(
+      packProblems([`${lib}/index.js`, `${lib}/index.js.map`], read)
+    ).toEqual([
+      `${lib}/index.js and 1 more are from aria-query, a test library`
+    ])
+  })
+
+  it.each([
+    'dist/node_modules/.pnpm/@atlaskit+pragmatic-drag-and-drop@1.7.7/node_modules/@atlaskit/pragmatic-drag-and-drop/dist/esm/index.js',
+    'dist/node_modules/aria-query-builder/index.js',
+    'dist/aria-query/index.js',
+    'dist/vitest/index.js'
+  ])('ships %s, which is no test library', (file) => {
+    expect(packProblems([file], read)).toEqual([])
+  })
+
+  it('flags a bundle whose map names a test library', () => {
+    expect(packProblems(['dist/e.js.map'], read)).toEqual([
+      'dist/e.js.map bundles test libraries: aria-query, @testing-library/dom'
+    ])
   })
 
   it('accepts a map that embeds its sources', () => {

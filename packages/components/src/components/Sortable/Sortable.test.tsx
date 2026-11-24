@@ -13,7 +13,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Sortable, type SortableHandleProps, type SortableMove } from '.'
 import { List } from '../List'
-import { Lanes } from './lanes.testUtils'
+import { Lanes } from './lanesTestUtils'
 
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
 
@@ -245,6 +245,19 @@ describe('Sortable', () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('"Z" is not in its Sortable\'s items')
     )
+    warn.mockRestore()
+  })
+
+  it("doesn't warn about a disabled item left out of items, such as one leaving", () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['A']} onReorder={() => {}}>
+        <Sortable.Item value='Z' disabled>
+          <Sortable.Handle />
+        </Sortable.Item>
+      </Sortable>
+    )
+    expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
   })
 

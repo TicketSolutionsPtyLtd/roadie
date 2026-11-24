@@ -18,6 +18,7 @@ export function FileUploadTrigger({
   id,
   ref,
   disabled,
+  focusableWhenDisabled,
   onClick,
   children,
   emphasis,
@@ -39,7 +40,13 @@ export function FileUploadTrigger({
           'h-full self-stretch rounded-l-none rounded-r-md border-0 border-l border-subtle',
         className
       )}
-      disabled={context.disabled || disabled}
+      disabled={context.disabled || disabled || context.full}
+      // Full, it stays focusable, like the Dropzone.
+      focusableWhenDisabled={
+        focusableWhenDisabled ??
+        (context.full && !context.disabled && !disabled)
+      }
+      aria-busy={context.checking.length > 0 || undefined}
       // The field's label and the chosen file come first, then what the button does.
       aria-labelledby={[context.labelId, context.valueId, triggerId]
         .filter(Boolean)

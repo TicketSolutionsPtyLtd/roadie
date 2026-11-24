@@ -9,8 +9,10 @@ import {
   type Engine,
   type FrameBudget,
   type MissMarks,
+  type RunNote,
   budgetMisses,
   defaultBudget,
+  frameNotice,
   missExcuse,
   summariseFrames
 } from './stats'
@@ -32,6 +34,7 @@ declare module 'vitest/browser' {
     throttleCpu: (rate?: number) => Promise<number>
     renderMetrics: () => Promise<{ styleMs: number; layoutMs: number }>
     recordFrames: (record: FrameRecord) => Promise<void>
+    printFrameNotices: (lines: string[]) => Promise<void>
     /** Main-thread self time by function, longest first, between start and stop. */
     profileCpu: (action: 'start' | 'stop', top?: number) => Promise<string[]>
   }
@@ -52,10 +55,12 @@ export async function settle(frames = 2) {
 let cpu = 1
 let activeRoot: Root | undefined
 let activeContainer: HTMLElement | undefined
+const notices: string[] = []
 
 /**
  * Registers the file's hooks: the stylesheet and brand font before its tests,
- * the CPU slowed for them, and each test's mount removed after it.
+ * the CPU slowed for them, each test's mount removed after it, and a line
+ * printed at the end for each run that was excused or carries a note.
  */
 export function setupFrameTests({
   css,
@@ -81,6 +86,7 @@ export function setupFrameTests({
     await commands.throttleCpu(1)
     cpu = 1
     style?.remove()
+    await commands.printFrameNotices(notices.splice(0))
   })
   afterEach(unmount)
 }
@@ -229,11 +235,17 @@ export async function measureWhile(
  * that one hiccup can't fail it. `knownMiss` names the ticket for a miss
  * that's filed rather than fixed, and `exception` the reason a miss is
  * accepted by design: either way the run is still recorded, but doesn't fail.
+ * `note` keeps a short remark with the run, such as its style time.
  */
 export async function expectFrameBudget(
   scenario: string,
   frames: FrameReport,
-  { knownMiss, exception, ...budget }: Partial<FrameBudget> & MissMarks = {}
+  {
+    knownMiss,
+    exception,
+    note,
+    ...budget
+  }: Partial<FrameBudget> & MissMarks & RunNote = {}
 ) {
   const limits = { ...defaultBudget(engine), ...budget }
   const misses = budgetMisses(frames, limits)
@@ -247,14 +259,12 @@ export async function expectFrameBudget(
     scenario,
     pass: misses.length === 0,
     ...(knownMiss && { knownMiss }),
-    ...(exception && { exception })
+    ...(exception && { exception }),
+    ...(note && { note })
   })
-  const excuse = missExcuse(frames.frames, { knownMiss, exception })
-  if (excuse) {
-    console.log(
-      `FRAMES ${scenario}, excused (${excuse}): ${misses.join(', ') || 'met the budget this run'}`
-    )
-    return
-  }
+  const marks = { knownMiss, exception, note }
+  const notice = frameNotice(scenario, frames, misses, marks)
+  if (notice) notices.push(notice)
+  if (missExcuse(frames.frames, marks)) return
   expect(misses, `${scenario}: ${JSON.stringify(frames)}`).toEqual([])
 }

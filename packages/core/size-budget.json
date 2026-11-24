@@ -4,7 +4,7 @@
   "./theme": { "own": 1182, "full": 1182, "initial": 1182 },
   "./navigator": { "own": 303, "full": 303, "initial": 303 },
   "./utils": { "own": 773, "full": 8397, "initial": 8397 },
-  "./image": { "own": 1563, "full": 1563, "initial": 1563 },
+  "./image": { "own": 1616, "full": 1616, "initial": 1616 },
   "./datetime": { "own": 9375, "full": 9375, "initial": 9375 },
   "./number": { "own": 509, "full": 509, "initial": 509 },
   "./phone": { "own": 2218, "full": 2218, "initial": 2218 },

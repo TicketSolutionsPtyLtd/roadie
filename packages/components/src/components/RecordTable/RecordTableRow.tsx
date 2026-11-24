@@ -16,6 +16,7 @@ import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { tableRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
+import { RowElement } from './RecordTableRowPlace'
 import { type ColumnLayout, priorityProps } from './layout'
 import type { RecordTableColumn } from './types'
 
@@ -113,8 +114,6 @@ type RecordTableRowProps = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   href?: string
-  /** One-based, counting the header row, when the table holds only some of its rows. */
-  rowIndex?: number
 }
 
 // Memoised so rows a change doesn't touch skip re-rendering.
@@ -128,8 +127,7 @@ export const RecordTableRow = memo(function RecordTableRow({
   selected,
   onToggle,
   rowActions,
-  href,
-  rowIndex
+  href
 }: RecordTableRowProps) {
   const rowRef = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(rowRef)
@@ -144,10 +142,8 @@ export const RecordTableRow = memo(function RecordTableRow({
       selectable ? (range) => onToggle(id, range) : undefined
     )
   return (
-    <div
+    <RowElement
       ref={rowRef}
-      role='row'
-      aria-rowindex={rowIndex}
       data-slot='record-table-row'
       data-row-id={id}
       data-selected={selected || undefined}
@@ -245,7 +241,7 @@ export const RecordTableRow = memo(function RecordTableRow({
           />
         </div>
       )}
-    </div>
+    </RowElement>
   )
 })
 RecordTableRow.displayName = 'RecordTableRow'

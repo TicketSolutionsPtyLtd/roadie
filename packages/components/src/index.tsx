@@ -128,6 +128,7 @@ export {
   type ImageCropControlsProps,
   type ImageCropZoomProps,
   type ImageCropRotateProps,
+  type ImageCropStraightenProps,
   type ImageCropResetProps,
   type ImageCropShape,
   type ImageCropValue

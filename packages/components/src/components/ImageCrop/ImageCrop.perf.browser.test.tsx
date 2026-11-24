@@ -131,3 +131,55 @@ describe('ImageCrop pans and pinches at 60fps on a slowed CPU', () => {
     ).not.toBe('2400 × 1600px')
   })
 })
+
+describe('ImageCrop straightens at 60fps on a slowed CPU', () => {
+  it('drags the straighten dial back and forth for two seconds', async () => {
+    const photo = await makePhoto(2400, 1600)
+    const root = await mount(
+      <EventPage>
+        <div style={{ width: 640 }}>
+          <ImageCrop src={photo} aspectRatio={2} label='Event image' />
+        </div>
+      </EventPage>,
+      { frames: 5 }
+    )
+    await expect
+      .poll(() => root.querySelector('[data-slot="image-crop-size"]'))
+      .not.toBeNull()
+    const thumb = root.querySelector('[aria-label="Straighten"]')!
+    const control = thumb.closest<HTMLElement>('[data-slot="slider-control"]')!
+    const image = root.querySelector('img')!
+    const box = control.getBoundingClientRect()
+    const y = box.top + box.height / 2
+    const centre = box.left + box.width / 2
+    const send = (target: EventTarget, type: string, x: number) =>
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 1,
+          pointerType: 'mouse',
+          button: 0,
+          buttons: type === 'pointerup' ? 0 : 1,
+          clientX: x,
+          clientY: y,
+          bubbles: true
+        })
+      )
+    const frames = 120
+    const transforms = new Set<string>()
+    await expectFrameBudget(
+      'ImageCrop, straighten drag',
+      await measureFrames(
+        (index) => {
+          const x = centre + Math.sin((index / frames) * 6) * box.width * 0.4
+          if (index === 0) send(control, 'pointerdown', centre)
+          else if (index < frames) send(control, 'pointermove', x)
+          else send(control, 'pointerup', x)
+          transforms.add(image.style.transform)
+        },
+        { frames: frames + 1 }
+      )
+    )
+    // The drag painted the image at many angles, not just once.
+    expect(transforms.size).toBeGreaterThan(frames / 2)
+  })
+})
