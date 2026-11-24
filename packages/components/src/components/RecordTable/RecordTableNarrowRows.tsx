@@ -171,6 +171,7 @@ function NarrowRow({
     timeZone: shared.timeZone,
     parts: shared.parts
   }
+  // Stable, so a row's element renders again only when its place changes.
   const place = useMemo(() => ({ posInSet, setSize }), [posInSet, setSize])
   if (shared.layout === 'list')
     return (
