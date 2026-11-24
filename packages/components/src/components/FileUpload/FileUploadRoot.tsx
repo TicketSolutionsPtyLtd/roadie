@@ -106,6 +106,7 @@ export function FileUploadRoot({
   const [uploads, setUploads] = useState<ReadonlyMap<File, Upload>>(new Map())
   const [previous, setPrevious] = useState(files)
   const [said, say] = useState('')
+  const [alarm, raise] = useState('')
   if (previous !== files) {
     setPrevious(files)
     const added = files.filter((file) => !previous.includes(file))
@@ -168,10 +169,11 @@ export function FileUploadRoot({
           controllers.current.delete(file)
           patch(file, { status: 'done', progress: 1, result })
         },
-        () => {
+        (error: unknown) => {
           if (signal.aborted) return
           controllers.current.delete(file)
-          patch(file, { status: 'error' })
+          patch(file, { status: 'error', error })
+          raise(`${file.name} couldn't upload. Retry is available.`)
         }
       )
   })
@@ -260,6 +262,10 @@ export function FileUploadRoot({
           },
           remove: (file) => commit(files.filter((each) => each !== file)),
           uploads,
+          retry: (file) => {
+            raise('')
+            patch(file, { status: 'queued', progress: 0, error: undefined })
+          },
           inputId,
           valueId: `${ownId}-value`,
           triggerRef,
@@ -294,6 +300,9 @@ export function FileUploadRoot({
       />
       <p role='status' className='sr-only'>
         {said}
+      </p>
+      <p aria-live='assertive' className='sr-only'>
+        {alarm}
       </p>
     </div>
   )
