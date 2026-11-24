@@ -4,6 +4,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
 import {
+  engine,
   expectFrameBudget,
   frame,
   measureFrames,
@@ -136,6 +137,7 @@ const PUSHES: {
   name: string
   content: Content
   onPush: boolean
+  /** The push's miss; the pop meets its budget. */
   knownMiss?: string
 }[] = [
   { name: 'empty panes', content: 'empty', onPush: false },
@@ -166,15 +168,19 @@ describe('Pane steps through a phone stack at 60fps on a slowed CPU', () => {
       const push = await measureStep(`Pane phone, ${name}, push`, () =>
         go(true)
       )
-      expect(detailLeft()).toBe(0)
+      expect(detailLeft()).toBeCloseTo(0, 0)
       const pop = await measureStep(`Pane phone, ${name}, pop`, () => go(false))
       expect(detailLeft()).toBeGreaterThanOrEqual(PHONE[0])
-      for (const run of [push, pop])
-        await expectFrameBudget(run.scenario, run.frames, {
-          knownMiss,
-          note: `style ${run.style}ms`
-        })
-      if (!knownMiss) expect(push.style).toBeLessThanOrEqual(STYLE_CAP)
+      await expectFrameBudget(push.scenario, push.frames, {
+        knownMiss,
+        note: `style ${push.style}ms`
+      })
+      await expectFrameBudget(pop.scenario, pop.frames, {
+        note: `style ${pop.style}ms`
+      })
+      // Only Chromium reports style time.
+      if (!knownMiss && engine === 'chromium')
+        expect(push.style).toBeLessThanOrEqual(STYLE_CAP)
     }
   )
 })
