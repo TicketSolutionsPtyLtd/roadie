@@ -297,6 +297,7 @@ function VirtualGrid({
   useHeldHeight(bodyRef, true)
   const setRefs = useBodyRef(bodyRef, columnsRef)
   const { cells, padding } = recordsWindow(view, { rows, columns })
+  console.log('DBG', typeof window, columns, view.total, view.margin, view.items.length, view.items[0]?.start, view.items.at(-1)?.end, JSON.stringify(padding))
   return (
     <GridList {...listProps} bodyRef={setRefs} padding={padding}>
       {cells.map(({ key, index, row, leads, record }) => (
