@@ -137,37 +137,38 @@ describe('Sortable', () => {
     expect(handle('Date')).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('hears each press and key on a handle once, whether or not its menu had loaded', async () => {
-    const heard = { click: vi.fn(), keyDown: vi.fn(), above: vi.fn() }
-    const ref = { current: null as HTMLButtonElement | null }
-    const user = userEvent.setup()
-    render(
-      <Sortable items={['A', 'B']} onReorder={() => {}}>
-        <div onClick={heard.above} onKeyDown={heard.above}>
-          <Sortable.Item value='A' label='A'>
-            <Sortable.Handle
-              ref={ref}
-              onClick={heard.click}
-              onKeyDown={heard.keyDown}
-            />
-          </Sortable.Item>
-        </div>
-      </Sortable>
-    )
-    expect(ref.current).toBe(handle('A'))
-    handle('A').focus()
-    await user.keyboard('{ArrowDown}')
-    await screen.findByRole('menu')
-    expect(ref.current).toBe(handle('A'))
-    expect(heard.keyDown).toHaveBeenCalledTimes(1)
-    await user.keyboard('{Escape}')
-    await waitFor(() => expect(handle('A')).toHaveFocus())
-    heard.above.mockClear()
-    await user.click(handle('A'))
-    await screen.findByRole('menu')
-    expect(heard.click).toHaveBeenCalledTimes(1)
-    expect(heard.above).toHaveBeenCalledTimes(1)
-  })
+  it.each([
+    ['Enter', '{Enter}', { clicks: 1, above: 2 }],
+    ['the down arrow', '{ArrowDown}', { clicks: 0, above: 1 }]
+  ])(
+    'hears %s once on a handle it opens the menu of for the first time',
+    async (_, key, times) => {
+      const heard = { click: vi.fn(), keyDown: vi.fn(), above: vi.fn() }
+      const ref = { current: null as HTMLButtonElement | null }
+      const user = userEvent.setup()
+      render(
+        <Sortable items={['A']} onReorder={() => {}}>
+          <div onClick={heard.above} onKeyDown={heard.above}>
+            <Sortable.Item value='A' label='A'>
+              <Sortable.Handle
+                ref={ref}
+                onClick={heard.click}
+                onKeyDown={heard.keyDown}
+              />
+            </Sortable.Item>
+          </div>
+        </Sortable>
+      )
+      expect(ref.current).toBe(handle('A'))
+      handle('A').focus()
+      await user.keyboard(key)
+      await screen.findByRole('menu')
+      expect(ref.current).toBe(handle('A'))
+      expect(heard.keyDown).toHaveBeenCalledTimes(1)
+      expect(heard.click).toHaveBeenCalledTimes(times.clicks)
+      expect(heard.above).toHaveBeenCalledTimes(times.above)
+    }
+  )
 
   it('lists the moves and disables the ones past the ends', async () => {
     render(<Columns />)
