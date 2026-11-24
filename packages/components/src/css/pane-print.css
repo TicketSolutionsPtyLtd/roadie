@@ -53,7 +53,6 @@
     [data-slot='pane-search'],
     [data-slot='pane-title-compact'],
     [data-slot='pane-footer'],
-    [data-slot='pane-scroll-sentinels'],
     [data-slot='pane'] > [data-slot='scroll-area-scrollbar'] {
       display: none !important;
     }
