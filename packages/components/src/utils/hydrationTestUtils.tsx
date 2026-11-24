@@ -72,8 +72,7 @@ function Hydrated(props: { children: ReactNode; onHydrated: () => void }) {
  */
 export async function hydrationShift(html: string, ui: ReactElement) {
   const errors: string[] = []
-  const report = (...args: unknown[]) =>
-    errors.push(args.map(String).join(' ').slice(0, 200))
+  const report = (...args: unknown[]) => errors.push(args.map(String).join(' '))
   const consoleError = console.error
   const host = document.createElement('div')
   document.body.append(host)

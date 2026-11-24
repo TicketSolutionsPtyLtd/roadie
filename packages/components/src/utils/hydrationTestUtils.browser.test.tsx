@@ -55,9 +55,9 @@ it.each<[string, (mounted: boolean) => ReactNode, string[]]>([
 })
 
 it.each<[string, ReactElement, ReactElement, RegExp]>([
-  ['text', <p>Server</p>, <p>Client</p>, /Hydration failed/],
-  ['attribute', <p lang='en' />, <p lang='fr' />, /some attributes/]
-])('hydrationShift reports a mismatched %s', async (_, sent, ui, error) => {
+  ['text', <p>Server</p>, <p>Client</p>, /Hydration failed[^]+\+ +Client/],
+  ['attribute', <p lang='en' />, <p lang='fr' />, /attributes[^]+lang="fr"/]
+])('hydrationShift names the %s that differs', async (_, sent, ui, error) => {
   const found = await hydrationShift(renderToString(sent), ui)
   expect(found.join('\n')).toMatch(error)
 })
