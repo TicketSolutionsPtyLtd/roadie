@@ -1,26 +1,29 @@
 export const metadata = {
-  title: 'Image crop',
-  description: 'Crops an image to a fixed ratio by panning and zooming it under a frame',
-  status: 'alpha',
-  category: 'Media & brand',
-}
+  title: "Image crop",
+  description:
+    "Crops an image to a fixed ratio by panning, zooming and turning it under a frame",
+  status: "alpha",
+  category: "Media & brand",
+};
 
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from "@/components/PropsDefinitions";
+import { Guideline, Guidelines } from "@/components/Guideline";
 
-Crops an image to a fixed ratio by panning and zooming it under a frame.
+Crops an image to a fixed ratio by panning, zooming and turning it under a frame.
 
 ## Import
 
 ```tsx
-import { ImageCrop } from '@oztix/roadie-components/image-crop'
+import { ImageCrop } from "@oztix/roadie-components/image-crop";
 ```
 
 ## Examples
 
 ### Default
 
-The frame stays still and the image moves under it. Drag to pan. Focus the crop area, then scroll, press `+` or `-`, or use the arrow keys. The image always covers the frame, so there are never empty corners. `src` takes a URL, or a `File` or `Blob` such as one from `FileUpload`.
+The frame stays still and the image moves under it. Drag to pan, and pinch or double-tap to zoom, on a touch screen or a trackpad. The controls under the crop area zoom, turn the image 90° left, and reset the crop once it has changed. Focus the crop area to scroll, press `+`, `-` or `R`, or use the arrow keys.
+
+Past an edge or a zoom limit the image gives way, then springs back when you let go, so there are never empty corners. The size chip shows the crop in the image's own pixels. `src` takes a URL, or a `File` or `Blob` such as one from `FileUpload`.
 
 ```tsx-live width=180
 <ImageCrop
@@ -32,7 +35,7 @@ The frame stays still and the image moves under it. Drag to pan. Focus the crop 
 
 ### Minimum size
 
-`minWidth` and `minHeight` are the smallest crop in the image's own pixels. Zoom stops before the crop drops below them, so an event image is never under 1200 × 600px. An E-ticket banner is 10:3, at least 1000 × 300px.
+`minWidth` and `minHeight` are the smallest crop in the image's own pixels. Zoom stops before the crop drops below them, so an event image is never under 1200 × 600px. At the limit the size chip turns to a warning that says so, and nudges if you try to go further. An image smaller than the minimum says what it needs. An E-ticket banner is 10:3, at least 1000 × 300px.
 
 ```tsx-live width=180
 <ImageCrop
@@ -44,7 +47,7 @@ The frame stays still and the image moves under it. Drag to pan. Focus the crop 
 />
 ```
 
-### Circle
+### Avatar
 
 `shape='circle'` changes only the mask. The value is still a rectangle, so crop the image to it and round it where it shows, as `Avatar` does.
 
@@ -53,13 +56,14 @@ The frame stays still and the image moves under it. Drag to pan. Focus the crop 
   src='/brand/photography/05.webp'
   aspectRatio={1}
   shape='circle'
+  minWidth={200}
   label='Profile photo'
 />
 ```
 
 ### Value
 
-`onValueChange` gets the crop once the image loads, unless a `value` or `defaultValue` already fits, then once each drag, burst of scrolling, or key press ends, never on every frame. A new `src` starts centred unless a new `value` comes with it. `area` is in the image's own pixels and `percent` runs 0 to 100, both from the top left. `zoom` is screen pixels per image pixel, so it changes with the crop area's size: save `area` or `percent`.
+`onValueChange` gets the crop once the image loads, unless a `value` or `defaultValue` already fits, then once each drag, pinch, burst of scrolling, key press or button press ends, never on every frame. A new `src` starts centred unless a new `value` comes with it. `area` is in the image's own pixels and `percent` runs 0 to 100, both from the top left of the image once it's turned by `rotation`, in degrees clockwise. `zoom` is screen pixels per image pixel, so it changes with the crop area's size: save `area` or `percent`.
 
 ```tsx-live-noinline layout=stack gap=3
 function EventImage() {
@@ -88,11 +92,15 @@ render(<EventImage />)
 
 ### Composition
 
-`ImageCrop.Stage` is the crop area. It's 4:3 and as wide as its container by default; set its size with `className`.
+`ImageCrop.Stage` is the crop area. It's 4:3 and as wide as its container by default; set its size with `className`. `ImageCrop.Controls` is the pill over its bottom edge, with `ImageCrop.Zoom`, `ImageCrop.Rotate` and `ImageCrop.Reset` inside. Pass the parts you want, or leave the controls out.
 
 ```tsx-live width=180
 <ImageCrop src='/brand/photography/08.webp' aspectRatio={2}>
   <ImageCrop.Stage className='aspect-video' />
+  <ImageCrop.Controls>
+    <ImageCrop.Zoom />
+    <ImageCrop.Reset />
+  </ImageCrop.Controls>
 </ImageCrop>
 ```
 
@@ -100,16 +108,19 @@ render(<EventImage />)
 
 <Guidelines>
 
-<Guideline title='Set the minimum the slot needs'>
-  <Guideline.Do code={`<ImageCrop aspectRatio={2} minWidth={1200} minHeight={600} />`}>
-    Pass the smallest size the image shows at, so nobody can zoom into a crop that looks soft.
+<Guideline title="Set the minimum the slot needs">
+  <Guideline.Do
+    code={`<ImageCrop aspectRatio={2} minWidth={1200} minHeight={600} />`}
+  >
+    Pass the smallest size the image shows at, so nobody can zoom into a crop
+    that looks soft.
   </Guideline.Do>
   <Guideline.Dont code={`<ImageCrop aspectRatio={2} />`}>
     Don't leave zoom uncapped for an image with a size rule.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Save the area, not the zoom'>
+<Guideline title="Save the area, not the zoom">
   <Guideline.Do code={`onValueChange={(crop) => save(crop.area)}`}>
     Store `area` or `percent`. Either one puts the crop back on any screen.
   </Guideline.Do>
@@ -123,8 +134,10 @@ render(<EventImage />)
 ## Accessibility
 
 - The crop area is a focusable group named by `label` (default "Crop image"), with a description that says how to move and zoom the image.
-- The arrow keys move the image 10px, or 50px with Shift. `+` and `-` zoom in and out.
-- A plain scroll zooms only once the crop area has focus, so scrolling the page past it never zooms by accident.
-- Focus shows a ring around the crop area. The frame, its grid, and the image are hidden from screen readers.
+- The arrow keys move the image 10px, or 50px with Shift. `+` and `-` zoom in and out, and `R` turns the image 90° left. Each moves at once; a turn springs.
+- The controls are a group named "Crop controls": two buttons and a slider named "Zoom", whose value reads as a percent of the zoom that covers the frame, then "Rotate left", and "Reset crop" once there's something to reset. Pressing Reset moves focus to the crop area. On a narrow crop the zoom buttons drop out, and the slider and keys still zoom.
+- A plain scroll zooms only once the crop area has focus, so scrolling the page past it never zooms by accident. A trackpad pinch zooms whether or not it has focus.
+- A polite live region says the crop's size, zoom and turn once a change settles, not on every frame.
+- Focus shows a ring around the crop area. The frame, its grid, the size chip and the image are hidden from screen readers. With reduced motion on, springs end at once.
 
-<PropsDefinitions component='ImageCrop' />
+<PropsDefinitions component="ImageCrop" />

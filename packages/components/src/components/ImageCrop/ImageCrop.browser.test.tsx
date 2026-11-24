@@ -70,7 +70,10 @@ async function renderCrop(props: Partial<ImageCropProps> = {}) {
 }
 
 const rect = (element: Element) => element.getBoundingClientRect()
-const frameOf = (stage: HTMLElement) => stage.querySelector('[aria-hidden]')!
+const frameOf = (stage: HTMLElement) =>
+  stage.querySelector('[data-slot="image-crop-frame"]')!
+const sizeOf = (stage: HTMLElement) =>
+  stage.querySelector('[data-slot="image-crop-size"]')!
 const imageOf = (stage: HTMLElement) => stage.querySelector('img')!
 
 function expectCovered(stage: HTMLElement) {
@@ -168,7 +171,7 @@ describe('ImageCrop on load', () => {
     // The value fits the photo, so it shows as given and nothing is reported.
     await waitFor(() =>
       expect(
-        rect(screen.getByRole('group').querySelector('img')!).width
+        rect(document.querySelector('[data-slot="image-crop"] img')!).width
       ).toBeCloseTo(2400 * (544 / 1200))
     )
     rerender(crop(square))
@@ -222,7 +225,7 @@ describe('ImageCrop on load', () => {
       </div>
     )
     const image = await waitFor(() => {
-      const element = screen.getByRole('group').querySelector('img')!
+      const element = document.querySelector('[data-slot="image-crop"] img')!
       expect(element).toBeVisible()
       return element
     })
@@ -317,18 +320,28 @@ describe('ImageCrop with a pointer', () => {
     ])
   })
 
-  it('stops at the edge, so the image still covers the frame', async () => {
+  it('stretches past the edge, then springs back to cover', async () => {
     await commands.parkPointer()
     const { stage, last } = await renderCrop()
     const { x, y } = rect(stage)
+    const frame = rect(frameOf(stage))
     await commands.pointer([
       { type: 'move', x: x + 320, y: y + 100 },
       { type: 'down' },
-      { type: 'move', x: x + 600, y: y + 460, steps: 6 },
-      { type: 'up' }
+      { type: 'move', x: x + 600, y: y + 460, steps: 6 }
     ])
+    // 280px past the left edge, the image gives way, but by less.
+    const stretched = rect(imageOf(stage)).left - frame.left
+    expect(stretched).toBeGreaterThan(20)
+    expect(stretched).toBeLessThan(280)
+    await commands.pointer([{ type: 'up' }])
     expect(last().area).toMatchObject({ x: 0, y: 0 })
-    expectCovered(stage)
+    // It springs on --ease-spring, so it is still on its way back for a moment.
+    expect(stage).toHaveAttribute('data-settling')
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    // On a loaded runner the spring can start a frame late, so it lands by
+    // the end of its transition rather than exactly when the stage settles.
+    await waitFor(() => expectCovered(stage))
   })
 })
 
@@ -485,5 +498,289 @@ describe('ImageCrop with a circle', () => {
     })
     expect(getComputedStyle(frameOf(stage)).borderRadius).not.toBe('0px')
     expect(last().area).toEqual({ x: 400, y: 0, width: 1600, height: 1600 })
+  })
+})
+
+// Touch pointers, dispatched, since only Chromium can drive two fingers. In
+// screen px from the stage's centre.
+function fingers(stage: HTMLElement) {
+  const send = (type: string, pointerId: number, x: number, y: number) => {
+    const box = rect(stage)
+    stage.dispatchEvent(
+      new PointerEvent(type, {
+        pointerId,
+        pointerType: 'touch',
+        isPrimary: pointerId === 1,
+        clientX: box.x + box.width / 2 + x,
+        clientY: box.y + box.height / 2 + y,
+        bubbles: true,
+        cancelable: true
+      })
+    )
+  }
+  return {
+    down: (id: number, x: number, y: number) => send('pointerdown', id, x, y),
+    move: (id: number, x: number, y: number) => send('pointermove', id, x, y),
+    up: (id: number, x: number, y: number) => send('pointerup', id, x, y)
+  }
+}
+
+const cover = 544 / 2400
+
+describe('ImageCrop with a pinch', () => {
+  it('zooms about the midpoint, and reports once both fingers lift', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    const touch = fingers(stage)
+    touch.down(1, 50, 0)
+    touch.down(2, 150, 0)
+    for (let step = 1; step <= 5; step++) {
+      touch.move(1, 50 - step * 10, 0)
+      touch.move(2, 150 + step * 10, 0)
+    }
+    touch.up(1, 0, 0)
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    touch.up(2, 200, 0)
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    // Twice as far apart is twice the zoom, and the point under the
+    // midpoint, 100px right of centre, stays under it.
+    expect(last().zoom).toBeCloseTo(cover * 2)
+    expect(last().area.x).toBeCloseTo(1200 + 100 / (cover * 2) - 600, 0)
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    expectCovered(stage)
+  })
+
+  it('stretches past cover, then springs back', async () => {
+    const { stage, onValueChange } = await renderCrop()
+    const touch = fingers(stage)
+    touch.down(1, -100, 0)
+    touch.down(2, 100, 0)
+    touch.move(1, -25, 0)
+    touch.move(2, 25, 0)
+    // A quarter of the zoom asks for less than cover, so it gives way.
+    expect(rect(imageOf(stage)).width).toBeLessThan(544)
+    expect(rect(imageOf(stage)).width).toBeGreaterThan(544 / 4)
+    touch.up(1, -25, 0)
+    touch.up(2, 25, 0)
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    expectCovered(stage)
+    // It ended where it started, so there's nothing to report.
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('ends a pinch unreported when the image changes under it', async () => {
+    const { stage, onValueChange, update } = await renderCrop()
+    const touch = fingers(stage)
+    touch.down(1, -50, 0)
+    touch.down(2, 50, 0)
+    touch.move(2, 80, 0)
+    update({ src: square })
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+    touch.move(1, -150, 0)
+    touch.up(1, -150, 0)
+    touch.up(2, 150, 0)
+    await nextFrames()
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('ImageCrop with a double-tap', () => {
+  it('zooms to 2× at the tap, then back out to fit', async () => {
+    const { stage, last } = await renderCrop()
+    const touch = fingers(stage)
+    const tap = () => {
+      touch.down(1, 0, 0)
+      touch.up(1, 0, 0)
+    }
+    tap()
+    tap()
+    expect(last().zoom).toBeCloseTo(cover * 2)
+    await waitFor(() => expect(stage).toHaveAttribute('data-settling'))
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    tap()
+    tap()
+    expect(last().zoom).toBeCloseTo(cover)
+  })
+})
+
+describe('ImageCrop with a trackpad pinch', () => {
+  it('zooms at the cursor without focus', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    const box = rect(stage)
+    const event = new WheelEvent('wheel', {
+      deltaY: -20,
+      ctrlKey: true,
+      clientX: box.x + box.width / 2 + 200,
+      clientY: box.y + box.height / 2,
+      bubbles: true,
+      cancelable: true
+    })
+    stage.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(true)
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+    const { area, zoom } = last()
+    expect(zoom).toBeGreaterThan(cover)
+    // The natural point under the cursor stays under it.
+    expect(area.x + area.width / 2 + 200 / zoom).toBeCloseTo(
+      1200 + 200 / cover,
+      0
+    )
+  })
+})
+
+describe('ImageCrop controls', () => {
+  it('turns left with the button or R, springing, and reports each', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(last().rotation).toBe(270)
+    const { x, y, width, height } = last().area
+    expect([x, y, width, height].map(Math.round)).toEqual([0, 800, 1600, 800])
+    expect(stage).toHaveAttribute('data-settling')
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    expectCovered(stage)
+    stage.focus()
+    await userEvent.keyboard('r')
+    expect(last().rotation).toBe(180)
+  })
+
+  it('turns the short way round, from 0° to 270°', async () => {
+    const { stage } = await renderCrop()
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    expect(imageOf(stage).style.transform).toContain('rotate(-90deg)')
+  })
+
+  it('shows Reset once the crop moves, and springs back with it', async () => {
+    const { stage, last } = await renderCrop()
+    // Hidden, it has no accessible name to find it by.
+    const reset = document.querySelector<HTMLElement>(
+      '[aria-label="Reset crop"]'
+    )!
+    expect(reset).not.toBeVisible()
+    stage.focus()
+    await userEvent.keyboard('{ArrowUp}++')
+    expect(reset).toBeVisible()
+    await userEvent.click(reset)
+    expect(last().area).toEqual({ x: 0, y: 200, width: 2400, height: 1200 })
+    expect(last().rotation).toBe(0)
+    expect(reset).not.toBeVisible()
+    expect(stage).toHaveFocus()
+  })
+
+  it('zooms with the slider, reporting each key press', async () => {
+    const { onValueChange, last } = await renderCrop()
+    const slider = screen.getByRole('slider', { name: 'Zoom' })
+    expect(slider).toHaveAttribute('aria-valuetext', '100%')
+    slider.focus()
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}')
+    expect(onValueChange).toHaveBeenCalledTimes(3)
+    expect(last().zoom).toBeGreaterThan(cover)
+    expect(slider.getAttribute('aria-valuetext')).not.toBe('100%')
+  })
+
+  it('caps the size chip at the minimum crop, and nudges past it', async () => {
+    const { stage, onValueChange } = await renderCrop({
+      minWidth: 1200,
+      minHeight: 600
+    })
+    expect(sizeOf(stage)).toHaveTextContent('2400 × 1200px')
+    const zoomIn = screen.getByRole('button', { name: 'Zoom in' })
+    for (let press = 0; press < 4; press++) await userEvent.click(zoomIn)
+    expect(sizeOf(stage)).toHaveTextContent('1200 × 600px · smallest crop')
+    expect(sizeOf(stage)).toHaveAttribute('data-capped')
+    expect(sizeOf(stage)).not.toHaveClass('animate-nudge')
+    const calls = onValueChange.mock.calls.length
+    await userEvent.click(zoomIn)
+    expect(sizeOf(stage)).toHaveClass('animate-nudge')
+    expect(onValueChange).toHaveBeenCalledTimes(calls)
+  })
+
+  it('says the crop once it settles', async () => {
+    await renderCrop()
+    const status = screen.getByRole('status')
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    expect(status).toBeEmptyDOMElement()
+    await waitFor(() =>
+      expect(status).toHaveTextContent(
+        'Crop 1600 by 800 pixels, zoom 100 percent, turned 90 degrees left.'
+      )
+    )
+  })
+
+  it('drops − and + on a narrow crop', async () => {
+    render(
+      <div style={{ width: 360 }}>
+        <ImageCrop src={photo} aspectRatio={2} />
+      </div>
+    )
+    expect(document.querySelector('[aria-label="Zoom in"]')).not.toBeVisible()
+    expect(screen.getByRole('slider', { name: 'Zoom' })).toBeInTheDocument()
+  })
+})
+
+describe('ImageCrop gestures that overlap', () => {
+  const wheel = (stage: HTMLElement) => {
+    const box = rect(stage)
+    stage.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -60,
+        clientX: box.x + box.width / 2,
+        clientY: box.y + box.height / 2,
+        bubbles: true,
+        cancelable: true
+      })
+    )
+  }
+
+  it('folds a settling wheel zoom into the drag that follows, reporting once', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    stage.focus()
+    wheel(stage)
+    const touch = fingers(stage)
+    touch.down(1, 0, 0)
+    touch.move(1, 20, 0)
+    // Long past the wheel's settle time, with the finger still down.
+    // Nothing happens to wait on: the wheel's 150ms settle must pass unreported.
+    // eslint-disable-next-line roadie/no-fixed-sleep
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    touch.up(1, 20, 0)
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(last().zoom).toBeGreaterThan(cover)
+  })
+
+  it('lets the slider win over a wheel zoom still settling', async () => {
+    const { stage, onValueChange, last } = await renderCrop()
+    stage.focus()
+    wheel(stage)
+    const slider = screen.getByRole('slider', { name: 'Zoom' })
+    slider.focus()
+    await userEvent.keyboard('{End}')
+    const zoom = last().zoom
+    // Nothing happens to wait on: the wheel's 150ms settle must pass unreported.
+    // eslint-disable-next-line roadie/no-fixed-sleep
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(last().zoom).toBe(zoom)
+  })
+
+  it('keeps the slider preview on screen through a re-render', async () => {
+    await commands.parkPointer()
+    const { stage } = await renderCrop()
+    const track = document
+      .querySelector('[data-slot="slider-control"]')!
+      .getBoundingClientRect()
+    await commands.pointer([
+      { type: 'move', x: track.left + 2, y: track.top + track.height / 2 },
+      { type: 'down' },
+      {
+        type: 'move',
+        x: track.right - 10,
+        y: track.top + track.height / 2,
+        steps: 4
+      }
+    ])
+    await nextFrames()
+    expect(rect(imageOf(stage)).width).toBeGreaterThan(2400 * cover * 1.5)
+    await commands.pointer([{ type: 'up' }])
   })
 })
