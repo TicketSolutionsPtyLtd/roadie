@@ -248,6 +248,19 @@ describe('Sortable', () => {
     warn.mockRestore()
   })
 
+  it("doesn't warn about a disabled item left out of items, such as one leaving", () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['A']} onReorder={() => {}}>
+        <Sortable.Item value='Z' disabled>
+          <Sortable.Handle />
+        </Sortable.Item>
+      </Sortable>
+    )
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
   it('names horizontal moves by side', async () => {
     render(<Columns orientation='horizontal' />)
     const { menu } = await openMenu('SKU')
