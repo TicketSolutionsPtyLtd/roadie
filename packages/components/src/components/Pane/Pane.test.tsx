@@ -194,8 +194,8 @@ describe('Pane.Header', () => {
     const header = document.querySelector('[data-slot="pane-header"]')
     expect(header).not.toHaveClass('bg-inherit')
     expect(header).toHaveClass(
-      'bg-[color-mix(in_oklab,var(--pane-surface,var(--intent-bg-normal))_80%,transparent)]',
-      'backdrop-blur-md'
+      'is-translucent',
+      '[--raised-fill:var(--pane-surface,var(--intent-bg-normal))]'
     )
   })
 
