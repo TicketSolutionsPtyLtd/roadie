@@ -39,18 +39,18 @@ export function ImageCropStraighten({
   // Where the thumb is mid-drag, while only the transform follows it.
   const [dragging, setDragging] = useState<number>()
   // ±45° is the same picture as the next quarter turn's ∓45°, so the dial
-  // keeps the end it was moved to.
+  // keeps the end it was last set to.
   const [last, setLast] = useState(0)
   let angle = shown ? straightenOf(shown.rotation) : 0
-  if (angle === -LIMIT && last === LIMIT) angle = LIMIT
+  if (Math.abs(angle) === LIMIT && Math.abs(last) === LIMIT) angle = last
 
   // The value at `to`, turned from the crop on screen.
   const turned = (to: number): ImageCropValue | undefined => {
     if (!scene || !shown) return undefined
-    setLast(to)
     return rotateBy(shown, tenth(to - angle), scene)
   }
   const settle = (to: number) => {
+    setLast(to)
     const next = turned(to)
     if (next && shown && !sameCrop(next, shown)) crop.commit(next)
   }
@@ -95,7 +95,7 @@ export function ImageCropStraighten({
           crop.preview(null)
           settle(snap(value))
         }}
-        className='w-24 px-2 @sm:w-36'
+        className='w-24 px-2 @lg:w-36'
       >
         <Slider.Control>
           <Slider.Track>
@@ -120,7 +120,7 @@ export function ImageCropStraighten({
       </Slider>
       <span
         aria-hidden
-        className='w-8 text-xs font-semibold text-subtle tabular-nums @max-sm:hidden'
+        className='w-10 text-xs font-semibold text-subtle tabular-nums @max-lg:hidden'
       >
         {`${tenth(dragging ?? angle)}°`}
       </span>

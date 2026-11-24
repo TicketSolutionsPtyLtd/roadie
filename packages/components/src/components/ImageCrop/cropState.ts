@@ -162,8 +162,10 @@ export function zoomRange(scene: CropScene, rotation: number) {
  * from -45° up to 45°, clockwise positive.
  */
 export function straightenOf(rotation: number): number {
-  const angle = ((((rotation + 45) % 90) + 90) % 90) - 45
-  return Math.round(angle * 1e9) / 1e9
+  const angle =
+    Math.round((((((rotation + 45) % 90) + 90) % 90) - 45) * 1e9) / 1e9
+  // 45° is also -45° from the next turn; it reads as the one not turned at all.
+  return angle === -45 && Math.round(rotation) % 360 === 45 ? 45 : angle
 }
 
 /**
@@ -176,7 +178,9 @@ export function rotateBy(
   degrees: number,
   scene: CropScene
 ): ImageCropValue {
-  const rotation = (((value.rotation + degrees) % 360) + 360) % 360
+  // Rounded, as adding 360 leaves float noise in a tenth (9.699999999999989).
+  const turned = (((value.rotation + degrees) % 360) + 360) % 360
+  const rotation = (Math.round(turned * 1e9) / 1e9) % 360
   const from = boxOf(scene.image, value.rotation)
   const to = boxOf(scene.image, rotation)
   const { x, y } = centreOf(value)

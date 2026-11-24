@@ -870,6 +870,42 @@ describe('ImageCrop straighten dial', () => {
     expect(360 - last().rotation).toBeLessThan(4)
   })
 
+  it('drags back from 45° after a turn without turning a quarter', async () => {
+    await commands.parkPointer()
+    const { onValueChange, last } = await renderCrop()
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate left' }))
+    dial().focus()
+    await userEvent.keyboard('{End}')
+    expect(last().rotation).toBe(315)
+    expect(dial()).toHaveAttribute('aria-valuenow', '45')
+    const thumb = rect(dial().parentElement!)
+    const y = thumb.top + thumb.height / 2
+    const x = thumb.left + thumb.width / 2
+    const track = rect(dial().closest('[data-slot="slider-control"]')!)
+    const perDegree = (track.width - 16) / 90
+    await commands.pointer([
+      { type: 'move', x, y },
+      { type: 'down' },
+      { type: 'move', x: x - perDegree * 5, y, steps: 4 },
+      { type: 'up' }
+    ])
+    expect(onValueChange).toHaveBeenCalledTimes(4)
+    expect(last().rotation).toBeGreaterThan(308)
+    expect(last().rotation).toBeLessThan(313)
+  })
+
+  it('says a tilt to 45° as the dial does', async () => {
+    await renderCrop()
+    const status = screen.getByRole('status')
+    dial().focus()
+    await userEvent.keyboard('{End}')
+    await waitFor(() =>
+      expect(status.textContent).toMatch(
+        /percent, straightened 45 degrees right\.$/
+      )
+    )
+  })
+
   it('keeps the straighten through a quarter turn, and Reset clears it', async () => {
     const { last } = await renderCrop()
     dial().focus()
@@ -894,4 +930,34 @@ describe('ImageCrop straighten dial', () => {
       )
     )
   })
+
+  it.each([320, 400, 480, 560])(
+    'keeps the controls inside a %ipx crop, with room for -44.5°',
+    async (width) => {
+      const area = { x: 400, y: 400, width: 800, height: 400 }
+      render(
+        <div style={{ width }}>
+          <ImageCrop
+            src={photo}
+            aspectRatio={2}
+            defaultValue={{ area, percent: area, zoom: 1, rotation: 315.5 }}
+          />
+        </div>
+      )
+      await waitFor(() =>
+        expect(dial()).toHaveAttribute('aria-valuenow', '-44.5')
+      )
+      const controls = screen.getByRole('group', { name: 'Crop controls' })
+      const box = rect(controls.parentElement!)
+      expect(rect(controls).left).toBeGreaterThanOrEqual(box.left)
+      expect(rect(controls).right).toBeLessThanOrEqual(box.right)
+      const readouts = [
+        ...controls.querySelectorAll<HTMLElement>('[aria-hidden]')
+      ].filter((part) => part.textContent === '-44.5°' && part.clientWidth)
+      // A wide crop shows the angle beside the dial.
+      if (width === 560) expect(readouts).toHaveLength(1)
+      for (const part of readouts)
+        expect(part.scrollWidth).toBeLessThanOrEqual(part.clientWidth)
+    }
+  )
 })

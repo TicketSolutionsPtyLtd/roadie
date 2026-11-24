@@ -173,6 +173,13 @@ describe('rotateBy', () => {
     expect(value.rotation).toBe(0)
     expect(sameCrop(value, start)).toBe(true)
   })
+
+  it('reports a straighten in tenths without float noise', () => {
+    const tilted = rotateBy(start, 9.7, scene)
+    expect(tilted.rotation).toBe(9.7)
+    expect(rotateBy(tilted, -4, scene).rotation).toBe(5.7)
+    expect(rotateBy(start, -0.3, scene).rotation).toBe(359.7)
+  })
 })
 
 describe('moveTo', () => {
@@ -222,7 +229,8 @@ describe('straightenOf', () => {
     [270, 0],
     [273.5, 3.5],
     [44.9, 44.9],
-    [45, -45],
+    [45, 45],
+    [135, -45],
     [315, -45],
     [180.1 + 0.2, 0.3]
   ])('reads %s° as %s° from the nearest quarter turn', (rotation, angle) => {
