@@ -17,9 +17,18 @@ import { mergeRefs } from './mergeRefs'
 
 type ScrollToIndex = (index: number) => void
 
+/**
+ * The List's scroll, once it has a scroll container, and the index a
+ * highlight asked for before then, which the List scrolls to when it can.
+ */
+export type VirtualScroll = {
+  scrollToIndex: ScrollToIndex | null
+  waiting: number | null
+}
+
 /** Set by a virtualized Root, so its List windows rows and a keyboard highlight can reach one off screen. */
 export const VirtualListContext =
-  createContext<RefObject<ScrollToIndex | null> | null>(null)
+  createContext<RefObject<VirtualScroll> | null>(null)
 
 /**
  * One windowed item: `index` is Base UI's, counted across groups, `row` the
@@ -50,7 +59,7 @@ const loadRows = () => import('./virtualRows')
 const FilteredRows = lazy(loadRows)
 
 export function useVirtualListRoot(virtualized: boolean | undefined) {
-  const scrollToIndex = useRef<ScrollToIndex | null>(null)
+  const scroll = useRef<VirtualScroll>({ scrollToIndex: null, waiting: null })
   // Base UI clears a pointer's highlight when its row scrolls out of the
   // window and unmounts, or the pointer leaves, then in the same task
   // highlights the first row again with no reason. Following that would snap
@@ -69,8 +78,17 @@ export function useVirtualListRoot(virtualized: boolean | undefined) {
     }
     const skip = held.current && details.reason !== 'keyboard'
     held.current = false
-    if (virtualized && !skip && details.index >= 0)
-      scrollToIndex.current?.(details.index)
+    if (!virtualized) return
+    // A close clears the highlight, so a scroll still waiting is dropped.
+    if (details.index < 0) scroll.current.waiting = null
+    else if (!skip) scrollTo(details.index)
+  }
+  // Base UI highlights the selection as the list opens, which can be before
+  // the windowed list has loaded or found its scroll container.
+  function scrollTo(index: number) {
+    const { scrollToIndex } = scroll.current
+    if (scrollToIndex) scrollToIndex(index)
+    else scroll.current.waiting = index
   }
   function holdAfterClear() {
     const hold = (holds.current += 1)
@@ -86,10 +104,10 @@ export function useVirtualListRoot(virtualized: boolean | undefined) {
    * top, where the first match is, but leaves a windowed one where it was.
    */
   function handleTyped() {
-    if (virtualized) scrollToIndex.current?.(0)
+    if (virtualized) scrollTo(0)
   }
   return [
-    virtualized ? scrollToIndex : null,
+    virtualized ? scroll : null,
     { handleHighlight, handleTyped }
   ] as const
 }
