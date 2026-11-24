@@ -817,15 +817,15 @@ A dot per slide stops working once there are more than a handful, such as a buye
 On an `emphasis-strong` surface the current dot takes the surface's own text colour, so it stays visible when the surface is the accent. Elsewhere it's the accent, and the other dots follow the surface's intent.
 
 ```tsx-live
-<div className='grid gap-4 rounded-2xl p-4 intent-accent emphasis-strong'>
+<div className='grid grid-cols-1 rounded-2xl p-4 intent-accent emphasis-strong'>
   <Carousel aria-label='Your tickets' opts={{ slidesToScroll: 1 }}>
     <Carousel.Header>
       <Carousel.Title>Your tickets</Carousel.Title>
       <Carousel.Dots max={7} />
     </Carousel.Header>
-    <Carousel.Content>
+    <Carousel.Content overflow='hidden'>
       {Array.from({ length: 24 }, (_, i) => (
-        <Carousel.Item key={i} className='basis-4/5 sm:basis-1/3'>
+        <Carousel.Item key={i}>
           <Card emphasis='raised' intent='neutral'>
             <Card.Content>
               <Card.Title>General admission</Card.Title>
