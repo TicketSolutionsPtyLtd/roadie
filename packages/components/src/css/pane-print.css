@@ -85,5 +85,18 @@
       background: none !important;
       backdrop-filter: none !important;
     }
+    [data-slot='pane-header']::after {
+      box-shadow: none !important;
+    }
+
+    /* Paper doesn't scroll, so a title collapsed on screen prints open. */
+    [data-slot='pane-header'][data-collapsed='true']
+      > [data-slot='pane-title'] {
+      grid-template-rows: 1fr !important;
+      margin-top: var(--pane-header-gap) !important;
+      scale: none !important;
+      opacity: 1 !important;
+      transition: none !important;
+    }
   }
 }
