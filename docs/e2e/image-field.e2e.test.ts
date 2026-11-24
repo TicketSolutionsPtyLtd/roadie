@@ -61,6 +61,8 @@ describe('Image field recipe', () => {
     const save = dialog.getByRole('button', { name: 'Save crop' })
     // Enabled once the image has loaded and ImageCrop reports its crop.
     await expect.poll(() => save.isEnabled()).toBe(true)
+    // Turned a quarter, the crop still saves at the slot's size.
+    await dialog.getByRole('button', { name: 'Rotate left' }).click()
     await save.click()
     await dialog.waitFor({ state: 'hidden' })
 

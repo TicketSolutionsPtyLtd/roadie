@@ -21,7 +21,10 @@ describe('ImageCrop', () => {
 
   it('masks a circle but sets nothing else apart', () => {
     render(<ImageCrop src='/avatar.jpg' aspectRatio={1} shape='circle' />)
-    expect(screen.getByRole('group')).toHaveAttribute('data-shape', 'circle')
+    expect(screen.getByRole('group', { name: 'Crop image' })).toHaveAttribute(
+      'data-shape',
+      'circle'
+    )
   })
 
   it('shows a Blob through an object URL, revoked on unmount', () => {
@@ -48,10 +51,41 @@ describe('ImageCrop', () => {
     expect(screen.getByTestId('stage')).toHaveClass('aspect-video')
   })
 
-  it('throws when a Stage is outside ImageCrop', () => {
+  it('renders the controls with no children, Reset hidden until needed', () => {
+    render(<ImageCrop src='/event.jpg' aspectRatio={2} />)
+    const controls = screen.getByRole('group', { name: 'Crop controls' })
+    for (const name of ['Zoom out', 'Zoom in', 'Rotate left'])
+      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+    expect(screen.getByRole('slider', { name: 'Zoom' })).toBeInTheDocument()
+    expect(controls.querySelector('[aria-label="Reset crop"]')).toHaveAttribute(
+      'hidden'
+    )
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+  })
+
+  it('composes the controls it is given', () => {
+    render(
+      <ImageCrop src='/event.jpg' aspectRatio={2}>
+        <ImageCrop.Stage />
+        <ImageCrop.Controls>
+          <ImageCrop.Rotate aria-label='Turn' />
+        </ImageCrop.Controls>
+      </ImageCrop>
+    )
+    expect(screen.getByRole('button', { name: 'Turn' })).toBeInTheDocument()
+    expect(screen.queryByRole('slider')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['Stage', <ImageCrop.Stage key='part' />],
+    ['Controls', <ImageCrop.Controls key='part' />],
+    ['Zoom', <ImageCrop.Zoom key='part' />],
+    ['Rotate', <ImageCrop.Rotate key='part' />],
+    ['Reset', <ImageCrop.Reset key='part' />]
+  ])('throws when %s is outside ImageCrop', (part, element) => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    expect(() => render(<ImageCrop.Stage />)).toThrow(
-      'ImageCrop.Stage must be inside ImageCrop.'
+    expect(() => render(element)).toThrow(
+      `ImageCrop.${part} must be inside ImageCrop.`
     )
   })
 })

@@ -20,7 +20,10 @@ export type FileRules = {
   minFileSize?: number
 }
 
-function matchesAccept(file: File, accept: string) {
+export function matchesAccept(
+  file: { name: string; type: string },
+  accept: string
+) {
   const name = file.name.toLowerCase()
   const type = file.type.toLowerCase()
   return accept

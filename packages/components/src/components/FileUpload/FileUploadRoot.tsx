@@ -19,6 +19,7 @@ import {
 } from './FileUploadContext'
 import { FileUploadDropzone } from './FileUploadDropzone'
 import { FileUploadList } from './FileUploadList'
+import { FileUploadPageDrop } from './FileUploadPageDrop'
 import {
   type FileRules,
   type FileUploadRejection,
@@ -52,6 +53,8 @@ export type FileUploadRootProps = Omit<
     maxFiles?: number
     /** Which camera a phone opens instead of its file picker. Passed to the native input. */
     capture?: 'user' | 'environment'
+    /** Takes files dropped anywhere on the page, with an overlay that names the field while they're dragged in. Give it to one field per page. */
+    pageDrop?: boolean
     disabled?: boolean
     required?: boolean
     /**
@@ -95,6 +98,7 @@ export function FileUploadRoot({
   validate,
   maxFiles = 1,
   capture,
+  pageDrop,
   disabled,
   required,
   onUpload,
@@ -377,6 +381,7 @@ export function FileUploadRoot({
           describedBy: describedBy || undefined
         }}
       >
+        {pageDrop && <FileUploadPageDrop accept={accept} />}
         {children ?? (
           <>
             <FileUploadDropzone />

@@ -1,13 +1,27 @@
 'use client'
 
-import { type ComponentProps, useEffect, useState } from 'react'
+import {
+  type ComponentProps,
+  useEffect,
+  useReducer,
+  useRef,
+  useState
+} from 'react'
 
 import type { ImageCropValue } from '@oztix/roadie-core/image'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { ImageCropContext, type ImageCropShape } from './ImageCropContext'
+import {
+  type CommitOptions,
+  ImageCropContext,
+  type ImageCropShape
+} from './ImageCropContext'
+import { ImageCropControls } from './ImageCropControls'
 import { ImageCropStage } from './ImageCropStage'
-import { minCrop } from './cropState'
+import { type CropScene, fitCrop, minCrop, zoomRange } from './cropState'
+
+// Long enough that a run of key presses is said once.
+const ANNOUNCE_MS = 500
 
 export type ImageCropRootProps = Omit<
   ComponentProps<'div'>,
@@ -53,6 +67,28 @@ function useSourceUrl(src: string | Blob) {
   return blob?.src === src ? blob.url : undefined
 }
 
+function sameScene(a?: CropScene, b?: CropScene) {
+  if (!a || !b) return a === b
+  return (
+    a.frame.width === b.frame.width &&
+    a.frame.height === b.frame.height &&
+    a.image.width === b.image.width &&
+    a.image.height === b.image.height &&
+    a.min === b.min
+  )
+}
+
+/** What the live region says once a crop settles. */
+function describe(value: ImageCropValue, scene: CropScene) {
+  const { width, height } = value.area
+  const zoom = value.zoom / zoomRange(scene, value.rotation).cover
+  const left = (360 - value.rotation) % 360
+  return (
+    `Crop ${Math.round(width)} by ${Math.round(height)} pixels, zoom ${Math.round(zoom * 100)} percent` +
+    (left ? `, turned ${left} degrees left.` : '.')
+  )
+}
+
 function sameValue(a?: ImageCropValue, b?: ImageCropValue) {
   if (!a || !b) return a === b
   return (
@@ -64,8 +100,9 @@ function sameValue(a?: ImageCropValue, b?: ImageCropValue) {
 }
 
 /**
- * Crops an image to a fixed ratio: the image pans and zooms under a frame.
- * With no children it renders `ImageCrop.Stage`.
+ * Crops an image to a fixed ratio: the image pans, zooms and turns under a
+ * frame. With no children it renders `ImageCrop.Stage` and
+ * `ImageCrop.Controls`.
  */
 export function ImageCropRoot({
   src,
@@ -83,8 +120,29 @@ export function ImageCropRoot({
 }: ImageCropRootProps) {
   const [uncontrolled, setUncontrolled] = useState(defaultValue)
   const url = useSourceUrl(src)
-  const commit = (next: ImageCropValue) => {
+  const [scene, setSceneState] = useState<CropScene>()
+  const setScene = (next?: CropScene) =>
+    setSceneState((prev) => (sameScene(prev, next) ? prev : next))
+  const [springs, spring] = useReducer((n: number) => n + 1, 0)
+  const [nudges, nudge] = useReducer((n: number) => n + 1, 0)
+  const painter = useRef<(value: ImageCropValue | null) => void>(null)
+  const preview = (next: ImageCropValue | null) => painter.current?.(next)
+  const setPainter = (next: typeof painter.current) => {
+    painter.current = next
+  }
+  const [message, setMessage] = useState('')
+  const announcing = useRef<ReturnType<typeof setTimeout>>(undefined)
+  useEffect(() => () => clearTimeout(announcing.current), [])
+  const min = minCrop(aspectRatio, minWidth, minHeight)
+
+  const commit = (next: ImageCropValue, options: CommitOptions = {}) => {
     if (value === undefined) setUncontrolled(next)
+    if (options.animate) spring()
+    clearTimeout(announcing.current)
+    if (scene && !options.quiet) {
+      const said = describe(next, scene)
+      announcing.current = setTimeout(() => setMessage(said), ANNOUNCE_MS)
+    }
     onValueChange?.(next)
   }
   // A value that hasn't changed since `src` did was made for the last image,
@@ -107,14 +165,34 @@ export function ImageCropRoot({
         src: url,
         aspectRatio,
         shape,
-        min: minCrop(aspectRatio, minWidth, minHeight),
+        min,
         label,
+        scene,
+        setScene,
+        shown: scene && fitCrop(current, scene),
         value: current,
-        commit
+        commit,
+        springs,
+        preview,
+        setPainter,
+        nudge,
+        nudges
       }}
     >
-      <div className={cn('grid gap-3', className)} {...props}>
-        {children ?? <ImageCropStage />}
+      <div
+        data-slot='image-crop'
+        className={cn('@container grid gap-3', className)}
+        {...props}
+      >
+        {children ?? (
+          <>
+            <ImageCropStage />
+            <ImageCropControls />
+          </>
+        )}
+        <p role='status' aria-live='polite' className='sr-only'>
+          {message}
+        </p>
       </div>
     </ImageCropContext>
   )

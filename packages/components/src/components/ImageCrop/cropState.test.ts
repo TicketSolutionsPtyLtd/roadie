@@ -5,9 +5,13 @@ import {
   fitCrop,
   fitFrame,
   minCrop,
+  moveTo,
   panBy,
+  rotateBy,
   sameCrop,
+  stretchCrop,
   transformOf,
+  zoomRange,
   zoomTo
 } from './cropState'
 
@@ -120,5 +124,91 @@ describe('sameCrop', () => {
     const moved = panBy(start, 0, -40, scene)
     expect(sameCrop(saved, moved)).toBe(false)
     expect(sameCrop(moved, saved)).toBe(false)
+  })
+})
+
+describe('zoomRange', () => {
+  it(`runs from cover to ${MAX_ZOOM_OVER_COVER}× cover, or the minimum crop`, () => {
+    expect(zoomRange(scene, 0)).toEqual({ cover: 0.25, max: 2, short: false })
+    const capped = { ...scene, min: minCrop(2, 1200) }
+    expect(zoomRange(capped, 0)).toEqual({
+      cover: 0.25,
+      max: 0.5,
+      short: false
+    })
+  })
+
+  it('stays at cover, and says so, for an image under the minimum', () => {
+    const capped = { ...scene, min: minCrop(2, 3000) }
+    expect(zoomRange(capped, 0)).toEqual({
+      cover: 0.25,
+      max: 0.25,
+      short: true
+    })
+  })
+})
+
+describe('rotateBy', () => {
+  it('turns a quarter left and zooms in to cover the turned image', () => {
+    const value = rotateBy(start, -90, scene)
+    expect(value.rotation).toBe(270)
+    expect(value.zoom).toBe(0.375)
+    expect(value.area).toEqual({ x: 0, y: 800, width: 1600, height: 800 })
+  })
+
+  it('keeps the spot under the frame, turned with the image', () => {
+    const value = panBy(zoomTo(start, 0.5, scene), -600, 0, scene)
+    expect(rotateBy(value, -90, scene).area).toEqual({
+      x: 200,
+      y: 1500,
+      width: 1200,
+      height: 600
+    })
+  })
+
+  it('comes back to the start after four turns', () => {
+    let value = start
+    for (let turn = 0; turn < 4; turn++) value = rotateBy(value, -90, scene)
+    expect(value.rotation).toBe(0)
+    expect(sameCrop(value, start)).toBe(true)
+  })
+})
+
+describe('moveTo', () => {
+  it('follows a drag without clamping it', () => {
+    const value = moveTo(start, { x: 0, y: 0 }, { x: 100, y: 0 }, 1, scene)
+    expect(value.area.x).toBe(-400)
+  })
+
+  it('keeps the point under a pinch midpoint as it zooms', () => {
+    const point = { x: 100, y: 50 }
+    const value = moveTo(start, point, point, 2, scene)
+    expect(value.zoom).toBe(0.5)
+    // The centre goes from 1200, 800 to 1400, 900.
+    expect(value.area).toEqual({ x: 800, y: 600, width: 1200, height: 600 })
+  })
+})
+
+describe('stretchCrop', () => {
+  const stage = { width: 640, height: 480 }
+
+  it('resists a drag past the edge, then clamps it', () => {
+    const raw = moveTo(start, { x: 0, y: 0 }, { x: 100, y: 0 }, 1, scene)
+    const { clamped, painted } = stretchCrop(raw, scene, stage)
+    expect(clamped.area.x).toBe(0)
+    // 100px over, at iOS's 0.55 resistance over a 640px stage, shows 50.6px.
+    expect(painted.area.x).toBeCloseTo(-202.6, 1)
+  })
+
+  it('resists zooming out past cover', () => {
+    const raw = moveTo(start, { x: 0, y: 0 }, { x: 0, y: 0 }, 0.5, scene)
+    const { clamped, painted } = stretchCrop(raw, scene, stage)
+    expect(clamped.zoom).toBe(0.25)
+    expect(painted.zoom).toBeCloseTo(0.2056, 4)
+  })
+
+  it('leaves a value inside the limits alone', () => {
+    const { clamped, painted } = stretchCrop(start, scene, stage)
+    expect(painted).toEqual(clamped)
   })
 })

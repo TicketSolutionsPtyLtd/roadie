@@ -3,7 +3,8 @@ import {
   type ImageCropValue,
   clampCrop,
   coverZoom,
-  cropValueAt
+  cropValueAt,
+  rubberBand
 } from '@oztix/roadie-core/image'
 
 /** How far past covering the frame the image can zoom when no minimum caps it. */
@@ -100,21 +101,151 @@ export function zoomTo(
   )
 }
 
-/** The image's CSS transform, with the image centred on the frame before it. */
-export function transformOf(value: ImageCropValue, image: CropSize): string {
-  const { area, zoom, rotation } = value
-  const turn = (rotation * Math.PI) / 180
-  const box = {
-    width:
-      Math.abs(image.width * Math.cos(turn)) +
-      Math.abs(image.height * Math.sin(turn)),
-    height:
-      Math.abs(image.width * Math.sin(turn)) +
-      Math.abs(image.height * Math.cos(turn))
+// Rounds away float noise so quarter turns give whole pixels (cos 90° is 6e-17).
+function turnOf(degrees: number) {
+  const angle = (degrees * Math.PI) / 180
+  const snap = (n: number) => Math.round(n * 1e12) / 1e12
+  return { cos: snap(Math.cos(angle)), sin: snap(Math.sin(angle)) }
+}
+
+function boxOf(image: CropSize, rotation: number): CropSize {
+  const turn = turnOf(rotation)
+  const cos = Math.abs(turn.cos)
+  const sin = Math.abs(turn.sin)
+  return {
+    width: image.width * cos + image.height * sin,
+    height: image.width * sin + image.height * cos
   }
+}
+
+const centreOf = ({ area }: ImageCropValue) => ({
+  x: area.x + area.width / 2,
+  y: area.y + area.height / 2
+})
+
+// The value at `zoom` centred on `centre`, unclamped.
+function around(
+  centre: { x: number; y: number },
+  zoom: number,
+  rotation: number,
+  { frame, image }: CropScene
+): ImageCropValue {
+  const width = frame.width / zoom
+  const height = frame.height / zoom
+  const area = {
+    x: centre.x - width / 2,
+    y: centre.y - height / 2,
+    width,
+    height
+  }
+  return cropValueAt({ area }, frame, image, rotation)
+}
+
+/**
+ * The zooms the slider runs between: `cover` fills the frame, and `max` stops
+ * at the minimum crop. `short` says the image is smaller than the minimum.
+ */
+export function zoomRange(scene: CropScene, rotation: number) {
+  const cover = coverZoom(scene.frame, scene.image, rotation)
+  const cap = scene.min
+    ? Math.min(
+        scene.frame.width / scene.min.width,
+        scene.frame.height / scene.min.height
+      )
+    : Infinity
+  const max = Math.max(cover, Math.min(cap, cover * MAX_ZOOM_OVER_COVER))
+  return { cover, max, short: cap < cover }
+}
+
+/**
+ * Turns the image by `degrees` (negative is left) about the frame's centre,
+ * keeping the spot under it. It zooms in if the turned image needs it, and
+ * a crop that covered the frame exactly still does.
+ */
+export function rotateBy(
+  value: ImageCropValue,
+  degrees: number,
+  scene: CropScene
+): ImageCropValue {
+  const rotation = (((value.rotation + degrees) % 360) + 360) % 360
+  const from = boxOf(scene.image, value.rotation)
+  const to = boxOf(scene.image, rotation)
+  const { x, y } = centreOf(value)
+  const dx = x - from.width / 2
+  const dy = y - from.height / 2
+  const { cos, sin } = turnOf(degrees)
+  const fitted = value.zoom <= zoomRange(scene, value.rotation).cover * 1.001
+  const zoom = fitted ? zoomRange(scene, rotation).cover : value.zoom
+  const centre = {
+    x: to.width / 2 + dx * cos - dy * sin,
+    y: to.height / 2 + dx * sin + dy * cos
+  }
+  return fitCrop(around(centre, zoom, rotation, scene), scene)
+}
+
+/**
+ * Follows a drag or pinch from `start`, unclamped: the image point under
+ * `from` ends up under `to` (screen px from the frame's centre), zoomed by
+ * `scale`. Clamp it with `fitCrop`, or show it with `stretchCrop`.
+ */
+export function moveTo(
+  start: ImageCropValue,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  scale: number,
+  scene: CropScene
+): ImageCropValue {
+  const zoom = start.zoom * scale
+  const { x, y } = centreOf(start)
+  const centre = {
+    x: x + from.x / start.zoom - to.x / zoom,
+    y: y + from.y / start.zoom - to.y / zoom
+  }
+  return around(centre, zoom, start.rotation, scene)
+}
+
+/**
+ * Clamps a value from a gesture, and the value to show while the gesture
+ * lasts: past an edge or a zoom limit it gives way less the further it goes,
+ * so it can spring back to `clamped` on release.
+ */
+export function stretchCrop(
+  raw: ImageCropValue,
+  scene: CropScene,
+  stage: CropSize
+): { clamped: ImageCropValue; painted: ImageCropValue } {
+  const clamped = fitCrop(raw, scene)
+  const over = raw.zoom - clamped.zoom
+  const zoom =
+    over === 0
+      ? raw.zoom
+      : clamped.zoom +
+        Math.sign(over) *
+          rubberBand(Math.abs(over), 0, clamped.zoom * (over > 0 ? 0.25 : 0.5))
+  const from = centreOf(clamped)
+  const to = centreOf(raw)
+  const pull = (axis: 'x' | 'y', size: number) =>
+    from[axis] + rubberBand((to[axis] - from[axis]) * zoom, 0, size) / zoom
+  const centre = { x: pull('x', stage.width), y: pull('y', stage.height) }
+  const painted = around(centre, zoom, raw.rotation, scene)
+  return { clamped, painted: sameCrop(painted, clamped) ? clamped : painted }
+}
+
+/**
+ * The image's CSS transform, with the image centred on the frame before it.
+ * `turn` paints the rotation as an equal angle, so a spring can take the
+ * short way round.
+ */
+export function transformOf(
+  value: ImageCropValue,
+  image: CropSize,
+  turn = value.rotation
+): string {
+  const { area, zoom } = value
+  const box = boxOf(image, value.rotation)
   const x = (box.width / 2 - area.x - area.width / 2) * zoom
   const y = (box.height / 2 - area.y - area.height / 2) * zoom
-  return `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg) scale(${zoom})`
+  return `translate3d(${x}px, ${y}px, 0) rotate(${turn}deg) scale(${zoom})`
 }
 
 /**
