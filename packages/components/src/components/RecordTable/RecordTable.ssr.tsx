@@ -1,0 +1,47 @@
+import { RecordTable, tableColumns } from '.'
+import { allowing } from '../../utils/hydrationTestUtils'
+import { Pane } from '../Pane'
+import { showFields, testShows } from '../Records/testUtils'
+
+const column = tableColumns(showFields)
+const columns = (['city', 'sold', 'gross'] as const).map((key) =>
+  column.field(key)
+)
+const table = (rows: number, selectable?: boolean) => (
+  <RecordTable
+    caption='Upcoming shows'
+    data={testShows(rows)}
+    fields={showFields}
+    columns={[column.field('show', { pin: true }), ...columns]}
+    getRowId={(row) => row.id}
+    defaultPosition={{ pageSize: rows }}
+    selectable={selectable}
+  />
+)
+
+const phone = (shift: number, removed: number) => ({
+  ticket: 'INNO-1686',
+  shift,
+  removed
+})
+
+export const SixtyRows = allowing(() => table(60), { 390: phone(40, 74) })
+
+export const ThreeHundredRows = allowing(() => table(300), {
+  390: phone(40, 40),
+  1280: phone(0, 2)
+})
+
+export const SelectableInPane = allowing(
+  () => (
+    <div className='h-120 rounded-2xl bg-sunken p-3'>
+      <Pane className='h-full'>
+        <Pane.Header>
+          <Pane.Title>Shows</Pane.Title>
+        </Pane.Header>
+        {table(60, true)}
+      </Pane>
+    </div>
+  ),
+  { 390: phone(93, 142), 1280: { ticket: 'INNO-1678', shift: 98 } }
+)
