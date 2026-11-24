@@ -12,19 +12,20 @@ import { useFileUploadContext } from './FileUploadContext'
 import { useFileDrop } from './useFileDrop'
 
 export type FileUploadDropzoneProps = Omit<ComponentProps<'div'>, 'title'> & {
-  /** What it asks for. */
+  /** What it asks for. @default "Drop a file, or choose one", or "Drop files, or choose them" when the field takes more than one */
   title?: ReactNode
 }
 
 /**
  * The area files are dropped on. It's also a button: a click, Enter or Space
  * opens the picker, so never put a Trigger inside it. Its icon tile lifts
- * while files are over it. `FileUpload.List` shows the chosen files.
+ * while files are over it. When the field takes more than one file, it
+ * counts them, as in "4 of 6". `FileUpload.List` shows the chosen files.
  */
 export function FileUploadDropzone({
   id,
   ref,
-  title = 'Drop a file, or choose one',
+  title,
   className,
   children,
   onClick,
@@ -37,6 +38,7 @@ export function FileUploadDropzone({
   const dragging = useFileDrop(ownRef, 'FileUpload.Dropzone')
   const ownId = useId()
   const zoneId = id ?? ownId
+  const many = context.maxFiles > 1
   return (
     <div
       ref={mergeRefs(ref, ownRef, context.triggerRef)}
@@ -80,7 +82,15 @@ export function FileUploadDropzone({
       >
         <CloudArrowUpIcon weight='bold' />
       </IconTile>
-      <p className='text-display-ui-6 text-strong'>{title}</p>
+      <p className='text-display-ui-6 text-strong'>
+        {title ??
+          (many ? 'Drop files, or choose them' : 'Drop a file, or choose one')}
+      </p>
+      {many && (
+        <p className='text-sm text-subtle'>
+          {context.files.length} of {context.maxFiles}
+        </p>
+      )}
       {children}
     </div>
   )

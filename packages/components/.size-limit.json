@@ -203,7 +203,7 @@
     "name": "FileUpload",
     "path": "dist/components/FileUpload/index.js",
     "import": "*",
-    "limit": "15 kB",
+    "limit": "27 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

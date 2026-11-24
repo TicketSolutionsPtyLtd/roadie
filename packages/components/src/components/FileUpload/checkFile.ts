@@ -1,4 +1,5 @@
 export type FileUploadRejectionCode =
+  | 'too-many'
   | 'wrong-type'
   | 'too-large'
   | 'too-small'

@@ -48,6 +48,8 @@ export type FileUploadRootProps = Omit<
     ) => string | null | undefined | Promise<string | null | undefined>
     /** Called with the files a pick turned away, each with its code and message. */
     onReject?: (rejections: FileUploadRejection[]) => void
+    /** How many files the field holds. Above 1, picks add to the files, and they can be reordered. @default 1 */
+    maxFiles?: number
     /** Which camera a phone opens instead of its file picker. Passed to the native input. */
     capture?: 'user' | 'environment'
     disabled?: boolean
@@ -91,6 +93,7 @@ export function FileUploadRoot({
   minFileSize,
   onReject,
   validate,
+  maxFiles = 1,
   capture,
   disabled,
   required,
@@ -231,36 +234,65 @@ export function FileUploadRoot({
   }, [files])
   useEffect(syncInput, [syncInput])
 
-  // Picks, drops and pastes all come through here. One file for now: the first.
+  // Picks, drops and pastes all come through here. With one file allowed,
+  // the first replaces it; with more, files join until the field is full.
   const picks = useRef(0)
   function take(picked: ArrayLike<File>) {
-    const file = picked[0]
+    const single = maxFiles === 1
     const pick = ++picks.current
-    const reject = (rejection: FileUploadRejection) => {
-      setError(rejection.message)
-      onReject?.([rejection])
+    const taken: File[] = []
+    const rejections: FileUploadRejection[] = []
+    for (const file of Array.from(picked).slice(0, single ? 1 : undefined)) {
+      const rejection =
+        checkFile(file, { accept, maxFileSize, minFileSize }) ??
+        (single || files.length + taken.length < maxFiles
+          ? null
+          : {
+              file,
+              code: 'too-many' as const,
+              message: `${file.name} wasn't added, as the field takes up to ${maxFiles} files.`
+            })
+      if (rejection) rejections.push(rejection)
+      else taken.push(file)
     }
-    const rejection =
-      file && checkFile(file, { accept, maxFileSize, minFileSize })
-    if (rejection) reject(rejection)
-    else if (file && !validate) commit([file])
-    else if (file)
-      Promise.resolve()
-        .then(() => validate!(file))
-        .catch(() => `${file.name} couldn't be checked. Try another file.`)
-        .then((message) => {
-          if (pick !== picks.current) return
-          if (message) reject({ file, code: 'invalid', message })
-          else commit([file])
-        })
+    const settle = (passed: File[], turnedAway: FileUploadRejection[]) => {
+      if (passed.length) commit(single ? passed : [...files, ...passed])
+      if (turnedAway.length) {
+        setError(turnedAway.map(({ message }) => message).join(' '))
+        onReject?.(turnedAway)
+      }
+    }
+    if (!validate || !taken.length) settle(taken, rejections)
+    else
+      Promise.all(
+        taken.map((file) =>
+          Promise.resolve()
+            .then(() => validate(file))
+            .catch(() => `${file.name} couldn't be checked. Try another file.`)
+        )
+      ).then((messages) => {
+        if (pick !== picks.current) return
+        settle(
+          taken.filter((_, index) => !messages[index]),
+          [
+            ...rejections,
+            ...taken.flatMap((file, index) => {
+              const message = messages[index]
+              return message
+                ? [{ file, code: 'invalid' as const, message }]
+                : []
+            })
+          ]
+        )
+      })
     // The input shows only the value; an accepted pick reaches it on re-render.
     syncInput()
   }
 
-  function commit(next: File[]) {
+  function commit(next: File[], keepError = false) {
     // A check still running loses to any change since its pick.
     picks.current++
-    setError(null)
+    if (!keepError) setError(null)
     setUncontrolled(next)
     onValueChange?.(next)
   }
@@ -299,6 +331,9 @@ export function FileUploadRoot({
             triggerRef.current?.focus()
           },
           remove: (file) => commit(files.filter((each) => each !== file)),
+          // A reorder leaves any rejection showing.
+          reorder: (next) => commit(next, true),
+          maxFiles,
           uploads,
           retry: (file) =>
             patch(file, { status: 'queued', progress: 0, error: undefined }),
@@ -324,6 +359,7 @@ export function FileUploadRoot({
         id={inputId}
         name={name}
         accept={accept}
+        multiple={maxFiles > 1}
         capture={capture}
         required={Boolean(required || field.required)}
         disabled={isDisabled}
