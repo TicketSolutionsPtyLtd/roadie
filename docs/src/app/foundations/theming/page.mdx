@@ -358,6 +358,48 @@ export default async function CollectionPage({ params }) {
 }
 ```
 
+### Accent from an image
+
+To tint an event's page from its artwork, take the accent from the image's
+pixels with `accentFromPixels` from `@oztix/roadie-core/colors`. It finds the
+image's most vivid hue and returns a hex for `accentColor`, or `null` when the
+image is grey, near white, near black, or transparent, which keeps the accent
+around it.
+
+Do it once on the server, where the image is uploaded or first served, and
+store the hex with the event. The page then renders its accent in the first
+paint, with nothing to download or decode in the browser. Read a small copy:
+a 32px one has every colour that matters, and a larger image is sampled.
+
+```tsx
+// Where the artwork is uploaded, with an image library such as sharp
+import sharp from 'sharp'
+
+import { accentFromPixels } from '@oztix/roadie-core/colors'
+
+const { data } = await sharp(artwork)
+  .resize(32, 32, { fit: 'inside' })
+  .ensureAlpha()
+  .raw()
+  .toBuffer({ resolveWithObject: true })
+
+await saveEvent({ ...event, accent: accentFromPixels(data) })
+```
+
+```tsx
+// The event's page
+<ThemeProvider accentColor={event.accent ?? null}>
+  <TicketList event={event} />
+</ThemeProvider>
+```
+
+In the browser, draw the image to a canvas and pass
+`getImageData(…).data`. A canvas can only read an image from another origin
+when that host sends `Access-Control-Allow-Origin` for your app's origin and
+the image loads with `crossOrigin='anonymous'`; otherwise `getImageData`
+throws. Run it after the first paint, so the page shows the parent's accent
+until the hex arrives.
+
 ## Helpers
 
 - `DEFAULT_ACCENT_COLOR` is the Oztix blue default, from
@@ -374,6 +416,9 @@ export default async function CollectionPage({ params }) {
   framework.
 - `getAccentStyleTag(hex)` is the async variant, with full hex fallbacks for
   browsers without OKLCH.
+- `accentFromPixels(pixels, { channels })` returns an accent hex, or `null`,
+  from raw RGBA or RGB bytes, from `@oztix/roadie-core/colors`. See
+  [Accent from an image](#accent-from-an-image).
 - `getBootstrapScript(options)` combines the theme script and the accent
   style tag for one head injection.
 

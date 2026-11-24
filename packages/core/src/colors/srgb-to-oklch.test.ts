@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { getOklchChroma, getOklchHue } from './color-scale-generator'
 import {
+  accentFromPixels,
   getAccentChromaSync,
   getOklchChromaSync,
   getOklchHueSync,
@@ -130,5 +131,107 @@ describe('getAccentChromaSync', () => {
     expect(getAccentChromaSync('#00FF00')).toBeLessThan(
       getOklchChromaSync('#00FF00')
     )
+  })
+})
+
+type Rgba = [number, number, number, number]
+
+function rgba(hex: string, alpha = 255): Rgba {
+  const value = parseInt(hex.slice(1), 16)
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255, alpha]
+}
+
+/** An image as RGBA bytes: each entry is a colour and how many pixels of it. */
+function image(...parts: [Rgba, number][]): Uint8ClampedArray {
+  const bytes: number[] = []
+  for (const [pixel, count] of parts)
+    for (let i = 0; i < count; i++) bytes.push(...pixel)
+  return new Uint8ClampedArray(bytes)
+}
+
+describe('accentFromPixels', () => {
+  it.each([
+    ['#e11d48'],
+    ['#2563eb'],
+    ['#16a34a'],
+    ['#f59e0b'],
+    ['#7c3aed'],
+    ['#0091eb']
+  ])('returns a solid %s as itself', (hex) => {
+    expect(accentFromPixels(image([rgba(hex), 64]))).toBe(hex)
+  })
+
+  it('picks a small vivid area over a large grey one', () => {
+    expect(
+      accentFromPixels(image([rgba('#7f7f7f'), 900], [rgba('#e11d48'), 100]))
+    ).toBe('#e11d48')
+  })
+
+  it('picks a small vivid area over a large muted one', () => {
+    expect(
+      accentFromPixels(image([rgba('#8a9a7b'), 800], [rgba('#2563eb'), 200]))
+    ).toBe('#2563eb')
+  })
+
+  it('takes the colour of the most vivid hue, not a blend across hues', () => {
+    const accent = accentFromPixels(
+      image([rgba('#e11d48'), 600], [rgba('#2563eb'), 400])
+    )
+    expect(accent).toBe('#e11d48')
+  })
+
+  it('averages close shades of one hue', () => {
+    const accent = accentFromPixels(
+      image([rgba('#2563eb'), 500], [rgba('#1d4ed8'), 500])
+    )
+    expect(accent).not.toBeNull()
+    expect(accent).not.toBe('#2563eb')
+    expect(accent).not.toBe('#1d4ed8')
+  })
+
+  it.each([
+    ['grey', image([rgba('#808080'), 64], [rgba('#a3a3a3'), 64])],
+    ['near white', image([rgba('#fbfaf7'), 64])],
+    ['near black', image([rgba('#0d0b10'), 64])],
+    ['transparent', image([rgba('#e11d48', 0), 64])],
+    ['a speck of colour', image([rgba('#808080'), 999], [rgba('#e11d48'), 1])],
+    ['empty', new Uint8ClampedArray()]
+  ])('returns null for %s', (_, pixels) => {
+    expect(accentFromPixels(pixels)).toBeNull()
+  })
+
+  it('ignores pixels that are mostly transparent', () => {
+    expect(
+      accentFromPixels(
+        image([rgba('#e11d48', 20), 900], [rgba('#2563eb'), 100])
+      )
+    ).toBe('#2563eb')
+  })
+
+  it('reads RGB bytes with channels: 3 the same as RGBA', () => {
+    const four = image([rgba('#8a9a7b'), 500], [rgba('#16a34a'), 300])
+    const three = four.filter((_, index) => index % 4 !== 3)
+    expect(accentFromPixels(three, { channels: 3 })).toBe(
+      accentFromPixels(four)
+    )
+  })
+
+  it('takes a plain array', () => {
+    expect(accentFromPixels([225, 29, 72, 255])).toBe('#e11d48')
+  })
+
+  it('samples a large image without reading every pixel', () => {
+    const size = 4000 * 4000
+    let reads = 0
+    // A 4000 by 4000 orange image, counting the bytes read.
+    const pixels = new Proxy({ length: size * 4 } as ArrayLike<number>, {
+      get(target, key) {
+        if (key === 'length') return target.length
+        reads++
+        return [245, 158, 11, 255][Number(key) % 4]
+      }
+    })
+    expect(accentFromPixels(pixels)).toBe('#f59e0b')
+    expect(reads).toBeLessThan(100_000)
   })
 })
