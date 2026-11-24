@@ -217,6 +217,12 @@
       "path": "node_modules/.cache/roadie/roadie.floor.css",
       "rolldown": false,
       "limit": "11.2 KB"
+    },
+    {
+      "name": "colors accentFromPixels",
+      "path": "dist/colors/index.js",
+      "import": "{ accentFromPixels }",
+      "limit": "920 B"
     }
   ]
 }
