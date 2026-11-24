@@ -145,7 +145,7 @@ describe('FileUpload', () => {
     expect(container.firstElementChild).not.toHaveAttribute('data-checking')
   })
 
-  it('stops showing a check that a Clear made stale', async () => {
+  it('stops showing a check that a Remove made stale', async () => {
     const { container } = render(
       <FileUpload
         defaultValue={[csv('march.csv')]}
