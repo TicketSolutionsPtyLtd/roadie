@@ -882,6 +882,16 @@ describe('ImageCrop in free-form', () => {
     expectCovered(stage)
   })
 
+  it('stops the arrow keys at a frame two handles wide, as a drag does', async () => {
+    const { stage, last } = await renderFree()
+    corner('Bottom right corner').focus()
+    for (let i = 0; i < 10; i++)
+      await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    expect(rect(frameOf(stage)).width).toBeGreaterThanOrEqual(87.5)
+    expect(last().area.width * last().zoom).toBeGreaterThanOrEqual(87.5)
+  })
+
   it('turns the frame with the image, then resets to the whole image', async () => {
     const { stage, last } = await renderFree()
     stage.focus()

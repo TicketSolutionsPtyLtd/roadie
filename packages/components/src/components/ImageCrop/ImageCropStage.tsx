@@ -561,9 +561,15 @@ export function ImageCropStage({
     const step = (2 * (event.shiftKey ? 50 : 10)) / shown.zoom
     const dw = step * dir[0] * edge.x
     const dh = step * dir[1] * edge.y
+    // A side stops at two handles' width on screen, as a drag does.
+    const side = (key: 'width' | 'height', d: number) =>
+      Math.max(
+        shown.area[key] + d,
+        Math.min(shown.area[key], MIN_FRAME / shown.zoom)
+      )
     const next = resizeArea(
       shown,
-      { width: shown.area.width + dw, height: shown.area.height + dh },
+      { width: side('width', dw), height: side('height', dh) },
       { ...scene, bounds: scene.bounds }
     )
     unsettle()
