@@ -21,7 +21,7 @@ import { ImageCrop } from "@oztix/roadie-components/image-crop";
 
 ### Default
 
-The frame stays still and the image moves under it. Drag to pan, and pinch or double-tap to zoom, on a touch screen or a trackpad. The controls under the crop area zoom, turn the image 90° left, and reset the crop once it has changed. Focus the crop area to scroll, press `+`, `-` or `R`, or use the arrow keys.
+The frame stays still and the image moves under it. Drag to pan, and pinch or double-tap to zoom, on a touch screen or a trackpad. The controls under the crop area zoom, turn the image 90° left, straighten it, and reset the crop once it has changed. Focus the crop area to scroll, press `+`, `-` or `R`, or use the arrow keys.
 
 Past an edge or a zoom limit the image gives way, then springs back when you let go, so there are never empty corners. The size chip shows the crop in the image's own pixels. `src` takes a URL, or a `File` or `Blob` such as one from `FileUpload`. To crop a picked image and put the result back into a form, follow the [image field recipe](/components/file-upload#image-field), which saves the crop with `cropImage`.
 
@@ -74,6 +74,20 @@ Leave out `aspectRatio` and the frame starts as the whole image, with handles on
 />
 ```
 
+### Straighten
+
+`ImageCrop.Straighten` is a dial that tilts the image up to 45° either way, on top of its quarter turns, to level a horizon or a stage. It zooms in just enough to keep the frame covered, and a drag snaps to level near 0°. The angle is part of `rotation`, so a 3° tilt after one turn left is `273`. The default controls include it; here it's on its own with Reset.
+
+```tsx-live width=180
+<ImageCrop src='/brand/photography/03.webp' aspectRatio={2}>
+  <ImageCrop.Stage />
+  <ImageCrop.Controls>
+    <ImageCrop.Straighten />
+    <ImageCrop.Reset />
+  </ImageCrop.Controls>
+</ImageCrop>
+```
+
 ### Value
 
 `onValueChange` gets the crop once the image loads, unless a `value` or `defaultValue` already fits, then once each drag, pinch, burst of scrolling, key press or button press ends, never on every frame. A new `src` starts centred unless a new `value` comes with it. `area` is in the image's own pixels and `percent` runs 0 to 100, both from the top left of the image once it's turned by `rotation`, in degrees clockwise. `zoom` is screen pixels per image pixel, so it changes with the crop area's size: save `area` or `percent`.
@@ -105,7 +119,7 @@ render(<EventImage />)
 
 ### Composition
 
-`ImageCrop.Stage` is the crop area. It's 4:3 and as wide as its container by default; set its size with `className`. `ImageCrop.Controls` is the pill over its bottom edge, with `ImageCrop.Zoom`, `ImageCrop.Rotate` and `ImageCrop.Reset` inside. Pass the parts you want, or leave the controls out.
+`ImageCrop.Stage` is the crop area. It's 4:3 and as wide as its container by default; set its size with `className`. `ImageCrop.Controls` is the pill over its bottom edge, with `ImageCrop.Zoom`, `ImageCrop.Rotate`, `ImageCrop.Straighten` and `ImageCrop.Reset` inside. Pass the parts you want, or leave the controls out.
 
 ```tsx-live width=180
 <ImageCrop src='/brand/photography/08.webp' aspectRatio={2}>
@@ -149,9 +163,9 @@ render(<EventImage />)
 - The crop area is a focusable group named by `label` (default "Crop image"), with a description that says how to move and zoom the image.
 - In free-form, each corner is a button named for it ("Top left corner") with the role description "resize handle". Its arrow keys move the corner 10px, or 50px with Shift, so the crop grows as the corner moves out and shrinks as it moves in, about its centre. The edges are for a pointer only, as the corners already resize both ways.
 - The arrow keys move the image 10px, or 50px with Shift. `+` and `-` zoom in and out, and `R` turns the image 90° left. Each moves at once; a turn springs.
-- The controls are a group named "Crop controls": two buttons and a slider named "Zoom", whose value reads as a percent of the zoom that covers the frame, then "Rotate left", and "Reset crop" once there's something to reset. Pressing Reset moves focus to the crop area. On a narrow crop the zoom buttons drop out, and the slider and keys still zoom.
+- The controls are a group named "Crop controls": two buttons and a slider named "Zoom", whose value reads as a percent of the zoom that covers the frame, then "Rotate left", a slider named "Straighten", and "Reset crop" once there's something to reset. Straighten runs from -45° to 45° and reads as "3 degrees right"; the arrows step 1°, or 5° with Shift, and Home and End go to 45° either way. Pressing Reset moves focus to the crop area. On a narrow crop the zoom buttons drop out, and the slider and keys still zoom.
 - A plain scroll zooms only once the crop area has focus, so scrolling the page past it never zooms by accident. A trackpad pinch zooms whether or not it has focus.
-- A polite live region says the crop's size, zoom and turn once a change settles, not on every frame.
+- A polite live region says the crop's size, zoom, turn and straighten once a change settles, not on every frame.
 - Focus shows a ring around the crop area. The frame, its grid, the size chip and the image are hidden from screen readers. With reduced motion on, springs end at once.
 
 <PropsDefinitions component="ImageCrop" />
