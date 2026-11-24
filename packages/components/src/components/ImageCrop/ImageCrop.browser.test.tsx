@@ -853,9 +853,11 @@ describe('ImageCrop in free-form', () => {
     await commands.pointer([
       { type: 'move', x: frame.right, y: frame.bottom },
       { type: 'down' },
-      { type: 'move', x: frame.right, y: frame.bottom + 40, steps: 4 },
-      { type: 'up' }
+      { type: 'move', x: frame.right, y: frame.bottom + 40, steps: 4 }
     ])
+    // The frame stops at the bounds, 384px tall, mid-drag.
+    expect(rect(frameOf(stage)).height).toBeCloseTo(384, 0)
+    await commands.pointer([{ type: 'up' }])
     expect(last().area.height).toBeCloseTo(1600)
     expect(last().area.width).toBeLessThan(2400)
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
@@ -868,16 +870,34 @@ describe('ImageCrop in free-form', () => {
     await userEvent.keyboard('{ArrowLeft}')
     expect(onValueChange).toHaveBeenCalledTimes(2)
     expect(last().area.width).toBeCloseTo(2400 - 20 / freeZoom, 0)
-    await userEvent.keyboard('{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}')
+    await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
     expect(last().area.width).toBe(2000)
     const calls = onValueChange.mock.calls.length
+    expect(sizeOf(stage)).not.toHaveClass('animate-nudge')
     await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
     expect(onValueChange).toHaveBeenCalledTimes(calls)
+    expect(sizeOf(stage)).toHaveClass('animate-nudge')
     // Moving the corner out grows the crop again.
     await userEvent.keyboard('{ArrowRight}')
     expect(last().area.width).toBeGreaterThan(2000)
     // A key on a handle is the handle's, not the stage's.
     expect(last().area.y).toBe(0)
+    await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
+    expectCovered(stage)
+  })
+
+  it('stops a drag at a frame two handles wide', async () => {
+    await commands.parkPointer()
+    const { stage } = await renderFree()
+    const frame = rect(frameOf(stage))
+    await commands.pointer([
+      { type: 'move', x: frame.right, y: frame.bottom },
+      { type: 'down' },
+      { type: 'move', x: frame.left, y: frame.top, steps: 4 }
+    ])
+    expect(rect(frameOf(stage)).width).toBeCloseTo(88, 0)
+    expect(rect(frameOf(stage)).height).toBeCloseTo(88, 0)
+    await commands.pointer([{ type: 'up' }])
     await waitFor(() => expect(stage).not.toHaveAttribute('data-settling'))
     expectCovered(stage)
   })
