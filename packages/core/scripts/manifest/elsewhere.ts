@@ -21,6 +21,7 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
 export const DOCUMENTED_SUBPATHS: DocumentedSubpaths = {
   '@oztix/roadie-charts/chart-document': '/charts/#chart-documents',
   '@oztix/roadie-core/number': '/content/language-and-grammar/#prices',
+  '@oztix/roadie-core/phone': '/foundations/forms/#phone-numbers',
   '@oztix/roadie-core/records': '/foundations/records/',
   '@oztix/roadie-core/records/meilisearch': '/foundations/records/',
   '@oztix/roadie-core/records/elasticsearch': '/foundations/records/',

@@ -49,6 +49,10 @@
       "types": "./dist/number/index.d.ts",
       "import": "./dist/number/index.js"
     },
+    "./phone": {
+      "types": "./dist/phone/index.d.ts",
+      "import": "./dist/phone/index.js"
+    },
     "./dataviz": {
       "types": "./dist/dataviz/index.d.ts",
       "import": "./dist/dataviz/index.js"
@@ -137,6 +141,7 @@
     "chokidar-cli": "3.0.0",
     "github-slugger": "2.0.0",
     "jscodeshift": "17.4.0",
+    "libphonenumber-js": "1.13.17",
     "react-docgen-typescript": "2.4.0",
     "size-limit": "14.3.0",
     "tailwindcss": "4.3.5",
@@ -161,6 +166,11 @@
       "name": "number",
       "path": "dist/number/index.js",
       "limit": "560 B"
+    },
+    {
+      "name": "phone",
+      "path": "dist/phone/index.js",
+      "limit": "2.4 KB"
     },
     {
       "name": "records",
