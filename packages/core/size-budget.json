@@ -1,7 +1,7 @@
 {
-  ".": { "own": 2109, "full": 38781, "initial": 9736 },
-  "./colors": { "own": 1800, "full": 30986, "initial": 29379 },
-  "./theme": { "own": 1164, "full": 1164, "initial": 1164 },
+  ".": { "own": 2081, "full": 38790, "initial": 9698 },
+  "./colors": { "own": 2174, "full": 31336, "initial": 29764 },
+  "./theme": { "own": 1182, "full": 1182, "initial": 1182 },
   "./navigator": { "own": 303, "full": 303, "initial": 303 },
   "./utils": { "own": 773, "full": 8397, "initial": 8397 },
   "./image": { "own": 1563, "full": 1563, "initial": 1563 },
