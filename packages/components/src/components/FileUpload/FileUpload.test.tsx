@@ -162,6 +162,23 @@ describe('FileUpload', () => {
     expect(container.firstElementChild).not.toHaveAttribute('data-checking')
   })
 
+  it('shows only the newer pick as checking when it replaces one', async () => {
+    const passes = new Map<string, (message: null) => void>()
+    const { container } = render(
+      <FileUpload
+        validate={(file) =>
+          new Promise<null>((resolve) => passes.set(file.name, resolve))
+        }
+      />
+    )
+    const zone = screen.getByRole('button', { name: /^Drop a file/ })
+    await userEvent.upload(fileInput(container), csv('march.csv'))
+    await userEvent.upload(fileInput(container), csv('april.csv'))
+    expect(zone).toHaveTextContent('Checking april.csv…')
+    await act(async () => passes.get('april.csv')!(null))
+    expect(container.firstElementChild).not.toHaveAttribute('data-checking')
+  })
+
   it("doesn't count a file validate turns away against maxFiles", async () => {
     const onValueChange = vi.fn()
     const bad = csv('bad.csv')
@@ -838,6 +855,7 @@ describe('FileUpload', () => {
       const trigger = screen.getByRole('button', { name: 'Choose files' })
       expect(zone).toHaveAttribute('aria-disabled', 'true')
       expect(trigger).toHaveAttribute('aria-disabled', 'true')
+      expect(container.firstElementChild).toHaveAttribute('data-full')
       const user = userEvent.setup()
       await user.click(zone)
       zone.focus()
