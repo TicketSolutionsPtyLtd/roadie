@@ -381,7 +381,7 @@ export function useRecordsState<Row extends object>({
   // is read in the browser, once, unless `now` is given.
   const [readClock] = useState(() => {
     let mounted: Date | undefined
-    return () => (mounted ??= new Date())
+    return () => (mounted = mounted ?? new Date())
   })
   const clock = useSyncExternalStore(
     noSubscription,

@@ -102,7 +102,7 @@ export function useRowReport({
         now.scrolling = true
         const wait = now.last + REPORT_EVERY_MS - Date.now()
         if (wait <= 0) report()
-        else now.timer ??= setTimeout(report, wait)
+        else now.timer = now.timer ?? setTimeout(report, wait)
         return
       }
       if (!now.scrolling) return
@@ -220,7 +220,7 @@ export function useRowRestore({
         clearTimeout(hold.current)
         hold.current = undefined
       }
-      hold.current ??= setTimeout(release, SETTLE_MS)
+      hold.current = hold.current ?? setTimeout(release, SETTLE_MS)
     }
     return () => {
       for (const type of GIVES_UP_ON) input.removeEventListener(type, release)
