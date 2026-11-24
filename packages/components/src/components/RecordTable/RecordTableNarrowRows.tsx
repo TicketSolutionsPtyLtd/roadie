@@ -46,7 +46,8 @@ import type {
   RecordsRangeState,
   RecordsRow
 } from '../Records/types'
-import { ListPlaceContext, RecordTableListRow } from './RecordTableListRow'
+import { RecordTableListRow } from './RecordTableListRow'
+import { ListPlaceContext } from './RecordTableRowPlace'
 import type { RecordTableNarrowLayout } from './narrow'
 
 type MeasureElement = (node: HTMLLIElement | null) => void

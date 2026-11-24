@@ -1,11 +1,8 @@
 import {
   type CSSProperties,
-  type ComponentProps,
   type MouseEvent,
   type ReactNode,
-  createContext,
   memo,
-  use,
   useRef
 } from 'react'
 
@@ -19,6 +16,7 @@ import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { tableRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
+import { RowElement } from './RecordTableRowPlace'
 import { type ColumnLayout, priorityProps } from './layout'
 import type { RecordTableColumn } from './types'
 
@@ -116,14 +114,6 @@ type RecordTableRowProps = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   href?: string
-}
-
-/** One-based, counting the header row, when the table holds only some of its rows. */
-export const RowIndexContext = createContext<number | undefined>(undefined)
-
-// Not a prop of the memoised row: a search that only moves a row re-renders this element alone.
-function RowElement(props: ComponentProps<'div'>) {
-  return <div role='row' aria-rowindex={use(RowIndexContext)} {...props} />
 }
 
 // Memoised so rows a change doesn't touch skip re-rendering.

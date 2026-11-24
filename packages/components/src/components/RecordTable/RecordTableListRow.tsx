@@ -1,12 +1,4 @@
-import {
-  type ComponentProps,
-  Fragment,
-  type ReactNode,
-  createContext,
-  memo,
-  use,
-  useRef
-} from 'react'
+import { Fragment, type ReactNode, memo, useRef } from 'react'
 
 import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
@@ -21,6 +13,7 @@ import { RecordsSelectModeCheckbox } from '../Records/RecordsRowCheckbox'
 import { listRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import type { RecordCardParts, RecordPart } from '../Records/types'
+import { ListRowElement } from './RecordTableRowPlace'
 
 // List rows size to their text; a window needs whole, fixed heights, so the content centres in them instead.
 const fixedHeightClass =
@@ -48,20 +41,6 @@ export type RecordTableListRowProps = {
 const hasValue = (part: RecordPart, row: object) =>
   part.cell !== undefined ||
   formatRecordValue(row, part.field, { timeZone: 'UTC' }) !== null
-
-/** A row's place, when the list holds only some of its rows. */
-export const ListPlaceContext = createContext<{
-  /** One-based place in the whole list. */
-  posInSet?: number
-  /** The whole list's length, or -1 while unknown. */
-  setSize?: number
-}>({})
-
-// Not props of the memoised row: a search that only moves a row re-renders this element alone.
-function ListRowElement(props: ComponentProps<'li'>) {
-  const { posInSet, setSize } = use(ListPlaceContext)
-  return <li {...props} aria-posinset={posInSet} aria-setsize={setSize} />
-}
 
 /** A record as one line of a list: leading, title and description, trailing. */
 export const RecordTableListRow = memo(function RecordTableListRow({
