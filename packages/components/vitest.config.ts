@@ -7,7 +7,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import type { CDPSession } from 'playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
-import type { BrowserCommand } from 'vitest/node'
+import { BaseSequencer, type BrowserCommand } from 'vitest/node'
 
 import {
   frameCommands,
@@ -19,6 +19,7 @@ import {
   browserInstances,
   browserRetry,
   browserRunOptions,
+  sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
 import { reactCompilerPreset } from './react-compiler.config.ts'
@@ -255,6 +256,7 @@ export default defineConfig({
   },
   test: {
     ...browserRunOptions,
+    sequence: { sequencer: sizeBalanced(BaseSequencer) },
     projects: [
       {
         extends: true,
