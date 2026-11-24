@@ -141,6 +141,21 @@ function rgba(hex: string, alpha = 255): Rgba {
   return [(value >> 16) & 255, (value >> 8) & 255, value & 255, alpha]
 }
 
+/** A width by height image whose bytes are read lazily, from `colour(x, y)`. */
+function lazyImage(
+  width: number,
+  height: number,
+  colour: (x: number, y: number) => Rgba
+): ArrayLike<number> {
+  return new Proxy({ length: width * height * 4 } as ArrayLike<number>, {
+    get(target, key) {
+      if (key === 'length') return target.length
+      const pixel = Math.floor(Number(key) / 4)
+      return colour(pixel % width, Math.floor(pixel / width))[Number(key) % 4]
+    }
+  })
+}
+
 /** An image as RGBA bytes: each entry is a colour and how many pixels of it. */
 function image(...parts: [Rgba, number][]): Uint8ClampedArray {
   const bytes: number[] = []
@@ -156,7 +171,8 @@ describe('accentFromPixels', () => {
     ['#16a34a'],
     ['#f59e0b'],
     ['#7c3aed'],
-    ['#0091eb']
+    ['#0091eb'],
+    ['#ffff00']
   ])('returns a solid %s as itself', (hex) => {
     expect(accentFromPixels(image([rgba(hex), 64]))).toBe(hex)
   })
@@ -249,4 +265,20 @@ describe('accentFromPixels', () => {
     expect(accentFromPixels(pixels)).toBe('#f59e0b')
     expect(reads).toBeLessThan(100_000)
   })
+
+  it.each([
+    [4096, 4096],
+    [1125, 4096]
+  ])(
+    'finds the colour inside the border of a %i by %i image',
+    (width, height) => {
+      // Red inside an 8px white border.
+      const pixels = lazyImage(width, height, (x, y) =>
+        x < 8 || y < 8 || x >= width - 8 || y >= height - 8
+          ? rgba('#ffffff')
+          : rgba('#e11d48')
+      )
+      expect(accentFromPixels(pixels)).toBe('#e11d48')
+    }
+  )
 })

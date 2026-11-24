@@ -180,11 +180,13 @@ const MAX_SAMPLES = 4096
 const BUCKETS = 36
 /** Below this, a pixel reads as grey. */
 const MIN_CHROMA = 0.04
-/** Near black and near white carry no hue worth taking. */
+/** Near black and near white carry no hue worth taking. Pure yellow is 0.968. */
 const MIN_LIGHTNESS = 0.2
-const MAX_LIGHTNESS = 0.96
+const MAX_LIGHTNESS = 0.98
 /** Colour on less than 1 in this many opaque pixels is a speck, not the image's. */
 const SPECK = 100
+/** Offsets each sample within its stride, so samples don't line up down one column. */
+const GOLDEN_RATIO = 0.6180339887
 
 /**
  * The accent colour of an image, from its raw pixels: a hex for
@@ -207,14 +209,16 @@ export function accentFromPixels(
   { channels = 4 }: AccentFromPixelsOptions = {}
 ): string | null {
   const count = Math.floor(pixels.length / channels)
-  const step = Math.max(1, Math.ceil(count / MAX_SAMPLES))
+  const samples = Math.min(count, MAX_SAMPLES)
+  const stride = count / samples
   // Per hue bucket: total weight, then weighted lightness, a, and b.
   const buckets = new Float64Array(BUCKETS * 4)
   let opaque = 0
   let coloured = 0
 
-  for (let pixel = 0; pixel < count; pixel += step) {
-    const index = pixel * channels
+  for (let sample = 0; sample < samples; sample++) {
+    const offset = (sample * GOLDEN_RATIO) % 1
+    const index = Math.floor((sample + offset) * stride) * channels
     if (channels === 4 && pixels[index + 3]! < 128) continue
     opaque++
     const { l, a, b } = srgbToOklab(
