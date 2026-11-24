@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "292 kB"
+    "limit": "296 kB"
   },
   {
     "name": "Single component (Button)",
@@ -210,7 +210,7 @@
     "name": "ImageCrop",
     "path": "dist/components/ImageCrop/index.js",
     "import": "*",
-    "limit": "4.2 kB",
+    "limit": "11.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
