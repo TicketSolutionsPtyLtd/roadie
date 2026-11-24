@@ -106,6 +106,7 @@ export function FileUploadRoot({
   const [uploads, setUploads] = useState<ReadonlyMap<File, Upload>>(new Map())
   const [previous, setPrevious] = useState(files)
   const [said, say] = useState('')
+  const [alarm, raise] = useState('')
   if (previous !== files) {
     setPrevious(files)
     const added = files.filter((file) => !previous.includes(file))
@@ -122,21 +123,36 @@ export function FileUploadRoot({
     })
   }
 
-  // Says which uploads have just finished, counting every one that landed
-  // in the same render.
+  // Says which uploads have just finished or failed, counting every one that
+  // landed in the same render. A failure leaving clears its message, so the
+  // same file failing again is said again.
   const [settled, setSettled] = useState(uploads)
   if (settled !== uploads) {
     setSettled(uploads)
-    const landed = [...uploads].filter(
-      ([file, { status }]) =>
-        status === 'done' && settled.get(file)?.status !== 'done'
+    const turned = (to: string) =>
+      [...uploads]
+        .filter(
+          ([file, { status }]) =>
+            status === to && settled.get(file)?.status !== to
+        )
+        .map(([file]) => file.name)
+        .join(', ')
+    const landed = turned('done')
+    const failed = turned('error')
+    if (failed) raise(`${failed} couldn't upload. Retry is available.`)
+    else if (
+      [...settled].some(
+        ([file, { status }]) =>
+          status === 'error' && uploads.get(file)?.status !== 'error'
+      )
     )
+      raise('')
     const done = [...uploads.values()].filter(
       ({ status }) => status === 'done'
     ).length
-    if (landed.length)
+    if (landed)
       say(
-        `${landed.map(([file]) => file.name).join(', ')} uploaded.${uploads.size > 1 ? ` ${done} of ${uploads.size} uploaded.` : ''}`
+        `${landed} uploaded.${uploads.size > 1 ? ` ${done} of ${uploads.size} uploaded.` : ''}`
       )
   }
 
@@ -168,10 +184,10 @@ export function FileUploadRoot({
           controllers.current.delete(file)
           patch(file, { status: 'done', progress: 1, result })
         },
-        () => {
+        (error: unknown) => {
           if (signal.aborted) return
           controllers.current.delete(file)
-          patch(file, { status: 'error' })
+          patch(file, { status: 'error', error })
         }
       )
   })
@@ -260,6 +276,8 @@ export function FileUploadRoot({
           },
           remove: (file) => commit(files.filter((each) => each !== file)),
           uploads,
+          retry: (file) =>
+            patch(file, { status: 'queued', progress: 0, error: undefined }),
           inputId,
           valueId: `${ownId}-value`,
           triggerRef,
@@ -294,6 +312,9 @@ export function FileUploadRoot({
       />
       <p role='status' className='sr-only'>
         {said}
+      </p>
+      <p aria-live='assertive' className='sr-only'>
+        {alarm}
       </p>
     </div>
   )

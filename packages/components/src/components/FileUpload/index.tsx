@@ -6,6 +6,7 @@ import {
   FileUploadItem,
   FileUploadItemName,
   FileUploadItemRemove,
+  FileUploadItemRetry,
   FileUploadItemSize,
   FileUploadItemStatus
 } from './FileUploadItem'
@@ -27,6 +28,7 @@ const FileUpload = FileUploadRoot as typeof FileUploadRoot & {
   ItemSize: typeof FileUploadItemSize
   ItemStatus: typeof FileUploadItemStatus
   ItemRemove: typeof FileUploadItemRemove
+  ItemRetry: typeof FileUploadItemRetry
   Clear: typeof FileUploadClear
   Trigger: typeof FileUploadTrigger
 }
@@ -42,6 +44,7 @@ FileUpload.ItemName = FileUploadItemName
 FileUpload.ItemSize = FileUploadItemSize
 FileUpload.ItemStatus = FileUploadItemStatus
 FileUpload.ItemRemove = FileUploadItemRemove
+FileUpload.ItemRetry = FileUploadItemRetry
 FileUpload.Clear = FileUploadClear
 FileUpload.Trigger = FileUploadTrigger
 
@@ -56,7 +59,8 @@ export type {
   FileUploadItemNameProps,
   FileUploadItemSizeProps,
   FileUploadItemStatusProps,
-  FileUploadItemRemoveProps
+  FileUploadItemRemoveProps,
+  FileUploadItemRetryProps
 } from './FileUploadItem'
 export type { FileUploadItemPreviewProps } from './FileUploadItemPreview'
 export type { FileUploadItem, FileUploadStatus } from './FileUploadContext'
