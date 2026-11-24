@@ -568,6 +568,12 @@ export {
   type OTPFieldSize
 } from './components/OTPField'
 export {
+  PhoneField,
+  phoneFieldVariants,
+  type PhoneFieldProps,
+  type PhoneFieldValueDetails
+} from './components/PhoneField'
+export {
   QueryField,
   type QueryFieldProps,
   type QueryFieldAccepted,
