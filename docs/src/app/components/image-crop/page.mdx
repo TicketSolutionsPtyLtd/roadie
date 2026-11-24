@@ -1,7 +1,7 @@
 export const metadata = {
   title: "Image crop",
   description:
-    "Crops an image to a fixed ratio by panning, zooming and turning it under a frame",
+    "Crops an image to a ratio, or free-form, by panning, zooming and turning it under a frame",
   status: "alpha",
   category: "Media & brand",
 };
@@ -9,7 +9,7 @@ export const metadata = {
 import { PropsDefinitions } from "@/components/PropsDefinitions";
 import { Guideline, Guidelines } from "@/components/Guideline";
 
-Crops an image to a fixed ratio by panning, zooming and turning it under a frame.
+Crops an image to a ratio, or free-form, by panning, zooming and turning it under a frame.
 
 ## Import
 
@@ -44,6 +44,19 @@ Past an edge or a zoom limit the image gives way, then springs back when you let
   minWidth={1000}
   minHeight={300}
   label='E-ticket banner'
+/>
+```
+
+### Free-form
+
+Leave out `aspectRatio` and the frame starts as the whole image, with handles on its corners and edges. Drag one to resize the crop about its centre; when you let go, the frame grows back to fill the crop area and the image zooms with it. A quarter turn turns the frame too, and Reset goes back to the whole image. `minWidth` and `minHeight` each set the smallest their own side can be. A homepage image can be any shape.
+
+```tsx-live width=180
+<ImageCrop
+  src='/brand/photography/02.webp'
+  minWidth={800}
+  minHeight={400}
+  label='Homepage image'
 />
 ```
 
@@ -134,6 +147,7 @@ render(<EventImage />)
 ## Accessibility
 
 - The crop area is a focusable group named by `label` (default "Crop image"), with a description that says how to move and zoom the image.
+- In free-form, each corner is a button named for it ("Top left corner") with the role description "resize handle". Its arrow keys move the corner 10px, or 50px with Shift, so the crop grows as the corner moves out and shrinks as it moves in, about its centre. The edges are for a pointer only, as the corners already resize both ways.
 - The arrow keys move the image 10px, or 50px with Shift. `+` and `-` zoom in and out, and `R` turns the image 90° left. Each moves at once; a turn springs.
 - The controls are a group named "Crop controls": two buttons and a slider named "Zoom", whose value reads as a percent of the zoom that covers the frame, then "Rotate left", and "Reset crop" once there's something to reset. Pressing Reset moves focus to the crop area. On a narrow crop the zoom buttons drop out, and the slider and keys still zoom.
 - A plain scroll zooms only once the crop area has focus, so scrolling the page past it never zooms by accident. A trackpad pinch zooms whether or not it has focus.
