@@ -85,7 +85,7 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   meant, build, run `pnpm --filter @oztix/roadie-components size:update`,
   and commit the file. The other packages use Size Limit
   (`.size-limit.json`, or the `size-limit` field in `package.json` for core
-  and widgets): set a new budget, or raise one, to about 10% above what you
+  and widgets). There, set a budget, or raise one, to about 10% above what you
   measure, never just above it, or the next small change crosses it again.
   New `@utility` classes also go in `src/css/safelist.html`.
 - **Changing Turbo config?** Read the installed turbo's `docs/README.md`

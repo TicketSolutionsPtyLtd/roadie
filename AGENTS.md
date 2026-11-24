@@ -54,7 +54,7 @@ pnpm --filter docs dev
   Docs and consumers import per-component subpaths, never the root barrel.
 - A JS subpath needs a `tsdown.config.ts` entry unless a wildcard covers it.
 - A JS subpath in components needs its row in the generated
-  `packages/components/size-budget.json`, or `size` fails: build, then
+  `packages/components/size-budget.json`, or `size` fails. Build, then run
   `pnpm --filter @oztix/roadie-components size:update`.
 - A CSS `@utility` must be named in its package's `src/css/safelist.html` (core
   and charts), or Tailwind purges it and the compiled sheet comes out empty.
