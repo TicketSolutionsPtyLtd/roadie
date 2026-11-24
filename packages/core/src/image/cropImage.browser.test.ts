@@ -224,26 +224,39 @@ describe('cropImage to an opaque type', () => {
     33
   )
 
-  /** The colour at the blob's top-left pixel, as `r,g,b,a`. */
-  async function topLeft(blob: Blob) {
+  /** The colour at each of the blob's corner pixels and its centre, as `r,g,b,a`. */
+  async function pixels(blob: Blob) {
     const bitmap = await createImageBitmap(blob)
-    const context = new OffscreenCanvas(1, 1).getContext('2d')!
+    const { width, height } = bitmap
+    const context = new OffscreenCanvas(width, height).getContext('2d')!
     context.drawImage(bitmap, 0, 0)
-    return [...context.getImageData(0, 0, 1, 1).data].join()
+    const at = (x: number, y: number) =>
+      [...context.getImageData(x, y, 1, 1).data].join()
+    const corners = [
+      at(0, 0),
+      at(width - 1, 0),
+      at(width - 1, height - 1),
+      at(0, height - 1)
+    ]
+    return { corners, centre: at(width >> 1, height >> 1) }
   }
 
   it('fills past the image with white', async () => {
-    expect(await topLeft(await cropImage(await white(), turned, jpeg))).toBe(
-      '255,255,255,255'
+    const { corners } = await pixels(
+      await cropImage(await white(), turned, jpeg)
     )
+    expect(corners).toEqual(Array(4).fill('255,255,255,255'))
   })
 
-  it('fills past the image with the background asked for', async () => {
+  it('fills past the image with the background asked for, under the image', async () => {
     const blob = await cropImage(await white(), turned, {
       ...jpeg,
       background: '#000000'
     })
-    expect(await topLeft(blob)).toBe('0,0,0,255')
+    expect(await pixels(blob)).toEqual({
+      corners: Array(4).fill('0,0,0,255'),
+      centre: '255,255,255,255'
+    })
   })
 
   it('leaves a type with alpha see-through past the image', async () => {
@@ -251,6 +264,6 @@ describe('cropImage to an opaque type', () => {
       width: 97,
       type: 'image/png'
     })
-    expect(await topLeft(blob)).toBe('0,0,0,0')
+    expect((await pixels(blob)).corners).toEqual(Array(4).fill('0,0,0,0'))
   })
 })
