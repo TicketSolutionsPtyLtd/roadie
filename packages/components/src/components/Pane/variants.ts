@@ -59,7 +59,8 @@ const PANE_CHROME_SURFACE =
 // The shadow is a pseudo's opacity, so it fades on the compositor.
 export const paneHeaderVariants = cva(
   [
-    'sticky top-0 z-sticky grid-cols-[auto_minmax(0,1fr)_auto]',
+    // Drawn even when empty: the body title it echoes registers only in the browser.
+    'sticky top-0 z-sticky grid grid-cols-[auto_minmax(0,1fr)_auto]',
     '[--pane-header-gap:--spacing(2)]',
     // Row gaps are margins, not row-gap: a closed row can't reclaim a shared gap.
     'gap-x-(--pane-header-gap)',
@@ -79,16 +80,9 @@ export const paneHeaderVariants = cva(
   ],
   {
     variants: {
-      // The leading cell's occupant decides whether an otherwise-empty header draws.
-      edgeOnly: {
-        none: 'grid',
-        back: '[display:var(--pane-back)]',
-        close: '[display:var(--pane-close)]',
-        both: '[display:var(--pane-edge)]'
-      },
       collapsed: { true: 'after:opacity-100', false: 'after:opacity-0' }
     },
-    defaultVariants: { edgeOnly: 'none', collapsed: false }
+    defaultVariants: { collapsed: false }
   }
 )
 

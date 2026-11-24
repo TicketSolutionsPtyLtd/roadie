@@ -1,9 +1,22 @@
+import { type ReactElement, type ReactNode, act } from 'react'
+
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { page } from 'vitest/browser'
 
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Skeleton } from '../Skeleton'
 import { COLLAPSE_AT, EXPAND_AT } from './PaneRoot'
 import { forgetPaneScroll } from './paneScroll'
 import { useStylesheet } from './testUtils'
@@ -204,4 +217,90 @@ describe('pane chrome', () => {
       expect(footer).toBe(radius)
     }
   )
+})
+
+describe('a pane header from the server', () => {
+  // Server markup first, read, then hydrated and read again: nothing may move.
+  async function serveThenHydrate(ui: ReactElement) {
+    const host = document.createElement('div')
+    host.innerHTML = renderToString(ui)
+    document.body.append(host)
+    const read = () => {
+      const pane = host.querySelector<HTMLElement>('[data-slot="pane"]')!
+      const first = host.querySelector<HTMLElement>('[data-probe]')!
+      const header = host.querySelector<HTMLElement>(
+        '[data-slot="pane-header"]'
+      )
+      return {
+        top:
+          first.getBoundingClientRect().top - pane.getBoundingClientRect().top,
+        header: header?.getBoundingClientRect().height ?? 0
+      }
+    }
+    await frames()
+    const served = read()
+    const onRecoverableError = vi.fn()
+    const root = await act(async () =>
+      hydrateRoot(host, ui, { onRecoverableError })
+    )
+    await frames()
+    const hydrated = read()
+    act(() => root.unmount())
+    host.remove()
+    return { served, hydrated, onRecoverableError }
+  }
+
+  const frame = (children: ReactNode) => (
+    <div style={{ width: 600, height: 500, display: 'grid' }}>
+      <Pane>{children}</Pane>
+    </div>
+  )
+
+  it('holds an empty header above a body title at the height it hydrates to', async () => {
+    const { served, hydrated, onRecoverableError } = await serveThenHydrate(
+      frame(
+        <>
+          <Pane.Header />
+          <Pane.BodyTitle data-probe>Midnight Frequency</Pane.BodyTitle>
+          <div style={{ height: 2000 }} />
+        </>
+      )
+    )
+
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(served.header).toBeCloseTo(CONTROL_HEADER, 0)
+    expect(hydrated).toEqual(served)
+  })
+
+  it('gives a skeleton pane with no title the same top', async () => {
+    const { served, hydrated } = await serveThenHydrate(
+      frame(
+        <>
+          <Pane.Header />
+          <Skeleton data-probe shape='block' className='h-40' />
+        </>
+      )
+    )
+
+    expect(served.header).toBeCloseTo(CONTROL_HEADER, 0)
+    expect(served.top).toBeCloseTo(CONTROL_HEADER, 0)
+    expect(hydrated).toEqual(served)
+  })
+
+  it('holds a header of actions above a body title where it hydrates', async () => {
+    const { served, hydrated } = await serveThenHydrate(
+      frame(
+        <>
+          <Pane.Header>
+            <Pane.Actions>
+              <button type='button'>Share</button>
+            </Pane.Actions>
+          </Pane.Header>
+          <Pane.BodyTitle data-probe>Midnight Frequency</Pane.BodyTitle>
+        </>
+      )
+    )
+
+    expect(hydrated).toEqual(served)
+  })
 })

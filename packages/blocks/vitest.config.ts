@@ -6,12 +6,13 @@ import { globSync, readFileSync, realpathSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
-import type { BrowserCommand } from 'vitest/node'
+import { BaseSequencer, type BrowserCommand } from 'vitest/node'
 
 import {
   browserInstances,
   browserRetry,
   browserRunOptions,
+  sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
 import { reactCompilerPreset } from './react-compiler.config.ts'
@@ -119,6 +120,7 @@ export default defineConfig({
   },
   test: {
     ...browserRunOptions,
+    sequence: { sequencer: sizeBalanced(BaseSequencer) },
     projects: [
       {
         extends: true,

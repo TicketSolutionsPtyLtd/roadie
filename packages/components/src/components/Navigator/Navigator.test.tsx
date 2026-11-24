@@ -2847,13 +2847,15 @@ describe('scroll-to-top in a nested Navigator', () => {
 })
 
 describe('pane header inside Navigator', () => {
-  it('publishes the header height only while the header draws', async () => {
-    const tree = (titled: boolean) => (
+  it('publishes the header height only while the pane has a header', async () => {
+    const tree = (headed: boolean) => (
       <Navigator value='/'>
         <Pane>
-          <Pane.Header>
-            {titled ? <Pane.Title>Detail</Pane.Title> : null}
-          </Pane.Header>
+          {headed ? (
+            <Pane.Header>
+              <Pane.Title>Detail</Pane.Title>
+            </Pane.Header>
+          ) : null}
         </Pane>
       </Navigator>
     )
