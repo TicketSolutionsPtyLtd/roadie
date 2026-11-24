@@ -169,8 +169,21 @@ describe('accentFromPixels', () => {
 
   it('picks a small vivid area over a large muted one', () => {
     expect(
-      accentFromPixels(image([rgba('#8a9a7b'), 800], [rgba('#2563eb'), 200]))
+      accentFromPixels(image([rgba('#4f7a5a'), 800], [rgba('#2563eb'), 200]))
     ).toBe('#2563eb')
+  })
+
+  it('counts a hue split across two close shades as one', () => {
+    // Blues at hue 258 and 263, together heavier than the red, each lighter.
+    const accent = accentFromPixels(
+      image(
+        [rgba('#0060d0'), 300],
+        [rgba('#2563eb'), 300],
+        [rgba('#e11d48'), 400]
+      )
+    )
+    expect(getOklchHueSync(accent!)).toBeGreaterThan(255)
+    expect(getOklchHueSync(accent!)).toBeLessThan(265)
   })
 
   it('takes the colour of the most vivid hue, not a blend across hues', () => {
@@ -192,7 +205,9 @@ describe('accentFromPixels', () => {
   it.each([
     ['grey', image([rgba('#808080'), 64], [rgba('#a3a3a3'), 64])],
     ['near white', image([rgba('#fbfaf7'), 64])],
+    ['a pale tint of near white', image([rgba('#ffffc0'), 64])],
     ['near black', image([rgba('#0d0b10'), 64])],
+    ['a dark tint of near black', image([rgba('#1a0005'), 64])],
     ['transparent', image([rgba('#e11d48', 0), 64])],
     ['a speck of colour', image([rgba('#808080'), 999], [rgba('#e11d48'), 1])],
     ['empty', new Uint8ClampedArray()]
