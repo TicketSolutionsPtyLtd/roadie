@@ -263,7 +263,7 @@ function GridCard({
  * low sizes the whole window wrong.
  */
 function useColumnCount(bodyRef: RefObject<HTMLElement | null>) {
-  const [columns, setColumns] = useState<number>()
+  const [grid, setGrid] = useState<{ columns: number; rowRem?: number }>()
   useLayoutEffect(() => {
     const body = bodyRef.current
     if (!body) return
@@ -272,14 +272,25 @@ function useColumnCount(bodyRef: RefObject<HTMLElement | null>) {
         // Resolved px tracks only: a box not laid out reports the declared repeat().
         .gridTemplateColumns.split(' ')
         .filter((track) => track.endsWith('px')).length
-      setColumns(Math.max(1, tracks))
+      // A card as drawn is the best estimate of the rows not drawn yet.
+      const card = body.querySelector('[data-slot="record-grid-card"]')
+      const root = parseFloat(
+        getComputedStyle(document.documentElement).fontSize
+      )
+      const height = card?.getBoundingClientRect().height ?? 0
+      const rowRem = height > 0 && root > 0 ? height / root : undefined
+      setGrid((now) =>
+        now?.columns === Math.max(1, tracks) && now.rowRem === rowRem
+          ? now
+          : { columns: Math.max(1, tracks), rowRem }
+      )
     }
     read()
     const observer = new ResizeObserver(read)
     observer.observe(body)
     return () => observer.disconnect()
   }, [bodyRef])
-  return columns
+  return grid
 }
 
 function VirtualGrid({
@@ -298,7 +309,8 @@ function VirtualGrid({
 }) {
   const columnsRef = useRef<HTMLUListElement>(null)
   const measured = useColumnCount(columnsRef)
-  const columns = measured ?? 1
+  const columns = measured?.columns ?? 1
+  const size = gridRowSize(shared.parts.image !== undefined)
   const getItemKey = useCallback(
     // With the count too, so heights measured at another width start over.
     (row: number) => `${columns}:${rows[row * columns]!.id}`,
@@ -307,7 +319,8 @@ function VirtualGrid({
   const { bodyRef, view, measureElement } = useRowWindow<HTMLUListElement>({
     count: Math.ceil(rows.length / columns),
     getItemKey,
-    ...gridRowSize(shared.parts.image !== undefined)
+    ...size,
+    estimateRem: measured?.rowRem ?? size.estimateRem
   })
   useHeldHeight(bodyRef, true)
   const setRefs = useBodyRef(bodyRef, columnsRef)
@@ -326,10 +339,7 @@ function VirtualGrid({
             setSize={setSize}
           />
         ))}
-        <GridFiller
-          records={rows.length}
-          row={gridRowSize(shared.parts.image !== undefined)}
-        />
+        <GridFiller records={rows.length} />
       </GridList>
     )
   return (
@@ -344,6 +354,8 @@ function VirtualGrid({
           measure={{ index: row, ref: leads ? measureElement : undefined }}
         />
       ))}
+      {/* The slot the filler held, so the cards stay mounted when it goes. */}
+      {null}
     </GridList>
   )
 }
@@ -367,7 +379,7 @@ function RangeGrid({
   busy?: boolean
 }) {
   const columnsRef = useRef<HTMLUListElement>(null)
-  const columns = useColumnCount(columnsRef) ?? 1
+  const columns = useColumnCount(columnsRef)?.columns ?? 1
   const byRow = useGridRange(range, columns)
   const reportRow = useCallback(
     (gridRow: number) => onRow?.(gridRow * columns),
