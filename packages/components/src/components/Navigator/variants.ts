@@ -317,9 +317,9 @@ export const navigatorItemLabelClass =
   'col-start-2 row-start-1 ms-3 truncate opacity-0 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
 
 // Fades with the label, a step quieter, so the expanded Search hints at its shortcut.
-// Collapsed, it takes no width, or the round tile would stretch past the rail.
+// Clipped, and its margin opens with the rail, so the round tile never outgrows the rail.
 export const navigatorSearchShortcutClass =
-  'ms-0 w-0 gap-0 overflow-hidden font-normal text-subtler opacity-0 navigator-expanded:ms-3 navigator-expanded:w-auto navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
+  'ms-0 gap-0 overflow-hidden font-normal text-subtler opacity-0 navigator-expanded:ms-3 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast),margin-inline-start_var(--navigator-primary-motion)]'
 
 // Without an icon the label takes the icon column, unless a capsule sibling's
 // icon needs it for alignment: the capsule sets a variable rather than a
