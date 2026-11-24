@@ -20,18 +20,18 @@ export const reportActionError = (error: unknown) =>
 export async function attempt(
   work: () => unknown,
   {
-    then,
+    next,
     failed = reportActionError,
     done
   }: {
-    then?: () => void
+    next?: () => void
     failed?: (error: unknown) => void
     done: () => void
   }
 ) {
   try {
     await work()
-    then?.()
+    next?.()
   } catch (error) {
     failed(error)
   } finally {

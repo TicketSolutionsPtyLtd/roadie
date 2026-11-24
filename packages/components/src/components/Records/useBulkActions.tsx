@@ -149,7 +149,7 @@ export function useBulkActions({
           timeZone,
           now
         }),
-      { then: settle, done: () => setRunning(null) }
+      { next: settle, done: () => setRunning(null) }
     )
   }
   const start = (index: number) =>

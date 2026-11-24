@@ -55,7 +55,7 @@ function useRun(failed: string, onDone: () => void) {
     setPending(true)
     setError(null)
     await attempt(action, {
-      then: onDone,
+      next: onDone,
       // Shown in the dialog, which is where the person is looking.
       failed: (caught) => setError(messageOf(caught, failed)),
       done: () => {
