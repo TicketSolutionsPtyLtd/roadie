@@ -19,10 +19,14 @@ beforeAll(() => {
   removeStylesheet = useStylesheet(roadieCss)
   // Every run reads as a Mac, the keyboard whose keys shift, on any machine.
   const userAgentData = { platform: 'macOS' }
-  Object.defineProperty(navigator, 'userAgentData', { value: userAgentData })
+  Object.defineProperty(navigator, 'userAgentData', {
+    value: userAgentData,
+    configurable: true
+  })
 })
 afterAll(async () => {
   removeStylesheet()
+  Reflect.deleteProperty(navigator, 'userAgentData')
   await page.viewport(1920, 1080)
 })
 
