@@ -88,7 +88,7 @@ export function SortableHandle({
   // events: WebKit sends a tap no mouse events once its pointerdown is
   // cancelled, as a drawer does.
   const pressedRef = useRef(false)
-  const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
+  const [trigger, setTrigger] = useState<HTMLElement | null>(null)
   const ref = useMemo(() => mergeRefs(setHandle, setTrigger), [setHandle])
   const first = useRef(use(SortableOpeningContext))
   const replaying = useRef(false)
