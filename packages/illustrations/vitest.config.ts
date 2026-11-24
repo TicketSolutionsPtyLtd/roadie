@@ -3,11 +3,13 @@ import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
+import { BaseSequencer } from 'vitest/node'
 
 import {
   browserInstances,
   browserRetry,
   browserRunOptions,
+  sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
 
@@ -26,6 +28,7 @@ export default defineConfig({
   },
   test: {
     ...browserRunOptions,
+    sequence: { sequencer: sizeBalanced(BaseSequencer) },
     globals: true,
     projects: [
       {

@@ -25,6 +25,12 @@ export type OTPFieldRootProps = OTPFieldPrimitive.Root.Props &
      * between groups, so `length={6} groupSize={3}` reads as 3-3.
      */
     groupSize?: number
+    /**
+     * Focus the first slot on mount, for a code screen the reader just arrived
+     * on. Base UI's root has no such prop, so it reaches that slot instead of
+     * the root `div`.
+     */
+    autoFocus?: boolean
   }
 
 function renderSlots(length: number, groupSize?: number) {
@@ -49,6 +55,7 @@ export function OTPFieldRoot({
   emphasis,
   invalid,
   groupSize,
+  autoFocus,
   id,
   required,
   disabled,
@@ -61,7 +68,13 @@ export function OTPFieldRoot({
 
   return (
     <OTPFieldContext
-      value={{ size, emphasis, invalid: resolvedInvalid, label: ariaLabel }}
+      value={{
+        size,
+        emphasis,
+        invalid: resolvedInvalid,
+        label: ariaLabel,
+        autoFocus
+      }}
     >
       <OTPFieldPrimitive.Root
         data-slot='otp-field'
