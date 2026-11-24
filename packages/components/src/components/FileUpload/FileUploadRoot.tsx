@@ -258,6 +258,8 @@ export function FileUploadRoot({
   }
 
   function commit(next: File[]) {
+    // A check still running loses to any change since its pick.
+    picks.current++
     setError(null)
     setUncontrolled(next)
     onValueChange?.(next)
