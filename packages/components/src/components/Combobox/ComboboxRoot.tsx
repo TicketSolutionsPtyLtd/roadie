@@ -54,7 +54,7 @@ export function ComboboxRoot<
   items,
   ...props
 }: ComboboxRootProps<Value, Multiple, Item>) {
-  const [scrollToIndex, virtualList] = useVirtualListRoot(props.virtualized)
+  const [virtualScroll, virtualList] = useVirtualListRoot(props.virtualized)
   const [byPointer, handleItemHighlighted] = usePointerHighlight<
     Parameters<NonNullable<typeof onItemHighlighted>>
   >((value, details) => {
@@ -120,7 +120,7 @@ export function ComboboxRoot<
           }}
           {...props}
           children={
-            <VirtualListContext value={scrollToIndex}>
+            <VirtualListContext value={virtualScroll}>
               {props.children}
             </VirtualListContext>
           }

@@ -44,7 +44,7 @@ export function AutocompleteRoot({
   items,
   ...props
 }: AutocompleteRootProps) {
-  const [scrollToIndex, virtualList] = useVirtualListRoot(props.virtualized)
+  const [virtualScroll, virtualList] = useVirtualListRoot(props.virtualized)
   const [byPointer, handleItemHighlighted] = usePointerHighlight<
     Parameters<NonNullable<typeof onItemHighlighted>>
   >((value, details) => {
@@ -92,7 +92,7 @@ export function AutocompleteRoot({
         }}
         {...props}
         children={
-          <VirtualListContext value={scrollToIndex}>
+          <VirtualListContext value={virtualScroll}>
             {props.children}
           </VirtualListContext>
         }
