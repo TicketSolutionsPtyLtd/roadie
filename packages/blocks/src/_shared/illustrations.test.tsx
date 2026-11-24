@@ -53,7 +53,8 @@ describe('the blocks', () => {
     const shipped = globSync('**/*.{ts,tsx}', { cwd: SRC }).filter(
       (file) => !/\.test\.tsx?$|fixtures\.tsx?$|^_test\//.test(file)
     )
-    const barrel = /import \* as \w+ from '@oztix\/roadie-illustrations\/spot'/
+    const barrel =
+      /(import|export) \* (as \w+ )?from ['"]@oztix\/roadie-illustrations\/spot['"]/
     expect(
       shipped.filter((file) =>
         barrel.test(readFileSync(join(SRC, file), 'utf8'))

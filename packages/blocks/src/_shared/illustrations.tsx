@@ -1,4 +1,4 @@
-import { Suspense, use } from 'react'
+import { type ReactElement, Suspense, use } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 import type { SpotIllustrationComponentProps } from '@oztix/roadie-illustrations/spot'
@@ -15,8 +15,8 @@ import {
  */
 export type { SpotIllustrationName }
 
-/** Whether saved content names a spot illustration. It's untrusted, and a prototype key such as `constructor` isn't one. */
-export const isSpotIllustration = isSpotIllustrationName
+// Saved content is untrusted, and a prototype key such as `constructor` isn't an illustration.
+const isSpotIllustration = isSpotIllustrationName
 
 // An SVG's own `name` attribute gives way to the illustration's.
 type DrawingProps = Omit<SpotIllustrationComponentProps, 'name'>
@@ -29,13 +29,23 @@ interface ByNameProps extends DrawingProps {
   fallback?: SpotIllustrationName
 }
 
-type Drawing = Awaited<ReturnType<typeof loadSpotIllustration>>
+type Drawing = (props: DrawingProps) => ReactElement
+
+// The box the illustration takes, held while it loads, or for good if it fails.
+function Reserved({ className }: DrawingProps) {
+  return (
+    <svg aria-hidden viewBox='0 0 48 48' className={cn('size-12', className)} />
+  )
+}
 
 const drawings = new Map<SpotIllustrationName, Promise<Drawing>>()
 
 // One promise per name, so every render passes `use` the same one. A server
 // has every illustration loaded, and so may the page: that promise is marked
-// settled the way React marks one it has seen settle, so `use` reads it at once.
+// settled the way React marks one it has seen settle, so `use` reads it at once
+// (React's thenable protocol; the hydration browser test fails if it changes).
+// A failed load, such as a chunk gone after a deploy, keeps the box and the
+// block; it isn't retried until the page reloads, so a render can't loop on it.
 function drawing(name: SpotIllustrationName) {
   let found = drawings.get(name)
   if (!found) {
@@ -45,7 +55,7 @@ function drawing(name: SpotIllustrationName) {
           status: 'fulfilled',
           value: loaded
         })
-      : loadSpotIllustration(name)
+      : loadSpotIllustration(name).catch((): Drawing => Reserved)
     drawings.set(name, found)
   }
   return found
@@ -69,15 +79,7 @@ export function SpotIllustrationByName({
   const shown = isSpotIllustration(name) ? name : fallback
   if (!shown) return null
   return (
-    <Suspense
-      fallback={
-        <svg
-          aria-hidden
-          viewBox='0 0 48 48'
-          className={cn('size-12', props.className)}
-        />
-      }
-    >
+    <Suspense fallback={<Reserved className={props.className} />}>
       <Drawn name={shown} {...props} />
     </Suspense>
   )

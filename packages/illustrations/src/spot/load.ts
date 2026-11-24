@@ -41,6 +41,8 @@ export function loadSpotIllustration(
     loaded.set(name, drawn)
     return drawn
   })
+  // A module that fails to load, such as a chunk gone after a deploy, loads again next time.
+  load.catch(() => loading.delete(name))
   loading.set(name, load)
   return load
 }

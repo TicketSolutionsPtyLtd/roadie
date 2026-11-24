@@ -42,6 +42,8 @@
     "./spot/load": {
       "types": "./dist/spot/load.d.ts",
       "node": "./dist/spot/load.node.js",
+      "workerd": "./dist/spot/load.node.js",
+      "edge-light": "./dist/spot/load.node.js",
       "import": "./dist/spot/load.js"
     },
     "./spot/svgs/*": "./src/spot/svgs/*",
