@@ -29,6 +29,7 @@ import {
   type RoadieLinkComponent,
   RoadieLinkProvider
 } from './RoadieLinkProvider'
+import { RoadieNonceContext } from './RoadieNonceContext'
 import { RoadieRootContext } from './RoadieRootContext'
 import {
   ThemeContext,
@@ -57,6 +58,8 @@ export type RoadieProviderProps = {
   tooltip?: RoadieTooltipOptions | false
   /** The reading direction for Roadie's components. Set `dir` on `<html>` to match. Inherits when unset. */
   direction?: 'ltr' | 'rtl'
+  /** Your content security policy's nonce, for the inline scripts `Kbd` and `DateTime` render on the server. */
+  nonce?: string
 }
 
 // A leftover sits straight inside; a scoped one, such as a route's accent, sits deeper.
@@ -120,7 +123,8 @@ export function RoadieProvider({
   theme = {},
   toast = {},
   tooltip = {},
-  direction
+  direction,
+  nonce
 }: RoadieProviderProps) {
   const mountsTheme = theme !== false
   const mountsToast = toast !== false
@@ -136,7 +140,11 @@ export function RoadieProvider({
   }
   useDevWarning(duplicateWarning(root, outer, children))
 
-  let tree = <RoadieRootContext value={root}>{children}</RoadieRootContext>
+  let tree = (
+    <RoadieRootContext value={root}>
+      <RoadieNonceContext value={nonce}>{children}</RoadieNonceContext>
+    </RoadieRootContext>
+  )
   if (toast !== false) {
     const { position, container, ...options } = toast
     tree = (

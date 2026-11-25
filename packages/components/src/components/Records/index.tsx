@@ -55,6 +55,7 @@ export type {
   UseRecordsOptions
 } from './useRecords'
 export type {
+  RecordGroupHeading,
   RecordName,
   RecordViewDefaults,
   RecordsAction,

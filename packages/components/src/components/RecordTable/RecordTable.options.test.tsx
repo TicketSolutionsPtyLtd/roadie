@@ -424,7 +424,8 @@ describe('Records.Options', { timeout: 15_000 }, () => {
       within(panel)
         .getAllByRole('combobox')
         .map((box) => box.textContent)
-    ).toEqual(['City', 'A to Z'])
+      // Then the table's Group by, grouping by nothing.
+    ).toEqual(['City', 'A to Z', 'None'])
     await user.click(
       within(panel).getByRole('combobox', { name: 'City order' })
     )

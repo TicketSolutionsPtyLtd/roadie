@@ -88,3 +88,23 @@ describe('Dashboard grid', () => {
     expect(a).toBe(b)
   })
 })
+
+describe('Dashboard grid and a card className', () => {
+  it("lets a card's own col-span class win over its size's span", () => {
+    const { getByRole } = render(
+      <div style={{ width: WIDTH_PX.desktop }}>
+        <Dashboard>
+          <Dashboard.Section title='Sizes'>
+            <DataCard
+              label='Wide stat'
+              size='stat'
+              value={1}
+              className='col-span-full'
+            />
+          </Dashboard.Section>
+        </Dashboard>
+      </div>
+    )
+    expect(getComputedStyle(getByRole('article')).gridColumnEnd).toBe('-1')
+  })
+})
