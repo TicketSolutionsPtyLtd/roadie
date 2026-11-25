@@ -16,7 +16,8 @@ import type { RecordsAction } from './types'
 const MORE = 'More actions'
 // Under 40rem of the nearest container, such as the toolbar, every action is in the menu.
 const NARROW_HIDDEN = '@max-[40rem]:hidden'
-const WIDE_HIDDEN = '@min-[40rem]:hidden'
+// Shown only under 40rem, so with no container around it, it stays hidden.
+const NARROW_ONLY = 'hidden @max-[40rem]:inline-flex'
 
 /** An action started, and whether from the menu, which then shows it busy. */
 type Started = { index: number; menu: boolean }
@@ -115,7 +116,7 @@ export function RecordsActions<Row extends object>({
                       emphasis='subtler'
                       aria-busy={running?.menu || undefined}
                       // A lone action needs the menu only once its button folds.
-                      className={actions.length === 1 ? WIDE_HIDDEN : undefined}
+                      className={actions.length === 1 ? NARROW_ONLY : undefined}
                     >
                       <DotsThreeIcon
                         weight='bold'
