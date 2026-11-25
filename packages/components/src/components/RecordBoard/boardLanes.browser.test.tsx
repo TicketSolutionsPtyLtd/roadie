@@ -406,6 +406,31 @@ describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
       .toContain('Ocean Alley 1 moved to position 2 of 2 Sold out in Melbourne')
   })
 
+  it('moves a card to a column in another lane from its Move menu by pointer', async () => {
+    const onMove = vi.fn<Move>()
+    render(<Lanes onMove={onMove} />)
+    await browserUser.click(
+      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
+    )
+    await browserUser.hover(
+      await screen.findByRole('menuitem', {
+        name: 'Move Ocean Alley 1 to Melbourne'
+      })
+    )
+    await browserUser.click(
+      await screen.findByRole('menuitem', {
+        name: 'Move Ocean Alley 1 to Cancelled in Melbourne'
+      })
+    )
+    expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { status: 'cancelled', city: 'Melbourne' }
+    )
+    await expect
+      .poll(() => cellTitles('Melbourne', 'Cancelled'))
+      .toContain('Ocean Alley 1')
+  })
+
   it('puts a card moved to another lane back, with the message, when onMove rejects', async () => {
     const user = userEvent.setup()
     let reject = (_: Error) => {}
