@@ -16,6 +16,7 @@ import type { RecordField } from '@oztix/roadie-core/records'
 
 import { tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Pane } from '../Pane'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
 import {
@@ -40,27 +41,35 @@ afterEach(() => {
 
 function ShowTable({
   width = 900,
+  columnMin,
+  inPane = false,
   ...options
-}: UseRecordsOptions<TestShow> & { width?: number }) {
+}: UseRecordsOptions<TestShow> & {
+  width?: number
+  columnMin?: number
+  inPane?: boolean
+}) {
   const records = useRecords(options)
   const fields = options.fields as readonly RecordField[]
   const layouts = useMemo(() => {
     const column = tableColumns<TestShow>(fields)
+    const width = columnMin === undefined ? undefined : { min: columnMin }
     return [
       tableLayout([
-        column.field('show'),
-        column.field('city'),
-        column.field('sold')
+        column.field('show', { width }),
+        column.field('city', { width }),
+        column.field('sold', { width })
       ])
     ]
-  }, [fields])
+  }, [fields, columnMin])
+  const content = (
+    <Records records={records} layouts={layouts} caption='Shows'>
+      <Records.Header />
+      <Records.Content />
+    </Records>
+  )
   return (
-    <div style={{ width }}>
-      <Records records={records} layouts={layouts} caption='Shows'>
-        <Records.Header />
-        <Records.Content />
-      </Records>
-    </div>
+    <div style={{ width }}>{inPane ? <Pane>{content}</Pane> : content}</div>
   )
 }
 
@@ -176,12 +185,19 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
       range.selectNodeContents(node!)
       return range.getBoundingClientRect().left
     }
-    for (const selectable of [false, true]) {
+    // In a pane, the frame insets its first and last cells.
+    for (const [selectable, inPane] of [
+      [false, false],
+      [true, false],
+      [false, true],
+      [true, true]
+    ]) {
       const { unmount } = render(
         <ShowTable
           data={testShows(6)}
           fields={fields}
           selectable={selectable}
+          inPane={inPane}
           defaultView={byStatus}
         />
       )
@@ -194,6 +210,107 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
       )
       unmount()
     }
+  })
+
+  it('sets an outer group further from the rows before it than an inner one', () => {
+    render(
+      <ShowTable
+        data={testShows(6)}
+        fields={groupedShowFields}
+        defaultView={{ layout: { type: 'table', groupBy: ['status', 'city'] } }}
+      />
+    )
+    // From the bottom of the row before a title to the title's top.
+    const gapAbove = (name: string) => {
+      const title = screen.getAllByRole('button', { name })[0]!
+      const rows = [
+        ...document.querySelectorAll('[data-slot="record-table-row"]')
+      ].filter(
+        (row) =>
+          row.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING
+      )
+      return (
+        title.getBoundingClientRect().top -
+        rows.at(-1)!.getBoundingClientRect().bottom
+      )
+    }
+    expect(gapAbove('Sold out 2')).toBeGreaterThan(gapAbove('Perth 1'))
+  })
+
+  it("names a leaf group's rows from its title, and only while they show", async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowTable
+        data={testShows(6)}
+        fields={groupedShowFields}
+        defaultView={{ layout: { type: 'table', groupBy: ['status', 'city'] } }}
+      />
+    )
+    // An outer group's rows are its inner groups', each its own rowgroup.
+    expect(toggle('On sale 2')).not.toHaveAttribute('aria-controls')
+    const inner = screen.getAllByRole('button', { name: 'Brisbane 1' })[0]!
+    const rows = document.getElementById(inner.getAttribute('aria-controls')!)!
+    expect(rows).toHaveAttribute('role', 'rowgroup')
+    expect(within(rows).getAllByRole('row')).toHaveLength(1)
+    expect(within(rows).getByText('Ocean Alley 1')).toBeVisible()
+    await user.click(inner)
+    expect(inner).not.toHaveAttribute('aria-controls')
+  })
+
+  it('hides heading content with its group', async () => {
+    const user = userEvent.setup()
+    const fields = showFields.map((one) =>
+      one.key === 'status'
+        ? { ...one, groupHeading: () => <span>Doors at 7</span> }
+        : one
+    )
+    render(
+      <ShowTable data={testShows(6)} fields={fields} defaultView={byStatus} />
+    )
+    const shown = () => screen.queryAllByText('Doors at 7').length
+    const before = shown()
+    await user.click(toggle('On sale 2'))
+    expect(shown()).toBe(before - 1)
+  })
+
+  it('counts no rows when grouped, as title rows are not records', () => {
+    render(
+      <ShowTable
+        data={testShows(6)}
+        fields={showFields}
+        defaultView={byStatus}
+        defaultPosition={{ pageSize: 4 }}
+      />
+    )
+    const table = screen.getByRole('table', { name: 'Shows' })
+    expect(table).not.toHaveAttribute('aria-rowcount')
+    expect(table.querySelector('[aria-rowindex]')).toBeNull()
+  })
+
+  it('keeps a title in view as the columns scroll sideways', async () => {
+    render(
+      <ShowTable
+        data={testShows(6)}
+        fields={showFields}
+        columnMin={30}
+        defaultView={byStatus}
+      />
+    )
+    const scroller = document.querySelector<HTMLElement>(
+      '[data-slot="record-table-scroller"]'
+    )!
+    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
+    const title = toggle('On sale 2')
+    const before = title.getBoundingClientRect()
+    scroller.scrollLeft = 200
+    await expect.poll(() => scroller.scrollLeft).toBe(200)
+    await expect
+      .poll(() => title.getBoundingClientRect().left)
+      .toBeCloseTo(before.left, 0)
+    expect(title.getBoundingClientRect().width).toBeCloseTo(before.width, 0)
+    expect(title.getBoundingClientRect().right).toBeLessThanOrEqual(
+      scroller.getBoundingClientRect().right + 0.5
+    )
   })
 
   it('collapses a group from its title, keeping it out of the view, as its records change', async () => {
