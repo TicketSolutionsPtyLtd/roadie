@@ -201,10 +201,10 @@ export const RecordTableRow = memo(function RecordTableRow({
                 href={href}
                 emphasis='subtle'
                 data-row-link=''
-                // A custom cell lays itself out, as it does unlinked.
-                // Covers the cell but lets clicks through, so they still select the row.
                 className={cn(
+                  // Covers the cell but lets clicks through, so they still select the row.
                   'is-focusable-overlay after:pointer-events-none after:absolute after:inset-0',
+                  // A custom cell lays itself out, as it does unlinked.
                   clamps ? titleClampClass : 'flex min-w-0'
                 )}
               >

@@ -271,15 +271,13 @@ describe('TIER_CLASSES', () => {
   it.each(Object.entries(PRIORITY_HIDES_BELOW))(
     'switches tier %s below %srem of the frame',
     (tier, rem) => {
-      const classes = Object.values(
-        TIER_CLASSES[Number(tier) as keyof typeof TIER_CLASSES]
-      )
-        .join(' ')
-        .split(' ')
-      for (const name of classes)
-        expect(name).toMatch(
-          new RegExp(`^@max-\\[${rem}rem\\]/record-table-frame:`)
-        )
+      const at = `@max-[${rem}rem]/record-table-frame:`
+      expect(TIER_CLASSES[Number(tier) as keyof typeof TIER_CLASSES]).toEqual({
+        hide: `${at}hidden`,
+        start: `${at}ps-(--content-inset)`,
+        end: `${at}pe-(--content-inset)`,
+        template: `${at}[--record-table-columns:var(--record-table-columns-${tier})] ${at}[--record-table-min-width:var(--record-table-min-width-${tier})]`
+      })
     }
   )
 })
