@@ -41,8 +41,7 @@ import {
   cellClass,
   pinStyle,
   rowClass,
-  selectCellClass,
-  titleColumn
+  selectCellClass
 } from './RecordTableRow'
 import { RecordTableRows } from './RecordTableRows'
 import { RecordTablePageCheckbox } from './RecordTableSelectCell'
@@ -52,7 +51,13 @@ import {
   RecordTableTotalsRow
 } from './RecordTableTotals'
 import { shownColumns } from './columns'
-import { SELECT_WIDTH, columnLayout, priorityProps, tierStyle } from './layout'
+import {
+  SELECT_WIDTH,
+  columnLayout,
+  priorityProps,
+  tierStyle,
+  titleColumn
+} from './layout'
 import { useLayoutFocus } from './layoutFocus'
 import { cardParts, narrowLayout, narrowParts } from './narrow'
 import type { TableLayoutConfig } from './tableLayout'

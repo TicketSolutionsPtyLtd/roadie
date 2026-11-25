@@ -68,18 +68,6 @@ export const pinStyle = (start: number | undefined) =>
           start === 0 ? '0rem' : `calc(${start}rem + var(--content-inset))`
       } as CSSProperties)
 
-/** The column whose value names the row: the narrow title, else the first pinned text column, else the first text one. Never an image. */
-export function titleColumn<Column extends RecordTableColumn<never>>(
-  columns: readonly Column[]
-) {
-  const named = columns.filter((column) => column.kind !== 'image')
-  return (
-    named.find((column) => column.narrow === 'title') ??
-    named.find((column) => column.pin && column.field.type === 'text') ??
-    named.find((column) => column.field.type === 'text')
-  )
-}
-
 const titleText = (
   record: object,
   title: RecordTableColumn | undefined,
