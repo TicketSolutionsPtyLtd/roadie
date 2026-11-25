@@ -1,6 +1,10 @@
 'use client'
 
-import { type ComponentProps, useSyncExternalStore } from 'react'
+import {
+  type ComponentProps,
+  type ReactNode,
+  useSyncExternalStore
+} from 'react'
 
 import {
   type DateStyle,
@@ -17,6 +21,7 @@ import {
 } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { BeforePaint } from '../../utils/beforePaint'
 import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 import { subscribeToTicker } from '../../utils/ticker'
 
@@ -128,7 +133,8 @@ export function DateTime({
   ...props
 }: DateTimeProps) {
   // A standalone date's year depends on today, which a server can't know, so
-  // the server keeps the year and the client drops it after mount.
+  // the server keeps the year, and the script `withYearDropped` adds, or the
+  // client, drops it.
   const knowsToday = useSyncExternalStore(
     subscribeToNothing,
     () => true,
@@ -258,7 +264,11 @@ export function DateTime({
   if (to && range && range.to !== null) {
     const duration = showDuration ? formatDurationDays(at, to, opts) : null
     const toMachine = formatMachine(to, opts)
-    return resolveRender(
+    const withoutYear =
+      !knowsToday && toMachine && machine?.slice(0, 4) === toMachine.slice(0, 4)
+        ? formatDateRangeParts(at, to, { ...opts, showYear: false })
+        : null
+    const span = resolveRender(
       'span',
       {
         ...props,
@@ -277,6 +287,10 @@ export function DateTime({
       },
       render
     )
+    return withYearDropped(span, toMachine, timeZone, [
+      [range.from, withoutYear?.from],
+      [range.to, withoutYear?.to]
+    ])
   }
 
   const text = relative ? (elapsed ?? absolute) : absolute
@@ -289,7 +303,7 @@ export function DateTime({
 
   if (text === null) return null
 
-  return resolveRender(
+  const time = resolveRender(
     'time',
     {
       ...props,
@@ -299,6 +313,39 @@ export function DateTime({
       children: text
     },
     render
+  )
+  const withoutYear =
+    !knowsToday && !relative && !timeOnly
+      ? formatDateTime(at, { ...opts, showYear: false })
+      : null
+  return withYearDropped(time, machine, timeZone, [[text, withoutYear]])
+}
+
+const literal = (value: unknown) =>
+  JSON.stringify(value).replace(/</g, '\\u003c')
+
+/**
+ * `element`, then a script that gives each of its `time`s its words without
+ * the year, before first paint, when `machine`'s year is this year in
+ * `timeZone`. Nothing when no `time` loses a year.
+ */
+function withYearDropped(
+  element: ReactNode,
+  machine: string | null,
+  timeZone: string,
+  times: [string | null, string | null | undefined][]
+) {
+  const year = machine?.slice(0, 4)
+  const drops = times.some(([text, without]) => without && without !== text)
+  if (!year || !drops) return <>{element}</>
+  const now = `new Intl.DateTimeFormat('en',{timeZone:${literal(timeZone)},year:'numeric'}).format(new Date())`
+  const words = literal(times.map(([, without]) => without ?? null))
+  const fix = `if(${now}!==${literal(year)})return;var w=${words},t=e.matches('time')?[e]:e.querySelectorAll('time');for(var i=0;i<t.length;i++)if(w[i])t[i].textContent=w[i]`
+  return (
+    <>
+      {element}
+      <BeforePaint fix={fix} />
+    </>
   )
 }
 

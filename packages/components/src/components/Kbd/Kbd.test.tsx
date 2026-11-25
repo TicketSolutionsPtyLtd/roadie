@@ -117,13 +117,7 @@ describe('Kbd', () => {
       expect(plus).toHaveAttribute('aria-hidden', 'true')
   })
 
-  it('sets the plus in the keys type, hidden until the platform is known', () => {
-    const html = renderToString(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
-    const holder = document.createElement('div')
-    holder.innerHTML = html
-    const plus = holder.querySelector('[data-slot="kbd-separator"]')!
-    expect(plus).toHaveClass('invisible', 'text-xs')
-
+  it('sets the plus in the keys type', () => {
     onPlatform('Win32')
     const { container } = render(<Kbd keys={['mod', 'd']} emphasis='subtler' />)
     const shown = container.querySelector('[data-slot="kbd-separator"]')!
@@ -306,15 +300,6 @@ describe('Kbd', () => {
 })
 
 describe('Kbd platform keys across hydration', () => {
-  it('hides a combined plus until the platform is known', () => {
-    const html = renderToString(<Kbd keys={['mod', 'd']} combined />)
-    const holder = document.createElement('div')
-    holder.innerHTML = html
-    expect(holder.querySelector('[data-slot="kbd-separator"]')).toHaveClass(
-      'invisible'
-    )
-  })
-
   async function hydrate(platform: string) {
     const element = <Kbd keys={['mod', 'k']} announce />
     const serverHtml = renderToString(element)
@@ -330,24 +315,25 @@ describe('Kbd platform keys across hydration', () => {
     return { serverHtml, container, recoverable, consoleError }
   }
 
-  it('renders a placeholder on the server, then Command on a Mac', async () => {
+  it('renders both faces on the server, then Command on a Mac', async () => {
     const { serverHtml, container, recoverable, consoleError } =
       await hydrate('MacIntel')
-    expect(serverHtml).toContain('invisible')
-    expect(serverHtml).not.toContain('Command')
+    expect(serverHtml).toContain('Command')
+    expect(serverHtml).toContain('Control')
     expect(recoverable).not.toHaveBeenCalled()
     expect(consoleError).not.toHaveBeenCalled()
     expect(container).toHaveTextContent('Command')
-    expect(container.querySelector('.invisible')).toBeNull()
+    expect(container).not.toHaveTextContent('Control')
+    expect(container.querySelector('script')).toBeNull()
     container.remove()
   })
 
-  it('renders a placeholder on the server, then Ctrl elsewhere', async () => {
+  it('renders both faces on the server, then Ctrl elsewhere', async () => {
     const { container, recoverable, consoleError } = await hydrate('Win32')
     expect(recoverable).not.toHaveBeenCalled()
     expect(consoleError).not.toHaveBeenCalled()
     expect(container).toHaveTextContent('Control')
-    expect(container.querySelector('.invisible')).toBeNull()
+    expect(container).not.toHaveTextContent('Command')
     container.remove()
   })
 })
