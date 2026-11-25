@@ -26,11 +26,7 @@ import { PaneStackContext } from './PaneStackContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
 import { traverseToBackHref } from './paneBack'
-import {
-  paneHeaderEdgeClass,
-  paneHeaderInDrawerClass,
-  paneHeaderVariants
-} from './variants'
+import { paneHeaderEdgeClass, paneHeaderVariants } from './variants'
 
 export type PaneHeaderProps = ComponentProps<'header'> & {
   /** Back's parent route; a plain click traverses to a matching previous entry when it can. Wins over `onBack`. */
@@ -140,11 +136,7 @@ export function PaneHeader({
       ref={setHeaderRef}
       data-slot='pane-header'
       data-collapsed={String(collapsed)}
-      className={cn(
-        paneHeaderVariants({ collapsed }),
-        inDrawer && paneHeaderInDrawerClass,
-        className
-      )}
+      className={cn(paneHeaderVariants({ collapsed, inDrawer }), className)}
       {...props}
     >
       {showBack ? (

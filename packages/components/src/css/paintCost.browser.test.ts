@@ -67,14 +67,9 @@ const ALLOWED: Allowance[] = [
   {
     rule: /^\.is-translucent /,
     property: 'backdrop-filter',
-    why: 'core emphasis.css: raised and floating chrome, as menus and tab bars',
-    cover: 'Menu.perf and Navigator.perf'
-  },
-  {
-    rule: /^\.backdrop-blur-md$/,
-    property: 'backdrop-filter',
-    why: 'Pane/variants.ts: sticky pane chrome; INNO-1676 moves it to is-translucent',
-    cover: 'Navigator.perf; INNO-1659 adds a scroll under it'
+    why: 'core emphasis.css: raised and floating chrome, as menus, tab bars and sticky pane chrome',
+    cover:
+      'Menu.perf and Navigator.perf; INNO-1659 adds a scroll under pane chrome'
   },
   {
     rule: /^\.backdrop-blur-sm$/,
