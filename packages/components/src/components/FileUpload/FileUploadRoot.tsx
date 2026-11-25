@@ -15,7 +15,8 @@ import { cn } from '@oztix/roadie-core/utils'
 import { useFieldContext, useFieldControlError } from '../Field/FieldContext'
 import {
   FileUploadContext,
-  type FileUploadUpload as Upload
+  type FileUploadUpload as Upload,
+  fullMessage
 } from './FileUploadContext'
 import { FileUploadDropzone } from './FileUploadDropzone'
 import { FileUploadList } from './FileUploadList'
@@ -122,7 +123,25 @@ export function FileUploadRoot({
   const [uploads, setUploads] = useState<ReadonlyMap<File, Upload>>(new Map())
   const [previous, setPrevious] = useState(files)
   const [checking, setChecking] = useState<File[]>([])
-  const [said, say] = useState('')
+  // Counted, so the same message twice is still said twice.
+  const [said, setSaid] = useState({ text: '', count: 0 })
+  const say = (text: string) =>
+    setSaid(({ count }) => ({ text, count: count + 1 }))
+  const statusRef = useRef<HTMLParagraphElement>(null)
+  // The last message written, so shown again, as from a hidden Activity, the
+  // field doesn't repeat it.
+  const spoken = useRef(0)
+  useEffect(() => {
+    const region = statusRef.current
+    if (!region || said.count === spoken.current) return
+    // Emptied first, so a screen reader reads a repeat, as Sortable does.
+    region.textContent = ''
+    const frame = requestAnimationFrame(() => {
+      spoken.current = said.count
+      region.textContent = said.text
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [said])
   const [alarm, raise] = useState('')
   if (previous !== files) {
     setPrevious(files)
@@ -396,7 +415,8 @@ export function FileUploadRoot({
           disabled: isDisabled,
           invalid,
           labelId: field.labelId || undefined,
-          describedBy: describedBy || undefined
+          describedBy: describedBy || undefined,
+          fullId: full && !isDisabled ? `${ownId}-full` : undefined
         }}
       >
         {pageDrop && <FileUploadPageDrop accept={accept} />}
@@ -424,9 +444,13 @@ export function FileUploadRoot({
         // The browser focuses an empty required input when a form submits.
         onFocus={() => triggerRef.current?.focus()}
       />
-      <p role='status' className='sr-only'>
-        {said}
-      </p>
+      {/* Written in an effect: see `say`. */}
+      <p ref={statusRef} role='status' className='sr-only' />
+      {full && !isDisabled && (
+        <p id={`${ownId}-full`} hidden>
+          {fullMessage}
+        </p>
+      )}
       <p aria-live='assertive' className='sr-only'>
         {alarm}
       </p>
