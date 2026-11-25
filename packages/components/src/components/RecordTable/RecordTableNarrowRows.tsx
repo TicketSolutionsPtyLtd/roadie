@@ -464,14 +464,19 @@ function Group({
       onOpenChange={(open) => collapse.setOpen(path, open)}
       render={<li data-slot='list-group' className={className} />}
     >
-      {heading}
-      {extra != null && extra !== false && (
-        <div
-          data-slot='list-group-heading'
-          className={cn('px-3 text-sm text-subtle', shared.bleed && '-mx-3')}
-        >
-          {extra}
+      {extra != null && extra !== false ? (
+        // The content belongs to its title, so they sit together.
+        <div className='grid gap-0.5'>
+          {heading}
+          <div
+            data-slot='list-group-heading'
+            className={cn('px-3 text-sm text-subtle', shared.bleed && '-mx-3')}
+          >
+            {extra}
+          </div>
         </div>
+      ) : (
+        heading
       )}
       <Collapsible.Panel>{body}</Collapsible.Panel>
     </Collapsible>
