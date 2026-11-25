@@ -19,11 +19,55 @@
    state once and keeps the rest in :where().
    ═══════════════════════════════════════════════════════════ */
 
+/* Internal, not public API: each interactive preset's state looks. They don't
+   inherit, so a nested preset never sees its parent's, and one a preset leaves
+   out stays guaranteed-invalid. */
+@property --emphasis-fill {
+  syntax: '*';
+  inherits: false;
+}
+@property --emphasis-fill-interactive {
+  syntax: '*';
+  inherits: false;
+}
+@property --emphasis-fill-hover {
+  syntax: '*';
+  inherits: false;
+}
+@property --emphasis-fill-active {
+  syntax: '*';
+  inherits: false;
+}
+@property --emphasis-shadow {
+  syntax: '*';
+  inherits: false;
+}
+@property --emphasis-shadow-hover {
+  syntax: '*';
+  inherits: false;
+}
+@property --emphasis-shadow-active {
+  syntax: '*';
+  inherits: false;
+}
+@property --emphasis-lift-hover {
+  syntax: '*';
+  inherits: false;
+}
+
 @utility emphasis-strong {
   background-color: var(--intent-bg-strong);
   color: var(--intent-text-on-strong);
   border: 1px solid transparent;
   box-shadow: var(--rim-light-subtle);
+
+  --emphasis-fill: var(--intent-bg-strong);
+  --emphasis-fill-hover: var(--intent-bg-strong-hover);
+  --emphasis-fill-active: var(--intent-bg-strong-active);
+  --emphasis-shadow: var(--rim-light-subtle);
+  --emphasis-shadow-hover: var(--rim-light-subtle), var(--shadow-sm);
+  --emphasis-shadow-active: none;
+  --emphasis-lift-hover: translateY(-1px);
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has(
@@ -60,6 +104,13 @@
   background-color: var(--intent-bg-normal);
   color: var(--intent-text-normal);
   border: 1px solid var(--intent-border-normal);
+
+  --emphasis-fill: var(--intent-bg-normal);
+  --emphasis-fill-hover: var(--intent-2);
+  --emphasis-fill-active: var(--intent-3);
+  --emphasis-shadow-hover: var(--shadow-sm);
+  --emphasis-shadow-active: none;
+  --emphasis-lift-hover: translateY(-1px);
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has(
@@ -99,6 +150,10 @@
   border-style: solid;
   box-shadow: var(--rim-light-subtler);
 
+  --emphasis-fill: var(--intent-bg-subtle);
+  --emphasis-fill-hover: var(--intent-4a);
+  --emphasis-fill-active: var(--intent-5a);
+
   /* A track under a raised pill, as in Tabs. In light the tint recesses it
      below the pill; in dark the tint lifts it toward the pill, so it takes
      the sunken fill instead and the pill stands off it on any surface. */
@@ -137,6 +192,11 @@
   color: var(--intent-text-normal);
   border-width: 1px;
   border-style: solid;
+
+  --emphasis-fill: var(--intent-bg-subtler);
+  --emphasis-fill-interactive: transparent;
+  --emphasis-fill-hover: var(--intent-3a);
+  --emphasis-fill-active: var(--intent-4a);
 
   /* No selector can find a target outside nested surfaces, so a surface with
      its own target and nested ones keeps its rest tint. */
@@ -196,6 +256,14 @@
   background-color: var(--raised-fill, var(--intent-bg-raised));
   box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-md);
   color: var(--intent-text-normal);
+
+  --emphasis-shadow:
+    var(--rim-light-own, var(--rim-light-strong)), var(--shadow-md);
+  --emphasis-shadow-hover:
+    var(--rim-light-own, var(--rim-light-strong)), var(--shadow-lg);
+  --emphasis-shadow-active:
+    var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);
+  --emphasis-lift-hover: translateY(-1px);
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has(
