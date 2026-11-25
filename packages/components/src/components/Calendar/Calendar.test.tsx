@@ -487,6 +487,14 @@ describe('Calendar', () => {
       expect(day('2027-04-01')).toHaveAttribute('data-today')
     })
 
+    it('keeps the server stand-in month out of reach until hydration', () => {
+      const holder = document.createElement('div')
+      holder.innerHTML = renderToString(<Calendar />)
+      const root = holder.querySelector('[data-slot="calendar"]')!
+      expect(root).toHaveAttribute('aria-hidden', 'true')
+      expect(root).toHaveAttribute('inert')
+    })
+
     it('places autoFocus on today once hydration knows it', async () => {
       vi.useFakeTimers({ toFake: ['Date'] })
       vi.setSystemTime(new Date('2027-04-01T05:00:00Z'))
