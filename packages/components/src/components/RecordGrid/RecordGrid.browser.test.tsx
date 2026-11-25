@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import { renderToString } from 'react-dom/server'
 import {
   afterAll,
   afterEach,
@@ -27,6 +28,7 @@ import {
   stateOffCentre,
   testShows
 } from '../Records/testUtils'
+import { fillerRows } from './unmeasured'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -416,4 +418,48 @@ describe('RecordGrid in a fill box', () => {
         0
       )
     })
+})
+
+// The server's paint, before any effect measures the columns: only CSS decides.
+describe('RecordGrid before its columns are measured', () => {
+  const records = 300
+  const rem = () =>
+    parseFloat(getComputedStyle(document.documentElement).fontSize)
+  // n columns start at n cards of 16rem and n - 1 gaps of 1rem.
+  const fits = (columns: number) => (17 * columns - 1) * rem()
+
+  it.each([1, 2, 3, 4, 5, 6])(
+    'spans the rows %i columns leave, from the narrowest width to the widest',
+    (columns) => {
+      const host = document.createElement('div')
+      document.body.append(host)
+      try {
+        for (const width of [fits(columns), fits(columns + 1) - 1]) {
+          host.style.width = `${width}px`
+          host.innerHTML = renderToString(
+            <RecordGrid
+              data={testShows(records)}
+              fields={showFields}
+              defaultPosition={{ pageSize: records }}
+              card={grid}
+            />
+          )
+          const body = host.querySelector('[data-slot="record-grid-body"]')!
+          const tracks = getComputedStyle(body)
+            .gridTemplateColumns.split(' ')
+            .filter((track) => track.endsWith('px')).length
+          const filler = body.querySelector(':scope > li[aria-hidden]')!
+          // The rows the filler spans are the rows the columns CSS laid out leave.
+          expect({
+            width,
+            span: getComputedStyle(filler).gridRowStart
+          }).toEqual({ width, span: `span ${fillerRows(records)[tracks - 1]}` })
+          // And each width is the one meant, either side of a threshold.
+          expect({ width, tracks }).toEqual({ width, tracks: columns })
+        }
+      } finally {
+        host.remove()
+      }
+    }
+  )
 })
