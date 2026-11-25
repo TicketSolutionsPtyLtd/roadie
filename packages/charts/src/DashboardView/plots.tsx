@@ -42,8 +42,7 @@ function ThemedImage({ image, alt }: { image: StaticPlotImage; alt: string }) {
   )
 }
 
-// Each band shows at its own plot widths, and the default steps aside for a
-// narrow or wide image only where one is given.
+// The default steps aside only for a narrow or wide image that's given.
 function StaticPlotView({ plot }: { plot: StaticPlot }) {
   const bands = [
     ['narrow', plot.narrow, 'hidden @max-[480px]/chart-plot:block'],

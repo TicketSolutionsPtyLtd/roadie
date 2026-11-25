@@ -119,7 +119,7 @@ Narrow the table and lower-priority columns hide behind Show all columns first. 
 
 ### Fill
 
-`fill` makes the table take the height it's given and scroll inside it, both ways, rather than grow with its rows. A chart's table view uses it to stay within the plot's height.
+`fill` makes the table take its parent's height and scroll inside it, both ways, rather than grow with its rows. The parent needs a definite height, not just a `max-h-*`. A chart's table view uses it to stay within the plot's height.
 
 ```tsx-live
 <div className='h-40'>

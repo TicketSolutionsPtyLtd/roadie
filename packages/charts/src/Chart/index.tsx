@@ -153,8 +153,7 @@ function ViewPane({
       data-chart-view={view}
       data-hidden={hidden ? '' : undefined}
       inert={hidden}
-      // The table takes the plot's height and scrolls inside it, so its
-      // sideways scrollbar sits within the card rather than below the rows.
+      // The table scrolls within the plot's height, scrollbar inside the card.
       className={cn(
         view === 'table' && 'grid h-0 min-h-full grid-rows-[minmax(0,1fr)]'
       )}

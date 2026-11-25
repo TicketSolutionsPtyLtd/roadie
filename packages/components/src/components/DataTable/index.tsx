@@ -58,8 +58,9 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   /** Plain numbers only, for a chart's table view. */
   plain?: boolean
   /**
-   * Fills the height it's given and scrolls inside it, both ways, so a long
-   * table stays within a fixed-height box such as a chart's plot area.
+   * Fills its parent's height and scrolls inside it, both ways, so a long
+   * table stays within a fixed-height box such as a chart's plot area. The
+   * parent needs a definite height.
    */
   fill?: boolean
   /**

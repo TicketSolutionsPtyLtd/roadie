@@ -456,6 +456,29 @@ describe('DataTable fill', () => {
     expect(scroller.scrollTop).toBeGreaterThan(0)
   })
 
+  it('keeps Show all in view below the rows it scrolls', () => {
+    const { container, getByRole } = render(
+      <div style={{ height: 160, width: 360 }}>
+        <DataTable
+          fill
+          caption='Shows'
+          columns={columns}
+          rows={Array.from({ length: 20 }, () => rows[0]!)}
+        />
+      </div>
+    )
+    const table = container.querySelector<HTMLElement>(
+      '[data-slot=data-table]'
+    )!
+    const scroller = getByRole('region', { name: 'Shows, scrolls' })
+    const button = getByRole('button', { name: 'Show all columns' })
+    expect(table.getBoundingClientRect().height).toBeCloseTo(160, 0)
+    expect(button.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      table.getBoundingClientRect().bottom + 0.5
+    )
+    expect(scroller.scrollHeight).toBeGreaterThan(scroller.clientHeight)
+  })
+
   it('grows with its rows without fill', () => {
     const { container } = render(
       <div style={{ height: 160 }}>

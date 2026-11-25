@@ -142,10 +142,10 @@ export function DataTableView({
     >
       <div
         data-slot='data-table-scroller'
-        className={fill ? 'overflow-auto' : 'overflow-x-auto'}
+        className='overflow-x-auto'
         role='region'
         tabIndex={0}
-        aria-label={`${caption ?? 'Table'}, scrolls sideways`}
+        aria-label={`${caption ?? 'Table'}, ${fill ? 'scrolls' : 'scrolls sideways'}`}
       >
         <Table className={cn(overlayClip && 'overflow-x-clip')}>
           {caption && <caption className='sr-only'>{caption}</caption>}
