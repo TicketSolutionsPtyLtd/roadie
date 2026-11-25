@@ -16,6 +16,9 @@ import { RecordTableSkeletonRow } from './RecordTableStates'
 import type { ColumnLayout } from './layout'
 import type { RecordTableColumn } from './types'
 
+// The row height the table sets in CSS, read once per resize.
+const ROW_HEIGHT_VAR = '--record-table-row-height'
+
 export type RowsShared = {
   columns: readonly RecordTableColumn[]
   layout: ColumnLayout
@@ -124,7 +127,8 @@ function VirtualRows({
   const getItemKey = useCallback((index: number) => rows[index]!.id, [rows])
   const { bodyRef, view } = useRowWindow({
     count: rows.length,
-    getItemKey
+    getItemKey,
+    heightVar: ROW_HEIGHT_VAR
   })
   const { cells, padding } = recordsWindow(view, { rows })
   return (
@@ -157,7 +161,8 @@ function RangeRows({
   const { bodyRef, view } = useRangeWindow({
     range,
     row,
-    onRow
+    onRow,
+    heightVar: ROW_HEIGHT_VAR
   })
   const { cells, padding } = recordsWindow(view, { range })
   return (

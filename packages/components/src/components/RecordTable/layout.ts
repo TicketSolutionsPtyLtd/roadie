@@ -69,7 +69,7 @@ export const frameClass = '@container/record-table-frame [--content-inset:0px]'
 
 /** Picks the tier's template, so the header and rows agree. */
 export const contentTierClass = [
-  '[--record-table-columns:var(--record-table-columns-0)] [--record-table-min-width:var(--record-table-min-width-0)]',
+  '[--record-table-columns:var(--record-table-columns-0)] [--record-table-min-width:var(--record-table-min-width-0)] [--record-table-row-height:3rem]',
   TIER_CLASSES[3].template,
   TIER_CLASSES[2].template,
   TIER_CLASSES[1].template
