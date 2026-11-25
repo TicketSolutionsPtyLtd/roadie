@@ -16,7 +16,7 @@ type RoadieClassGroupIds =
   | 'link'
   | 'prose-size'
 
-// Exported so classFamilies.test.ts can check each group against core's CSS.
+// Exported so the tests can check each group against core's CSS and safelist.
 export const mergeConfig = {
   extend: {
     classGroups: {
@@ -47,7 +47,8 @@ export const mergeConfig = {
         'animate-shake',
         'animate-nudge',
         'animate-pop',
-        'animate-pop-tap'
+        'animate-pop-tap',
+        'animate-time-left'
       ],
       z: [
         'z-hide',

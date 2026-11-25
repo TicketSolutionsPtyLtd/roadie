@@ -55,8 +55,11 @@ pnpm --filter docs dev
 - A JS subpath needs a `tsdown.config.ts` entry unless a wildcard covers it.
 - A JS subpath needs its row in its package's generated `size-budget.json`,
   or `size` fails. Build, then run `pnpm --filter <package> size:update`.
-- A CSS `@utility` must be named in its package's `src/css/safelist.html` (core
-  and charts), or Tailwind purges it and the compiled sheet comes out empty.
+- Charts' `src/css/safelist.html` names every `@utility` in `charts.css`, or
+  Tailwind purges it. Core's holds what `roadie.compiled.css` ships: every
+  `cn()` family member, plus each class the docs name or a package uses, and
+  `safelist.test.ts` holds it to that, so a docs example that names a core
+  `@utility` or colour utility (`bg-chart-1`, `border-accent-9`) adds it there.
 - A new family where one class replaces another (like intent, emphasis, or
   z-index) gets a group in `packages/core/src/utils/cn.ts` and a row in
   `classFamilies.test.ts` beside it, or `cn()` keeps both classes and a
@@ -131,6 +134,11 @@ Each rule has a foundations page with the detail.
 - **Text.** Raw `<p>` and `<h1>` to `<h6>` with `text-display-ui-*` or
   `text-display-prose-*`. There are no Text or Heading components; `Prose`
   renders CMS or markdown content. SpotIllustration colours are fixed.
+- **Sheets.** Style a part with classes in the component that renders it. A
+  sheet in `packages/components/src/css/` is for what classes can't say, and
+  styles only its own component's `data-slot`s, so a part's CSS is found from
+  its slot prefix. `slotOwnership.test.ts` is the detail: it holds the
+  exceptions, each with a reason.
 - **Selectors.** End any selector that runs past a `:has()` on a class, a
   variable the anchor sets, or a rare attribute named first, and never write an
   unkeyed `:has(~ …)`, or Chromium restyles the whole page

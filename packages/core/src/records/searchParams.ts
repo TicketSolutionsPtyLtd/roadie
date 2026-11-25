@@ -85,7 +85,7 @@ function decodeFilter(text: string, byKey: Map<string, RecordField>): Decoded {
   }
 }
 
-function listEntry(key: string, items?: string[]): [string, string][] {
+function listEntry(key: string, items?: readonly string[]): [string, string][] {
   return items?.length ? [[key, joinItems(items)]] : []
 }
 
@@ -94,25 +94,20 @@ function layoutEntries(layout: RecordLayout): [string, string][] {
     case 'table': {
       const entries = [
         ...listEntry('columns', layout.columns?.order),
-        ...listEntry('hidden', layout.columns?.hidden)
+        ...listEntry('hidden', layout.columns?.hidden),
+        ...listEntry('groupBy', layout.groupBy)
       ]
       return entries.length ? [['layout', 'table'], ...entries] : []
     }
     case 'grid':
-      return [['layout', 'grid'], ...listEntry('fields', layout.fields)]
     case 'list':
       return [
-        ['layout', 'list'],
+        ['layout', layout.type],
         ...listEntry('fields', layout.fields),
-        ...(layout.groupBy
-          ? [['groupBy', layout.groupBy] as [string, string]]
-          : [])
+        ...listEntry('groupBy', layout.groupBy)
       ]
     case 'board':
-      return [
-        ['layout', 'board'],
-        ['groupBy', layout.groupBy]
-      ]
+      return [['layout', 'board'], ...listEntry('groupBy', layout.groupBy)]
     case 'calendar':
       return [
         ['layout', 'calendar'],
@@ -200,21 +195,23 @@ function readLayout(params: URLSearchParams): ReadLayout {
     case 'table': {
       const order = items('columns')
       const hidden = items('hidden')
-      return order || hidden
-        ? {
-            type,
-            columns: { ...(order && { order }), ...(hidden && { hidden }) }
-          }
-        : { type }
+      const groupBy = items('groupBy')
+      return {
+        type,
+        ...((order || hidden) && {
+          columns: { ...(order && { order }), ...(hidden && { hidden }) }
+        }),
+        ...(groupBy && { groupBy })
+      }
     }
     case 'grid':
     case 'list': {
       const fields = items('fields')
-      const groupBy = type === 'list' ? one('groupBy') : undefined
+      const groupBy = items('groupBy')
       return { type, ...(fields && { fields }), ...(groupBy && { groupBy }) }
     }
     case 'board': {
-      const groupBy = one('groupBy')
+      const groupBy = items('groupBy')
       return { type, ...(groupBy && { groupBy }) }
     }
     case 'calendar': {

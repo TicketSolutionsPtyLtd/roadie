@@ -17,10 +17,10 @@ const fields = [
 describe('listGroupField', () => {
   it("groups by the view's field only when it can group", () => {
     expect(
-      listGroupField(fields, { type: 'list', groupBy: 'status' })?.key
+      listGroupField(fields, { type: 'list', groupBy: ['status'] })?.key
     ).toBe('status')
     expect(
-      listGroupField(fields, { type: 'list', groupBy: 'name' })
+      listGroupField(fields, { type: 'list', groupBy: ['name'] })
     ).toBeUndefined()
     expect(listGroupField(fields, { type: 'grid' })).toBeUndefined()
   })
@@ -33,10 +33,16 @@ describe('listGroupLayout', () => {
     ).toEqual({
       type: 'list',
       fields: ['name'],
-      groupBy: 'status'
+      groupBy: ['status']
     })
     expect(
-      listGroupLayout({ type: 'list', groupBy: 'status' }, undefined)
+      listGroupLayout({ type: 'list', groupBy: ['status'] }, undefined)
     ).toEqual({ type: 'list' })
+  })
+
+  it('keeps the deeper levels when the first changes', () => {
+    expect(
+      listGroupLayout({ type: 'list', groupBy: ['a', 'b', 'c'] }, 'b')
+    ).toEqual({ type: 'list', groupBy: ['b', 'c'] })
   })
 })

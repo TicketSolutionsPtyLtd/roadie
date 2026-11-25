@@ -71,6 +71,7 @@ export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> &
 
 const LINE = 'min-w-0 truncate'
 const TWO_LINES = 'min-w-0 line-clamp-2 wrap-break-word'
+const COMPACT_TYPE = '@max-[240px]/data-card:text-xs/4'
 
 function Headline({
   value,
@@ -95,7 +96,10 @@ function Headline({
       >
         <span
           data-slot='data-card-value'
-          className={cn(LINE, 'font-bold text-strong tabular-nums')}
+          className={cn(
+            LINE,
+            'text-[clamp(1.25rem,11cqi,1.75rem)] leading-[1.1] font-bold text-strong tabular-nums'
+          )}
           title={shown}
         >
           {shown}
@@ -171,12 +175,16 @@ export function DataCard({
       data-state={state}
       aria-labelledby={labelId}
       aria-busy={state === 'loading' || undefined}
-      className={cn(cardVariants({ emphasis: 'normal' }), 'h-full', className)}
+      className={cn(
+        cardVariants({ emphasis: 'normal' }),
+        '@container/data-card h-full [--data-card-surface:var(--intent-bg-normal)]',
+        className
+      )}
       {...props}
     >
       <div
         data-slot='data-card-inner'
-        className='grid h-full content-start gap-3'
+        className='grid h-full content-start gap-3 p-4 @max-[240px]/data-card:p-2.5'
       >
         <header className='grid min-w-0 gap-1'>
           <div className='grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3'>
@@ -186,7 +194,8 @@ export function DataCard({
               data-slot='data-card-label'
               className={cn(
                 isStat ? LINE : TWO_LINES,
-                'text-sm font-semibold text-subtle'
+                'text-sm font-semibold text-subtle',
+                COMPACT_TYPE
               )}
             >
               {label}
@@ -194,7 +203,12 @@ export function DataCard({
             {actions && (
               <div
                 data-slot='data-card-actions'
-                className='flex items-center gap-1 self-start *:self-center'
+                // The label's type, so 1lh is its first line and actions in a
+                // row line up however far each label wraps.
+                className={cn(
+                  'flex h-[1lh] items-center gap-1 self-start text-(length:--text-sm) *:self-center',
+                  COMPACT_TYPE
+                )}
               >
                 {actions}
               </div>
@@ -217,7 +231,7 @@ export function DataCard({
                   <p
                     title={context}
                     data-slot='data-card-context'
-                    className={cn(LINE, 'text-sm text-subtle')}
+                    className={cn(LINE, 'text-sm text-subtle', COMPACT_TYPE)}
                   >
                     {context}
                   </p>

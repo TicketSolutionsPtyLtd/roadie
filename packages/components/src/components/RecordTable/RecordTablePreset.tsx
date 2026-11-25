@@ -33,7 +33,10 @@ export type RecordTableProps<Row extends object> = UseRecordsOptions<Row> & {
   actions?: readonly RecordsAction<Row>[]
   /** Shows the open view's name, marked once it differs from `baseline`, with a menu to save, save as, rename, reset or delete it. The app keeps the views. */
   viewActions?: RecordsViewActionsProps
-  /** How the table shows its records under 40rem. Defaults to cards when a column is a `detail`, else list rows. */
+  /**
+   * How the table shows its records under 40rem. Defaults to cards when a column is a `detail`, else list rows.
+   * @deprecated Cards leave RecordTable at the next major; for cards, use `RecordGrid`.
+   */
   narrow?: RecordTableNarrowLayout
   /** Scrolls the rows in their own box this tall, any CSS length. */
   maxHeight?: string

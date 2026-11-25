@@ -232,11 +232,10 @@ const html = getBootstrapScript({
 ```
 
 Both paths use the same synchronous sRGB to OKLCH converter, which matches
-`colorjs.io`'s lightness and chroma to four decimal places. Modern browsers
-(Chrome 111+, Safari 15.4+, and Firefox 113+) render the accent scale from
-`oklch()` math directly, so the two custom properties are enough for a cold
-load with no flash. Older browsers fall back to the compiled CSS accent until
-the client-side accent effect runs.
+`colorjs.io`'s lightness and chroma to four decimal places. Every
+[supported browser](/overview/getting-started#browser-support) renders the
+accent scale from `oklch()` math directly, so the two custom properties are
+enough for a cold load with no flash.
 
 ## Resetting to the default
 
