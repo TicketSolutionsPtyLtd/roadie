@@ -256,8 +256,9 @@ happening by itself. The OTP field page builds it with `useCountdownUrgency`:
 
 ## Without React
 
-`Countdown` needs a timer and a render loop, so there is no server-rendered
-equivalent. A template can only print the moment the count runs out, which is
+`Countdown` needs a timer and a render loop, so the server paints only an
+invisible placeholder that holds its room, and the count arrives on hydration.
+A template can only print the moment the count runs out, which is
 [`DateTime`](/components/date-time) rather than a countdown.
 
 `Countdown` itself words its coarse register with `formatDuration`, the same

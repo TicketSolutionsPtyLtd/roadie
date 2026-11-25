@@ -1,5 +1,4 @@
 import { RecordGrid } from '.'
-import { allowing } from '../../utils/hydrationTestUtils'
 import { showFields, testShows } from '../Records/testUtils'
 
 const grid = (shows: number, pageSize: number) => () => (
@@ -15,7 +14,5 @@ const grid = (shows: number, pageSize: number) => () => (
 
 export const FirstPage = grid(60, 12)
 
-export const ThreeHundredCards = allowing(grid(300, 300), {
-  390: { ticket: 'INNO-1667', shift: 378, removed: 6 },
-  1280: { ticket: 'INNO-1667', shift: 42_750 }
-})
+// Past VIRTUALISE_AFTER, so only the cards near the screen render.
+export const ThreeHundredCards = grid(300, 300)
