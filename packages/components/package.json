@@ -413,10 +413,23 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "typecheck": "tsc --noEmit",
-    "size": "node ../../scripts/size-budget.mjs --check",
-    "size:check": "node ../../scripts/size-budget.mjs --check",
+    "build:css:size": "tailwindcss -i scripts/css-rules.css -o node_modules/.cache/roadie/components.rules.css --minify && tailwindcss -i scripts/css-scanned.css -o node_modules/.cache/roadie/components.scanned.css --minify",
+    "size": "pnpm build:css:size && size-limit && node ../../scripts/size-budget.mjs --check",
+    "size:check": "pnpm size",
     "size:update": "node ../../scripts/size-budget.mjs --update"
   },
+  "size-limit": [
+    {
+      "name": "css/components rules",
+      "path": "node_modules/.cache/roadie/components.rules.css",
+      "limit": "7.6 KB"
+    },
+    {
+      "name": "css/components with dist scanned, and the floor",
+      "path": "node_modules/.cache/roadie/components.scanned.css",
+      "limit": "45.7 KB"
+    }
+  ],
   "peerDependencies": {
     "@ark-ui/react": "^5.0.0",
     "@base-ui/react": "^1.8.0",
@@ -445,6 +458,8 @@
     "@oztix/roadie-frames": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@rolldown/plugin-babel": "0.3.1",
+    "@size-limit/file": "14.3.0",
+    "@tailwindcss/cli": "4.3.5",
     "@tailwindcss/vite": "4.3.5",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
@@ -463,6 +478,7 @@
     "jsqr": "1.4.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "size-limit": "14.3.0",
     "svgo": "4.1.0",
     "tsdown": "0.23.7",
     "typescript": "npm:@typescript/typescript6@6.0.2",

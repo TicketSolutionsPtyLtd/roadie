@@ -19,5 +19,6 @@
   "./chart-document": { "own": 20960, "full": 77526, "initial": 77526 },
   "./examples": { "own": 5489, "full": 35162, "initial": 35162 },
   "./static": { "own": 19813, "full": 49344, "initial": 49344 },
-  "./tables": { "own": 5361, "full": 10678, "initial": 10678 }
+  "./tables": { "own": 5361, "full": 10678, "initial": 10678 },
+  ". { LineChart }": { "own": 12030, "full": 75395, "initial": 57776 }
 }
