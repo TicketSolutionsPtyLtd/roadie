@@ -114,12 +114,15 @@ Three subtleties:
 Measured in Nov 2026: a bundler replaces `process.env.NODE_ENV` inside
 `isDev()` and then keeps the function, the call, and the branch behind it.
 esbuild and rolldown inline no function, and `typeof process !== 'undefined' &&
-false` doesn't fold either. Only a bare `process.env.NODE_ENV !== 'production'`
-at the point of use lets the branch drop.
+false` doesn't fold as a returned value either. Written at the point of use,
+as an `if` test or an `&&` statement, the check drops with or without the
+`typeof process` guard; as a value, such as an argument, the guard leaves
+`typeof process<"u"&&!1` behind.
 
 So the components, charts, and editor builds run `scripts/dev-only.mjs`
-before the React Compiler. It writes each imported `isDev()` call as that bare
-check, guards `useDevWarning`'s message with it so the text drops too, and puts
+before the React Compiler, in Babel's `pre` hook, since the compiler can
+memoize a `useDevWarning` call into an alias. It writes each imported `isDev()` call as a bare
+`process.env.NODE_ENV !== 'production'` check, guards `useDevWarning`'s message with it so the text drops too, and puts
 each top-level `X.displayName = …` behind it, as Base UI and React ship theirs.
 Source keeps calling `isDev()`; never copy the helper into a file, since only an
 imported `isDev` is rewritten.
