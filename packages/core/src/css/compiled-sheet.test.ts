@@ -83,6 +83,13 @@ describe('roadie.compiled.css', () => {
     ).toEqual([])
   })
 
+  // Every supported browser draws oklch(), so a hex copy of a colour step is
+  // bytes no browser uses.
+  it('declares the colour scales in oklch() alone', () => {
+    expect(sheet).toMatch(/--color-brand-light-9:oklch\(/)
+    expect(sheet.match(/--color-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
+  })
+
   it('needs no browser support for CSS nesting', () => {
     expect(sheet.replace(/"[^"]*"|'[^']*'/g, '').includes('&')).toBe(false)
   })
