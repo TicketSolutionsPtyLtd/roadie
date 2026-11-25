@@ -304,6 +304,16 @@ function shownOrder(groups: readonly RecordGroup[]): string[] {
 
 const groupHeadings = ['h2', 'h3', 'h4'] as const
 
+// Each level reads as its own tier: a title over more levels is larger and
+// stronger, and the innermost keeps the quiet group title.
+const levelsBelow = (group: RecordGroup): number =>
+  group.groups?.[0] ? 1 + levelsBelow(group.groups[0]) : 0
+const titleTiers = [
+  '',
+  'text-display-ui-6 text-strong',
+  'text-display-ui-5 text-strong'
+]
+
 function Group({
   group,
   stickyTop,
@@ -320,12 +330,21 @@ function Group({
   // Only the outermost titles stick, so nested ones don't stack under them.
   const sticky = depth === 0 ? stickyTop : undefined
   return (
-    <li data-slot='list-group' className={listGroupVariants()}>
+    <li
+      data-slot='list-group'
+      className={cn(
+        listGroupVariants(),
+        // An outer group's siblings part with a rule; inner ones sit closer.
+        group.groups && depth === 0 && 'border-t border-subtler pt-6',
+        depth > 0 && 'mt-4'
+      )}
+    >
       <Heading
         id={titleId}
         data-slot='list-group-title'
         className={cn(
           listGroupTitleVariants(),
+          titleTiers[Math.min(levelsBelow(group), titleTiers.length - 1)],
           'flex gap-1.5',
           shared.bleed && '-mx-3',
           sticky !== undefined && ['sticky z-1 py-1', surfaceClass]
@@ -339,7 +358,8 @@ function Group({
         <ul
           role='list'
           aria-labelledby={titleId}
-          className='grid [&>li:first-child]:mt-0'
+          // A rule down the inner groups shows where the group ends.
+          className='grid border-l-2 border-subtler pl-3 [&>li:first-child]:mt-0'
         >
           {group.groups.map((inner) => (
             <Group
@@ -396,7 +416,7 @@ function NarrowList({
       data-slot='record-table-body'
       className={cn(
         grouped
-          ? 'grid [&>li:first-child]:mt-0'
+          ? 'grid [&>li:first-child]:mt-0 [&>li:first-child]:border-t-0 [&>li:first-child]:pt-0'
           : cards
             ? ['grid', cardGap.gapClass]
             : [listSectionClass, joinSelected],

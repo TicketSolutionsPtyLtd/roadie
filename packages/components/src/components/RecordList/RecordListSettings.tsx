@@ -2,6 +2,7 @@
 
 import { useId } from 'react'
 
+import { Field } from '../Field'
 import { RecordGridSettingsLazy } from '../RecordGrid/RecordGridSettingsLazy'
 import { useRecordsData } from '../Records/context'
 import { groupableFields } from '../Records/groups'
@@ -52,26 +53,28 @@ function RecordListGroupSettings() {
         Group
       </h3>
       {shown.map((name, index) => (
-        <Select
-          key={name}
-          value={levels[index] ?? null}
-          onValueChange={(key) => setLevel(index, key as string | null)}
-        >
-          <Select.Trigger size='sm' aria-label={name}>
-            <Select.Value placeholder='None' />
-            <Select.Icon />
-          </Select.Trigger>
-          <Select.Content>
-            <Select.Item value={null}>None</Select.Item>
-            {groupable
-              .filter(({ key }) => !levels.slice(0, index).includes(key))
-              .map(({ key, label }) => (
-                <Select.Item key={key} value={key}>
-                  {label}
-                </Select.Item>
-              ))}
-          </Select.Content>
-        </Select>
+        <Field key={name}>
+          <Field.Label>{name}</Field.Label>
+          <Select
+            value={levels[index] ?? null}
+            onValueChange={(key) => setLevel(index, key as string | null)}
+          >
+            <Select.Trigger size='sm'>
+              <Select.Value placeholder='None' />
+              <Select.Icon />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value={null}>None</Select.Item>
+              {groupable
+                .filter(({ key }) => !levels.slice(0, index).includes(key))
+                .map(({ key, label }) => (
+                  <Select.Item key={key} value={key}>
+                    {label}
+                  </Select.Item>
+                ))}
+            </Select.Content>
+          </Select>
+        </Field>
       ))}
     </section>
   )

@@ -215,8 +215,8 @@ These work as they do in the grid. `loading` shows placeholder rows, `error` rep
 - A row's title is its name. With `getRowHref` it is a link, and the whole row takes its hover and press; it opens in a new tab with Cmd or Ctrl, like any link.
 - In Select mode, each row's checkbox is named "Select" and the row's title, and covers the row, so a tap anywhere on it toggles, and the link steps aside. Escape leaves Select mode, and focus lands on Select.
 - The Configure button is named "Configure list", as is the dialog it opens. Each shown detail's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field.
-- Grouped, the rows are a list named by the caption holding a list per group, each named by its title and count, such as "On sale 4". Titles are `h2` headings, with `h3` and `h4` for the second and third levels, each level's groups a list inside its group.
-- The Group by selects are named "Group by", "Then by", and "And then by". Each appears once the one before it holds a field.
+- Grouped, the rows are a list named by the caption holding a list per group, each named by its title and count, such as "On sale 4". Titles are `h2` headings, with `h3` and `h4` for the second and third levels, each level's groups a list inside its group. An outer title is larger and stronger than the ones inside it, outer groups part with a rule, and inner groups sit on a rule down their left.
+- The Group by selects are labelled "Group by", "Then by", and "And then by". Each appears once the one before it holds a field.
 - `Records.Status` announces Loading, the error, the result count, and the selection.
 
 <PropsDefinitions component='RecordList' />
