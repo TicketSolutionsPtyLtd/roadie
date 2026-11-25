@@ -10,7 +10,7 @@ import {
 
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
-import { testShows } from '../Records/testUtils'
+import { groupedShowFields, testShows } from '../Records/testUtils'
 import { Shows } from './boardTestUtils'
 
 setupFrameTests({ css: roadieCss })
@@ -53,6 +53,41 @@ describe('boardLayout drags at 60fps on a slowed CPU', () => {
             .querySelector('[aria-label="Cancelled"]')!
             .querySelectorAll('[data-slot="card-title"]')
         ].some((title) => title.textContent === 'Ocean Alley 1')
+      )
+      .toBe(true)
+  })
+  it('drags a card across its lane on a board of 300 in 5 lanes', async () => {
+    const root = await mount(
+      <Shows
+        shows={testShows(300)}
+        fields={groupedShowFields}
+        groupBy={['status', 'city']}
+      />,
+      { frames: 5 }
+    )
+    const brisbane = root.querySelector('[aria-label="Brisbane"]')!
+    const cancelled = brisbane.querySelector('[aria-label="Cancelled"]')!
+    const from = centre(
+      brisbane.querySelector('button[aria-label="Reorder Ocean Alley 1"]')!
+    )
+    const to = centre(cancelled.querySelector('[data-slot="sortable-item"]')!)
+    await expectFrameBudget(
+      'RecordBoard, drag across a lane of 300 cards',
+      await measureWhile(() =>
+        commands.pointer([
+          { type: 'move', ...from },
+          { type: 'down' },
+          { type: 'move', x: from.x + 12, y: from.y, steps: 4 },
+          { type: 'move', x: to.x, y: to.y, steps: 60 },
+          { type: 'up' }
+        ])
+      )
+    )
+    await expect
+      .poll(() =>
+        [...cancelled.querySelectorAll('[data-slot="card-title"]')].some(
+          (title) => title.textContent === 'Ocean Alley 1'
+        )
       )
       .toBe(true)
   })

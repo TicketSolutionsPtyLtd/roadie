@@ -191,6 +191,18 @@ describe('values', () => {
     })
   })
 
+  it('gives a token only the value a supported browser draws', () => {
+    const { tokens } = parseTokenManifest([
+      [
+        'test.css',
+        ':root { --old-copy: #0086da; } @supports (color: oklch(0 0 0)) { :root { --old-copy: oklch(0.6 0.18 250); } }'
+      ]
+    ])
+    expect(tokens.find((t) => t.name === '--old-copy')?.value).toEqual({
+      light: 'oklch(0.6 0.18 250)'
+    })
+  })
+
   it('drops the line-wrap spaces inside a multi-line value', () => {
     expect(find('--color-accent-1').value?.light).toBe(
       'oklch(0.984 calc(0.018 * var(--accent-chroma)) var(--accent-hue))'
@@ -204,8 +216,7 @@ describe('values', () => {
     })
     expect(find('--chart-highlight').value).toEqual({
       light: 'oklch(var(--chart-highlight-lc) var(--accent-hue))',
-      dark: 'oklch(var(--chart-highlight-lc) var(--accent-hue))',
-      fallback: '#0086da'
+      dark: 'oklch(var(--chart-highlight-lc) var(--accent-hue))'
     })
   })
 

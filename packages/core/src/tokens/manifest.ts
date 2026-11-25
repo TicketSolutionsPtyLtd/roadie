@@ -44,7 +44,7 @@ export type TokenEntry = {
   group: string
   sheet: string
   source: 'roadie' | 'tailwind'
-  value?: ModeValue & { fallback?: string }
+  value?: ModeValue
   resolved?: ModeValue
   byIntent?: Partial<Record<Intent, ModeValue>>
   classes?: string[]
@@ -197,7 +197,6 @@ type Declaration = {
   value: string
   sheet: string
   dark: boolean
-  modern: boolean
   unsupported: boolean
   theme: boolean
   utility?: string
@@ -266,7 +265,6 @@ function walk(
       name: match[1]!,
       value: squash(match[2]!),
       sheet,
-      modern: preludes.some((p) => p.startsWith('@supports (color: oklch')),
       unsupported: preludes.some((p) => p.startsWith('@supports not')),
       theme: preludes.some((p) => p.startsWith('@theme')),
       block: topBlock,
@@ -388,8 +386,7 @@ export function parseTokenManifest(
     )
   ].sort()
 
-  const pick = (list: Declaration[]) =>
-    (list.findLast((d) => d.modern) ?? list.at(-1))?.value
+  const pick = (list: Declaration[]) => list.at(-1)?.value
 
   // Only browsers lacking a feature read a `@supports not` block, so any other declaration wins.
   const supported = (list: Declaration[]) => {
@@ -408,10 +405,6 @@ export function parseTokenManifest(
     const dark = real.filter((d) => d.dark)
     const lightValue = pick(light)
     const darkValue = pick(dark)
-    const legacy = light.some((d) => d.modern)
-      ? light.findLast((d) => !d.modern)?.value
-      : undefined
-    const fallback = legacy !== lightValue ? legacy : undefined
     valueOf.set(name, { light: lightValue, dark: darkValue })
 
     const byIntent: Partial<Record<Intent, ModeValue>> = {}
@@ -441,7 +434,7 @@ export function parseTokenManifest(
       group,
       sheet: own[0]!.sheet,
       source: 'roadie' as const,
-      value: compact({ light: lightValue, dark: darkValue, fallback }),
+      value: compact({ light: lightValue, dark: darkValue }),
       byIntent: Object.keys(byIntent).length > 0 ? byIntent : undefined,
       classes: own.some((d) => d.theme) ? classesFor(name) : undefined,
       description: descriptions.get(name)
