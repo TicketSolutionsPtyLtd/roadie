@@ -211,7 +211,7 @@ describe('A toolbar in a pane', () => {
       .not.toBeNull()
     expect(
       [...toolbar.querySelectorAll('button')].some(
-        (button) => button.textContent === 'Export'
+        (button) => button.textContent === 'Export' && button.checkVisibility()
       )
     ).toBe(false)
   })

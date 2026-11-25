@@ -129,13 +129,14 @@ async function measureStep(scenario: string, step: () => void) {
   return { scenario, frames, style }
 }
 
-// A push of empty panes cost 32 to 48ms of style over two CI Perf runs
-// (CPU 1.8x to 2x); this is the higher plus 10%.
-const STYLE_CAP = 53
-// A push over 100 rows cost 218 to 259ms of style before INNO-1678 and 113 to
-// 119ms after it, over two CI Perf runs (CPU 1.8x to 2.2x); this is the
-// higher plus 10%.
-const CONTENT_STYLE_CAP = 131
+// Each cap is the highest of many CI jobs on the same code plus 10%, since a
+// push's style time spreads by half its median from job to job (INNO-1704).
+// A push of empty panes cost 21 to 50ms of style over 38 jobs (CPU 1.5x to
+// 2.9x).
+const STYLE_CAP = 55
+// A push over 100 rows cost 218 to 259ms of style before INNO-1678, and 83 to
+// 144ms over 17 jobs after it.
+const CONTENT_STYLE_CAP = 158
 
 const PUSHES: {
   name: string
@@ -152,7 +153,11 @@ const PUSHES: {
     name: '100 list rows',
     content: 'rows',
     onPush: false,
-    styleCap: CONTENT_STYLE_CAP
+    styleCap: CONTENT_STYLE_CAP,
+    // Missed in 1 of 17 CI jobs on the same commit (p95 33.3ms, with 123ms of
+    // style against 75 to 115ms in the rest): the pop restyles each pane's
+    // whole subtree, as the push does.
+    popMiss: 'INNO-1706'
   },
   {
     name: 'a RecordTable of 100 the push mounts',

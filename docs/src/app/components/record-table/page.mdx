@@ -150,7 +150,7 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
 - `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
 
-On a phone the table turns into cards: the event, its venue, and its status, with the start, sold, and gross as details. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
+On a phone the table turns into list rows: the event, its venue, and its status. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
@@ -194,11 +194,11 @@ const column = tableColumns(fields)
 const layouts = [
   tableLayout([
     column.field('name', { pin: true, narrow: 'title' }),
-    column.field('startsAt', { narrow: 'detail' }),
+    column.field('startsAt'),
     column.field('venue', { narrow: 'description' }),
     column.field('status', { narrow: 'trailing' }),
-    column.field('sold', { narrow: 'detail' }),
-    column.field('gross', { narrow: 'detail' })
+    column.field('sold'),
+    column.field('gross')
   ])
 ]
 
@@ -1351,7 +1351,7 @@ Under 40rem of its own width, 640px at the default text size, the table drops it
 | `'description'` | One line under the title, in subtle text. |
 | `'leading'` | Before the title. An image column goes here unless you say otherwise. |
 | `'trailing'` | At the end of the row, such as a status badge. |
-| `'detail'` | A label and value on a card. Any detail column turns the rows into cards. |
+| `'detail'` | Deprecated. A label and value on a card. Any detail column turns the rows into cards. |
 | `'hidden'` | Left out of the narrow layout. The default for every column but images. |
 
 The server can't measure the table, so it renders wide, and a phone switches to the list once the page hydrates. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
@@ -1427,6 +1427,8 @@ render(<NarrowEvents />)
 ```
 
 #### Cards
+
+> **Deprecated.** Cards leave `RecordTable` at the next major, with `narrow: 'detail'` and the `narrow` prop. For records as cards, use [`RecordGrid`](/components/record-grid). Until then, tables that use them work as they do now.
 
 Give columns `narrow: 'detail'` and each record becomes a card, with the details listed under its title as labels and values. An image column becomes the card's 16:9 banner, with the trailing value on its top end. Cards grow to fit their content, and past 100 records the list measures each as it renders.
 

@@ -93,4 +93,11 @@ describe('roadie.compiled.css', () => {
   it('needs no browser support for CSS nesting', () => {
     expect(sheet.replace(/"[^"]*"|'[^']*'/g, '').includes('&')).toBe(false)
   })
+
+  // A token that only names a variable tokens.css declares belongs in
+  // `@theme inline reference`. Plain `@theme inline` also writes it into
+  // every app's theme layer as itself, where unlayered :root overrides it.
+  it('declares no custom property as itself', () => {
+    expect(sheet.match(/(--[\w-]+):\s*var\(\1\)(?=[;}])/g) ?? []).toEqual([])
+  })
 })

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 import { isUnsafeImageSrc } from '../utils/isUnsafeHref'
 import { valueFormat, valueFormatOptions, xFormat } from './fields'

@@ -52,8 +52,10 @@
 }
 
 /* --- Raw color scale utilities ---
-   bg-brand-5, text-danger-9, border-neutral-7, etc. */
-@theme inline {
+   bg-brand-5, text-danger-9, border-neutral-7, etc.
+   `reference`: the tokens are declared below, so Tailwind only needs the
+   names. Without it, every app's theme layer carries each one as itself. */
+@theme inline reference {
   --color-neutral-0: var(--color-neutral-0);
   --color-neutral-1: var(--color-neutral-1);
   --color-neutral-2: var(--color-neutral-2);
