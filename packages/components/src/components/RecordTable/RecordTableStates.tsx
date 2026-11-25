@@ -15,6 +15,7 @@ import {
 import {
   type ColumnLayout,
   NARROW_ACTIONS_CLASS,
+  NARROW_SELECT_CLASS,
   narrowRowClass,
   priorityClass,
   priorityProps
@@ -81,7 +82,12 @@ export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
         'border-b border-subtler'
       )}
     >
-      {select && <div role='cell' className={selectCellClass} />}
+      {select && (
+        <div
+          role='cell'
+          className={cn(selectCellClass, layout.narrow && NARROW_SELECT_CLASS)}
+        />
+      )}
       {columns.map((column, index) => (
         <div
           key={column.key}

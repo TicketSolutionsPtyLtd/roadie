@@ -84,8 +84,9 @@ export const TIER_CLASSES = {
 
 // Under 40rem the row is a grid of named areas, and each cell takes its role's.
 // The areas and tracks come from tierStyle, as the roles shown vary by table.
+// In Select mode the checkbox takes the leading area, or adds one; a hidden checkbox's area would leave a gap.
 const NARROW_ROW_CLASS =
-  '@max-[40rem]/record-table-frame:grid-cols-(--record-table-narrow-columns) @max-[40rem]/record-table-frame:[grid-template-areas:var(--record-table-narrow-areas)] @max-[40rem]/record-table-frame:gap-x-3 @max-[40rem]/record-table-frame:px-(--content-inset)'
+  '@max-[40rem]/record-table-frame:grid-cols-(--record-table-narrow-columns) @max-[40rem]/record-table-frame:[grid-template-areas:var(--record-table-narrow-areas)] @max-[40rem]/record-table-frame:in-data-selecting:grid-cols-(--record-table-narrow-columns-selecting) @max-[40rem]/record-table-frame:in-data-selecting:[grid-template-areas:var(--record-table-narrow-areas-selecting)] @max-[40rem]/record-table-frame:gap-x-3 @max-[40rem]/record-table-frame:px-(--content-inset)'
 const TWO_LINES = '@max-[40rem]/record-table-frame:grid-rows-2'
 /** The row actions cell's place under 40rem, when the rows re-flow. */
 export const NARROW_ACTIONS_CLASS =
@@ -97,11 +98,14 @@ const NARROW_CELL =
 const NARROW_CLASSES: Record<NarrowRole, string> = {
   title: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:title] @max-[40rem]/record-table-frame:justify-start`,
   description: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:description] @max-[40rem]/record-table-frame:items-start @max-[40rem]/record-table-frame:justify-start @max-[40rem]/record-table-frame:font-normal @max-[40rem]/record-table-frame:text-subtle`,
-  leading: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:leading]`,
+  // Select mode's checkbox takes the leading place.
+  leading: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:leading] @max-[40rem]/record-table-frame:in-data-selecting:hidden`,
   trailing: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:trailing] @max-[40rem]/record-table-frame:justify-end`,
   hidden: '@max-[40rem]/record-table-frame:hidden'
 }
 const TITLE_ABOVE = '@max-[40rem]/record-table-frame:items-end'
+/** The checkbox cell under 40rem, when the rows re-flow: hidden until Select mode, then in the leading place. */
+export const NARROW_SELECT_CLASS = `${NARROW_CELL} @max-[40rem]/record-table-frame:hidden @max-[40rem]/record-table-frame:in-data-selecting:flex @max-[40rem]/record-table-frame:[grid-area:select]`
 
 /** The cell's place in a narrow row, or nothing when the table swaps for a list. */
 export const narrowClass = (layout: ColumnLayout, index: number) => {
@@ -117,9 +121,13 @@ export const narrowRowClass = (layout: ColumnLayout) =>
   layout.narrow ? `${NARROW_ROW_CLASS} ${layout.twoLines ? TWO_LINES : ''}` : ''
 
 /** A narrow row's areas, leaving out a role no column takes so it adds no gap. */
-function narrowGrid(roles: readonly NarrowRole[], actions: boolean) {
+function narrowAreas(
+  roles: readonly NarrowRole[],
+  actions: boolean,
+  selecting: boolean
+) {
   const line = [
-    roles.includes('leading') && 'leading',
+    selecting ? 'select' : roles.includes('leading') && 'leading',
     'title',
     roles.includes('trailing') && 'trailing',
     actions && 'actions'
@@ -128,12 +136,27 @@ function narrowGrid(roles: readonly NarrowRole[], actions: boolean) {
     ? [line, line.map((area) => (area === 'title' ? 'description' : area))]
     : [line]
   return {
-    '--record-table-narrow-areas': lines
-      .map((areas) => `"${areas.join(' ')}"`)
-      .join(' '),
-    '--record-table-narrow-columns': line
+    areas: lines.map((areas) => `"${areas.join(' ')}"`).join(' '),
+    columns: line
       .map((area) => (area === 'title' ? 'minmax(0, 1fr)' : 'auto'))
       .join(' ')
+  }
+}
+
+function narrowGrid(
+  roles: readonly NarrowRole[],
+  actions: boolean,
+  select: boolean
+) {
+  const { areas, columns } = narrowAreas(roles, actions, false)
+  const selecting = select && narrowAreas(roles, actions, true)
+  return {
+    '--record-table-narrow-areas': areas,
+    '--record-table-narrow-columns': columns,
+    ...(selecting && {
+      '--record-table-narrow-areas-selecting': selecting.areas,
+      '--record-table-narrow-columns-selecting': selecting.columns
+    })
   }
 }
 
@@ -346,7 +369,7 @@ export function columnLayout(
     lastAt,
     narrow,
     twoLines,
-    narrowGrid: narrow && narrowGrid(narrow, actions)
+    narrowGrid: narrow && narrowGrid(narrow, actions, select)
   }
 }
 

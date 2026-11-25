@@ -21,6 +21,7 @@ import { isDev } from '../../utils/isDev'
 import { surfaceClass, useSurface } from '../../utils/surface'
 import { SortIcon } from '../DataTable/SortIcon'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
+import { isSelecting } from '../Records/context'
 import { groupFields } from '../Records/groupBy'
 import { groupRecordsBy } from '../Records/groups'
 import type { RecordsContentProps } from '../Records/layouts'
@@ -28,7 +29,7 @@ import { useNarrow } from '../Records/narrow'
 import { pageState } from '../Records/selection'
 import { firstDirection } from '../Records/sortOptions'
 import { useStickyTop } from '../Records/stickyTop'
-import { tableFocusTarget } from '../Records/tableFocus'
+import { hiddenByStyle, tableFocusTarget } from '../Records/tableFocus'
 import {
   RecordsLayoutState,
   RecordsProgress,
@@ -182,9 +183,8 @@ export function RecordTableContent({
   // Title rows aren't records, so a grouped table counts no rows.
   const counted = partial && !groups
   const cards = (config.narrow ?? narrowLayout(columns)) === 'cards'
-  // Rows re-flow under 40rem; deprecated cards, and for now selection, totals and groups, still swap for a list.
-  const swaps =
-    cards || selectable || totals !== undefined || groups !== undefined
+  // Rows re-flow under 40rem; deprecated cards, and for now totals and groups, still swap for a list.
+  const swaps = cards || totals !== undefined || groups !== undefined
   const isNarrow = useNarrow(frameRef, { placement: boxed })
   const narrow = isNarrow && swaps ? (cards ? 'cards' : 'list') : undefined
   // Re-flowed rows fit the frame, so nothing scrolls sideways to name or tab to.
@@ -195,9 +195,11 @@ export function RecordTableContent({
     return narrow === 'cards' ? cardParts(roles) : { ...roles, details: [] }
   }, [columns, narrow])
   useKeepFocusShown(frameRef, boxed)
-  useLayoutFocus(frameRef, narrow ?? 'wide', boxed)
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
-  const selecting = useSelectModeLayout(narrow !== undefined)
+  const selecting = useSelectModeLayout(isNarrow)
+  // Re-flowed rows in Select mode: a tap or Enter selects, so their links step aside.
+  const checking = fits && selecting
+  useLayoutFocus(frameRef, narrow ?? (checking ? 'checking' : 'wide'), boxed)
 
   const { toggleRow, rowActions, isSelected } = frame
   const hasRowActions = rowActions !== undefined
@@ -259,6 +261,13 @@ export function RecordTableContent({
       ?.querySelector<HTMLElement>('[data-slot="record-table-page-checkbox"]')
       ?.focus()
   }, [barShown])
+  // Under 40rem the header row hides again as the bar goes, Select page with it; the rows keep its focus.
+  useLayoutEffect(() => {
+    const active = document.activeElement
+    if (barShown || !active || !headRef.current?.contains(active)) return
+    if (hiddenByStyle(active))
+      scrollerRef.current?.focus({ preventScroll: true })
+  }, [barShown])
   // Whichever clips, the head or the totals under the bar, takes the rows' scroll.
   useLayoutEffect(() => {
     const scroller = scrollerRef.current
@@ -305,7 +314,7 @@ export function RecordTableContent({
     isSelected,
     onToggle: toggleRow,
     rowActions,
-    getRowHref,
+    getRowHref: checking ? undefined : getRowHref,
     columnCount
   }
   const body =
@@ -409,6 +418,12 @@ export function RecordTableContent({
             aria-rowcount={state ? undefined : rowCount}
             aria-busy={busy || range?.loading || undefined}
             data-slot='record-table-content'
+            // Re-flowed rows show their checkboxes under 40rem only in Select mode.
+            data-selecting={
+              layout.narrow && selectable && isSelecting(records, true)
+                ? ''
+                : undefined
+            }
             className={cn(
               'text-sm tabular-nums',
               contentTierClass,
@@ -450,7 +465,8 @@ export function RecordTableContent({
                 className={cn(
                   'h-9',
                   !totals && 'border-b border-normal',
-                  layout.narrow && NARROW_HEAD_CLASS,
+                  // The bulk bar takes the header row, which shows under 40rem as it does.
+                  layout.narrow && !barShown && NARROW_HEAD_CLASS,
                   // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
                   barShown
                     ? cn(
@@ -467,7 +483,9 @@ export function RecordTableContent({
                     className={cn(
                       selectCellClass,
                       headTextClass,
-                      barShown && 'h-full shrink-0'
+                      barShown && 'h-full shrink-0',
+                      // Select mode's Select all stands in for it while the header row hides.
+                      layout.narrow && !barShown && NARROW_SORT_CLASS
                     )}
                     style={
                       barShown

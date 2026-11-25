@@ -68,8 +68,9 @@ export function RecordsBulkActions({
   }, [setBulkMounted])
   if (!selectable || records.selectedCount === 0) return null
   // Decided by the layout up front, so a first render never floats a bar the
-  // header takes; a layout showing narrow rows has no header, and floats it.
-  if (layout?.bulkActions === 'header' && !selectMode)
+  // header takes; a layout showing narrow rows has no header, and floats it,
+  // unless its rows re-flow and keep the header's slot.
+  if (layout?.bulkActions === 'header' && (!selectMode || bulkSlot))
     return bulkSlot
       ? createPortal(
           <RecordsSelectionBar actions={actions} recordName={recordName} />,

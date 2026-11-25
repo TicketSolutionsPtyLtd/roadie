@@ -130,6 +130,13 @@ export const isSelecting = (
   selectMode &&
   (records.selecting || (records.selectable && records.selectedCount > 0))
 
+/** Whether Select mode applies: the shown layout said so as it mounted, or its definition selects that way under 40rem. */
+export const selectModeApplies = (
+  layouts: readonly AnyRecordLayout[],
+  view: RecordView,
+  selectMode: boolean
+) => selectMode || activeLayout(layouts, view)?.selectMode === 'narrow'
+
 /** The layout the view names, or the first one given. */
 export const activeLayout = (
   layouts: readonly AnyRecordLayout[],

@@ -4,7 +4,7 @@ import { groupableFields } from '../Records/groups'
 import type { RecordLayoutDefinition } from '../Records/layouts'
 import { RecordTableContent } from './RecordTableContent'
 import { RecordTableSettingsLazy } from './RecordTableSettingsLazy'
-import type { RecordTableNarrowLayout } from './narrow'
+import { type RecordTableNarrowLayout, narrowLayout } from './narrow'
 import type { RecordTableColumn } from './types'
 
 export type TableLayoutConfig = {
@@ -48,6 +48,9 @@ export function tableLayout<Row extends object>(
       ? RecordTableSettingsLazy
       : undefined,
     // Narrow rows have no header, so their bar floats.
-    bulkActions: 'header'
+    bulkActions: 'header',
+    // Re-flowed rows hide their checkboxes under 40rem until Select; deprecated cards say so as they mount.
+    selectMode:
+      (narrow ?? narrowLayout(columns)) === 'cards' ? undefined : 'narrow'
   }
 }

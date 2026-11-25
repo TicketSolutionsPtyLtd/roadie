@@ -27,7 +27,8 @@ describe('useNarrow', () => {
 const column = tableColumns<TestShow>(showFields)
 
 describe('RecordTable Select mode', () => {
-  it('leaves Select out of a wide toolbar', () => {
+  // CSS shows it under 40rem of the toolbar, so a server paints it for a phone.
+  it('renders Select up front for a table that re-flows', () => {
     render(
       <RecordTable
         caption='Shows'
@@ -42,7 +43,7 @@ describe('RecordTable Select mode', () => {
       />
     )
     expect(screen.getByRole('table', { name: 'Shows' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Select' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Select' })).toBeInTheDocument()
   })
 
   it('keeps the selection and stays quiet when an app enters Select mode on a wide table', async () => {

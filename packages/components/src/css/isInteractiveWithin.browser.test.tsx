@@ -259,8 +259,8 @@ describe('is-interactive-within around another is-interactive-within', () => {
               data={testShows(3)}
               getRowId={(row) => row.id}
               getRowHref={(row) => `#${row.id}`}
-              // List rows: a table that can't be selected re-flows its own rows.
-              selectable
+              // List rows: a table with totals still swaps for them.
+              totals
             />
           </div>
         </Surface>

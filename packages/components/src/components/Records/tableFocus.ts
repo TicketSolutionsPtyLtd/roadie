@@ -11,6 +11,11 @@ export function tableFocusTarget(from: Element) {
   )
 }
 
+/** Whether CSS hides an element, as a re-flowed table hides a checkbox or Select page that may still hold focus. */
+export const hiddenByStyle = (element: Element) =>
+  typeof element.checkVisibility === 'function' &&
+  !element.checkVisibility({ visibilityProperty: true })
+
 /** Where a layout's records scroll from, a table's or a grid's. */
 export const RECORDS_SCROLLER =
   '[data-slot="record-table-scroller"], [data-slot="record-grid-scroller"]'

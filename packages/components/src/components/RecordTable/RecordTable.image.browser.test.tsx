@@ -104,15 +104,15 @@ describe('RecordTable image columns in a browser', () => {
     }
   })
 
-  it('keeps list rows at their fixed height with a leading thumbnail', async () => {
+  it('keeps narrow rows at their fixed height with a leading thumbnail', async () => {
     const { container } = render(<Boxed width={360} />)
     await expect
-      .poll(() => all(container, '[data-slot="record-table-list-row"]').length)
+      .poll(() => all(container, '[data-slot="record-table-row"]').length)
       .toBe(12)
-    for (const row of all(container, '[data-slot="record-table-list-row"]')) {
+    for (const row of all(container, '[data-slot="record-table-row"]')) {
       expect(row.getBoundingClientRect().height).toBe(64)
       const leading = row.querySelector<HTMLElement>(
-        '[data-slot="list-item-leading"] > *'
+        '[data-narrow="leading"] > *'
       )!
       expect(leading.getBoundingClientRect().height).toBe(40)
     }
@@ -219,12 +219,15 @@ describe('RecordTable narrow image columns by role in a browser', () => {
       />
     )
     await userEvent.click(screen.getByRole('button', { name: 'Select' }))
-    const [, pictured] = itemsOf()
-    const leading = pictured!.querySelector<HTMLElement>(
-      '[data-slot="list-item-leading"]'
-    )!
-    expect(within(leading).getByRole('checkbox')).toBeInTheDocument()
-    expect(leading.querySelector('img')).toBeNull()
+    const [, , pictured] = screen.getAllByRole('row')
+    const checkbox = within(pictured!).getByRole('checkbox')
+    expect(checkbox).toBeVisible()
+    expect(pictured!.querySelector('[data-narrow="leading"]')).not.toBeVisible()
+    // In the thumbnail's place, before the title.
+    expect(checkbox.getBoundingClientRect().right).toBeLessThan(
+      pictured!.querySelector('[data-narrow="title"]')!.getBoundingClientRect()
+        .left
+    )
   })
 
   it('renders a custom cell in the banner', () => {

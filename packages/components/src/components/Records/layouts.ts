@@ -25,6 +25,8 @@ export type RecordLayoutDefinition<Config = unknown> = {
   Content: (props: RecordsContentProps & { config: Config }) => ReactNode
   /** Where `Records.BulkActions` shows: in the layout's header row, which its Content provides, or floating at the foot of the screen. @default 'floating' */
   bulkActions?: 'header' | 'floating'
+  /** Selects through Select mode under 40rem of the toolbar, as a re-flowed table's rows do. Known up front, so a server paints Select where it shows. */
+  selectMode?: 'narrow'
   /** The layout's own part of `Records.Options`, under the sort, such as the table's columns. */
   Settings?: RecordLayoutSettings<Config>
 }
