@@ -214,10 +214,12 @@ describe('Carousel navigation', () => {
   it('goes to the slide whose dot is pressed', async () => {
     render(<Navigable />)
     await measured()
-    const start = offset('Show 1', 'left')
     await userEvent.click(button('Go to slide 3'))
     await showing(3)
-    await settlesAt('Show 3', 'left', start)
+    // A jump of two slides can rest over a pixel short, so this reads which
+    // slides Embla has in view rather than an offset.
+    await expect.poll(() => slide('3 of 3').inert).toBe(false)
+    await expect.poll(() => slide('1 of 3').inert).toBe(true)
   })
 
   it('moves with the arrow, Home, and End keys', async () => {
@@ -282,6 +284,42 @@ describe('Carousel navigation', () => {
     expect(
       screen.queryByRole('group', { name: 'Choose slide to display' })
     ).toBeNull()
+  })
+
+  it('hides Previous, Next, and dots by attribute, out of the tab order, once every slide fits', async () => {
+    render(
+      <>
+        <button type='button'>Before</button>
+        <Carousel aria-label='Shows'>
+          <Carousel.Header>
+            <Carousel.Title>Shows</Carousel.Title>
+            <Carousel.Dots className='flex' />
+            <Carousel.Controls className='flex'>
+              <Carousel.Previous className='flex' />
+              <Carousel.Next className='flex' />
+            </Carousel.Controls>
+          </Carousel.Header>
+          <Carousel.Content>
+            <Carousel.Item>Show 1</Carousel.Item>
+          </Carousel.Content>
+          <Ready />
+        </Carousel>
+        <button type='button'>After</button>
+      </>
+    )
+    await expect.element(page.getByText('Ready')).toBeInTheDocument()
+    for (const slot of ['dots', 'controls', 'previous', 'next']) {
+      const part = document.querySelector(`[data-slot="carousel-${slot}"]`)
+      expect(part).toHaveAttribute('data-hidden')
+      expect(part).not.toBeVisible()
+    }
+    button('Before').focus()
+    await userEvent.tab()
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-slot="carousel-content"]')
+    )
+    await userEvent.tab()
+    expect(document.activeElement).toBe(button('After'))
   })
 })
 
