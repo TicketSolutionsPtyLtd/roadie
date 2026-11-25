@@ -38,7 +38,6 @@ const EXEMPT: Record<string, string> = {
   Prose: later,
   QueryField: 'The RecordTable fixtures render it in their toolbar.',
   RadioGroup: later,
-  RecordBoard: later,
   RecordCalendar: later,
   Records: 'The engine the RecordTable and RecordGrid fixtures render.',
   ScrollRegion: 'A hook, with nothing of its own to render.',
