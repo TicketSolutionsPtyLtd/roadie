@@ -26,10 +26,13 @@ import { MenuContent } from '../Menu/MenuContent'
 import { MenuItem } from '../Menu/MenuItem'
 import { MenuRoot } from '../Menu/MenuRoot'
 import { MenuSeparator } from '../Menu/MenuSeparator'
+import { MenuSubmenuRoot } from '../Menu/MenuSubmenuRoot'
+import { MenuSubmenuTrigger } from '../Menu/MenuSubmenuTrigger'
 import { MenuTrigger } from '../Menu/MenuTrigger'
 import {
   SortableItemContext,
   SortableOpeningContext,
+  type SortableTransferTarget,
   useSortableRoot
 } from './SortableContext'
 import {
@@ -111,6 +114,22 @@ export function SortableHandle({
   }, [trigger, disabled])
   // Read on open, as lists join and leave the group without re-rendering this one.
   const targets = open && !disabled ? root.transferTargets(value) : []
+  const sections = new Map<string, SortableTransferTarget[]>()
+  for (const target of targets)
+    if (target.section !== undefined)
+      sections.set(target.section, [
+        ...(sections.get(target.section) ?? []),
+        target
+      ])
+  const transfer = (target: SortableTransferTarget, index: number) => (
+    <MenuItem
+      key={index}
+      icon={<ArrowElbowDownRightIcon weight='bold' />}
+      onClick={target.move}
+    >
+      {transferLabel(target.name, label)}
+    </MenuItem>
+  )
   const DotsIcon = root.axis === 'vertical' ? DotsSixVerticalIcon : DotsSixIcon
 
   return (
@@ -174,14 +193,16 @@ export function SortableHandle({
           )
         })}
         {targets.length > 0 ? <MenuSeparator /> : null}
-        {targets.map((target, index) => (
-          <MenuItem
-            key={index}
-            icon={<ArrowElbowDownRightIcon weight='bold' />}
-            onClick={target.move}
-          >
-            {transferLabel(target.name, label)}
-          </MenuItem>
+        {targets.filter((target) => target.section === undefined).map(transfer)}
+        {Array.from(sections, ([section, lists]) => (
+          <MenuSubmenuRoot key={section}>
+            <MenuSubmenuTrigger
+              icon={<ArrowElbowDownRightIcon weight='bold' />}
+            >
+              {transferLabel(section, label)}
+            </MenuSubmenuTrigger>
+            <MenuContent>{lists.map(transfer)}</MenuContent>
+          </MenuSubmenuRoot>
         ))}
       </MenuContent>
     </MenuRoot>
