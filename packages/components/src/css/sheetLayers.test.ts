@@ -5,7 +5,8 @@ import { describe, expect, it } from 'vitest'
 
 // A rule in one of Tailwind's layers loses to a consumer's utility class, as
 // Roadie's own classes do. An unlayered rule beats every class, so each one
-// says why. Keys match the start of a rule's selector or at-rule.
+// says why. Keys match the start of a rule's selector or at-rule; end one with
+// ' {' to match that selector alone.
 const UNLAYERED: Record<string, Record<string, string>> = {
   'charts.css': {
     '@media (scripting: none)':
@@ -16,13 +17,26 @@ const UNLAYERED: Record<string, Record<string, string>> = {
       "A linked row's press and a pinned title's overlay must beat is-interactive-within's"
   },
   'editor.css': {
-    '[data-email]': 'The email canvas, sorted in its own PR (INNO-1737)',
-    "[data-slot='editor'][data-preset='email']":
-      'The email canvas, sorted in its own PR (INNO-1737)',
-    "[data-preset='email']":
-      'The email canvas, sorted in its own PR (INNO-1737)',
+    '[data-email] > ':
+      "An email's block spacing must beat Prose's scoped flow, which wins a tie in the components layer",
+    "[data-email] :is([data-type='section'], [data-type='column']) >":
+      "An email's block spacing must beat Prose's scoped flow, which wins a tie in the components layer",
+    '[data-email], ':
+      "The email's marks must beat the intent-* class a filled section takes",
+    '[data-email] {':
+      "The email's padding must beat the text's padding classes",
     '@container email-frame':
-      'The email canvas, sorted in its own PR (INNO-1737)',
+      "The grip and add button on a phone must beat their btn class's",
+    "[data-email] [data-type='button'].emphasis-":
+      'An email button must beat the emphasis-* class it restyles',
+    "[data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong)":
+      'A filled band must beat the emphasis-* class it restyles',
+    "[data-email] [data-slot='editor-variable']":
+      "A merge tag's chip must beat the Badge's intent-* class",
+    '[data-email] .ProseMirror-gapcursor:not(:first-child):after':
+      "The gap cursor's line must beat the one Tiptap injects unlayered",
+    "[data-email] [data-type='spacer'] + .ProseMirror-gapcursor:after":
+      "The gap cursor's line must beat the one Tiptap injects unlayered",
     "[data-slot='editor'][aria-invalid='true']":
       "An invalid boxed editor's fill and edge must beat emphasis-field's",
     "[data-slot='editor'][data-emphasis='subtler']":
@@ -92,7 +106,7 @@ describe('component sheets sit in a named layer', () => {
     (sheet, path) => {
       const allowed = Object.keys(UNLAYERED[sheet] ?? {})
       const unexplained = unlayered(readFileSync(path, 'utf8')).filter(
-        (prelude) => !allowed.some((key) => prelude.startsWith(key))
+        (prelude) => !allowed.some((key) => `${prelude} {`.startsWith(key))
       )
       expect(unexplained).toEqual([])
     }
