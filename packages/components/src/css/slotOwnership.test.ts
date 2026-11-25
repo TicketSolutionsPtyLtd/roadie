@@ -100,8 +100,8 @@ const declared = (sheet: string) =>
       .map(([, name]) => name!)
   )
 
-// A variable named for a component is set by that component, so a reader of
-// the component that reads it finds where it comes from.
+// A sheet sets only its own component's variables. A component that sets
+// another's does it in its classes, where a reader of that component sees it.
 describe("component sheets set only their own component's variables", () => {
   const owners = new Set(Object.values(OWNER))
   it.each(sheets)("%s sets no other component's variables", (sheet) => {

@@ -11,9 +11,9 @@ export const navigatorRootClass = [
   'grid-rows-1 md:grid-cols-[auto_1fr]',
   'pt-[env(safe-area-inset-top)]',
   // Waiting for a navigation (data-pending), the glow is the frame's fill: Pane
-  // masks a flush pane's shadow with this variable, and a nested frame reveals
-  // its own identical fill. A phone pane is the whole screen, so it rounds to
-  // show the glow around it.
+  // masks a flush pane's shadow with this variable, and a nested frame inherits
+  // it and reveals its own identical fill, so it needs no reset. A phone pane is
+  // the whole screen, so it rounds to show the glow around it.
   'data-pending:[--pane-gutter-fill:transparent]',
   'max-md:data-pending:[--pane-radius-phone:var(--radius-2xl)]'
 ].join(' ')
