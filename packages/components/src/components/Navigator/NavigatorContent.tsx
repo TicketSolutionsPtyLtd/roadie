@@ -391,7 +391,11 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     if (isSiblingSwap(was, shape.current)) cut()
     if (wasTop !== topNode.current) {
       uncover(topNode.current)
-      if (wasTop?.isConnected && row.hasAttribute('data-pushing'))
+      if (
+        wasTop instanceof HTMLElement &&
+        wasTop.isConnected &&
+        row.hasAttribute('data-pushing')
+      )
         coverWhileLeaving(wasTop)
     }
     // The only arrival signal where the engine lacks the Navigation API.
