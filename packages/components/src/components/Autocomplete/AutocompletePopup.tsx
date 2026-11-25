@@ -6,7 +6,11 @@ import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomple
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { floatingPopupClass, listPopupWidthClass } from '../../variants'
+import {
+  floatingPopupClass,
+  listPopupWidthClass,
+  scrollingPopupRimClass
+} from '../../variants'
 
 export type AutocompletePopupProps = AutocompletePrimitive.Popup.Props &
   RefAttributes<HTMLDivElement>
@@ -18,7 +22,12 @@ export function AutocompletePopup({
   return (
     <AutocompletePrimitive.Popup
       data-slot='autocomplete-popup'
-      className={cn(floatingPopupClass, listPopupWidthClass, className)}
+      className={cn(
+        floatingPopupClass,
+        listPopupWidthClass,
+        scrollingPopupRimClass,
+        className
+      )}
       {...props}
     />
   )
