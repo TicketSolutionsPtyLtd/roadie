@@ -238,6 +238,7 @@ describe('Kbd', () => {
       const [then] = separators(holder)
       expect(then).toHaveTextContent('then')
       expect(then).not.toHaveClass('invisible')
+      expect(holder.querySelector('script')).toBeNull()
     })
 
     it('uses a given separator inside a combined keycap', () => {

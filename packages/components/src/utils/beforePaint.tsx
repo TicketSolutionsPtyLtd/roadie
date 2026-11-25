@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react'
 const subscribeToNothing = () => () => {}
 
 /** True on the server and while hydrating, false once the client renders alone. */
-export function useHydrating() {
+function useHydrating() {
   return useSyncExternalStore(
     subscribeToNothing,
     () => false,
@@ -19,6 +19,7 @@ export function useHydrating() {
 export function BeforePaint({ fix }: { fix: string }) {
   const hydrating = useHydrating()
   if (!hydrating) return null
-  const __html = `(function(e){if(e){${fix}}})(document.currentScript.previousElementSibling)`
+  // No `currentScript` in a shadow root, where the server's guess stays.
+  const __html = `(function(s){var e=s&&s.previousElementSibling;if(e){${fix}}})(document.currentScript)`
   return <script dangerouslySetInnerHTML={{ __html }} />
 }

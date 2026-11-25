@@ -133,8 +133,8 @@ export function DateTime({
   ...props
 }: DateTimeProps) {
   // A standalone date's year depends on today, which a server can't know, so
-  // the server keeps the year, and the script `withYearDropped` adds, or the
-  // client, drops it.
+  // the server keeps the year. A script from `withYearDropped` drops it before
+  // first paint, or the client after mount.
   const knowsToday = useSyncExternalStore(
     subscribeToNothing,
     () => true,

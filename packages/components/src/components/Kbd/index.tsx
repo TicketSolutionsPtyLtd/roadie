@@ -210,7 +210,9 @@ export function Kbd({
   }
   const waits =
     platform === null &&
-    ((between.separator !== null && (keys?.length ?? 0) > 1) ||
+    ((between.pending &&
+      between.separator !== null &&
+      (keys?.length ?? 0) > 1) ||
       (keys ?? [children]).some(waitsForPlatform))
   const marked = (root: ReactElement) => (
     <>

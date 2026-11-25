@@ -54,13 +54,17 @@ describe('DateTime stacked', () => {
 describe('DateTime standalone, before hydration', () => {
   const DAY = 86_400_000
   const now = Date.now()
-  // Two days that share this year, whatever today is.
+  const inBrisbane = (date: Date, part: 'year' | 'month') =>
+    new Intl.DateTimeFormat('en', { timeZone: BNE, [part]: 'numeric' }).format(
+      date
+    )
+  // Two days that share this year in Brisbane, whatever today is.
   const [from, to] =
-    new Date(now).getMonth() === 0
+    inBrisbane(new Date(now), 'month') === '1'
       ? [new Date(now), new Date(now + 2 * DAY)]
       : [new Date(now - 2 * DAY), new Date(now)]
   const lastYear = new Date(now - 400 * DAY)
-  const year = (date: Date) => String(date.getFullYear())
+  const year = (date: Date) => inBrisbane(date, 'year')
 
   it.each([
     [
