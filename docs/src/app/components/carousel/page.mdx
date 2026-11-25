@@ -712,7 +712,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
 
 ### Fits in viewport (controls auto-hide)
 
-When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Next`, `Carousel.Dots`, and `Carousel.Controls` all hide themselves automatically. The server renders them, so the page doesn't move when the carousel loads; they hide once the carousel has measured its slides. Resize the preview wider to see the difference.
+When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Next`, `Carousel.Dots`, and `Carousel.Controls` all hide themselves automatically. The server renders them as if there's somewhere to scroll, so a carousel that scrolls doesn't move when it loads, and they hide once the carousel has measured its slides. Resize the preview wider to see the difference.
 
 ```tsx-live
 <Carousel aria-label='Comedy lineup'>
