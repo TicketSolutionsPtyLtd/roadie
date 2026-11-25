@@ -138,6 +138,33 @@ describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
     await expect.poll(() => shown(card)).toBe(true)
   })
 
+  it("draws a lane title's focus ring whole, clear of the sideways scroller", async () => {
+    render(<Lanes />)
+    const summary = disclosure('Brisbane')
+    summary.focus({ focusVisible: true })
+    expect(summary.matches(':focus-visible')).toBe(true)
+    // The ring is the summary's outline, or its overlay's.
+    const ring = () =>
+      [undefined, '::after']
+        .map((pseudo) => getComputedStyle(summary, pseudo))
+        .map((style) => ({
+          width:
+            style.outlineStyle === 'none' ? 0 : parseFloat(style.outlineWidth),
+          offset: parseFloat(style.outlineOffset) || 0
+        }))
+        .find(({ width }) => width > 0)
+    await expect.poll(() => ring()?.width ?? 0).toBeGreaterThan(1)
+    const { width, offset } = ring()!
+    const reach = width + offset
+    const box = summary.getBoundingClientRect()
+    const clip = summary
+      .closest('[data-slot="record-board-lanes"]')!
+      .getBoundingClientRect()
+    expect(box.left - reach).toBeGreaterThanOrEqual(Math.floor(clip.left))
+    expect(box.right + reach).toBeLessThanOrEqual(Math.ceil(clip.right))
+    expect(box.top - reach).toBeGreaterThanOrEqual(Math.floor(clip.top))
+  })
+
   it('keeps a lane collapsed as its records change', async () => {
     const user = userEvent.setup()
     render(<Lanes />)

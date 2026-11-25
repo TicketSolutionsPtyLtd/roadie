@@ -148,7 +148,12 @@ function Lane({
         className='grid gap-2'
       >
         <Accordion.Trigger
-          className={cn(startClass, 'w-[100cqi] gap-3 rounded-lg px-2 py-1')}
+          className={cn(
+            startClass,
+            'w-[100cqi] gap-3 rounded-lg px-2 py-1',
+            // The scroller clips at the title's edges, so its ring is drawn inset.
+            'is-focusable-overlay after:pointer-events-none after:absolute after:inset-0 after:rounded-lg'
+          )}
         >
           <h2 className='flex gap-1.5 text-display-ui-6 text-strong'>
             {lane.label}
