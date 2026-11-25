@@ -38,6 +38,16 @@ export const floatingPopupClass =
 export const listPopupWidthClass =
   'max-w-(--available-width) min-w-(--anchor-width)'
 
+// An inset shadow on a scroller moves its fill out of the scrolling layer, and
+// without a GPU every frame blends the rows over it again, so typing in a long
+// Combobox drops frames. The rim becomes a border the fill shows through: the
+// top is the rim's highlight, and the sides 30% of it, the ring's exact alpha
+// in dark mode and a touch over it in light, white on a near-white fill. A
+// pixel of padding moves to the border, so rows don't move.
+/** Beside `floatingPopupClass` on a popup that scrolls: the rim as a border. */
+export const scrollingPopupRimClass =
+  'border border-(--rim-light-edge)/30 border-t-(--rim-light-edge) p-0.75 [--rim-light-own:0_0_#0000]'
+
 /** An option row's shape. Its highlight depends on where focus lives, so it's added beside. */
 export const optionRowClass =
   'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none'
