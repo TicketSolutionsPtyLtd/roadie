@@ -2,7 +2,7 @@ import { compile } from 'tailwindcss'
 import { describe, expect, it } from 'vitest'
 
 import { DATAVIZ_TOKEN_NAMES, renderDatavizCss } from './css'
-import { palette } from './palette'
+import { type Palette, palette } from './palette'
 
 const css = renderDatavizCss()
 const squash = (s: string) => s.replace(/\s+/g, ' ')
@@ -20,50 +20,84 @@ describe('dataviz.css', () => {
     expect(css).not.toMatch(/#[0-9a-f]{3,8}\b/i)
   })
 
-  it('declares every token in light and dark', () => {
-    // A token set only on :root would keep its light value in dark mode.
-    const names = (selector: string) =>
-      css
-        .split(selector)
-        .slice(1)
-        .flatMap((body) => [
-          ...body.slice(0, body.indexOf('}')).matchAll(/--([\w-]+):/g)
-        ])
-        .map(([, name]) => name!)
-        .sort()
-    const light = names('\n:root {').concat(names('  :root {'))
-    const dark = names('\n.dark {').concat(names('  .dark {'))
-    expect(dark.sort()).toEqual(light.sort())
-    const sharedRules = ['grid', 'axis', 'label', 'value', 'gap', 'highlight']
-    expect(
-      DATAVIZ_TOKEN_NAMES.filter(
-        (name) =>
-          !sharedRules.includes(name.replace('chart-', '')) &&
-          !light.includes(name)
-      )
-    ).toEqual([])
-  })
+  // A palette that moves every case the generator branches on: a status fixed
+  // in one mode, a grey mixed in one mode, and a band with no alpha.
+  const variant: Palette = {
+    ...palette,
+    status: {
+      ...palette.status,
+      good: { ...palette.status.good, step: { light: 11, dark: null } }
+    },
+    greys: {
+      ...palette.greys,
+      context: {
+        light: { step: 8, mix: { step: 9, percent: 20 } },
+        dark: { step: 8 }
+      },
+      other: { light: { step: 9 }, dark: { step: 9 } },
+      band: { light: { step: 9 }, dark: { step: 11 } }
+    }
+  }
+  const palettes = [
+    [
+      'the palette',
+      palette,
+      ['--chart-context', '--chart-band', '--chart-other']
+    ],
+    [
+      'a palette fixed or mixed in one mode',
+      variant,
+      ['--chart-context', '--chart-band']
+    ]
+  ] as const
+
+  it.each(palettes)(
+    'declares every token in light and dark, for %s',
+    (_, p) => {
+      // A token set only on :root would keep its light value in dark mode.
+      const css = renderDatavizCss(p)
+      const names = (selector: string) =>
+        css
+          .split(selector)
+          .slice(1)
+          .flatMap((body) => [
+            ...body.slice(0, body.indexOf('}')).matchAll(/--([\w-]+):/g)
+          ])
+          .map(([, name]) => name!)
+      const light = names('\n:root {').concat(names('  :root {')).sort()
+      const dark = names('\n.dark {').concat(names('  .dark {')).sort()
+      expect(dark).toEqual(light)
+      const shared = ['grid', 'axis', 'label', 'value', 'gap', 'highlight']
+      expect(
+        DATAVIZ_TOKEN_NAMES.filter(
+          (name) =>
+            !shared.includes(name.replace('chart-', '')) &&
+            !light.includes(name)
+        )
+      ).toEqual([])
+    }
+  )
 
   // Outside a color-mix check, the Tailwind build adds a solid copy of each
   // mix and its own @supports block.
-  it('keeps every color-mix behind a color-mix check', () => {
-    const mixed = css
-      .split('\n')
-      .filter((line) => /--chart-[\w-]+: color-mix/.test(line))
-    expect(mixed.map((line) => line.trim().split(':')[0])).toEqual(
-      expect.arrayContaining([
-        '--chart-band',
-        '--chart-context',
-        '--chart-other'
-      ])
-    )
-    for (const line of mixed) {
-      const before = css.slice(0, css.indexOf(line))
-      expect(before.slice(before.lastIndexOf('@supports'))).toMatch(
-        /^@supports \(color: color-mix\(/
-      )
+  it.each(palettes)(
+    'keeps every color-mix behind a color-mix check, for %s',
+    (_, p, expected) => {
+      const css = renderDatavizCss(p)
+      const mixed = css
+        .split('\n')
+        .filter((line) => /--chart-[\w-]+: color-mix/.test(line))
+      expect(
+        [...new Set(mixed.map((line) => line.trim().split(':')[0]))].sort()
+      ).toEqual([...expected].sort())
+      for (const line of mixed) {
+        const before = css.slice(0, css.indexOf(line))
+        expect(before.slice(before.lastIndexOf('@supports'))).toMatch(
+          /^@supports \(color: color-mix\(/
+        )
+      }
     }
-  })
+  )
 
   it('re-declares chart ink wherever intent tokens can change', () => {
     const css = renderDatavizCss()

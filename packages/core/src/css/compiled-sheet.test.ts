@@ -93,6 +93,8 @@ describe('roadie.compiled.css', () => {
   it('declares the chart colours without a hex copy', () => {
     expect(sheet).toMatch(/--chart-1:oklch\(/)
     expect(sheet.match(/--chart-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
+    // One per mode: a third is Tailwind's copy of a mix left outside its check.
+    expect(sheet.match(/--chart-band:/g)).toHaveLength(2)
   })
 
   it('needs no browser support for CSS nesting', () => {
