@@ -10,6 +10,7 @@ import {
   InvalidColorError,
   ThemeProvider,
   getAccentStyleSync,
+  getAccentStyleTag,
   getAccentStyleTagSync,
   isValidHexColor,
   useTheme
@@ -38,11 +39,6 @@ const matchMediaMock = vi.fn().mockReturnValue({
   removeEventListener: vi.fn()
 })
 Object.defineProperty(window, 'matchMedia', { value: matchMediaMock })
-
-// Mock CSS.supports for oklch detection
-Object.defineProperty(window, 'CSS', {
-  value: { supports: vi.fn().mockReturnValue(true) }
-})
 
 beforeEach(() => {
   localStorageMock.clear()
@@ -435,6 +431,20 @@ describe('getAccentStyleSync', () => {
 
   it('throws InvalidColorError on invalid input', () => {
     expect(() => getAccentStyleSync('garbage')).toThrow(InvalidColorError)
+  })
+})
+
+describe('getAccentStyleTag', () => {
+  it('resolves to the same tag as getAccentStyleTagSync, with no hex scale', async () => {
+    await expect(getAccentStyleTag('#e5484d', 'brand')).resolves.toBe(
+      getAccentStyleTagSync('#e5484d', 'brand')
+    )
+  })
+
+  it('rejects with InvalidColorError on invalid input', async () => {
+    await expect(getAccentStyleTag('not-a-hex')).rejects.toThrow(
+      InvalidColorError
+    )
   })
 })
 
