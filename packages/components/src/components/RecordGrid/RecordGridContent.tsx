@@ -24,6 +24,7 @@ import {
   RecordPlaceholder,
   RecordRangeError
 } from '../Records/RecordPlaceholder'
+import { groupFields } from '../Records/groupBy'
 import { type RecordGroup, groupRecordsBy } from '../Records/groups'
 import type { RecordsContentProps } from '../Records/layouts'
 import { type WindowPadding, recordsWindow } from '../Records/recordsWindow'
@@ -45,7 +46,6 @@ import {
   useRecordsLayout
 } from '../Records/useRecordsLayout'
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
-import { gridGroupFields } from './groupBy'
 import { gridParts } from './parts'
 import type { GridLayoutConfig } from './types'
 import { FIRST_CARDS, GridFiller, UNMEASURED_CLASS } from './unmeasured'
@@ -93,8 +93,8 @@ export function RecordGridContent({
     () => gridParts(config, fields, view.layout),
     [config, fields, view.layout]
   )
-  const groupFields = useMemo(
-    () => gridGroupFields(fields, view.layout),
+  const grouping = useMemo(
+    () => groupFields(fields, view.layout),
     [fields, view.layout]
   )
   // A range grid loads cards as they scroll into view, so it stays ungrouped
@@ -102,10 +102,10 @@ export function RecordGridContent({
   const { rows, range } = records
   const groups = useMemo(
     () =>
-      groupFields.length > 0 && !range
-        ? groupRecordsBy(rows, groupFields)
+      grouping.length > 0 && !range
+        ? groupRecordsBy(rows, grouping)
         : undefined,
-    [groupFields, range, rows]
+    [grouping, range, rows]
   )
   // Cards have no checkboxes, so the grid selects only through Select mode.
   const selecting = useSelectModeLayout(true)
