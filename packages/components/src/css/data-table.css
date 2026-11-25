@@ -1,9 +1,9 @@
 /* DataTable rules over the parts every row and cell share: priority columns
-   hiding as the table's container narrows, the pinned column's fill, and a
-   linked or group row's hover, press, overlay and pointer hand-off. The
-   rest is classes in the components. Unlayered on purpose: the row's
-   transform and outline, and a pinned title's overlay, must beat
-   is-interactive-within. */
+   hiding as the table's container narrows (and Show all with them), the
+   pinned column's fill, and a linked or group row's hover, press, overlay
+   and pointer hand-off. The rest is classes in the components. Unlayered on
+   purpose: the row's transform and outline, and a pinned title's overlay,
+   must beat is-interactive-within. */
 
 @container data-table (width < 720px) {
   [data-slot='data-table']:not([data-show-all]) [data-priority='3'] {

@@ -111,7 +111,10 @@ export function DataTableRow({
   )
 }
 
-/** Steps a grouped label in by a caret and its gap per level, so a row's label lines up with its group's. */
+/**
+ * Steps a grouped label in by a caret and its gap per level, so a row's
+ * label lines up with its group's.
+ */
 export function DataTableIndent({
   depth,
   className,
