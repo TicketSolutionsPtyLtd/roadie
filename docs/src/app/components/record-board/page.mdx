@@ -59,7 +59,9 @@ function Events() {
       onMove: (event, changes) =>
         setEvents((all) =>
           all.map((row) =>
-            row.id === event.id ? { ...row, status: changes.status ?? row.status ?? '' } : row
+            row.id === event.id && 'status' in changes
+              ? { ...row, status: changes.status ?? '' }
+              : row
           )
         )
     })
