@@ -135,10 +135,11 @@ describe('Toast.Progress', () => {
       window.dispatchEvent(new FocusEvent('blur'))
     })
     await expect.poll(() => bar().getAnimations()[0]!.playState).toBe('paused')
+    const held = await pausedWidth()
     act(() => {
       window.dispatchEvent(new FocusEvent('focus'))
     })
-    await expect.poll(() => bar().getAnimations()[0]!.playState).toBe('running')
+    await expect.poll(width, { timeout: 1000 }).toBeLessThan(held - 1)
   })
 
   it('runs out as the toast leaves, pause included', async () => {
