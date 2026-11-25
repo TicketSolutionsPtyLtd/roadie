@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { Badge } from '@oztix/roadie-components/badge'
 import { Field } from '@oztix/roadie-components/field'
 
 import { Editor } from '.'
@@ -194,12 +195,19 @@ describe('Editor email colours', () => {
 describe('Editor email section looks', () => {
   // The look's classes come with the section settings, so the canvas's
   // markup is drawn here as the editor draws it.
-  function renderLooked(look: string) {
+  function renderLooked(
+    look: string,
+    { dark = true, intent = 'neutral' } = {}
+  ) {
     render(
-      <div className='dark'>
+      <div className={dark ? 'dark' : undefined}>
         <div data-slot='editor' data-preset='email' style={emailCanvasStyle()}>
           <div data-email='' className='prose'>
-            <div data-type='section' className={`intent-neutral ${look}`}>
+            <div
+              data-type='section'
+              data-conditional=''
+              className={`intent-${intent} ${look}`}
+            >
               <p>
                 Gates 11am, <a href='https://www.oztix.com.au'>all ages</a>
               </p>
@@ -249,6 +257,55 @@ describe('Editor email section looks', () => {
     expect(getComputedStyle(screen.getByText(/Gates 11am/)).color).toBe(
       rgb(defaultEmailTheme.text)
     )
+  })
+
+  it('draws the editor’s marks on an accent section in the email’s colours, in a dark app', async () => {
+    const edge = async (dark: boolean) => {
+      const { section } = await renderLooked('emphasis-strong', {
+        dark,
+        intent: 'accent'
+      })
+      const colour = getComputedStyle(section).outlineColor
+      cleanup()
+      return colour
+    }
+    expect(await edge(true)).toBe(await edge(false))
+  })
+})
+
+describe('Editor email merge tags', () => {
+  // Drawn as EditorVariableView draws a tag, known and unknown.
+  async function chipFills(dark: boolean) {
+    render(
+      <div className={dark ? 'dark' : undefined}>
+        <div data-email=''>
+          {[false, true].map((invalid) => (
+            <span
+              key={String(invalid)}
+              data-slot='editor-variable'
+              data-invalid={invalid ? '' : undefined}
+            >
+              <Badge intent={invalid ? 'danger' : 'accent'} emphasis='subtle'>
+                {invalid ? 'unknown' : 'first name'}
+              </Badge>
+            </span>
+          ))}
+        </div>
+      </div>
+    )
+    const fill = (text: string) =>
+      getComputedStyle(screen.getByText(text).closest('[data-slot="badge"]')!)
+        .backgroundColor
+    const fills = [fill('first name'), fill('unknown')]
+    cleanup()
+    return fills
+  }
+
+  it('draws a known and an unknown tag apart, the same in a light app and a dark one', async () => {
+    const [known, unknown] = await chipFills(true)
+
+    expect(known).not.toBe(unknown)
+    expect([known, unknown]).toEqual(await chipFills(false))
   })
 })
 
@@ -356,5 +413,27 @@ describe('Editor email layout, as it sends', () => {
       parseFloat(getComputedStyle(canvas).borderInlineStartWidth)
     // The email's 24px, past the edge's own 10px gap.
     expect(left.getBoundingClientRect().left - edge).toBeCloseTo(34, 0)
+  })
+
+  it('keeps an invalid boxless email’s text where a valid one’s is, with the edge outside it', async () => {
+    render(
+      <div style={{ width: EMAIL_WIDTH }}>
+        {[false, true].map((invalid) => (
+          <Field key={String(invalid)} invalid={invalid}>
+            <Field.Label>{invalid ? 'Invalid' : 'Valid'}</Field.Label>
+            <Editor emphasis='subtler' defaultValue={value} />
+          </Field>
+        ))}
+      </div>
+    )
+    const box = async (name: string) => {
+      const canvas = await screen.findByRole('textbox', { name })
+      const text = canvas.querySelector('p')!.getBoundingClientRect()
+      return { edge: canvas.getBoundingClientRect().left, text: text.left }
+    }
+    const [valid, invalid] = [await box('Valid'), await box('Invalid')]
+
+    expect(invalid.edge).toBeLessThan(valid.edge)
+    expect(invalid.text).toBeCloseTo(valid.text, 0)
   })
 })

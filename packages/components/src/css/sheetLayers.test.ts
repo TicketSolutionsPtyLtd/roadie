@@ -16,13 +16,19 @@ const UNLAYERED: Record<string, Record<string, string>> = {
       "A linked row's press and a pinned title's overlay must beat is-interactive-within's"
   },
   'editor.css': {
-    '[data-email]':
-      'The email preview must beat the emphasis-* classes it restyles',
-    "[data-preset='email']": 'The email preview (INNO-1737)',
-    '@container email-frame': 'The email preview (INNO-1737)',
-    "[data-slot='editor": 'Not yet checked in a layer (INNO-1737)',
-    '@media (forced-colors': 'Not yet checked in a layer (INNO-1737)',
-    '@media (hover: hover)': 'Not yet checked in a layer (INNO-1737)'
+    '[data-email]': 'The email canvas, sorted in its own PR (INNO-1737)',
+    "[data-slot='editor'][data-preset='email']":
+      'The email canvas, sorted in its own PR (INNO-1737)',
+    "[data-preset='email']":
+      'The email canvas, sorted in its own PR (INNO-1737)',
+    '@container email-frame':
+      'The email canvas, sorted in its own PR (INNO-1737)',
+    "[data-slot='editor'][aria-invalid='true']":
+      "An invalid boxed editor's fill and edge must beat emphasis-field's",
+    "[data-slot='editor'][data-emphasis='subtler']":
+      "An invalid boxless editor's edge must beat the text's inset classes and the email's padding",
+    "[data-slot='editor-content'] .ProseMirror-gapcursor":
+      "The gap cursor's line must beat the one Tiptap injects unlayered"
   },
   'records-pane.css': {
     ':is(': "Hands a pane's inset to a table's frame over the frame's own zero"
