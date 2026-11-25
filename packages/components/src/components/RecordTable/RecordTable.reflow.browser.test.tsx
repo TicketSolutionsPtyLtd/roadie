@@ -179,4 +179,19 @@ describe('RecordTable under 40rem', () => {
     const [, show, status] = within(row).getAllByRole('cell')
     expect(rect(show!).left).toBeCloseTo(rect(status!).left, 0)
   })
+
+  it(
+    'windows by the new height when the description column goes',
+    TIMEOUT,
+    async () => {
+      const titleOnly = [roles[0]!, roles[2]!]
+      const { rerender } = render(<Shows width={360} rows={300} />)
+      await frame()
+      await frame()
+      const body = document.querySelector('[data-slot="record-table-body"]')!
+      await expect.poll(() => rect(body).height).toBeCloseTo(300 * 64, -1)
+      rerender(<Shows width={360} rows={300} columns={titleOnly} />)
+      await expect.poll(() => rect(body).height).toBeCloseTo(300 * 48, -1)
+    }
+  )
 })
