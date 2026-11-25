@@ -4,14 +4,22 @@ import { recordFields } from '@oztix/roadie-core/records'
 
 import { listGroupFields, listGroupLevelsLayout } from './groupBy'
 
-type Show = { name: string; status: string; venue: string }
+type Show = {
+  name: string
+  status: string
+  venue: string
+  city: string
+  tour: string
+}
 const field = recordFields<Show>()
-const option = (key: 'status' | 'venue') =>
+const option = (key: 'status' | 'venue' | 'city' | 'tour') =>
   field.option(key, { label: key, options: [{ value: 'a', label: 'A' }] })
 const fields = [
   field.text('name', { label: 'Name' }),
   option('status'),
-  option('venue')
+  option('venue'),
+  option('city'),
+  option('tour')
 ]
 const keys = (groupBy: string[]) =>
   listGroupFields(fields, { type: 'list', groupBy }).map(({ key }) => key)
@@ -25,6 +33,14 @@ describe('listGroupFields', () => {
   it('stops at a level that cannot group, or repeats one', () => {
     expect(keys(['status', 'name', 'venue'])).toEqual(['status'])
     expect(keys(['status', 'status'])).toEqual(['status'])
+  })
+
+  it('reads at most three levels, as a view allows', () => {
+    expect(keys(['status', 'venue', 'city', 'tour'])).toEqual([
+      'status',
+      'venue',
+      'city'
+    ])
   })
 })
 
