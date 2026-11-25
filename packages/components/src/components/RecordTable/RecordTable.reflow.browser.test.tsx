@@ -93,6 +93,48 @@ describe.each([360, 960])('RecordTable at %ipx', (width) => {
 })
 
 describe('RecordTable under 40rem', () => {
+  it(
+    'keeps a long title to one line above its description',
+    TIMEOUT,
+    async () => {
+      const long = testShows(1).map((show) => ({
+        ...show,
+        show: 'The Longest Running Midwinter Variety Revue in Western Victoria'
+      }))
+      render(
+        <div style={{ width: 360 }}>
+          <RecordTable
+            caption='Shows'
+            data={long}
+            fields={showFields}
+            columns={roles}
+            getRowId={(row) => row.id}
+            getRowHref={(row) => `#${row.id}`}
+          />
+        </div>
+      )
+      await frame()
+      const row = firstRow()
+      const link = within(row).getByRole('link')
+      const [, city] = within(row).getAllByRole('cell')
+      expect(rect(link).height).toBeLessThan(24)
+      expect(rect(link).bottom).toBeLessThanOrEqual(rect(city!).top + 1)
+    }
+  )
+
+  it(
+    'hides a placed column with its priority between 40rem and its tier',
+    TIMEOUT,
+    async () => {
+      render(<Shows width={704} />)
+      await frame()
+      const [, , status] = within(firstRow()).getAllByRole('cell', {
+        hidden: true
+      })
+      expect(shown(status!)).toBe(false)
+    }
+  )
+
   it('places each column by its narrow role', TIMEOUT, async () => {
     render(<Shows width={360} />)
     await frame()
