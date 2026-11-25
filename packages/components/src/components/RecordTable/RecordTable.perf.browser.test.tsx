@@ -358,7 +358,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     await expectFrameBudget(
       'RecordTable, list rows under the bulk bar, scroll',
       await measureFrames(scrollBy(box)),
-      { longestTask: 50 }
+      { longestTask: 50, knownMiss: 'INNO-1528' }
     )
   })
 

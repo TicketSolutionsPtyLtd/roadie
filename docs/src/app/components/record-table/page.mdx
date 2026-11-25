@@ -148,7 +148,7 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Content` in `Pane.Body`, below the header. Its column headers stick under the header. Placed straight in `Pane.Body`, a wide table runs to the pane's edges, with the pane's inset inside its first and last cells, so its first column lines up with the search and columns scrolled sideways pass under any pinned ones. Narrow rows, a `fill` or `maxHeight` box, and a pane with a `measure` keep the inset.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
-- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
+- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and sticks it to the foot of narrow rows.
 
 On a phone the table turns into cards: the event, its venue, and its status, with the start, sold, and gross as details. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
@@ -1356,7 +1356,7 @@ Under 40rem of its own width, 640px at the default text size, the table drops it
 
 The server can't measure the table, so it renders wide, and a phone switches to the list once the page hydrates. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
 
-Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions float at the foot of the screen, keeping the first action and putting the rest in a More actions menu when they don't fit.
+Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions stick to the foot of the scrolling box until the rows end, keeping the first action and putting the rest in a More actions menu when they don't fit.
 
 #### List rows
 
@@ -1478,7 +1478,7 @@ render(
 
 #### Select mode
 
-A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the header instead. Tap it to enter Select mode: each record shows a checkbox, a tap selects the record rather than opening it, and the header offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the floating bar shows the count, the offer to select every matching record, and the bulk actions. With several actions, their labels collapse to icons; a lone action keeps its label.
+A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the header instead. Tap it to enter Select mode: each record shows a checkbox, a tap selects the record rather than opening it, and the header offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the bar at the foot shows the count, the offer to select every matching record, and the bulk actions. With several actions, their labels collapse to icons; a lone action keeps its label.
 
 `RecordTable` places the Select button for you. When you compose the parts, put `Records.Select` beside the search; it shows only while the layout selects through Select mode.
 
