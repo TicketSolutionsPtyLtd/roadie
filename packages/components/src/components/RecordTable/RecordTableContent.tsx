@@ -645,11 +645,13 @@ export function RecordTableContent({
           {content}
         </ScrollArea.Content>
       </ScrollArea.Viewport>
-      {/* Starts under the sticky header, as a pane's does under its own. */}
+      {/* Starts under the sticky header, as a pane's does under its own; re-flowed rows hide the header under 40rem. */}
       <ScrollArea.Scrollbar
         keepMounted
         data-slot='record-table-scrollbar'
-        className={narrow ? undefined : totals ? 'mt-16' : 'mt-9'}
+        className={
+          narrow ? undefined : totals ? 'mt-16' : 'mt-9 @max-[40rem]:mt-0'
+        }
       >
         <ScrollArea.Thumb />
       </ScrollArea.Scrollbar>

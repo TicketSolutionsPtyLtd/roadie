@@ -143,6 +143,34 @@ describe('RecordTable under 40rem', () => {
   )
 
   it(
+    'starts its own box’s scrollbar at the rows, with no header above them',
+    TIMEOUT,
+    async () => {
+      render(
+        <div style={{ width: 360 }}>
+          <RecordTable
+            caption='Shows'
+            data={testShows(30)}
+            fields={showFields}
+            columns={roles}
+            getRowId={(row) => row.id}
+            defaultPosition={{ pageSize: 30 }}
+            maxHeight='20rem'
+          />
+        </div>
+      )
+      await frame()
+      const viewport = document.querySelector(
+        '[data-slot="record-table-viewport"]'
+      )!
+      const scrollbar = document.querySelector(
+        '[data-slot="record-table-scrollbar"]'
+      )!
+      expect(rect(scrollbar).top).toBeCloseTo(rect(viewport).top, 0)
+    }
+  )
+
+  it(
     'keeps focus in the table when its sort button hides',
     TIMEOUT,
     async () => {
