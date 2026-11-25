@@ -4,6 +4,8 @@
 //   full     with its dependencies bundled in
 //   initial  the same with code splitting: the entry chunk and its static
 //            imports, without what only an import() reaches
+// A row named like "./spot { Heart }" measures that import alone, so a barrel
+// that stops tree shaking fails the check. Its names live in the row's key.
 import { isAbsolute } from 'node:path'
 import { promisify } from 'node:util'
 import zlib from 'node:zlib'
@@ -17,16 +19,23 @@ const isBare = (id) =>
   !id.startsWith('.') && !id.startsWith('\0') && !isAbsolute(id)
 const allowance = (bytes) => Math.max(bytes * 0.03, 300)
 
+// codebase-design proposal 2 would give exports one shared reader.
+const importTarget = (target) =>
+  typeof target === 'string' || target == null
+    ? target
+    : importTarget(target.import ?? target.default)
+
 export function jsSubpaths(exports) {
   return Object.entries(exports)
-    .map(([subpath, target]) => ({
-      subpath,
-      file:
-        typeof target === 'string' ? target : (target.import ?? target.default)
-    }))
+    .map(([subpath, target]) => ({ subpath, file: importTarget(target) }))
     .filter(
       ({ subpath, file }) => file?.endsWith('.js') && !subpath.includes('*')
     )
+}
+
+export function namedImport(row) {
+  const match = /^(\S+) \{ (\S.*\S|\S) \}$/.exec(row)
+  return match && { subpath: match[1], names: match[2].split(/,\s*/) }
 }
 
 function initialChunks(chunks) {
@@ -42,9 +51,20 @@ function initialChunks(chunks) {
   return [...initial]
 }
 
-export async function bundle(file, metric) {
+const ENTRY = '\0roadie-named-import'
+const namedEntry = (file, names) => ({
+  name: 'roadie-named-import',
+  resolveId: (id) => (id === ENTRY ? id : null),
+  load: (id) =>
+    id === ENTRY
+      ? `export { ${names.join(', ')} } from ${JSON.stringify(file)}`
+      : null
+})
+
+export async function bundle(file, metric, names) {
   const build = await rolldown({
-    input: file,
+    input: names ? ENTRY : file,
+    plugins: names ? [namedEntry(file, names)] : [],
     external: (id, importer) =>
       importer !== undefined &&
       (PROVIDED.test(id) || (metric === 'own' && isBare(id))),
@@ -91,11 +111,11 @@ async function brotliBytes(code) {
   return compressed.length
 }
 
-export async function measure(file) {
+export async function measure(file, names) {
   const sizes = await Promise.all(
     METRICS.map(async (metric) => [
       metric,
-      await brotliBytes(await bundle(file, metric))
+      await brotliBytes(await bundle(file, metric, names))
     ])
   )
   return Object.fromEntries(sizes)
