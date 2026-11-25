@@ -12,6 +12,11 @@ export const navigatorRootClass = [
   'pt-[env(safe-area-inset-top)]'
 ].join(' ')
 
+// The frame's motion and its way around stay off paper, which prints the top pane.
+export const navigatorPendingClass = 'print:hidden'
+
+export const navigatorPageGhostClass = 'pointer-events-none grid print:hidden'
+
 // A container can't query itself, so column padding lives on the row inside.
 export const navigatorContentClass = [
   'row-start-1 md:col-start-2',
@@ -33,7 +38,7 @@ export const navigatorPanesClass = [
 
 // The box is the grid track and never animates; the frame inside does.
 export const navigatorPrimaryVerticalClass = [
-  'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex',
+  'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex print:hidden',
   '[--navigator-primary-collapsed:5rem] [--navigator-primary-expanded:15rem]',
   'w-(--navigator-primary-collapsed) navigator-expanded:w-(--navigator-primary-expanded)',
   'data-[motion=expand]:w-(--navigator-primary-collapsed)',
@@ -95,7 +100,7 @@ export const navigatorCapsuleClass =
 export const navigatorPrimaryHorizontalVariants = cva(
   [
     'max-md:absolute max-md:inset-x-2 max-md:bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:z-sticky md:hidden',
-    'grid',
+    'grid print:hidden',
     // The track and circles restore input; the gutters beside them stay inert.
     'pointer-events-none',
     '[--navigator-primary-col:calc((100cqw-1rem)/var(--navigator-primary-slots))]',

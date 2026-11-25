@@ -9,6 +9,7 @@ import {
   isActiveValue
 } from './NavigatorContext'
 import { secondaryRows } from './secondaryData'
+import { navigatorPageGhostClass } from './variants'
 
 /** Where a destination with an overview stands: its own route, a sub-page on top, or neither. */
 export type NavigatorPageAt = 'root' | 'child' | null
@@ -286,7 +287,7 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
       <div
         ref={this.host}
         data-slot='navigator-page-ghost'
-        className='pointer-events-none grid'
+        className={navigatorPageGhostClass}
         aria-hidden
         inert
       />

@@ -37,12 +37,7 @@ const ALLOWED: Record<string, Record<string, string>> = {
   'pane-print.css': {
     navigator: "The frame's paper flow",
     'navigator-content': "The frame's paper flow",
-    'navigator-panes': "The frame's paper flow",
-    'navigator-page-ghost': 'Hidden on paper until it says so (INNO-1732)',
-    'navigator-pending': 'Hidden on paper until it says so (INNO-1732)',
-    'navigator-primary': 'Hidden on paper until it says so (INNO-1732)',
-    'scroll-area-scrollbar': 'Hidden on paper until it says so (INNO-1732)',
-    'toast-viewport': 'Hidden on paper until it says so (INNO-1732)'
+    'navigator-panes': "The frame's paper flow"
   },
   'records-pane.css': {
     pane: 'How records sit in a pane is the point of the sheet',
