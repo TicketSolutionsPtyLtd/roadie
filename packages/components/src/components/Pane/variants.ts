@@ -52,9 +52,11 @@ export const paneViewportVariants = cva(
   }
 )
 
-// Translucent against --pane-surface; Content overrides the fallback to sunken.
+// The is-translucent recipe over --pane-surface, solid where it can't blur or
+// transparency is reduced. --raised-fill doesn't inherit, so nothing inside
+// takes it. Content overrides the fallback to sunken.
 const PANE_CHROME_SURFACE =
-  'bg-[color-mix(in_oklab,var(--pane-surface,var(--intent-bg-normal))_80%,transparent)] backdrop-blur-md'
+  'is-translucent bg-(--pane-surface,var(--intent-bg-normal)) [--raised-fill:var(--pane-surface,var(--intent-bg-normal))]'
 
 // The shadow is a pseudo's opacity, so it fades on the compositor.
 export const paneHeaderVariants = cva(
@@ -64,7 +66,6 @@ export const paneHeaderVariants = cva(
     '[--pane-header-gap:--spacing(2)]',
     // Row gaps are margins, not row-gap: a closed row can't reclaim a shared gap.
     'gap-x-(--pane-header-gap)',
-    PANE_CHROME_SURFACE,
     '[--pane-header-pad-b:--spacing(2)]',
     '-mx-(--content-inset) px-(--content-inset) pt-4 pb-(--pane-header-pad-b)',
     'rounded-t-(--pane-radius)',
@@ -80,21 +81,23 @@ export const paneHeaderVariants = cva(
   ],
   {
     variants: {
-      collapsed: { true: 'after:opacity-100', false: 'after:opacity-0' }
+      collapsed: { true: 'after:opacity-100', false: 'after:opacity-0' },
+      // In the inspector's drawer: Close sits as far below the handle's band as from the side, and the shadow follows the drawer's scroll.
+      // Opaque, since the handle's band above it is: frosted glass would show a seam where the two meet.
+      inDrawer: {
+        true: [
+          'pt-1 bg-(--pane-surface)',
+          '[[data-slot=drawer-popup][data-body-overflow-y-start]_&]:after:opacity-100'
+        ],
+        false: PANE_CHROME_SURFACE
+      }
     },
-    defaultVariants: { collapsed: false }
+    defaultVariants: { collapsed: false, inDrawer: false }
   }
 )
 
 // Back and Close share the leading cell; the stylesheet draws at most one.
 export const paneHeaderEdgeClass = 'col-start-1 row-start-1 justify-self-start'
-
-// In the inspector's drawer: Close sits as far below the handle's band as from the side, and the shadow follows the drawer's scroll.
-// Opaque, since the handle's band above it is: frosted glass would show a seam where the two meet.
-export const paneHeaderInDrawerClass = [
-  'pt-1 bg-(--pane-surface) backdrop-blur-none',
-  '[[data-slot=drawer-popup][data-body-overflow-y-start]_&]:after:opacity-100'
-]
 
 // grid rows 1fr→0fr close the row; transforms wouldn't release layout.
 export const paneTitleVariants = cva(

@@ -8,7 +8,7 @@ import type { RecordField } from '@oztix/roadie-core/records'
 
 import { List } from '../List'
 import { ListItemStatic } from '../List/ListItemStatic'
-import { useRecordsContext } from '../Records/context'
+import { useRecordsData } from '../Records/context'
 import { Sortable } from '../Sortable'
 import { Toggle } from '../Toggle'
 import {
@@ -33,7 +33,7 @@ export function RecordGridSettings({
   /** Which layout these are for: the view can still name another, such as the default table. */
   type?: DetailsLayout
 }) {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   const headingId = useId()
   const hiddenId = useId()
   const lastShownId = useId()

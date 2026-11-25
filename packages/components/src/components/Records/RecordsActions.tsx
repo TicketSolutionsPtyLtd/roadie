@@ -10,7 +10,7 @@ import { Button, IconButton } from '../Button'
 import { Menu } from '../Menu'
 import { Tooltip } from '../Tooltip'
 import { RecordsConfirm, attempt, needsConfirm } from './RecordsConfirm'
-import { useRecordsContext } from './context'
+import { useRecordsData, useRecordsStable } from './context'
 import { useNarrow } from './narrow'
 import type { RecordsAction } from './types'
 
@@ -27,7 +27,8 @@ export function RecordsActions<Row extends object>({
   actions,
   className
 }: RecordsActionsProps<Row>) {
-  const { records, latestRecords } = useRecordsContext()
+  const records = useRecordsData()
+  const { latestRecords } = useRecordsStable()
   const anchorRef = useRef<HTMLSpanElement>(null)
   const narrow = useNarrow(anchorRef, { parent: true })
   // An index, as a new actions array each render holds new objects.

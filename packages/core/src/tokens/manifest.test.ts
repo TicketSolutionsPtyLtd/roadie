@@ -22,6 +22,10 @@ const find = (name: string, kind: TokenEntry['kind'] = 'variable') => {
 }
 
 const INTERNAL = [
+  '--_mix-2a',
+  '--_mix-3a',
+  '--_mix-4a',
+  '--_mix-5a',
   '--field-border-color',
   '--field-focus-bg',
   '--field-hover-bg',
@@ -127,7 +131,7 @@ describe('values', () => {
     }
   })
 
-  it('keeps the color-mix fill over the @supports not fallback in both modes', () => {
+  it('reads each intent’s mixed fill against its own scale', () => {
     for (const intent of ['brand-secondary', 'success'] as const) {
       expect(find('--intent-bg-strong').byIntent?.[intent]).toEqual({
         light: `color-mix(in oklab, var(--color-${intent}-9) 90%, var(--color-neutral-light-0))`
@@ -136,6 +140,36 @@ describe('values', () => {
     expect(find('--intent-bg-strong-hover').byIntent?.warning).toEqual({
       light:
         'color-mix(in oklab, var(--color-warning-9) 85%, var(--color-neutral-light-0))'
+    })
+    expect(find('--intent-2a').byIntent?.danger).toEqual({
+      light: 'color-mix(in oklch, var(--color-danger-9) 6%, transparent)',
+      dark: 'color-mix(in oklch, var(--color-danger-9) 7%, transparent)'
+    })
+    expect(find('--intent-2a').byIntent?.neutral).toBeUndefined()
+  })
+
+  it('scopes own-scale substitution to each top-level block without order dependence', () => {
+    const { tokens } = parseTokenManifest([
+      [
+        'test.css',
+        `
+        :root {
+          --intent-1: var(--color-neutral-1);
+          --intent-bg-normal: var(--intent-1);
+        }
+        :root {
+          --intent-1: var(--color-brand-1);
+          --intent-text-normal: var(--intent-1);
+        }
+        `
+      ]
+    ])
+    const get = (name: string) => tokens.find((t) => t.name === name)?.value
+    expect(get('--intent-bg-normal')).toEqual({
+      light: 'var(--color-neutral-1)'
+    })
+    expect(get('--intent-text-normal')).toEqual({
+      light: 'var(--color-brand-1)'
     })
   })
 

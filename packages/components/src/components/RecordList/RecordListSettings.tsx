@@ -3,7 +3,7 @@
 import { useId } from 'react'
 
 import { RecordGridSettingsLazy } from '../RecordGrid/RecordGridSettingsLazy'
-import { useRecordsContext } from '../Records/context'
+import { useRecordsData } from '../Records/context'
 import { groupableFields } from '../Records/groups'
 import { Select } from '../Select'
 import { listGroupField, listGroupLayout } from './groupBy'
@@ -21,7 +21,7 @@ export function RecordListSettings({ config }: { config: ListLayoutConfig }) {
 RecordListSettings.preload = RecordGridSettingsLazy.preload
 
 function RecordListGroupSettings() {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   const headingId = useId()
   const { fields, view, range } = records
   const groupable = groupableFields(fields)

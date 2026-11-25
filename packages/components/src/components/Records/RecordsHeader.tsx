@@ -13,7 +13,7 @@ import {
   RecordsViewActions,
   type RecordsViewActionsProps
 } from './RecordsViewActions'
-import { useRecordsContext } from './context'
+import { useRecordsLayoutValue, useRecordsStable } from './context'
 import { useNarrow } from './narrow'
 import { SearchFocusContext } from './searchFocus'
 import { useLeaveSelectOnEscape } from './selectMode'
@@ -46,7 +46,8 @@ export function RecordsHeader<Row extends object>({
   viewActions,
   className
 }: RecordsHeaderProps<Row>) {
-  const { toolbar, setToolbar, scope } = useRecordsContext()
+  const { setToolbar, scope } = useRecordsStable()
+  const { toolbar } = useRecordsLayoutValue()
   const leaveSelect = useLeaveSelectOnEscape()
   const ref = useRef<HTMLDivElement>(null)
   const top = useStickyTop(ref, null, scope)

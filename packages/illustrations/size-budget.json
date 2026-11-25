@@ -1,4 +1,5 @@
 {
   "./spot": { "own": 84152, "full": 92440, "initial": 92440 },
-  "./spot/catalogue": { "own": 1494, "full": 1494, "initial": 1494 }
+  "./spot/catalogue": { "own": 1494, "full": 1494, "initial": 1494 },
+  "./spot/load": { "own": 86387, "full": 94996, "initial": 2911 }
 }

@@ -39,6 +39,13 @@
       "types": "./dist/spot/catalogue.d.ts",
       "import": "./dist/spot/catalogue.js"
     },
+    "./spot/load": {
+      "types": "./dist/spot/load.d.ts",
+      "node": "./dist/spot/load.node.js",
+      "workerd": "./dist/spot/load.node.js",
+      "edge-light": "./dist/spot/load.node.js",
+      "import": "./dist/spot/load.js"
+    },
     "./spot/svgs/*": "./src/spot/svgs/*",
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },

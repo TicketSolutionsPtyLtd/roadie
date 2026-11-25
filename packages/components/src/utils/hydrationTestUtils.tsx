@@ -12,6 +12,12 @@ export type Fixture = (() => ReactNode) & {
   allowance?: Partial<Record<number, Allowance>>
 }
 
+/** `fixture`, allowed to shift as much as it does today until its ticket lands. */
+export const allowing = (
+  fixture: () => ReactNode,
+  allowance: Fixture['allowance']
+): Fixture => Object.assign(fixture, { allowance })
+
 // Measured: 38 compositions never went more than two frames between changes.
 const QUIET_FRAMES = 3
 const ROUNDS = 20

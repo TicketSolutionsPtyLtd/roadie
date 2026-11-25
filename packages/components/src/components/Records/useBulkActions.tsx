@@ -3,7 +3,7 @@
 import { type RefObject, useLayoutEffect, useRef } from 'react'
 
 import { RecordsConfirm, attempt, needsConfirm } from './RecordsConfirm'
-import { useRecordsContext } from './context'
+import { useRecordsContext, useRecordsStable } from './context'
 import { formatCount, selectionExact } from './count'
 import { deselect, pageState, withinMatching } from './selection'
 import type { RecordName, RecordsBulkAction } from './types'
@@ -14,7 +14,7 @@ const SCOPE = 'data-records-scope'
 
 /** Marks an element focus can land on once the bulk actions bar goes. */
 export function useSurvivor(kind: 'selection' | 'rows') {
-  const { scope } = useRecordsContext()
+  const { scope } = useRecordsStable()
   return { [SURVIVOR]: kind, [SCOPE]: scope }
 }
 
@@ -25,7 +25,7 @@ const findSurvivor = (scope: string, kind: string, from: Document = document) =>
 
 /** Hands focus to Select, else the rows, when an element holding it unmounts, such as a record's checkbox leaving Select mode. */
 export function useKeepFocusOnLeave(ref: RefObject<HTMLElement | null>) {
-  const { scope } = useRecordsContext()
+  const { scope } = useRecordsStable()
   useLayoutEffect(() => {
     const element = ref.current
     return () => {

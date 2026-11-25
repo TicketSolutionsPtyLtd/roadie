@@ -350,6 +350,15 @@ export function ComponentSkeleton({ name }: { name: string }) {
           ))}
         </div>
       )
+    case 'phone-field':
+      return (
+        <div className='flex w-40 items-center gap-2 rounded-lg border border-subtle bg-normal px-2 py-2'>
+          <Skel className='h-2.5 w-3.5' />
+          <Skel className='h-2 w-5' />
+          <Skel className='size-2' />
+          <Skel className='h-2 w-14' />
+        </div>
+      )
     case 'select':
       return (
         <div className='flex w-40 emphasis-normal items-center justify-between rounded-lg px-3 py-2'>

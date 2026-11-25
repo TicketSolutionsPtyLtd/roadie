@@ -23,7 +23,7 @@ import {
   RecordsViewName,
   type ViewDialog
 } from './RecordsViewDialogs'
-import { useRecordsContext } from './context'
+import { useRecordsData } from './context'
 
 /** Writes to the views the app keeps. Return a promise to hold the control busy, and reject to say it failed. */
 export type RecordsViewHandler = (view: RecordView) => void | Promise<unknown>
@@ -53,7 +53,7 @@ export function RecordsViewActions({
   onDelete,
   className
 }: RecordsViewActionsProps) {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [dialog, setDialog] = useState<ViewDialog | null>(null)
   const [saving, setSaving] = useState(false)
