@@ -84,15 +84,23 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   allows 3% or 300 B of growth, whichever is larger. For a new subpath, or
   growth you meant, build, run `pnpm --filter <package> size:update`, and
   commit the file. After taking `main`, build and run the update again;
-  never merge the table by hand.
-  New `@utility` classes also go in `src/css/safelist.html`. Core's CSS has
-  hand-set Size Limit budgets in the `size-limit` field of its `package.json`
-  (`roadie.compiled.css`, brotli and raw, and what importing
-  `@oztix/roadie-core/css` costs an app before Tailwind scans a source file).
+  never merge the table by hand. A row named like `"./spot { Heart }"`
+  measures that named import alone, so a barrel that stops tree shaking
+  fails; to add one, put the row in with `{}` and run `size:update`. The
+  update can't recreate a named row, so keep both sides' named rows when
+  `main` conflicts with the table.
+  New `@utility` classes also go in `src/css/safelist.html`. CSS has
+  hand-set Size Limit budgets in the `size-limit` field of a `package.json`:
+  core's (`roadie.compiled.css`, brotli and raw, and what importing
+  `@oztix/roadie-core/css` costs an app before Tailwind scans a source file),
+  and the components, charts, and editor sheets: their own rules
+  (`scripts/css-rules.css`), and core's floor with those rules and the
+  utilities their `@source` finds in `dist` (`scripts/css-scanned.css`).
   Set one, or raise one, to about 10% above what you measure, never just
-  above it, or the next small change crosses it again. After changing core's
-  CSS, build core and run `pnpm --filter @oztix/roadie-core size`, which reads
-  the compiled sheet from `dist`.
+  above it, or the next small change crosses it again. After changing a
+  package's CSS, build it and run `pnpm --filter <package> size`, which reads
+  `dist`. The scanned budgets include core's floor, so after core's CSS grows,
+  run `size` in components, charts, and editor too.
 - **Changing Turbo config?** Read the installed turbo's `docs/README.md`
   first; the installed version may differ from what you know.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
