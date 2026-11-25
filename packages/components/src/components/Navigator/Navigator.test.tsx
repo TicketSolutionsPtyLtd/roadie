@@ -2862,11 +2862,11 @@ describe('pane header inside Navigator', () => {
     const height = () =>
       document
         .querySelector<HTMLElement>('[data-slot="pane"]')!
-        .style.getPropertyValue('--pane-header-height')
+        .style.getPropertyValue('--pane-header-measured')
 
     const { rerender } = render(tree(true))
     await flushViewportMeasurement()
-    // jsdom measures 0; the property's presence is what sticky content reads.
+    // jsdom measures 0, and without the stylesheet's sum the measured height stands.
     expect(height()).toBe('0px')
 
     rerender(tree(false))

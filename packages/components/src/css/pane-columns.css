@@ -89,6 +89,41 @@
   inherits: false;
   initial-value: 0;
 }
+/* Pane.Header's parts, which the header's height sums. */
+@property --pane-header-rest {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --pane-header-row {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --pane-header-back {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --pane-header-close {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --pane-header-floor {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --pane-header-fit {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --pane-header-measured {
+  syntax: '*';
+  inherits: false;
+}
 /* The stack's state stays off the panes' content: inherited, each change restyles it all (INNO-1678). */
 @property --pane-reach {
   syntax: '*';
@@ -360,6 +395,23 @@
   }
   [data-slot='pane'][data-depth] [data-slot='pane-back'] {
     display: var(--pane-back);
+  }
+  /* Summed, so it moves in the frame Back or Close shows (INNO-1678). */
+  [data-slot='pane'][data-header] {
+    /* Rounded as offsetHeight is, which the observer publishes otherwise. */
+    --pane-header-fit: round(
+      max(
+        var(--pane-header-floor),
+        var(--pane-header-rest) +
+          max(
+            var(--pane-header-row),
+            if(style(--pane-back: grid): var(--pane-header-back); else: 0px),
+            if(style(--pane-close: grid): var(--pane-header-close); else: 0px)
+          )
+      ),
+      1px
+    );
+    --pane-header-height: var(--pane-header-measured, var(--pane-header-fit));
   }
   [data-slot='pane'][data-depth] [data-slot='pane-close'] {
     display: var(--pane-close);

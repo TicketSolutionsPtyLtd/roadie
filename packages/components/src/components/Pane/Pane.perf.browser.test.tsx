@@ -130,42 +130,53 @@ async function measureStep(scenario: string, step: () => void) {
 }
 
 // A push of empty panes cost 32 to 48ms of style over two CI Perf runs
-// (CPU 1.8x to 2x); this is the higher plus 10%. A push over content should cost near it once
-// INNO-1677 lands (F6 in INNO-1649).
+// (CPU 1.8x to 2x); this is the higher plus 10%.
 const STYLE_CAP = 53
+// A push over 100 rows cost 218 to 259ms of style before INNO-1678 and 113 to
+// 119ms after it, over two CI Perf runs (CPU 1.8x to 2.2x); this is the
+// higher plus 10%.
+const CONTENT_STYLE_CAP = 131
 
 const PUSHES: {
   name: string
   content: Content
   onPush: boolean
+  styleCap: number
+  /** A ticket for a push that still costs more style than its cap. */
+  styleMiss?: string
   pushMiss?: string
   popMiss?: string
 }[] = [
-  { name: 'empty panes', content: 'empty', onPush: false },
-  // In CI: push p95 49.9ms, 6.3% dropped, style 218 to 259ms, the long
-  // frames all as it starts, then a clean slide; pop met once and missed
-  // once (p95 33.3ms, 7.8% dropped), style 203 to 243ms.
+  { name: 'empty panes', content: 'empty', onPush: false, styleCap: STYLE_CAP },
   {
     name: '100 list rows',
     content: 'rows',
     onPush: false,
-    pushMiss: 'INNO-1677',
-    popMiss: 'INNO-1677'
+    styleCap: CONTENT_STYLE_CAP
   },
-  // In CI: push p95 33.3 to 66.7ms, 3.3 to 9.2% dropped, style 220 to 272ms;
-  // pop met twice, style 81 to 92ms.
   {
     name: 'a RecordTable of 100 the push mounts',
     content: 'table',
     onPush: true,
-    pushMiss: 'INNO-1677'
+    styleCap: CONTENT_STYLE_CAP,
+    // 145 to 160ms after INNO-1678: each pane's visibility, pointer-events
+    // and --pane-back still change over its whole subtree.
+    styleMiss: 'INNO-1706'
   }
 ]
 
 describe('Pane steps through a phone stack at 60fps on a slowed CPU', () => {
   it.each(PUSHES)(
     'pushes and pops a detail pane over $name',
-    async ({ name, content, onPush, pushMiss, popMiss }) => {
+    async ({
+      name,
+      content,
+      onPush,
+      styleCap,
+      styleMiss,
+      pushMiss,
+      popMiss
+    }) => {
       await page.viewport(...PHONE)
       await mount(<Stack content={content} onPush={onPush} />, { frames: 10 })
       expect(detailLeft()).toBeGreaterThanOrEqual(PHONE[0])
@@ -177,15 +188,15 @@ describe('Pane steps through a phone stack at 60fps on a slowed CPU', () => {
       expect(detailLeft()).toBeGreaterThanOrEqual(PHONE[0])
       await expectFrameBudget(push.scenario, push.frames, {
         knownMiss: pushMiss,
-        note: `style ${push.style}ms`
+        note: `style ${push.style}ms${styleMiss ? `, the ${styleCap}ms cap waived as ${styleMiss}` : ''}`
       })
       await expectFrameBudget(pop.scenario, pop.frames, {
         knownMiss: popMiss,
         note: `style ${pop.style}ms`
       })
       // Only Chromium reports style time.
-      if (!pushMiss && engine === 'chromium')
-        expect(push.style).toBeLessThanOrEqual(STYLE_CAP)
+      if (!styleMiss && engine === 'chromium')
+        expect(push.style).toBeLessThanOrEqual(styleCap)
     }
   )
 })
