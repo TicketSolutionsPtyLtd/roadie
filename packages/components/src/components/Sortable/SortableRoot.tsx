@@ -139,13 +139,16 @@ export function SortableRoot({
       })
     }
     function announce(text: string) {
-      // Emptied first, so the same message twice is still read twice. The
-      // focus claim lapses with it, in case the move was never applied.
+      // Emptied first, so the same message twice is still read twice.
       setAnnouncement('')
+      lapse(() => setAnnouncement(text))
+    }
+    // The focus claim lapses a frame on, in case the move was never applied.
+    function lapse(then?: () => void) {
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
         focusTarget = null
-        setAnnouncement(text)
+        then?.()
       })
     }
     function transferFrom(source: SortableSource) {
@@ -163,6 +166,7 @@ export function SortableRoot({
       const { onTransfer, ...item } = transfer
       const { items } = latest.current
       focusTarget = source.value
+      lapse()
       onTransfer({ ...item, index: items.length })
       return arrival(source.label, items.length, items.length + 1)
     }

@@ -576,6 +576,49 @@ describe('Sortable Move to another list', () => {
     )
   })
 
+  it('drops the focus claim of a menu move the app never applies', async () => {
+    function Unapplied() {
+      const [done, setDone] = useState(['SKU'])
+      return (
+        <>
+          {[
+            { list: 'todo', items: ['Date'] },
+            { list: 'done', items: done }
+          ].map(({ list, items }) => (
+            <Sortable
+              key={list}
+              group='lanes'
+              value={list}
+              label={list}
+              items={items}
+              onReorder={() => {}}
+              // The app saves first, and the save never lands.
+              onTransfer={() => {}}
+            >
+              <List>
+                {items.map((value) => (
+                  <List.Item key={value} value={value} title={value} />
+                ))}
+              </List>
+            </Sortable>
+          ))}
+          <button type='button' onClick={() => setDone(['SKU', 'Date'])}>
+            Sync
+          </button>
+        </>
+      )
+    }
+    render(<Unapplied />)
+    const { user } = await openMenu('Date')
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Move Date to done' })
+    )
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    // Date turns up in done much later, from elsewhere: focus stays put.
+    await user.click(screen.getByRole('button', { name: 'Sync' }))
+    expect(screen.getByRole('button', { name: 'Sync' })).toHaveFocus()
+  })
+
   it.each([
     ['refuses it', { canDrop: () => false }],
     ['is disabled', { done: { disabled: true } }],
