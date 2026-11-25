@@ -1,3 +1,5 @@
+import { Activity } from 'react'
+
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -188,6 +190,28 @@ describe('FileUpload', () => {
     await userEvent.upload(fileInput(container), csv('march.csv'))
     await waitFor(() => expect(changes).toContain('march.csv added.'))
     expect(changes).toContain('')
+  })
+
+  it("doesn't say the last message again when shown from a hidden Activity", async () => {
+    const field = (mode: 'visible' | 'hidden') => (
+      <Activity mode={mode}>
+        <FileUpload maxFiles={3} />
+      </Activity>
+    )
+    const { container, rerender } = render(field('visible'))
+    const status = screen.getByRole('status')
+    await userEvent.upload(fileInput(container), csv('march.csv'))
+    await waitFor(() => expect(status).toHaveTextContent('march.csv added.'))
+    const changes: string[] = []
+    new MutationObserver(() => changes.push(status.textContent ?? '')).observe(
+      status,
+      { childList: true, characterData: true, subtree: true }
+    )
+    rerender(field('hidden'))
+    rerender(field('visible'))
+    await act(() => new Promise(requestAnimationFrame))
+    expect(changes).toEqual([])
+    expect(status).toHaveTextContent('march.csv added.')
   })
 
   it('stops showing a check that a Remove made stale', async () => {
@@ -1022,6 +1046,24 @@ describe('FileUpload', () => {
       expect(trigger).not.toHaveAccessibleDescription(
         'Remove a file to add another'
       )
+    })
+
+    it("doesn't tell a full field's Trigger why when it's disabled", () => {
+      const both = files(2)
+      render(
+        <>
+          <FileUpload maxFiles={2} defaultValue={both} disabled>
+            <FileUpload.Trigger>Field disabled</FileUpload.Trigger>
+          </FileUpload>
+          <FileUpload maxFiles={2} defaultValue={both}>
+            <FileUpload.Trigger disabled>Trigger disabled</FileUpload.Trigger>
+          </FileUpload>
+        </>
+      )
+      for (const name of ['Field disabled', 'Trigger disabled'])
+        expect(
+          screen.getByRole('button', { name })
+        ).not.toHaveAccessibleDescription('Remove a file to add another')
     })
 
     it('reads Choose files on the Trigger', () => {
