@@ -1,22 +1,20 @@
 const covers = new WeakMap<Element, () => void>()
 
 const isSlide = (animation: Animation) =>
-  (animation as CSSTransition).transitionProperty === 'translate'
+  animation instanceof CSSTransition &&
+  animation.transitionProperty === 'translate'
 
 /** Lets a pane take taps again at once, as when it comes back mid-slide. */
 export function uncover(pane: Element | null) {
   if (pane) covers.get(pane)?.()
 }
 
-/**
- * Covers a pane sliding away, which stays drawn until its slide ends, so a
- * quick second tap can't land on it. A cover, not `pointer-events`, which
- * inherits and would restyle the pane's whole subtree (INNO-1706).
- */
+/** Keeps taps off a pane sliding away; `pointer-events` would restyle its subtree (INNO-1706). */
 export function coverWhileLeaving(pane: Element) {
   uncover(pane)
+  // Not a data-slot, which many :has() arguments name, so inserting it invalidates none of them.
   const cover = document.createElement('div')
-  cover.dataset.slot = 'pane-tap-cover'
+  cover.setAttribute('data-pane-tap-cover', '')
   cover.setAttribute('aria-hidden', 'true')
   pane.append(cover)
   let frame = 0

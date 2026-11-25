@@ -123,11 +123,34 @@ describe('a phone push', () => {
     await click(box.left + 8, y)
     await untilFrame(() => paneLeft('Show') < 1280)
     expect(paneLeft('Show')).toBeGreaterThan(box.right)
-    // A few frames, as the next tap on a row in view comes soon after.
+    // The cover lifts within a few frames when nothing slides.
     await withFrames(async () => {
       for (let frame = 0; frame < 3; frame++) await nextFrame()
     })
     await click(box.left + 8, y)
+    expect(opened).toBe(2)
+  })
+
+  it('leaves the list taking taps once the screen widens after a phone push', async () => {
+    await page.viewport(390, 844)
+    opened = 0
+    render(<Stack />)
+    await withFrames(async () => {
+      await nextFrame()
+      await nextFrame()
+    })
+    const row = screen.getByRole('button', { name: 'The Rolling Kazoos' })
+    const at = row.getBoundingClientRect()
+    await click(at.left + 8, at.top + at.height / 2)
+    await untilFrame(() => paneLeft('Show') === 0)
+    await withFrames(() =>
+      Promise.all(document.getAnimations().map((a) => a.finished))
+    )
+
+    await page.viewport(1280, 800)
+    await untilFrame(() => paneLeft('Shows') >= 0 && paneLeft('Show') > 0)
+    const box = row.getBoundingClientRect()
+    await click(box.left + 8, box.top + box.height / 2)
     expect(opened).toBe(2)
   })
 })

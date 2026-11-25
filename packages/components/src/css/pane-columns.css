@@ -822,7 +822,7 @@
   }
   /* A parked pane keeps `pointer-events`, which would restyle its subtree;
      Navigator covers it while it slides away (INNO-1706). */
-  [data-slot='pane'][data-stack] > [data-slot='pane-tap-cover'] {
+  [data-slot='pane'][data-stack] > [data-pane-tap-cover] {
     position: absolute;
     inset: 0;
     z-index: var(--z-index-overlay);
