@@ -87,5 +87,6 @@
   "./toggle-group": { "own": 3154, "full": 17775, "initial": 17775 },
   "./toolbar": { "own": 5827, "full": 25218, "initial": 25218 },
   "./tooltip": { "own": 4678, "full": 38279, "initial": 38279 },
-  "./spot-illustrations": { "own": 10064, "full": 18339, "initial": 18339 }
+  "./spot-illustrations": { "own": 10064, "full": 18339, "initial": 18339 },
+  ". { Button }": { "own": 1926, "full": 13207, "initial": 12796 }
 }

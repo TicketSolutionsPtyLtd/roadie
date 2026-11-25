@@ -51,7 +51,12 @@ export function FileUploadTrigger({
       aria-labelledby={[context.labelId, context.valueId, triggerId]
         .filter(Boolean)
         .join(' ')}
-      aria-describedby={context.describedBy}
+      // Full, it says why, as the Dropzone's title does.
+      aria-describedby={
+        [context.describedBy, !disabled && context.fullId]
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
       aria-invalid={context.invalid || undefined}
       onClick={(event) => {
         onClick?.(event)

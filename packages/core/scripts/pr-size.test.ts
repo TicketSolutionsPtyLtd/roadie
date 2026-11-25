@@ -58,6 +58,21 @@ describe('countChangedLines', () => {
     })
   })
 
+  it('leaves out a deleted file, so a PR that only removes config passes', () => {
+    const numstat = [
+      '0\t930\tpackages/core/.size-limit.json',
+      '0\t4\tAGENTS.md',
+      '',
+      ' delete mode 100644 packages/core/.size-limit.json',
+      ' rename packages/core/{a.ts => b.ts} (100%)'
+    ].join('\n')
+    expect(countChangedLines(numstat)).toEqual({
+      total: 4,
+      excludedLines: 930,
+      files: 1
+    })
+  })
+
   it('judges a renamed file by its new path', () => {
     const numstat = [
       '0\t0\tpackages/core/src/{old.ts => new.ts}',
