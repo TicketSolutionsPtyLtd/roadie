@@ -1,6 +1,6 @@
 {
-  "./editor": { "own": 78796, "full": 362238, "initial": 100356 },
-  "./email-html-field": { "own": 2644, "full": 22286, "initial": 22286 },
+  "./editor": { "own": 78758, "full": 361852, "initial": 100324 },
+  "./email-html-field": { "own": 2641, "full": 22168, "initial": 22168 },
   "./email": { "own": 7500, "full": 112666, "initial": 112666 },
   "./extensions": { "own": 709, "full": 70477, "initial": 70477 },
   "./render": { "own": 9617, "full": 113205, "initial": 113205 },

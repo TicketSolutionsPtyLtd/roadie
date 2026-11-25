@@ -1,11 +1,11 @@
 {
-  ".": { "own": 26878, "full": 234798, "initial": 204487 },
+  ".": { "own": 26878, "full": 234877, "initial": 204624 },
   "./bar-chart": { "own": 9403, "full": 74229, "initial": 56690 },
   "./chart": { "own": 2537, "full": 34285, "initial": 34285 },
   "./chart-legend": { "own": 584, "full": 8835, "initial": 8835 },
   "./chart-patterns": { "own": 540, "full": 540, "initial": 540 },
   "./chart-tooltip": { "own": 702, "full": 8924, "initial": 8924 },
-  "./dashboard-view": { "own": 26694, "full": 234527, "initial": 204363 },
+  "./dashboard-view": { "own": 26694, "full": 234795, "initial": 204390 },
   "./donut-chart": { "own": 8447, "full": 71861, "initial": 54246 },
   "./funnel": { "own": 8484, "full": 71004, "initial": 53411 },
   "./heatmap": { "own": 7423, "full": 64636, "initial": 47061 },

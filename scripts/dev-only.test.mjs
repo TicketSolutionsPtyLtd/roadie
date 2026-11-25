@@ -51,7 +51,8 @@ const build = (code) =>
     plugins: [devOnly]
   }).code
 
-const DEV = 'process.env.NODE_ENV !== "production"'
+const DEV =
+  'typeof process !== "undefined" && process.env.NODE_ENV !== "production"'
 
 describe('devOnly', () => {
   const cases = [
@@ -79,10 +80,32 @@ describe('devOnly', () => {
       name: "guards useDevWarning's message, so the text drops out too",
       code: `import { useDevWarning } from './useDevWarning';\nuseDevWarning(a || b && 'm');`,
       out: `import { useDevWarning } from './useDevWarning';\nuseDevWarning(${DEV} && (a || b && 'm'));`
+    },
+    {
+      name: 'leaves calls it would change the meaning of',
+      code: `import { isDev } from './isDev';\nimport { useDevWarning } from './u';\nisDev(x);\nuseDevWarning();\nuseDevWarning(a, b);`,
+      out: `import { isDev } from './isDev';\nimport { useDevWarning } from './u';\nisDev(x);\nuseDevWarning();\nuseDevWarning(a, b);`
+    },
+    {
+      name: 'guards a message that only looks guarded',
+      code: `import { useDevWarning } from './u';\nuseDevWarning(process.env.MODE !== 'production' && m);`,
+      out: `import { useDevWarning } from './u';\nuseDevWarning(${DEV} && process.env.MODE !== 'production' && m);`
     }
   ]
   for (const { name, code, out } of cases)
     it(name, () => assert.equal(build(code), out))
+
+  it('sends every file with something to guard through the plugin', () => {
+    const { code } = devOnlyPreset.rolldown.filter
+    for (const source of [
+      'if (isDev()) x()',
+      'useDevWarning(m)',
+      'X.displayName =\n  "X"',
+      'X.displayName="X"'
+    ])
+      assert.match(source, code)
+    assert.doesNotMatch('const displayName = name', code)
+  })
 
   it('guards each once', () => {
     const once = build(

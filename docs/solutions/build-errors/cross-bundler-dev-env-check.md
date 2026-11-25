@@ -121,16 +121,12 @@ as an `if` test or an `&&` statement, the check drops with or without the
 
 So the components, charts, and editor builds run `scripts/dev-only.mjs`
 before the React Compiler, in Babel's `pre` hook, since the compiler can
-memoize a `useDevWarning` call into an alias. It writes each imported `isDev()` call as a bare
-`process.env.NODE_ENV !== 'production'` check, guards `useDevWarning`'s message with it so the text drops too, and puts
-each top-level `X.displayName = …` behind it, as Base UI and React ship theirs.
-Source keeps calling `isDev()`; never copy the helper into a file, since only an
-imported `isDev` is rewritten.
-
-The rewritten check has no `typeof process` guard. That's safe for these
-packages because their peers (Base UI, React) already read
-`process.env.NODE_ENV` unguarded at module load, so an app that runs them has
-the define.
+memoize a `useDevWarning` call into an alias. It writes each imported `isDev()`
+call as the guarded check in place, guards `useDevWarning`'s message with it
+so the text drops too, and puts each top-level `X.displayName = …` behind it.
+The `typeof process` guard stays, as the rule in `AGENTS.md` asks; it costs
+about 20 bytes per `useDevWarning` call. Source keeps calling `isDev()`; never
+copy the helper into a file, since only an imported `isDev` is rewritten.
 
 ## Related files
 
