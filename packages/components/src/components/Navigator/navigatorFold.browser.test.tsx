@@ -546,10 +546,19 @@ describe('the More tile’s label', () => {
 })
 
 describe('a server-rendered vertical navigation', () => {
-  const rail = (height: string) => (
+  const rail = (
+    height: string,
+    { brand = false, fromDocument = false } = {}
+  ) => (
     <div className={`${height} overflow-hidden`}>
-      <Navigator value='Discover' className='h-full'>
+      <Navigator
+        value='Discover'
+        className='h-full'
+        expandedFromDocument={fromDocument}
+      >
         <Navigator.Primary aria-label='Main'>
+          {brand && <Navigator.Brand />}
+          {brand && <Navigator.ExpandToggle />}
           {['Discover', 'My tickets', 'Saved', 'Wallet', 'Venues'].map(
             (item) => (
               <Navigator.Item key={item} value={item} icon={<FakeIcon />}>
@@ -577,11 +586,25 @@ describe('a server-rendered vertical navigation', () => {
     </div>
   )
 
-  it.each(['h-60', 'h-100', 'h-140', 'h-200'])(
-    'folds into More before hydration, as the client does, in %s',
-    async (height) => {
-      const ui = rail(height)
+  it.each([
+    ['h-60', {}],
+    ['h-100', {}],
+    ['h-110', {}],
+    ['h-120', {}],
+    ['h-140', {}],
+    ['h-100', { brand: true }],
+    ['h-140', { brand: true }]
+  ])(
+    'folds into More before hydration, as the client does, in %s %j',
+    async (height, options) => {
+      const ui = rail(height, options)
       expect(await hydrationShift(renderToString(ui), ui)).toEqual([])
     }
   )
+
+  it('folds nothing before hydration when the head script expanded it', async () => {
+    document.documentElement.setAttribute('data-navigator-expanded', '')
+    const ui = rail('h-60', { fromDocument: true })
+    expect(await hydrationShift(renderToString(ui), ui)).toEqual([])
+  })
 })

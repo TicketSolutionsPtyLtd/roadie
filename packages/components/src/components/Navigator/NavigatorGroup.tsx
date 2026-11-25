@@ -68,14 +68,13 @@ export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
     at,
     rows.flatMap(({ key }) => (typeof key === 'string' ? [key] : []))
   )
+  const titleProps: Partial<NavigatorGroupTitleProps> & {
+    'data-fold-below'?: string
+  } = { id: titleId, 'data-fold-below': groupFoldsBelow }
 
   return (
     <>
-      {title &&
-        cloneElement(title, {
-          id: titleId,
-          'data-fold-below': groupFoldsBelow
-        } as NavigatorGroupTitleProps)}
+      {title && cloneElement(title, titleProps)}
       <ul
         data-slot='navigator-capsule'
         data-fold-below={groupFoldsBelow}
