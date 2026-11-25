@@ -192,8 +192,8 @@ Every PR is checked against these before review. Fix every real hit.
   a docs page, a docs component, or a package's exports or CSS. When a
   change touches a package's `exports`, `files`, or types, also run
   `pnpm turbo check:package --filter='./packages/*'` (attw, `check:dts`,
-  the Node ESM import check, and the tarball guard), which `build`
-  doesn't run.
+  the Server Component import check, the Node ESM import check, and the
+  tarball guard), which `build` doesn't run.
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
 - **Docs e2e tests** (`docs/e2e/`) drive the static export in `docs/out`
   with Playwright, so build the docs first, with the base path CI uses, and

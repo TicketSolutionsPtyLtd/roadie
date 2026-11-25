@@ -3,8 +3,8 @@
 // from a package root with `node --conditions=react-server`, so `react` is its
 // server build, which has no createContext or hooks. A client module is
 // stubbed as the reference a server bundler would put in its place, so what
-// loads is what a Server Component runs: a context or hook called as a module
-// loads on the server graph throws here.
+// loads is what a Server Component runs: a module on the server graph that
+// imports a hook or createContext by name, or calls one as it loads, throws here.
 import { readFileSync } from 'node:fs'
 import { registerHooks } from 'node:module'
 import { pathToFileURL } from 'node:url'
