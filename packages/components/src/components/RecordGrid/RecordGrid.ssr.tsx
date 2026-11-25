@@ -31,3 +31,15 @@ export const WithActions = () => (
     ]}
   />
 )
+
+// Grouped: each group's title opens and closes it, open as the server paints it.
+export const Grouped = () => (
+  <RecordGrid
+    caption='Shows'
+    data={testShows(12)}
+    fields={showFields}
+    getRowId={(row) => row.id}
+    defaultView={{ layout: { type: 'grid', groupBy: ['status'] } }}
+    card={{ title: 'show', description: 'city' }}
+  />
+)
