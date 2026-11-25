@@ -3,8 +3,7 @@
 
 /* Rules sit in the components layer, so an app's class on the same element
    wins, as it does over Roadie's components. A rule outside it says which
-   class it has to beat, and sheetLayers.test.ts in components holds the list.
-   The email canvas's rules are still to be sorted (INNO-1737). */
+   class it has to beat, and sheetLayers.test.ts in components holds the list. */
 
 @layer components {
   /* Tiptap's Placeholder marks the empty first block and puts its text in data-placeholder. */
@@ -99,8 +98,8 @@
 }
 
 /* An email spaces every block alike, 8px above and below, so the page does
-   too, in place of Prose's article rhythm. A heading is the size the email
-   writes it. Unlayered, over Prose's components layer. */
+   too, in place of Prose's article rhythm. Unlayered, over Prose's flow,
+   whose scoped rule wins a tie in the components layer. */
 [data-email] > *,
 [data-email] :is([data-type='section'], [data-type='column']) > * {
   margin-block: 0;
@@ -156,45 +155,10 @@
   margin-block-start: 0;
 }
 
-/* An email sends in its own colours, so the canvas keeps them in a dark app.
-   The editor sets --email-theme-* from its theme; a colour it leaves out
-   takes Roadie's light scales. Declared on the frame, as the block handle
-   sits over the canvas but outside it. */
-[data-slot='editor'][data-preset='email'] {
-  --email-background: var(
-    --email-theme-background,
-    var(--color-neutral-light-0)
-  );
-  --email-text: var(--email-theme-text, var(--color-neutral-light-12));
-  --email-accent: var(--email-theme-accent, var(--color-accent-light-9));
-  --email-link: var(--email-theme-link, var(--email-accent));
-  --email-button: var(--email-theme-button, var(--email-accent));
-  --email-button-text: var(
-    --email-theme-button-text,
-    var(--color-neutral-light-0)
-  );
-  --email-border: var(
-    --email-theme-border,
-    color-mix(
-      in oklch,
-      var(--color-neutral-light-9) 30%,
-      var(--color-neutral-light-5)
-    )
-  );
-  --email-tint: var(
-    --email-theme-tint,
-    color-mix(
-      in oklch,
-      var(--color-neutral-light-5) 50%,
-      var(--color-neutral-light-0)
-    )
-  );
-  --email-divider: var(--email-theme-divider, var(--color-neutral-light-5));
-}
-
 /* The editor's own marks on the email (outlines, the caret's halo, the
    placeholder, the handle) mix from its text and background, so they show
-   on any background the theme gives it. */
+   on any background the theme gives it. Unlayered, over the intent-* class
+   a filled section takes. */
 [data-email],
 [data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong),
 [data-preset='email']
@@ -230,6 +194,7 @@
   );
 }
 
+/* Unlayered, over the text's own padding classes. */
 [data-email] {
   /* The email's own colours, which a section's look swaps beneath it. */
   --email-base-background: var(--email-background);
@@ -247,53 +212,13 @@
   font-family: var(--email-theme-font-family, Helvetica, Arial, sans-serif);
 }
 
-[data-email] a:not([data-type]) {
-  --intent-link-own: var(--email-link);
-
-  color: var(--email-link);
-}
-
-[data-email] hr {
-  border-color: var(--email-divider);
-}
-
-/* The app's selection colour is for the app's own surface, and on the email
-   it can be a dark fill under dark text. */
-[data-email] ::selection {
-  background-color: color-mix(
-    in oklch,
-    var(--email-link) 22%,
-    var(--email-background)
-  );
-  color: var(--email-text);
-}
-
-/* The grip and add button sit in a 32px gutter beside the email. Where the
-   frame has less room either side of the 600px email, the content keeps the
-   gutter at its start; the percentage is the frame's width, wherever it's
-   used. */
-[data-preset='email'] {
-  --email-gutter: max(
-    0px,
-    min(calc(var(--spacing) * 8), calc(600px + var(--spacing) * 16 - 100%))
-  );
-}
-
-[data-preset='email']
-  :is([data-slot='editor-content'], [data-slot='editor-preheader-row']) {
-  padding-inline-start: var(--email-gutter);
-}
-
 /* Narrower than 600px, the email sends at the screen's width, 24px in from
    each side, and a gutter would also stack columns the email, from 480px,
    sends side by side. So below 544px a framed canvas takes the frame's whole
    width: the grip sits in the email's own padding, and blocks are added from
    the toolbar's Blocks or `/`, as the add button would have no room. A
-   boxless editor keeps its gutter for its handles. */
-[data-preset='email'] {
-  container: email-frame / inline-size;
-}
-
+   boxless editor keeps its gutter for its handles. Unlayered, over the btn
+   class the grip and add button take. */
 @container email-frame (max-width: 543px) {
   [data-preset='email']:not([data-emphasis='subtler']) > * {
     --email-gutter: 0px;
@@ -316,7 +241,8 @@
 }
 
 /* Drawn as renderEmail draws each emphasis, in the theme's colours: a
-   button's, and a section's look of tint or accent. */
+   button's, and a section's look of tint or accent. Unlayered, over the
+   emphasis-* classes they restyle. */
 [data-email] [data-type='button'].emphasis-strong {
   background-color: var(--email-button);
   color: var(--email-button-text);
@@ -326,25 +252,6 @@
   background-color: var(--email-background);
   border-color: var(--email-border);
   color: var(--email-text);
-}
-
-/* A section's look swaps the colours its blocks take, as renderEmail's
-   does: a tint swaps the background and tint, and an accent takes the strong
-   button's, so text, links, and buttons stay legible on it. */
-[data-email] [data-type='section'].emphasis-subtle {
-  --email-background: var(--email-base-tint);
-  --email-tint: var(--email-base-background);
-}
-
-[data-email] [data-type='section'].emphasis-strong {
-  --email-background: var(--email-base-button);
-  --email-text: var(--email-base-button-text);
-  --email-link: var(--email-base-button-text);
-  --email-button: var(--email-base-button-text);
-  --email-button-text: var(--email-base-button);
-  --email-border: var(--email-base-button-text);
-  --email-tint: var(--email-base-button);
-  --email-divider: var(--email-base-button-text);
 }
 
 /* The email's band has no edge, so its blocks sit 24px in. */
@@ -360,7 +267,8 @@
   color: var(--email-text);
 }
 
-/* A merge tag's chip takes the light accent, or danger when it's unknown. */
+/* A merge tag's chip takes the light accent, or danger when it's unknown.
+   Unlayered, over the Badge's intent-* class. */
 [data-email] [data-slot='editor-variable'] [data-slot='badge'] {
   --chip-tone: var(--color-accent-light-9);
   --chip-ink: var(--color-accent-light-12);
@@ -375,25 +283,119 @@
   --chip-ink: var(--color-danger-light-12);
 }
 
-[data-email] h2 {
-  font-size: 1.5rem;
-  line-height: 2rem;
-}
-
-[data-email] h3 {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-}
-
-[data-email] h4 {
-  font-size: 1rem;
-  line-height: 1.5rem;
-}
-
-/* A spacer, a section or a column shows its box under the pointer or the
-   caret. Outlines take no room from the email's spacing. Layered and in
-   :where() so a chosen block's halo and a selected node's ring win. */
 @layer components {
+  /* An email sends in its own colours, so the canvas keeps them in a dark app.
+     The editor sets --email-theme-* from its theme; a colour it leaves out
+     takes Roadie's light scales. Declared on the frame, as the block handle
+     sits over the canvas but outside it. */
+  [data-slot='editor'][data-preset='email'] {
+    --email-background: var(
+      --email-theme-background,
+      var(--color-neutral-light-0)
+    );
+    --email-text: var(--email-theme-text, var(--color-neutral-light-12));
+    --email-accent: var(--email-theme-accent, var(--color-accent-light-9));
+    --email-link: var(--email-theme-link, var(--email-accent));
+    --email-button: var(--email-theme-button, var(--email-accent));
+    --email-button-text: var(
+      --email-theme-button-text,
+      var(--color-neutral-light-0)
+    );
+    --email-border: var(
+      --email-theme-border,
+      color-mix(
+        in oklch,
+        var(--color-neutral-light-9) 30%,
+        var(--color-neutral-light-5)
+      )
+    );
+    --email-tint: var(
+      --email-theme-tint,
+      color-mix(
+        in oklch,
+        var(--color-neutral-light-5) 50%,
+        var(--color-neutral-light-0)
+      )
+    );
+    --email-divider: var(--email-theme-divider, var(--color-neutral-light-5));
+  }
+
+  [data-email] a:not([data-type]) {
+    --intent-link-own: var(--email-link);
+
+    color: var(--email-link);
+  }
+
+  [data-email] hr {
+    border-color: var(--email-divider);
+  }
+
+  /* The app's selection colour is for the app's own surface, and on the email
+     it can be a dark fill under dark text. */
+  [data-email] ::selection {
+    background-color: color-mix(
+      in oklch,
+      var(--email-link) 22%,
+      var(--email-background)
+    );
+    color: var(--email-text);
+  }
+
+  /* The grip and add button sit in a 32px gutter beside the email. Where the
+     frame has less room either side of the 600px email, the content keeps the
+     gutter at its start; the percentage is the frame's width, wherever it's
+     used. */
+  [data-preset='email'] {
+    --email-gutter: max(
+      0px,
+      min(calc(var(--spacing) * 8), calc(600px + var(--spacing) * 16 - 100%))
+    );
+    container: email-frame / inline-size;
+  }
+
+  [data-preset='email']
+    :is([data-slot='editor-content'], [data-slot='editor-preheader-row']) {
+    padding-inline-start: var(--email-gutter);
+  }
+
+  /* A section's look swaps the colours its blocks take, as renderEmail's
+     does: a tint swaps the background and tint, and an accent takes the strong
+     button's, so text, links, and buttons stay legible on it. */
+  [data-email] [data-type='section'].emphasis-subtle {
+    --email-background: var(--email-base-tint);
+    --email-tint: var(--email-base-background);
+  }
+
+  [data-email] [data-type='section'].emphasis-strong {
+    --email-background: var(--email-base-button);
+    --email-text: var(--email-base-button-text);
+    --email-link: var(--email-base-button-text);
+    --email-button: var(--email-base-button-text);
+    --email-button-text: var(--email-base-button);
+    --email-border: var(--email-base-button-text);
+    --email-tint: var(--email-base-button);
+    --email-divider: var(--email-base-button-text);
+  }
+
+  /* A heading is the size the email writes it. */
+  [data-email] h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  [data-email] h3 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  [data-email] h4 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  /* A spacer, a section or a column shows its box under the pointer or the
+     caret. Outlines take no room from the email's spacing. In :where() so a
+     chosen block's halo and a selected node's ring win. */
   [data-email] :where([data-type='spacer']) {
     outline: 1px dashed transparent;
     outline-offset: 2px;
@@ -433,29 +435,29 @@
   [data-email] :where([data-filled]) {
     outline-offset: 0;
   }
-}
 
-/* A section's Settings shows while it holds the caret, or is hovered, and
-   never in an editor that can't be edited. */
-[data-email] [data-slot='editor-section-settings'] {
-  visibility: hidden;
-}
+  /* A section's Settings shows while it holds the caret, or is hovered, and
+     never in an editor that can't be edited. */
+  [data-email] [data-slot='editor-section-settings'] {
+    visibility: hidden;
+  }
 
-[data-email]
-  [data-type='section']:hover
-  > [data-slot='editor-section-toolbar']
-  [data-slot='editor-section-settings'],
-[data-email]
-  [data-slot='editor-section-toolbar'][data-active]
-  [data-slot='editor-section-settings'] {
-  visibility: visible;
-}
+  [data-email]
+    [data-type='section']:hover
+    > [data-slot='editor-section-toolbar']
+    [data-slot='editor-section-settings'],
+  [data-email]
+    [data-slot='editor-section-toolbar'][data-active]
+    [data-slot='editor-section-settings'] {
+    visibility: visible;
+  }
 
-[data-email][contenteditable='false']
-  [data-type='section']
-  > [data-slot='editor-section-toolbar']
-  [data-slot='editor-section-settings'] {
-  visibility: hidden;
+  [data-email][contenteditable='false']
+    [data-type='section']
+    > [data-slot='editor-section-toolbar']
+    [data-slot='editor-section-settings'] {
+    visibility: hidden;
+  }
 }
 
 @layer components {
