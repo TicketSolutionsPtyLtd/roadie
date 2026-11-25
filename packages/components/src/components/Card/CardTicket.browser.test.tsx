@@ -488,12 +488,12 @@ const STATES: Record<
   subtle: {
     rest: { fill: '--intent-bg-subtle' },
     hover: { fill: '--intent-4a' },
-    active: { fill: '--intent-5a' }
+    active: { fill: '--intent-5a', transform: 'press' }
   },
   subtler: {
     rest: {},
     hover: { fill: '--intent-3a' },
-    active: { fill: '--intent-4a' }
+    active: { fill: '--intent-4a', transform: 'press' }
   }
 }
 

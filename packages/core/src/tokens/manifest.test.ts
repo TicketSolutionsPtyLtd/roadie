@@ -30,10 +30,12 @@ const INTERNAL = [
   '--emphasis-fill-active',
   '--emphasis-fill-hover',
   '--emphasis-fill-interactive',
+  '--emphasis-fill-state',
   '--emphasis-lift-hover',
   '--emphasis-shadow',
   '--emphasis-shadow-active',
   '--emphasis-shadow-hover',
+  '--emphasis-shadow-state',
   '--field-border-color',
   '--field-focus-bg',
   '--field-hover-bg',
@@ -58,7 +60,8 @@ const INTERNAL = [
   '--translucent-backdrop',
   '--translucent-fill',
   '--tw-inset-shadow',
-  '--tw-shadow'
+  '--tw-shadow',
+  '--tw-sort'
 ]
 
 describe('coverage', () => {
