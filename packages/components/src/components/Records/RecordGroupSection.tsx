@@ -237,10 +237,14 @@ export function RecordGroupSection({
           )}
         >
           {extra != null && extra !== false && (
-            // A pixel in, as a row's border sets its text.
+            // Where the title's text starts: a pixel in when rows bleed, as a
+            // row's border sets its text, else the title row's border and padding.
             <div
               data-slot='list-group-heading'
-              className='px-px text-sm text-subtle'
+              className={cn(
+                'text-sm text-subtle',
+                bleed ? 'px-px' : 'border-x border-transparent px-3'
+              )}
             >
               {extra}
             </div>

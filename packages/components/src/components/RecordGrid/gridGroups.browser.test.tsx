@@ -106,7 +106,16 @@ describe('RecordGrid grouped in a browser', { timeout: 30_000 }, () => {
         defaultView={grouped}
       />
     )
-    expect(screen.getAllByText('2 shows here')[0]).toBeVisible()
+    const extra = screen.getAllByText('2 shows here')[0]!
+    expect(extra).toBeVisible()
+    // It starts where its title's text does.
+    const text = document.createRange()
+    text.selectNodeContents(extra)
+    expect(text.getBoundingClientRect().left).toBeCloseTo(
+      screen.getByRole('heading', { name: 'On sale 2' }).getBoundingClientRect()
+        .left,
+      0
+    )
   })
 
   it.each([
