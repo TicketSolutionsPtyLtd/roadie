@@ -25,9 +25,15 @@ beforeAll(async () => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-function Shows({ actions }: { actions: RecordsAction<TestShow>[] }) {
+function Shows({
+  actions,
+  width = 360
+}: {
+  actions: RecordsAction<TestShow>[]
+  width?: number
+}) {
   return (
-    <div style={{ width: 360 }}>
+    <div style={{ width }}>
       <RecordTable
         caption='Shows'
         data={testShows(12)}
@@ -81,5 +87,26 @@ describe('RecordTable table actions in a narrow toolbar', () => {
     await act(async () => finish())
     await waitFor(() => expect(more()).not.toHaveAttribute('aria-busy'))
     expect(more()).not.toHaveAttribute('aria-disabled', 'true')
+  })
+})
+
+describe('RecordTable table actions in a wide toolbar', () => {
+  it('shows no menu for a single action', async () => {
+    render(<Shows actions={actions().slice(0, 1)} width={960} />)
+    expect(
+      await screen.findByRole('button', { name: 'Export CSV' })
+    ).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
+  })
+
+  it('keeps the first action out of the menu', async () => {
+    render(<Shows actions={actions()} width={960} />)
+    expect(
+      await screen.findByRole('button', { name: 'Export CSV' })
+    ).toBeVisible()
+    await userEvent.click(more())
+    expect(
+      (await screen.findAllByRole('menuitem')).map((item) => item.textContent)
+    ).toEqual(['Print door list', 'Email everyone'])
   })
 })
