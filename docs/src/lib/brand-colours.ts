@@ -86,7 +86,8 @@ const BRAND_CMYK: Record<string, string> = {
 }
 
 // The brand's screen values for the same steps. Roadie's tokens are OKLCH,
-// and converting them back puts a few of these one unit off.
+// and converting them back puts five of these off by a unit or more in a
+// channel (orange House by four).
 const BRAND_HEX: Record<string, string> = {
   '--color-neutral-0': '#ffffff',
   '--color-brand-2': '#f1f6fb',
