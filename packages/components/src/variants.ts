@@ -28,6 +28,34 @@ export const disclosureCaretClass =
 export const horizontalScrollClass =
   'data-[orientation=horizontal]:max-w-full data-[orientation=horizontal]:overflow-x-auto data-[orientation=horizontal]:overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
 
+/** A popup's elevation, edge, padding and enter motion: Menu and every list popup. */
+export const floatingPopupClass =
+  'max-h-(--available-height) origin-(--transform-origin) overflow-y-auto rounded-xl p-1 emphasis-floating is-translucent motion-scale outline-none'
+
+/** Beside `floatingPopupClass` on a listbox popup: at least its anchor's width. */
+export const listPopupWidthClass =
+  'max-w-(--available-width) min-w-(--anchor-width)'
+
+/** An option row's shape. Its highlight depends on where focus lives, so it's added beside. */
+export const optionRowClass =
+  'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none'
+
+// A tapped row keeps focus, so on touch only the keyboard shows the highlight.
+/** The highlight for a row that takes focus itself, as in Menu and Select. */
+export const focusedRowHighlightClass =
+  '[@media(hover:hover)]:data-[highlighted]:bg-subtle data-[highlighted]:focus-visible:bg-subtle'
+
+/** The check that marks a chosen option. */
+export const optionIndicatorClass = 'shrink-0 text-subtle'
+
+/** A group's heading inside a list popup. */
+export const optionGroupLabelClass =
+  'px-2 py-1.5 text-xs font-medium text-subtle select-none'
+
+/** The message a list popup shows when nothing matches; collapses while empty. */
+export const listEmptyClass =
+  'text-center text-sm text-subtle empty:hidden [&:not(:empty)]:px-3 [&:not(:empty)]:py-4'
+
 /** A literal union, because `react-docgen-typescript` can't read CVA types. */
 export type RoadieIntent = keyof typeof intentVariants
 
