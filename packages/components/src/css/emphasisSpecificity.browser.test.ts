@@ -6,7 +6,9 @@ import roadieCss from '../../vitest.browser.css?inline'
 // into `:is(.p.a, .p.b)`, which takes the weight of its heaviest branch. If
 // the branches differ, the rule outranks rules it was written to lose to:
 // emphasis-subtler's resting `transparent` beat its own hover tint. So every
-// branch of an emphasis utility's selector list has to weigh the same.
+// branch of a state rule's selector list has to weigh the same: the emphasis
+// utilities' own, and the shared rule on is-interactive and
+// is-interactive-within that swaps their states.
 
 type Weight = [number, number, number]
 
@@ -94,7 +96,12 @@ function emphasisLists(sheet: CSSStyleSheet) {
     for (const rule of rules) {
       let scope = parent
       if (rule instanceof CSSStyleRule) {
-        if (parent && /^\.emphasis-[\w-]+$/.test(parent.selectorText)) {
+        if (
+          parent &&
+          /^\.(emphasis-[\w-]+|is-interactive(-within)?)$/.test(
+            parent.selectorText
+          )
+        ) {
           const own = weight(parent.selectorText)
           const weights = branches(rule.selectorText).map((branch) =>
             weight(branch, own).join(',')
@@ -122,7 +129,7 @@ describe('emphasis selector lists under lowered nesting', () => {
     expect(weight('button::after')).toEqual([0, 0, 2])
   })
 
-  it('gives every branch of an emphasis utility’s list the same weight', () => {
+  it('gives every branch of an emphasis or state rule’s list the same weight', () => {
     const sheet = new CSSStyleSheet()
     sheet.replaceSync(roadieCss)
     const lists = emphasisLists(sheet)

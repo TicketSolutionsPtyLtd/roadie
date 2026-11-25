@@ -31,7 +31,11 @@ import {
   isDestinationActive
 } from './NavigatorContext'
 import { NavigatorDestination } from './NavigatorDestination'
-import { NavigatorFoldedContext } from './NavigatorFoldedContext'
+import {
+  NavigatorFoldAtContext,
+  NavigatorFoldedContext,
+  foldStyle
+} from './NavigatorFoldedContext'
 import { NavigatorIndicator } from './NavigatorIndicator'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
@@ -203,7 +207,11 @@ export function NavigatorPrimary({
     () => primaryCapsules(collected.cluster),
     [collected.cluster]
   )
-  const { folded: verticalFolded, shown: verticalShown } = usePrimaryCapacity(
+  const {
+    folded: verticalFolded,
+    shown: verticalShown,
+    unmeasured
+  } = usePrimaryCapacity(
     clusterRef,
     brandRef,
     clusterCapsules,
@@ -482,7 +490,11 @@ export function NavigatorPrimary({
               <ScrollArea.Viewport
                 ref={clusterRef}
                 data-slot='navigator-primary-cluster-viewport'
-                className={navigatorPrimaryClusterViewportClass}
+                className={cn(
+                  navigatorPrimaryClusterViewportClass,
+                  // Folds by height in CSS until the client has measured.
+                  unmeasured && '[container:navigator-cluster/size]'
+                )}
               >
                 <ScrollArea.Content
                   fitWidth={false}
@@ -494,11 +506,19 @@ export function NavigatorPrimary({
                     className={navigatorPrimaryClusterTrackClass}
                   >
                     <NavigatorFoldedContext value={verticalFolded}>
-                      {wrapCapsules(collected.cluster, verticalFolded)}
+                      <NavigatorFoldAtContext value={unmeasured?.slots ?? null}>
+                        {wrapCapsules(
+                          collected.cluster,
+                          verticalFolded,
+                          unmeasured?.slots
+                        )}
+                      </NavigatorFoldAtContext>
                     </NavigatorFoldedContext>
-                    {verticalFoldedSlots.length > 0 ? (
+                    {unmeasured ? <style>{foldStyle(unmeasured)}</style> : null}
+                    {verticalFoldedSlots.length > 0 || unmeasured ? (
                       <ul
                         data-slot='navigator-capsule'
+                        data-unfold-at={unmeasured?.all}
                         className={navigatorCapsuleClass}
                       >
                         <li>

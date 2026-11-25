@@ -159,18 +159,18 @@
     {
       "name": "css/compiled",
       "path": "dist/roadie.compiled.css",
-      "limit": "19.3 KB"
+      "limit": "15.9 KB"
     },
     {
       "name": "css/compiled uncompressed",
       "path": "dist/roadie.compiled.css",
       "brotli": false,
-      "limit": "182 KB"
+      "limit": "148 KB"
     },
     {
       "name": "css with no sources scanned",
       "path": "node_modules/.cache/roadie/roadie.floor.css",
-      "limit": "11.2 KB"
+      "limit": "9.5 KB"
     }
   ]
 }
