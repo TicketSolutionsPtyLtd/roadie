@@ -134,7 +134,11 @@ export function tableColumnsLayout(
     ...(nextOrder.length > 0 && { order: [...nextOrder] }),
     ...(nextHidden.length > 0 && { hidden: nextHidden })
   }
-  return Object.keys(next).length > 0
-    ? { type: 'table', columns: next }
-    : { type: 'table' }
+  // Grouping is its own setting, so a column change keeps it.
+  const groupBy = current.type === 'table' ? current.groupBy : undefined
+  return {
+    type: 'table',
+    ...(Object.keys(next).length > 0 && { columns: next }),
+    ...(groupBy?.length && { groupBy })
+  }
 }

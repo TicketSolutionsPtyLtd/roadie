@@ -124,7 +124,7 @@ describe('equalRecordViews', () => {
     { type: 'table' },
     { type: 'grid' },
     { type: 'list' },
-    { type: 'board', groupBy: 'status' },
+    { type: 'board', groupBy: ['status'] },
     { type: 'calendar', dateField: 'starts' },
     { type: 'map' }
   ]
@@ -147,11 +147,22 @@ describe('equalRecordViews', () => {
       { type: 'list', fields: ['name', 'starts'] },
       { type: 'list', fields: ['starts', 'name'] }
     ],
-    ['list grouping', { type: 'list', groupBy: 'venue' }, { type: 'list' }],
+    ['list grouping', { type: 'list', groupBy: ['venue'] }, { type: 'list' }],
+    [
+      'table grouping',
+      { type: 'table', groupBy: ['venue'] },
+      { type: 'table' }
+    ],
+    ['grid grouping', { type: 'grid', groupBy: ['venue'] }, { type: 'grid' }],
     [
       'board grouping',
-      { type: 'board', groupBy: 'status' },
-      { type: 'board', groupBy: 'venue' }
+      { type: 'board', groupBy: ['status'] },
+      { type: 'board', groupBy: ['venue'] }
+    ],
+    [
+      'grouping level order',
+      { type: 'board', groupBy: ['status', 'venue'] },
+      { type: 'board', groupBy: ['venue', 'status'] }
     ],
     [
       'calendar date field',
@@ -173,11 +184,20 @@ describe('equalRecordViews', () => {
     }
   })
 
+  it('treats missing and empty grouping as the same', () => {
+    expect(
+      equalRecordViews(
+        { ...base, layout: { type: 'table' } },
+        { ...base, layout: { type: 'table', groupBy: [] } }
+      )
+    ).toBe(true)
+  })
+
   it('treats missing and empty list fields as the same', () => {
     expect(
       equalRecordViews(
-        { ...base, layout: { type: 'list', groupBy: 'venue' } },
-        { ...base, layout: { type: 'list', fields: [], groupBy: 'venue' } }
+        { ...base, layout: { type: 'list', groupBy: ['venue'] } },
+        { ...base, layout: { type: 'list', fields: [], groupBy: ['venue'] } }
       )
     ).toBe(true)
   })

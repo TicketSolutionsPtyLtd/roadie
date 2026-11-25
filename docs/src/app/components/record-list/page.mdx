@@ -125,7 +125,7 @@ render(<Events />)
 
 ### Grouped
 
-A view's `layout.groupBy` groups the rows by a field with options, such as a status, under a title and count per option, in the options' order. Records with no value follow in a "No" group, such as "No status", and an option with no records is left out. Inside a group, rows keep the view's sort. The URL keeps it as `groupBy=status`. To group a list by default, set it in `defaultView` or the saved view, so people can always turn it off. A field that holds a list, or has no options, can't group. People pick the field, or None, from Group by in the list's settings, and changing the row's details keeps the grouping. Group by is left out when no field can group, or when the list loads by range.
+A view's `layout.groupBy` groups the rows by up to three fields with options, such as a status, outermost first, under a title and count per option, in the options' order. Each field after the first groups the rows inside each group before it. Records with no value follow in a "No" group, such as "No status", and an option with no records is left out. Inside a group, rows keep the view's sort. The URL keeps it as `groupBy=status,venue`. To group a list by default, set it in `defaultView` or the saved view, so people can always turn it off. A field that holds a list, or has no options, can't group. People pick the field, or None, from Group by in the list's settings, then a field to group inside it from Then by, and a third from And then by, and changing the row's details keeps the grouping. Group by is left out when no field can group, or when the list loads by range.
 
 Grouping applies to one page of rows at a time, so a group can continue on the next page, and a grouped list renders every row on its page rather than only those near the screen. A list that loads by range stays ungrouped. A Shift range in Select mode follows the order on screen, across groups.
 
@@ -141,7 +141,12 @@ const events = [
 const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
-  field.text('venue', { label: 'Venue' }),
+  field.option('venue', {
+    label: 'Venue',
+    options: ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre'].map(
+      (venue) => ({ value: venue, label: venue })
+    )
+  }),
   field.option('status', {
     label: 'Status',
     status: {
@@ -161,10 +166,10 @@ function Events() {
     getRowHref: (row) => `#${row.id}`,
     recordName: { one: 'event', other: 'events' },
     selectable: true,
-    defaultView: { layout: { type: 'list', groupBy: 'status' } }
+    defaultView: { layout: { type: 'list', groupBy: ['status', 'venue'] } }
   })
   return (
-    <Records records={records} layouts={layouts} caption='Events by status'>
+    <Records records={records} layouts={layouts} caption='Events by status and venue'>
       <Records.Header />
       <Records.Content />
     </Records>
@@ -210,8 +215,8 @@ These work as they do in the grid. `loading` shows placeholder rows, `error` rep
 - A row's title is its name. With `getRowHref` it is a link, and the whole row takes its hover and press; it opens in a new tab with Cmd or Ctrl, like any link.
 - In Select mode, each row's checkbox is named "Select" and the row's title, and covers the row, so a tap anywhere on it toggles, and the link steps aside. Escape leaves Select mode, and focus lands on Select.
 - The Configure button is named "Configure list", as is the dialog it opens. Each shown detail's handle is named "Reorder" and the field, and its eye is a toggle button named "Show" and the field.
-- Grouped, the rows are a list named by the caption holding a list per group, each named by its title and count, such as "On sale 4". Titles are `h2` headings.
-- The Group by select is named "Group by".
+- Grouped, the rows are a list named by the caption holding a list per group, each named by its title and count, such as "On sale 4". Titles are `h2` headings, with `h3` and `h4` for the second and third levels, each level's groups a list inside its group. The first two levels are headings, the outer one larger, and outer groups part with a rule, the same however many levels follow; a third level keeps the quieter group title.
+- The Group by selects are labelled "Group by", "Then by", and "And then by". Each appears once the one before it holds a field.
 - `Records.Status` announces Loading, the error, the result count, and the selection.
 
 <PropsDefinitions component='RecordList' />

@@ -8,7 +8,10 @@ import type { RecordTableColumn } from './types'
 
 export type TableLayoutConfig = {
   columns: readonly RecordTableColumn[]
-  /** How the table shows its records under 40rem. Defaults to cards when a column is a `detail`, else list rows. */
+  /**
+   * How the table shows its records under 40rem. Defaults to cards when a column is a `detail`, else list rows.
+   * @deprecated Cards leave RecordTable at the next major; for cards, use `RecordGrid`.
+   */
   narrow?: RecordTableNarrowLayout
 }
 

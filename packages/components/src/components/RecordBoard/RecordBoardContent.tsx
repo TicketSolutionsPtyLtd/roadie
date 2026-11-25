@@ -74,7 +74,11 @@ export function RecordBoardContent({
     (record: Row) => recordTitle(record.row, record.id, parts.title, timeZone),
     [parts.title, timeZone]
   )
-  const { moves, move, error, putBack } = useBoardMoves(config.onMove, titleOf)
+  const { moves, move, error, putBack } = useBoardMoves(
+    config.onMove,
+    titleOf,
+    field?.key
+  )
   const bodyRef = useRef<HTMLDivElement>(null)
   // A card put back remounts in its old column, taking focus from its handle.
   useLayoutEffect(() => {
@@ -249,13 +253,13 @@ function BoardSkeleton({ parts }: { parts: RecordCardParts }) {
   )
 }
 
-/** The field a board view makes its columns from: its `groupBy`, else the definition's, when that field can group. */
+/** The field a board view makes its columns from: its first `groupBy` level, else the definition's, when that field can group. */
 export function boardGroupField(
   fields: readonly RecordField[],
   layout: RecordLayout,
   fallback: string
 ): RecordField | undefined {
-  const key = layout.type === 'board' ? layout.groupBy : fallback
+  const key = layout.type === 'board' ? layout.groupBy[0] : fallback
   return groupableFields(fields).find((field) => field.key === key)
 }
 
@@ -286,7 +290,8 @@ const messageOf = (error: unknown, fallback: string) =>
 
 function useBoardMoves(
   onMove: BoardLayoutConfig['onMove'],
-  titleOf: (record: Row) => string
+  titleOf: (record: Row) => string,
+  key: string | undefined
 ) {
   const [moves, setMoves] = useState<ReadonlyMap<string, Move>>(new Map())
   const [error, setError] = useState<string | null>(null)
@@ -305,13 +310,13 @@ function useBoardMoves(
     })
 
   const move = async (record: Row, value: string | null) => {
-    if (!onMove) return
+    if (!onMove || !key) return
     setError(null)
     const entry: Move = { value, row: record.row, pending: true }
     current.current.set(record.id, entry)
     setMoves((all) => new Map(all).set(record.id, entry))
     try {
-      await onMove(record.row as Record<string, unknown>, value)
+      await onMove(record.row as Record<string, unknown>, { [key]: value })
       settle(record.id, entry, { ...entry, pending: false })
     } catch (caught) {
       settle(record.id, entry)

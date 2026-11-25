@@ -80,6 +80,8 @@ type RecordTableNarrowRowsProps = NarrowShared & {
   onRow?: (row: number) => void
   /** Rows under a title and count per group, in place of `rows`. Groups with no rows are left out. */
   groups?: readonly RecordGroup[]
+  /** Group titles as tiers of heading by level, largest outermost, with a rule between outer groups. Otherwise every title is the quiet group title. */
+  groupHeadings?: boolean
   /** Group titles stick at this `top` as their rows scroll by. */
   stickyTop?: string
 }
@@ -97,6 +99,7 @@ export function RecordTableNarrowRows({
   row,
   onRow,
   groups,
+  groupHeadings = false,
   stickyTop,
   ...shared
 }: RecordTableNarrowRowsProps) {
@@ -105,6 +108,7 @@ export function RecordTableNarrowRows({
     return (
       <GroupedList
         groups={groups}
+        headings={groupHeadings}
         stickyTop={stickyTop}
         shared={shared}
         {...listProps}
@@ -248,11 +252,13 @@ const noList = { current: null }
 // Unwindowed: grouping applies to the rows loaded, a page at most.
 function GroupedList({
   groups,
+  headings,
   stickyTop,
   shared,
   ...listProps
 }: {
   groups: readonly RecordGroup[]
+  headings: boolean
   stickyTop?: string
   shared: NarrowShared
   caption?: string
@@ -260,9 +266,8 @@ function GroupedList({
   cards: boolean
 }) {
   const { shown, order } = useMemo(() => {
-    const shown = groups.filter((group) => group.rows.length > 0)
-    const order = shown.flatMap((group) => group.rows.map(({ id }) => id))
-    return { shown, order }
+    const shown = shownGroups(groups)
+    return { shown, order: shownOrder(shown) }
   }, [groups])
   const { onToggle } = shared
   const toggle = useCallback(
@@ -280,48 +285,113 @@ function GroupedList({
           group={group}
           stickyTop={stickyTop}
           shared={grouped}
+          headings={headings}
         />
       ))}
     </NarrowList>
   )
 }
 
+// Groups with records, at every level, so an empty option is left out.
+function shownGroups(groups: readonly RecordGroup[]): RecordGroup[] {
+  return groups.flatMap((group) =>
+    group.rows.length === 0
+      ? []
+      : [group.groups ? { ...group, groups: shownGroups(group.groups) } : group]
+  )
+}
+
+// The ids in the order the innermost groups show them, which a nested group
+// can reorder from its outer group's rows.
+function shownOrder(groups: readonly RecordGroup[]): string[] {
+  return groups.flatMap((group) =>
+    group.groups ? shownOrder(group.groups) : group.rows.map(({ id }) => id)
+  )
+}
+
+const groupHeadings = ['h2', 'h3', 'h4'] as const
+
+// Each level is its own tier of heading, largest outermost, whatever follows
+// it; a third level keeps the quiet group title.
+const titleTiers = [
+  'text-display-ui-4 text-strong',
+  'text-display-ui-6 text-strong'
+]
+
 function Group({
   group,
   stickyTop,
-  shared
+  shared,
+  depth = 0,
+  headings = false
 }: {
   group: RecordGroup
   stickyTop?: string
   shared: NarrowShared
+  depth?: number
+  headings?: boolean
 }) {
   const titleId = useId()
+  const Heading = groupHeadings[Math.min(depth, groupHeadings.length - 1)]!
+  // Only the outermost titles stick, so nested ones don't stack under them.
+  const sticky = depth === 0 ? stickyTop : undefined
   return (
-    <li data-slot='list-group' className={listGroupVariants()}>
-      <h2
+    <li
+      data-slot='list-group'
+      className={cn(
+        listGroupVariants(),
+        // An outer group's siblings part with a rule; inner ones sit closer.
+        headings && depth === 0 && 'gap-3 border-t border-subtler pt-6',
+        depth > 0 && 'mt-4'
+      )}
+    >
+      <Heading
         id={titleId}
         data-slot='list-group-title'
         className={cn(
           listGroupTitleVariants(),
+          headings && titleTiers[depth],
           'flex gap-1.5',
           shared.bleed && '-mx-3',
-          stickyTop !== undefined && ['sticky z-1 py-1', surfaceClass]
+          sticky !== undefined && ['sticky z-1 py-1', surfaceClass]
         )}
-        style={stickyTop === undefined ? undefined : { top: stickyTop }}
+        style={sticky === undefined ? undefined : { top: sticky }}
       >
         {group.label}{' '}
-        <span className='font-normal tabular-nums'>{group.rows.length}</span>
-      </h2>
-      <ul
-        role='list'
-        aria-labelledby={titleId}
-        data-slot='list-section'
-        className={cn(listSectionClass, listGroupSectionClass, joinSelected)}
-      >
-        {group.rows.map((record) => (
-          <NarrowRow key={record.id} shared={shared} record={record} />
-        ))}
-      </ul>
+        <span
+          className={cn('font-normal tabular-nums', headings && 'text-subtle')}
+        >
+          {group.rows.length}
+        </span>
+      </Heading>
+      {group.groups ? (
+        <ul
+          role='list'
+          aria-labelledby={titleId}
+          className='grid [&>li:first-child]:mt-0'
+        >
+          {group.groups.map((inner) => (
+            <Group
+              key={inner.key ?? ''}
+              group={inner}
+              shared={shared}
+              depth={depth + 1}
+              headings={headings}
+            />
+          ))}
+        </ul>
+      ) : (
+        <ul
+          role='list'
+          aria-labelledby={titleId}
+          data-slot='list-section'
+          className={cn(listSectionClass, listGroupSectionClass, joinSelected)}
+        >
+          {group.rows.map((record) => (
+            <NarrowRow key={record.id} shared={shared} record={record} />
+          ))}
+        </ul>
+      )}
     </li>
   )
 }
@@ -356,7 +426,7 @@ function NarrowList({
       data-slot='record-table-body'
       className={cn(
         grouped
-          ? 'grid [&>li:first-child]:mt-0'
+          ? 'grid [&>li:first-child]:mt-0 [&>li:first-child]:border-t-0 [&>li:first-child]:pt-0'
           : cards
             ? ['grid', cardGap.gapClass]
             : [listSectionClass, joinSelected],

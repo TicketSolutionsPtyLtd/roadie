@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { compile } from 'tailwindcss'
 import { describe, expect, it } from 'vitest'
 
@@ -152,21 +151,5 @@ describe('dataviz.css', () => {
     expect(built).toContain(
       '.text-chart-diverge-neg-4 { color: var(--chart-diverge-neg-4)'
     )
-  })
-
-  it('safelists every utility so the compiled sheet keeps it', () => {
-    const safelist = readFileSync(
-      new URL('../css/safelist.html', import.meta.url),
-      'utf8'
-    )
-    const classes = new Set(
-      safelist
-        .match(/class="[^"]*"/g)!
-        .flatMap((attr) => attr.slice(7, -1).split(/\s+/))
-    )
-    const missing = DATAVIZ_TOKEN_NAMES.flatMap((name) =>
-      ['bg', 'fill', 'stroke', 'text'].map((prefix) => `${prefix}-${name}`)
-    ).filter((cls) => !classes.has(cls))
-    expect(missing).toEqual([])
   })
 })

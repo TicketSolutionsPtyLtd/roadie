@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
+import { Card } from '../components/Card'
 import { Checkbox } from '../components/Checkbox'
 import { Combobox } from '../components/Combobox'
 import { useStylesheet } from '../components/Pane/testUtils'
@@ -24,7 +25,7 @@ const STILL = '*, *::before, *::after { transition: none !important }'
 
 type Move = 'lift' | 'press' | 'none'
 type Look = { fill?: string; shadow?: string; border?: string; move?: Move }
-type States = { rest: Look; hover: Look; active: Look; isActive?: Look }
+type States = { rest: Look; hover: Look; active: Look }
 type State = 'rest' | 'hover' | 'focus' | 'active' | 'is-active'
 
 function look(fill: string, shadow: string, move: Move) {
@@ -45,15 +46,12 @@ const PRESETS: Record<string, States> = {
   subtle: {
     rest: look('intent-bg-subtle', 'rim-light-subtler', 'none'),
     hover: look('intent-4a', 'rim-light-subtler', 'none'),
-    active: look('intent-5a', 'rim-light-subtler', 'press'),
-    // is-interactive presses on :active alone, and subtle draws no press.
-    isActive: { move: 'none' }
+    active: look('intent-5a', 'rim-light-subtler', 'press')
   },
   subtler: {
     rest: look('transparent', 'none', 'none'),
     hover: look('intent-3a', 'none', 'none'),
-    active: look('intent-4a', 'none', 'press'),
-    isActive: { move: 'none' }
+    active: look('intent-4a', 'none', 'press')
   },
   raised: {
     rest: look('intent-bg-raised', 'rim-light-strong shadow-md', 'none'),
@@ -65,9 +63,7 @@ const PRESETS: Record<string, States> = {
 const lookIn = (states: States, state: State): Look =>
   state === 'focus'
     ? states.hover
-    : state === 'is-active'
-      ? { ...states.active, ...states.isActive }
-      : states[state]
+    : states[state === 'is-active' ? 'active' : state]
 
 const css = (value: string) =>
   /[()]|^(none|transparent)$/.test(value)
@@ -154,6 +150,86 @@ const surfaces = (classes: string) => ({
 
 const STATES: State[] = ['rest', 'hover', 'focus', 'active', 'is-active']
 
+// is-active marks a pressed is-interactive only.
+const statesOn = (utility: string) =>
+  STATES.filter(
+    (state) => state !== 'is-active' || utility === 'is-interactive'
+  )
+
+// The ticket Card drops the emphasis class and declares the preset's values
+// itself, so its parts paint the preset's fill, and it lifts and presses the
+// same. It casts its own layered shadow, read without its unseen layers.
+const TICKETS = ['raised', 'normal', 'subtle', 'subtler'] as const
+const drop = (y: number) => `0 ${y}px ${y}px var(--card-shadow-color)`
+const TICKET_SHADOWS: Record<string, States> = {
+  raised: {
+    rest: { shadow: `${drop(2)}, ${drop(4)}` },
+    hover: { shadow: `${drop(2)}, ${drop(4)}, ${drop(8)}` },
+    active: { shadow: drop(2) }
+  },
+  normal: {
+    rest: { shadow: 'none' },
+    hover: { shadow: drop(2) },
+    active: { shadow: 'none' }
+  },
+  subtle: { rest: {}, hover: {}, active: {} },
+  subtler: { rest: {}, hover: {}, active: {} }
+}
+
+const tickets = (emphasis: (typeof TICKETS)[number]) => ({
+  'is-interactive': (
+    <Card variant='ticket' emphasis={emphasis} href='#pass'>
+      <Card.Content>Weekly Pass</Card.Content>
+      <Card.Footer>638 tickets</Card.Footer>
+    </Card>
+  ),
+  'is-interactive-within': (
+    <Card variant='ticket' emphasis={emphasis}>
+      <Card.Content>
+        <Card.Link href='#pass'>Weekly Pass</Card.Link>
+      </Card.Content>
+      <Card.Footer>638 tickets</Card.Footer>
+    </Card>
+  )
+})
+
+function mountTicket(element: ReactElement) {
+  render(<div className='w-80 p-6'>{element}</div>)
+  const card = document.querySelector<HTMLElement>('[data-slot=card]')!
+  const footer = card.querySelector<HTMLElement>('[data-slot=card-footer]')!
+  const driver = card.querySelector<HTMLElement>('a') ?? card
+  return { card, footer, driver }
+}
+
+// Shadow layers with no colour or no size draw nothing.
+const seen = (shadow: string) =>
+  shadow
+    .split(/,(?![^(]*\))/)
+    .map((layer) => layer.trim())
+    .filter(
+      (layer) =>
+        layer !== 'none' &&
+        !layer.includes('rgba(0, 0, 0, 0)') &&
+        (layer.match(/-?[\d.]+px/g) ?? []).some((length) => parseFloat(length))
+    )
+
+function expectTicket(
+  { card, footer }: ReturnType<typeof mountTicket>,
+  emphasis: (typeof TICKETS)[number],
+  state: State
+) {
+  const { fill, move } = lookIn(PRESETS[emphasis]!, state)
+  expectLook(footer, { fill })
+  expectLook(card, { move })
+  const shadow = lookIn(TICKET_SHADOWS[emphasis]!, state).shadow ?? 'none'
+  const probe = card.appendChild(document.createElement('span'))
+  const expected = resolveOn(probe, 'box-shadow', shadow)
+  probe.remove()
+  expect(seen(getComputedStyle(card).boxShadow), 'shadow').toEqual(
+    seen(expected)
+  )
+}
+
 const SHEETS = {
   source: () => roadieCss,
   'optimized for production': () => commands.optimizeCss(roadieCss),
@@ -167,12 +243,7 @@ describe.each(Object.entries(SHEETS))('with the %s sheet', (_, sheet) => {
     describe.each(Object.entries(surfaces(`emphasis-${emphasis}`)))(
       'on %s',
       (utility, markup) => {
-        const shown = STATES.filter(
-          // is-active marks a pressed is-interactive only.
-          (state) => state !== 'is-active' || utility === 'is-interactive'
-        )
-
-        it.each(shown)('shows its %s look', async (state) => {
+        it.each(statesOn(utility))('shows its %s look', async (state) => {
           const { surface, driver } = mount(markup)
           await enter(state, driver, surface)
           expectLook(surface, lookIn(states, state))
@@ -188,6 +259,27 @@ describe.each(Object.entries(SHEETS))('with the %s sheet', (_, sheet) => {
       }
     )
   })
+
+  describe.each(TICKETS)('a ticket Card, %s', (emphasis) => {
+    describe.each(Object.entries(tickets(emphasis)))(
+      'on %s',
+      (utility, element) => {
+        it.each(statesOn(utility))('shows its %s look', async (state) => {
+          const ticket = mountTicket(element)
+          await enter(state, ticket.driver, ticket.card)
+          expectTicket(ticket, emphasis, state)
+        })
+
+        it('keeps its rest look under a tap on a touch screen', async () => {
+          setHoverCapable(false)
+          const ticket = mountTicket(element)
+          await enter('hover', ticket.driver, ticket.card)
+          expect(ticket.driver.matches(':hover')).toBe(true)
+          expectTicket(ticket, emphasis, 'rest')
+        })
+      }
+    )
+  })
 })
 
 describe('emphasis state values', () => {
@@ -195,12 +287,14 @@ describe('emphasis state values', () => {
 
   // Internal: each preset hands the shared state rule the looks it paints.
   // One it leaves out stays guaranteed-invalid, so the preset's rest paints.
+  // A preset with a fill declares all four, so none leaks from a preset under
+  // it on the same element.
+  const FILLS = 'fill fill-interactive fill-hover fill-active'
   const DECLARED: Record<string, string> = {
-    strong:
-      'fill fill-hover fill-active shadow shadow-hover shadow-active lift',
-    normal: 'fill fill-hover fill-active shadow-hover shadow-active lift',
-    subtle: 'fill fill-hover fill-active',
-    subtler: 'fill fill-interactive fill-hover fill-active',
+    strong: `${FILLS} shadow shadow-hover shadow-active lift`,
+    normal: `${FILLS} shadow-hover shadow-active lift`,
+    subtle: FILLS,
+    subtler: FILLS,
     raised: 'shadow shadow-hover shadow-active lift'
   }
   const NAMES = ['fill', 'fill-interactive', 'fill-hover', 'fill-active']
@@ -262,32 +356,20 @@ describe('around an interactive emphasis', () => {
     expectLook(surface, PRESETS.subtle!.rest)
   })
 
-  // A caller's edge holds in every state, and its fill and shadow at rest. On
-  // hover, focus and press the emphasis repaints what its state rules write.
+  // A caller's fill, edge and shadow hold in every state; the emphasis still
+  // lifts and presses.
   const caller = {
     fill: '.bg-sunken',
     shadow: '.shadow-lg',
     border: '.border-strong'
   }
-  const repaintsFill = ['strong', 'normal', 'subtle', 'subtler']
-  const repaintsShadow = ['strong', 'normal', 'raised']
   describe.each(Object.entries(PRESETS))(
     'a caller’s fill, edge and shadow on emphasis-%s',
     (emphasis, states) => {
-      const over = (state: Look): Look => ({
-        ...caller,
-        move: state.move,
-        ...(repaintsFill.includes(emphasis) && { fill: state.fill }),
-        ...(repaintsShadow.includes(emphasis) && { shadow: state.shadow })
-      })
       const CALLER: States = {
-        // Subtler's interactive rest is a state rule of its own.
-        rest:
-          emphasis === 'subtler'
-            ? over(states.rest)
-            : { ...caller, move: 'none' },
-        hover: over(states.hover),
-        active: over(states.active)
+        rest: { ...caller, move: 'none' },
+        hover: { ...caller, move: states.hover.move },
+        active: { ...caller, move: 'press' }
       }
       const classes = `emphasis-${emphasis} bg-sunken border-strong shadow-lg`
       it.each(
@@ -296,7 +378,7 @@ describe('around an interactive emphasis', () => {
             (state) => [state, utility, markup] as const
           )
         )
-      )('show the %s look on %s', async (state, _, markup) => {
+      )('hold at %s on %s', async (state, _, markup) => {
         const { surface, driver } = mount(markup)
         await enter(state, driver, surface)
         expectLook(surface, lookIn(CALLER, state))
@@ -305,20 +387,18 @@ describe('around an interactive emphasis', () => {
   )
 })
 
-const CALLERS: [string, ReactElement, string, Look][] = [
+const CALLERS: [string, ReactElement, Look][] = [
   [
     'a checked normal Checkbox',
     <Checkbox emphasis='normal' label='Rock' defaultChecked />,
-    'color-accent-2',
-    PRESETS.normal!.hover
+    { ...PRESETS.normal!.hover, fill: 'color-accent-2' }
   ],
   [
     'a checked normal RadioGroup item',
     <RadioGroup emphasis='normal' defaultValue='floor'>
       <RadioGroup.Item value='floor' label='Floor' />
     </RadioGroup>,
-    'color-accent-2',
-    PRESETS.normal!.hover
+    { ...PRESETS.normal!.hover, fill: 'color-accent-2' }
   ],
   [
     'an open subtler Select trigger',
@@ -330,8 +410,7 @@ const CALLERS: [string, ReactElement, string, Look][] = [
         <Select.Item value='rock'>Rock</Select.Item>
       </Select.Content>
     </Select>,
-    'intent-4a',
-    PRESETS.subtler!.hover
+    { ...PRESETS.subtler!.hover, fill: 'intent-4a' }
   ]
 ]
 
@@ -339,11 +418,11 @@ describe('components that colour an interactive emphasis', () => {
   withSheet(() => roadieCss)
 
   it.each(CALLERS)(
-    '%s shows its own fill at rest and the emphasis’s on hover',
-    async (_, element, fill, hover) => {
+    '%s keeps its own fill on hover',
+    async (_, element, hover) => {
       render(<div className='p-6'>{element}</div>)
       const surface = document.querySelector<HTMLElement>('.is-interactive')!
-      expectLook(surface, { fill })
+      expectLook(surface, { fill: hover.fill })
       await enter('hover', surface, surface)
       expectLook(surface, hover)
     }

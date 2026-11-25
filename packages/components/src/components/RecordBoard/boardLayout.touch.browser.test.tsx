@@ -41,7 +41,7 @@ describe('boardLayout on a touch screen', () => {
     await expect.poll(() => titles('Sold out')).toContain('Ocean Alley 1')
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
-      'sold_out'
+      { status: 'sold_out' }
     )
   })
 })

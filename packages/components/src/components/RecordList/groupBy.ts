@@ -2,24 +2,37 @@ import type { RecordField, RecordLayout } from '@oztix/roadie-core/records'
 
 import { groupableFields } from '../Records/groups'
 
-/** The field a list view groups by, from its `groupBy`, when that field can group. */
-export function listGroupField(
+/** The most levels a view groups by, as core's view schema allows. */
+const MAX_LIST_GROUP_LEVELS = 3
+
+/** The fields a list view groups by, outermost first, up to three, leaving out any that can't group and every level after one that can't. */
+export function listGroupFields(
   fields: readonly RecordField[],
   layout: RecordLayout
-): RecordField | undefined {
-  if (layout.type !== 'list' || !layout.groupBy) return undefined
-  return groupableFields(fields).find((field) => field.key === layout.groupBy)
+): RecordField[] {
+  const levels =
+    layout.type === 'list'
+      ? (layout.groupBy ?? []).slice(0, MAX_LIST_GROUP_LEVELS)
+      : []
+  const groupable = groupableFields(fields)
+  const found: RecordField[] = []
+  for (const key of levels) {
+    const field = groupable.find((one) => one.key === key)
+    if (!field || found.includes(field)) break
+    found.push(field)
+  }
+  return found
 }
 
-/** The list layout grouped by `groupBy`, or not at all, keeping its fields. */
-export function listGroupLayout(
+/** The list layout grouped by `levels`, outermost first, or not at all when there are none, keeping its fields. */
+export function listGroupLevelsLayout(
   current: RecordLayout,
-  groupBy: string | undefined
+  levels: readonly string[]
 ): RecordLayout {
   const fields = current.type === 'list' ? current.fields : undefined
   return {
     type: 'list',
     ...(fields && { fields }),
-    ...(groupBy && { groupBy })
+    ...(levels.length > 0 && { groupBy: [...levels] })
   }
 }
