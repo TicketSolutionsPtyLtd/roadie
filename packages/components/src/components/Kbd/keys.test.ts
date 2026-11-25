@@ -1,34 +1,34 @@
-import {
-  ArrowDownIcon,
-  ArrowFatUpIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  ArrowUpIcon,
-  BackspaceIcon,
-  CommandIcon,
-  ControlIcon,
-  KeyReturnIcon,
-  OptionIcon
-} from '@phosphor-icons/react/ssr'
 import { describe, expect, it } from 'vitest'
 
+import {
+  ArrowDownGlyph,
+  ArrowFatUpGlyph,
+  ArrowLeftGlyph,
+  ArrowRightGlyph,
+  ArrowUpGlyph,
+  BackspaceGlyph,
+  CommandGlyph,
+  ControlGlyph,
+  KeyReturnGlyph,
+  OptionGlyph
+} from './glyphs'
 import { keyFace } from './keys'
 
 describe('keyFace', () => {
   it.each([
-    ['enter', { glyph: KeyReturnIcon, label: 'Enter', name: 'Enter' }],
-    ['Return', { glyph: KeyReturnIcon, label: 'Enter', name: 'Enter' }],
+    ['enter', { glyph: KeyReturnGlyph, label: 'Enter', name: 'Enter' }],
+    ['Return', { glyph: KeyReturnGlyph, label: 'Enter', name: 'Enter' }],
     ['Escape', { label: 'Esc', name: 'Escape' }],
     ['esc', { label: 'Esc', name: 'Escape' }],
     ['TAB', { label: 'Tab', name: 'Tab' }],
     ['space', { label: 'Space', name: 'Space' }],
     [' ', { label: 'Space', name: 'Space' }],
-    ['backspace', { glyph: BackspaceIcon, name: 'Backspace' }],
+    ['backspace', { glyph: BackspaceGlyph, name: 'Backspace' }],
     ['Delete', { label: 'Del', name: 'Delete' }],
-    ['ArrowUp', { glyph: ArrowUpIcon, name: 'Up arrow' }],
-    ['arrow down', { glyph: ArrowDownIcon, name: 'Down arrow' }],
-    ['left', { glyph: ArrowLeftIcon, name: 'Left arrow' }],
-    ['arrow-right', { glyph: ArrowRightIcon, name: 'Right arrow' }]
+    ['ArrowUp', { glyph: ArrowUpGlyph, name: 'Up arrow' }],
+    ['arrow down', { glyph: ArrowDownGlyph, name: 'Down arrow' }],
+    ['left', { glyph: ArrowLeftGlyph, name: 'Left arrow' }],
+    ['arrow-right', { glyph: ArrowRightGlyph, name: 'Right arrow' }]
   ])('maps %j the same on every platform', (key, face) => {
     expect(keyFace(key, 'apple')).toEqual(face)
     expect(keyFace(key, 'other')).toEqual(face)
@@ -38,47 +38,47 @@ describe('keyFace', () => {
   it.each([
     [
       'mod',
-      { glyph: CommandIcon, name: 'Command' },
+      { glyph: CommandGlyph, name: 'Command' },
       { label: 'Ctrl', name: 'Control' }
     ],
     [
       'Shift',
-      { glyph: ArrowFatUpIcon, name: 'Shift' },
+      { glyph: ArrowFatUpGlyph, name: 'Shift' },
       { label: 'Shift', name: 'Shift' }
     ],
     [
       'alt',
-      { glyph: OptionIcon, name: 'Option' },
+      { glyph: OptionGlyph, name: 'Option' },
       { label: 'Alt', name: 'Alt' }
     ],
     [
       'option',
-      { glyph: OptionIcon, name: 'Option' },
+      { glyph: OptionGlyph, name: 'Option' },
       { label: 'Alt', name: 'Alt' }
     ],
     [
       'cmd',
-      { glyph: CommandIcon, name: 'Command' },
+      { glyph: CommandGlyph, name: 'Command' },
       { label: 'Ctrl', name: 'Control' }
     ],
     [
       'command',
-      { glyph: CommandIcon, name: 'Command' },
+      { glyph: CommandGlyph, name: 'Command' },
       { label: 'Ctrl', name: 'Control' }
     ],
     [
       'Meta',
-      { glyph: CommandIcon, name: 'Command' },
+      { glyph: CommandGlyph, name: 'Command' },
       { label: 'Win', name: 'Windows' }
     ],
     [
       'ctrl',
-      { glyph: ControlIcon, name: 'Control' },
+      { glyph: ControlGlyph, name: 'Control' },
       { label: 'Ctrl', name: 'Control' }
     ],
     [
       'Control',
-      { glyph: ControlIcon, name: 'Control' },
+      { glyph: ControlGlyph, name: 'Control' },
       { label: 'Ctrl', name: 'Control' }
     ]
   ])('maps the modifier %j per platform', (key, apple, other) => {

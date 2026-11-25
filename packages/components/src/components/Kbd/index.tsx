@@ -86,9 +86,7 @@ function KeyCapContent({ face, announce }: KeyCapProps) {
   const { glyph: Glyph, label, name, pending } = face
   const visible = (
     <>
-      {Glyph ? (
-        <Glyph weight='bold' aria-hidden='true' className='size-3' />
-      ) : null}
+      {Glyph ? <Glyph aria-hidden='true' className='size-3' /> : null}
       {label ? <span>{label}</span> : null}
     </>
   )
