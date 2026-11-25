@@ -292,6 +292,31 @@ describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
       .toEqual(['Ocean Alley 1'])
   })
 
+  it.each([1100, 1600])(
+    'shares %ipx between the columns, header and lanes alike',
+    (width) => {
+      render(<Lanes width={width} />)
+      const scroller = document.querySelector<HTMLElement>(
+        '[data-slot="record-board-lanes"]'
+      )!
+      expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth)
+      const head = document.querySelector<HTMLElement>(
+        '[data-slot="record-board-head"]'
+      )!
+      const bounds = scroller.getBoundingClientRect()
+      const first = cell('Perth', 'On sale').getBoundingClientRect()
+      const last = cell('Perth', 'No status').getBoundingClientRect()
+      expect(first.left).toBeCloseTo(bounds.left, 0)
+      expect(last.right).toBeCloseTo(bounds.right, 0)
+      const header = within(head)
+        .getByText('No status')
+        .closest('p')!
+        .getBoundingClientRect()
+      expect(header.left).toBeCloseTo(last.left, 0)
+      expect(header.width).toBeCloseTo(last.width, 0)
+    }
+  )
+
   it('scrolls the columns sideways on a phone, each lane a section inside every column', () => {
     render(<Lanes width={375} />)
     const first = cell('Brisbane', 'On sale').getBoundingClientRect()
