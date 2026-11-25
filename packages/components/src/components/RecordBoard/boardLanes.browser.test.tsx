@@ -177,6 +177,49 @@ describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
     expect(disclosure('Brisbane').closest('details')!.open).toBe(true)
   })
 
+  it.each([
+    [
+      [],
+      [
+        'Ocean Alley 1',
+        'Ball Park Music 1',
+        'Julia Jacklin 1',
+        'angie McMahon 1'
+      ]
+    ],
+    [['Melbourne'], ['Ocean Alley 1', 'Julia Jacklin 1', 'angie McMahon 1']]
+  ])(
+    'selects a Shift range lane by open lane, with %j collapsed',
+    async (collapsed, range) => {
+      const user = userEvent.setup()
+      render(<Lanes selected={['show-4']} />)
+      for (const name of collapsed) await user.click(disclosure(name))
+      await user.click(
+        screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+      )
+      await user.keyboard('{Shift>}')
+      await user.click(
+        screen.getByRole('checkbox', { name: 'Select angie McMahon 1' })
+      )
+      await user.keyboard('{/Shift}')
+      const names = shows.map(({ show }) => show)
+      // A collapsed lane's boxes are hidden, not gone.
+      const checked = (name: string) => {
+        const box = screen.getByRole('checkbox', {
+          name: `Select ${name}`,
+          hidden: true
+        })
+        return (
+          box.getAttribute('aria-checked') === 'true' ||
+          (box as HTMLInputElement).checked === true
+        )
+      }
+      expect(names.filter(checked)).toEqual(
+        names.filter((name) => [...range, 'Alex Lahey 1'].includes(name))
+      )
+    }
+  )
+
   it("shows the lane field's heading content in each lane", () => {
     const fields = groupedShowFields.map((field): RecordsField =>
       field.key === 'city'
