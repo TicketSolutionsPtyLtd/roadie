@@ -239,6 +239,73 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(titleOf(['status'])).toEqual(titleOf(['status', 'city']))
   })
 
+  it('collapses a group from its title, keeping it out of the view', async () => {
+    const user = userEvent.setup()
+    const onViewChange = vi.fn()
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={groupedShowFields}
+        getRowHref={(show) => `/shows/${show.id}`}
+        defaultView={{ layout: { type: 'list', groupBy: ['status', 'city'] } }}
+        onViewChange={onViewChange}
+      />
+    )
+    const calls = onViewChange.mock.calls.length
+    const toggle = screen.getByRole('button', { name: 'On sale 2' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('link', { name: 'Ocean Alley 1' })).toBeVisible()
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await expect
+      .poll(() => screen.queryByRole('link', { name: 'Ocean Alley 1' }))
+      .toBeNull()
+    expect(
+      screen.getByRole('link', { name: 'Ball Park Music 1' })
+    ).toBeVisible()
+    // An inner group collapses on its own.
+    await user.click(screen.getByRole('button', { name: 'Melbourne 1' }))
+    await expect
+      .poll(() => screen.queryByRole('link', { name: 'Ball Park Music 1' }))
+      .toBeNull()
+    await user.click(toggle)
+    expect(screen.getByRole('link', { name: 'Ocean Alley 1' })).toBeVisible()
+    expect(onViewChange.mock.calls.length).toBe(calls)
+  })
+
+  it("shows the field's heading content under each of its groups, at any level", () => {
+    const fields = groupedShowFields.map((one) =>
+      one.key === 'city'
+        ? {
+            ...one,
+            groupHeading: ({
+              value,
+              count
+            }: {
+              value: string | null
+              count: number
+            }) => <span>{`${value ?? 'Nowhere'} venues, ${count} shows`}</span>
+          }
+        : one
+    )
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={fields}
+        defaultView={{ layout: { type: 'list', groupBy: ['status', 'city'] } }}
+      />
+    )
+    expect(screen.getAllByText('Brisbane venues, 1 shows')).toHaveLength(2)
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={fields}
+        defaultView={{ layout: { type: 'list', groupBy: ['city'] } }}
+      />
+    )
+    expect(screen.getByText('Brisbane venues, 2 shows')).toBeVisible()
+  })
+
   it('picks deeper levels from Then by, offering only fields not already used', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()

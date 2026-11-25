@@ -3,7 +3,7 @@ import {
   recordFieldOptions
 } from '@oztix/roadie-core/records'
 
-import type { RecordsRow } from './types'
+import type { RecordsField, RecordsRow } from './types'
 
 export type RecordGroup<Row = object> = {
   /** The option's value, or null for records with none. */
@@ -12,7 +12,7 @@ export type RecordGroup<Row = object> = {
   /** Every record in the group, at any depth. */
   rows: RecordsRow<Row>[]
   /** The field the group's level groups by. */
-  field?: RecordField
+  field?: RecordsField
   /** The next level's groups, when the view groups by another field. */
   groups?: RecordGroup<Row>[]
 }
@@ -75,7 +75,7 @@ export function groupRecords<Row>(
  */
 export function groupRecordsBy<Row>(
   rows: readonly RecordsRow<Row>[],
-  fields: readonly RecordField[]
+  fields: readonly RecordsField[]
 ): RecordGroup<Row>[] {
   const [field, ...inner] = fields
   if (!field) return []

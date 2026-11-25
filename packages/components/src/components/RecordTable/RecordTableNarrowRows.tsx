@@ -12,6 +12,7 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { surfaceClass, useSurface } from '../../utils/surface'
+import { Collapsible } from '../Collapsible'
 import {
   listGroupSectionClass,
   listGroupTitleVariants,
@@ -335,64 +336,102 @@ function Group({
   const Heading = groupHeadings[Math.min(depth, groupHeadings.length - 1)]!
   // Only the outermost titles stick, so nested ones don't stack under them.
   const sticky = depth === 0 ? stickyTop : undefined
-  return (
-    <li
-      data-slot='list-group'
-      className={cn(
-        listGroupVariants(),
-        // An outer group's siblings part with a rule; inner ones sit closer.
-        headings && depth === 0 && 'gap-3 border-t border-subtler pt-6',
-        depth > 0 && 'mt-4'
-      )}
-    >
-      <Heading
-        id={titleId}
-        data-slot='list-group-title'
-        className={cn(
-          listGroupTitleVariants(),
-          headings && titleTiers[depth],
-          'flex gap-1.5',
-          shared.bleed && '-mx-3',
-          sticky !== undefined && ['sticky z-1 py-1', surfaceClass]
-        )}
-        style={sticky === undefined ? undefined : { top: sticky }}
+  const className = cn(
+    listGroupVariants(),
+    // An outer group's siblings part with a rule; inner ones sit closer.
+    headings && depth === 0 && 'gap-3 border-t border-subtler pt-6',
+    depth > 0 && 'mt-4'
+  )
+  const title = (
+    <>
+      {group.label}{' '}
+      <span
+        className={cn('font-normal tabular-nums', headings && 'text-subtle')}
       >
-        {group.label}{' '}
-        <span
-          className={cn('font-normal tabular-nums', headings && 'text-subtle')}
-        >
-          {group.rows.length}
-        </span>
-      </Heading>
-      {group.groups ? (
-        <ul
-          role='list'
-          aria-labelledby={titleId}
-          className='grid [&>li:first-child]:mt-0'
-        >
-          {group.groups.map((inner) => (
-            <Group
-              key={inner.key ?? ''}
-              group={inner}
-              shared={shared}
-              depth={depth + 1}
-              headings={headings}
-            />
-          ))}
-        </ul>
-      ) : (
-        <ul
-          role='list'
-          aria-labelledby={titleId}
-          data-slot='list-section'
-          className={cn(listSectionClass, listGroupSectionClass, joinSelected)}
-        >
-          {group.rows.map((record) => (
-            <NarrowRow key={record.id} shared={shared} record={record} />
-          ))}
-        </ul>
+        {group.rows.length}
+      </span>
+    </>
+  )
+  const heading = (
+    <Heading
+      id={titleId}
+      data-slot='list-group-title'
+      className={cn(
+        listGroupTitleVariants(),
+        headings && titleTiers[depth],
+        'flex gap-1.5',
+        shared.bleed && '-mx-3',
+        sticky !== undefined && ['sticky z-1 py-1', surfaceClass]
       )}
-    </li>
+      style={sticky === undefined ? undefined : { top: sticky }}
+    >
+      {headings ? (
+        // The title is the group's disclosure, inside its heading.
+        <Collapsible.Trigger className='gap-1.5 font-semibold'>
+          {title}
+        </Collapsible.Trigger>
+      ) : (
+        title
+      )}
+    </Heading>
+  )
+  const body = group.groups ? (
+    <ul
+      role='list'
+      aria-labelledby={titleId}
+      className='grid [&>li:first-child]:mt-0'
+    >
+      {group.groups.map((inner) => (
+        <Group
+          key={inner.key ?? ''}
+          group={inner}
+          shared={shared}
+          depth={depth + 1}
+          headings={headings}
+        />
+      ))}
+    </ul>
+  ) : (
+    <ul
+      role='list'
+      aria-labelledby={titleId}
+      data-slot='list-section'
+      className={cn(listSectionClass, listGroupSectionClass, joinSelected)}
+    >
+      {group.rows.map((record) => (
+        <NarrowRow key={record.id} shared={shared} record={record} />
+      ))}
+    </ul>
+  )
+  if (!headings)
+    return (
+      <li data-slot='list-group' className={className}>
+        {heading}
+        {body}
+      </li>
+    )
+  const extra = group.field?.groupHeading?.({
+    value: group.key,
+    label: group.label,
+    count: group.rows.length
+  })
+  // Open or closed is the session's, kept while the group shows, never the view's.
+  return (
+    <Collapsible
+      defaultOpen
+      render={<li data-slot='list-group' className={className} />}
+    >
+      {heading}
+      {extra != null && extra !== false && (
+        <div
+          data-slot='list-group-heading'
+          className={cn('px-3 text-sm text-subtle', shared.bleed && '-mx-3')}
+        >
+          {extra}
+        </div>
+      )}
+      <Collapsible.Panel>{body}</Collapsible.Panel>
+    </Collapsible>
   )
 }
 
