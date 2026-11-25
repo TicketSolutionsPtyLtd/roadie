@@ -6,6 +6,7 @@ import { boardLayout } from '.'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import type { RecordViewDefaults, RecordsField } from '../Records/types'
+import type { UseRecordsOptions } from '../Records/useRecords'
 import type { RecordGroupChanges } from './types'
 
 export type Move = (
@@ -25,6 +26,8 @@ export function Shows({
   movable = true,
   selected,
   defaultView,
+  groupBy = 'status',
+  onViewChange,
   save = (_, status) => status ?? ''
 }: {
   onMove?: Move
@@ -34,6 +37,8 @@ export function Shows({
   movable?: boolean
   selected?: string[]
   defaultView?: RecordViewDefaults
+  groupBy?: (keyof TestShow & string) | readonly (keyof TestShow & string)[]
+  onViewChange?: UseRecordsOptions<TestShow>['onViewChange']
   /** The status the app stores once a move resolves, or undefined to leave its data as it was. */
   save?: (show: TestShow, status: string | null) => string | undefined
 }) {
@@ -43,12 +48,13 @@ export function Shows({
     fields,
     getRowId: (row) => row.id,
     defaultView,
+    onViewChange,
     selectable: selected !== undefined,
     defaultSelection: selected && { ids: selected }
   })
   const [layouts] = useState(() => [
     boardLayout<TestShow>({
-      groupBy: 'status',
+      groupBy,
       title: 'show',
       description: 'city',
       onMove: movable
@@ -78,5 +84,13 @@ export const column = (name: string | RegExp) =>
   screen.getByRole('region', { name })
 export const titles = (name: string | RegExp) =>
   within(column(name))
+    .queryAllByRole('listitem')
+    .map((item) => item.querySelector('[data-slot="card-title"]')!.textContent)
+
+export const lane = (name: string) => screen.getByRole('region', { name })
+export const cell = (laneName: string, columnName: string) =>
+  within(lane(laneName)).getByRole('group', { name: columnName })
+export const cellTitles = (laneName: string, columnName: string) =>
+  within(cell(laneName, columnName))
     .queryAllByRole('listitem')
     .map((item) => item.querySelector('[data-slot="card-title"]')!.textContent)

@@ -1,5 +1,5 @@
 {
-  ".": { "own": 227440, "full": 453269, "initial": 411920 },
+  ".": { "own": 228615, "full": 454323, "initial": 413047 },
   "./accordion": { "own": 1760, "full": 10671, "initial": 10671 },
   "./autocomplete": { "own": 7311, "full": 66275, "initial": 54017 },
   "./avatar": { "own": 2092, "full": 14681, "initial": 14681 },
@@ -61,7 +61,7 @@
   "./qr-code": { "own": 1300, "full": 12727, "initial": 12727 },
   "./query-field": { "own": 20086, "full": 90629, "initial": 78066 },
   "./radio-group": { "own": 2787, "full": 20689, "initial": 20689 },
-  "./record-board": { "own": 36067, "full": 107555, "initial": 102484 },
+  "./record-board": { "own": 39043, "full": 110520, "initial": 105547 },
   "./record-calendar": { "own": 96254, "full": 224981, "initial": 207440 },
   "./record-grid": { "own": 111293, "full": 245256, "initial": 209661 },
   "./record-list": { "own": 111356, "full": 245390, "initial": 210037 },

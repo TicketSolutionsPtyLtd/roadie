@@ -13,7 +13,15 @@ import { userEvent } from 'vitest/browser'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
-import { type Move, Shows, column, titles } from './boardTestUtils'
+import { groupedShowFields } from '../Records/testUtils'
+import {
+  type Move,
+  Shows,
+  cell,
+  cellTitles,
+  column,
+  titles
+} from './boardTestUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -39,6 +47,31 @@ describe('boardLayout on a touch screen', () => {
       { targetPosition: { x: 12, y: 40 } }
     )
     await expect.poll(() => titles('Sold out')).toContain('Ocean Alley 1')
+    expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { status: 'sold_out' }
+    )
+  })
+  it('drags a card to another column in its lane on a phone', async () => {
+    const onMove = vi.fn<Move>()
+    render(
+      <Shows
+        onMove={onMove}
+        width={375}
+        fields={groupedShowFields}
+        groupBy={['status', 'city']}
+      />
+    )
+    await userEvent.dragAndDrop(
+      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      cell('Brisbane', 'Sold out').querySelector(
+        '[data-slot="sortable-drop-zone"]'
+      )!,
+      { targetPosition: { x: 12, y: 20 } }
+    )
+    await expect
+      .poll(() => cellTitles('Brisbane', 'Sold out'))
+      .toEqual(['Ocean Alley 1'])
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
       { status: 'sold_out' }
