@@ -19,7 +19,6 @@ import { Button, IconButton } from '../Button'
 import { Menu } from '../Menu'
 import { RecordsSelectionBar, fittingActions } from './RecordsSelectionBar'
 import { activeLayout, useRecordsContext } from './context'
-import { findScrollParent } from './scrollParent'
 import type { RecordName, RecordsBulkAction } from './types'
 import { useBulkActions } from './useBulkActions'
 
@@ -78,7 +77,7 @@ export function RecordsBulkActions({
         )
       : null
   return (
-    <FloatingBulkBar
+    <StickyBulkBar
       actions={actions}
       recordName={recordName}
       className={className}
@@ -89,7 +88,7 @@ export function RecordsBulkActions({
 }
 RecordsBulkActions.displayName = 'Records.BulkActions'
 
-function FloatingBulkBar({
+function StickyBulkBar({
   actions,
   recordName,
   className,
@@ -109,18 +108,13 @@ function FloatingBulkBar({
   } = useBulkActions({ actions, recordName, barRef })
   const dockRef = useRef<HTMLDivElement>(null)
   const measureRef = useRef<HTMLDivElement>(null)
-  const placeRef = useRef<() => void>(undefined)
   const fitRef = useRef<() => void>(undefined)
   const [shown, setShown] = useState(actions.length)
-  const [floating, setFloating] = useState(false)
-  // Measured, not a container query: a container frames the fixed bar, and a Provider has no Root to query.
+  // Measured, not a container query: a Provider has no Root to query.
   const [compact, setCompact] = useState(false)
-  useLayoutEffect(() => {
-    if (floating) placeRef.current?.()
-  }, [floating])
 
-  // Floats at the foot of the screen while the records show but their end
-  // doesn't; fixed, so no clipped or non-scrolling ancestor can trap it.
+  // The dock is sticky, so the bar rides the foot of what shows while the
+  // records' end doesn't, and rests at their end; only the fit is measured.
   useLayoutEffect(() => {
     const dock = dockRef.current
     const bar = barRef.current
@@ -129,55 +123,6 @@ function FloatingBulkBar({
       dock.closest<HTMLElement>('[data-slot="records"]') ??
       dock.parentElement ??
       dock
-    // The foot of what shows: the screen, a shorter scroll box, or its own pane's footer.
-    const scroller = findScrollParent(list)
-    const pane = list.closest('[data-slot="pane"]')
-    const footer = pane
-      ? [...pane.querySelectorAll('[data-slot="pane-footer"]')].find(
-          (element) => element.closest('[data-slot="pane"]') === pane
-        )
-      : undefined
-    const visibleTop = () =>
-      Math.max(0, scroller?.getBoundingClientRect().top ?? 0)
-    const visibleBottom = () =>
-      Math.min(
-        innerHeight,
-        scroller?.getBoundingClientRect().bottom ?? innerHeight,
-        footer?.getBoundingClientRect().top ?? innerHeight
-      )
-    const place = () => {
-      const box = list.getBoundingClientRect()
-      const centre = box.left + box.width / 2
-      bar.style.left = `${centre}px`
-      bar.style.maxWidth = `${Math.max(box.width - 32, 0)}px`
-      bar.style.removeProperty('bottom')
-      if (!bar.hasAttribute('data-floating')) return
-      // A transformed or contained ancestor, like a pane at rest, frames fixed
-      // elements instead of the screen; correct by where the bar actually lands.
-      const at = bar.getBoundingClientRect()
-      bar.style.left = `${2 * centre - (at.left + at.width / 2)}px`
-      const below = at.bottom - (visibleBottom() - 16)
-      if (below > 0)
-        bar.style.bottom = `${parseFloat(getComputedStyle(bar).bottom) + below}px`
-    }
-    placeRef.current = place
-    // From live boxes: a dock behind a sticky footer still intersects the screen.
-    const settle = () => {
-      const bottom = visibleBottom()
-      const whole = list.getBoundingClientRect()
-      const next =
-        dock.getBoundingClientRect().bottom > bottom &&
-        whole.top < bottom &&
-        whole.bottom > visibleTop()
-      if (next && bar.hasAttribute('data-floating')) place()
-      if (!next) bar.style.removeProperty('left')
-      if (!next) bar.style.removeProperty('max-width')
-      if (!next) bar.style.removeProperty('bottom')
-      setFloating(next)
-    }
-    const observer = new IntersectionObserver(settle)
-    observer.observe(dock)
-    if (list !== dock) observer.observe(list)
     const isCompact = () =>
       list.getBoundingClientRect().width <
       COMPACT_BELOW *
@@ -222,19 +167,11 @@ function FloatingBulkBar({
       if (next !== compactNow) flushSync(() => setCompact(next))
       compactNow = next
       fit(true)
-      if (bar.hasAttribute('data-floating')) place()
     })
     resize.observe(list)
     // A web font swap changes the parts' widths without resizing the records.
     if (measureRef.current) resize.observe(measureRef.current)
-    // Any scroll can move the dock past the footer or the footer itself.
-    const follow = () => settle()
-    addEventListener('scroll', follow, { capture: true, passive: true })
-    return () => {
-      observer.disconnect()
-      resize.disconnect()
-      removeEventListener('scroll', follow, { capture: true })
-    }
+    return () => resize.disconnect()
   }, [])
 
   // A lone action has room for its word, and a lone icon is hard to read.
@@ -282,11 +219,11 @@ function FloatingBulkBar({
     <div
       ref={dockRef}
       data-slot='records-bulk-dock'
-      className='grid min-h-12 justify-items-center'
+      // Clears a pane's sticky footer; a pane's tab bar padding already insets where it sticks.
+      className='pointer-events-none sticky bottom-[calc(var(--pane-sticky-bottom,0px)+1rem+env(safe-area-inset-bottom))] z-docked grid min-h-12 grid-cols-1 justify-items-center px-4'
     >
       <div
         ref={barRef}
-        data-floating={floating || undefined}
         role='group'
         aria-label='Bulk actions'
         data-slot='records-bulk-actions'
@@ -299,10 +236,7 @@ function FloatingBulkBar({
           else clearSelection()
         }}
         className={cn(
-          'relative z-docked flex flex-nowrap items-center gap-2 rounded-full emphasis-floating is-translucent px-3 py-2',
-          'data-floating:fixed data-floating:bottom-[calc(1rem+env(safe-area-inset-bottom))] data-floating:-translate-x-1/2',
-          // A Navigator's phone tab bar sits at the foot of the screen.
-          'max-md:in-[[data-stack]]:data-floating:bottom-[calc(6rem+env(safe-area-inset-bottom))]',
+          'pointer-events-auto relative flex max-w-full flex-nowrap items-center gap-2 rounded-full emphasis-floating is-translucent px-3 py-2',
           className
         )}
       >
