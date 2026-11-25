@@ -1,5 +1,5 @@
 import type { RecordCardParts } from '../Records/types'
-import { titleColumn } from './RecordTableRow'
+import { titleColumn } from './layout'
 import type { RecordTableColumn, RecordTableNarrow } from './types'
 
 /** How a table under 40rem shows its records. */
