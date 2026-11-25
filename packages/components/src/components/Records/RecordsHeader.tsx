@@ -80,8 +80,7 @@ export function RecordsHeader<Row extends object>({
       className={cn(
         // Its padding takes the place of the gap below, so the surface reaches the content while stuck.
         'sticky z-docked mb-[calc(var(--records-gap,0px)*-1)] flex flex-wrap items-start gap-2 pb-3',
-        // A container, so its controls fold by the room inside it. Containment
-        // drops the controls' own width, so a parent sized by its content gets this.
+        // Its controls fold by its room; 20rem stands in for their width, which containment drops.
         '@container [contain-intrinsic-inline-size:20rem]',
         // A narrow toolbar gives a focused search the row, the rest hidden from Tab and screen readers too.
         '@max-[40rem]:data-search-focused:*:not-data-[slot=records-search]:hidden',
