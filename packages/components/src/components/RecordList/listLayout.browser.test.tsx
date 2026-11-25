@@ -64,9 +64,10 @@ const descriptionOf = (item: HTMLElement) =>
 
 const column = tableColumns(showFields)
 
-// Base UI unmounts a closed Select's popup a frame later, and Linux WebKit runs
-// no frames while idle. Until then the popup is inert and the trigger won't
-// reopen it, so the next pick would find the closing popup's options
+// Base UI opens a Select from a press in a frame, and unmounts a closed popup
+// after its exit transition, and Linux WebKit runs no frames while idle. A
+// closing popup is inert, so a pick that finds its options before the reopen
+// lands fails on `pointer-events: none`
 // (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md).
 const popupGone = () =>
   withFrames(() => expect.poll(() => screen.queryByRole('listbox')).toBeNull())
@@ -79,7 +80,9 @@ async function pick(
   option: string
 ) {
   await user.click(within(panel).getByRole('combobox', { name }))
-  await user.click(await screen.findByRole('option', { name: option }))
+  await user.click(
+    await withFrames(() => screen.findByRole('option', { name: option }))
+  )
   await popupGone()
 }
 
@@ -277,7 +280,9 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     ).toBeNull()
     await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
     expect(
-      (await screen.findAllByRole('option')).map((option) => option.textContent)
+      (await withFrames(() => screen.findAllByRole('option'))).map(
+        (option) => option.textContent
+      )
     ).toEqual(['None', 'Show', 'City'])
     await user.click(screen.getByRole('option', { name: 'City' }))
     await popupGone()

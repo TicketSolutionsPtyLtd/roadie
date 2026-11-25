@@ -104,13 +104,16 @@ Playwright Linux image right after the click that opens a drawer: 1 frame by
   popup even with transitions off, and returns focus to the trigger as the
   popup unmounts. So polls for the drawer's edge, for `queryByRole('dialog')`
   to be null, or for focus back on the trigger all need `withFrames`.
-- **A second pick from the same Select.** Until the closed popup unmounts,
-  its positioner is inert (`pointer-events: none`) and a click on the
-  trigger doesn't reopen it, so the next `findByRole('option')` finds the
-  closing popup's options and the click fails with "Unable to perform
-  pointer interaction as the element has `pointer-events: none`". After
-  each pick, wait for `queryByRole('listbox')` to be null in `withFrames`
-  (the `pick` helper in `RecordList/listLayout.browser.test.tsx`, INNO-1739).
+- **A second pick from the same Select.** A closed popup stays mounted, its
+  positioner inert (`pointer-events: none`), until its exit transition ends,
+  and a press on the trigger reopens it only in a frame (`useClick` defers a
+  mouse press's open with `requestAnimationFrame`). Until both land, the next
+  `findByRole('option')` finds the closing popup's options and the click
+  fails with "Unable to perform pointer interaction as the element has
+  `pointer-events: none`". After each pick, wait for
+  `queryByRole('listbox')` to be null, and find the next options, in
+  `withFrames` (the `pick` helper in
+  `RecordList/listLayout.browser.test.tsx`, INNO-1739).
 - **Focus into a list opened by a key.** Base UI focuses the first option of
   a Select opened with ArrowDown in a frame (`enqueueFocus`); later arrow
   keys move focus at once. A poll for that first option kept finding the
