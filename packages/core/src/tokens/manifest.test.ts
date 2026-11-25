@@ -59,8 +59,6 @@ const INTERNAL = [
   '--toast-scale',
   '--translucent-backdrop',
   '--translucent-fill',
-  '--tw-inset-shadow',
-  '--tw-shadow',
   '--tw-sort'
 ]
 
