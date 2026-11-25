@@ -210,11 +210,10 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(look(2)[0]).toBeGreaterThan(look(3)[0] as number)
     expect(look(3)[0]).toBeGreaterThan(look(4)[0] as number)
     expect(look(3)[1]).not.toBe(look(4)[1])
-    // Inner groups sit on a rule, so where a group ends reads at a glance.
+    // Nesting reads from the headings alone, with no inset.
     const onSale = screen.getByRole('list', { name: 'On sale 2' })
-    expect(
-      parseFloat(getComputedStyle(onSale).borderLeftWidth)
-    ).toBeGreaterThan(0)
+    expect(getComputedStyle(onSale).borderLeftWidth).toBe('0px')
+    expect(getComputedStyle(onSale).paddingLeft).toBe('0px')
     const brisbane = screen.getAllByRole('list', { name: 'Brisbane 1' })[0]!
     expect(
       [...brisbane.querySelectorAll('a')].map((link) => link.textContent)

@@ -269,6 +269,7 @@ function GroupedList({
     [onToggle, order]
   )
   const grouped = { ...shared, onToggle: toggle }
+  const nested = shown[0] ? levelsBelow(shown[0]) > 0 : false
   const listRef = useRef<HTMLUListElement>(null)
   useSurface(stickyTop === undefined ? noList : listRef)
   return (
@@ -279,6 +280,7 @@ function GroupedList({
           group={group}
           stickyTop={stickyTop}
           shared={grouped}
+          nested={nested}
         />
       ))}
     </NarrowList>
@@ -304,26 +306,28 @@ function shownOrder(groups: readonly RecordGroup[]): string[] {
 
 const groupHeadings = ['h2', 'h3', 'h4'] as const
 
-// Each level reads as its own tier: a title over more levels is larger and
-// stronger, and the innermost keeps the quiet group title.
+// With more than one level, each reads as its own tier of heading, largest
+// outermost; a third level keeps the quiet group title, as a single level does.
 const levelsBelow = (group: RecordGroup): number =>
   group.groups?.[0] ? 1 + levelsBelow(group.groups[0]) : 0
 const titleTiers = [
-  '',
-  'text-display-ui-6 text-strong',
-  'text-display-ui-5 text-strong'
+  'text-display-ui-4 text-strong',
+  'text-display-ui-6 text-strong'
 ]
 
 function Group({
   group,
   stickyTop,
   shared,
-  depth = 0
+  depth = 0,
+  nested = false
 }: {
   group: RecordGroup
   stickyTop?: string
   shared: NarrowShared
   depth?: number
+  /** Whether the list groups by more than one level. */
+  nested?: boolean
 }) {
   const titleId = useId()
   const Heading = groupHeadings[Math.min(depth, groupHeadings.length - 1)]!
@@ -335,7 +339,7 @@ function Group({
       className={cn(
         listGroupVariants(),
         // An outer group's siblings part with a rule; inner ones sit closer.
-        group.groups && depth === 0 && 'border-t border-subtler pt-6',
+        group.groups && depth === 0 && 'gap-3 border-t border-subtler pt-6',
         depth > 0 && 'mt-4'
       )}
     >
@@ -344,7 +348,7 @@ function Group({
         data-slot='list-group-title'
         className={cn(
           listGroupTitleVariants(),
-          titleTiers[Math.min(levelsBelow(group), titleTiers.length - 1)],
+          nested && titleTiers[depth],
           'flex gap-1.5',
           shared.bleed && '-mx-3',
           sticky !== undefined && ['sticky z-1 py-1', surfaceClass]
@@ -352,14 +356,17 @@ function Group({
         style={sticky === undefined ? undefined : { top: sticky }}
       >
         {group.label}{' '}
-        <span className='font-normal tabular-nums'>{group.rows.length}</span>
+        <span
+          className={cn('font-normal tabular-nums', nested && 'text-subtle')}
+        >
+          {group.rows.length}
+        </span>
       </Heading>
       {group.groups ? (
         <ul
           role='list'
           aria-labelledby={titleId}
-          // A rule down the inner groups shows where the group ends.
-          className='grid border-l-2 border-subtler pl-3 [&>li:first-child]:mt-0'
+          className='grid [&>li:first-child]:mt-0'
         >
           {group.groups.map((inner) => (
             <Group
@@ -367,6 +374,7 @@ function Group({
               group={inner}
               shared={shared}
               depth={depth + 1}
+              nested={nested}
             />
           ))}
         </ul>
