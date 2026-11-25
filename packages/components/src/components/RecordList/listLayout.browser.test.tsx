@@ -239,6 +239,27 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(titleOf(['status'])).toEqual(titleOf(['status', 'city']))
   })
 
+  it("draws each title's disclosure in its heading's type", () => {
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={groupedShowFields}
+        defaultView={{
+          layout: { type: 'list', groupBy: ['status', 'city', 'show'] }
+        }}
+      />
+    )
+    for (const level of [2, 3, 4]) {
+      const heading = screen.getAllByRole('heading', { level })[0]!
+      const trigger = within(heading).getByRole('button')
+      const look = (element: HTMLElement) => {
+        const style = getComputedStyle(element)
+        return [style.fontSize, style.fontWeight, style.color]
+      }
+      expect(look(trigger)).toEqual(look(heading))
+    }
+  })
+
   it('collapses a group from its title, keeping it out of the view', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()
@@ -273,6 +294,28 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(onViewChange.mock.calls.length).toBe(calls)
   })
 
+  it('keeps a group collapsed as its records change', async () => {
+    const user = userEvent.setup()
+    const list = (count: number) => (
+      <ShowList
+        data={testShows(count)}
+        fields={showFields}
+        defaultView={grouped}
+      />
+    )
+    const { rerender } = render(list(6))
+    await user.click(screen.getByRole('button', { name: 'On sale 2' }))
+    rerender(list(9))
+    expect(screen.getByRole('button', { name: 'On sale 3' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+    expect(screen.getByRole('button', { name: 'Sold out 3' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
+  })
+
   it("shows the field's heading content under each of its groups, at any level", () => {
     const fields = groupedShowFields.map((one) =>
       one.key === 'city'
@@ -304,6 +347,51 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
       />
     )
     expect(screen.getByText('Brisbane venues, 2 shows')).toBeVisible()
+  })
+
+  it('lines heading content up with the title, and leaves no space for none', () => {
+    // With nothing under it, a title sits one gap above its rows.
+    const offGap = (name: string) => {
+      const title = screen.getByRole('heading', { name })
+      const list = screen.getByRole('list', { name })
+      const gap = parseFloat(getComputedStyle(title.parentElement!).rowGap)
+      return (
+        list.getBoundingClientRect().top -
+        title.getBoundingClientRect().bottom -
+        gap
+      )
+    }
+    const fields = showFields.map((one) =>
+      one.key === 'status'
+        ? {
+            ...one,
+            groupHeading: ({
+              value,
+              label
+            }: {
+              value: string | null
+              label: string
+            }) =>
+              value === 'on_sale' ? (
+                <span>{`${label} (${value})`}</span>
+              ) : value === 'sold_out' ? (
+                false
+              ) : null
+          }
+        : one
+    )
+    render(
+      <ShowList data={testShows(6)} fields={fields} defaultView={grouped} />
+    )
+    const extra = screen.getByText('On sale (on_sale)')
+    const trigger = screen.getByRole('button', { name: 'On sale 2' })
+    expect(extra.getBoundingClientRect().left).toBeCloseTo(
+      trigger.getBoundingClientRect().left +
+        parseFloat(getComputedStyle(trigger).paddingLeft),
+      0
+    )
+    expect(offGap('Sold out 2')).toBeCloseTo(0, 0)
+    expect(offGap('Cancelled 2')).toBeCloseTo(0, 0)
   })
 
   it('picks deeper levels from Then by, offering only fields not already used', async () => {
