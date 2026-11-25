@@ -90,6 +90,11 @@ describe('roadie.compiled.css', () => {
     expect(sheet.match(/--color-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
   })
 
+  it('declares the chart colours without a hex copy', () => {
+    expect(sheet).toMatch(/--chart-1:oklch\(/)
+    expect(sheet.match(/--chart-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
+  })
+
   it('needs no browser support for CSS nesting', () => {
     expect(sheet.replace(/"[^"]*"|'[^']*'/g, '').includes('&')).toBe(false)
   })

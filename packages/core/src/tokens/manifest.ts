@@ -44,7 +44,7 @@ export type TokenEntry = {
   group: string
   sheet: string
   source: 'roadie' | 'tailwind'
-  value?: ModeValue & { fallback?: string }
+  value?: ModeValue
   resolved?: ModeValue
   byIntent?: Partial<Record<Intent, ModeValue>>
   classes?: string[]
@@ -409,10 +409,6 @@ export function parseTokenManifest(
     const dark = real.filter((d) => d.dark)
     const lightValue = pick(light)
     const darkValue = pick(dark)
-    const legacy = light.some((d) => d.modern)
-      ? light.findLast((d) => !d.modern)?.value
-      : undefined
-    const fallback = legacy !== lightValue ? legacy : undefined
     valueOf.set(name, { light: lightValue, dark: darkValue })
 
     const byIntent: Partial<Record<Intent, ModeValue>> = {}
@@ -442,7 +438,7 @@ export function parseTokenManifest(
       group,
       sheet: own[0]!.sheet,
       source: 'roadie' as const,
-      value: compact({ light: lightValue, dark: darkValue, fallback }),
+      value: compact({ light: lightValue, dark: darkValue }),
       byIntent: Object.keys(byIntent).length > 0 ? byIntent : undefined,
       classes: own.some((d) => d.theme) ? classesFor(name) : undefined,
       description: descriptions.get(name)

@@ -1,9 +1,8 @@
 import { compile } from 'tailwindcss'
 import { describe, expect, it } from 'vitest'
 
-import { toHex } from './color-math'
 import { DATAVIZ_TOKEN_NAMES, renderDatavizCss } from './css'
-import { DEFAULT_ACCENT_HUE, palette } from './palette'
+import { palette } from './palette'
 
 const css = renderDatavizCss()
 const squash = (s: string) => s.replace(/\s+/g, ' ')
@@ -17,53 +16,53 @@ describe('dataviz.css', () => {
     await expect(css).toMatchFileSnapshot('../css/dataviz.css')
   })
 
-  it('gives every token a fallback outside @supports so old browsers still get colour', () => {
-    const inkNames = ['grid', 'axis', 'label', 'value', 'gap'].map(
-      (name) => `chart-${name}`
-    )
-    const fallbackLight = block(':root {')
-    for (const name of DATAVIZ_TOKEN_NAMES.filter(
-      (name) => !inkNames.includes(name)
-    )) {
-      expect(fallbackLight).toContain(`--${name}:`)
-    }
-    expect(fallbackLight).toMatch(/--chart-highlight: #[0-9a-f]{6};/)
-    expect(fallbackLight).toMatch(/--chart-band: #[0-9a-f]{8};/)
-
-    const inkFallback = block(
-      ":root, .dark, [class*='intent-'], [data-accent-scope] {"
-    )
-    for (const name of inkNames) {
-      expect(inkFallback).toContain(`--${name}:`)
-    }
+  it('declares no hex copy of a colour', () => {
+    expect(css).not.toMatch(/#[0-9a-f]{3,8}\b/i)
   })
 
-  it('declares the same tokens in light and dark inside @supports', () => {
-    // A token set only in the modern :root outranks the fallback .dark by
-    // source order, so dark mode would show the light value.
-    const modern = css.slice(css.indexOf('@supports'))
-    const names = (selector: string) => {
-      const start = modern.indexOf(selector)
-      const body = modern.slice(start, modern.indexOf('}', start))
-      return [...body.matchAll(/--([\w-]+):/g)].map(([, name]) => name).sort()
-    }
-    expect(names('  .dark {')).toEqual(names('  :root {'))
+  it('declares every token in light and dark', () => {
+    // A token set only on :root would keep its light value in dark mode.
+    const names = (selector: string) =>
+      css
+        .split(selector)
+        .slice(1)
+        .flatMap((body) => [
+          ...body.slice(0, body.indexOf('}')).matchAll(/--([\w-]+):/g)
+        ])
+        .map(([, name]) => name!)
+        .sort()
+    const light = names('\n:root {').concat(names('  :root {'))
+    const dark = names('\n.dark {').concat(names('  .dark {'))
+    expect(dark.sort()).toEqual(light.sort())
+    const sharedRules = ['grid', 'axis', 'label', 'value', 'gap', 'highlight']
+    expect(
+      DATAVIZ_TOKEN_NAMES.filter(
+        (name) =>
+          !sharedRules.includes(name.replace('chart-', '')) &&
+          !light.includes(name)
+      )
+    ).toEqual([])
   })
 
-  // Safari 15.4 to 16.1 draw oklch but not color-mix, so a mixed grey under
-  // the oklch check alone would be invalid there and draw nothing.
-  it('keeps mixed greys behind a color-mix check, with the hex fallback before it', () => {
+  // Outside a color-mix check, the Tailwind build adds a solid copy of each
+  // mix and its own @supports block.
+  it('keeps every color-mix behind a color-mix check', () => {
     const mixed = css
       .split('\n')
-      .filter((line) => /--chart-(context|other): color-mix/.test(line))
-    expect(mixed.length).toBeGreaterThan(0)
+      .filter((line) => /--chart-[\w-]+: color-mix/.test(line))
+    expect(mixed.map((line) => line.trim().split(':')[0])).toEqual(
+      expect.arrayContaining([
+        '--chart-band',
+        '--chart-context',
+        '--chart-other'
+      ])
+    )
     for (const line of mixed) {
       const before = css.slice(0, css.indexOf(line))
       expect(before.slice(before.lastIndexOf('@supports'))).toMatch(
         /^@supports \(color: color-mix\(/
       )
     }
-    expect(block('\n.dark {')).toMatch(/--chart-context: #[0-9a-f]{6};/)
   })
 
   it('re-declares chart ink wherever intent tokens can change', () => {
@@ -76,14 +75,6 @@ describe('dataviz.css', () => {
       expect(block![1]).toContain(`--chart-${name}: var(--intent-`)
   })
 
-  it('uses the default accent hue for the highlight hex fallback', () => {
-    const css = renderDatavizCss()
-    const [l, c] = palette.categorical.light[0]!
-    expect(css).toContain(
-      `--chart-highlight: ${toHex([l, c, DEFAULT_ACCENT_HUE])};`
-    )
-  })
-
   it('only lets the highlight follow the accent hue', () => {
     const accentLines = css
       .split('\n')
@@ -94,8 +85,7 @@ describe('dataviz.css', () => {
   })
 
   it('re-resolves the highlight wherever the mode, intent or accent hue can change', () => {
-    const modern = css.slice(css.indexOf('@supports'))
-    const rule = modern.match(
+    const rule = css.match(
       /:root, \.dark, \[class\*='intent-'\], \[style\*='--accent-hue'\] \{([^}]*)\}/
     )
     expect(rule).not.toBeNull()
@@ -105,15 +95,18 @@ describe('dataviz.css', () => {
   })
 
   it('declares the highlight lightness and chroma per mode', () => {
-    const modern = css.slice(css.indexOf('@supports'))
     const [lightL, lightC] = palette.categorical.light[0]!
     const [darkL, darkC] = palette.categorical.dark[0]!
-    expect(modern).toContain(`--chart-highlight-lc: ${lightL} ${lightC};`)
-    expect(modern).toContain(`--chart-highlight-lc: ${darkL} ${darkC};`)
+    expect(block(':root {')).toContain(
+      `--chart-highlight-lc: ${lightL} ${lightC};`
+    )
+    expect(block('\n.dark {')).toContain(
+      `--chart-highlight-lc: ${darkL} ${darkC};`
+    )
   })
 
   it('re-resolves the pair and trio sets inside a nested .dark subtree', () => {
-    const fallbackDark = block('\n.dark {')
+    const dark = block('\n.dark {')
     for (const name of [
       'chart-pair-1',
       'chart-pair-2',
@@ -121,7 +114,7 @@ describe('dataviz.css', () => {
       'chart-trio-2',
       'chart-trio-3'
     ]) {
-      expect(fallbackDark).toContain(`--${name}:`)
+      expect(dark).toContain(`--${name}:`)
     }
   })
 
