@@ -2,47 +2,39 @@ import { describe, expect, it } from 'vitest'
 
 import { recordFields } from '@oztix/roadie-core/records'
 
-import { listGroupField, listGroupLayout } from './groupBy'
+import { listGroupFields, listGroupLevelsLayout } from './groupBy'
 
-type Show = { name: string; status: string }
+type Show = { name: string; status: string; venue: string }
 const field = recordFields<Show>()
+const option = (key: 'status' | 'venue') =>
+  field.option(key, { label: key, options: [{ value: 'a', label: 'A' }] })
 const fields = [
   field.text('name', { label: 'Name' }),
-  field.option('status', {
-    label: 'Status',
-    options: [{ value: 'a', label: 'A' }]
-  })
+  option('status'),
+  option('venue')
 ]
+const keys = (groupBy: string[]) =>
+  listGroupFields(fields, { type: 'list', groupBy }).map(({ key }) => key)
 
-describe('listGroupField', () => {
-  it("groups by the view's field only when it can group", () => {
-    expect(
-      listGroupField(fields, { type: 'list', groupBy: ['status'] })?.key
-    ).toBe('status')
-    expect(
-      listGroupField(fields, { type: 'list', groupBy: ['name'] })
-    ).toBeUndefined()
-    expect(listGroupField(fields, { type: 'grid' })).toBeUndefined()
+describe('listGroupFields', () => {
+  it("reads every level of the view's groupBy, in order", () => {
+    expect(keys(['venue', 'status'])).toEqual(['venue', 'status'])
+    expect(listGroupFields(fields, { type: 'grid' })).toEqual([])
+  })
+
+  it('stops at a level that cannot group, or repeats one', () => {
+    expect(keys(['status', 'name', 'venue'])).toEqual(['status'])
+    expect(keys(['status', 'status'])).toEqual(['status'])
   })
 })
 
-describe('listGroupLayout', () => {
-  it('saves the field picked, or none, keeping the fields', () => {
+describe('listGroupLevelsLayout', () => {
+  it('saves the levels picked, or none, keeping the fields', () => {
     expect(
-      listGroupLayout({ type: 'list', fields: ['name'] }, 'status')
-    ).toEqual({
-      type: 'list',
-      fields: ['name'],
-      groupBy: ['status']
-    })
+      listGroupLevelsLayout({ type: 'list', fields: ['name'] }, ['status'])
+    ).toEqual({ type: 'list', fields: ['name'], groupBy: ['status'] })
     expect(
-      listGroupLayout({ type: 'list', groupBy: ['status'] }, undefined)
+      listGroupLevelsLayout({ type: 'list', groupBy: ['status'] }, [])
     ).toEqual({ type: 'list' })
-  })
-
-  it('keeps the deeper levels when the first changes', () => {
-    expect(
-      listGroupLayout({ type: 'list', groupBy: ['a', 'b', 'c'] }, 'b')
-    ).toEqual({ type: 'list', groupBy: ['b', 'c'] })
   })
 })

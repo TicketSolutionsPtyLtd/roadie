@@ -23,7 +23,12 @@ import roadieCss from '../../../vitest.browser.css?inline'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  type TestShow,
+  groupedShowFields,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import type { UseRecordsOptions } from '../Records/useRecords'
 
 let removeStylesheet = () => {}
@@ -171,6 +176,70 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     const onSale = screen.getByRole('list', { name: 'On sale 2' })
     expect(within(onSale).getAllByRole('listitem')).toHaveLength(2)
     expect(screen.getByRole('list', { name: 'Upcoming shows' })).toBeVisible()
+  })
+
+  it('nests groups by each level, as headings h2 to h4, leaving out empty ones', () => {
+    render(
+      <ShowList
+        caption='Upcoming shows'
+        data={testShows(6)}
+        fields={groupedShowFields}
+        getRowHref={(show) => `/shows/${show.id}`}
+        defaultView={{
+          layout: { type: 'list', groupBy: ['status', 'city', 'show'] }
+        }}
+      />
+    )
+    const headings = screen
+      .getAllByRole('heading')
+      .map((heading) => [heading.tagName, heading.textContent])
+    expect(headings.slice(0, 5)).toEqual([
+      ['H2', 'On sale 2'],
+      ['H3', 'Brisbane 1'],
+      ['H4', 'Ocean Alley 1 1'],
+      ['H3', 'Perth 1'],
+      ['H4', 'angie McMahon 1 1']
+    ])
+    const brisbane = screen.getAllByRole('list', { name: 'Brisbane 1' })[0]!
+    expect(
+      [...brisbane.querySelectorAll('a')].map((link) => link.textContent)
+    ).toEqual(['Ocean Alley 1'])
+  })
+
+  it('picks deeper levels from Then by, offering only fields not already used', async () => {
+    const user = userEvent.setup()
+    const onViewChange = vi.fn()
+    render(
+      <ShowList
+        data={testShows(4)}
+        fields={groupedShowFields}
+        defaultView={grouped}
+        onViewChange={onViewChange}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    expect(
+      within(panel).queryByRole('combobox', { name: 'And then by' })
+    ).toBeNull()
+    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
+    expect(
+      (await screen.findAllByRole('option')).map((option) => option.textContent)
+    ).toEqual(['None', 'Show', 'City'])
+    await user.click(screen.getByRole('option', { name: 'City' }))
+    expect(onViewChange.mock.lastCall![0].layout).toEqual({
+      type: 'list',
+      groupBy: ['status', 'city']
+    })
+    await expect
+      .poll(() => screen.getAllByRole('heading', { level: 3 }).length)
+      .toBeGreaterThan(0)
+    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
+    await user.click(await screen.findByRole('option', { name: 'None' }))
+    expect(onViewChange.mock.lastCall![0].layout).toEqual({
+      type: 'list',
+      groupBy: ['status']
+    })
   })
 
   it('selects a Shift range in the order the groups show it', async () => {

@@ -260,7 +260,7 @@ function GroupedList({
   cards: boolean
 }) {
   const { shown, order } = useMemo(() => {
-    const shown = groups.filter((group) => group.rows.length > 0)
+    const shown = shownGroups(groups)
     const order = shown.flatMap((group) => group.rows.map(({ id }) => id))
     return { shown, order }
   }, [groups])
@@ -286,42 +286,75 @@ function GroupedList({
   )
 }
 
+// Groups with records, at every level, so an empty option is left out.
+function shownGroups(groups: readonly RecordGroup[]): RecordGroup[] {
+  return groups.flatMap((group) =>
+    group.rows.length === 0
+      ? []
+      : [group.groups ? { ...group, groups: shownGroups(group.groups) } : group]
+  )
+}
+
+const groupHeadings = ['h2', 'h3', 'h4'] as const
+
 function Group({
   group,
   stickyTop,
-  shared
+  shared,
+  depth = 0
 }: {
   group: RecordGroup
   stickyTop?: string
   shared: NarrowShared
+  depth?: number
 }) {
   const titleId = useId()
+  const Heading = groupHeadings[Math.min(depth, groupHeadings.length - 1)]!
+  // Only the outermost titles stick, so nested ones don't stack under them.
+  const sticky = depth === 0 ? stickyTop : undefined
   return (
     <li data-slot='list-group' className={listGroupVariants()}>
-      <h2
+      <Heading
         id={titleId}
         data-slot='list-group-title'
         className={cn(
           listGroupTitleVariants(),
           'flex gap-1.5',
           shared.bleed && '-mx-3',
-          stickyTop !== undefined && ['sticky z-1 py-1', surfaceClass]
+          sticky !== undefined && ['sticky z-1 py-1', surfaceClass]
         )}
-        style={stickyTop === undefined ? undefined : { top: stickyTop }}
+        style={sticky === undefined ? undefined : { top: sticky }}
       >
         {group.label}{' '}
         <span className='font-normal tabular-nums'>{group.rows.length}</span>
-      </h2>
-      <ul
-        role='list'
-        aria-labelledby={titleId}
-        data-slot='list-section'
-        className={cn(listSectionClass, listGroupSectionClass, joinSelected)}
-      >
-        {group.rows.map((record) => (
-          <NarrowRow key={record.id} shared={shared} record={record} />
-        ))}
-      </ul>
+      </Heading>
+      {group.groups ? (
+        <ul
+          role='list'
+          aria-labelledby={titleId}
+          className='grid [&>li:first-child]:mt-0'
+        >
+          {group.groups.map((inner) => (
+            <Group
+              key={inner.key ?? ''}
+              group={inner}
+              shared={shared}
+              depth={depth + 1}
+            />
+          ))}
+        </ul>
+      ) : (
+        <ul
+          role='list'
+          aria-labelledby={titleId}
+          data-slot='list-section'
+          className={cn(listSectionClass, listGroupSectionClass, joinSelected)}
+        >
+          {group.rows.map((record) => (
+            <NarrowRow key={record.id} shared={shared} record={record} />
+          ))}
+        </ul>
+      )}
     </li>
   )
 }
