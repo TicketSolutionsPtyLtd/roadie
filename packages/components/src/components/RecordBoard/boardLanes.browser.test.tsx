@@ -96,9 +96,15 @@ const moveAcross = async (
 ) => {
   screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }).focus()
   await user.keyboard('{Enter}')
-  await withFrames(() => screen.findByRole('menu'))
+  const menu = await withFrames(() => screen.findByRole('menu'))
   await arrowTo(user, `Move Ocean Alley 1 to ${laneName}`)
   await user.keyboard('{ArrowRight}')
+  // The submenu opens and takes focus in a frame.
+  await withFrames(() =>
+    expect
+      .poll(() => document.activeElement?.closest('[role="menu"]'))
+      .not.toBe(menu)
+  )
   await arrowTo(user, `Move Ocean Alley 1 to ${columnName} in ${laneName}`)
   await user.keyboard('{Enter}')
   await menuGone()
