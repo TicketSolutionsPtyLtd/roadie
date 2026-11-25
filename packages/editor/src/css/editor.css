@@ -3,7 +3,8 @@
 
 /* Rules sit in the components layer, so an app's class on the same element
    wins, as it does over Roadie's components. A rule outside it says which
-   class it has to beat, and sheetLayers.test.ts in components holds the list. */
+   class it has to beat, and sheetLayers.test.ts in components holds the list.
+   The email canvas's rules are still to be sorted (INNO-1737). */
 
 @layer components {
   /* Tiptap's Placeholder marks the empty first block and puts its text in data-placeholder. */
@@ -346,11 +347,6 @@
   --email-divider: var(--email-base-button-text);
 }
 
-/* Its outline sits on the band's edge, not past the email's. */
-[data-email] :where([data-filled]) {
-  outline-offset: 0;
-}
-
 /* The email's band has no edge, so its blocks sit 24px in. */
 [data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong) {
   border-width: 0;
@@ -431,6 +427,12 @@
     ) {
     outline-color: var(--intent-border-normal);
   }
+
+  /* A filled band's sits on its edge, not past the email's. After the
+     section's own, which it ties with; a selected block's ring still wins. */
+  [data-email] :where([data-filled]) {
+    outline-offset: 0;
+  }
 }
 
 /* A section's Settings shows while it holds the caret, or is hovered, and
@@ -493,7 +495,7 @@
 }
 
 /* An email's text sits 24px in, so its edge keeps that room too. Unlayered,
-   over the email's own padding, which is. */
+   as the email's padding and the boxless edge above are. */
 [data-slot='editor'][data-emphasis='subtler']
   [data-email].ProseMirror[aria-invalid='true'] {
   padding-inline-start: calc(
