@@ -77,4 +77,29 @@ describe('boardLayout on a touch screen', () => {
       { status: 'sold_out' }
     )
   })
+  it('drags a card to another lane on a phone', async () => {
+    const onMove = vi.fn<Move>()
+    render(
+      <Shows
+        onMove={onMove}
+        width={375}
+        fields={groupedShowFields}
+        groupBy={['status', 'city']}
+      />
+    )
+    await userEvent.dragAndDrop(
+      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      cell('Melbourne', 'On sale').querySelector(
+        '[data-slot="sortable-drop-zone"]'
+      )!,
+      { targetPosition: { x: 12, y: 20 } }
+    )
+    await expect
+      .poll(() => cellTitles('Melbourne', 'On sale'))
+      .toEqual(['Ocean Alley 1'])
+    expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { city: 'Melbourne' }
+    )
+  })
 })

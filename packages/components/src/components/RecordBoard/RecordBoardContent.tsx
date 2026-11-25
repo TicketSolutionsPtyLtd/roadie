@@ -36,7 +36,7 @@ import {
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { Sortable } from '../Sortable'
 import { type BoardLane, BoardLanes, laneKey } from './RecordBoardLanes'
-import type { BoardLayoutConfig } from './types'
+import type { BoardLayoutConfig, RecordGroupChanges } from './types'
 
 export type RecordBoardContentProps = RecordsContentProps & {
   config: BoardLayoutConfig
@@ -44,12 +44,14 @@ export type RecordBoardContentProps = RecordsContentProps & {
 
 type Row = RecordsRow<object>
 type Column = RecordGroup<object>
+type Changes = RecordGroupChanges
 /** A move the app hasn't confirmed, or confirmed before its row caught up. */
-type Move = { value: string | null; row: object; pending: boolean }
+type Move = { changes: Changes; row: object; pending: boolean }
 
-// Sortable names a list by a string. Blank options are dropped, so blank is "No <field>".
-const NONE = ''
-const columnValue = (key: string | null) => key ?? NONE
+// Sortable names a list by a string: here, the cell's column and lane keys.
+const cellValue = (column: Column, lane?: Column) =>
+  JSON.stringify([column.key, lane?.key ?? null])
+const cellKeys = (value: string) => JSON.parse(value) as (string | null)[]
 
 const columnsClass = cn(
   'grid snap-x snap-mandatory auto-cols-[85%] grid-flow-col gap-3 overflow-x-auto overscroll-x-contain pb-2',
@@ -79,11 +81,7 @@ export function RecordBoardContent({
     (record: Row) => recordTitle(record.row, record.id, parts.title, timeZone),
     [parts.title, timeZone]
   )
-  const { moves, move, error, putBack } = useBoardMoves(
-    config.onMove,
-    titleOf,
-    field?.key
-  )
+  const { moves, move, error, putBack } = useBoardMoves(config.onMove, titleOf)
   const bodyRef = useRef<HTMLDivElement>(null)
   // A card put back remounts in its old column, taking focus from its handle.
   useLayoutEffect(() => {
@@ -95,10 +93,7 @@ export function RecordBoardContent({
       )
       ?.focus()
   }, [putBack])
-  const placed = useMemo(
-    () => (field ? placeMoves(rows, field, moves) : rows),
-    [field, rows, moves]
-  )
+  const placed = useMemo(() => placeMoves(rows, moves), [rows, moves])
   const columns = useMemo(
     () => (field ? boardGroups(placed, field) : []),
     [field, placed]
@@ -109,6 +104,19 @@ export function RecordBoardContent({
   )
   // Collapsed lanes: the session's, never the view's.
   const [closed, setClosed] = useState<ReadonlySet<string>>(() => new Set())
+  // A card moved into a collapsed lane is out of sight, so focus goes to its lane.
+  const [joined, setJoined] = useState<{ lane: number } | null>(null)
+  useLayoutEffect(() => {
+    if (!joined) return
+    // After the Move menu closes, which hands focus back to the card's old handle.
+    const frame = requestAnimationFrame(() =>
+      bodyRef.current
+        ?.querySelectorAll('[data-slot="record-board-lane"]')
+        [joined.lane]?.querySelector<HTMLElement>('summary')
+        ?.focus()
+    )
+    return () => cancelAnimationFrame(frame)
+  }, [joined])
   const { toggleRow } = frame
   // Shift ranges run down each column in turn, lane by open lane, as the cards read.
   const onToggle = useCallback(
@@ -129,15 +137,29 @@ export function RecordBoardContent({
   const selecting = useSelectModeLayout(true)
   const group = useId()
   const movable = Boolean(config.onMove) && !selecting
-  const onMove = (id: string, value: string | null) => {
+  // Only the grouping fields whose keys differ between the two cells.
+  const onMove = (id: string, from: string, to: string) => {
     const record = rows.find((row) => row.id === id)
-    if (record) void move(record, value)
+    if (!record || !field) return
+    const changes: Changes = {}
+    const [column, lane] = cellKeys(to)
+    const [fromColumn, fromLane] = cellKeys(from)
+    if (column !== fromColumn) changes[field.key] = column
+    if (laneField && lane !== fromLane) {
+      changes[laneField.key] = lane
+      const index = lanes?.findIndex((one) => one.key === lane) ?? -1
+      if (lanes?.[index] && closed.has(laneKey(laneField, lanes[index])))
+        setJoined({ lane: index })
+    }
+    void move(record, changes)
   }
-  const cards = (column: Column, list: string, compact = false) => (
+  const cards = (column: Column, lane?: BoardLane) => (
     <BoardCards
       column={column}
-      group={list}
-      compact={compact}
+      group={group}
+      value={cellValue(column, lane)}
+      section={lane?.label}
+      compact={Boolean(lane)}
       movable={movable}
       onMove={onMove}
       titleOf={titleOf}
@@ -191,14 +213,13 @@ export function RecordBoardContent({
             stickyTop={frame.stickyTop}
             cell={(lane, column) => (
               <div
-                key={columnValue(column.key)}
+                key={cellValue(column)}
                 role='group'
                 aria-label={column.label}
                 data-slot='record-board-cell'
                 className={columnClass}
               >
-                {/* Its own group per lane: cards move between columns, within their lane. */}
-                {cards(column, `${group}-${laneKey(laneField, lane)}`, true)}
+                {cards(column, lane)}
               </div>
             )}
           />
@@ -213,7 +234,7 @@ export function RecordBoardContent({
           >
             {columns.map((column) => (
               <section
-                key={columnValue(column.key)}
+                key={cellValue(column)}
                 aria-label={column.label}
                 data-slot='record-board-column'
                 className={columnClass}
@@ -227,7 +248,7 @@ export function RecordBoardContent({
                     {column.rows.length}
                   </span>
                 </h2>
-                {cards(column, group)}
+                {cards(column)}
               </section>
             ))}
           </div>
@@ -252,6 +273,8 @@ RecordBoardContent.displayName = 'RecordBoardContent'
 function BoardCards({
   column,
   group,
+  value,
+  section,
   compact,
   movable,
   onMove,
@@ -260,10 +283,13 @@ function BoardCards({
 }: {
   column: Column
   group: string
+  value: string
+  /** The lane's name, so the Move menu offers other lanes as submenus. */
+  section?: string
   /** A lane's cell, shorter while empty. */
   compact: boolean
   movable: boolean
-  onMove: (id: string, value: string | null) => void
+  onMove: (id: string, from: string, to: string) => void
   titleOf: (record: Row) => string
   children: (record: Row) => ReactNode
 }) {
@@ -271,13 +297,14 @@ function BoardCards({
   return (
     <Sortable
       group={group}
-      value={columnValue(column.key)}
+      value={value}
+      section={section}
       label={column.label}
       items={items}
       disabled={!movable}
       // Cards keep the view's sort, so only a move to another column counts.
       onReorder={() => {}}
-      onTransfer={({ value, to }) => onMove(value, to === NONE ? null : to)}
+      onTransfer={({ value, from, to }) => onMove(value, from, to)}
     >
       <Sortable.DropZone
         render={<ul role='list' />}
@@ -340,7 +367,6 @@ export function boardGroupFields(
 /** The rows with moves applied. */
 function placeMoves(
   rows: readonly Row[],
-  field: RecordsField,
   moves: ReadonlyMap<string, Move>
 ): readonly Row[] {
   if (!moves.size) return rows
@@ -348,14 +374,14 @@ function placeMoves(
     const move = moves.get(record.id)
     // Once the app hands over a new row, it holds the record's real value.
     if (!move || (!move.pending && move.row !== record.row)) return record
-    return { ...record, row: { ...record.row, [field.key]: move.value } }
+    return { ...record, row: { ...record.row, ...move.changes } }
   })
 }
 
 /** Every option's group, then "No <field>" even when empty, so cards can move there. */
 function boardGroups(rows: readonly Row[], field: RecordsField): Column[] {
   // A blank option never holds a record, as blank values group under "No <field>".
-  const groups = groupRecords(rows, field).filter(({ key }) => key !== NONE)
+  const groups = groupRecords(rows, field).filter(({ key }) => key !== '')
   return groups[groups.length - 1]?.key === null
     ? groups
     : [...groups, { key: null, label: noneLabel(field), rows: [] }]
@@ -386,8 +412,7 @@ const messageOf = (error: unknown, fallback: string) =>
 
 function useBoardMoves(
   onMove: BoardLayoutConfig['onMove'],
-  titleOf: (record: Row) => string,
-  key: string | undefined
+  titleOf: (record: Row) => string
 ) {
   const [moves, setMoves] = useState<ReadonlyMap<string, Move>>(new Map())
   const [error, setError] = useState<string | null>(null)
@@ -405,14 +430,14 @@ function useBoardMoves(
       return copy
     })
 
-  const move = async (record: Row, value: string | null) => {
-    if (!onMove || !key) return
+  const move = async (record: Row, changes: Changes) => {
+    if (!onMove) return
     setError(null)
-    const entry: Move = { value, row: record.row, pending: true }
+    const entry: Move = { changes, row: record.row, pending: true }
     current.current.set(record.id, entry)
     setMoves((all) => new Map(all).set(record.id, entry))
     try {
-      await onMove(record.row as Record<string, unknown>, { [key]: value })
+      await onMove(record.row as Record<string, unknown>, changes)
       settle(record.id, entry, { ...entry, pending: false })
     } catch (caught) {
       settle(record.id, entry)
