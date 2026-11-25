@@ -99,19 +99,15 @@ export const carouselItemVariants = cva(
   }
 )
 
-// Previous, Next, Dots, and Controls render on the server, before Embla has
-// measured, then hide with `data-hidden` once there's nowhere to scroll. The
-// attribute adds specificity, so an app's own `flex` can't show them, and
-// `display: none` keeps them out of the tab order and accessibility tree.
+// The attribute's specificity beats an app's own `flex` on the part.
 export const carouselHiddenClass = 'data-hidden:hidden'
 
 export const carouselDotsVariants = cva('flex items-center justify-center', {
   variants: {
     direction: {
-      // The dots' own height, held while there are none yet, before Embla has
-      // counted the snaps.
+      // Each holds the dot row's cross size until the dots are counted.
       horizontal: 'min-h-2 flex-row gap-1.5',
-      vertical: 'flex-col gap-1.5'
+      vertical: 'min-w-5 flex-col gap-1.5'
     }
   },
   defaultVariants: { direction: 'horizontal' }

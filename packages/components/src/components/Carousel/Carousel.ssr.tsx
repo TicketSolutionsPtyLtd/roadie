@@ -32,3 +32,14 @@ export const DotsBelow = () => (
     <Carousel.Dots />
   </Carousel>
 )
+
+export const VerticalDotsBeside = () => (
+  <Carousel
+    aria-label='Upcoming shows'
+    direction='vertical'
+    className='flex gap-4'
+  >
+    <Carousel.Content className='h-48 flex-1'>{slides}</Carousel.Content>
+    <Carousel.Dots />
+  </Carousel>
+)
