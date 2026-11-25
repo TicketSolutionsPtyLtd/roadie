@@ -87,7 +87,7 @@ render(<Events />)
 
 ### Lanes
 
-Give `groupBy` two fields, and the second makes a lane across the columns for each of its options, in option order, then one for records with no value, such as "No milestone". Every lane shows, even with no cards, so there's always somewhere to move a card. The column headers stay in view as the lanes scroll, and each counts its column across every lane. A lane's title opens and closes it for the session; it isn't saved in the view or the URL. Give the lane field `groupHeading` for content under each lane's title, such as a milestone's dates. Cards move between columns within their lane, and `onMove` gets only the column's field.
+Give `groupBy` two fields, and the second makes a lane across the columns for each of its options, in option order, then one for records with no value, such as "No milestone". Every lane shows, even with no cards. The column headers stay in view as the lanes scroll, and each counts its column across every lane. A lane's title opens and closes it for the session; it isn't saved in the view or the URL. Give the lane field `groupHeading` for content under each lane's title, such as a milestone's dates. Cards move between columns within their lane, and `onMove` gets only the column's field.
 
 ```tsx-live-noinline-expand
 const stories = [
