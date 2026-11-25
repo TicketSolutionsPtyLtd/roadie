@@ -433,7 +433,14 @@ function useBoardMoves(
   const move = async (record: Row, changes: Changes) => {
     if (!onMove) return
     setError(null)
-    const entry: Move = { changes, row: record.row, pending: true }
+    // A move still shown, as the app hasn't handed over its row, stays under this one.
+    const prior = moves.get(record.id)
+    const shown = prior && (prior.pending || prior.row === record.row)
+    const entry: Move = {
+      changes: shown ? { ...prior.changes, ...changes } : changes,
+      row: record.row,
+      pending: true
+    }
     current.current.set(record.id, entry)
     setMoves((all) => new Map(all).set(record.id, entry))
     try {

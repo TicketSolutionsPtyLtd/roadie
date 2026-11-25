@@ -431,6 +431,25 @@ describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
       .toContain('Ocean Alley 1')
   })
 
+  it('keeps a move the app is still saving when the card moves again', async () => {
+    const user = userEvent.setup()
+    const onMove = vi.fn<Move>(() => new Promise(() => {}))
+    render(<Lanes onMove={onMove} />)
+    await moveTo(user, 'Cancelled')
+    await expect
+      .poll(() => cellTitles('Brisbane', 'Cancelled'))
+      .toEqual(['Ocean Alley 1'])
+    await moveAcross(user, 'Melbourne', 'Cancelled')
+    expect(onMove).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { city: 'Melbourne' }
+    )
+    await expect
+      .poll(() => cellTitles('Melbourne', 'Cancelled'))
+      .toEqual(['Ocean Alley 1'])
+    expect(cellTitles('Melbourne', 'On sale')).toEqual([])
+  })
+
   it('puts a card moved to another lane back, with the message, when onMove rejects', async () => {
     const user = userEvent.setup()
     let reject = (_: Error) => {}
