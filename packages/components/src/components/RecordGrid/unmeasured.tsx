@@ -11,16 +11,28 @@ export const FIRST_CARDS = 10
 /** The column counts the filler tells apart; a wider grid reads as this many. */
 const MAX_COLUMNS = 12
 
+const rowsPast = (records: number, columns: number) =>
+  Math.ceil(records / columns) - Math.ceil(FIRST_CARDS / columns)
+
 /**
  * The grid rows the rest of the records take past the first cards' own, for
  * each count of columns from one.
  */
 export function fillerRows(records: number) {
-  return Array.from({ length: MAX_COLUMNS }, (_, at) => {
-    const columns = at + 1
-    const rows = Math.ceil(records / columns) - Math.ceil(FIRST_CARDS / columns)
-    return Math.max(1, rows)
-  })
+  return Array.from({ length: MAX_COLUMNS }, (_, at) =>
+    Math.max(1, rowsPast(records, at + 1))
+  )
+}
+
+/**
+ * The cards to draw before the columns are measured: every one when, at some
+ * width, the rest fit in the first cards' last row, as a filler spans one.
+ */
+export function firstCards(records: number) {
+  const fits = Array.from({ length: MAX_COLUMNS }, (_, at) => at + 1).some(
+    (columns) => rowsPast(records, columns) < 1
+  )
+  return fits ? records : Math.min(records, FIRST_CARDS)
 }
 
 // Whole literals, for Tailwind's scanner. n columns of `auto-fill, minmax(16rem,

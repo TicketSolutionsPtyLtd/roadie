@@ -40,7 +40,12 @@ import {
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { gridParts } from './parts'
 import type { GridLayoutConfig } from './types'
-import { FIRST_CARDS, GridFiller, UNMEASURED_CLASS } from './unmeasured'
+import {
+  FIRST_CARDS,
+  GridFiller,
+  UNMEASURED_CLASS,
+  firstCards
+} from './unmeasured'
 
 const columnsClass = cn(
   'grid grid-cols-[repeat(auto-fill,minmax(min(16rem,100%),1fr))]',
@@ -410,7 +415,7 @@ function RangeGrid({
   // On the server and until the layout effect reads the tracks, as VirtualGrid:
   // the first cards, and the room for the rest at whatever width CSS lays out.
   if (measured === undefined) {
-    const first = Math.min(range.count, FIRST_CARDS)
+    const first = firstCards(range.count)
     return (
       <GridList {...listProps} busy={busy} bodyRef={setRefs} unmeasured>
         {Array.from({ length: first }, (_, index) => {
