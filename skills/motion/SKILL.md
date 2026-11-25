@@ -66,6 +66,7 @@ For motion no component gives you, pick the utility for the job.
 | Look here                             | `animate-nudge`                                        |
 | A count went up                       | `animate-pop`                                          |
 | A tap landed                          | `animate-pop-tap`                                      |
+| Time is running out on a bar          | `animate-time-left`, with `motion-reduce:hidden`       |
 
 - One-shot cues (`animate-shake`, `-nudge`, `-pop`, `-pop-tap`) replay when the
   class is removed and added again.
