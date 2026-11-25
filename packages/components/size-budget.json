@@ -1,5 +1,5 @@
 {
-  ".": { "own": 225472, "full": 450905, "initial": 409810 },
+  ".": { "own": 225630, "full": 451671, "initial": 409905 },
   "./accordion": { "own": 1760, "full": 10649, "initial": 10649 },
   "./autocomplete": { "own": 7311, "full": 66282, "initial": 54070 },
   "./avatar": { "own": 2092, "full": 14680, "initial": 14680 },
@@ -33,7 +33,7 @@
   "./empty-state": { "own": 1655, "full": 9953, "initial": 9953 },
   "./field": { "own": 2095, "full": 10494, "initial": 10494 },
   "./fieldset": { "own": 617, "full": 8829, "initial": 8829 },
-  "./file-upload": { "own": 28958, "full": 86989, "initial": 42477 },
+  "./file-upload": { "own": 29170, "full": 87371, "initial": 42702 },
   "./highlight": { "own": 1028, "full": 9355, "initial": 9355 },
   "./icon-tile": { "own": 558, "full": 8933, "initial": 8933 },
   "./image": { "own": 2681, "full": 11194, "initial": 11194 },
