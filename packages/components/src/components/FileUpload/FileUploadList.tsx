@@ -44,8 +44,6 @@ type Leaving = {
   file: File
   /** The row it sat under, or null when it was first. */
   after: File | null
-  /** Its place when it left, in case the row above has gone too. */
-  index: number
 }
 
 /** The files' rows, with each collapsing row back under the row it left from. */
@@ -58,13 +56,28 @@ function layRows(files: File[], leaving: Leaving[]) {
     const next = pending.findIndex(
       ({ after }) => !pending.some(({ file }) => file === after)
     )
-    const { file, after, index } = pending.splice(Math.max(next, 0), 1)[0]!
-    // A first row (`after` null, `index` 0) takes the fallback too.
+    const { file, after } = pending.splice(Math.max(next, 0), 1)[0]!
+    // The row above is always live or collapsing: `dropLeft` moves a row up
+    // past one that has gone. A first row (`after` null) goes in at 0.
     const above = rows.findIndex((row) => row.file === after)
-    const at = above === -1 ? Math.min(index, rows.length) : above + 1
-    rows.splice(at, 0, { file, leaving: true })
+    rows.splice(above + 1, 0, { file, leaving: true })
   }
   return rows
+}
+
+/**
+ * The collapsing rows without the ones that have gone. A row that sat under
+ * one of them moves up to the row that one sat under, so it never falls back
+ * to its old index.
+ */
+function dropLeft(leaving: Leaving[], gone: (file: File) => boolean) {
+  const above = (after: File | null): File | null => {
+    const row = after && leaving.find(({ file }) => file === after)
+    return row && gone(row.file) ? above(row.after) : after
+  }
+  return leaving.flatMap((row) =>
+    gone(row.file) ? [] : [{ ...row, after: above(row.after) }]
+  )
 }
 
 const defaultItem = ({ status }: Item) => (
@@ -115,7 +128,7 @@ export function FileUploadList({
       ...shown.flatMap((row, index) =>
         row.leaving || files.includes(row.file)
           ? []
-          : [{ file: row.file, after: shown[index - 1]?.file ?? null, index }]
+          : [{ file: row.file, after: shown[index - 1]?.file ?? null }]
       )
     ])
   }
@@ -125,7 +138,7 @@ export function FileUploadList({
   useEffect(() => {
     if (leaving.some(({ file }) => !claimed.current.has(idFor(file))))
       setLeaving((rows) =>
-        rows.filter(({ file }) => claimed.current.has(idFor(file)))
+        dropLeft(rows, (file) => !claimed.current.has(idFor(file)))
       )
   }, [leaving])
 
@@ -155,7 +168,7 @@ export function FileUploadList({
               leaving,
               enterIndex: Math.max(added.indexOf(file), 0),
               onLeft: () =>
-                setLeaving((rows) => rows.filter((row) => row.file !== file)),
+                setLeaving((rows) => dropLeft(rows, (row) => row === file)),
               claim: (id) => claimed.current.add(id)
             }}
           >
