@@ -58,7 +58,7 @@ const ALLOWED: Record<string, Record<string, string>> = {
 }
 
 // jsdom's import.meta.url isn't a file URL, and `?raw` empties a CSS import.
-const directory = join(process.cwd(), 'src/css')
+const directory = import.meta.dirname ?? join(process.cwd(), 'src/css')
 const sheets = readdirSync(directory).filter(
   (file) => file.endsWith('.css') && file !== 'components.css'
 )
@@ -67,7 +67,7 @@ const slotsIn = (sheet: string) =>
   new Set(
     readFileSync(join(directory, sheet), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '')
-      .matchAll(/data-slot\s*=\s*['"]?([\w-]+)/g)
+      .matchAll(/data-slot\s*[~|^$*]?=\s*['"]?([\w-]+)/g)
       .map(([, slot]) => slot!)
   )
 
@@ -82,7 +82,7 @@ describe('component sheets style only their own slots', () => {
   it.each(sheets)("%s styles only its component's slots", (sheet) => {
     const owner = OWNER[sheet] ?? ''
     const foreign = [...slotsIn(sheet)].filter(
-      (slot) => !owns(owner, slot) && !(slot in (ALLOWED[sheet] ?? {}))
+      (slot) => !owns(owner, slot) && !Object.hasOwn(ALLOWED[sheet] ?? {}, slot)
     )
     expect(foreign).toEqual([])
   })

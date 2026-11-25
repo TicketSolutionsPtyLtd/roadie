@@ -134,8 +134,8 @@ Each rule has a foundations page with the detail.
 - **Sheets.** Style a part with classes in the component that renders it. A
   sheet in `packages/components/src/css/` is for what classes can't say, and
   styles only its own component's `data-slot`s, so a part's CSS is found from
-  its slot prefix. `slotOwnership.test.ts` holds the exceptions, each with a
-  reason.
+  its slot prefix. `slotOwnership.test.ts` is the detail: it holds the
+  exceptions, each with a reason.
 - **Selectors.** End any selector that runs past a `:has()` on a class, a
   variable the anchor sets, or a rare attribute named first, and never write an
   unkeyed `:has(~ …)`, or Chromium restyles the whole page
