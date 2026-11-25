@@ -33,6 +33,7 @@ export type DataTableViewProps = Omit<ComponentProps<'div'>, 'children'> & {
   sortControl?: (column: TableColumn) => DataTableSortControl | undefined
   showAllLabel: string
   plain: boolean
+  fill?: boolean
   totals?: ResolvedTotals
   groupBy?: readonly string[]
   defaultExpanded?: DataTableExpanded
@@ -90,6 +91,7 @@ export function DataTableView({
   sortControl,
   showAllLabel,
   plain,
+  fill,
   totals: footer,
   groupBy,
   defaultExpanded,
@@ -131,12 +133,16 @@ export function DataTableView({
   return (
     <DataTableFrame
       showAll={hasPriorities}
-      className={cn('grid gap-2', className)}
+      className={cn(
+        'grid gap-2',
+        fill && 'h-full min-h-0 grid-rows-[minmax(0,1fr)]',
+        className
+      )}
       {...props}
     >
       <div
         data-slot='data-table-scroller'
-        className='overflow-x-auto'
+        className={fill ? 'overflow-auto' : 'overflow-x-auto'}
         role='region'
         tabIndex={0}
         aria-label={`${caption ?? 'Table'}, scrolls sideways`}

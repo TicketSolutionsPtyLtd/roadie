@@ -117,6 +117,34 @@ Narrow the table and lower-priority columns hide behind Show all columns first. 
 />
 ```
 
+### Fill
+
+`fill` makes the table take the height it's given and scroll inside it, both ways, rather than grow with its rows. A chart's table view uses it to stay within the plot's height.
+
+```tsx-live
+<div className='h-40'>
+  <DataTable
+    fill
+    plain
+    caption='Days to show'
+    columns={[
+      { key: 'days', header: 'Days to show', kind: 'number' },
+      { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
+      { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
+    ]}
+    rows={[
+      { days: 90, show: 0.14, similar: 0.14 },
+      { days: 75, show: 0.27, similar: 0.24 },
+      { days: 60, show: 0.38, similar: 0.35 },
+      { days: 45, show: 0.5, similar: 0.44 },
+      { days: 30, show: 0.61, similar: 0.52 },
+      { days: 14, show: 0.78, similar: 0.66 },
+      { days: 7, show: 0.86, similar: 0.74 }
+    ]}
+  />
+</div>
+```
+
 ### Totals row
 
 Pass `totals` to add a totals row as the table's footer, such as a report's line for all its events. Its label goes in the title column, the pinned text column or else the first text column, as on a RecordTable. With no text column, it goes in the first column without a sum, so a number column that comes first keeps its total. The label's column never hides while the totals show. `recordName` names the rows in the default label, as in "Totals for 4 events".

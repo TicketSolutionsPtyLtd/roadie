@@ -427,3 +427,45 @@ describe('DataTable pinned cells', () => {
     )
   })
 })
+
+describe('DataTable fill', () => {
+  const many = Array.from({ length: 20 }, (_, index) => ({
+    show: `Show ${index + 1}`,
+    pace: index
+  }))
+  const narrow = [columns[0]!, columns[4]!]
+
+  it.each([
+    ['a block', { height: 160 }],
+    ['a grid row', { height: 160, display: 'grid' }]
+  ])('scrolls inside the height of %s it fills', (_, style) => {
+    const { container } = render(
+      <div style={style}>
+        <DataTable fill columns={narrow} rows={many} />
+      </div>
+    )
+    const table = container.querySelector<HTMLElement>(
+      '[data-slot=data-table]'
+    )!
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    expect(table.getBoundingClientRect().height).toBeCloseTo(160, 0)
+    expect(scroller.scrollHeight).toBeGreaterThan(scroller.clientHeight)
+    scroller.scrollTop = scroller.scrollHeight
+    expect(scroller.scrollTop).toBeGreaterThan(0)
+  })
+
+  it('grows with its rows without fill', () => {
+    const { container } = render(
+      <div style={{ height: 160 }}>
+        <DataTable columns={narrow} rows={many} />
+      </div>
+    )
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    expect(scroller.scrollHeight).toBe(scroller.clientHeight)
+    expect(scroller.getBoundingClientRect().height).toBeGreaterThan(160)
+  })
+})

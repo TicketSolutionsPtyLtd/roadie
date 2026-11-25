@@ -58,6 +58,11 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   /** Plain numbers only, for a chart's table view. */
   plain?: boolean
   /**
+   * Fills the height it's given and scrolls inside it, both ways, so a long
+   * table stays within a fixed-height box such as a chart's plot area.
+   */
+  fill?: boolean
+  /**
    * Adds a totals row as the table's footer, its label in the title column,
    * else the first column without a sum.
    * `true` or `'sum'` adds up the number columns over every row, except

@@ -7,6 +7,7 @@ import type {
   StaticPlotImage
 } from '@oztix/roadie-core/dashboard'
 import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
+import { cn } from '@oztix/roadie-core/utils'
 
 import { BarChart } from '../BarChart'
 import { DonutChart } from '../DonutChart'
@@ -27,26 +28,41 @@ function ThemedImage({ image, alt }: { image: StaticPlotImage; alt: string }) {
         data-theme-image={image.srcDark ? 'light' : undefined}
         src={image.src}
         alt={alt}
+        className='h-auto w-full'
       />
       {image.srcDark && (
-        <img data-theme-image='dark' src={image.srcDark} alt={alt} />
+        <img
+          data-theme-image='dark'
+          src={image.srcDark}
+          alt={alt}
+          className='h-auto w-full'
+        />
       )}
     </>
   )
 }
 
+// Each band shows at its own plot widths, and the default steps aside for a
+// narrow or wide image only where one is given.
 function StaticPlotView({ plot }: { plot: StaticPlot }) {
   const bands = [
-    ['narrow', plot.narrow],
-    ['default', plot],
-    ['wide', plot.wide]
+    ['narrow', plot.narrow, 'hidden @max-[480px]/chart-plot:block'],
+    [
+      'default',
+      plot,
+      cn(
+        plot.narrow && '@max-[480px]/chart-plot:hidden',
+        plot.wide && '@min-[960px]/chart-plot:hidden'
+      )
+    ],
+    ['wide', plot.wide, 'hidden @min-[960px]/chart-plot:block']
   ] as const
   return (
-    <div data-slot='chart-static-plot'>
+    <div data-slot='chart-static-plot' className='@container/chart-plot'>
       {bands.map(
-        ([band, image]) =>
+        ([band, image, className]) =>
           image && (
-            <div key={band} data-plot-band={band}>
+            <div key={band} data-plot-band={band} className={className}>
               <ThemedImage image={image} alt={plot.alt} />
             </div>
           )
