@@ -97,7 +97,9 @@ export const paneHeaderVariants = cva(
 )
 
 // Back and Close share the leading cell; the stylesheet draws at most one.
-export const paneHeaderEdgeClass = 'col-start-1 row-start-1 justify-self-start'
+// Like the header's other controls, they're for moving around, so paper leaves them out.
+export const paneHeaderEdgeClass =
+  'col-start-1 row-start-1 justify-self-start print:hidden'
 
 // grid rows 1fr→0fr close the row; transforms wouldn't release layout.
 export const paneTitleVariants = cva(
@@ -132,7 +134,9 @@ export const paneTitleCompactVariants = cva(
     'inline-flex items-center justify-center gap-1',
     'min-w-0 truncate cursor-pointer text-sm font-semibold text-strong',
     'motion-safe:transition-[scale,opacity] motion-safe:duration-slow',
-    'motion-safe:ease-enter motion-reduce:transition-none'
+    'motion-safe:ease-enter motion-reduce:transition-none',
+    // A printed title is always open, so its echo has nothing to stand in for.
+    'print:hidden'
   ],
   {
     variants: {
@@ -148,11 +152,11 @@ export const paneTitleCompactVariants = cva(
 
 export const paneActionsClass = [
   'col-start-3 row-start-1 flex flex-wrap items-center justify-end gap-1',
-  'justify-self-end'
+  'justify-self-end print:hidden'
 ].join(' ')
 
 // Flex: the field takes what Cancel leaves as it opens.
-export const paneSearchClass = 'group/search flex items-center'
+export const paneSearchClass = 'group/search flex items-center print:hidden'
 
 export const paneSearchBoxClass = 'relative grid min-w-0 flex-1'
 
@@ -180,5 +184,7 @@ export const paneFooterClass = [
   'rounded-b-(--pane-radius)',
   '-mx-(--content-inset) px-(--content-inset) pt-3 pb-4',
   // Flipped, so the downward shadow token casts up over the content.
-  "after:pointer-events-none after:absolute after:inset-0 after:-scale-y-100 after:shadow-md after:content-['']"
+  "after:pointer-events-none after:absolute after:inset-0 after:-scale-y-100 after:shadow-md after:content-['']",
+  // Its actions do nothing on paper.
+  'print:hidden'
 ].join(' ')

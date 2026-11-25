@@ -584,8 +584,11 @@ panes, the inspector, and the pane's Back, Close, actions, search, footer, and
 scrollbar stay off the paper. A `Pane` outside a `Navigator` prints whole the
 same way. Nothing needs a prop: it's how every pane prints.
 
-Hide anything else in the pane that has no place on paper, such as a Print or
-Download button, with `print:hidden`. To name the PDF someone saves from the
+Those parts leave themselves out with the same `print:hidden` you'd use, so to
+print `Pane.Actions`, `Pane.Search`, or `Pane.Footer` anyway, give it a display
+for print in its `className`, such as `print:flex`. Hide anything else in the
+pane that has no place on paper, such as a Print or Download button, with
+`print:hidden`. To name the PDF someone saves from the
 print dialog, set `document.title` before you call `window.print()`, and put it
 back after.
 

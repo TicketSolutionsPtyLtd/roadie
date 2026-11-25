@@ -6,6 +6,11 @@ import roadieCss from '../../vitest.browser.css?inline'
 import { Button } from '../components/Button'
 import { Navigator } from '../components/Navigator'
 import { FakeIcon, withStubLink } from '../components/Navigator/testUtils'
+import {
+  navigatorPageGhostClass,
+  navigatorPendingClass,
+  navigatorRootClass
+} from '../components/Navigator/variants'
 import { Pane } from '../components/Pane'
 import {
   type RowSpec,
@@ -19,6 +24,7 @@ import {
   paneTitleCompactVariants,
   paneTitleVariants
 } from '../components/Pane/variants'
+import { toastViewportVariants } from '../components/Toast/variants'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -316,14 +322,34 @@ describe('printing a stack whose panes are still registering', () => {
   )
 })
 
+describe('printing a part the app wants on paper', () => {
+  it('prints a footer whose className says to', async () => {
+    render(
+      <Pane data-testid='receipt'>
+        <Pane.Header>
+          <Pane.Title>Tax invoice</Pane.Title>
+        </Pane.Header>
+        <p>Kazoo Hollow Room, general admission</p>
+        <Pane.Footer className='print:block'>Paid in full</Pane.Footer>
+      </Pane>,
+      { container: host(800) }
+    )
+    await frames()
+    await commands.printMedia(true)
+    await frames()
+    expect(laidOut(slot('pane-footer', byTestId('receipt')))).toBe(true)
+  })
+})
+
+// Markup with each part's own classes: these parts only exist mid-navigation.
 describe('printing while the frame is moving', () => {
   it('leaves the navigation glow, the page step, and toasts off the paper', async () => {
     mount(
-      `<div data-slot="navigator" data-pending="visible">
-        <div data-slot="navigator-pending">Waiting</div>
-        <div data-slot="navigator-page-ghost">Previous page</div>
+      `<div data-slot="navigator" data-pending="visible" class="${navigatorRootClass}">
+        <div data-slot="navigator-pending" class="${navigatorPendingClass}">Waiting</div>
+        <div data-slot="navigator-page-ghost" class="${navigatorPageGhostClass}">Previous page</div>
       </div>
-      <div data-slot="toast-viewport"><p>Tickets resent</p></div>`,
+      <div data-slot="toast-viewport" class="${toastViewportVariants({ side: 'bottom', align: 'end' })}"><p>Tickets resent</p></div>`,
       800
     )
     await commands.printMedia(true)

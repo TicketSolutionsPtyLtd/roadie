@@ -430,7 +430,7 @@ export function PaneRoot({
       {/* keepMounted so the margin binds before overflow is measured. */}
       <ScrollArea.Scrollbar
         keepMounted
-        className='mt-[calc(var(--pane-header-height,0px)_+_--spacing(1))]'
+        className='mt-[calc(var(--pane-header-height,0px)_+_--spacing(1))] print:hidden'
       >
         <ScrollArea.Thumb />
       </ScrollArea.Scrollbar>
