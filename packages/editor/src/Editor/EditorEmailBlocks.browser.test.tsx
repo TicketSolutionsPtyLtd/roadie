@@ -292,6 +292,9 @@ describe('Editor email blocks', () => {
       )
     )
 
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    )
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
     await saved(onValueChange, value)
   })

@@ -278,4 +278,26 @@ describe('Records.Header outside a pane', () => {
     await expect.poll(() => slot('query-field')).not.toBeNull()
     expect(box(searchField()).top).toBe(box(slot('records-header')).top)
   })
+
+  it('holds its search in a box sized by its content', TIMEOUT, async () => {
+    function Shows() {
+      const records = useRecords({
+        data: testShows(10),
+        fields: showFields,
+        getRowId: (row) => row.id
+      })
+      return (
+        <div style={{ width: 'fit-content' }}>
+          <Records records={records} layouts={layouts} caption='Shows'>
+            <Records.Header />
+          </Records>
+        </div>
+      )
+    }
+    render(<Shows />)
+    await expect.poll(() => slot('query-field')).not.toBeNull()
+    const header = box(slot('records-header'))
+    expect(box(searchField()).width).toBeGreaterThan(0)
+    expect(box(searchField()).right).toBeLessThanOrEqual(header.right)
+  })
 })

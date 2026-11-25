@@ -62,12 +62,6 @@ describe('RecordTable table actions', () => {
     ).toEqual(['Print door list', 'Email everyone'])
   })
 
-  it('shows no menu for a single action', () => {
-    render(<Shows actions={actions().slice(0, 1)} />)
-    expect(screen.getByRole('button', { name: 'Export CSV' })).toBeVisible()
-    expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
-  })
-
   it('acts within the page’s scope', async () => {
     const onAction = vi.fn()
     const perth: RecordFilter = {

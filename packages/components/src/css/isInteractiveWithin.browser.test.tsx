@@ -106,8 +106,7 @@ function look(element: HTMLElement) {
     background: style.backgroundColor,
     shadow: style.boxShadow,
     outline: style.outlineWidth,
-    fill: style.getPropertyValue('--card-fill'),
-    edgeShadow: style.getPropertyValue('--card-shadow-2')
+    fill: style.getPropertyValue('--card-fill')
   }
 }
 

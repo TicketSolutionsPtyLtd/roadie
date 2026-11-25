@@ -1,17 +1,29 @@
 import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
 
+import { DEFAULT_ACCENT_HUE, toHex } from '@oztix/roadie-core/dataviz'
+
 import { defaultEmailTheme } from './index'
 import { emailTheme } from './theme'
 
-type Token = { name: string; value?: { fallback?: string } }
+type Token = { name: string; value?: { light?: string } }
 
 const { tokens } = createRequire(import.meta.url)(
   '@oztix/roadie-core/roadie.manifest.json'
 ) as { tokens: Token[] }
 
-const hexOf = (token: string) =>
-  tokens.find(({ name }) => name === `--color-${token}`)?.value?.fallback
+// Each sRGB channel of the token, which Roadie writes in oklch().
+const channelsOf = (token: string) => {
+  const light = tokens.find(({ name }) => name === `--color-${token}`)?.value
+    ?.light
+  const [l, c, h] = (/^oklch\((.*)\)$/.exec(light ?? '')?.[1] ?? '')
+    .replace('var(--accent-hue)', String(DEFAULT_ACCENT_HUE))
+    .split(' ')
+    .map(Number)
+  return channels(toHex([l!, c!, h!]))
+}
+const channels = (hex: string) =>
+  [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16))
 
 describe('defaultEmailTheme', () => {
   it.each([
@@ -25,8 +37,10 @@ describe('defaultEmailTheme', () => {
     ['tint', 'neutral-3'],
     ['divider', 'neutral-light-5']
   ] as const)('takes its %s from Roadie’s --color-%s', (key, token) => {
-    expect(hexOf(token)).toMatch(/^#[0-9a-f]{6}$/)
-    expect(defaultEmailTheme[key]).toBe(hexOf(token))
+    // Within a unit per channel: OKLCH rounds to three places.
+    channels(defaultEmailTheme[key]).forEach((channel, i) =>
+      expect(Math.abs(channel - channelsOf(token)[i]!)).toBeLessThanOrEqual(1)
+    )
   })
 })
 

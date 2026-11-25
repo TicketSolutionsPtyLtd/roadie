@@ -12,7 +12,7 @@ import {
   rowClass,
   selectCellClass
 } from './RecordTableRow'
-import { type ColumnLayout, priorityProps } from './layout'
+import { type ColumnLayout, priorityClass, priorityProps } from './layout'
 import type { RecordTableColumn } from './types'
 
 const SKELETON_ROWS = 8
@@ -79,8 +79,8 @@ export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
         <div
           key={column.key}
           role='cell'
-          className={cellClass(column)}
-          {...priorityProps(column, layout, index)}
+          className={cn(cellClass(column), priorityClass(layout, index))}
+          {...priorityProps(layout, index)}
           style={pinStyle(layout.pinnedStart[index])}
         >
           {!blank && <Skeleton shape='text' className='animate-none' />}

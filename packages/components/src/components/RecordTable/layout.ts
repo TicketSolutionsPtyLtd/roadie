@@ -30,14 +30,50 @@ export type ColumnLayout = ColumnTier & {
   /** Each column's priority in effect: none for a pinned column or the title, which carries the row link. */
   priority: (1 | 2 | 3 | undefined)[]
   /** The tiers at which each column is the first cell shown, so it takes the start inset. */
-  firstAt: (number[] | undefined)[]
+  firstAt: ((typeof TIERS)[number][] | undefined)[]
   /** The tiers at which each column is the last cell shown, so it takes the end inset. */
-  lastAt: (number[] | undefined)[]
+  lastAt: ((typeof TIERS)[number][] | undefined)[]
 }
 
 /** Where each priority tier starts, in rem of the table's width. */
 export const PRIORITY_HIDES_BELOW = { 3: 64, 2: 56, 1: 48 } as const
 const TIERS = [1, 2, 3] as const
+
+// Written out because Tailwind reads classes from source; layout.test.ts checks them against PRIORITY_HIDES_BELOW.
+export const TIER_CLASSES = {
+  3: {
+    hide: '@max-[64rem]/record-table-frame:hidden',
+    start: '@max-[64rem]/record-table-frame:ps-(--content-inset)',
+    end: '@max-[64rem]/record-table-frame:pe-(--content-inset)',
+    template:
+      '@max-[64rem]/record-table-frame:[--record-table-columns:var(--record-table-columns-3)] @max-[64rem]/record-table-frame:[--record-table-min-width:var(--record-table-min-width-3)]'
+  },
+  2: {
+    hide: '@max-[56rem]/record-table-frame:hidden',
+    start: '@max-[56rem]/record-table-frame:ps-(--content-inset)',
+    end: '@max-[56rem]/record-table-frame:pe-(--content-inset)',
+    template:
+      '@max-[56rem]/record-table-frame:[--record-table-columns:var(--record-table-columns-2)] @max-[56rem]/record-table-frame:[--record-table-min-width:var(--record-table-min-width-2)]'
+  },
+  1: {
+    hide: '@max-[48rem]/record-table-frame:hidden',
+    start: '@max-[48rem]/record-table-frame:ps-(--content-inset)',
+    end: '@max-[48rem]/record-table-frame:pe-(--content-inset)',
+    template:
+      '@max-[48rem]/record-table-frame:[--record-table-columns:var(--record-table-columns-1)] @max-[48rem]/record-table-frame:[--record-table-min-width:var(--record-table-min-width-1)]'
+  }
+} as const
+
+/** The frame is the container the tiers measure; only a table that reaches a pane's edges takes its inset (records-pane.css). */
+export const frameClass = '@container/record-table-frame [--content-inset:0px]'
+
+/** Picks the tier's template, so the header and rows agree. */
+export const contentTierClass = [
+  '[--record-table-columns:var(--record-table-columns-0)] [--record-table-min-width:var(--record-table-min-width-0)]',
+  TIER_CLASSES[3].template,
+  TIER_CLASSES[2].template,
+  TIER_CLASSES[1].template
+].join(' ')
 
 let warnedPinnedPriority = false
 
@@ -184,7 +220,7 @@ export function columnLayout(
       { select, actions }
     )
   })
-  const firstAt: (number[] | undefined)[] = columns.map(() => undefined)
+  const firstAt: ColumnLayout['firstAt'] = columns.map(() => undefined)
   // The select cell starts every row, so no column needs to.
   if (!select)
     for (const tier of TIERS) {
@@ -192,7 +228,7 @@ export function columnLayout(
       if (first <= 0) continue
       firstAt[first] = [...(firstAt[first] ?? []), tier]
     }
-  const lastAt: (number[] | undefined)[] = columns.map(() => undefined)
+  const lastAt: ColumnLayout['lastAt'] = columns.map(() => undefined)
   // The actions cell ends every row, so no column needs to.
   if (!actions)
     for (const tier of TIERS) {
@@ -203,16 +239,22 @@ export function columnLayout(
   return { ...tiers[0]!, tiers, pinnedStart, priority, firstAt, lastAt }
 }
 
-/** A cell's priority attributes, which record-table.css hides and trims by. */
-export const priorityProps = (
-  column: RecordTableColumn,
-  layout: ColumnLayout,
-  index: number
-) => ({
-  'data-priority': layout.priority[index],
-  'data-priority-start': layout.firstAt[index]?.join(' '),
-  'data-priority-end': layout.lastAt[index]?.join(' ')
+/** A cell's priority, which focus reads when its column hides. */
+export const priorityProps = (layout: ColumnLayout, index: number) => ({
+  'data-priority': layout.priority[index]
 })
+
+/** Hides a cell with its priority, and gives the inset to the first and last cells shown at each tier, which a hidden column's `first:` and `last:` would miss. */
+export const priorityClass = (layout: ColumnLayout, index: number) => {
+  const priority = layout.priority[index]
+  return [
+    priority && TIER_CLASSES[priority].hide,
+    ...(layout.firstAt[index] ?? []).map((tier) => TIER_CLASSES[tier].start),
+    ...(layout.lastAt[index] ?? []).map((tier) => TIER_CLASSES[tier].end)
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
 
 /** Each tier's template and minimum width, never `--record-table-columns` itself: an inline value would beat the container queries. */
 export const tierStyle = (layout: ColumnLayout) =>

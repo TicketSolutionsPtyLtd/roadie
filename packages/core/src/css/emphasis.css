@@ -6,17 +6,10 @@
    ═══════════════════════════════════════════════════════════
 
 /* ═══════════════════════════════════════════════════════════
-   Combined Shortcuts (bg + text + interactive states)
-   Each shortcut includes hover/active/focus states that
-   use the intent color scale via --intent-* vars.
-   Hover only applies where a pointer can hover. A touch screen
-   keeps :hover on the last element tapped, which left buttons
-   looking stuck in their hover colour.
-   Every branch of a selector list weighs the same: a bundler that
-   lowers nesting merges the list into :is(), which takes its
-   heaviest branch's weight, and a heavy resting branch then beat
-   its own hover. So an is-interactive-within branch counts its
-   state once and keeps the rest in :where().
+   Combined Shortcuts (bg + text + border + shadow)
+   A preset declares its state looks as values and paints through
+   the state variables, which only the shared rule in
+   interactions.css sets: a variant's preset would out-order it.
    ═══════════════════════════════════════════════════════════ */
 
 /* Internal, not public API: each interactive preset's state looks. They don't
@@ -56,101 +49,50 @@
 }
 
 @utility emphasis-strong {
-  background-color: var(--intent-bg-strong);
+  /* Sorts where the nested state rules' transform used to put it, before the
+     fill, border and shadow utilities a caller adds. */
+  --tw-sort: transform;
+  background-color: var(--emphasis-fill-state, var(--emphasis-fill));
   color: var(--intent-text-on-strong);
   border: 1px solid transparent;
-  box-shadow: var(--rim-light-subtle);
+  box-shadow: var(--emphasis-shadow-state, var(--emphasis-shadow));
 
   --emphasis-fill: var(--intent-bg-strong);
+  --emphasis-fill-interactive: var(--emphasis-fill);
   --emphasis-fill-hover: var(--intent-bg-strong-hover);
   --emphasis-fill-active: var(--intent-bg-strong-active);
   --emphasis-shadow: var(--rim-light-subtle);
   --emphasis-shadow-hover: var(--rim-light-subtle), var(--shadow-sm);
   --emphasis-shadow-active: none;
   --emphasis-lift-hover: translateY(-1px);
-
-  &.is-interactive:focus-visible,
-  &.is-interactive-within:has(
-      :where([data-interactive-target]):focus-visible
-    ):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
-    ) {
-    background-color: var(--intent-bg-strong-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--rim-light-subtle), var(--shadow-sm);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
-        :not(:has(.is-interactive-within [data-interactive-target]:hover))
-      ) {
-      background-color: var(--intent-bg-strong-hover);
-      transform: translateY(-1px);
-      box-shadow: var(--rim-light-subtle), var(--shadow-sm);
-    }
-  }
-  &.is-interactive:active,
-  &.is-interactive.is-active,
-  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:active))
-    ) {
-    background-color: var(--intent-bg-strong-active);
-    transform: translateY(0) scale(0.99);
-    box-shadow: none;
-  }
 }
 
 @utility emphasis-normal {
-  background-color: var(--intent-bg-normal);
+  --tw-sort: transform;
+  background-color: var(--emphasis-fill-state, var(--emphasis-fill));
   color: var(--intent-text-normal);
   border: 1px solid var(--intent-border-normal);
+  /* No resting shadow, so a lower layer's shows; a variable can't hold revert-layer. */
+  box-shadow: var(--emphasis-shadow-state, revert-layer);
 
   --emphasis-fill: var(--intent-bg-normal);
+  --emphasis-fill-interactive: var(--emphasis-fill);
   --emphasis-fill-hover: var(--intent-2);
   --emphasis-fill-active: var(--intent-3);
   --emphasis-shadow-hover: var(--shadow-sm);
   --emphasis-shadow-active: none;
   --emphasis-lift-hover: translateY(-1px);
-
-  &.is-interactive:focus-visible,
-  &.is-interactive-within:has(
-      :where([data-interactive-target]):focus-visible
-    ):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
-    ) {
-    background-color: var(--intent-2);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
-        :not(:has(.is-interactive-within [data-interactive-target]:hover))
-      ) {
-      background-color: var(--intent-2);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-sm);
-    }
-  }
-  &.is-interactive:active,
-  &.is-interactive.is-active,
-  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:active))
-    ) {
-    background-color: var(--intent-3);
-    transform: translateY(0) scale(0.99);
-    box-shadow: none;
-  }
 }
 
 @utility emphasis-subtle {
-  background-color: var(--intent-bg-subtle);
+  background-color: var(--emphasis-fill-state, var(--emphasis-fill));
   color: var(--intent-text-normal);
   border-width: 1px;
   border-style: solid;
   box-shadow: var(--rim-light-subtler);
 
   --emphasis-fill: var(--intent-bg-subtle);
+  --emphasis-fill-interactive: var(--emphasis-fill);
   --emphasis-fill-hover: var(--intent-4a);
   --emphasis-fill-active: var(--intent-5a);
 
@@ -161,34 +103,10 @@
     background-color: var(--intent-bg-sunken);
     box-shadow: var(--inset-shadow-xs);
   }
-
-  &.is-interactive:focus-visible,
-  &.is-interactive-within:has(
-      :where([data-interactive-target]):focus-visible
-    ):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
-    ) {
-    background-color: var(--intent-4a);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
-        :not(:has(.is-interactive-within [data-interactive-target]:hover))
-      ) {
-      background-color: var(--intent-4a);
-    }
-  }
-  &.is-interactive:active,
-  &.is-interactive.is-active,
-  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:active))
-    ) {
-    background-color: var(--intent-5a);
-  }
 }
 
 @utility emphasis-subtler {
-  background-color: var(--intent-bg-subtler);
+  background-color: var(--emphasis-fill-state, var(--emphasis-fill));
   color: var(--intent-text-normal);
   border-width: 1px;
   border-style: solid;
@@ -197,40 +115,6 @@
   --emphasis-fill-interactive: transparent;
   --emphasis-fill-hover: var(--intent-3a);
   --emphasis-fill-active: var(--intent-4a);
-
-  /* No selector can find a target outside nested surfaces, so a surface with
-     its own target and nested ones keeps its rest tint. */
-  &.is-interactive,
-  &.is-interactive-within:where(
-      :has([data-interactive-target]):not(
-        :has(.is-interactive-within [data-interactive-target])
-      )
-    ) {
-    background-color: transparent;
-  }
-  &.is-interactive:focus-visible,
-  &.is-interactive-within:has(
-      :where([data-interactive-target]):focus-visible
-    ):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
-    ) {
-    background-color: var(--intent-3a);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
-        :not(:has(.is-interactive-within [data-interactive-target]:hover))
-      ) {
-      background-color: var(--intent-3a);
-    }
-  }
-  &.is-interactive:active,
-  &.is-interactive.is-active,
-  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:active))
-    ) {
-    background-color: var(--intent-4a);
-  }
 }
 
 @utility emphasis-inverted {
@@ -253,8 +137,9 @@
 }
 
 @utility emphasis-raised {
+  --tw-sort: transform;
   background-color: var(--raised-fill, var(--intent-bg-raised));
-  box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-md);
+  box-shadow: var(--emphasis-shadow-state, var(--emphasis-shadow));
   color: var(--intent-text-normal);
 
   --emphasis-shadow:
@@ -264,34 +149,6 @@
   --emphasis-shadow-active:
     var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);
   --emphasis-lift-hover: translateY(-1px);
-
-  &.is-interactive:focus-visible,
-  &.is-interactive-within:has(
-      :where([data-interactive-target]):focus-visible
-    ):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
-    ) {
-    transform: translateY(-1px);
-    box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-lg);
-  }
-  @media (hover: hover) {
-    &.is-interactive:hover,
-    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
-        :not(:has(.is-interactive-within [data-interactive-target]:hover))
-      ) {
-      transform: translateY(-1px);
-      box-shadow:
-        var(--rim-light-own, var(--rim-light-strong)), var(--shadow-lg);
-    }
-  }
-  &.is-interactive:active,
-  &.is-interactive.is-active,
-  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:active))
-    ) {
-    transform: translateY(0) scale(0.99);
-    box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);
-  }
 
   :where(.emphasis-raised) & {
     --raised-fill: var(--intent-bg-floating);
@@ -326,12 +183,9 @@
 /* Text fields: sunken, with one translucent edge that takes the fill's tint
    instead of sitting on it as grey. Pair with is-interactive-field, which owns
    hover, focus and invalid. The edge is resolved on the element so an intent
-   on the field tints it too. The mix sits in @supports with an explicit
-   fallback, or the build falls back to a solid step 9, darker than the
-   border it replaces. */
+   on the field tints it too. The mix sits in @supports, or the build adds
+   its own fallback: a solid step 9, darker than the border it replaces. */
 @utility emphasis-field {
-  --field-border-color: var(--intent-border-subtle);
-
   @supports (color: color-mix(in oklch, red, red)) {
     --field-border-color: color-mix(in oklch, var(--intent-9) 22%, transparent);
 
