@@ -57,10 +57,11 @@ pnpm --filter docs dev
   or `size` fails. Build, then run `pnpm --filter <package> size:update`.
 - A CSS `@utility` must be named in its package's `src/css/safelist.html` (core
   and charts), or Tailwind purges it and the compiled sheet comes out empty.
-- A utility in a family where one class replaces another (intent, emphasis,
-  semantic colour, z-index, duration, easing, and text style) also goes in its
-  group in `packages/core/src/utils/cn.ts`, or `cn()` keeps both classes and a
-  consumer's class can't override the component's.
+- A new family where one class replaces another (like intent, emphasis, or
+  z-index) gets a group in `packages/core/src/utils/cn.ts` and a row in
+  `classFamilies.test.ts` beside it, or `cn()` keeps both classes and a
+  consumer's class can't override the component's. The test checks that each
+  family's CSS, `cn()` group, and safelist agree.
 - A component folder with client state gets a `Component.ssr.tsx` hydration
   fixture (`src/hydration.browser.test.tsx` runs it), or an `EXEMPT` entry
   with a reason in `src/hydrationFixtures.test.ts`, which fails otherwise.

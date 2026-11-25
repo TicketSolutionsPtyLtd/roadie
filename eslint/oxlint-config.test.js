@@ -236,6 +236,7 @@ describe('oxlint excludeFiles exceptions', () => {
     ],
     ...[
       'packages/core/src/utils/cn.test.ts',
+      'packages/core/src/utils/classFamilies.test.ts',
       'packages/core/src/dataviz/parity.test.ts',
       'packages/core/src/theme/parity.test.ts',
       'packages/core/src/dataviz/skill-parity.test.ts',
