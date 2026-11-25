@@ -513,7 +513,8 @@ describe('Sortable Move to another list', () => {
     expect(listed('done')).toEqual(['SKU', 'Date'])
     await waitFor(() => expect(handle('Date')).toHaveFocus())
     await waitFor(() =>
-      expect(screen.getAllByRole('status')[1]).toHaveTextContent(
+      // Said in the list the menu was in, which stays in sight.
+      expect(screen.getAllByRole('status')[0]).toHaveTextContent(
         'Date moved to position 2 of 2 done'
       )
     )

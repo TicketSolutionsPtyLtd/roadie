@@ -67,6 +67,34 @@ const moveTo = async (
   )
 }
 
+// By keyboard, as a pointer that jumps straight into a submenu meets the
+// parent menu's hover guard.
+const arrowTo = async (
+  user: ReturnType<typeof userEvent.setup>,
+  name: string
+) => {
+  for (let step = 0; step < 15; step++) {
+    if (document.activeElement?.textContent === name) return
+    await user.keyboard('{ArrowDown}')
+  }
+  expect(document.activeElement?.textContent).toBe(name)
+}
+const moveAcross = async (
+  user: ReturnType<typeof userEvent.setup>,
+  laneName: string,
+  columnName: string
+) => {
+  screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }).focus()
+  await user.keyboard('{Enter}')
+  await screen.findByRole('menu')
+  await arrowTo(user, `Move Ocean Alley 1 to ${laneName}`)
+  await user.keyboard('{ArrowRight}')
+  await arrowTo(user, `Move Ocean Alley 1 to ${columnName} in ${laneName}`)
+  await user.keyboard('{Enter}')
+}
+const announced = () =>
+  screen.getAllByRole('status').map((status) => status.textContent)
+
 describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
   it('draws a lane per option of the second level, in option order, then "No city", empty ones too', () => {
     render(<Lanes />)
@@ -259,7 +287,13 @@ describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
     ).toEqual([
       'Move Ocean Alley 1 to Sold out',
       'Move Ocean Alley 1 to Cancelled',
-      'Move Ocean Alley 1 to No status'
+      'Move Ocean Alley 1 to No status',
+      // Each other lane opens its columns.
+      'Move Ocean Alley 1 to Melbourne',
+      'Move Ocean Alley 1 to Sydney',
+      'Move Ocean Alley 1 to Perth',
+      'Move Ocean Alley 1 to Hobart',
+      'Move Ocean Alley 1 to No city'
     ])
     await user.click(
       screen.getByRole('menuitem', { name: 'Move Ocean Alley 1 to Cancelled' })
@@ -290,6 +324,181 @@ describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
     await expect
       .poll(() => cellTitles('Brisbane', 'No status'))
       .toEqual(['Ocean Alley 1'])
+  })
+
+  it.each([
+    [
+      'the same column in another lane',
+      'Melbourne',
+      'On sale',
+      { city: 'Melbourne' }
+    ],
+    [
+      'another column in another lane',
+      'Melbourne',
+      'Cancelled',
+      { status: 'cancelled', city: 'Melbourne' }
+    ],
+    [
+      '"No status" in "No city"',
+      'No city',
+      'No status',
+      { status: null, city: null }
+    ]
+  ])(
+    'drags a card to %s, with each changed field',
+    async (_, laneName, columnName, changes) => {
+      const onMove = vi.fn<Move>()
+      render(<Lanes onMove={onMove} />)
+      await browserUser.dragAndDrop(
+        screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+        cell(laneName, columnName).querySelector(
+          '[data-slot="sortable-drop-zone"]'
+        )!
+      )
+      expect(onMove).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'show-0' }),
+        changes
+      )
+      await expect
+        .poll(() => cellTitles(laneName, columnName))
+        .toContain('Ocean Alley 1')
+      expect(cellTitles('Brisbane', 'On sale')).toEqual([])
+    }
+  )
+
+  it('moves a card to a column in another lane from its Move menu by keyboard', async () => {
+    const user = userEvent.setup()
+    const onMove = vi.fn<Move>()
+    render(<Lanes onMove={onMove} />)
+    screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }).focus()
+    await user.keyboard('{Enter}')
+    await screen.findByRole('menu')
+    await arrowTo(user, 'Move Ocean Alley 1 to Melbourne')
+    await user.keyboard('{ArrowRight}')
+    await expect
+      .poll(() => document.activeElement?.textContent)
+      .toBe('Move Ocean Alley 1 to On sale in Melbourne')
+    expect(
+      within(screen.getAllByRole('menu')[1]!)
+        .getAllByRole('menuitem')
+        .map((item) => item.textContent)
+    ).toEqual([
+      'Move Ocean Alley 1 to On sale in Melbourne',
+      'Move Ocean Alley 1 to Sold out in Melbourne',
+      'Move Ocean Alley 1 to Cancelled in Melbourne',
+      'Move Ocean Alley 1 to No status in Melbourne'
+    ])
+    await user.keyboard('{ArrowDown}{Enter}')
+    expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { status: 'sold_out', city: 'Melbourne' }
+    )
+    await expect
+      .poll(() => cellTitles('Melbourne', 'Sold out'))
+      .toContain('Ocean Alley 1')
+    expect(cellTitles('Brisbane', 'On sale')).toEqual([])
+    await expect
+      .poll(() => screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }))
+      .toHaveFocus()
+    await expect
+      .poll(announced)
+      .toContain('Ocean Alley 1 moved to position 2 of 2 Sold out in Melbourne')
+  })
+
+  it('moves a card to a column in another lane from its Move menu by pointer', async () => {
+    const onMove = vi.fn<Move>()
+    render(<Lanes onMove={onMove} />)
+    await browserUser.click(
+      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
+    )
+    await browserUser.hover(
+      await screen.findByRole('menuitem', {
+        name: 'Move Ocean Alley 1 to Melbourne'
+      })
+    )
+    await browserUser.click(
+      await screen.findByRole('menuitem', {
+        name: 'Move Ocean Alley 1 to Cancelled in Melbourne'
+      })
+    )
+    expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { status: 'cancelled', city: 'Melbourne' }
+    )
+    await expect
+      .poll(() => cellTitles('Melbourne', 'Cancelled'))
+      .toContain('Ocean Alley 1')
+  })
+
+  it('keeps a move the app is still saving when the card moves again', async () => {
+    const user = userEvent.setup()
+    const onMove = vi.fn<Move>(() => new Promise(() => {}))
+    render(<Lanes onMove={onMove} />)
+    await moveTo(user, 'Cancelled')
+    await expect
+      .poll(() => cellTitles('Brisbane', 'Cancelled'))
+      .toEqual(['Ocean Alley 1'])
+    await moveAcross(user, 'Melbourne', 'Cancelled')
+    expect(onMove).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { city: 'Melbourne' }
+    )
+    await expect
+      .poll(() => cellTitles('Melbourne', 'Cancelled'))
+      .toEqual(['Ocean Alley 1'])
+    expect(cellTitles('Melbourne', 'On sale')).toEqual([])
+  })
+
+  it('puts a card moved to another lane back, with the message, when onMove rejects', async () => {
+    const user = userEvent.setup()
+    let reject = (_: Error) => {}
+    render(
+      <Lanes
+        onMove={() =>
+          new Promise((_, fail) => {
+            reject = fail
+          })
+        }
+      />
+    )
+    await moveAcross(user, 'Melbourne', 'Cancelled')
+    // Shown in its new lane and column while the app saves it.
+    await expect
+      .poll(() => cellTitles('Melbourne', 'Cancelled'))
+      .toEqual(['Ocean Alley 1'])
+    reject(new Error('Shows can’t change city.'))
+    await expect
+      .poll(() => cellTitles('Brisbane', 'On sale'))
+      .toEqual(['Ocean Alley 1'])
+    expect(cellTitles('Melbourne', 'Cancelled')).toEqual([])
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Shows can’t change city.'
+    )
+  })
+
+  it('moves a card into a collapsed lane from its Move menu, leaving the lane collapsed and saying where the card went', async () => {
+    const user = userEvent.setup()
+    const onMove = vi.fn<Move>()
+    render(<Lanes onMove={onMove} />)
+    await user.click(disclosure('Melbourne'))
+    await moveAcross(user, 'Melbourne', 'Cancelled')
+    expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { status: 'cancelled', city: 'Melbourne' }
+    )
+    await expect
+      .poll(() => within(lane('Melbourne')).queryByText('Ocean Alley 1'))
+      .not.toBeNull()
+    expect(cellTitles('Brisbane', 'On sale')).toEqual([])
+    expect(disclosure('Melbourne').closest('details')!.open).toBe(false)
+    await expect
+      .poll(announced)
+      .toContain(
+        'Ocean Alley 1 moved to position 1 of 1 Cancelled in Melbourne'
+      )
+    // The card is out of sight, so focus goes to the lane it joined.
+    await expect.poll(() => disclosure('Melbourne')).toHaveFocus()
   })
 
   it.each([1100, 1600])(

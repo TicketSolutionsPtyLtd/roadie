@@ -39,7 +39,7 @@ export function Shows({
   defaultView?: RecordViewDefaults
   groupBy?: (keyof TestShow & string) | readonly (keyof TestShow & string)[]
   onViewChange?: UseRecordsOptions<TestShow>['onViewChange']
-  /** The status the app stores once a move resolves, or undefined to leave its data as it was. */
+  /** The status the app stores once a move resolves, or undefined to leave its data as it was. Other changed fields are stored as given. */
   save?: (show: TestShow, status: string | null) => string | undefined
 }) {
   const [data, setData] = useState(shows)
@@ -62,9 +62,14 @@ export function Shows({
             await onMove?.(show, changes)
             const saved = save(show, changes.status ?? null)
             if (saved === undefined) return
+            // Blank is how the app stores "No <field>".
+            const patch = Object.fromEntries(
+              Object.entries(changes).map(([key, value]) => [key, value ?? ''])
+            )
+            if ('status' in changes) patch.status = saved
             setData((all) =>
               all.map((row) =>
-                row.id === show.id ? { ...row, status: saved } : row
+                row.id === show.id ? { ...row, ...patch } : row
               )
             )
           }
