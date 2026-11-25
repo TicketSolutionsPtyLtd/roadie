@@ -168,6 +168,8 @@ export function RecordTableContent({
   const swaps = cards || selectable || totals !== undefined
   const isNarrow = useNarrow(frameRef, { placement: boxed })
   const narrow = isNarrow && swaps ? (cards ? 'cards' : 'list') : undefined
+  // Re-flowed rows fit the frame, so nothing scrolls sideways to name or tab to.
+  const fits = isNarrow && !swaps
   const parts = useMemo(() => {
     const roles = narrowParts(columns)
     // A row lists details on its second line; a table's detail columns are for cards only.
@@ -351,9 +353,11 @@ export function RecordTableContent({
       data-slot='record-table-frame'
       data-narrow={narrow ? '' : undefined}
       // In a box, the viewport is the region: it holds the focus.
-      role={boxed || narrow ? undefined : 'region'}
+      role={boxed || narrow || fits ? undefined : 'region'}
       aria-label={
-        boxed || narrow ? undefined : `${caption ?? 'Table'}, scrolls sideways`
+        boxed || narrow || fits
+          ? undefined
+          : `${caption ?? 'Table'}, scrolls sideways`
       }
       // Full width: a size container takes no width from its rows. In a
       // box, full height too, so a state centres in it, and clipped, so
@@ -591,7 +595,7 @@ export function RecordTableContent({
                   {...frame.rowsSurvivor}
                   // Focusable, so not Base UI's presentation role; the frame names the region.
                   role={undefined}
-                  tabIndex={0}
+                  tabIndex={fits ? -1 : 0}
                   className={cn('isolate', dimmed && 'opacity-60')}
                   style={SIDEWAYS_ONLY}
                   onScroll={(event) => {

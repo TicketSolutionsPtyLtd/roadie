@@ -194,4 +194,30 @@ describe('RecordTable under 40rem', () => {
       await expect.poll(() => rect(body).height).toBeCloseTo(300 * 48, -1)
     }
   )
+
+  it(
+    'takes no Tab stop for a sideways scroll it doesn’t have',
+    TIMEOUT,
+    async () => {
+      render(
+        <>
+          <button type='button'>Before</button>
+          <Shows width={360} />
+        </>
+      )
+      await frame()
+      await frame()
+      expect(
+        screen.queryByRole('region', { name: /scrolls sideways/ })
+      ).toBeNull()
+      const table = screen.getByRole('table', { name: 'Shows' })
+      screen.getByRole('button', { name: 'Before' }).focus()
+      let active = document.activeElement
+      for (let tab = 0; tab < 10 && !table.contains(active); tab++) {
+        await userEvent.keyboard('{Tab}')
+        active = document.activeElement
+      }
+      expect(active).toBe(within(firstRow()).getByRole('link'))
+    }
+  )
 })
