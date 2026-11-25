@@ -47,8 +47,10 @@ Ruled out:
   run the Perf job on eight runners at once (`testing/frames/README.md`,
   "Setting a cap from CI"), and set the cap 10% over the highest job.
 - Pane's content style cap is now 158ms, 10% over 144ms. It still fails the
-  218 to 259ms that pushes cost before INNO-1678. The empty-panes cap comes
-  down from 53 to 44ms, 10% over 40ms.
+  218 to 259ms that pushes cost before INNO-1678. The empty-panes cap is
+  55ms, 10% over 50ms. Lowering it to 44ms, 10% over the highest of 33
+  jobs, failed the next run at 50ms: even 33 jobs can miss the tail, so
+  don't lower a cap on a single round of runs.
 - Pane's 100-row pop goes back to a known miss under INNO-1706, the
   whole-subtree restyle that also drives its style time.
 - A transition that's sometimes two long frames is real work to fix, not

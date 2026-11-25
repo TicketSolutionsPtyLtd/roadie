@@ -129,12 +129,13 @@ async function measureStep(scenario: string, step: () => void) {
   return { scenario, frames, style }
 }
 
-// Each cap is the highest of 17 CI jobs on the same commit plus 10%, since one
+// Each cap is the highest of many CI jobs on the same code plus 10%, since a
 // push's style time spreads by half its median from job to job (INNO-1704).
-// A push of empty panes cost 21 to 40ms of style (CPU 1.5x to 2.9x).
-const STYLE_CAP = 44
-// A push over 100 rows cost 218 to 259ms of style before INNO-1678 and 83 to
-// 144ms after it.
+// A push of empty panes cost 21 to 50ms of style over 38 jobs (CPU 1.5x to
+// 2.9x).
+const STYLE_CAP = 55
+// A push over 100 rows cost 218 to 259ms of style before INNO-1678, and 83 to
+// 144ms over 17 jobs after it.
 const CONTENT_STYLE_CAP = 158
 
 const PUSHES: {
