@@ -87,6 +87,10 @@ function usePrefersReducedMotion(): boolean {
   )
 }
 
+const noSubscription = () => () => {}
+const inBrowser = () => true
+const onServer = () => false
+
 export type CarouselRootProps = Omit<ComponentProps<'div'>, 'onBlur'> & {
   /** Pass-through options for the Embla instance. */
   opts?: EmblaOptionsType
@@ -164,6 +168,7 @@ export function CarouselRoot({
 
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [slideCount, setSlideCount] = useState(0)
+  const hydrated = useSyncExternalStore(noSubscription, inBrowser, onServer)
   const [snapCount, setSnapCount] = useState(0)
   const [labelId, setLabelId] = useState<string | undefined>(undefined)
   const [slidesInView, setSlidesInView] = useState<number[]>([0])
@@ -292,9 +297,11 @@ export function CarouselRoot({
       ? Math.min(Math.max(0, selectedIndex), effectiveSnapCount - 1)
       : 0
   const canGoToPrev = effectiveSnapCount > 1 && (loop || clampedIndex > 0)
+  // Until hydrated, the controls render as if there's somewhere to scroll.
+  const canScroll = !hydrated || effectiveSnapCount > 1
   const canGoToNext =
-    effectiveSnapCount > 1 && (loop || clampedIndex < effectiveSnapCount - 1)
-  const canScroll = effectiveSnapCount > 1
+    !hydrated ||
+    (effectiveSnapCount > 1 && (loop || clampedIndex < effectiveSnapCount - 1))
 
   const actions = useMemo<CarouselActions>(
     () => ({
