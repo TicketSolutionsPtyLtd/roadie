@@ -1,10 +1,10 @@
 /* Card `direction`. Horizontal stacks every part in one column and gives
    Card.Footer a column of its own beside it; auto does the same once the card
-   is wide enough. A card cannot query its own width, so auto switches its
-   columns with auto-fit and lets the parts follow with a container query. */
+   is wide enough. A card cannot query its own width, so auto keeps
+   horizontal's grid and moves the footer with a container query. */
 
 @layer components {
-  /* Auto is the horizontal grid all along: everything sits in column 1, the
+  /* Auto shares this grid: everything sits in column 1, the
      second column is empty and therefore zero wide, and the query below moves
      the footer across once the card has the room. That way a split auto card
      and a horizontal one lay out identically. */
@@ -66,7 +66,6 @@
     min-inline-size: var(--card-footer-size, auto);
   }
 
-  /* The same side column as horizontal, once an auto card has the room. */
   @container card (width >= 30rem) {
     [data-slot='card'][data-direction='auto'] > [data-slot='card-footer'] {
       grid-column: 2;
