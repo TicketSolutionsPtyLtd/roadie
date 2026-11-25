@@ -1,5 +1,5 @@
 {
-  ".": { "own": 232126, "full": 428263, "initial": 414869 },
+  ".": { "own": 232295, "full": 428097, "initial": 414968 },
   "./accordion": { "own": 1760, "full": 10671, "initial": 10671 },
   "./autocomplete": { "own": 7258, "full": 66245, "initial": 53964 },
   "./avatar": { "own": 2092, "full": 14681, "initial": 14681 },
@@ -49,7 +49,7 @@
   "./marquee": { "own": 1496, "full": 9684, "initial": 9684 },
   "./menu": { "own": 6054, "full": 56206, "initial": 56206 },
   "./meter": { "own": 684, "full": 9782, "initial": 9782 },
-  "./navigator": { "own": 45502, "full": 111731, "initial": 111731 },
+  "./navigator": { "own": 45702, "full": 111714, "initial": 111714 },
   "./number-field": { "own": 4171, "full": 28676, "initial": 28676 },
   "./otp-field": { "own": 1726, "full": 17136, "initial": 17136 },
   "./pane": { "own": 12269, "full": 52581, "initial": 52581 },
