@@ -128,6 +128,19 @@ describe('Toast.Progress', () => {
     await expect.poll(width, { timeout: 1000 }).toBeLessThan(held - 1)
   })
 
+  it('holds still while the window is in the background, then carries on', async () => {
+    await show(6000)
+    await landed()
+    act(() => {
+      window.dispatchEvent(new FocusEvent('blur'))
+    })
+    await expect.poll(() => bar().getAnimations()[0]!.playState).toBe('paused')
+    act(() => {
+      window.dispatchEvent(new FocusEvent('focus'))
+    })
+    await expect.poll(() => bar().getAnimations()[0]!.playState).toBe('running')
+  })
+
   it('runs out as the toast leaves, pause included', async () => {
     await show(2000)
     const animation = bar().getAnimations()[0]!

@@ -246,6 +246,7 @@ value.
 | `animate-pulse-subtle`  | Pulses the opacity, for a surface waiting on something                       |
 | `animate-shimmer`       | Pulses under a highlight that sweeps every placeholder at the same speed     |
 | `animate-indeterminate` | Sweeps a bar across a positioned parent that clips its overflow              |
+| `animate-time-left`     | Empties a bar over `--time-left`, as Toast's time-left bar does              |
 
 Tailwind's `animate-spin` is only for a small status icon that stands in for a
 pending action, as Toast's loading icon does. Anything larger, or any bar or
@@ -508,7 +509,8 @@ global reset sets these on every element and its `::before` and `::after`:
 Two loading utilities hold a still state instead. `animate-shimmer` drops its
 gradient and keeps the tint, and `animate-indeterminate` holds a full-width
 bar at a soft tint. `animate-pulse-subtle` plays one short pass and stays at
-full opacity.
+full opacity. Pair `animate-time-left` with `motion-reduce:hidden`, so its bar
+hides rather than snap empty.
 
 The reset only reaches CSS animations and transitions on elements. Animation
 run from JavaScript, such as the Web Animations API or a smooth `scrollTo()`,
