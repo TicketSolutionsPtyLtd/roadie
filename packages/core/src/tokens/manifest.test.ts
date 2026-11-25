@@ -60,7 +60,8 @@ const INTERNAL = [
   '--translucent-backdrop',
   '--translucent-fill',
   '--tw-inset-shadow',
-  '--tw-shadow'
+  '--tw-shadow',
+  '--tw-sort'
 ]
 
 describe('coverage', () => {

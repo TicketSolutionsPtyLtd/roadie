@@ -23,15 +23,17 @@ outside that split.
 - **A value a preset leaves out leaks from one under it.** A contained List
   row carries `emphasis-subtler` and, by variant, `emphasis-subtle`. Without
   its own `--emphasis-fill-interactive`, subtle kept subtler's transparent rest.
-- **Tailwind sorts a utility by its lowest known property**, and the `border`
-  shorthand isn't one. Without nested state rules, strong and normal sorted
-  after `border-*`, so their edge beat a caller's.
+- **Tailwind sorts a utility by its lowest known property**, nested rules
+  included, and the `border` shorthand isn't one. Without the nested state
+  rules' `transform`, strong and normal sorted after `border-*`, so their
+  edge beat a caller's, and the class sorter reordered 27 files.
 
 ## Fix
 
 - Only the shared rule writes `--emphasis-*-state`; a preset reads it with
   its rest as the fallback.
 - A preset with a fill declares all four fill values.
-- Presets write borders as longhands, which sort before `border-*`.
+- Strong, normal and raised pin their sort with `--tw-sort: transform`,
+  which Tailwind strips from the output.
 
 The guard is `packages/components/src/css/emphasisStates.browser.test.tsx`.

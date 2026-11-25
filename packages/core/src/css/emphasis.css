@@ -49,12 +49,12 @@
 }
 
 @utility emphasis-strong {
+  /* Sorts where the nested state rules' transform used to put it, before the
+     fill, border and shadow utilities a caller adds. */
+  --tw-sort: transform;
   background-color: var(--emphasis-fill-state, var(--emphasis-fill));
   color: var(--intent-text-on-strong);
-  /* Longhands, so Tailwind still sorts the preset before border-*. */
-  border-width: 1px;
-  border-style: solid;
-  border-color: transparent;
+  border: 1px solid transparent;
   box-shadow: var(--emphasis-shadow-state, var(--emphasis-shadow));
 
   --emphasis-fill: var(--intent-bg-strong);
@@ -68,11 +68,10 @@
 }
 
 @utility emphasis-normal {
+  --tw-sort: transform;
   background-color: var(--emphasis-fill-state, var(--emphasis-fill));
   color: var(--intent-text-normal);
-  border-width: 1px;
-  border-style: solid;
-  border-color: var(--intent-border-normal);
+  border: 1px solid var(--intent-border-normal);
   /* No resting shadow, so a lower layer's shows; a variable can't hold revert-layer. */
   box-shadow: var(--emphasis-shadow-state, revert-layer);
 
@@ -138,6 +137,7 @@
 }
 
 @utility emphasis-raised {
+  --tw-sort: transform;
   background-color: var(--raised-fill, var(--intent-bg-raised));
   box-shadow: var(--emphasis-shadow-state, var(--emphasis-shadow));
   color: var(--intent-text-normal);
