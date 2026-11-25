@@ -95,3 +95,15 @@ of that work.
 WebKit and Firefox run on request (`ROADIE_PERF_BROWSERS=webkit`) with a p95
 budget of 20ms and 10% of frames dropped, and report long-task counts as
 `null` rather than zero.
+
+## Setting a cap from CI
+
+CI's numbers for one commit spread from job to job: a pane push's style time
+ran 83 to 144ms over 17 jobs. A cap set 10% over the higher of two runs sits
+inside that spread and fails about one run in four
+([why](../../docs/solutions/test-failures/frame-cap-set-from-two-ci-runs.md)).
+Before you set a cap, a `knownMiss`, or take one off, measure on eight
+runners at once: add `sample: [1, 2, 3, 4, 5, 6, 7, 8]` to the Perf job's
+matrix (and `-${{ matrix.sample }}` to its artifact name) in a commit you drop
+before merging, run the workflow on your branch, and set the cap 10% over the
+highest job.
