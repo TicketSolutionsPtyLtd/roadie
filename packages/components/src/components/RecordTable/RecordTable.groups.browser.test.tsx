@@ -178,7 +178,10 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
     await user.click(toggle('On sale 2'))
     expect(toggle('On sale 2')).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByText('Ocean Alley 1')).toBeNull()
-    expect(screen.queryByRole('heading', { name: 'Brisbane 1' })).toBeNull()
+    // Its inner groups go with it; Cancelled's Brisbane stays.
+    expect(screen.getAllByRole('heading', { name: 'Brisbane 1' })).toHaveLength(
+      1
+    )
     expect(screen.getByText('Ball Park Music 1')).toBeVisible()
     // An inner group collapses on its own.
     await user.click(toggle('Melbourne 1'))
