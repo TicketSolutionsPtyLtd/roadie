@@ -8,10 +8,9 @@ import {
   cellClass,
   pinStyle,
   rowClass,
-  selectCellClass,
-  titleColumn
+  selectCellClass
 } from './RecordTableRow'
-import { type ColumnLayout, priorityProps } from './layout'
+import { type ColumnLayout, priorityProps, titleColumn } from './layout'
 import type { RecordTableColumn } from './types'
 
 const totalsTextClass = 'text-xs text-subtle tabular-nums'
