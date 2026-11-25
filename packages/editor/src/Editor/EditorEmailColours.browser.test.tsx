@@ -415,25 +415,28 @@ describe('Editor email layout, as it sends', () => {
     expect(left.getBoundingClientRect().left - edge).toBeCloseTo(34, 0)
   })
 
-  it('keeps an invalid boxless email’s text where a valid one’s is, with the edge outside it', async () => {
-    render(
-      <div style={{ width: EMAIL_WIDTH }}>
-        {[false, true].map((invalid) => (
-          <Field key={String(invalid)} invalid={invalid}>
-            <Field.Label>{invalid ? 'Invalid' : 'Valid'}</Field.Label>
-            <Editor emphasis='subtler' defaultValue={value} />
-          </Field>
-        ))}
-      </div>
-    )
-    const box = async (name: string) => {
-      const canvas = await screen.findByRole('textbox', { name })
-      const text = canvas.querySelector('p')!.getBoundingClientRect()
-      return { edge: canvas.getBoundingClientRect().left, text: text.left }
-    }
-    const [valid, invalid] = [await box('Valid'), await box('Invalid')]
+  it.each([EMAIL_WIDTH, 1000])(
+    'keeps an invalid boxless email’s text where a valid one’s is, with the edge outside it, %ipx wide',
+    async (width) => {
+      render(
+        <div style={{ width }}>
+          {[false, true].map((invalid) => (
+            <Field key={String(invalid)} invalid={invalid}>
+              <Field.Label>{invalid ? 'Invalid' : 'Valid'}</Field.Label>
+              <Editor emphasis='subtler' defaultValue={value} />
+            </Field>
+          ))}
+        </div>
+      )
+      const box = async (name: string) => {
+        const canvas = await screen.findByRole('textbox', { name })
+        const text = canvas.querySelector('p')!.getBoundingClientRect()
+        return { edge: canvas.getBoundingClientRect().left, text: text.left }
+      }
+      const [valid, invalid] = [await box('Valid'), await box('Invalid')]
 
-    expect(invalid.edge).toBeLessThan(valid.edge)
-    expect(invalid.text).toBeCloseTo(valid.text, 0)
-  })
+      expect(invalid.edge).toBeLessThan(valid.edge)
+      expect(invalid.text).toBeCloseTo(valid.text, 0)
+    }
+  )
 })

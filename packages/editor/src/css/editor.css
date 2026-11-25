@@ -496,10 +496,14 @@
   );
 }
 
-/* An email's text sits 24px in, so its edge keeps that room too. Unlayered,
-   as the email's padding and the boxless edge above are. */
+/* An email's text sits 24px in, so its edge keeps that room too, and the
+   600px email stays centred where the frame is wider. Unlayered, as the
+   email's padding and the boxless edge above are. */
 [data-slot='editor'][data-emphasis='subtler']
   [data-email].ProseMirror[aria-invalid='true'] {
+  margin-inline-start: calc(
+    max(0px, (100% - 600px) / 2) - var(--editor-invalid-gap)
+  );
   padding-inline-start: calc(
     var(--spacing) * 6 + var(--editor-invalid-gap) - var(--editor-invalid-edge)
   );
