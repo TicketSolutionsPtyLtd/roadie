@@ -20,8 +20,6 @@ export type KeyFace = {
   label?: string
   /** What a screen reader says for the key. */
   name: string
-  /** A modifier whose face waits for the platform. */
-  pending?: true
 }
 
 type PlatformFaces = Record<KeyPlatform, KeyFace>
@@ -79,12 +77,16 @@ export function normalise(key: string) {
   return ALIASES[id] ?? id
 }
 
-export function keyFace(key: string, platform: KeyPlatform | null): KeyFace {
+/** The key's face, or null for a modifier whose face waits for the platform. */
+export function keyFace(
+  key: string,
+  platform: KeyPlatform | null
+): KeyFace | null {
   const face = FACES[normalise(key)]
   if (!face) {
     const label = key.length === 1 ? key.toUpperCase() : key
     return { label, name: label }
   }
   if (!('apple' in face)) return face
-  return platform ? face[platform] : { ...face.other, pending: true }
+  return platform ? face[platform] : null
 }

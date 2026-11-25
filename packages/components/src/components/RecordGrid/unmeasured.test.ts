@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { FIRST_CARDS, fillerRows } from './unmeasured'
+import { FIRST_CARDS, fillerRows, firstCards } from './unmeasured'
 
 describe('fillerRows', () => {
   it.each([
@@ -18,5 +18,18 @@ describe('fillerRows', () => {
 
   it('has an entry for every column count it can tell apart', () => {
     expect(fillerRows(300)).toHaveLength(12)
+  })
+})
+
+describe('firstCards', () => {
+  it.each([
+    // [records, cards drawn]
+    [300, 10],
+    [5, 5],
+    // At 9 columns, 18 cards are the first cards' two rows: no row is left.
+    [18, 18],
+    [19, 10]
+  ])('draws %i records as %i cards', (records, cards) => {
+    expect(firstCards(records)).toBe(cards)
   })
 })
