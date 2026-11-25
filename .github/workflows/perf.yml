@@ -82,6 +82,9 @@ jobs:
       - name: Setup
         uses: ./.github/composite-actions/setup
 
+      - name: EXPERIMENT runner CPU
+        run: grep -m1 'model name' /proc/cpuinfo; nproc
+
       - name: Build what the package imports
         run: pnpm turbo build --filter='@oztix/roadie-${{ matrix.package }}^...'
 

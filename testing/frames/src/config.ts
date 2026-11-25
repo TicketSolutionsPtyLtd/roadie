@@ -61,6 +61,37 @@ function calibrate(page: Page, session: CDPSession) {
     console.log(
       `Perf CPU: ${rate}x, as the workload took ${Math.round(median)}ms of ${REFERENCE_MS}ms`
     )
+    // EXPERIMENT (INNO-1704): a fixed style recalc at that rate.
+    await session.send('Emulation.setCPUThrottlingRate', { rate })
+    const styleTimes: number[] = []
+    for (let run = 0; run < 7; run++)
+      styleTimes.push(
+        await page.evaluate(() => {
+          const host = document.createElement('div')
+          for (let i = 0; i < 4000; i++) {
+            const row = document.createElement('div')
+            row.style.cssText = 'display:grid;padding:4px;color:var(--x,red)'
+            row.innerHTML = '<span style="font-weight:var(--w,400)">a</span>'
+            host.append(row)
+          }
+          document.body.append(host)
+          void getComputedStyle(host.lastElementChild!).color
+          const start = performance.now()
+          host.style.setProperty('--x', 'blue')
+          host.style.setProperty('--w', '700')
+          void getComputedStyle(host.lastElementChild!.firstElementChild!)
+            .fontWeight
+          const ms = performance.now() - start
+          host.remove()
+          return ms
+        })
+      )
+    console.log(
+      `Perf style ref: ${styleTimes
+        .sort((a, b) => a - b)
+        .map((ms) => Math.round(ms))
+        .join(',')} at ${rate}x`
+    )
     return rate
   })()
   return calibration
