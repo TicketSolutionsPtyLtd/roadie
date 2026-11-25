@@ -30,17 +30,17 @@ function RecordListGroupSettings() {
   // A range list stays ungrouped, so the setting would do nothing.
   if (range || groupable.length === 0) return null
   const levels = listGroupFields(fields, view.layout).map(({ key }) => key)
-  const setLevel = (index: number, key: string | null) =>
-    records.setLayout(
-      listGroupLevelsLayout(
-        view.layout,
-        key
-          ? [...levels.slice(0, index), key, ...levels.slice(index + 1)].filter(
-              (level, i, all) => all.indexOf(level) === i
-            )
-          : levels.slice(0, index)
-      )
-    )
+  const setLevel = (index: number, key: string | null) => {
+    const next = key
+      ? [...levels.slice(0, index), key, ...levels.slice(index + 1)].filter(
+          (level, i, all) => all.indexOf(level) === i
+        )
+      : levels.slice(0, index)
+    // A select whose field moved to a level above reports None as it clears,
+    // which would write the view again unchanged.
+    if (next.join() === levels.join()) return
+    records.setLayout(listGroupLevelsLayout(view.layout, next))
+  }
   // A level appears once the one before it is picked.
   const shown = levelNames.slice(
     0,

@@ -265,6 +265,78 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(checked('Julia Jacklin 1')).toBe('false')
   })
 
+  it('drops the deeper levels when a level is set to None, and writes each change once', async () => {
+    const user = userEvent.setup()
+    const onViewChange = vi.fn()
+    render(
+      <ShowList
+        data={testShows(4)}
+        fields={groupedShowFields}
+        defaultView={{
+          layout: { type: 'list', groupBy: ['status', 'city', 'show'] }
+        }}
+        onViewChange={onViewChange}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
+    await user.click(await screen.findByRole('option', { name: 'None' }))
+    expect(onViewChange.mock.lastCall![0].layout).toEqual({
+      type: 'list',
+      groupBy: ['status']
+    })
+    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
+    await user.click(await screen.findByRole('option', { name: 'City' }))
+    expect(onViewChange.mock.lastCall![0].layout).toEqual({
+      type: 'list',
+      groupBy: ['status', 'city']
+    })
+    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
+    await user.click(await screen.findByRole('option', { name: 'City' }))
+    // Once each, though Then by loses its field too.
+    expect(
+      onViewChange.mock.calls.map(([view]) => view.layout.groupBy)
+    ).toEqual([['status'], ['status', 'city'], ['city']])
+  })
+
+  it('keeps the deeper levels when a field moves up from below', async () => {
+    const user = userEvent.setup()
+    const onViewChange = vi.fn()
+    render(
+      <ShowList
+        data={testShows(4)}
+        fields={groupedShowFields}
+        defaultView={{
+          layout: { type: 'list', groupBy: ['status', 'city', 'show'] }
+        }}
+        onViewChange={onViewChange}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
+    await user.click(await screen.findByRole('option', { name: 'City' }))
+    await expect
+      .poll(() => onViewChange.mock.calls.map(([view]) => view.layout.groupBy))
+      .toEqual([['city', 'show']])
+  })
+
+  it('offers no Then by when no other field can group', async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowList data={testShows(4)} fields={showFields} defaultView={grouped} />
+    )
+    await user.click(screen.getByRole('button', { name: 'Configure list' }))
+    const panel = await screen.findByRole('dialog', { name: 'Configure list' })
+    expect(
+      within(panel).getByRole('combobox', { name: 'Group by' })
+    ).toBeVisible()
+    expect(
+      within(panel).queryByRole('combobox', { name: 'Then by' })
+    ).toBeNull()
+  })
+
   it('selects a Shift range in the order nested groups show it', async () => {
     const user = userEvent.setup()
     render(
