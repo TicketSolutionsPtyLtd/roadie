@@ -125,7 +125,10 @@ const rules = {
   // through a namespace (INNO-1692).
   'no-named-zod-import': selectorRule(
     'zod is imported as a namespace, so esbuild can tree-shake it.',
-    'ImportDeclaration[source.value=/^zod(\\x2F|$)/][importKind!="type"] > :matches(ImportDefaultSpecifier, ImportSpecifier[imported.name=/^(z|default)$/][importKind!="type"])',
+    [
+      'ImportDeclaration[source.value=/^zod(\\x2F|$)/][importKind!="type"] > :matches(ImportDefaultSpecifier, ImportSpecifier[imported.name=/^(z|default)$/][importKind!="type"])',
+      'ExportNamedDeclaration[source.value=/^zod(\\x2F|$)/][exportKind!="type"] > ExportSpecifier[local.name=/^(z|default)$/][exportKind!="type"]'
+    ].join(', '),
     "Import zod as a namespace, `import * as z from 'zod'`, or esbuild bundles all of it."
   )
 }
