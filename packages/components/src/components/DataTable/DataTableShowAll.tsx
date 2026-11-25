@@ -2,11 +2,14 @@
 
 import { type ComponentProps, createContext, use, useState } from 'react'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 const ShowAllContext = createContext({ expanded: false, toggle: () => {} })
 
 /** The table's root, owning whether every column shows. */
 export function DataTableFrame({
   showAll,
+  className,
   ...props
 }: ComponentProps<'div'> & { showAll: boolean }) {
   const [expanded, setExpanded] = useState(false)
@@ -20,6 +23,7 @@ export function DataTableFrame({
       <div
         {...props}
         data-slot='data-table'
+        className={cn('@container/data-table', className)}
         data-show-all={expanded ? '' : undefined}
       />
     </ShowAllContext>

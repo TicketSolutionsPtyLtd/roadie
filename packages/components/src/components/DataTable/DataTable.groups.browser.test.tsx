@@ -212,6 +212,10 @@ describe('DataTable grouped rows', () => {
     const group = toggle.closest('tr')!
     expect(getComputedStyle(group.cells[0]!).borderBottomWidth).toBe('0px')
 
+    // A collapsed row's padding and rule go with its content.
+    expect(getComputedStyle(leaf().cells[0]!).transitionProperty).toBe(
+      'padding-block, border-bottom-width'
+    )
     const transitions = () =>
       leaf()
         .getAnimations({ subtree: true })
