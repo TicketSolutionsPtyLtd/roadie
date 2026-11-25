@@ -136,7 +136,7 @@ async function recipe(slot: string) {
 describe.each(['light', 'dark'])('list popups in %s mode', (mode) => {
   const slots = ['select-popup', 'combobox-popup', 'autocomplete-popup']
   it.each(popups.map(([name, popup], i) => [name, popup, slots[i]!] as const))(
-    '%s popup floats and moves like a Menu',
+    '%s popup floats and moves like a Menu, without the blur',
     async (_, popup, slot) => {
       document.documentElement.classList.toggle('dark', mode === 'dark')
       render(
@@ -150,7 +150,9 @@ describe.each(['light', 'dark'])('list popups in %s mode', (mode) => {
       const menu = await recipe('menu-popup')
       cleanup()
       render(popup())
-      expect(await recipe(slot)).toEqual(menu)
+      // No blur: it repaints under every keystroke and frame of the exit,
+      // which Combobox.perf and Select.perf miss 60fps on.
+      expect(await recipe(slot)).toEqual({ ...menu, 'backdrop-filter': 'none' })
     }
   )
 })

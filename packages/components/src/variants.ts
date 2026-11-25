@@ -28,9 +28,11 @@ export const disclosureCaretClass =
 export const horizontalScrollClass =
   'data-[orientation=horizontal]:max-w-full data-[orientation=horizontal]:overflow-x-auto data-[orientation=horizontal]:overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
 
+// List popups skip `is-translucent`: the blur repaints under every keystroke
+// and exit frame, and Combobox.perf and Select.perf then miss 60fps.
 /** A popup's elevation, edge, padding and enter motion: Menu and every list popup. */
 export const floatingPopupClass =
-  'max-h-(--available-height) origin-(--transform-origin) overflow-y-auto rounded-xl p-1 emphasis-floating is-translucent motion-scale outline-none'
+  'max-h-(--available-height) origin-(--transform-origin) overflow-y-auto rounded-xl p-1 emphasis-floating motion-scale outline-none'
 
 /** Beside `floatingPopupClass` on a listbox popup: at least its anchor's width. */
 export const listPopupWidthClass =

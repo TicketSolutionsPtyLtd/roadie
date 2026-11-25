@@ -6,7 +6,7 @@ import {
   intentVariants
 } from '../../variants'
 
-export const menuPopupClass = `grid min-w-48 gap-0.5 ${floatingPopupClass}`
+export const menuPopupClass = `grid min-w-48 gap-0.5 is-translucent ${floatingPopupClass}`
 
 export const menuItemVariants = cva(
   [
