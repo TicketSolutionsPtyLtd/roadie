@@ -38,8 +38,8 @@ export type RecordQuery = {
 
 /**
  * Fields to group records by, outermost first, each a single-valued field with
- * options: up to three levels, of which a board draws two, the first as its
- * columns and the second as lanes.
+ * options: up to three levels. A board makes its columns from the first and
+ * draws at most two.
  */
 export type RecordGroupBy = readonly string[]
 

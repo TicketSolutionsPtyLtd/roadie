@@ -408,7 +408,7 @@ describe('validateRecordView', () => {
       {
         path: 'layout.groupBy[2]',
         message:
-          'A board draws two levels, so "City" shows only in other layouts',
+          'A board draws at most two levels, so "City" shows only in other layouts',
         severity: 'warning'
       }
     ])

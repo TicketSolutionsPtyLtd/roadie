@@ -257,7 +257,7 @@ function groupProblems(
       ? [
           warning(
             path,
-            `A board draws two levels, so "${field.label}" shows only in other layouts`
+            `A board draws at most two levels, so "${field.label}" shows only in other layouts`
           )
         ]
       : []

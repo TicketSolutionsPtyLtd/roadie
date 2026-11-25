@@ -735,8 +735,8 @@ writes nothing, since `table` is what a URL without `layout` reads as.
 `groupBy` lists the fields to group records by, outermost first, up to three.
 Each is a field with options or statuses that holds a single value, since a
 record in a list of values would sit in more than one group, and each is named
-once. Grouping means the same in every layout that offers it. A board draws two
-levels, the first as its columns and the second as lanes, and keeps a third
+once. Grouping means the same in every layout that offers it. A board makes
+its columns from the first level and draws at most two, so it keeps a third
 for the other layouts with a warning. `dateField` names a date field that holds
 one date, not a list of dates. A view that groups by or places records on any
 other field fails `validateRecordView`. A map saves
