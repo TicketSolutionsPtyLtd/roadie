@@ -21,6 +21,8 @@ import { isDev } from '../../utils/isDev'
 import { surfaceClass, useSurface } from '../../utils/surface'
 import { SortIcon } from '../DataTable/SortIcon'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
+import { groupFields } from '../Records/groupBy'
+import { groupRecordsBy } from '../Records/groups'
 import type { RecordsContentProps } from '../Records/layouts'
 import { useNarrow } from '../Records/narrow'
 import { pageState } from '../Records/selection'
@@ -35,6 +37,7 @@ import {
 } from '../Records/useRecordsLayout'
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { ScrollArea } from '../ScrollArea'
+import { RecordTableGroups } from './RecordTableGroups'
 import { NarrowSkeleton, RecordTableNarrowRows } from './RecordTableNarrowRows'
 import {
   actionsCellClass,
@@ -162,10 +165,26 @@ export function RecordTableContent({
   )
   const title = titleColumn(columns)
 
-  const { selectable, getRowHref, totals } = records
+  const { selectable, getRowHref, totals, rows, range, fields } = records
+  const grouping = useMemo(
+    () => groupFields(fields, viewLayout),
+    [fields, viewLayout]
+  )
+  // A range table loads rows as they scroll into view, so it stays ungrouped
+  // until groups can come from the server.
+  const groups = useMemo(
+    () =>
+      grouping.length > 0 && !range
+        ? groupRecordsBy(rows, grouping)
+        : undefined,
+    [grouping, range, rows]
+  )
+  // Title rows aren't records, so a grouped table counts no rows.
+  const counted = partial && !groups
   const cards = (config.narrow ?? narrowLayout(columns)) === 'cards'
-  // Rows re-flow under 40rem; deprecated cards, and for now selection and totals, still swap for a list.
-  const swaps = cards || selectable || totals !== undefined
+  // Rows re-flow under 40rem; deprecated cards, and for now selection, totals and groups, still swap for a list.
+  const swaps =
+    cards || selectable || totals !== undefined || groups !== undefined
   const isNarrow = useNarrow(frameRef, { placement: boxed })
   const narrow = isNarrow && swaps ? (cards ? 'cards' : 'list') : undefined
   // Re-flowed rows fit the frame, so nothing scrolls sideways to name or tab to.
@@ -210,19 +229,18 @@ export function RecordTableContent({
   )
   const style = tierStyle(layout) as CSSProperties
 
-  const { rows, range } = records
   const headRows = totals ? 2 : 1
   const headTextClass = cn(headerTextClass, totals ? 'text-sm' : 'text-xs')
   const { busy, dimmed } = frame
   // The table counts every row, the header rows too.
-  const rowCount = !partial
+  const rowCount = !counted
     ? undefined
     : range
       ? range.total === undefined
         ? -1
         : range.count + headRows
       : records.resultCount + headRows
-  const firstIndex = partial ? frame.firstIndex + headRows : undefined
+  const firstIndex = counted ? frame.firstIndex + headRows : undefined
   // What the rows show: a sort the fields can't apply marks nothing.
   const sort = records.resolvedQuery.sort
   const pageIds = rows.map((row) => row.id)
@@ -279,24 +297,35 @@ export function RecordTableContent({
         <RecordsEmpty records={records} />
       </StateRow>
     ) : null
-  const body = stateRows ?? (
-    <RecordTableRows
-      rows={rows}
-      firstIndex={firstIndex}
-      range={range}
-      row={records.position.row}
-      onRow={records.setRow}
-      columns={columns}
-      layout={layout}
-      title={title}
-      timeZone={records.timeZone}
-      isSelected={isSelected}
-      onToggle={toggleRow}
-      rowActions={rowActions}
-      getRowHref={getRowHref}
-      columnCount={columnCount}
-    />
-  )
+  const rowsShared = {
+    columns,
+    layout,
+    title,
+    timeZone: records.timeZone,
+    isSelected,
+    onToggle: toggleRow,
+    rowActions,
+    getRowHref,
+    columnCount
+  }
+  const body =
+    stateRows ??
+    (groups ? (
+      <RecordTableGroups
+        groups={groups}
+        shared={rowsShared}
+        onToggle={toggleRow}
+      />
+    ) : (
+      <RecordTableRows
+        rows={rows}
+        firstIndex={firstIndex}
+        range={range}
+        row={records.position.row}
+        onRow={records.setRow}
+        {...rowsShared}
+      />
+    ))
 
   const narrowBody = narrow !== undefined && (
     <>
@@ -324,6 +353,8 @@ export function RecordTableContent({
         {narrowState ?? (
           <RecordTableNarrowRows
             rows={rows}
+            groups={groups}
+            groupHeadings
             parts={parts}
             layout={narrow}
             bleed={!boxed}
@@ -406,7 +437,7 @@ export function RecordTableContent({
             >
               <div
                 role='row'
-                aria-rowindex={partial ? 1 : undefined}
+                aria-rowindex={counted ? 1 : undefined}
                 data-slot='record-table-head-row'
                 onFocus={(event) => {
                   sortFocused.current = event.target.hasAttribute('data-sort')
@@ -551,7 +582,7 @@ export function RecordTableContent({
                     layout={layout}
                     select={selectable}
                     actions={hasRowActions}
-                    rowIndex={partial ? 2 : undefined}
+                    rowIndex={counted ? 2 : undefined}
                   />
                 </div>
               )}

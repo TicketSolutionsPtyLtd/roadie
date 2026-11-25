@@ -326,4 +326,31 @@ describe('RecordTable under 40rem', () => {
       ).toEqual([])
     }
   )
+
+  it(
+    'swaps a grouped table for grouped list rows, for now',
+    TIMEOUT,
+    async () => {
+      render(
+        <div style={{ width: 360 }}>
+          <RecordTable
+            caption='Shows'
+            data={testShows(6)}
+            fields={showFields}
+            columns={roles}
+            getRowId={(row) => row.id}
+            defaultView={{ layout: { type: 'table', groupBy: ['status'] } }}
+          />
+        </div>
+      )
+      await frame()
+      expect(screen.queryByRole('table')).toBeNull()
+      expect(
+        document.querySelectorAll('[data-slot="record-table-list-row"]')
+      ).toHaveLength(6)
+      expect(
+        screen.getByRole('heading', { level: 2, name: /^On sale/ })
+      ).toBeTruthy()
+    }
+  )
 })

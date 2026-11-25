@@ -1,8 +1,10 @@
 import { cleanup, render } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { DateTime } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { hydrationShift } from '../../utils/hydrationTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -47,4 +49,51 @@ describe('DateTime stacked', () => {
       getComputedStyle(date!).color
     )
   })
+})
+
+describe('DateTime standalone, before hydration', () => {
+  const DAY = 86_400_000
+  const now = Date.now()
+  const inBrisbane = (date: Date, part: 'year' | 'month') =>
+    new Intl.DateTimeFormat('en', { timeZone: BNE, [part]: 'numeric' }).format(
+      date
+    )
+  // Two days that share this year in Brisbane, whatever today is.
+  const [from, to] =
+    inBrisbane(new Date(now), 'month') === '1'
+      ? [new Date(now), new Date(now + 2 * DAY)]
+      : [new Date(now - 2 * DAY), new Date(now)]
+  const lastYear = new Date(now - 400 * DAY)
+  const year = (date: Date) => inBrisbane(date, 'year')
+
+  it.each([
+    [
+      'a date this year',
+      <DateTime at={to} timeZone={BNE} context='standalone' />,
+      false
+    ],
+    [
+      'a range this year',
+      <DateTime at={from} to={to} timeZone={BNE} context='standalone' />,
+      false
+    ],
+    [
+      'a date in another year',
+      <DateTime at={lastYear} timeZone={BNE} context='standalone' />,
+      true
+    ]
+  ])(
+    'paints %s in its final words, where it stays',
+    async (_, date, keepsYear) => {
+      const ui = (
+        <p className='inline-flex gap-4'>
+          {date}
+          <span>Doors open</span>
+        </p>
+      )
+      const html = renderToString(ui)
+      expect(html).toContain(year(keepsYear ? lastYear : to))
+      expect(await hydrationShift(html, ui)).toEqual([])
+    }
+  )
 })

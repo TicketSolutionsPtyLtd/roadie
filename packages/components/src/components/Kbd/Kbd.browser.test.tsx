@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react'
 
 import { cleanup, render } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { Kbd } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { apcaLc, over, shownFill } from '../../css/contrastTestUtils'
 import { setHoverCapable } from '../../css/testUtils'
+import { hydrationShift } from '../../utils/hydrationTestUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 import { Tabs } from '../Tabs'
@@ -440,4 +442,32 @@ describe.each(['light', 'dark'] as const)('Kbd contrast in %s mode', (mode) => {
       }
     })
   })
+})
+
+describe('Kbd before hydration', () => {
+  afterEach(() => Reflect.deleteProperty(navigator, 'userAgentData'))
+
+  it.each([
+    ['macOS', ['mod', 'shift', 'p'], {}],
+    ['macOS', ['mod', 'k'], { combined: true }],
+    ['macOS', ['mod', 'd'], { emphasis: 'subtler' }],
+    ['Windows', ['mod', 'shift', 'p'], {}],
+    ['Windows', ['mod', 'k'], { combined: true }],
+    ['Windows', ['mod', 'd'], { emphasis: 'subtler' }]
+  ] as const)(
+    'paints the %s keys %j before hydration, where they stay',
+    async (platform, keys, props) => {
+      Object.defineProperty(navigator, 'userAgentData', {
+        value: { platform },
+        configurable: true
+      })
+      const ui = (
+        <p className='inline-flex gap-4'>
+          <Kbd keys={keys} {...props} />
+          <span>Search</span>
+        </p>
+      )
+      expect(await hydrationShift(renderToString(ui), ui)).toEqual([])
+    }
+  )
 })

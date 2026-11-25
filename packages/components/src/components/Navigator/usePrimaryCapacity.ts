@@ -1,16 +1,29 @@
 'use client'
 
-import { type RefObject, useEffect, useMemo, useState } from 'react'
+import {
+  type RefObject,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
-import { type PrimaryCapsule, fitPrimaryCluster } from './primaryCapacity'
+import {
+  type PrimaryCapsule,
+  fitPrimaryCluster,
+  foldThresholds
+} from './primaryCapacity'
 import { holdDuringLayoutTransitions } from './transitionHold'
 
 const NONE: ReadonlySet<string> = new Set()
 
-type Measured = { viewport: number; brandPadding: number }
+type Measured = { viewport: number; brandPadding: number; observed: boolean }
 
-// Half-pixel steps in rem, so sub-pixel jitter never republishes.
-const quantize = (px: number, rem: number) => Math.round(px * 2) / 2 / rem
+// Half-pixel steps in rem, so sub-pixel jitter never republishes. Down, as
+// the server's container query never counts a height it lacks.
+const quantize = (px: number, rem: number) => Math.floor(px * 2) / 2 / rem
+
+const subscribeToNothing = () => () => {}
 
 const sameMembers = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
   a.size === b.size && [...a].every((value) => b.has(value))
@@ -22,10 +35,22 @@ export function usePrimaryCapacity(
   capsules: PrimaryCapsule[],
   restingBrandPadding: number,
   enabled: boolean
-): { folded: ReadonlySet<string>; shown: boolean } {
+): {
+  folded: ReadonlySet<string>
+  shown: boolean
+  /** Server markup until first observed: CSS folds by these heights instead. */
+  unmeasured: ReturnType<typeof foldThresholds> | null
+} {
+  const hydrating = useSyncExternalStore(
+    subscribeToNothing,
+    () => false,
+    () => true
+  )
+  const [fromServer] = useState(hydrating)
   const [measured, setMeasured] = useState<Measured>({
     viewport: 0,
-    brandPadding: 0
+    brandPadding: 0,
+    observed: false
   })
 
   useEffect(() => {
@@ -41,9 +66,11 @@ export function usePrimaryCapacity(
         : 0
       const next = {
         viewport: quantize(height, rem),
-        brandPadding: quantize(padding, rem)
+        brandPadding: quantize(padding, rem),
+        observed: true
       }
       setMeasured((current) =>
+        current.observed &&
         current.viewport === next.viewport &&
         current.brandPadding === next.brandPadding
           ? current
@@ -80,5 +107,12 @@ export function usePrimaryCapacity(
   const [kept, setKept] = useState(fitted)
   const unchanged = sameMembers(kept, fitted)
   if (!unchanged) setKept(fitted)
-  return { folded: unchanged ? kept : fitted, shown }
+  const unmeasured = useMemo(
+    () =>
+      fromServer && enabled && !measured.observed
+        ? foldThresholds(capsules)
+        : null,
+    [fromServer, enabled, measured.observed, capsules]
+  )
+  return { folded: unchanged ? kept : fitted, shown, unmeasured }
 }

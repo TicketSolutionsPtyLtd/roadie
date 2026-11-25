@@ -3,6 +3,7 @@ export type {
   RecordFieldType,
   RecordFilter,
   RecordFilterOperator,
+  RecordGroupBy,
   RecordLayout,
   RecordMoment,
   RecordOption,

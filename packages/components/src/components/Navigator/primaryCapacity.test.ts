@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { PRIMARY_METRICS, fitPrimaryCluster } from './primaryCapacity'
+import {
+  PRIMARY_METRICS,
+  fitPrimaryCluster,
+  foldThresholds
+} from './primaryCapacity'
 import {
   navigatorCapsuleClass,
   navigatorPrimaryClusterContentClass,
@@ -47,6 +51,42 @@ describe('vertical navigation arithmetic', () => {
         )
       )
     ).toEqual(['a', 'b'])
+  })
+
+  it('names the height each item needs to stay, and More to go', () => {
+    const { slots, all } = foldThresholds(five())
+    expect(Object.fromEntries(slots)).toEqual({
+      a: 8.75,
+      b: 12,
+      c: 15.25,
+      d: 17.5,
+      e: 17.5
+    })
+    expect(all).toBe(17.5)
+  })
+
+  it.each([
+    ['one run', five()],
+    [
+      'two capsules with priorities',
+      [
+        { key: 'g1', slots: [s('a'), s('b', 'low')] },
+        { key: 'g2', slots: [s('c', 'high'), s('d'), s('e', 'low')] }
+      ]
+    ]
+  ])('folds by threshold exactly as by fitting, for %s', (_, capsules) => {
+    const { slots, all } = foldThresholds(capsules)
+    for (let height = 0.25; height <= 30; height += 0.25) {
+      const byThreshold = [...slots]
+        .filter(([, needs]) => height < needs)
+        .map(([value]) => value)
+        .sort()
+      expect([height, byThreshold]).toEqual([
+        height,
+        folded(fitPrimaryCluster(capsules, height))
+      ])
+      expect([height, height < all]).toEqual([height, byThreshold.length > 0])
+    }
   })
 
   it('matches the classes that draw the vertical navigation', () => {

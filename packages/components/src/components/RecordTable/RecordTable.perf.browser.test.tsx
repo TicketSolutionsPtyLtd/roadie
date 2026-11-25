@@ -178,6 +178,31 @@ describe('RecordTable scrolling, CPU 4x', () => {
     )
   })
 
+  // Grouped, a page renders every row, unwindowed, so its size is the cost.
+  it('scrolls a page of 500 rows grouped by status at 60fps', async () => {
+    const container = await mount(
+      <div style={SCROLL_BOX} data-testid='scroller'>
+        <RecordTable
+          data={testShows(500)}
+          fields={showFields}
+          columns={showColumns}
+          defaultPosition={{ pageSize: 500 }}
+          defaultView={{
+            layout: { type: 'table', groupBy: ['status'] }
+          }}
+        />
+      </div>
+    )
+    expect(
+      container.querySelectorAll('[data-slot="record-table-group"]').length
+    ).toBe(3)
+    await expectFrameBudget(
+      'RecordTable, 500 grouped rows, scroll',
+      await measureFrames(scrollBy(scroller(container))),
+      { longestTask: 50 }
+    )
+  })
+
   it('scrolls 100,000 rows loaded by range at 60fps', async () => {
     const container = await mount(<RangeScrolling />)
     const box = scroller(container)

@@ -8,6 +8,7 @@ import type { RecordField } from '@oztix/roadie-core/records'
 
 import { List } from '../List'
 import { ListItemStatic } from '../List/ListItemStatic'
+import { RecordsLayoutGroupSettings } from '../Records/RecordsGroupSettings'
 import { useRecordsData } from '../Records/context'
 import { Sortable } from '../Sortable'
 import { Toggle } from '../Toggle'
@@ -20,19 +21,28 @@ import {
 } from './parts'
 import type { GridLayoutConfig } from './types'
 
-/**
- * The grid's and list's part of `Records.Options`: the fields each card or row lists, reordered
- * by drag and shown or hidden. A view keeps only the shown fields in order,
- * so hidden ones are listed apart, in the fields' own order.
- */
-export function RecordGridSettings({
-  config,
-  type = 'grid'
-}: {
+type SettingsProps = {
   config: GridLayoutConfig
   /** Which layout these are for: the view can still name another, such as the default table. */
   type?: DetailsLayout
-}) {
+}
+
+/**
+ * The grid's and list's part of `Records.Options`: the fields each card or row lists, reordered
+ * by drag and shown or hidden, then, for the grid, what it groups by. A view keeps only the shown fields in order,
+ * so hidden ones are listed apart, in the fields' own order.
+ */
+export function RecordGridSettings({ config, type = 'grid' }: SettingsProps) {
+  return (
+    <>
+      <DetailsSettings config={config} type={type} />
+      {type === 'grid' && <RecordsLayoutGroupSettings type='grid' />}
+    </>
+  )
+}
+RecordGridSettings.displayName = 'RecordGridSettings'
+
+function DetailsSettings({ config, type = 'grid' }: SettingsProps) {
   const records = useRecordsData()
   const headingId = useId()
   const hiddenId = useId()
@@ -163,4 +173,3 @@ export function RecordGridSettings({
     </section>
   )
 }
-RecordGridSettings.displayName = 'RecordGridSettings'

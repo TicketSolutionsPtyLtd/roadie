@@ -148,7 +148,7 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Content` in `Pane.Body`, below the header. Its column headers stick under the header. Placed straight in `Pane.Body`, a wide table runs to the pane's edges, with the pane's inset inside its first and last cells, so its first column lines up with the search and columns scrolled sideways pass under any pinned ones. Narrow rows, a `fill` or `maxHeight` box, and a pane with a `measure` keep the inset.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
-- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
+- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and sticks it to the foot of narrow rows.
 
 On a phone the table turns into list rows: the event, its venue, and its status. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
@@ -871,6 +871,70 @@ render(
 
 Keep the views your app stores as `RecordView` JSON, the same shape as the URL reads, so a view saved on one screen opens from a link, a preset, or a search hand-off alike.
 
+### Grouped
+
+A view's `layout.groupBy` groups the rows by up to three fields with options, such as a status, outermost first, in the options' order. Each field after the first groups the rows inside each group before it. Records with no value follow in a "No" group, such as "No status", and an option with no records is left out. Inside a group, rows keep the view's sort. The URL keeps it as `groupBy=status,venue`. To group a table by default, set it in `defaultView` or the saved view, so people can always turn it off. A field that holds a list, or has no options, can't group. People pick the field, or None, from Group by in the table's settings, then Then by and And then by, and changing the columns keeps the grouping. Group by is left out when no shown column's field can group, or when the table loads by range.
+
+Wide, each group starts with a row spanning the columns, holding its title and count, with headings in tiers by level as in a [grouped list](/components/record-list#grouped). The title is a button that collapses the group's rows, for the session only, and a field's `groupHeading` adds content under its groups' titles at any level. Narrow, rows group as the list's do. Grouping applies to one page of rows at a time, so a group can continue on the next page, and a grouped table renders every row on its page rather than only those near the screen. A table that loads by range stays ungrouped. A Shift range follows the order on screen, across groups, and skips the rows of a collapsed group.
+
+```tsx-live-noinline-expand
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco', 'Raffia Spaceship']
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre']
+const statuses = ['on-sale', 'selling-fast', 'sold-out']
+const events = Array.from({ length: 12 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  status: statuses[(index * 2) % statuses.length],
+  sold: (index * 37) % 2400
+}))
+const suburbs = {
+  'Kazoo Hollow Room': 'Fitzroy',
+  'Antler Kettle Hall': 'Brunswick',
+  'Echidna Gaslight Theatre': 'Collingwood'
+}
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  {
+    ...field.option('venue', {
+      label: 'Venue',
+      options: venues.map((venue) => ({ value: venue, label: venue }))
+    }),
+    groupHeading: ({ value }) => suburbs[value] ?? null
+  },
+  field.option('status', {
+    label: 'Status',
+    status: {
+      'on-sale': { intent: 'success', label: 'On sale' },
+      'selling-fast': { intent: 'warning', label: 'Selling fast' },
+      'sold-out': { intent: 'neutral', label: 'Sold out' }
+    }
+  }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+
+render(
+  <RecordTable
+    caption='Events by status and venue'
+    data={events}
+    fields={fields}
+    columns={[
+      column.field('name', { pin: true }),
+      column.field('venue'),
+      column.field('sold')
+    ]}
+    getRowId={(row) => row.id}
+    getRowHref={(row) => `#${row.id}`}
+    recordName={{ one: 'event', other: 'events' }}
+    bulkActions={[{ label: 'Export', onAction: () => {} }]}
+    defaultView={{ layout: { type: 'table', groupBy: ['status', 'venue'] } }}
+  />
+)
+```
+
 ### Selection and actions
 
 `bulkActions` turns on a checkbox for each record and shows the bulk actions once something is selected. An action gets the selection and the query and request it was taken against: the picked ids, or every matching record but some. It never gets a record the search and filters hide. Selection is session state, like the page, and works controlled with `selection` and `onSelectionChange` or uncontrolled with `defaultSelection`. A search or filter change drops picked records it hides, and drops a "select all".
@@ -1360,7 +1424,7 @@ To show records another way on a phone, such as [`RecordList`](/components/recor
 
 A table that can be selected or shows totals still turns into a list once the page hydrates, since the server can't measure the table. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
 
-Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions float at the foot of the screen, keeping the first action and putting the rest in a More actions menu when they don't fit.
+Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions stick to the foot of the scrolling box until the rows end, keeping the first action and putting the rest in a More actions menu when they don't fit.
 
 #### List rows
 
@@ -1484,7 +1548,7 @@ render(
 
 #### Select mode
 
-A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the header instead. Tap it to enter Select mode: each record shows a checkbox, a tap selects the record rather than opening it, and the header offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the floating bar shows the count, the offer to select every matching record, and the bulk actions. With several actions, their labels collapse to icons; a lone action keeps its label.
+A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the header instead. Tap it to enter Select mode: each record shows a checkbox, a tap selects the record rather than opening it, and the header offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the bar at the foot shows the count, the offer to select every matching record, and the bulk actions. With several actions, their labels collapse to icons; a lone action keeps its label.
 
 `RecordTable` places the Select button for you. When you compose the parts, put `Records.Select` beside the search; it shows only while the layout selects through Select mode.
 
@@ -1726,6 +1790,8 @@ column.field('location', { pin: true })`}
 - Wide, the totals are a row in the table's head, under the column headers, with its label as the row's header, so each total reads with its column's name. Narrow, they're a paragraph above the list, each total after its heading.
 - `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
 - When the table holds only some of its rows (a page of several, more than 100 rows, or a list loaded by range), it carries `aria-rowcount`, counting every match (up to 300,000 loading by range), the header row, and the totals row when there is one, and each row its `aria-rowindex`, so screen readers announce "row 52 of 121". Loading by range, the count is `-1` until the total is known.
+- Grouped and wide, each group is a `rowgroup` holding a row with one cell spanning the columns, and its rows follow in a `rowgroup` of their own, as rowgroups can't nest. The group's title is an `h2` heading, with `h3` and `h4` for the second and third levels, holding a button named by the title and count, such as "On sale 4", whose `aria-expanded` says whether the group shows and whose `aria-controls` names its rows. Content from `groupHeading` follows the heading and hides with the group. A grouped table carries no `aria-rowcount`, as its title rows aren't records. Narrow, the groups are lists as in a grouped list.
+- The Group by selects in Configure are labelled "Group by", "Then by", and "And then by". Each appears once the one before it holds a field.
 - Loading by range, the table is `aria-busy` while a range loads, placeholders are hidden from screen readers, and a failed range is announced, such as "Couldn't load more shows". The result count is announced only once the total is known. The header checkbox is named "Select loaded rows".
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
 - The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click, or with the arrows, not on Tab. While they're open, the rest of the page is hidden from screen readers, as for any combobox. Clear keeps focus in the field and keeps the page's scope. [Keys](#keys) lists what each key does.
@@ -1739,7 +1805,7 @@ column.field('location', { pin: true })`}
 - The view button is named "View:" and the view's name, with ", unsaved changes" once the view has changed, as its tooltip shows, and opens a menu. Save view and Reset view sit in a group named "Unsaved changes". Save as new view and Rename view open a dialog of that name with focus in its Name field, the whole name selected to rename, and an empty name says "Enter a name". Delete view asks in an alert dialog. Focus returns to the view button as each closes. While a handler runs, its control stays focusable but disabled, with `aria-busy`.
 - `Records.View` is an icon button named "View", with a tooltip that says so. The drawer it opens is a dialog named "View", with a Close button first and the same controls as Configure; Escape closes it and returns focus to the button.
 - The Configure button is named "Configure table", as is the dialog it opens. Given more than one layout, its Layout switcher is a group named "Layout" of toggle buttons, with the shown layout pressed. Its sort controls are named "Sort by", then "Then by, level 2" and so on, and for each level the field's order, such as "Sold order". Adding a level moves focus to its field, and removing one moves focus to the Remove of the level that takes its place, or of the one before it, or to Add sort. Each column's handle is named "Reorder" and the column, its eye is a toggle button named "Show" and the column, pressed while the column shows (the last shown column's is disabled and says why), and each move is announced, such as "Gross moved to position 1 of 4 columns".
-- In Select mode, each record's checkbox covers the record, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. Select mode's controls are a group named "Select mode", and the floating bulk actions a group named "Bulk actions", where Escape leaves Select mode. When the bar goes, focus lands on Select, or on the records.
+- In Select mode, each record's checkbox covers the record, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. Select mode's controls are a group named "Select mode", and the bulk actions a group named "Bulk actions", where Escape leaves Select mode. When the bar goes, focus lands on Select, or on the records.
 - Focus follows the record across a switch between the table and the list, onto the same record's link or first control.
 - A row with `getRowHref` holds a real link: it opens in a new tab with Cmd or Ctrl, and works with every other link convention, not just a click handler.
 

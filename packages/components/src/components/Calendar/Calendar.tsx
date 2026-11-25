@@ -437,8 +437,11 @@ export function Calendar(props: CalendarProps) {
   const shownMonth = monthProp
     ? monthOf(monthProp)
     : (navigatedMonth ?? (anchor ? monthOf(anchor) : null))
-  // With nothing to place it, the month waits for the client to know today.
+  // With nothing to place it, the month waits for the client to know today,
+  // as a stand-in month that holds its room unseen.
   const waitingForToday = shownMonth === null
+  const standIn = waitingForToday && !scrolling
+  const estimated = waitingForToday && scrolling
   const firstMonth = clampMonth(shownMonth ?? '2000-01-01')
 
   // A scrolling calendar shows a run of months around the first one, which
@@ -1568,8 +1571,8 @@ export function Calendar(props: CalendarProps) {
     )
   }
 
-  const monthsShown = waitingForToday
-    ? months.slice(0, scrolling ? 1 : undefined).map((month) => (
+  const monthsShown = estimated
+    ? months.slice(0, 1).map((month) => (
         <div
           key={month}
           aria-hidden='true'
@@ -1703,8 +1706,11 @@ export function Calendar(props: CalendarProps) {
       className={cn(
         'relative grid w-full data-swiping:select-none',
         scrolling ? 'gap-6' : 'gap-2',
+        standIn && 'invisible',
         className
       )}
+      aria-hidden={standIn || undefined}
+      inert={standIn}
       {...rest}
       onFocus={(event) => {
         rest.onFocus?.(event)
@@ -1744,13 +1750,9 @@ export function Calendar(props: CalendarProps) {
         monthsShown
       ) : (
         <>
-          {inlineNav &&
-            (!waitingForToday
-              ? header
-              : // Each month's placeholder holds its own caption, but not this row.
-                monthCaptions && <div aria-hidden='true' className='h-8' />)}
+          {inlineNav && header}
           <div className={pinnedWeekdays ? 'grid' : 'contents'}>
-            {pinnedWeekdays && !waitingForToday && (
+            {pinnedWeekdays && (
               <div
                 aria-hidden='true'
                 data-slot='calendar-weekdays'
@@ -1773,7 +1775,7 @@ export function Calendar(props: CalendarProps) {
                 wholeMonths ? 'gap-y-14' : 'gap-y-4'
               )}
             >
-              {!inlineNav && !waitingForToday && nav}
+              {!inlineNav && nav}
               {monthsShown}
               {peek && !waitingForToday && renderPeek(peek)}
             </div>

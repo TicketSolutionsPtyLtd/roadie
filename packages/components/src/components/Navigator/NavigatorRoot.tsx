@@ -45,7 +45,7 @@ import { primarySignature } from './primarySignature'
 import { splitPrimary } from './splitPrimary'
 import { useExpandMotion } from './useExpandMotion'
 import { useFramePending } from './useFramePending'
-import { navigatorRootClass } from './variants'
+import { navigatorPendingClass, navigatorRootClass } from './variants'
 
 export type NavigatorRootProps = {
   /** The active destination's `value`; selection belongs to your router. */
@@ -313,7 +313,11 @@ export function NavigatorRoot({
                 className={cn(navigatorRootClass, className)}
               >
                 {pending === 'idle' ? null : (
-                  <div aria-hidden data-slot='navigator-pending' />
+                  <div
+                    aria-hidden
+                    data-slot='navigator-pending'
+                    className={navigatorPendingClass}
+                  />
                 )}
                 {primary}
                 <NavigatorContent>{rest}</NavigatorContent>

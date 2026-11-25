@@ -1,5 +1,6 @@
 import { TableIcon } from '@phosphor-icons/react/ssr'
 
+import { groupableFields } from '../Records/groups'
 import type { RecordLayoutDefinition } from '../Records/layouts'
 import { RecordTableContent } from './RecordTableContent'
 import { RecordTableSettingsLazy } from './RecordTableSettingsLazy'
@@ -19,9 +20,16 @@ export type TableLayoutOptions = Omit<TableLayoutConfig, 'columns'>
 
 export type TableLayoutDefinition = RecordLayoutDefinition<TableLayoutConfig>
 
-function hasColumnSettings(columns: readonly { pin?: boolean }[]) {
+// Pinned columns neither move nor hide, and a lone column with nothing
+// pinned can't hide, so either alone leaves no columns to set. A column's
+// field that can group leaves Group by to set.
+function hasSettings(columns: readonly RecordTableColumn[]) {
   const movable = columns.filter((column) => !column.pin).length
-  return movable > 1 || (movable === 1 && movable < columns.length)
+  return (
+    movable > 1 ||
+    (movable === 1 && movable < columns.length) ||
+    groupableFields(columns.map((column) => column.field)).length > 0
+  )
 }
 
 /** The table layout for `Records`, showing these columns. */
@@ -36,9 +44,9 @@ export function tableLayout<Row extends object>(
     // A column's cell reads the consumer's Row; the table hands it the same row.
     config: { columns: columns as readonly RecordTableColumn[], narrow },
     Content: RecordTableContent,
-    // Pinned columns neither move nor hide, and a lone column with nothing
-    // pinned can't hide, so either alone leaves nothing to set.
-    Settings: hasColumnSettings(columns) ? RecordTableSettingsLazy : undefined,
+    Settings: hasSettings(columns as readonly RecordTableColumn[])
+      ? RecordTableSettingsLazy
+      : undefined,
     // Narrow rows have no header, so their bar floats.
     bulkActions: 'header'
   }

@@ -2,6 +2,7 @@
 
 import {
   Children,
+  type ReactElement,
   type ReactNode,
   cloneElement,
   isValidElement,
@@ -11,7 +12,11 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { NavigatorFoldedContext } from './NavigatorFoldedContext'
+import {
+  NavigatorFoldAtContext,
+  NavigatorFoldedContext,
+  foldBelow
+} from './NavigatorFoldedContext'
 import {
   NavigatorGroupTitle,
   type NavigatorGroupTitleProps
@@ -36,7 +41,8 @@ export type NavigatorGroupProps = {
 export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
   const titleId = useId()
   const folded = use(NavigatorFoldedContext)
-  let title: ReactNode = null
+  const at = use(NavigatorFoldAtContext)
+  let title: ReactElement<NavigatorGroupTitleProps> | null = null
   const rows: { key: string | number; row: ReactNode }[] = []
 
   Children.forEach(children, (child) => {
@@ -44,7 +50,7 @@ export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
       isValidElement<NavigatorGroupTitleProps>(child) &&
       child.type === NavigatorGroupTitle
     ) {
-      title = cloneElement(child, { id: titleId })
+      title = child
       return
     }
     const value = isValidElement<{ value?: unknown }>(child)
@@ -58,17 +64,32 @@ export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
   })
 
   if (rows.length === 0) return null
+  const groupFoldsBelow = foldBelow(
+    at,
+    rows.flatMap(({ key }) => (typeof key === 'string' ? [key] : []))
+  )
+  const titleProps: Partial<NavigatorGroupTitleProps> & {
+    'data-fold-below'?: string
+  } = { id: titleId, 'data-fold-below': groupFoldsBelow }
 
   return (
     <>
-      {title}
+      {title && cloneElement(title, titleProps)}
       <ul
         data-slot='navigator-capsule'
+        data-fold-below={groupFoldsBelow}
         aria-labelledby={title !== null ? titleId : undefined}
         className={cn(navigatorCapsuleClass, className)}
       >
         {rows.map(({ key, row }) => (
-          <li key={key}>{row}</li>
+          <li
+            key={key}
+            data-fold-below={
+              typeof key === 'string' ? foldBelow(at, [key]) : undefined
+            }
+          >
+            {row}
+          </li>
         ))}
       </ul>
     </>

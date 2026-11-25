@@ -62,7 +62,7 @@ const sameRow = (prev: RowProps, next: RowProps) =>
     (key) => key === 'isSelected' || prev.shared[key] === next.shared[key]
   )
 
-const Row = memo(function Row({ shared, row, rowIndex }: RowProps) {
+export const Row = memo(function Row({ shared, row, rowIndex }: RowProps) {
   return (
     <RowIndexContext value={rowIndex}>
       <RecordTableRow

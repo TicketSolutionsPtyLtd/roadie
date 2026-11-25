@@ -167,6 +167,18 @@ describe('gridDetailsLayout', () => {
       { type: 'grid', fields: ['city', 'fees', 'sold'] }
     ],
     [
+      "keeps the view's grouping, its own setting",
+      ['sold'],
+      { type: 'grid', groupBy: ['status', 'venue'] },
+      { type: 'grid', fields: ['sold'], groupBy: ['status', 'venue'] }
+    ],
+    [
+      "keeps the view's grouping back at the definition",
+      ['city', 'sold'],
+      { type: 'grid', fields: ['sold'], groupBy: ['status'] },
+      { type: 'grid', groupBy: ['status'] }
+    ],
+    [
       'drops placed, unknown-to-the-row and repeated keys from the change',
       ['name', 'sold', 'sold', 'nope'],
       { type: 'grid' },

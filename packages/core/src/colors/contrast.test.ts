@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import { getContrastColor } from './contrast'
 
-// Hexes are the shipped steps in tokens.css. APCA Lc for white and black text
-// in the comment; the pick is the larger |Lc|.
+// Hexes are tokens.css steps in sRGB, with accent 9 as the brand's hex. APCA
+// Lc for white and black text in the comment; the pick is the larger |Lc|.
 const shippedSteps: ReadonlyArray<[string, string, 'white' | 'black']> = [
   ['light neutral 0', '#ffffff', 'black'], // 0 vs 106.0
   ['light neutral 5', '#d7e2ed', 'black'], // -17.8 vs 88.1

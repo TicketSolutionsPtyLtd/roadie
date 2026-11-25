@@ -86,12 +86,8 @@ describe('keyFace', () => {
     expect(keyFace(key, 'other')).toEqual(other)
   })
 
-  it('holds a modifier pending until the platform is known', () => {
-    expect(keyFace('mod', null)).toEqual({
-      label: 'Ctrl',
-      name: 'Control',
-      pending: true
-    })
+  it('holds a modifier back until the platform is known', () => {
+    expect(keyFace('mod', null)).toBeNull()
   })
 
   it.each([
