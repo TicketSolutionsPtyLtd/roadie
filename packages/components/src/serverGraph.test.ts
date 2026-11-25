@@ -16,17 +16,21 @@ const VALUE_IMPORT =
 // React's server build has no createContext, so calling it as a module loads throws.
 const CREATES_CONTEXT = /\bcreateContext\s*[<(]/
 
-/** The modules a Server Component loads with `entry` that create a context: the graph stops at each client module. */
-function contextsOnServer(sources: Sources, entry: string) {
+/** What a Server Component loads with `entry`: the modules that create a context, and the client modules where the graph stops. */
+function serverGraph(sources: Sources, entry: string) {
   const seen = new Set<string>()
   const stack = [entry]
   const found: string[] = []
+  const clients: string[] = []
   while (stack.length > 0) {
     const file = stack.pop()!
     const source = sources[file]
     if (source === undefined || seen.has(file)) continue
     seen.add(file)
-    if (/^['"]use client['"]/.test(source)) continue
+    if (/^['"]use client['"]/.test(source)) {
+      clients.push(file)
+      continue
+    }
     if (CREATES_CONTEXT.test(source)) found.push(file)
     for (const match of source.matchAll(VALUE_IMPORT)) {
       const { pathname } = new URL(match[1]!, `file:///${file}`)
@@ -40,8 +44,11 @@ function contextsOnServer(sources: Sources, entry: string) {
       )
     }
   }
-  return found
+  return { contexts: found, clients: clients.sort() }
 }
+
+const contextsOnServer = (sources: Sources, entry: string) =>
+  serverGraph(sources, entry).contexts
 
 describe('a Server Component importing an entry', () => {
   it('loads no module that creates a context', () => {
@@ -107,4 +114,24 @@ describe('a Server Component importing an entry', () => {
   ])('follows no type-only import, as in %j', (index) => {
     expect(found(index, rows)).toEqual([])
   })
+
+  // Each client module here ships to the browser with the entry. Only the
+  // parts that need state, context or events are client modules (INNO-1693).
+  it.each([
+    [
+      'Callout',
+      [
+        'Button/IconButton.tsx',
+        'Callout/CalloutIcon.tsx',
+        'Callout/CalloutIntent.tsx'
+      ]
+    ]
+  ])(
+    'keeps %s server-rendered up to its interactive parts',
+    (name, clients) => {
+      expect(
+        serverGraph(SOURCES, `./components/${name}/index.tsx`).clients
+      ).toEqual(clients.map((file) => `./components/${file}`))
+    }
+  )
 })
