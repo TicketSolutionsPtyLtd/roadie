@@ -324,11 +324,11 @@
     }
   }
 
-  /* Each emphasis declares the values the shared state rule on is-interactive
-     and is-interactive-within swaps (interactions.css), as the emphasis
-     presets do; CardRoot leaves the preset's class off, since the parts paint
-     the fill. Values only: no state selector here. One left out falls back to
-     the rest value. The shadows are whole lists, one per state. */
+  /* Each emphasis declares its values, as the emphasis presets do, and the
+     shared state rule (is-interactive and is-interactive-within, in
+     interactions.css) picks one per state. CardRoot leaves the preset's class
+     off, since the parts paint the fill. Values only: no state selector here.
+     A state left out shows the rest look. The shadows are whole lists. */
   [data-slot='card'][data-variant='ticket'][data-emphasis='raised'] {
     --emphasis-fill: var(--intent-bg-raised);
     --emphasis-shadow:
