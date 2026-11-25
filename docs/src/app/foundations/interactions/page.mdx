@@ -320,6 +320,18 @@ with an `href` takes `is-interactive`.
 </Card>
 ```
 
+A fill, border, or shadow class you add wins in every state. The emphasis
+changes only what you haven't set, so the class holds through hover, focus,
+and press while the element still lifts and presses. Hover the second button
+to compare.
+
+```tsx-live layout=row
+<Button emphasis='normal'>Buy tickets</Button>
+<Button emphasis='normal' className='bg-sunken'>Buy tickets</Button>
+```
+
+To change the fill on hover too, add a `hover:` class.
+
 `is-interactive-field` provides its own hover, focus, and invalid logic. It
 doesn't use emphasis hover states. This is why form inputs use
 `emphasis-field`, which has no interactive states, paired with
