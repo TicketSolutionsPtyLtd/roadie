@@ -80,6 +80,8 @@ type RecordTableNarrowRowsProps = NarrowShared & {
   onRow?: (row: number) => void
   /** Rows under a title and count per group, in place of `rows`. Groups with no rows are left out. */
   groups?: readonly RecordGroup[]
+  /** Group titles as tiers of heading by level, largest outermost, with a rule between outer groups. Otherwise every title is the quiet group title. */
+  groupHeadings?: boolean
   /** Group titles stick at this `top` as their rows scroll by. */
   stickyTop?: string
 }
@@ -97,6 +99,7 @@ export function RecordTableNarrowRows({
   row,
   onRow,
   groups,
+  groupHeadings = false,
   stickyTop,
   ...shared
 }: RecordTableNarrowRowsProps) {
@@ -105,6 +108,7 @@ export function RecordTableNarrowRows({
     return (
       <GroupedList
         groups={groups}
+        headings={groupHeadings}
         stickyTop={stickyTop}
         shared={shared}
         {...listProps}
@@ -248,11 +252,13 @@ const noList = { current: null }
 // Unwindowed: grouping applies to the rows loaded, a page at most.
 function GroupedList({
   groups,
+  headings,
   stickyTop,
   shared,
   ...listProps
 }: {
   groups: readonly RecordGroup[]
+  headings: boolean
   stickyTop?: string
   shared: NarrowShared
   caption?: string
@@ -269,7 +275,6 @@ function GroupedList({
     [onToggle, order]
   )
   const grouped = { ...shared, onToggle: toggle }
-  const nested = shown[0] ? levelsBelow(shown[0]) > 0 : false
   const listRef = useRef<HTMLUListElement>(null)
   useSurface(stickyTop === undefined ? noList : listRef)
   return (
@@ -280,7 +285,7 @@ function GroupedList({
           group={group}
           stickyTop={stickyTop}
           shared={grouped}
-          nested={nested}
+          headings={headings}
         />
       ))}
     </NarrowList>
@@ -306,10 +311,8 @@ function shownOrder(groups: readonly RecordGroup[]): string[] {
 
 const groupHeadings = ['h2', 'h3', 'h4'] as const
 
-// With more than one level, each reads as its own tier of heading, largest
-// outermost; a third level keeps the quiet group title, as a single level does.
-const levelsBelow = (group: RecordGroup): number =>
-  group.groups?.[0] ? 1 + levelsBelow(group.groups[0]) : 0
+// Each level is its own tier of heading, largest outermost, whatever follows
+// it; a third level keeps the quiet group title.
 const titleTiers = [
   'text-display-ui-4 text-strong',
   'text-display-ui-6 text-strong'
@@ -320,14 +323,13 @@ function Group({
   stickyTop,
   shared,
   depth = 0,
-  nested = false
+  headings = false
 }: {
   group: RecordGroup
   stickyTop?: string
   shared: NarrowShared
   depth?: number
-  /** Whether the list groups by more than one level. */
-  nested?: boolean
+  headings?: boolean
 }) {
   const titleId = useId()
   const Heading = groupHeadings[Math.min(depth, groupHeadings.length - 1)]!
@@ -339,7 +341,7 @@ function Group({
       className={cn(
         listGroupVariants(),
         // An outer group's siblings part with a rule; inner ones sit closer.
-        group.groups && depth === 0 && 'gap-3 border-t border-subtler pt-6',
+        headings && depth === 0 && 'gap-3 border-t border-subtler pt-6',
         depth > 0 && 'mt-4'
       )}
     >
@@ -348,7 +350,7 @@ function Group({
         data-slot='list-group-title'
         className={cn(
           listGroupTitleVariants(),
-          nested && titleTiers[depth],
+          headings && titleTiers[depth],
           'flex gap-1.5',
           shared.bleed && '-mx-3',
           sticky !== undefined && ['sticky z-1 py-1', surfaceClass]
@@ -357,7 +359,7 @@ function Group({
       >
         {group.label}{' '}
         <span
-          className={cn('font-normal tabular-nums', nested && 'text-subtle')}
+          className={cn('font-normal tabular-nums', headings && 'text-subtle')}
         >
           {group.rows.length}
         </span>
@@ -374,7 +376,7 @@ function Group({
               group={inner}
               shared={shared}
               depth={depth + 1}
-              nested={nested}
+              headings={headings}
             />
           ))}
         </ul>

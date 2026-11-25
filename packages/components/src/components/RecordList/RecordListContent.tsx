@@ -64,6 +64,7 @@ export function RecordListContent({
       <RecordTableNarrowRows
         rows={records.rows}
         groups={groups}
+        groupHeadings
         parts={parts}
         layout='list'
         bleed={!boxed}

@@ -220,6 +220,25 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     ).toEqual(['Ocean Alley 1'])
   })
 
+  it('draws a level the same however many levels follow it', () => {
+    const titleOf = (groupBy: string[]) => {
+      const { unmount } = render(
+        <ShowList
+          data={testShows(6)}
+          fields={groupedShowFields}
+          defaultView={{ layout: { type: 'list', groupBy } }}
+        />
+      )
+      const style = getComputedStyle(
+        screen.getAllByRole('heading', { level: 2 })[0]!
+      )
+      const look = [style.fontSize, style.fontWeight, style.color]
+      unmount()
+      return look
+    }
+    expect(titleOf(['status'])).toEqual(titleOf(['status', 'city']))
+  })
+
   it('picks deeper levels from Then by, offering only fields not already used', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()
