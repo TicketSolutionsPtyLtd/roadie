@@ -13,6 +13,7 @@ import {
   hidingParked,
   modelLayoutAt,
   mount,
+  readPane,
   readRow,
   rowMarkup,
   rowShapes,
@@ -308,8 +309,9 @@ describe('an inspector', () => {
   })
 
   it('tells the row it sits in that the inspector yielded', () => {
+    // In a header's actions, as Pane.InspectorTrigger is.
     const trigger =
-      '<button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button>'
+      '<header><div><button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button></div></header>'
     const yielded = () =>
       getComputedStyle(document.getElementById('trigger')!).display !== 'none'
 
@@ -338,7 +340,7 @@ describe('an inspector', () => {
     'tells the row a %s inspector yielded, at its own thresholds',
     (size) => {
       const trigger =
-        '<button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button>'
+        '<header><div><button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button></div></header>'
       const yielded = () =>
         getComputedStyle(document.getElementById('trigger')!).display !== 'none'
 
@@ -775,6 +777,40 @@ describe('reading direction', () => {
     }
     expect(shiftOf(rowOf(content))).toBeGreaterThan(0)
     expect(shiftOf(rowOf(innerContent))).toBeLessThan(0)
+  })
+})
+
+describe("the stack's state", () => {
+  // Inherited, a change would restyle every row in every pane (INNO-1678).
+  const STATE = [
+    '--pane-top',
+    '--pane-reach',
+    '--pane-pushing',
+    '--pane-start',
+    '--pane-page-step',
+    '--pane-off',
+    '--pane-track'
+  ]
+
+  it("stays on the row and its panes, out of the panes' content", () => {
+    const content = at(390, {
+      ...reachedRow([true, false]),
+      inner: '<div data-row></div>'
+    })
+    const row = content.querySelector<HTMLElement>('[data-row]')!
+    const read = () =>
+      STATE.map((name) => getComputedStyle(row).getPropertyValue(name))
+    const before = read()
+
+    rowOf(content).setAttribute('data-pushing', '')
+    rowOf(content).setAttribute('data-page-step', 'push')
+    paneAt(content, 1).setAttribute('data-reached', '')
+
+    expect(read()).toEqual(before)
+    expect(readPane(paneAt(content, 1), content)).toMatchObject({
+      shown: true,
+      back: true
+    })
   })
 })
 
