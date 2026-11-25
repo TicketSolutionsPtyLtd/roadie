@@ -256,7 +256,7 @@ describe('ThemeProvider - accent scope', () => {
       .querySelector<HTMLElement>('[data-accent-scope]')
       ?.style.getPropertyValue('--accent-hue')
 
-  // Settles an accent effect that awaits the async hue before it writes.
+  // Flushes the accent effects and any updates they queue.
   const settle = () => act(async () => void (await getOklchHue(ROUTE)))
 
   beforeEach(() => accentStyle()?.remove())
@@ -417,6 +417,19 @@ describe('ThemeProvider - accent scope', () => {
     await settle()
 
     await waitFor(() => expect(documentHue()).toBe('293'))
+  })
+
+  it('drops the hex scales an older server tag wrote when the accent changes', async () => {
+    const style = document.createElement('style')
+    style.id = 'roadie-accent-theme'
+    style.textContent = `${getAccentStyleSync(ROOT)} :root { --color-accent-9: #0191eb; }`
+    document.head.append(style)
+
+    render(<ThemeProvider accentColor={ROUTE}>Page</ThemeProvider>)
+    await settle()
+
+    await waitFor(() => expect(documentHue()).toBe('293'))
+    expect(style.textContent).not.toContain('--color-accent-')
   })
 })
 
