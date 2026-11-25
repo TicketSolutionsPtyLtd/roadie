@@ -365,6 +365,38 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(checked('Julia Jacklin 1')).toBe('false')
   })
 
+  it('leaves a collapsed group out of a Shift range', async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={showFields}
+        selectable
+        defaultView={grouped}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Select' }))
+    const soldOut = screen.getByRole('button', { name: 'Sold out 2' })
+    await user.click(soldOut)
+    await expect
+      .poll(() =>
+        screen.queryByRole('checkbox', { name: 'Select Ball Park Music 1' })
+      )
+      .toBeNull()
+    const box = (name: string) => screen.getByRole('checkbox', { name })
+    await user.click(box('Select Ocean Alley 1'))
+    await user.keyboard('{Shift>}')
+    await user.click(box('Select Julia Jacklin 1'))
+    await user.keyboard('{/Shift}')
+    const checked = (name: string) =>
+      box(`Select ${name}`).getAttribute('aria-checked')
+    await expect.poll(() => checked('Julia Jacklin 1')).toBe('true')
+    expect(checked('angie McMahon 1')).toBe('true')
+    await user.click(soldOut)
+    expect(checked('Ball Park Music 1')).toBe('false')
+    expect(checked('Alex Lahey 1')).toBe('false')
+  })
+
   it('drops the deeper levels when a level is set to None, and writes each change once', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()

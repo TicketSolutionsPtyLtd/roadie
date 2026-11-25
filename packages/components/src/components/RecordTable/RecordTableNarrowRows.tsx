@@ -6,7 +6,8 @@ import {
   useCallback,
   useId,
   useMemo,
-  useRef
+  useRef,
+  useState
 } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -266,10 +267,24 @@ function GroupedList({
   busy?: boolean
   cards: boolean
 }) {
-  const { shown, order } = useMemo(() => {
-    const shown = shownGroups(groups)
-    return { shown, order: shownOrder(shown) }
-  }, [groups])
+  // Collapsed groups by path: the session's, never the view's.
+  const [closed, setClosed] = useState<ReadonlySet<string>>(() => new Set())
+  const shown = useMemo(() => shownGroups(groups), [groups])
+  // A range skips the rows of a collapsed group, as they aren't on screen.
+  const order = useMemo(() => shownOrder(shown, closed), [shown, closed])
+  const collapse = useMemo<GroupCollapse>(
+    () => ({
+      closed,
+      setOpen: (path, open) =>
+        setClosed((was) => {
+          const next = new Set(was)
+          if (open) next.delete(path)
+          else next.add(path)
+          return next
+        })
+    }),
+    [closed]
+  )
   const { onToggle } = shared
   const toggle = useCallback(
     (id: string, range: boolean) => onToggle(id, range, order),
@@ -287,6 +302,7 @@ function GroupedList({
           stickyTop={stickyTop}
           shared={grouped}
           headings={headings}
+          collapse={collapse}
         />
       ))}
     </NarrowList>
@@ -302,12 +318,31 @@ function shownGroups(groups: readonly RecordGroup[]): RecordGroup[] {
   )
 }
 
+type GroupCollapse = {
+  /** Paths of the collapsed groups. */
+  closed: ReadonlySet<string>
+  setOpen: (path: string, open: boolean) => void
+}
+
+// A group's place in the tree, by each level's field and value, so another
+// grouping never inherits its open state.
+const groupPath = (parent: string, group: RecordGroup) =>
+  `${parent}/${JSON.stringify([group.field?.key ?? null, group.key])}`
+
 // The ids in the order the innermost groups show them, which a nested group
-// can reorder from its outer group's rows.
-function shownOrder(groups: readonly RecordGroup[]): string[] {
-  return groups.flatMap((group) =>
-    group.groups ? shownOrder(group.groups) : group.rows.map(({ id }) => id)
-  )
+// can reorder from its outer group's rows, leaving out collapsed groups.
+function shownOrder(
+  groups: readonly RecordGroup[],
+  closed: ReadonlySet<string>,
+  parent = ''
+): string[] {
+  return groups.flatMap((group) => {
+    const path = groupPath(parent, group)
+    if (closed.has(path)) return []
+    return group.groups
+      ? shownOrder(group.groups, closed, path)
+      : group.rows.map(({ id }) => id)
+  })
 }
 
 const groupHeadings = ['h2', 'h3', 'h4'] as const
@@ -324,15 +359,21 @@ function Group({
   stickyTop,
   shared,
   depth = 0,
-  headings = false
+  headings = false,
+  collapse,
+  parent = ''
 }: {
   group: RecordGroup
   stickyTop?: string
   shared: NarrowShared
   depth?: number
   headings?: boolean
+  collapse: GroupCollapse
+  /** The outer group's path. */
+  parent?: string
 }) {
   const titleId = useId()
+  const path = groupPath(parent, group)
   const Heading = groupHeadings[Math.min(depth, groupHeadings.length - 1)]!
   // Only the outermost titles stick, so nested ones don't stack under them.
   const sticky = depth === 0 ? stickyTop : undefined
@@ -388,6 +429,8 @@ function Group({
           shared={shared}
           depth={depth + 1}
           headings={headings}
+          collapse={collapse}
+          parent={path}
         />
       ))}
     </ul>
@@ -415,10 +458,10 @@ function Group({
     label: group.label,
     count: group.rows.length
   })
-  // Open or closed is the session's, kept while the group shows, never the view's.
   return (
     <Collapsible
-      defaultOpen
+      open={!collapse.closed.has(path)}
+      onOpenChange={(open) => collapse.setOpen(path, open)}
       render={<li data-slot='list-group' className={className} />}
     >
       {heading}
