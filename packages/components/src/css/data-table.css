@@ -1,4 +1,6 @@
-/* Priority-based column hiding as the DataTable's container narrows. */
+/* Priority-based column hiding as the DataTable's container narrows.
+   Unlayered on purpose: the collapse, last-row and pinned-overlay rules must
+   beat the cells' own utilities (py-2, border-b, is-interactive-within). */
 
 [data-slot='data-table'] {
   container: data-table / inline-size;
