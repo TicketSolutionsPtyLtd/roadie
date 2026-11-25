@@ -270,7 +270,12 @@ describe('recordViewFromSearchParams', () => {
         columns: { order: ['name', 'starts'], hidden: ['gross'] }
       }
     ],
+    ['layout=table&groupBy=venue', { type: 'table', groupBy: ['venue'] }],
     ['layout=grid', { type: 'grid' }],
+    [
+      'layout=grid&groupBy=status%2Cvenue',
+      { type: 'grid', groupBy: ['status', 'venue'] }
+    ],
     [
       'layout=grid&fields=starts%2Cname',
       { type: 'grid', fields: ['starts', 'name'] }
@@ -278,9 +283,17 @@ describe('recordViewFromSearchParams', () => {
     ['layout=list', { type: 'list' }],
     [
       'layout=list&fields=starts%2Cname&groupBy=venue',
-      { type: 'list', fields: ['starts', 'name'], groupBy: 'venue' }
+      { type: 'list', fields: ['starts', 'name'], groupBy: ['venue'] }
     ],
-    ['layout=board&groupBy=status', { type: 'board', groupBy: 'status' }],
+    [
+      'layout=list&groupBy=status%2Cvenue%2Ccity',
+      { type: 'list', groupBy: ['status', 'venue', 'city'] }
+    ],
+    ['layout=board&groupBy=status', { type: 'board', groupBy: ['status'] }],
+    [
+      'layout=board&groupBy=status%2Cvenue',
+      { type: 'board', groupBy: ['status', 'venue'] }
+    ],
     [
       'layout=calendar&dateField=starts',
       { type: 'calendar', dateField: 'starts' }
@@ -325,7 +338,8 @@ describe('recordViewFromSearchParams', () => {
     ],
     ['v=1&layout=timeline', 'layout', 'Unknown layout "timeline"'],
     ['v=1&layout=board', 'layout.groupBy', ''],
-    ['v=1&layout=board&groupBy=nope', 'layout.groupBy', 'Unknown field'],
+    ['v=1&layout=board&groupBy=nope', 'layout.groupBy[0]', 'Unknown field'],
+    ['v=1&layout=list&groupBy=venue%2Cvenue', 'layout.groupBy[1]', 'already'],
     ['v=1&layout=calendar', 'layout.dateField', ''],
     ['v=1&layout=calendar&dateField=name', 'layout.dateField', 'not a date']
   ])('rejects %s and falls back', (text, path, message) => {
