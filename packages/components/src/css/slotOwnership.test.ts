@@ -91,3 +91,24 @@ describe('component sheets style only their own slots', () => {
     }
   )
 })
+
+const declared = (sheet: string) =>
+  new Set(
+    readFileSync(join(directory, sheet), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .matchAll(/(?:^|[{;\s])--([\w-]+)\s*:/g)
+      .map(([, name]) => name!)
+  )
+
+// A variable named for a component is set by that component, so a reader of
+// the component that reads it finds where it comes from.
+describe("component sheets set only their own component's variables", () => {
+  const owners = new Set(Object.values(OWNER))
+  it.each(sheets)("%s sets no other component's variables", (sheet) => {
+    const owner = OWNER[sheet] ?? ''
+    const foreign = [...declared(sheet)].filter((name) =>
+      [...owners].some((other) => other !== owner && owns(other, name))
+    )
+    expect(foreign).toEqual([])
+  })
+})

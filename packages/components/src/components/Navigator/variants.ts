@@ -9,8 +9,17 @@ export const navigatorRootClass = [
   'relative isolate grid h-[100dvh] w-full overflow-clip bg-sunken',
   '[container-type:inline-size]',
   'grid-rows-1 md:grid-cols-[auto_1fr]',
-  'pt-[env(safe-area-inset-top)]'
+  'pt-[env(safe-area-inset-top)]',
+  // Waiting for a navigation (data-pending), the glow is the frame's fill: Pane
+  // masks a flush pane's shadow with this variable, and a nested frame reveals
+  // its own identical fill. A phone pane is the whole screen, so it rounds to
+  // show the glow around it.
+  'data-pending:[--pane-gutter-fill:transparent]',
+  'max-md:data-pending:[--pane-radius-phone:var(--radius-2xl)]'
 ].join(' ')
+
+// A nested frame holds still, and rounding its panes would show its own fill in the corners.
+export const navigatorNestedRootClass = 'max-md:[--pane-radius-phone:0px]'
 
 // The frame's motion and its way around stay off paper, which prints the top pane.
 export const navigatorPendingClass = 'print:hidden'
@@ -34,6 +43,14 @@ export const navigatorContentClass = [
 export const navigatorPanesClass = [
   'pointer-events-auto relative flex h-full min-h-0 min-w-0',
   '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]'
+].join(' ')
+
+// The outermost frame's panes pull back on a phone while it waits, to show the
+// glow. Moderate, like the glow's fade: the radius goes with data-pending, so a
+// slower scale would square the corners mid-return.
+export const navigatorPanesPullBackClass = [
+  'max-md:origin-center max-md:transition-[scale] max-md:duration-moderate max-md:ease-standard',
+  'max-md:motion-safe:group-data-[pending=visible]/navigator:scale-96'
 ].join(' ')
 
 // The box is the grid track and never animates; the frame inside does.
