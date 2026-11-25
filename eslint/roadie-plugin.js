@@ -120,11 +120,12 @@ const rules = {
     'ImportExpression[source.value=/^(zod|\\.\\x2Fschema)$/]',
     'Keep this module zod-free; import only types from ./schema.'
   ),
-  // esbuild bundles all of zod for `z` imported by name, and only what's used
+  // esbuild bundles all of zod for `z` (or the default, which is `z`) imported
+  // by name, from zod or any subpath such as zod/mini, and only what's used
   // through a namespace (INNO-1692).
   'no-named-zod-import': selectorRule(
     'zod is imported as a namespace, so esbuild can tree-shake it.',
-    'ImportDeclaration[source.value="zod"][importKind!="type"] > :matches(ImportDefaultSpecifier, ImportSpecifier[imported.name="z"][importKind!="type"])',
+    'ImportDeclaration[source.value=/^zod(\\x2F|$)/][importKind!="type"] > :matches(ImportDefaultSpecifier, ImportSpecifier[imported.name=/^(z|default)$/][importKind!="type"])',
     "Import zod as a namespace, `import * as z from 'zod'`, or esbuild bundles all of it."
   )
 }
