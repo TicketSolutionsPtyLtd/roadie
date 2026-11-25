@@ -59,5 +59,5 @@ export const GroupedByTwoLevels = allowing(
       defaultView={{ layout: { type: 'table', groupBy: ['status', 'city'] } }}
     />
   ),
-  { 390: phone(14, 50) }
+  { 390: phone(44, 50) }
 )
