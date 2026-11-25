@@ -85,7 +85,7 @@ function App({
 
 async function renderApp(position: ToastPosition) {
   const manager = createToastManager()
-  const { container, rerender } = render(
+  const { container, rerender, unmount } = render(
     <App manager={manager} position={position} />
   )
   await settle()
@@ -120,7 +120,7 @@ async function renderApp(position: ToastPosition) {
     )
     await settle()
   }
-  return { lowestHeaderEdge, toast, detail, popToList }
+  return { lowestHeaderEdge, toast, detail, popToList, unmount }
 }
 
 async function collapse(viewport: HTMLElement) {
@@ -203,15 +203,31 @@ describe('a top toast in a Pane app', () => {
     expect(WIDE.height - toast().bottom).toBeCloseTo(WIDE.edge, 0)
   })
 
-  it('clears the header clearance once the app unmounts', async () => {
+  it('writes the clearance on each toast viewport, even one that mounts later, not the page, and clears it once the app unmounts', async () => {
     await page.viewport(WIDE.width, WIDE.height)
-    await renderApp('top-end')
-    expect(document.documentElement.style.getPropertyValue(CLEARANCE)).not.toBe(
-      ''
+    render(
+      <Toast.Provider>
+        <Toast.Viewport data-testid='kept' position='top-end' />
+      </Toast.Provider>
     )
-    cleanup()
+    const { unmount } = await renderApp('top-end')
+    const kept = document.querySelector<HTMLElement>('[data-testid="kept"]')!
+    // On <html>, a change restyles the whole page (INNO-1678).
+    expect(document.documentElement.style.getPropertyValue(CLEARANCE)).toBe('')
+    expect(kept.style.getPropertyValue(CLEARANCE)).not.toBe('')
+    render(
+      <Toast.Provider>
+        <Toast.Viewport data-testid='late' position='top-end' />
+      </Toast.Provider>
+    )
+    await frames()
+    const late = document.querySelector<HTMLElement>('[data-testid="late"]')!
+    expect(late.style.getPropertyValue(CLEARANCE)).toBe(
+      kept.style.getPropertyValue(CLEARANCE)
+    )
+    unmount()
     await frames()
 
-    expect(document.documentElement.style.getPropertyValue(CLEARANCE)).toBe('')
+    expect(kept.style.getPropertyValue(CLEARANCE)).toBe('')
   })
 })

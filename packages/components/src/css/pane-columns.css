@@ -1,18 +1,19 @@
 @property --pane-base {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-top {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-last {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
+/* Inherited: pane-inspector-yielded reads it from any depth. */
 @property --pane-levels {
   syntax: '<integer>';
   inherits: true;
@@ -20,73 +21,142 @@
 }
 @property --pane-fit {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 1;
 }
 @property --pane-fit-deep {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 1;
 }
 @property --pane-columns {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 1;
 }
 @property --pane-start {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-end {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-back-at {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: -1;
 }
 @property --pane-close-at {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: -1;
 }
 @property --pane-parked-0 {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-parked-1 {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-parked-2 {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-parked-3 {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-reveal {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-pushing {
   syntax: '<integer>';
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 @property --pane-depth {
   syntax: '<integer>';
   inherits: false;
   initial-value: 0;
+}
+/* The stack's state stays off the panes' content: inherited, each change restyles it all (INNO-1678). */
+@property --pane-reach {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-page-step {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-style-queries {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-r {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-behind {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-ahead {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-fill {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-is-top {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-off {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-shown {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-is-root {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-min {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-max {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-share {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-mins {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-room {
+  syntax: '*';
+  inherits: false;
+}
+@property --pane-track {
+  syntax: '*';
+  inherits: false;
 }
 
 @custom-variant pane-inspector-yielded {
@@ -343,6 +413,13 @@
     --pane-stack-inset-start: var(--pane-stack-inset);
     --page-step-ghost-from: initial;
     --page-step-pane-from: initial;
+  }
+  [data-slot='navigator-panes'] > [data-slot='pane'] {
+    --pane-base: inherit;
+    --pane-reach: inherit;
+    --pane-columns: inherit;
+    --pane-start: inherit;
+    --pane-end: inherit;
   }
   [data-slot='navigator-panes'][data-reveal] {
     --pane-reveal: 1;
