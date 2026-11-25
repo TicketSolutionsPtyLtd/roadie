@@ -977,23 +977,30 @@ describe('FileUpload', () => {
       })
       render(<FileUpload maxFiles={6} defaultValue={files(5)} />)
       const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Remove set-4.csv' }))
       await user.click(screen.getByRole('button', { name: 'Remove set-3.csv' }))
       await user.click(screen.getByRole('button', { name: 'Remove set-2.csv' }))
-      await user.click(screen.getByRole('button', { name: 'Remove set-1.csv' }))
+      const order = () =>
+        [...document.querySelectorAll('[data-slot=file-upload-item-name]')].map(
+          (name) => name.textContent
+        )
+      await act(async () => finish.get('set-3.csv')!())
+      // set-4 sat under set-3, which sat under set-2, still collapsing.
+      expect(order()).toEqual([
+        'set-1.csv',
+        'set-2.csv',
+        'set-4.csv',
+        'set-5.csv'
+      ])
       await act(async () => finish.get('set-2.csv')!())
-      await act(async () => finish.get('set-1.csv')!())
+      // Now under set-1, through a move.
       await user.click(
         screen.getByRole('button', { name: 'Reorder set-5.csv' })
       )
       await user.click(
         await screen.findByRole('menuitem', { name: 'Move set-5.csv up' })
       )
-      const order = () =>
-        [...document.querySelectorAll('[data-slot=file-upload-item-name]')].map(
-          (name) => name.textContent
-        )
-      // set-3 sat under set-2, which sat under set-1, which was first.
-      expect(order()).toEqual(['set-3.csv', 'set-5.csv', 'set-4.csv'])
+      expect(order()).toEqual(['set-5.csv', 'set-1.csv', 'set-4.csv'])
     })
 
     it("tells a full field's Trigger, laid out alone, why it is full", async () => {
