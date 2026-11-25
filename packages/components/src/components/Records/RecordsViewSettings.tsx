@@ -6,7 +6,7 @@ import type { RecordLayout } from '@oztix/roadie-core/records'
 
 import { RecordsLayoutSettings } from './RecordsLayoutSettings'
 import { RecordsSortSettings } from './RecordsSortSettings'
-import { activeLayout, useRecordsContext } from './context'
+import { activeLayout, useRecordsData, useRecordsLayoutValue } from './context'
 import { whenIdle } from './idle'
 import { sortableFields } from './sortOptions'
 
@@ -16,7 +16,8 @@ import { sortableFields } from './sortOptions'
  * nothing to set.
  */
 export function useViewSettings() {
-  const { records, layouts } = useRecordsContext()
+  const records = useRecordsData()
+  const { layouts } = useRecordsLayoutValue()
   const layout = activeLayout(layouts, records.view)
   const Settings = layout?.Settings
   // Lazy layouts' settings load once the page is idle, or as the button is

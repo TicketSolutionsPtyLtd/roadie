@@ -9,7 +9,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { Button } from '../Button'
 import { listItemContentClass, listItemLeadingClass } from '../List/variants'
 import { rangeErrorMessage } from './RecordsStates'
-import { useRecordsContext } from './context'
+import { useRecordsData } from './context'
 import { cardSize, hasSubline, listRowSize } from './rowSizing'
 import { tableFocusTarget, useKeepFocusInTable } from './tableFocus'
 import type { RecordCardParts } from './types'
@@ -92,7 +92,7 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
 
 /** What a failed range shows: the error and Retry. */
 export function RangeErrorMessage() {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   return (
     <>
       <WarningIcon

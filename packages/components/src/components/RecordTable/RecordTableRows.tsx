@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback } from 'react'
+import { type ReactNode, type RefObject, memo, useCallback } from 'react'
 
 import {
   VIRTUALISE_AFTER,
@@ -42,15 +42,24 @@ export type RecordTableRowsProps = RowsShared & {
   onRow?: (row: number) => void
 }
 
-function Row({
-  shared,
-  row,
-  rowIndex
-}: {
+type RowProps = {
   shared: RowsShared
   row: RecordsRow<object>
   rowIndex?: number
-}) {
+}
+
+// `isSelected` is new with each selection, so it compares by this row's answer:
+// a tick renders the row it ticks, not every row.
+const sameRow = (prev: RowProps, next: RowProps) =>
+  prev.row === next.row &&
+  prev.rowIndex === next.rowIndex &&
+  prev.shared.isSelected?.(prev.row.id) ===
+    next.shared.isSelected?.(next.row.id) &&
+  (Object.keys(next.shared) as (keyof RowsShared)[]).every(
+    (key) => key === 'isSelected' || prev.shared[key] === next.shared[key]
+  )
+
+const Row = memo(function Row({ shared, row, rowIndex }: RowProps) {
   return (
     <RowIndexContext value={rowIndex}>
       <RecordTableRow
@@ -67,7 +76,7 @@ function Row({
       />
     </RowIndexContext>
   )
-}
+}, sameRow)
 
 export function RecordTableRows({
   rows,
