@@ -24,16 +24,21 @@ const destinationPath = (path) =>
     .replace(/^.* => /, '')
     .replace(/\/\//g, '/')
 
+// Reads `git diff --numstat --summary`. Removing a file needs no review
+// sitting, so its lines are left out like generated ones.
 export function countChangedLines(numstat) {
-  const files = numstat
-    .split('\n')
-    .filter(Boolean)
+  const rows = numstat.split('\n')
+  const removed = new Set(
+    rows.flatMap((line) => /^ delete mode \d+ (.+)$/.exec(line)?.[1] ?? [])
+  )
+  const files = rows
+    .filter((line) => line.includes('\t'))
     .map((line) => {
       const [added, deleted, ...rest] = line.split('\t')
       const path = destinationPath(rest.join('\t'))
       // Binary files report `-` for both counts.
       const lines = (Number(added) || 0) + (Number(deleted) || 0)
-      return { path, lines, excluded: isExcluded(path) }
+      return { path, lines, excluded: isExcluded(path) || removed.has(path) }
     })
   const counted = files.filter((file) => !file.excluded)
   return {
@@ -70,7 +75,8 @@ export function parseArgs(argv) {
 // A missing base or a shallow clone must not block a push, so it skips in one line.
 export function readNumstat(base) {
   try {
-    return execFileSync('git', ['diff', '--numstat', `${base}...HEAD`], {
+    const args = ['diff', '--numstat', '--summary', `${base}...HEAD`]
+    return execFileSync('git', args, {
       encoding: 'utf8',
       maxBuffer: 64 * 1024 * 1024,
       stdio: ['ignore', 'pipe', 'pipe']

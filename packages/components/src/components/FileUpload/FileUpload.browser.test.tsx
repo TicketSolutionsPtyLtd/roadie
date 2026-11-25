@@ -216,6 +216,41 @@ describe('FileUpload drops', () => {
     await dragFiles(zone, [], true)
   })
 
+  it('stays dashed and still when full, and turns the drop away as too many', async () => {
+    const onReject = vi.fn()
+    render(
+      <FileUpload
+        maxFiles={2}
+        defaultValue={[csv('march.csv'), csv('april.csv')]}
+        onReject={onReject}
+      >
+        <FileUpload.Dropzone />
+      </FileUpload>
+    )
+    const zone = screen.getByRole('button', { name: /^Remove a file/ })
+    const tile = zone.querySelector('[data-slot=icon-tile]')!
+    const rest = {
+      border: getComputedStyle(zone).borderTopColor,
+      background: getComputedStyle(zone).backgroundColor,
+      tile: tile.getBoundingClientRect()
+    }
+    await dragFiles(zone, [csv('may.csv')], false)
+    // Two frames, for the drag state to render if it were going to.
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+    settle(zone)
+    expect(getComputedStyle(zone).borderTopStyle).toBe('dashed')
+    expect(getComputedStyle(zone).borderTopColor).toBe(rest.border)
+    expect(getComputedStyle(zone).backgroundColor).toBe(rest.background)
+    expect(tile.getBoundingClientRect()).toEqual(rest.tile)
+    await dragFiles(zone, [csv('may.csv')])
+    await waitFor(() =>
+      expect(onReject).toHaveBeenCalledWith([
+        expect.objectContaining({ code: 'too-many' })
+      ])
+    )
+  })
+
   it('ignores a drop while disabled', async () => {
     const onValueChange = vi.fn()
     render(<FileUpload disabled onValueChange={onValueChange} />)

@@ -8,7 +8,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { mergeRefs } from '../../utils/mergeRefs'
 import { IconTile } from '../IconTile'
-import { useFileUploadContext } from './FileUploadContext'
+import { fullMessage, useFileUploadContext } from './FileUploadContext'
 import { useFileDrop } from './useFileDrop'
 
 export type FileUploadDropzoneProps = Omit<ComponentProps<'div'>, 'title'> & {
@@ -47,7 +47,9 @@ export function FileUploadDropzone({
       role='button'
       tabIndex={context.disabled ? undefined : 0}
       data-slot='file-upload-dropzone'
-      data-dragging={dragging || undefined}
+      // Full, it still takes a drop, to say it's too many, but doesn't light
+      // up as if it would add it.
+      data-dragging={(dragging && !full) || undefined}
       data-full={full || undefined}
       // Full, it stays focusable, so the count and what to do can be read.
       aria-disabled={context.disabled || full || undefined}
@@ -90,7 +92,7 @@ export function FileUploadDropzone({
       <p className='text-display-ui-6 text-strong'>
         {title ??
           (full
-            ? 'Remove a file to add another'
+            ? fullMessage
             : many
               ? 'Drop files, or choose them'
               : 'Drop a file, or choose one')}

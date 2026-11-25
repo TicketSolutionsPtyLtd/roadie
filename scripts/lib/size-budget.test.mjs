@@ -4,7 +4,14 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { after, describe, test } from 'node:test'
 
-import { bundle, checkBudget, jsSubpaths, serialise } from './size-budget.mjs'
+import {
+  bundle,
+  checkBudget,
+  jsSubpaths,
+  namedImport,
+  namedRows,
+  serialise
+} from './size-budget.mjs'
 
 const sizes = (bytes) => ({ own: bytes, full: bytes, initial: bytes })
 
@@ -15,15 +22,50 @@ describe('jsSubpaths', () => {
       './css': { style: './src/css/a.css', default: './src/css/a.css' },
       './badge': { types: './dist/Badge.d.ts', default: './dist/Badge.js' },
       './vue': './dist/vue.js',
+      './nested': {
+        import: { types: './dist/n.d.ts', default: './dist/n.js' }
+      },
       './roadie.manifest.json': './dist/roadie.manifest.json',
       './icons/*': { import: './dist/icons/*.js' }
     })
     assert.deepEqual(subpaths, [
       { subpath: '.', file: './dist/index.js' },
       { subpath: './badge', file: './dist/Badge.js' },
-      { subpath: './vue', file: './dist/vue.js' }
+      { subpath: './vue', file: './dist/vue.js' },
+      { subpath: './nested', file: './dist/n.js' }
     ])
   })
+})
+
+describe('namedImport', () => {
+  for (const [row, expected] of [
+    ['./spot { Heart }', { subpath: './spot', names: ['Heart'] }],
+    ['. { a, b }', { subpath: '.', names: ['a', 'b'] }],
+    ['./spot', null],
+    ['./icons/*', null]
+  ])
+    test(`reads ${JSON.stringify(row)}`, () => {
+      assert.deepEqual(namedImport(row), expected)
+    })
+})
+
+describe('namedRows', () => {
+  const exported = ['.', './spot']
+  test('lists each named row with its subpath and names', () => {
+    const budget = { '.': sizes(1), './spot { Heart }': {}, './spot': sizes(1) }
+    assert.deepEqual(namedRows(budget, exported), [
+      { row: './spot { Heart }', subpath: './spot', names: ['Heart'] }
+    ])
+  })
+
+  // --update keeps only the rows it measures, so these would vanish unseen.
+  for (const row of ['./spot {Heart}', '.  { cn }', './spt { Heart }'])
+    test(`refuses ${JSON.stringify(row)}`, () => {
+      assert.throws(
+        () => namedRows({ [row]: {} }, exported),
+        new RegExp(row.replace(/[{}.*]/g, '\\$&'))
+      )
+    })
 })
 
 describe('bundle', () => {
@@ -76,6 +118,24 @@ describe('bundle', () => {
     test(`${metric} holds ${expected}`, async () => {
       assert.equal(has(await bundle(entry, metric)), expected)
     })
+
+  write('dist/one.js', `export const one = ['ONE_CODE']\n`)
+  write('dist/two.js', `export const two = ['TWO_CODE']\n`)
+  write(
+    'dist/barrel.js',
+    `export { one } from './one.js'\nexport { two } from './two.js'\n`
+  )
+  const barrel = join(root, 'dist/barrel.js')
+
+  for (const metric of ['own', 'full', 'initial'])
+    test(`${metric} of a named import leaves the barrel's other names out`, async () => {
+      const code = await bundle(barrel, metric, ['one'])
+      assert.ok(code.includes('ONE_CODE') && !code.includes('TWO_CODE'), code)
+    })
+
+  test('a named import the subpath does not export fails', async () => {
+    await assert.rejects(bundle(barrel, 'full', ['three']), /three/)
+  })
 
   // mjml-gone shares only a prefix with mjml, which the bundle leaves out.
   write('dist/broken.js', `import 'mjml-gone'\nimport('lazy-gone')\n`)

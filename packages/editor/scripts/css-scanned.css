@@ -1,0 +1,5 @@
+/* Core's foundations floor plus `@oztix/roadie-editor/css`: its rules and every
+   utility its @source finds in dist, for Size Limit. Includes the floor, so
+   core's CSS growing moves this budget too. Build the package first. */
+@import '@oztix/roadie-core/css' source(none);
+@import '../src/css/editor.css';
