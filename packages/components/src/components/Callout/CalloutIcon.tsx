@@ -5,7 +5,7 @@ import { type ComponentProps, use } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { statusIcon } from '../../utils/statusIcon'
-import { CalloutContext } from './CalloutContext'
+import { CalloutContext } from './CalloutIntent'
 
 export type CalloutIconProps = ComponentProps<'span'>
 
