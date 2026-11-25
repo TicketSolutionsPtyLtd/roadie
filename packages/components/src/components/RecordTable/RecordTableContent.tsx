@@ -668,7 +668,12 @@ RecordTableContent.displayName = 'RecordTableContent'
 
 function inHiddenColumn(element: Element) {
   const cell = element.closest('[data-priority], [data-narrow]')
-  return !!cell && getComputedStyle(cell).display === 'none'
+  if (!cell) return false
+  // A sort button hides under 40rem while its header stays for screen readers.
+  return (
+    getComputedStyle(cell).display === 'none' ||
+    getComputedStyle(element).visibility === 'hidden'
+  )
 }
 
 /** Moves focus to the table when a priority tier hides the column holding it, which CSS does without unmounting it. */

@@ -142,6 +142,20 @@ describe('RecordTable under 40rem', () => {
     }
   )
 
+  it(
+    'keeps focus in the table when its sort button hides',
+    TIMEOUT,
+    async () => {
+      render(<Shows width={960} />)
+      await frame()
+      screen.getByRole('button', { name: /^Show/ }).focus()
+      screen.getByTestId('box').style.width = '360px'
+      const table = screen.getByRole('table', { name: 'Shows' })
+      for (let wait = 0; wait < 6; wait++) await frame()
+      expect(table.contains(document.activeElement)).toBe(true)
+    }
+  )
+
   it('keeps the same rows as the table narrows', TIMEOUT, async () => {
     render(<Shows width={960} />)
     await frame()
