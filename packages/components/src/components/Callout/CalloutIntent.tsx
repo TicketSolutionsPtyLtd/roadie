@@ -1,10 +1,9 @@
 'use client'
 
-import { type ReactNode, createContext } from 'react'
+import type { ReactNode } from 'react'
 
 import type { RoadieIntent } from '../../variants'
-
-export const CalloutContext = createContext<RoadieIntent | undefined>(undefined)
+import { CalloutContext } from './CalloutContext'
 
 /** A client sibling, so CalloutRoot stays a Server Component and only Callout.Icon reads the intent. */
 export function CalloutIntent({
