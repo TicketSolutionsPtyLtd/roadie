@@ -2,8 +2,19 @@ import { type RecordField, formatRecordValue } from '@oztix/roadie-core/records'
 
 import { isDev } from '../../utils/isDev'
 import { NOT_AVAILABLE } from '../Records/RecordValue'
-import { titleColumn } from './RecordTableRow'
 import type { RecordColumnWidth, RecordTableColumn } from './types'
+
+/** The column whose value names the row: the narrow title, else the first pinned text column, else the first text one. Never an image. */
+export function titleColumn<Column extends RecordTableColumn<never>>(
+  columns: readonly Column[]
+) {
+  const named = columns.filter((column) => column.kind !== 'image')
+  return (
+    named.find((column) => column.narrow === 'title') ??
+    named.find((column) => column.pin && column.field.type === 'text') ??
+    named.find((column) => column.field.type === 'text')
+  )
+}
 
 type ColumnTier = {
   template: string
