@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
+import { Card } from '../components/Card'
 import { Checkbox } from '../components/Checkbox'
 import { Combobox } from '../components/Combobox'
 import { useStylesheet } from '../components/Pane/testUtils'
@@ -149,6 +150,86 @@ const surfaces = (classes: string) => ({
 
 const STATES: State[] = ['rest', 'hover', 'focus', 'active', 'is-active']
 
+// is-active marks a pressed is-interactive only.
+const statesOn = (utility: string) =>
+  STATES.filter(
+    (state) => state !== 'is-active' || utility === 'is-interactive'
+  )
+
+// The ticket Card drops the emphasis class and declares the preset's values
+// itself, so its parts paint the preset's fill, and it lifts and presses the
+// same. It casts its own layered shadow, read without its unseen layers.
+const TICKETS = ['raised', 'normal', 'subtle', 'subtler'] as const
+const drop = (y: number) => `0 ${y}px ${y}px var(--card-shadow-color)`
+const TICKET_SHADOWS: Record<string, States> = {
+  raised: {
+    rest: { shadow: `${drop(2)}, ${drop(4)}` },
+    hover: { shadow: `${drop(2)}, ${drop(4)}, ${drop(8)}` },
+    active: { shadow: drop(2) }
+  },
+  normal: {
+    rest: { shadow: 'none' },
+    hover: { shadow: drop(2) },
+    active: { shadow: 'none' }
+  },
+  subtle: { rest: {}, hover: {}, active: {} },
+  subtler: { rest: {}, hover: {}, active: {} }
+}
+
+const tickets = (emphasis: (typeof TICKETS)[number]) => ({
+  'is-interactive': (
+    <Card variant='ticket' emphasis={emphasis} href='#pass'>
+      <Card.Content>Weekly Pass</Card.Content>
+      <Card.Footer>638 tickets</Card.Footer>
+    </Card>
+  ),
+  'is-interactive-within': (
+    <Card variant='ticket' emphasis={emphasis}>
+      <Card.Content>
+        <Card.Link href='#pass'>Weekly Pass</Card.Link>
+      </Card.Content>
+      <Card.Footer>638 tickets</Card.Footer>
+    </Card>
+  )
+})
+
+function mountTicket(element: ReactElement) {
+  render(<div className='w-80 p-6'>{element}</div>)
+  const card = document.querySelector<HTMLElement>('[data-slot=card]')!
+  const footer = card.querySelector<HTMLElement>('[data-slot=card-footer]')!
+  const driver = card.querySelector<HTMLElement>('a') ?? card
+  return { card, footer, driver }
+}
+
+// Shadow layers with no colour or no size draw nothing.
+const seen = (shadow: string) =>
+  shadow
+    .split(/,(?![^(]*\))/)
+    .map((layer) => layer.trim())
+    .filter(
+      (layer) =>
+        layer !== 'none' &&
+        !layer.includes('rgba(0, 0, 0, 0)') &&
+        (layer.match(/-?[\d.]+px/g) ?? []).some((length) => parseFloat(length))
+    )
+
+function expectTicket(
+  { card, footer }: ReturnType<typeof mountTicket>,
+  emphasis: (typeof TICKETS)[number],
+  state: State
+) {
+  const { fill, move } = lookIn(PRESETS[emphasis]!, state)
+  expectLook(footer, { fill })
+  expectLook(card, { move })
+  const shadow = lookIn(TICKET_SHADOWS[emphasis]!, state).shadow ?? 'none'
+  const probe = card.appendChild(document.createElement('span'))
+  const expected = resolveOn(probe, 'box-shadow', shadow)
+  probe.remove()
+  expect(seen(getComputedStyle(card).boxShadow), 'shadow').toEqual(
+    seen(expected)
+  )
+}
+
 const SHEETS = {
   source: () => roadieCss,
   'optimized for production': () => commands.optimizeCss(roadieCss),
@@ -162,12 +243,7 @@ describe.each(Object.entries(SHEETS))('with the %s sheet', (_, sheet) => {
     describe.each(Object.entries(surfaces(`emphasis-${emphasis}`)))(
       'on %s',
       (utility, markup) => {
-        const shown = STATES.filter(
-          // is-active marks a pressed is-interactive only.
-          (state) => state !== 'is-active' || utility === 'is-interactive'
-        )
-
-        it.each(shown)('shows its %s look', async (state) => {
+        it.each(statesOn(utility))('shows its %s look', async (state) => {
           const { surface, driver } = mount(markup)
           await enter(state, driver, surface)
           expectLook(surface, lookIn(states, state))
@@ -179,6 +255,27 @@ describe.each(Object.entries(SHEETS))('with the %s sheet', (_, sheet) => {
           await enter('hover', driver, surface)
           expect(driver.matches(':hover')).toBe(true)
           expectLook(surface, states.rest)
+        })
+      }
+    )
+  })
+
+  describe.each(TICKETS)('a ticket Card, %s', (emphasis) => {
+    describe.each(Object.entries(tickets(emphasis)))(
+      'on %s',
+      (utility, element) => {
+        it.each(statesOn(utility))('shows its %s look', async (state) => {
+          const ticket = mountTicket(element)
+          await enter(state, ticket.driver, ticket.card)
+          expectTicket(ticket, emphasis, state)
+        })
+
+        it('keeps its rest look under a tap on a touch screen', async () => {
+          setHoverCapable(false)
+          const ticket = mountTicket(element)
+          await enter('hover', ticket.driver, ticket.card)
+          expect(ticket.driver.matches(':hover')).toBe(true)
+          expectTicket(ticket, emphasis, 'rest')
         })
       }
     )
