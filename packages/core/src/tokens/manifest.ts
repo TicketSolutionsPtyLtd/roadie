@@ -136,7 +136,6 @@ const UTILITY_RULES: Rule[] = [
   ],
   [/^is-(interactive|focusable(-overlay)?$)/, 'emphasis', 'Interaction states'],
   [/^surface-floating$/, 'emphasis', 'Internal surfaces'],
-  [/^(inset-)?shadow-/, 'elevation', 'Shadows'],
   [/^rim-light$/, 'elevation', 'Rim light'],
   [/^text-display-/, 'typography', 'Display styles'],
   [/^text-(ui|ui-meta|prose|code)$/, 'typography', 'Body styles'],
