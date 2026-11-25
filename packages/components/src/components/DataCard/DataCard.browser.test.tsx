@@ -399,6 +399,9 @@ describe('DataCard copy fits its lines', () => {
       for (const slot of ['meter-target', 'sparkline-end']) {
         const fill = getComputedStyle(find(`[data-slot=${slot}]`))
         expect(fill.backgroundColor).not.toBe(canvas)
+        // A system colour reads the same with or without the opt-out, so check it.
+        if (CSS.supports('forced-color-adjust', 'none'))
+          expect(fill.getPropertyValue('forced-color-adjust')).toBe('none')
       }
     } finally {
       await commands.forcedColors(false)
@@ -428,8 +431,8 @@ describe('DataCard sizes its type and padding from its own width', () => {
 
   it.each([
     [158, '10px', '12px'],
-    [239, '10px', '12px'],
-    [244, '16px', '14px'],
+    [241, '10px', '12px'],
+    [242, '16px', '14px'],
     [460, '16px', '14px']
   ])('pads and sets type for a %ipx card', (width, padding, size) => {
     const { part } = measure(width)

@@ -70,7 +70,7 @@ export function Meter({
       }
       // Backgrounds draw the track and target, which forced colours erase.
       className={cn(
-        'relative h-1.5 w-full rounded-full bg-(--intent-4) forced-colors:outline forced-colors:outline-1 forced-colors:outline-[CanvasText]',
+        'relative h-1.5 w-full rounded-full bg-(--intent-4) forced-colors:outline-1 forced-colors:outline-[CanvasText]',
         className
       )}
       {...props}
