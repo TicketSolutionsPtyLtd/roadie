@@ -17,7 +17,6 @@ const OWNER: Record<string, string> = {
   'pane-columns.css': 'pane',
   'pane-measure.css': 'pane',
   'pane-print.css': 'pane',
-  'record-table.css': 'record-table',
   'records-pane.css': 'records'
 }
 
