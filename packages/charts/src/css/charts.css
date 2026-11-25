@@ -1,114 +1,115 @@
 /* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css.
-   Unlayered on purpose: the table view's scroller rule must beat DataTable's
-   own overflow-x, which is unlayered too. */
+   Its rules sit in the components layer, so a consumer's class wins over them. */
 @source '../../dist';
 @source './safelist.html';
 
-/* Wide plots grow with the DataCard container (cqi) so they stay near 4:1. */
-[data-slot='chart'] {
-  --chart-plot-height: 220px;
-}
-
-[data-slot='chart'][data-size='sm'] {
-  --chart-plot-height: 160px;
-}
-
-[data-slot='chart'][data-size='lg'] {
-  --chart-plot-height: clamp(260px, 24cqi, 340px);
-}
-
-[data-slot='chart'][data-size='full'] {
-  --chart-plot-height: clamp(260px, 24cqi, 420px);
-}
-
-[data-slot='chart-plot'] {
-  height: var(--chart-plot-height, 220px);
-}
-
-[data-slot='chart-plot'] [data-theme-image='dark'],
-.dark [data-slot='chart-plot'] [data-theme-image='light'] {
-  display: none;
-}
-
-.dark [data-slot='chart-plot'] [data-theme-image='dark'] {
-  display: block;
-}
-
-[data-slot='chart-plot']:has([data-slot='chart-static-plot']) {
-  height: auto;
-  container: chart-plot / inline-size;
-}
-
-[data-slot='chart-static-plot'] img {
-  width: 100%;
-  height: auto;
-}
-
-[data-plot-band='narrow'],
-[data-plot-band='wide'] {
-  display: none;
-}
-
-@container chart-plot (width < 480px) {
-  [data-plot-band='narrow'] {
-    display: block;
+@layer components {
+  /* Wide plots grow with the DataCard container (cqi) so they stay near 4:1. */
+  [data-slot='chart'] {
+    --chart-plot-height: 220px;
   }
-  [data-slot='chart-static-plot']:has(> [data-plot-band='narrow'])
-    > [data-plot-band='default'] {
+
+  [data-slot='chart'][data-size='sm'] {
+    --chart-plot-height: 160px;
+  }
+
+  [data-slot='chart'][data-size='lg'] {
+    --chart-plot-height: clamp(260px, 24cqi, 340px);
+  }
+
+  [data-slot='chart'][data-size='full'] {
+    --chart-plot-height: clamp(260px, 24cqi, 420px);
+  }
+
+  [data-slot='chart-plot'] {
+    height: var(--chart-plot-height, 220px);
+  }
+
+  [data-slot='chart-plot'] [data-theme-image='dark'],
+  .dark [data-slot='chart-plot'] [data-theme-image='light'] {
     display: none;
   }
-}
 
-@container chart-plot (width >= 960px) {
+  .dark [data-slot='chart-plot'] [data-theme-image='dark'] {
+    display: block;
+  }
+
+  [data-slot='chart-plot']:has([data-slot='chart-static-plot']) {
+    height: auto;
+    container: chart-plot / inline-size;
+  }
+
+  [data-slot='chart-static-plot'] img {
+    width: 100%;
+    height: auto;
+  }
+
+  [data-plot-band='narrow'],
   [data-plot-band='wide'] {
-    display: block;
-  }
-  [data-slot='chart-static-plot']:has(> [data-plot-band='wide'])
-    > [data-plot-band='default'] {
     display: none;
   }
-}
 
-[data-slot='chart-views'] {
-  display: grid;
-}
+  @container chart-plot (width < 480px) {
+    [data-plot-band='narrow'] {
+      display: block;
+    }
+    [data-slot='chart-static-plot']:has(> [data-plot-band='narrow'])
+      > [data-plot-band='default'] {
+      display: none;
+    }
+  }
 
-[data-slot='chart-views'] > [data-chart-view] {
-  grid-area: 1 / 1;
-  min-width: 0;
-}
+  @container chart-plot (width >= 960px) {
+    [data-plot-band='wide'] {
+      display: block;
+    }
+    [data-slot='chart-static-plot']:has(> [data-plot-band='wide'])
+      > [data-plot-band='default'] {
+      display: none;
+    }
+  }
 
-[data-slot='chart'] [data-chart-view][data-hidden] {
-  visibility: hidden;
-}
+  [data-slot='chart-views'] {
+    display: grid;
+  }
 
-/* The table's own scroller takes both axes, so its sideways scrollbar sits
+  [data-slot='chart-views'] > [data-chart-view] {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  [data-slot='chart'] [data-chart-view][data-hidden] {
+    visibility: hidden;
+  }
+
+  /* The table's own scroller takes both axes, so its sideways scrollbar sits
    inside the plot height instead of below the last row. */
-[data-slot='chart'] [data-chart-view='table'] {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr);
-  height: 0;
-  min-height: 100%;
-}
+  [data-slot='chart'] [data-chart-view='table'] {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    height: 0;
+    min-height: 100%;
+  }
 
-[data-slot='chart'] [data-chart-view='table'] > [data-slot='data-table'] {
-  grid-template-rows: minmax(0, 1fr);
-}
+  [data-slot='chart'] [data-chart-view='table'] > [data-slot='data-table'] {
+    grid-template-rows: minmax(0, 1fr);
+  }
 
-[data-slot='chart']
-  [data-chart-view='table']
-  [data-slot='data-table-scroller'] {
-  overflow: auto;
-}
+  [data-slot='chart']
+    [data-chart-view='table']
+    [data-slot='data-table-scroller'] {
+    overflow: auto;
+  }
 
-[data-slot='chart'] {
-  --ts-chart-tooltip-background: var(--intent-bg-floating);
-  --ts-chart-tooltip-color: var(--intent-text-normal);
-  --ts-chart-tooltip-border: 1px solid var(--intent-border-subtle);
-  --ts-chart-tooltip-border-radius: var(--radius-xl);
-  --ts-chart-tooltip-shadow: var(--shadow-xl);
-  --ts-chart-tooltip-padding: 0.5rem 0.75rem;
-  --ts-chart-tooltip-font: 600 0.75rem/1.4 var(--font-sans);
+  [data-slot='chart'] {
+    --ts-chart-tooltip-background: var(--intent-bg-floating);
+    --ts-chart-tooltip-color: var(--intent-text-normal);
+    --ts-chart-tooltip-border: 1px solid var(--intent-border-subtle);
+    --ts-chart-tooltip-border-radius: var(--radius-xl);
+    --ts-chart-tooltip-shadow: var(--shadow-xl);
+    --ts-chart-tooltip-padding: 0.5rem 0.75rem;
+    --ts-chart-tooltip-font: 600 0.75rem/1.4 var(--font-sans);
+  }
 }
 
 @utility fill-texture-1 {
@@ -136,202 +137,206 @@
   fill: var(--chart-texture-8, url(#roadie-texture-8));
 }
 
-@media (forced-colors: active), print {
-  svg [data-chart-texture='1'] {
-    fill: var(--chart-texture-1, url(#roadie-texture-1));
+@layer components {
+  @media (forced-colors: active), print {
+    svg [data-chart-texture='1'] {
+      fill: var(--chart-texture-1, url(#roadie-texture-1));
+    }
+    svg [data-chart-texture='2'] {
+      fill: var(--chart-texture-2, url(#roadie-texture-2));
+    }
+    svg [data-chart-texture='3'] {
+      fill: var(--chart-texture-3, url(#roadie-texture-3));
+    }
+    svg [data-chart-texture='4'] {
+      fill: var(--chart-texture-4, url(#roadie-texture-4));
+    }
+    svg [data-chart-texture='5'] {
+      fill: var(--chart-texture-5, url(#roadie-texture-5));
+    }
+    svg [data-chart-texture='6'] {
+      fill: var(--chart-texture-6, url(#roadie-texture-6));
+    }
+    svg [data-chart-texture='7'] {
+      fill: var(--chart-texture-7, url(#roadie-texture-7));
+    }
+    svg [data-chart-texture='8'] {
+      fill: var(--chart-texture-8, url(#roadie-texture-8));
+    }
   }
-  svg [data-chart-texture='2'] {
-    fill: var(--chart-texture-2, url(#roadie-texture-2));
-  }
-  svg [data-chart-texture='3'] {
-    fill: var(--chart-texture-3, url(#roadie-texture-3));
-  }
-  svg [data-chart-texture='4'] {
-    fill: var(--chart-texture-4, url(#roadie-texture-4));
-  }
-  svg [data-chart-texture='5'] {
-    fill: var(--chart-texture-5, url(#roadie-texture-5));
-  }
-  svg [data-chart-texture='6'] {
-    fill: var(--chart-texture-6, url(#roadie-texture-6));
-  }
-  svg [data-chart-texture='7'] {
-    fill: var(--chart-texture-7, url(#roadie-texture-7));
-  }
-  svg [data-chart-texture='8'] {
-    fill: var(--chart-texture-8, url(#roadie-texture-8));
-  }
-}
 
-.ts-chart [data-ts-key^='label-'] {
-  paint-order: stroke;
-  stroke: var(--chart-gap);
-  stroke-width: 3px;
-  stroke-linejoin: round;
-}
-
-.ts-chart text {
-  font-variant-numeric: tabular-nums;
-}
-
-[data-slot='chart-plot']:has([data-slot='small-multiples']) {
-  height: auto;
-}
-
-/* A wrapped state title can outgrow the plot height, so grow the box. */
-[data-slot='chart-plot']:has(
-  > [data-slot='chart-empty'],
-  > [data-slot='chart-error']
-) {
-  display: grid;
-  height: auto;
-  min-height: var(--chart-plot-height, 220px);
-}
-
-/* Without scripts the plot is never measured, so show the server drawing. */
-@media (scripting: none) {
-  [data-slot='chart-plot-host'] .ts-chart-host {
-    opacity: 1;
+  .ts-chart [data-ts-key^='label-'] {
+    paint-order: stroke;
+    stroke: var(--chart-gap);
+    stroke-width: 3px;
+    stroke-linejoin: round;
   }
-}
 
-/* Server markup is drawn at the engine's default size until hydration. */
-[data-slot='chart-plot'] .ts-chart-surface > svg {
-  width: 100%;
-  height: 100%;
-}
+  .ts-chart text {
+    font-variant-numeric: tabular-nums;
+  }
 
-/* brushX paints with presentation attributes, which can't read a token. */
-[data-slot='chart-plot-host'] [data-chart-brush] .selection {
-  fill: var(--chart-highlight);
-  fill-opacity: 0.16;
-  stroke: none;
-}
+  [data-slot='chart-plot']:has([data-slot='small-multiples']) {
+    height: auto;
+  }
 
-/* ChartPlot draws a band axis's range over whole bars; the brush's own
+  /* A wrapped state title can outgrow the plot height, so grow the box. */
+  [data-slot='chart-plot']:has(
+    > [data-slot='chart-empty'],
+    > [data-slot='chart-error']
+  ) {
+    display: grid;
+    height: auto;
+    min-height: var(--chart-plot-height, 220px);
+  }
+
+  /* Without scripts the plot is never measured, so show the server drawing. */
+  @media (scripting: none) {
+    [data-slot='chart-plot-host'] .ts-chart-host {
+      opacity: 1;
+    }
+  }
+
+  /* Server markup is drawn at the engine's default size until hydration. */
+  [data-slot='chart-plot'] .ts-chart-surface > svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* brushX paints with presentation attributes, which can't read a token. */
+  [data-slot='chart-plot-host'] [data-chart-brush] .selection {
+    fill: var(--chart-highlight);
+    fill-opacity: 0.16;
+    stroke: none;
+  }
+
+  /* ChartPlot draws a band axis's range over whole bars; the brush's own
    selection stays as the target for dragging the range along. */
-[data-slot='chart-plot-host'][data-range-shape='bands']
-  [data-chart-brush]
-  .selection {
-  fill-opacity: 0;
-}
+  [data-slot='chart-plot-host'][data-range-shape='bands']
+    [data-chart-brush]
+    .selection {
+    fill-opacity: 0;
+  }
 
-/* The handles are 24px hit areas, so they only show while in use. */
-[data-slot='chart-plot-host'] [data-chart-brush] .handle {
-  fill: var(--chart-highlight);
-  fill-opacity: 0;
-}
+  /* The handles are 24px hit areas, so they only show while in use. */
+  [data-slot='chart-plot-host'] [data-chart-brush] .handle {
+    fill: var(--chart-highlight);
+    fill-opacity: 0;
+  }
 
-[data-slot='chart-plot-host']
-  [data-chart-brush]
-  .handle:is(:hover, :focus-visible) {
-  fill-opacity: 0.24;
-}
+  [data-slot='chart-plot-host']
+    [data-chart-brush]
+    .handle:is(:hover, :focus-visible) {
+    fill-opacity: 0.24;
+  }
 
-/* d3 only empties a brush when a gesture ends, so an unset range would
+  /* d3 only empties a brush when a gesture ends, so an unset range would
    otherwise show, and focus, its two handles. */
-[data-slot='chart-plot-host'][data-range='empty'] [data-chart-brush] .handle {
-  display: none;
-}
+  [data-slot='chart-plot-host'][data-range='empty'] [data-chart-brush] .handle {
+    display: none;
+  }
 
-[data-slot='chart-plot-host'] .ts-chart:focus-visible {
-  border-radius: var(--radius-md);
-}
+  [data-slot='chart-plot-host'] .ts-chart:focus-visible {
+    border-radius: var(--radius-md);
+  }
 
-/* Chromium's SVG defaults ring any focused element, so a click showed one. */
-[data-slot='chart-plot-host'] .ts-chart:focus:not(:focus-visible) {
-  outline: none;
-}
+  /* Chromium's SVG defaults ring any focused element, so a click showed one. */
+  [data-slot='chart-plot-host'] .ts-chart:focus:not(:focus-visible) {
+    outline: none;
+  }
 
-@media (forced-colors: active), print {
-  .ts-chart
-    :is([data-ts-key='series-1'], [data-ts-key^='series-1:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-1, url(#roadie-texture-1));
+  @media (forced-colors: active), print {
+    .ts-chart
+      :is([data-ts-key='series-1'], [data-ts-key^='series-1:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-1, url(#roadie-texture-1));
+    }
+    .ts-chart
+      :is([data-ts-key='series-2'], [data-ts-key^='series-2:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-2, url(#roadie-texture-2));
+    }
+    .ts-chart
+      :is([data-ts-key='series-3'], [data-ts-key^='series-3:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-3, url(#roadie-texture-3));
+    }
+    .ts-chart
+      :is([data-ts-key='series-4'], [data-ts-key^='series-4:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-4, url(#roadie-texture-4));
+    }
+    .ts-chart
+      :is([data-ts-key='series-5'], [data-ts-key^='series-5:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-5, url(#roadie-texture-5));
+    }
+    .ts-chart
+      :is([data-ts-key='series-6'], [data-ts-key^='series-6:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-6, url(#roadie-texture-6));
+    }
+    .ts-chart
+      :is([data-ts-key='series-7'], [data-ts-key^='series-7:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-7, url(#roadie-texture-7));
+    }
+    .ts-chart
+      :is([data-ts-key='series-8'], [data-ts-key^='series-8:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-8, url(#roadie-texture-8));
+    }
+    .ts-chart
+      :is([data-ts-key='series-other'], [data-ts-key^='series-other:'])
+      :is(path, rect, circle):not([fill='none']) {
+      fill: var(--chart-texture-8, url(#roadie-texture-8));
+    }
+    .ts-chart
+      .ts-chart__bar:is([data-ts-key='comparison'])
+      :is(path, rect):not([fill='none']) {
+      fill: var(--chart-texture-2, url(#roadie-texture-2));
+    }
+    .ts-chart
+      .ts-chart__line:is([data-ts-key^='series-2'], [data-ts-key^='comparison'])
+      path {
+      stroke-dasharray: 6 3;
+    }
+    .ts-chart .ts-chart__line:is([data-ts-key^='series-3']) path {
+      stroke-dasharray: 1 3;
+    }
+    .ts-chart .ts-chart__line:is([data-ts-key^='series-4']) path {
+      stroke-dasharray: 8 3 1 3;
+    }
+    .ts-chart .ts-chart__line:is([data-ts-key^='series-5']) path {
+      stroke-dasharray: 3 3;
+    }
+    .ts-chart .ts-chart__line:is([data-ts-key^='series-6']) path {
+      stroke-dasharray: 10 4;
+    }
+    svg [data-chart-dash='2'] {
+      stroke-dasharray: 6 3;
+    }
+    svg [data-chart-dash='3'] {
+      stroke-dasharray: 1 3;
+    }
+    svg [data-chart-dash='4'] {
+      stroke-dasharray: 8 3 1 3;
+    }
+    svg [data-chart-dash='5'] {
+      stroke-dasharray: 3 3;
+    }
+    svg [data-chart-dash='6'] {
+      stroke-dasharray: 10 4;
+    }
   }
-  .ts-chart
-    :is([data-ts-key='series-2'], [data-ts-key^='series-2:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-2, url(#roadie-texture-2));
-  }
-  .ts-chart
-    :is([data-ts-key='series-3'], [data-ts-key^='series-3:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-3, url(#roadie-texture-3));
-  }
-  .ts-chart
-    :is([data-ts-key='series-4'], [data-ts-key^='series-4:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-4, url(#roadie-texture-4));
-  }
-  .ts-chart
-    :is([data-ts-key='series-5'], [data-ts-key^='series-5:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-5, url(#roadie-texture-5));
-  }
-  .ts-chart
-    :is([data-ts-key='series-6'], [data-ts-key^='series-6:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-6, url(#roadie-texture-6));
-  }
-  .ts-chart
-    :is([data-ts-key='series-7'], [data-ts-key^='series-7:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-7, url(#roadie-texture-7));
-  }
-  .ts-chart
-    :is([data-ts-key='series-8'], [data-ts-key^='series-8:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-8, url(#roadie-texture-8));
-  }
-  .ts-chart
-    :is([data-ts-key='series-other'], [data-ts-key^='series-other:'])
-    :is(path, rect, circle):not([fill='none']) {
-    fill: var(--chart-texture-8, url(#roadie-texture-8));
-  }
-  .ts-chart
-    .ts-chart__bar:is([data-ts-key='comparison'])
-    :is(path, rect):not([fill='none']) {
-    fill: var(--chart-texture-2, url(#roadie-texture-2));
-  }
-  .ts-chart
-    .ts-chart__line:is([data-ts-key^='series-2'], [data-ts-key^='comparison'])
-    path {
-    stroke-dasharray: 6 3;
-  }
-  .ts-chart .ts-chart__line:is([data-ts-key^='series-3']) path {
-    stroke-dasharray: 1 3;
-  }
-  .ts-chart .ts-chart__line:is([data-ts-key^='series-4']) path {
-    stroke-dasharray: 8 3 1 3;
-  }
-  .ts-chart .ts-chart__line:is([data-ts-key^='series-5']) path {
-    stroke-dasharray: 3 3;
-  }
-  .ts-chart .ts-chart__line:is([data-ts-key^='series-6']) path {
-    stroke-dasharray: 10 4;
-  }
-  svg [data-chart-dash='2'] {
-    stroke-dasharray: 6 3;
-  }
-  svg [data-chart-dash='3'] {
-    stroke-dasharray: 1 3;
-  }
-  svg [data-chart-dash='4'] {
-    stroke-dasharray: 8 3 1 3;
-  }
-  svg [data-chart-dash='5'] {
-    stroke-dasharray: 3 3;
-  }
-  svg [data-chart-dash='6'] {
-    stroke-dasharray: 10 4;
-  }
-}
 
-/* In a heatmap, colour is the data: never texture the scale, and keep it
+  /* In a heatmap, colour is the data: never texture the scale, and keep it
    under forced colours and print. */
-.ts-chart :is([data-ts-key='cells'], [data-ts-key^='cells:']) :is(rect, path) {
-  forced-color-adjust: none;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
+  .ts-chart
+    :is([data-ts-key='cells'], [data-ts-key^='cells:'])
+    :is(rect, path) {
+    forced-color-adjust: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }
