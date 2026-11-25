@@ -12,7 +12,7 @@ import {
 import { userEvent as browserUser } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { releaseDragPointer } from '../../css/testUtils'
+import { releaseDragPointer, withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { groupedShowFields, testShows } from '../Records/testUtils'
 import type { RecordsField } from '../Records/types'
@@ -53,6 +53,13 @@ const lanes = () =>
 const disclosure = (name: string) =>
   within(lane(name)).getByRole('heading').closest('summary')!
 const shown = (element: Element) => element.checkVisibility()
+// Base UI keeps a closed menu mounted, inert, until its exit transition ends,
+// and Linux WebKit runs no frames while idle. So each move waits for its menu
+// to go before the next one opens
+// (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md).
+const menuGone = () =>
+  withFrames(() => expect.poll(() => screen.queryByRole('menu')).toBeNull())
+
 const moveTo = async (
   user: ReturnType<typeof userEvent.setup>,
   name: string
@@ -61,10 +68,13 @@ const moveTo = async (
     screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
   )
   await user.click(
-    await screen.findByRole('menuitem', {
-      name: `Move Ocean Alley 1 to ${name}`
-    })
+    await withFrames(() =>
+      screen.findByRole('menuitem', {
+        name: `Move Ocean Alley 1 to ${name}`
+      })
+    )
   )
+  await menuGone()
 }
 
 // By keyboard, as a pointer that jumps straight into a submenu meets the
@@ -86,11 +96,12 @@ const moveAcross = async (
 ) => {
   screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }).focus()
   await user.keyboard('{Enter}')
-  await screen.findByRole('menu')
+  await withFrames(() => screen.findByRole('menu'))
   await arrowTo(user, `Move Ocean Alley 1 to ${laneName}`)
   await user.keyboard('{ArrowRight}')
   await arrowTo(user, `Move Ocean Alley 1 to ${columnName} in ${laneName}`)
   await user.keyboard('{Enter}')
+  await menuGone()
 }
 const announced = () =>
   screen.getAllByRole('status').map((status) => status.textContent)
