@@ -34,18 +34,19 @@ function sameLayout(a: RecordLayout, b: RecordLayout): boolean {
       return (
         b.type === 'table' &&
         sameList(a.columns?.order ?? [], b.columns?.order ?? []) &&
-        sameList(sorted(a.columns?.hidden), sorted(b.columns?.hidden))
+        sameList(sorted(a.columns?.hidden), sorted(b.columns?.hidden)) &&
+        sameList(a.groupBy ?? [], b.groupBy ?? [])
       )
     case 'grid':
-      return b.type === 'grid' && sameList(a.fields ?? [], b.fields ?? [])
     case 'list':
       return (
-        b.type === 'list' &&
+        (b.type === 'grid' || b.type === 'list') &&
+        b.type === a.type &&
         sameList(a.fields ?? [], b.fields ?? []) &&
-        a.groupBy === b.groupBy
+        sameList(a.groupBy ?? [], b.groupBy ?? [])
       )
     case 'board':
-      return b.type === 'board' && a.groupBy === b.groupBy
+      return b.type === 'board' && sameList(a.groupBy, b.groupBy)
     case 'calendar':
       return b.type === 'calendar' && a.dateField === b.dateField
     case 'map':

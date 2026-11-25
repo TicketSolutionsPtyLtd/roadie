@@ -54,7 +54,7 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     expect(titles('On sale')).toEqual(['Ocean Alley 1'])
   })
 
-  it('moves a card to another column from its Move menu, and calls onMove with the value', async () => {
+  it('moves a card to another column from its Move menu, and calls onMove with the field it changes', async () => {
     const user = userEvent.setup()
     const onMove = vi.fn<Move>()
     render(<Shows onMove={onMove} />)
@@ -68,13 +68,13 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     )
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
-      'cancelled'
+      { status: 'cancelled' }
     )
     await expect.poll(() => titles('Cancelled')).toContain('Ocean Alley 1')
     expect(titles('On sale')).toEqual([])
   })
 
-  it('moves a card into "No status" with a null value', async () => {
+  it('moves a card into "No status" with the field set to null', async () => {
     const user = userEvent.setup()
     const onMove = vi.fn<Move>()
     render(<Shows onMove={onMove} />)
@@ -88,7 +88,39 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     )
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
-      null
+      { status: null }
+    )
+  })
+
+  it('names the field the view groups by, when it isn’t the definition’s', async () => {
+    const user = userEvent.setup()
+    const onMove = vi.fn<Move>()
+    const city = recordFields<TestShow>().option('city', {
+      label: 'City',
+      options: [
+        { value: 'Brisbane', label: 'Brisbane' },
+        { value: 'Melbourne', label: 'Melbourne' }
+      ]
+    })
+    render(
+      <Shows
+        onMove={onMove}
+        save={() => undefined}
+        fields={[...showFields.filter(({ key }) => key !== 'city'), city]}
+        defaultView={{ layout: { type: 'board', groupBy: ['city'] } }}
+      />
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
+    )
+    await user.click(
+      await screen.findByRole('menuitem', {
+        name: 'Move Ocean Alley 1 to Melbourne'
+      })
+    )
+    expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { city: 'Melbourne' }
     )
   })
 
@@ -102,7 +134,7 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     )
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
-      null
+      { status: null }
     )
     await expect.poll(() => titles('No status')).toEqual(['Ocean Alley 1'])
   })
@@ -149,8 +181,8 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     }[] = []
     render(
       <Shows
-        onMove={(_, status) =>
-          status === 'cancelled'
+        onMove={(_, changes) =>
+          changes.status === 'cancelled'
             ? (() => {
                 let reject = (_: Error) => {}
                 const promise = new Promise<void>((_, fail) => {

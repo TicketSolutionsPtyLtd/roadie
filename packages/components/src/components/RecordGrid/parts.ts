@@ -128,8 +128,10 @@ export function gridDetailsLayout(
   const layout: RecordLayout = backToDefinition
     ? { type }
     : { type, fields: merged }
-  // A list's grouping is its own setting, so a details change keeps it.
-  return current.type === 'list' && layout.type === 'list' && current.groupBy
+  // Grouping is its own setting, so a details change keeps it.
+  return (current.type === 'list' || current.type === 'grid') &&
+    current.type === layout.type &&
+    current.groupBy?.length
     ? { ...layout, groupBy: current.groupBy }
     : layout
 }

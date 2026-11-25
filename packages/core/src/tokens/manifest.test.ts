@@ -30,10 +30,12 @@ const INTERNAL = [
   '--emphasis-fill-active',
   '--emphasis-fill-hover',
   '--emphasis-fill-interactive',
+  '--emphasis-fill-state',
   '--emphasis-lift-hover',
   '--emphasis-shadow',
   '--emphasis-shadow-active',
   '--emphasis-shadow-hover',
+  '--emphasis-shadow-state',
   '--field-border-color',
   '--field-focus-bg',
   '--field-hover-bg',
@@ -58,7 +60,8 @@ const INTERNAL = [
   '--translucent-backdrop',
   '--translucent-fill',
   '--tw-inset-shadow',
-  '--tw-shadow'
+  '--tw-shadow',
+  '--tw-sort'
 ]
 
 describe('coverage', () => {
@@ -208,18 +211,16 @@ describe('values', () => {
     })
   })
 
-  it('prefers the oklch value and keeps the hex fallback', () => {
+  it('gives a colour step its oklch value in each mode', () => {
     expect(find('--color-danger-10').value).toEqual({
       light: 'oklch(0.673 0.184 28.364)',
-      dark: 'oklch(0.673 0.184 28.364)',
-      fallback: '#f25f51'
+      dark: 'oklch(0.673 0.184 28.364)'
     })
   })
 
   it('pins the light step 9 that dark mode leaves alone', () => {
     expect(find('--color-danger-light-9').value).toEqual({
-      light: 'oklch(0.709 0.184 28.37)',
-      fallback: '#ff6b5c'
+      light: 'oklch(0.709 0.184 28.37)'
     })
     expect(find('--color-danger-light-9').group).toBe('Pinned light steps')
   })

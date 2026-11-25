@@ -16,12 +16,16 @@ const VALUE_IMPORT =
 // React's server build has no createContext, so calling it as a module loads throws.
 const CREATES_CONTEXT = /\bcreateContext\s*[<(]/
 
-/** What a Server Component loads with `entry`: the modules that create a context, and the client modules where the graph stops. */
+// Imports the guard can't read as source, so it never follows them.
+const ASSET = /\.(json|css)(\?[\w&=]*)?$/
+
+/** What a Server Component loads with `entry`: the modules that create a context, the client modules where the graph stops, and each import that resolves to no source. */
 function serverGraph(sources: Sources, entry: string) {
   const seen = new Set<string>()
   const stack = [entry]
-  const found: string[] = []
+  const contexts: string[] = []
   const clients: string[] = []
+  const unresolved: string[] = []
   while (stack.length > 0) {
     const file = stack.pop()!
     const source = sources[file]
@@ -31,20 +35,25 @@ function serverGraph(sources: Sources, entry: string) {
       clients.push(file)
       continue
     }
-    if (CREATES_CONTEXT.test(source)) found.push(file)
+    if (CREATES_CONTEXT.test(source)) contexts.push(file)
     for (const match of source.matchAll(VALUE_IMPORT)) {
-      const { pathname } = new URL(match[1]!, `file:///${file}`)
+      const specifier = match[1]!
+      if (ASSET.test(specifier)) continue
+      const { pathname } = new URL(specifier, `file:///${file}`)
       // '.' and '..' name a folder, whose path ends in a slash.
       const path = `.${pathname.replace(/\/$/, '')}`
-      stack.push(
+      const candidates = [
         `${path}.ts`,
         `${path}.tsx`,
         `${path}/index.ts`,
         `${path}/index.tsx`
-      )
+      ]
+      if (!candidates.some((candidate) => candidate in sources))
+        unresolved.push(`${file}: ${specifier}`)
+      stack.push(...candidates)
     }
   }
-  return { contexts: found, clients: clients.sort() }
+  return { contexts, clients: clients.sort(), unresolved }
 }
 
 const contextsOnServer = (sources: Sources, entry: string) =>
@@ -62,6 +71,28 @@ describe('a Server Component importing an entry', () => {
       )
     ).toEqual([])
   })
+
+  it('resolves every import it follows from an entry', () => {
+    const entries = Object.keys(SOURCES).filter((file) =>
+      /\/index\.tsx?$/.test(file)
+    )
+    expect(
+      entries.flatMap((entry) => serverGraph(SOURCES, entry).unresolved)
+    ).toEqual([])
+  })
+
+  it.each([
+    ["import { Row } from './missing'", ['./index.ts: ./missing']],
+    ["import data from './rows.json'", []],
+    ["import sheet from './rows.css?inline'", []]
+  ])(
+    'reports an import it cannot resolve, but not an asset, as in %j',
+    (index, unresolved) => {
+      expect(
+        serverGraph({ './index.ts': index }, './index.ts').unresolved
+      ).toEqual(unresolved)
+    }
+  )
 
   const found = (index: string, rows: string) =>
     contextsOnServer(

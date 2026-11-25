@@ -40,9 +40,11 @@ export function ToastProgress({
       key={run}
       data-slot='toast-progress'
       aria-hidden='true'
-      style={{ '--toast-timeout': `${timeout}ms`, ...style } as CSSProperties}
+      style={{ '--time-left': `${timeout}ms`, ...style } as CSSProperties}
+      // Pauses with Base UI's timer: while the toasts expand or the window blurs.
       className={cn(
-        'pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-(--intent-border-normal) ltr:origin-left rtl:origin-right',
+        'pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-(--intent-border-normal) animate-time-left motion-reduce:hidden ltr:origin-left rtl:origin-right',
+        'in-data-window-blurred:[animation-play-state:paused] in-[[data-slot=toast][data-expanded]]:[animation-play-state:paused]',
         className
       )}
       {...props}

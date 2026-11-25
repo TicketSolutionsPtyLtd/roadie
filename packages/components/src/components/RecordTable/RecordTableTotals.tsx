@@ -8,10 +8,14 @@ import {
   cellClass,
   pinStyle,
   rowClass,
-  selectCellClass,
-  titleColumn
+  selectCellClass
 } from './RecordTableRow'
-import { type ColumnLayout, priorityProps } from './layout'
+import {
+  type ColumnLayout,
+  priorityClass,
+  priorityProps,
+  titleColumn
+} from './layout'
 import type { RecordTableColumn } from './types'
 
 const totalsTextClass = 'text-xs text-subtle tabular-nums'
@@ -68,8 +72,12 @@ export function RecordTableTotalsRow({
       {columns.map((column, index) => {
         const shared = {
           'data-pin': column.pin || undefined,
-          ...priorityProps(column, layout, index),
-          className: cn(cellClass(column), 'items-start'),
+          ...priorityProps(layout, index),
+          className: cn(
+            cellClass(column),
+            priorityClass(layout, index),
+            'items-start'
+          ),
           style: pinStyle(layout.pinnedStart[index])
         }
         if (index === labelIndex)

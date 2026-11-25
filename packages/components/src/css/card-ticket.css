@@ -20,17 +20,13 @@
     --card-shadow-color: oklch(0.3 0.05 var(--intent-hue) / 0.06);
     --card-edge: transparent;
     --card-edge-solid: transparent;
-    --card-shadow-2: transparent;
-    --card-shadow-4: transparent;
-    --card-shadow-8: transparent;
+    --card-fill: var(--emphasis-fill-state, var(--emphasis-fill));
 
     overflow: clip;
     color: var(--intent-text-normal);
     box-shadow:
       0 0 0 var(--ticket-root-edge) var(--card-edge),
-      0 2px 2px var(--card-shadow-2),
-      0 4px 4px var(--card-shadow-4),
-      0 8px 8px var(--card-shadow-8);
+      var(--emphasis-shadow-state, var(--emphasis-shadow, 0 0 #0000));
     transition: background-color var(--duration-moderate) var(--ease-standard);
 
     :where(.dark) & {
@@ -328,8 +324,20 @@
     }
   }
 
+  /* Each emphasis declares its values, as the emphasis presets do, and the
+     shared state rule (is-interactive and is-interactive-within, in
+     interactions.css) picks one per state. CardRoot leaves the preset's class
+     off, since the parts paint the fill. Values only: no state selector here.
+     A state left out shows the rest look. The shadows are whole lists. */
   [data-slot='card'][data-variant='ticket'][data-emphasis='raised'] {
-    --card-fill: var(--intent-bg-raised);
+    --emphasis-fill: var(--intent-bg-raised);
+    --emphasis-shadow:
+      0 2px 2px var(--card-shadow-color), 0 4px 4px var(--card-shadow-color);
+    --emphasis-shadow-hover:
+      0 2px 2px var(--card-shadow-color), 0 4px 4px var(--card-shadow-color),
+      0 8px 8px var(--card-shadow-color);
+    --emphasis-shadow-active: 0 2px 2px var(--card-shadow-color);
+    --emphasis-lift-hover: translateY(-1px);
     --card-edge-width: 1px;
     /* The ring a ticket with no footer draws, as dark as the edge the parts
        draw on one with a footer. */
@@ -343,8 +351,6 @@
       oklch(0.3 0.05 var(--intent-hue)) 20%,
       var(--card-fill)
     );
-    --card-shadow-2: var(--card-shadow-color);
-    --card-shadow-4: var(--card-shadow-color);
 
     :where(.dark) & {
       --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.65);
@@ -354,105 +360,29 @@
         var(--card-fill)
       );
     }
-
-    &.is-interactive:hover,
-    &.is-interactive:focus-visible,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
-      ),
-    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-        :has(.is-interactive-within [data-interactive-target]:focus-visible)
-      ) {
-      --card-shadow-8: var(--card-shadow-color);
-      transform: translateY(-1px);
-    }
-    &.is-interactive:active,
-    &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active):not(
-        :has(.is-interactive-within [data-interactive-target]:active)
-      ) {
-      --card-shadow-4: transparent;
-      --card-shadow-8: transparent;
-      transform: translateY(0) scale(0.99);
-    }
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='normal'] {
-    --card-fill: var(--intent-bg-normal);
+    --emphasis-fill: var(--intent-bg-normal);
+    --emphasis-fill-hover: var(--intent-2);
+    --emphasis-fill-active: var(--intent-3);
+    --emphasis-shadow-hover: 0 2px 2px var(--card-shadow-color);
+    --emphasis-lift-hover: translateY(-1px);
     --card-edge-width: 1px;
     --card-edge: var(--intent-border-normal);
     --card-edge-solid: var(--card-edge);
-
-    &.is-interactive:hover,
-    &.is-interactive:focus-visible,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
-      ),
-    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-        :has(.is-interactive-within [data-interactive-target]:focus-visible)
-      ) {
-      --card-fill: var(--intent-2);
-      --card-shadow-2: var(--card-shadow-color);
-      transform: translateY(-1px);
-    }
-    &.is-interactive:active,
-    &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active):not(
-        :has(.is-interactive-within [data-interactive-target]:active)
-      ) {
-      --card-fill: var(--intent-3);
-      --card-shadow-2: transparent;
-      transform: translateY(0) scale(0.99);
-    }
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='subtle'] {
-    --card-fill: var(--intent-bg-subtle);
-
-    &.is-interactive:hover,
-    &.is-interactive:focus-visible,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
-      ),
-    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-        :has(.is-interactive-within [data-interactive-target]:focus-visible)
-      ) {
-      --card-fill: var(--intent-4a);
-    }
-    &.is-interactive:active,
-    &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active):not(
-        :has(.is-interactive-within [data-interactive-target]:active)
-      ) {
-      --card-fill: var(--intent-5a);
-    }
+    --emphasis-fill: var(--intent-bg-subtle);
+    --emphasis-fill-hover: var(--intent-4a);
+    --emphasis-fill-active: var(--intent-5a);
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='subtler'] {
-    --card-fill: var(--intent-bg-subtler);
-
-    &.is-interactive,
-    &.is-interactive-within:has([data-interactive-target]):not(
-        :has(.is-interactive-within [data-interactive-target])
-      ) {
-      --card-fill: transparent;
-    }
-    &.is-interactive:hover,
-    &.is-interactive:focus-visible,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
-      ),
-    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-        :has(.is-interactive-within [data-interactive-target]:focus-visible)
-      ) {
-      --card-fill: var(--intent-3a);
-    }
-    &.is-interactive:active,
-    &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active):not(
-        :has(.is-interactive-within [data-interactive-target]:active)
-      ) {
-      --card-fill: var(--intent-4a);
-    }
+    --emphasis-fill: var(--intent-bg-subtler);
+    --emphasis-fill-interactive: transparent;
+    --emphasis-fill-hover: var(--intent-3a);
+    --emphasis-fill-active: var(--intent-4a);
   }
 }
