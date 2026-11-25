@@ -265,6 +265,30 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(checked('Julia Jacklin 1')).toBe('false')
   })
 
+  it('selects a Shift range in the order nested groups show it', async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={groupedShowFields}
+        selectable
+        defaultView={{ layout: { type: 'list', groupBy: ['status', 'city'] } }}
+      />
+    )
+    // Cancelled shows Brisbane (Middle Kids) before Sydney (Julia Jacklin),
+    // the reverse of the rows' order.
+    await user.click(screen.getByRole('button', { name: 'Select' }))
+    const box = (name: string) => screen.getByRole('checkbox', { name })
+    await user.click(box('Select Alex Lahey 1'))
+    await user.keyboard('{Shift>}')
+    await user.click(box('Select Middle Kids 1'))
+    await user.keyboard('{/Shift}')
+    const checked = (name: string) =>
+      box(`Select ${name}`).getAttribute('aria-checked')
+    await expect.poll(() => checked('Middle Kids 1')).toBe('true')
+    expect(checked('Julia Jacklin 1')).toBe('false')
+  })
+
   it('saves groupBy in the URL and groups by it when read back', () => {
     const { view } = recordViewFromSearchParams(
       recordViewToSearchParams({

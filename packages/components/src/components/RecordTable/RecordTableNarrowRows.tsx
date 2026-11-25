@@ -261,8 +261,7 @@ function GroupedList({
 }) {
   const { shown, order } = useMemo(() => {
     const shown = shownGroups(groups)
-    const order = shown.flatMap((group) => group.rows.map(({ id }) => id))
-    return { shown, order }
+    return { shown, order: shownOrder(shown) }
   }, [groups])
   const { onToggle } = shared
   const toggle = useCallback(
@@ -292,6 +291,14 @@ function shownGroups(groups: readonly RecordGroup[]): RecordGroup[] {
     group.rows.length === 0
       ? []
       : [group.groups ? { ...group, groups: shownGroups(group.groups) } : group]
+  )
+}
+
+// The ids in the order the innermost groups show them, which a nested group
+// can reorder from its outer group's rows.
+function shownOrder(groups: readonly RecordGroup[]): string[] {
+  return groups.flatMap((group) =>
+    group.groups ? shownOrder(group.groups) : group.rows.map(({ id }) => id)
   )
 }
 
