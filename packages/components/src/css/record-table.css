@@ -1,6 +1,7 @@
 /* RecordTable columns with a priority hide as the table narrows. Content
    sets each tier's template inline; these rules pick one, so the header and
-   rows agree. Tiers mirror PRIORITY_HIDES_BELOW in RecordTable/layout.ts. */
+   rows agree. Tiers mirror PRIORITY_HIDES_BELOW in RecordTable/layout.ts.
+   Unlayered on purpose: display: none must beat the cells' own flex. */
 
 [data-slot='record-table-frame'] {
   container: record-table-frame / inline-size;

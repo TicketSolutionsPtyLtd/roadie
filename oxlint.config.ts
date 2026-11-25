@@ -311,7 +311,10 @@ export default defineConfig({
     }),
     roadieRules(
       ['packages/*/src/**/*.{ts,tsx}'],
-      { 'roadie/no-import-meta-env': 'error' },
+      {
+        'roadie/no-import-meta-env': 'error',
+        'roadie/no-named-zod-import': 'error'
+      },
       ['**/*.test.{ts,tsx}']
     ),
     // The testing preset covers the tests; these are the helpers they wait in.
