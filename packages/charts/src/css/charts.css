@@ -1,4 +1,6 @@
-/* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css. */
+/* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css.
+   Unlayered until checked: the table view's grid on DataTable's root may need
+   to beat that component's own utilities. */
 @source '../../dist';
 @source './safelist.html';
 

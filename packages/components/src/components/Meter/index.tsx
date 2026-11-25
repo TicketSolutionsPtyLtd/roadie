@@ -68,8 +68,9 @@ export function Meter({
           ? `${formatValue(total)} of ${formatValue(clampedMax)}`
           : formatValue(Number.NaN))
       }
+      // Backgrounds draw the track and target, which forced colours erase.
       className={cn(
-        'relative h-1.5 w-full rounded-full bg-(--intent-4)',
+        'relative h-1.5 w-full rounded-full bg-(--intent-4) forced-colors:outline forced-colors:outline-1 forced-colors:outline-[CanvasText]',
         className
       )}
       {...props}
@@ -88,7 +89,7 @@ export function Meter({
       {target !== undefined && (
         <span
           data-slot='meter-target'
-          className='absolute -inset-y-1 w-0.5 -translate-x-1/2 rounded-full bg-(--intent-text-strong)'
+          className='absolute -inset-y-1 w-0.5 -translate-x-1/2 rounded-full bg-(--intent-text-strong) forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none'
           style={{ left: `${percentOf(target, clampedMax)}%` }}
         />
       )}

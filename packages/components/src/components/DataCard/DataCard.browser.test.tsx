@@ -406,6 +406,74 @@ describe('DataCard copy fits its lines', () => {
   })
 })
 
+describe('DataCard sizes its type and padding from its own width', () => {
+  function measure(width: number) {
+    const { container } = render(
+      <div style={{ width }}>
+        <DataCard
+          label='Gross revenue'
+          value={118400}
+          context='Up on last season'
+          actions={<button type='button'>Go</button>}
+        />
+      </div>
+    )
+    const part = (slot: string) =>
+      getComputedStyle(
+        container.querySelector<HTMLElement>(`[data-slot=data-card-${slot}]`)!
+      )
+    const card = container.querySelector<HTMLElement>('[data-slot=data-card]')!
+    return { card, part, root: getComputedStyle(card) }
+  }
+
+  it.each([
+    [158, '10px', '12px'],
+    [239, '10px', '12px'],
+    [244, '16px', '14px'],
+    [460, '16px', '14px']
+  ])('pads and sets type for a %ipx card', (width, padding, size) => {
+    const { part } = measure(width)
+    expect(part('inner').paddingTop).toBe(padding)
+    expect(part('inner').paddingLeft).toBe(padding)
+    for (const slot of ['label', 'context', 'actions'])
+      expect(part(slot).fontSize).toBe(size)
+    if (size === '12px')
+      for (const slot of ['label', 'context', 'actions'])
+        expect(part(slot).lineHeight).toBe('16px')
+    const actions = part('actions')
+    expect(Number.parseFloat(actions.height)).toBeCloseTo(
+      Number.parseFloat(actions.lineHeight),
+      0
+    )
+  })
+
+  it.each([
+    [158, 20],
+    [460, 28]
+  ])('clamps the value at a %ipx card to %ipx', (width, size) => {
+    const value = measure(width).part('value')
+    expect(value.fontSize).toBe(`${size}px`)
+    expect(Number.parseFloat(value.lineHeight)).toBeCloseTo(size * 1.1, 1)
+  })
+
+  it('grows the value with the card between the clamps', () => {
+    const { card, part } = measure(220)
+    expect(Number.parseFloat(part('value').fontSize)).toBeCloseTo(
+      card.clientWidth * 0.11,
+      0
+    )
+  })
+
+  it('is a named container that gives its marks the card surface', () => {
+    const { root } = measure(280)
+    expect(root.containerName).toBe('data-card')
+    expect(root.containerType).toBe('inline-size')
+    expect(root.getPropertyValue('--data-card-surface').trim()).toBe(
+      root.getPropertyValue('--intent-bg-normal').trim()
+    )
+  })
+})
+
 describe('DataCard label lines', () => {
   it.each([
     ['md', 2],
