@@ -51,6 +51,21 @@ export const showFields = [
   field.date('starts', { label: 'Starts', moment: 'date' })
 ]
 
+const asOptions = (values: readonly string[]) =>
+  values.map((value) => ({ value, label: value }))
+
+/** The show fields with Show and City as option fields, so a view can group by three levels. */
+export const groupedShowFields = showFields.map((one) =>
+  one.key === 'city'
+    ? field.option('city', { label: 'City', options: asOptions(CITIES) })
+    : one.key === 'show'
+      ? field.option('show', {
+          label: 'Show',
+          options: asOptions(SHOWS.map((show) => `${show} 1`))
+        })
+      : one
+)
+
 const middle = (top: number, bottom: number) => (top + bottom) / 2
 
 /** In a boxed layout, how far a state sits from the centre of the space under the header. */

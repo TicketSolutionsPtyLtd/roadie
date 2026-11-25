@@ -150,7 +150,7 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
 - `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
 
-On a phone the table turns into cards: the event, its venue, and its status, with the start, sold, and gross as details. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
+On a phone the table turns into list rows: the event, its venue, and its status. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
@@ -194,11 +194,11 @@ const column = tableColumns(fields)
 const layouts = [
   tableLayout([
     column.field('name', { pin: true, narrow: 'title' }),
-    column.field('startsAt', { narrow: 'detail' }),
+    column.field('startsAt'),
     column.field('venue', { narrow: 'description' }),
     column.field('status', { narrow: 'trailing' }),
-    column.field('sold', { narrow: 'detail' }),
-    column.field('gross', { narrow: 'detail' })
+    column.field('sold'),
+    column.field('gross')
   ])
 ]
 
@@ -871,6 +871,70 @@ render(
 
 Keep the views your app stores as `RecordView` JSON, the same shape as the URL reads, so a view saved on one screen opens from a link, a preset, or a search hand-off alike.
 
+### Grouped
+
+A view's `layout.groupBy` groups the rows by up to three fields with options, such as a status, outermost first, in the options' order. Each field after the first groups the rows inside each group before it. Records with no value follow in a "No" group, such as "No status", and an option with no records is left out. Inside a group, rows keep the view's sort. The URL keeps it as `groupBy=status,venue`. To group a table by default, set it in `defaultView` or the saved view, so people can always turn it off. A field that holds a list, or has no options, can't group. People pick the field, or None, from Group by in the table's settings, then Then by and And then by, and changing the columns keeps the grouping. Group by is left out when no shown column's field can group, or when the table loads by range.
+
+Wide, each group starts with a row spanning the columns, holding its title and count, with headings in tiers by level as in a [grouped list](/components/record-list#grouped). The title is a button that collapses the group's rows, for the session only, and a field's `groupHeading` adds content under its groups' titles at any level. Narrow, rows group as the list's do. Grouping applies to one page of rows at a time, so a group can continue on the next page, and a grouped table renders every row on its page rather than only those near the screen. A table that loads by range stays ungrouped. A Shift range follows the order on screen, across groups, and skips the rows of a collapsed group.
+
+```tsx-live-noinline-expand
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco', 'Raffia Spaceship']
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre']
+const statuses = ['on-sale', 'selling-fast', 'sold-out']
+const events = Array.from({ length: 12 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  status: statuses[(index * 2) % statuses.length],
+  sold: (index * 37) % 2400
+}))
+const suburbs = {
+  'Kazoo Hollow Room': 'Fitzroy',
+  'Antler Kettle Hall': 'Brunswick',
+  'Echidna Gaslight Theatre': 'Collingwood'
+}
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  {
+    ...field.option('venue', {
+      label: 'Venue',
+      options: venues.map((venue) => ({ value: venue, label: venue }))
+    }),
+    groupHeading: ({ value }) => suburbs[value] ?? null
+  },
+  field.option('status', {
+    label: 'Status',
+    status: {
+      'on-sale': { intent: 'success', label: 'On sale' },
+      'selling-fast': { intent: 'warning', label: 'Selling fast' },
+      'sold-out': { intent: 'neutral', label: 'Sold out' }
+    }
+  }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+
+render(
+  <RecordTable
+    caption='Events by status and venue'
+    data={events}
+    fields={fields}
+    columns={[
+      column.field('name', { pin: true }),
+      column.field('venue'),
+      column.field('sold')
+    ]}
+    getRowId={(row) => row.id}
+    getRowHref={(row) => `#${row.id}`}
+    recordName={{ one: 'event', other: 'events' }}
+    bulkActions={[{ label: 'Export', onAction: () => {} }]}
+    defaultView={{ layout: { type: 'table', groupBy: ['status', 'venue'] } }}
+  />
+)
+```
+
 ### Selection and actions
 
 `bulkActions` turns on a checkbox for each record and shows the bulk actions once something is selected. An action gets the selection and the query and request it was taken against: the picked ids, or every matching record but some. It never gets a record the search and filters hide. Selection is session state, like the page, and works controlled with `selection` and `onSelectionChange` or uncontrolled with `defaultSelection`. A search or filter change drops picked records it hides, and drops a "select all".
@@ -1351,7 +1415,7 @@ Under 40rem of its own width, 640px at the default text size, the table drops it
 | `'description'` | One line under the title, in subtle text. |
 | `'leading'` | Before the title. An image column goes here unless you say otherwise. |
 | `'trailing'` | At the end of the row, such as a status badge. |
-| `'detail'` | A label and value on a card. Any detail column turns the rows into cards. |
+| `'detail'` | Deprecated. A label and value on a card. Any detail column turns the rows into cards. |
 | `'hidden'` | Left out of the narrow layout. The default for every column but images. |
 
 The server can't measure the table, so it renders wide, and a phone switches to the list once the page hydrates. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
@@ -1427,6 +1491,8 @@ render(<NarrowEvents />)
 ```
 
 #### Cards
+
+> **Deprecated.** Cards leave `RecordTable` at the next major, with `narrow: 'detail'` and the `narrow` prop. For records as cards, use [`RecordGrid`](/components/record-grid). Until then, tables that use them work as they do now.
 
 Give columns `narrow: 'detail'` and each record becomes a card, with the details listed under its title as labels and values. An image column becomes the card's 16:9 banner, with the trailing value on its top end. Cards grow to fit their content, and past 100 records the list measures each as it renders.
 
@@ -1720,6 +1786,8 @@ column.field('location', { pin: true })`}
 - Wide, the totals are a row in the table's head, under the column headers, with its label as the row's header, so each total reads with its column's name. Narrow, they're a paragraph above the list, each total after its heading.
 - `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
 - When the table holds only some of its rows (a page of several, more than 100 rows, or a list loaded by range), it carries `aria-rowcount`, counting every match (up to 300,000 loading by range), the header row, and the totals row when there is one, and each row its `aria-rowindex`, so screen readers announce "row 52 of 121". Loading by range, the count is `-1` until the total is known.
+- Grouped and wide, each group is a `rowgroup` holding a row with one cell spanning the columns, and its rows follow in a `rowgroup` of their own, as rowgroups can't nest. The group's title is an `h2` heading, with `h3` and `h4` for the second and third levels, holding a button named by the title and count, such as "On sale 4", whose `aria-expanded` says whether the group shows and whose `aria-controls` names its rows. Content from `groupHeading` follows the heading and hides with the group. A grouped table carries no `aria-rowcount`, as its title rows aren't records. Narrow, the groups are lists as in a grouped list.
+- The Group by selects in Configure are labelled "Group by", "Then by", and "And then by". Each appears once the one before it holds a field.
 - Loading by range, the table is `aria-busy` while a range loads, placeholders are hidden from screen readers, and a failed range is announced, such as "Couldn't load more shows". The result count is announced only once the total is known. The header checkbox is named "Select loaded rows".
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
 - The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click, or with the arrows, not on Tab. While they're open, the rest of the page is hidden from screen readers, as for any combobox. Clear keeps focus in the field and keeps the page's scope. [Keys](#keys) lists what each key does.

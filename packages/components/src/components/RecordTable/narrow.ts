@@ -2,7 +2,10 @@ import type { RecordCardParts } from '../Records/types'
 import { titleColumn } from './layout'
 import type { RecordTableColumn, RecordTableNarrow } from './types'
 
-/** How a table under 40rem shows its records. */
+/**
+ * How a table under 40rem shows its records.
+ * @deprecated Cards leave RecordTable at the next major; for cards, use `RecordGrid`.
+ */
 export type RecordTableNarrowLayout = 'list' | 'cards'
 
 export const narrowLayout = (

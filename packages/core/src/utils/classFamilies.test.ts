@@ -47,17 +47,17 @@ const families = [
   {
     group: 'semantic-text-color',
     members: themed('text-color', 'text'),
-    safelisted: /^text-(?!display|ui|prose|code|chart)/
+    safelisted: /^text-(?!display|ui|prose|code|chart|.*-\d+$)/
   },
   {
     group: 'semantic-bg-color',
     members: [...themed('background-color', 'bg'), ...utilities(/^surface-/)],
-    safelisted: /^(bg-(?!chart)|surface-)/
+    safelisted: /^(bg-(?!chart|.*-\d+$)|surface-)/
   },
   {
     group: 'semantic-border-color',
     members: themed('border-color', 'border'),
-    safelisted: /^border-/
+    safelisted: /^border-(?!chart|.*-\d+$)/
   },
   {
     group: 'intent',

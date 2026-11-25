@@ -7,7 +7,8 @@ import {
   NarrowSkeleton,
   RecordTableNarrowRows
 } from '../RecordTable/RecordTableNarrowRows'
-import { groupRecords } from '../Records/groups'
+import { groupFields } from '../Records/groupBy'
+import { groupRecordsBy } from '../Records/groups'
 import type { RecordsContentProps } from '../Records/layouts'
 import {
   RecordsLayoutFrame,
@@ -15,7 +16,6 @@ import {
   useRecordsLayout
 } from '../Records/useRecordsLayout'
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
-import { listGroupField } from './groupBy'
 import type { ListLayoutConfig } from './types'
 
 export type RecordListContentProps = RecordsContentProps & {
@@ -35,16 +35,18 @@ export function RecordListContent({
     () => gridParts(config, fields, view.layout, 'list'),
     [config, fields, view.layout]
   )
-  const groupField = useMemo(
-    () => listGroupField(fields, view.layout),
+  const grouping = useMemo(
+    () => groupFields(fields, view.layout),
     [fields, view.layout]
   )
   // A range list loads rows as they scroll into view, so it stays ungrouped
   // until groups can come from the server.
   const groups = useMemo(
     () =>
-      groupField && !range ? groupRecords(records.rows, groupField) : undefined,
-    [groupField, range, records.rows]
+      grouping.length > 0 && !range
+        ? groupRecordsBy(records.rows, grouping)
+        : undefined,
+    [grouping, range, records.rows]
   )
   // Rows have no checkboxes, so the list selects only through Select mode.
   const selecting = useSelectModeLayout(true)
@@ -62,6 +64,7 @@ export function RecordListContent({
       <RecordTableNarrowRows
         rows={records.rows}
         groups={groups}
+        groupHeadings
         parts={parts}
         layout='list'
         bleed={!boxed}

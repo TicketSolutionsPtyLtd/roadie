@@ -335,9 +335,13 @@ describe('validateRecordView', () => {
 
   it.each([
     { type: 'list' },
-    { type: 'list', fields: ['name'], groupBy: 'venue' },
-    { type: 'list', groupBy: 'city' },
-    { type: 'board', groupBy: 'status' },
+    { type: 'table', groupBy: ['venue'] },
+    { type: 'grid', groupBy: ['status', 'venue'] },
+    { type: 'list', fields: ['name'], groupBy: ['venue'] },
+    { type: 'list', groupBy: ['city'] },
+    { type: 'list', groupBy: ['status', 'venue', 'city'] },
+    { type: 'board', groupBy: ['status'] },
+    { type: 'board', groupBy: ['status', 'venue'] },
     { type: 'calendar', dateField: 'starts' },
     { type: 'calendar', dateField: 'birthday' },
     { type: 'map' }
@@ -349,20 +353,37 @@ describe('validateRecordView', () => {
 
   it.each([
     [{ type: 'board' }, 'layout.groupBy', ''],
+    [{ type: 'board', groupBy: [] }, 'layout.groupBy', 'at least one field'],
+    [{ type: 'list', groupBy: 'status' }, 'layout.groupBy', 'array'],
     [
-      { type: 'board', groupBy: 'nope' },
-      'layout.groupBy',
+      { type: 'board', groupBy: ['nope'] },
+      'layout.groupBy[0]',
       'Unknown field "nope"'
     ],
     [
-      { type: 'board', groupBy: 'name' },
-      'layout.groupBy',
+      { type: 'board', groupBy: ['status', 'name'] },
+      'layout.groupBy[1]',
       '"Name" has no options to group by'
     ],
     [
-      { type: 'list', groupBy: 'genres' },
-      'layout.groupBy',
+      { type: 'list', groupBy: ['genres'] },
+      'layout.groupBy[0]',
       '"Genres" holds a list, so a record would sit in more than one group'
+    ],
+    [
+      { type: 'table', groupBy: ['venue', 'venue'] },
+      'layout.groupBy[1]',
+      '"Venue" is already a level'
+    ],
+    [
+      { type: 'list', groupBy: ['status', 'venue', 'city', 'featured'] },
+      'layout.groupBy',
+      'at most 3'
+    ],
+    [
+      { type: 'calendar', dateField: 'starts', groupBy: ['status'] },
+      'layout',
+      'Unrecognized key'
     ],
     [{ type: 'calendar' }, 'layout.dateField', ''],
     [
@@ -377,6 +398,20 @@ describe('validateRecordView', () => {
       path,
       message: expect.stringContaining(message)
     })
+  })
+
+  it('keeps a third level on a board, with a warning that it is not drawn', () => {
+    const layout = { type: 'board', groupBy: ['status', 'venue', 'city'] }
+    const result = validateRecordView(view([], { layout }), eventFields)
+    expect(result.ok && result.view.layout).toEqual(layout)
+    expect(result.problems).toEqual([
+      {
+        path: 'layout.groupBy[2]',
+        message:
+          'A board draws at most two levels, so "City" shows only in other layouts',
+        severity: 'warning'
+      }
+    ])
   })
 
   it('rejects a calendar on a list of dates', () => {

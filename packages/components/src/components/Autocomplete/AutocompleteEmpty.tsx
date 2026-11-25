@@ -6,6 +6,8 @@ import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomple
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { listEmptyClass } from '../../variants'
+
 export type AutocompleteEmptyProps = AutocompletePrimitive.Empty.Props &
   RefAttributes<HTMLDivElement>
 
@@ -16,10 +18,7 @@ export function AutocompleteEmpty({
   return (
     <AutocompletePrimitive.Empty
       data-slot='autocomplete-empty'
-      className={cn(
-        'text-center text-sm text-subtle empty:hidden [&:not(:empty)]:px-3 [&:not(:empty)]:py-4',
-        className
-      )}
+      className={cn(listEmptyClass, className)}
       {...props}
     />
   )

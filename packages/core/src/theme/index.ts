@@ -1,9 +1,9 @@
 import { getAccentChromaSync, getOklchHueSync } from '../colors/srgb-to-oklch'
 
 /**
- * The default Roadie accent colour (Oztix blue), the accent step 9 that
- * tokens.css ships. Import it instead of hard-coding the hex, for example to
- * reset the accent.
+ * The default Roadie accent colour (Oztix blue), the brand's hex for accent
+ * step 9, which tokens.css draws in oklch(). Import it instead of hard-coding
+ * the hex, for example to reset the accent.
  */
 export const DEFAULT_ACCENT_COLOR = '#0191eb'
 
@@ -54,10 +54,8 @@ export function getThemeScript(options?: {
  * inside `<head>` via Next's `dangerouslySetInnerHTML`, Astro's
  * `set:html`, or plain HTML.
  *
- * Modern browsers (Chrome 111+, Safari 15.4+, Firefox 113+) render the
- * accent curves from `oklch()` math, so the two custom properties are
- * sufficient for a zero-flash cold load. Older browsers fall back to
- * the default CSS accent until the client-side accent effect runs.
+ * Every supported browser renders the accent curves from `oklch()` math,
+ * so the two custom properties are enough for a zero-flash cold load.
  *
  * @example
  * ```tsx
