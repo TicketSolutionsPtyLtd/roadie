@@ -2,7 +2,6 @@ import { type ReactNode, memo, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { tableRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import { Skeleton } from '../Skeleton'
 import {
@@ -10,6 +9,7 @@ import {
   cellClass,
   pinStyle,
   rowClass,
+  rowHeightClass,
   selectCellClass
 } from './RecordTableRow'
 import { type ColumnLayout, priorityClass, priorityProps } from './layout'
@@ -68,11 +68,7 @@ export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
       aria-hidden
       aria-rowindex={rowIndex}
       data-slot='record-table-placeholder-row'
-      className={cn(
-        rowClass,
-        tableRowSize.heightClass,
-        'border-b border-subtler'
-      )}
+      className={cn(rowClass, rowHeightClass, 'border-b border-subtler')}
     >
       {select && <div role='cell' className={selectCellClass} />}
       {columns.map((column, index) => (
