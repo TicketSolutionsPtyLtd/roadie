@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { recordFields } from '@oztix/roadie-core/records'
 
-import { groupRecords, groupableFields } from './groups'
+import { groupRecords, groupRecordsBy, groupableFields } from './groups'
 
 type Show = { id: string; status?: string | null; tags?: string[] }
 const field = recordFields<Show>()
@@ -37,6 +37,78 @@ describe('groupRecords', () => {
       ['postponed', 'postponed', ['show-1']],
       [null, 'No AU status', ['show-0', 'show-2', 'show-3']]
     ])
+  })
+})
+
+describe('groupRecordsBy', () => {
+  const venue = field.option('tags', {
+    label: 'Venue',
+    options: [
+      { value: 'corner', label: 'Corner' },
+      { value: 'forum', label: 'Forum' }
+    ]
+  })
+  const rows = (
+    [
+      ['sold_out', 'forum'],
+      ['on_sale', 'corner'],
+      ['sold_out', 'corner'],
+      ['sold_out', 'forum']
+    ] as const
+  ).map(([value, tags], index) => ({
+    id: `show-${index}`,
+    row: {
+      id: `show-${index}`,
+      status: value,
+      tags: tags as unknown as string[]
+    }
+  }))
+  const tree = (groups: ReturnType<typeof groupRecordsBy>): unknown =>
+    groups.map(({ label, rows, groups: inner }) =>
+      inner ? [label, tree(inner)] : [label, rows.map(({ id }) => id)]
+    )
+
+  it('nests each level inside the one before, keeping empty groups and row order', () => {
+    expect(tree(groupRecordsBy(rows, [status, venue]))).toEqual([
+      [
+        'On sale',
+        [
+          ['Corner', ['show-1']],
+          ['Forum', []]
+        ]
+      ],
+      [
+        'Sold out',
+        [
+          ['Corner', ['show-2']],
+          ['Forum', ['show-0', 'show-3']]
+        ]
+      ],
+      [
+        'Cancelled',
+        [
+          ['Corner', []],
+          ['Forum', []]
+        ]
+      ]
+    ])
+  })
+
+  it('holds every row of a group at each level, with the field it groups by', () => {
+    const [, soldOut] = groupRecordsBy(rows, [status, venue])
+    expect(soldOut!.rows.map(({ id }) => id)).toEqual([
+      'show-0',
+      'show-2',
+      'show-3'
+    ])
+    expect(soldOut!.field).toBe(status)
+    expect(soldOut!.groups![0]!.field).toBe(venue)
+  })
+
+  it('is one level of groups, with no inner groups, for one field', () => {
+    expect(groupRecordsBy(rows, [status]).every((group) => !group.groups)).toBe(
+      true
+    )
   })
 })
 

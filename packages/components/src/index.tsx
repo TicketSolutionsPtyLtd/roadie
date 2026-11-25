@@ -596,6 +596,7 @@ export {
   downloadCsv,
   useRecords,
   type AnyRecordLayout,
+  type RecordGroupHeading,
   type RecordName,
   type RecordValueProps,
   type RecordViewDefaults,
@@ -630,7 +631,8 @@ export {
 export {
   boardLayout,
   type BoardLayoutConfig,
-  type BoardLayoutDefinition
+  type BoardLayoutDefinition,
+  type RecordGroupChanges
 } from './components/RecordBoard'
 export {
   RecordCalendar,

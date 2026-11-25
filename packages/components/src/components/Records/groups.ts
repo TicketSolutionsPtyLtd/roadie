@@ -3,13 +3,18 @@ import {
   recordFieldOptions
 } from '@oztix/roadie-core/records'
 
-import type { RecordsRow } from './types'
+import type { RecordsField, RecordsRow } from './types'
 
 export type RecordGroup<Row = object> = {
   /** The option's value, or null for records with none. */
   key: string | null
   label: string
+  /** Every record in the group, at any depth. */
   rows: RecordsRow<Row>[]
+  /** The field the group's level groups by. */
+  field?: RecordsField
+  /** The next level's groups, when the view groups by another field. */
+  groups?: RecordGroup<Row>[]
 }
 
 /** Fields a layout can group by: one value per record, from a set of options. Core's `validateRecordView` holds `groupBy` to the same rule. */
@@ -61,4 +66,22 @@ export function groupRecords<Row>(
     group.rows.push(record)
   }
   return none.rows.length ? [...groups.values(), none] : [...groups.values()]
+}
+
+/**
+ * Records grouped by each field in turn, outermost first: each group holds its
+ * records and, below the last level, the next field's groups of them. Every
+ * level keeps empty groups, as `groupRecords` does.
+ */
+export function groupRecordsBy<Row>(
+  rows: readonly RecordsRow<Row>[],
+  fields: readonly RecordsField[]
+): RecordGroup<Row>[] {
+  const [field, ...inner] = fields
+  if (!field) return []
+  return groupRecords(rows, field).map((group) => ({
+    ...group,
+    field,
+    ...(inner.length > 0 && { groups: groupRecordsBy(group.rows, inner) })
+  }))
 }

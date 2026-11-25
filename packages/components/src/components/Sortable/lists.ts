@@ -4,8 +4,12 @@ import type { SortableSource } from './dnd'
 export type SortableList = {
   /** The list's name in the Move menu, as in "Move SKU to done". */
   name: () => string
-  /** Lands the item at the end of this list; false when it refuses it. */
-  receive: (source: SortableSource, dryRun: boolean) => boolean
+  /** The set of lists it sits in, such as a board lane, from its `section`. */
+  section: () => string | undefined
+  /** Whether it would take the item. */
+  takes: (source: SortableSource) => boolean
+  /** Lands the item at the end of this list, and says where it went; null when it refuses it. */
+  receive: (source: SortableSource) => string | null
 }
 
 const groups = new Map<string, Set<SortableList>>()
@@ -26,6 +30,6 @@ export function otherLists(
   source: SortableSource
 ) {
   return Array.from(groups.get(group) ?? []).filter(
-    (list) => list !== self && list.receive(source, true)
+    (list) => list !== self && list.takes(source)
   )
 }
