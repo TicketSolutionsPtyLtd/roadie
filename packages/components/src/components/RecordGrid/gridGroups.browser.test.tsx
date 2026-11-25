@@ -142,6 +142,56 @@ describe('RecordGrid grouped in a browser', { timeout: 30_000 }, () => {
     }
   )
 
+  it("draws a card's focus ring whole, clear of its group's clipping", () => {
+    render(
+      <RecordGrid
+        data={testShows(12)}
+        fields={showFields}
+        getRowHref={(show: TestShow) => `/shows/${show.id}`}
+        card={card}
+        defaultView={grouped}
+      />
+    )
+    const ring = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        '--focus-ring-width'
+      )
+    )
+    const group = screen.getByRole('list', { name: 'On sale 4' })
+    const cards = cardsIn(group).map((item) => item.getBoundingClientRect())
+    const ringBox = {
+      left: Math.min(...cards.map((box) => box.left)) - ring,
+      right: Math.max(...cards.map((box) => box.right)) + ring,
+      top: Math.min(...cards.map((box) => box.top)) - ring,
+      bottom: Math.max(...cards.map((box) => box.bottom)) + ring
+    }
+    // The group's content clips, and so does its details' content slot,
+    // whose box is the details' own beside and below the summary.
+    const content = group.closest('[data-slot="accordion-content"]')!
+    const details = group.closest('details')!
+    const summary = details.querySelector('summary')!.getBoundingClientRect()
+    const slot = getComputedStyle(details, '::details-content')
+    const box = details.getBoundingClientRect()
+    const clips = [
+      content.getBoundingClientRect(),
+      {
+        left: box.left + parseFloat(slot.marginLeft),
+        right: box.right - parseFloat(slot.marginRight),
+        top:
+          summary.bottom +
+          parseFloat(getComputedStyle(details).rowGap) +
+          parseFloat(slot.marginTop),
+        bottom: box.bottom
+      }
+    ]
+    for (const clip of clips) {
+      expect(ringBox.left).toBeGreaterThanOrEqual(Math.floor(clip.left))
+      expect(ringBox.right).toBeLessThanOrEqual(Math.ceil(clip.right))
+      expect(ringBox.top).toBeGreaterThanOrEqual(Math.floor(clip.top))
+      expect(ringBox.bottom).toBeLessThanOrEqual(Math.ceil(clip.bottom))
+    }
+  })
+
   it('collapses a group from its title, an inner one on its own, keeping it out of the view', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()

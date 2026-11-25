@@ -110,6 +110,7 @@ export function RecordGroupSection({
   collapse,
   headings = false,
   bleed = false,
+  outerRing = false,
   stickyTop,
   depth = 0,
   parent = ''
@@ -120,6 +121,8 @@ export function RecordGroupSection({
   headings?: boolean
   /** Records reach into the space beside them; titles line up with theirs. */
   bleed?: boolean
+  /** Records draw their focus ring outside their box, as cards do. */
+  outerRing?: boolean
   /** Outermost titles stick at this `top` as their records scroll by. */
   stickyTop?: string
   depth?: number
@@ -172,6 +175,7 @@ export function RecordGroupSection({
           collapse={collapse}
           headings={headings}
           bleed={bleed}
+          outerRing={outerRing}
           depth={depth + 1}
           parent={path}
         />
@@ -205,10 +209,14 @@ export function RecordGroupSection({
           if (now !== open) collapse.setOpen(path, now)
         }}
         className={cn(
-          'grid gap-1.5',
+          'grid',
           // Its content slot clips as it animates, so it reaches as far as
-          // the rows' bleed, or an inner title's hover fill is cut.
-          bleed && 'details-content:-mx-3 details-content:px-3'
+          // the rows' bleed, or an inner title's hover fill is cut. A card's
+          // ring gets room beside it, and above it inside the slot, so a
+          // closed group shows none of it.
+          outerRing ? 'gap-0.5' : 'gap-1.5',
+          bleed && 'details-content:-mx-3 details-content:px-3',
+          outerRing && 'details-content:-mx-1 details-content:px-1'
         )}
       >
         <Accordion.Trigger
@@ -222,7 +230,11 @@ export function RecordGroupSection({
           {heading}
         </Accordion.Trigger>
         <Accordion.Content
-          className={cn('grid gap-1.5 p-0', bleed && '-mx-3 px-3')}
+          className={cn(
+            'grid gap-1.5 p-0',
+            bleed && '-mx-3 px-3',
+            outerRing && '-mx-1 p-1'
+          )}
         >
           {extra != null && extra !== false && (
             // A pixel in, as a row's border sets its text.

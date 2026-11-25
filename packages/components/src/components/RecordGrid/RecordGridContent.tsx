@@ -262,6 +262,7 @@ function GroupedGrid({
           leaf={leaf}
           collapse={collapse}
           headings
+          outerRing
         />
       ))}
     </ul>
