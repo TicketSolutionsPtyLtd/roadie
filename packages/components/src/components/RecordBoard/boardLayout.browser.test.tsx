@@ -54,7 +54,7 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     expect(titles('On sale')).toEqual(['Ocean Alley 1'])
   })
 
-  it('moves a card to another column from its Move menu, and calls onMove with the value', async () => {
+  it('moves a card to another column from its Move menu, and calls onMove with the field it changes', async () => {
     const user = userEvent.setup()
     const onMove = vi.fn<Move>()
     render(<Shows onMove={onMove} />)
@@ -68,13 +68,13 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     )
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
-      'cancelled'
+      { status: 'cancelled' }
     )
     await expect.poll(() => titles('Cancelled')).toContain('Ocean Alley 1')
     expect(titles('On sale')).toEqual([])
   })
 
-  it('moves a card into "No status" with a null value', async () => {
+  it('moves a card into "No status" with the field set to null', async () => {
     const user = userEvent.setup()
     const onMove = vi.fn<Move>()
     render(<Shows onMove={onMove} />)
@@ -88,7 +88,7 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     )
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
-      null
+      { status: null }
     )
   })
 
@@ -102,7 +102,7 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     )
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
-      null
+      { status: null }
     )
     await expect.poll(() => titles('No status')).toEqual(['Ocean Alley 1'])
   })
@@ -149,8 +149,8 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     }[] = []
     render(
       <Shows
-        onMove={(_, status) =>
-          status === 'cancelled'
+        onMove={(_, changes) =>
+          changes.status === 'cancelled'
             ? (() => {
                 let reject = (_: Error) => {}
                 const promise = new Promise<void>((_, fail) => {

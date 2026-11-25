@@ -6,10 +6,11 @@ import { boardLayout } from '.'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import type { RecordsField } from '../Records/types'
+import type { RecordGroupChanges } from './types'
 
 export type Move = (
   show: TestShow,
-  status: string | null
+  changes: RecordGroupChanges<TestShow>
 ) => void | Promise<void>
 
 const initial = testShows(4).map((show, index) =>
@@ -48,9 +49,9 @@ export function Shows({
       title: 'show',
       description: 'city',
       onMove: movable
-        ? async (show, status) => {
-            await onMove?.(show, status)
-            const saved = save(show, status)
+        ? async (show, changes) => {
+            await onMove?.(show, changes)
+            const saved = save(show, changes.status ?? null)
             if (saved === undefined) return
             setData((all) =>
               all.map((row) =>
