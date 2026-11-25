@@ -2,7 +2,7 @@
 // DevTools hook. react-dom reads the hook as it loads, so the perf project runs
 // this file first, as a setup file.
 
-type Fiber = {
+export type Fiber = {
   child: Fiber | null
   sibling: Fiber | null
   alternate: Fiber | null
@@ -24,6 +24,22 @@ const nameOf = (type: unknown): string | undefined => {
 // module instances, and react-dom holds the first one's hook.
 const shared = globalThis as { __roadieRenderCounts?: Record<string, number> }
 
+/** Adds each component a commit re-rendered to `counting`, by name. A subtree React bailed out of keeps the last commit's fibers, and their old work flags, so it isn't walked, as React DevTools does. */
+export function countCommit(root: Fiber, counting: Record<string, number>) {
+  const stack = [root]
+  while (stack.length > 0) {
+    const fiber = stack.pop()!
+    // An update, not a mount.
+    if (fiber.flags & PERFORMED_WORK && fiber.alternate) {
+      const name = nameOf(fiber.type)
+      if (name) counting[name] = (counting[name] ?? 0) + 1
+    }
+    if (fiber.child && fiber.child !== fiber.alternate?.child)
+      stack.push(fiber.child)
+    if (fiber.sibling) stack.push(fiber.sibling)
+  }
+}
+
 Object.assign(globalThis, {
   __REACT_DEVTOOLS_GLOBAL_HOOK__: {
     supportsFiber: true,
@@ -31,18 +47,7 @@ Object.assign(globalThis, {
     inject: () => 1,
     onCommitFiberRoot: (_: number, root: { current: Fiber }) => {
       const counting = shared.__roadieRenderCounts
-      if (!counting) return
-      const stack = [root.current]
-      while (stack.length > 0) {
-        const fiber = stack.pop()!
-        // An update, not a mount.
-        if (fiber.flags & PERFORMED_WORK && fiber.alternate) {
-          const name = nameOf(fiber.type)
-          if (name) counting[name] = (counting[name] ?? 0) + 1
-        }
-        if (fiber.child) stack.push(fiber.child)
-        if (fiber.sibling) stack.push(fiber.sibling)
-      }
+      if (counting) countCommit(root.current, counting)
     },
     onCommitFiberUnmount: () => {},
     onPostCommitFiberRoot: () => {},

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 import { dateRangeSchemas } from '../datetime/rangeSchema'
 import { RECORDS_REQUEST_VERSION, RECORD_VIEW_VERSION } from './versions'

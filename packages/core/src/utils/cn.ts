@@ -47,7 +47,8 @@ export const mergeConfig = {
         'animate-shake',
         'animate-nudge',
         'animate-pop',
-        'animate-pop-tap'
+        'animate-pop-tap',
+        'animate-time-left'
       ],
       z: [
         'z-hide',
