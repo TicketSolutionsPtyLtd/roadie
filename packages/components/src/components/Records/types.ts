@@ -14,7 +14,7 @@ import type { RecordsInstance } from './useRecords'
 export type RecordsField = RecordField & {
   /** Marks the field's suggestions in `Records.Search`. Pass a bold Phosphor icon; it is sized for you. Defaults to one for the field's type. */
   icon?: ReactNode
-  /** Content under each group's title when records group by this field, such as a milestone's dates and links, at any level and in any layout. */
+  /** Content under each group's title when a list groups by this field, such as a milestone's dates and links, at any level. */
   groupHeading?: (group: RecordGroupHeading) => ReactNode
 }
 
@@ -22,6 +22,7 @@ export type RecordsField = RecordField & {
 export type RecordGroupHeading = {
   /** The option's value, or null for "No <field>". */
   value: string | null
+  /** The group's title, such as "No status" for no value. */
   label: string
   /** Records in the group. */
   count: number
