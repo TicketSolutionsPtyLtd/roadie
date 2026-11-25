@@ -30,3 +30,18 @@ export const LoadingRange = () => (
     card={{ title: 'show', description: 'city' }}
   />
 )
+
+// On a phone the toolbar's actions fold into More actions, as the server paints them.
+export const WithActions = () => (
+  <RecordGrid
+    caption='Shows'
+    data={testShows(6)}
+    fields={showFields}
+    getRowId={(row) => row.id}
+    card={{ title: 'show', description: 'city' }}
+    actions={[
+      { label: 'Export CSV', onAction: () => {} },
+      { label: 'Print door list', onAction: () => {} }
+    ]}
+  />
+)

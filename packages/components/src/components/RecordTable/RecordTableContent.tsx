@@ -41,8 +41,7 @@ import {
   cellClass,
   pinStyle,
   rowClass,
-  selectCellClass,
-  titleColumn
+  selectCellClass
 } from './RecordTableRow'
 import { RecordTableRows } from './RecordTableRows'
 import { RecordTablePageCheckbox } from './RecordTableSelectCell'
@@ -52,7 +51,16 @@ import {
   RecordTableTotalsRow
 } from './RecordTableTotals'
 import { shownColumns } from './columns'
-import { SELECT_WIDTH, columnLayout, priorityProps, tierStyle } from './layout'
+import {
+  SELECT_WIDTH,
+  columnLayout,
+  contentTierClass,
+  frameClass,
+  priorityClass,
+  priorityProps,
+  tierStyle,
+  titleColumn
+} from './layout'
 import { useLayoutFocus } from './layoutFocus'
 import { cardParts, narrowLayout, narrowParts } from './narrow'
 import type { TableLayoutConfig } from './tableLayout'
@@ -345,6 +353,7 @@ export function RecordTableContent({
       // narrow rows never scroll it sideways.
       className={cn(
         'w-full',
+        frameClass,
         boxed ? ['flex flex-col', narrow && 'overflow-x-clip'] : className
       )}
     >
@@ -360,6 +369,7 @@ export function RecordTableContent({
             data-slot='record-table-content'
             className={cn(
               'text-sm tabular-nums',
+              contentTierClass,
               boxed && 'grid grid-rows-[auto_1fr]'
             )}
             style={style}
@@ -442,8 +452,9 @@ export function RecordTableContent({
                       role='columnheader'
                       aria-sort={direction}
                       data-pin={column.pin || undefined}
-                      {...priorityProps(column, layout, index)}
-                      className={
+                      {...priorityProps(layout, index)}
+                      className={cn(
+                        priorityClass(layout, index),
                         // Still read under the bar, so cells keep their headers.
                         barShown
                           ? 'sr-only'
@@ -456,7 +467,7 @@ export function RecordTableContent({
                                 index === columns.length - 1 &&
                                 'pe-(--content-inset)'
                             )
-                      }
+                      )}
                       style={pinStyle(layout.pinnedStart[index])}
                     >
                       {column.kind === 'image' ? (

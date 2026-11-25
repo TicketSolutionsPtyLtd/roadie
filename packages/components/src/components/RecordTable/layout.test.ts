@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { RecordField } from '@oztix/roadie-core/records'
 
-import { columnLayout, columnWidths } from './layout'
+import {
+  PRIORITY_HIDES_BELOW,
+  TIER_CLASSES,
+  columnLayout,
+  columnWidths
+} from './layout'
 import type { RecordColumnWidth, RecordTableColumn } from './types'
 
 const text = (key: string, label = key): RecordField => ({
@@ -260,4 +265,19 @@ describe('columnWidths for custom cells', () => {
     )
     expect(custom!.grow).toBeLessThan(plain!.grow!)
   })
+})
+
+describe('TIER_CLASSES', () => {
+  it.each(Object.entries(PRIORITY_HIDES_BELOW))(
+    'switches tier %s below %srem of the frame',
+    (tier, rem) => {
+      const at = `@max-[${rem}rem]/record-table-frame:`
+      expect(TIER_CLASSES[Number(tier) as keyof typeof TIER_CLASSES]).toEqual({
+        hide: `${at}hidden`,
+        start: `${at}ps-(--content-inset)`,
+        end: `${at}pe-(--content-inset)`,
+        template: `${at}[--record-table-columns:var(--record-table-columns-${tier})] ${at}[--record-table-min-width:var(--record-table-min-width-${tier})]`
+      })
+    }
+  )
 })
