@@ -17,7 +17,7 @@ import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { tableRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import { RowElement } from './RecordTableRowPlace'
-import { type ColumnLayout, priorityProps } from './layout'
+import { type ColumnLayout, priorityClass, priorityProps } from './layout'
 import type { RecordTableColumn } from './types'
 
 // WebKit builds without overflow-clip-margin drop the clip instead of the
@@ -184,9 +184,10 @@ export const RecordTableRow = memo(function RecordTableRow({
             key={column.key}
             role='cell'
             data-pin={column.pin || undefined}
-            {...priorityProps(column, layout, index)}
+            {...priorityProps(layout, index)}
             className={cn(
               cellClass(column),
+              priorityClass(layout, index),
               cellOverflowClass,
               // On the cell, so a custom cell inherits it and an empty value stays muted.
               isTitle && 'font-semibold text-strong',
@@ -200,9 +201,10 @@ export const RecordTableRow = memo(function RecordTableRow({
                 href={href}
                 emphasis='subtle'
                 data-row-link=''
-                // A custom cell lays itself out, as it does unlinked.
                 className={cn(
-                  'is-focusable-overlay',
+                  // Covers the cell but lets clicks through, so they still select the row.
+                  'is-focusable-overlay after:pointer-events-none after:absolute after:inset-0',
+                  // A custom cell lays itself out, as it does unlinked.
                   clamps ? titleClampClass : 'flex min-w-0'
                 )}
               >
