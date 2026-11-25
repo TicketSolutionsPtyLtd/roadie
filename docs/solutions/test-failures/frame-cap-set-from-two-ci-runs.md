@@ -26,8 +26,8 @@ Two things, and neither was the harness's CPU calibration.
   the push's frame or the next one varied from run to run. In 78 CI runs,
   the push failed in 11 of 24 runs with two long tasks and 2 of 54 with one.
   The budget sets the worst frame aside, so one long frame passes and two
-  fail. #1030 made the push one long task: 0 of 16 jobs failed after it,
-  against 2 of 8 on the commit before.
+  fail. #1030 made the push one long task: Navigator's push failed in 0 of 16
+  jobs after it, against 2 of 8 on the commit before.
 - **Caps set from two runs.** #1030 set Pane's style cap 10% over the higher
   of two CI runs (119ms, cap 131ms). Over 17 jobs on the same commit the
   push's style ran 83 to 144ms, and the pop's 75 to 123ms. A cap inside that
@@ -35,7 +35,7 @@ Two things, and neither was the harness's CPU calibration.
 
 Ruled out:
 
-- **The calibrated CPU rate.** Rates ran 1.4x to 2.9x, and failing jobs
+- **The calibrated CPU rate.** Rates ran 1.4x to 2.9x over 78 runs, and failing jobs
   averaged 1.86x against 1.95x for passing ones.
 - **Runner speed at style work.** A fixed style recalc, timed at the
   calibrated rate in each of eight jobs, ran within 17 to 25ms in all of
@@ -47,7 +47,8 @@ Ruled out:
   run the Perf job on eight runners at once (`testing/frames/README.md`,
   "Setting a cap from CI"), and set the cap 10% over the highest job.
 - Pane's content style cap is now 158ms, 10% over 144ms. It still fails the
-  218 to 259ms that pushes cost before INNO-1678.
+  218 to 259ms that pushes cost before INNO-1678. The empty-panes cap comes
+  down from 53 to 44ms, 10% over 40ms.
 - Pane's 100-row pop goes back to a known miss under INNO-1706, the
   whole-subtree restyle that also drives its style time.
 - A transition that's sometimes two long frames is real work to fix, not

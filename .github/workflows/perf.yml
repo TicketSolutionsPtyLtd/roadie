@@ -62,7 +62,7 @@ jobs:
   # share dropped over 60 frames or more, so one hiccup can't fail it. No
   # retries, so a regression can't pass on a second try.
   perf:
-    name: perf (${{ matrix.package }} ${{ matrix.sample }})
+    name: perf (${{ matrix.package }})
     needs: playwright
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -73,17 +73,12 @@ jobs:
       fail-fast: false
       matrix:
         package: [components, charts]
-        # EXPERIMENT (INNO-1704): independent runners per push. Reverted before merge.
-        sample: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
-
-      - name: EXPERIMENT runner CPU
-        run: grep -m1 'model name' /proc/cpuinfo; nproc
 
       - name: Build what the package imports
         run: pnpm turbo build --filter='@oztix/roadie-${{ matrix.package }}^...'
@@ -102,6 +97,6 @@ jobs:
         if: always() && hashFiles('frames.jsonl') != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: frames-${{ matrix.package }}-${{ matrix.sample }}
+          name: frames-${{ matrix.package }}
           path: frames.jsonl
           retention-days: 14
