@@ -220,7 +220,7 @@ function StickyBulkBar({
       ref={dockRef}
       data-slot='records-bulk-dock'
       // Clears a pane's sticky footer; a pane's tab bar padding already insets where it sticks.
-      className='pointer-events-none sticky bottom-[calc(var(--pane-sticky-bottom,0px)+1rem+env(safe-area-inset-bottom))] z-docked grid min-h-12 justify-items-center px-4'
+      className='pointer-events-none sticky bottom-[calc(var(--pane-sticky-bottom,0px)+1rem+env(safe-area-inset-bottom))] z-docked grid min-h-12 grid-cols-1 justify-items-center px-4'
     >
       <div
         ref={barRef}
