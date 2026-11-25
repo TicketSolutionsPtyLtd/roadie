@@ -1,6 +1,11 @@
 // Toast reads this; Navigator writes it, so Toast never imports Pane. Not the
-// public offset: that stays the app's, and adds to this.
+// public offset: that stays the app's, and adds to this. Written on each
+// viewport, not <html>: it moves on a push, and an inherited value that
+// changes on <html> restyles the whole page.
 const CLEAR_TOP = '--toast-viewport-clear-top'
+
+const viewports = () =>
+  document.querySelectorAll<HTMLElement>('[data-slot="toast-viewport"]')
 
 const shown = (header: HTMLElement, box: DOMRect) =>
   box.height > 0 &&
@@ -35,9 +40,10 @@ export function createHeaderClearance() {
       if (isFramePane(header) && shown(header, box))
         edge = Math.max(edge, box.bottom)
     }
-    const root = document.documentElement.style
-    if (edge > 0) root.setProperty(CLEAR_TOP, `${edge}px`)
-    else root.removeProperty(CLEAR_TOP)
+    for (const { style } of viewports()) {
+      if (edge > 0) style.setProperty(CLEAR_TOP, `${edge}px`)
+      else style.removeProperty(CLEAR_TOP)
+    }
   }
 
   const schedule = () => {
@@ -79,7 +85,7 @@ export function createHeaderClearance() {
       frameElement.removeEventListener('animationcancel', schedule)
       cancelAnimationFrame(frame)
       frame = 0
-      document.documentElement.style.removeProperty(CLEAR_TOP)
+      for (const { style } of viewports()) style.removeProperty(CLEAR_TOP)
     }
   }
 

@@ -2862,7 +2862,7 @@ describe('pane header inside Navigator', () => {
     const height = () =>
       document
         .querySelector<HTMLElement>('[data-slot="pane"]')!
-        .style.getPropertyValue('--pane-header-height')
+        .style.getPropertyValue('--pane-header-measured')
 
     const { rerender } = render(tree(true))
     await flushViewportMeasurement()

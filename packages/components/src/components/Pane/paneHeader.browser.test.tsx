@@ -16,6 +16,7 @@ import { page } from 'vitest/browser'
 
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Navigator } from '../Navigator'
 import { Skeleton } from '../Skeleton'
 import { COLLAPSE_AT, EXPAND_AT } from './PaneRoot'
 import { forgetPaneScroll } from './paneScroll'
@@ -215,6 +216,71 @@ describe('pane chrome', () => {
       expect(pane).toEqual([radius, radius])
       expect(header).toBe(radius)
       expect(footer).toBe(radius)
+    }
+  )
+})
+
+describe('a pane header in a phone stack', () => {
+  const stack = (reached: boolean, search = false) => (
+    <div style={{ height: '100vh', display: 'grid' }}>
+      <Navigator value='/shows'>
+        <Pane column='list' aria-label='Shows'>
+          <Pane.Header>
+            <Pane.Title>Shows</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane reached={reached} aria-label='Show'>
+          <Pane.Header onBack={() => {}}>
+            <Pane.Title>The Rolling Kazoos</Pane.Title>
+            {search ? <Pane.Search value='' onValueChange={() => {}} /> : null}
+          </Pane.Header>
+          <p data-row>Doors 7pm</p>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+  const heightOf = (element: Element) =>
+    parseFloat(
+      getComputedStyle(element).getPropertyValue('--pane-header-height')
+    )
+  // Where CSS can pick a value by another, the height follows Back in the
+  // same frame; elsewhere the observer catches up a frame later.
+  const sameFrame = CSS.supports('width', 'if(style(--x: 1): 1px; else: 2px)')
+
+  it.each([
+    ['a title', false],
+    ['a title and a search', true]
+  ])(
+    'gives its content the height it lands at once pushed, with %s',
+    async (_, search) => {
+      await page.viewport(390, 844)
+      const { rerender } = render(stack(false, search))
+      await settle()
+      const header = document.querySelector(
+        '[data-slot="pane"][aria-label="Show"] [data-slot="pane-header"]'
+      )!
+      const row = document.querySelector('[data-row]')!
+      const before = header.getBoundingClientRect().height
+      expect(heightOf(row)).toBeCloseTo(before, 0)
+
+      act(() => rerender(stack(true, search)))
+      const after = header.getBoundingClientRect().height
+      // Back takes a row of its own above the title.
+      expect(after).toBeGreaterThan(before)
+      if (sameFrame) expect(heightOf(row)).toBeCloseTo(after, 0)
+
+      await settle()
+      expect(heightOf(row)).toBeCloseTo(after, 0)
+      // The sum held, so the observer wrote nothing over it.
+      if (sameFrame)
+        expect(
+          header
+            .closest<HTMLElement>('[data-slot="pane"]')!
+            .style.getPropertyValue('--pane-header-measured')
+        ).toBe('')
+      act(() => rerender(stack(false, search)))
+      await settle()
+      expect(heightOf(row)).toBeCloseTo(before, 0)
     }
   )
 })

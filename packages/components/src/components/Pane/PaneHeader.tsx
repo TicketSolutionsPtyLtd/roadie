@@ -39,6 +39,73 @@ export type PaneHeaderProps = ComponentProps<'header'> & {
   onClose?: () => void
 }
 
+const HEADER_PARTS = [
+  '--pane-header-height',
+  '--pane-header-measured',
+  '--pane-header-rest',
+  '--pane-header-row',
+  '--pane-header-back',
+  '--pane-header-close',
+  '--pane-header-floor'
+]
+const ROW_ONE = new Set(['pane-title-compact', 'pane-actions'])
+
+/**
+ * Publishes the parts of the header's height that Back and Close showing
+ * doesn't change, so the stylesheet sums them in the frame a push shows
+ * them and the pane's content restyles once (INNO-1678). Where its sum
+ * misses the header, as in an engine without `if()`, the measured height
+ * wins.
+ */
+function publishHeaderParts(header: HTMLElement, paneEl: HTMLElement) {
+  // A stretched first row hides its own height while an edge control shows.
+  let row = 0
+  const set = (name: string, px: number) => {
+    const value = `${px}px`
+    if (paneEl.style.getPropertyValue(name) !== value)
+      paneEl.style.setProperty(name, value)
+  }
+  return () => {
+    const height = header.getBoundingClientRect().height
+    if (height === 0) {
+      set('--pane-header-measured', 0)
+      return
+    }
+    const style = getComputedStyle(header)
+    const pad = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+    const floor = parseFloat(style.minHeight)
+    // The floor is one control tall: Back or Close.
+    const control = floor - pad
+    let back = 0
+    let close = 0
+    let edge = 0
+    let others = 0
+    for (const child of header.children) {
+      const slot = (child as HTMLElement).dataset.slot ?? ''
+      // The used height: a scale on the compact title would shrink a box.
+      const box = parseFloat(getComputedStyle(child).height) || 0
+      if (slot === 'pane-back') back = control
+      if (slot === 'pane-close') close = control
+      if (slot === 'pane-back' || slot === 'pane-close')
+        edge = Math.max(edge, box)
+      else if (ROW_ONE.has(slot)) others = Math.max(others, box)
+    }
+    if (edge === 0 || others > control) row = others
+    const first = Math.max(row, edge)
+    set('--pane-header-rest', height > floor ? height - first : pad)
+    set('--pane-header-row', row)
+    set('--pane-header-back', back)
+    set('--pane-header-close', close)
+    set('--pane-header-floor', floor)
+    const fit = parseFloat(
+      getComputedStyle(paneEl).getPropertyValue('--pane-header-fit')
+    )
+    if (fit === header.offsetHeight)
+      paneEl.style.removeProperty('--pane-header-measured')
+    else set('--pane-header-measured', header.offsetHeight)
+  }
+}
+
 const backIcon = <CaretLeftIcon weight='bold' className='size-5' />
 const closeIcon = <XIcon weight='bold' className='size-5' />
 
@@ -112,11 +179,14 @@ export function PaneHeader({
     )
     if (!header || !paneEl) return
 
-    const publish = () =>
-      paneEl.style.setProperty(
-        '--pane-header-height',
-        `${header.offsetHeight}px`
-      )
+    const publish = inDrawer
+      ? () =>
+          paneEl.style.setProperty(
+            '--pane-header-height',
+            `${header.offsetHeight}px`
+          )
+      : publishHeaderParts(header, paneEl)
+    if (!inDrawer) paneEl.setAttribute('data-header', '')
 
     publish()
 
@@ -127,7 +197,8 @@ export function PaneHeader({
     return () => {
       observer?.disconnect()
       untrack?.()
-      paneEl.style.removeProperty('--pane-header-height')
+      paneEl.removeAttribute('data-header')
+      for (const name of HEADER_PARTS) paneEl.style.removeProperty(name)
     }
   }, [inDrawer, trackHeader])
 
