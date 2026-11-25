@@ -153,6 +153,10 @@ function ViewPane({
       data-chart-view={view}
       data-hidden={hidden ? '' : undefined}
       inert={hidden}
+      // The table scrolls within the plot's height, scrollbar inside the card.
+      className={cn(
+        view === 'table' && 'grid h-0 min-h-full grid-rows-[minmax(0,1fr)]'
+      )}
     >
       {children}
     </div>
@@ -252,6 +256,7 @@ export function Chart({
                     totals={shownTable.totals}
                     caption={label}
                     plain
+                    fill
                   />
                 ) : mounted ? (
                   // A custom child with no table prop and no report of its
