@@ -16,7 +16,7 @@ type RoadieClassGroupIds =
   | 'link'
   | 'prose-size'
 
-// Exported so classFamilies.test.ts can check each group against core's CSS.
+// Exported so the tests can check each group against core's CSS and safelist.
 export const mergeConfig = {
   extend: {
     classGroups: {

@@ -44,10 +44,12 @@ such as `bg-normal`, `text-subtle` and `border-normal`.
 
 `@oztix/roadie-core/css/compiled` is a prebuilt sheet for hosts that can't run
 Tailwind v4. It holds the base styles and only the utilities
-`src/css/safelist.html` names, with the tokens they use. Any other utility,
-such as `grid`, `gap-2`, or `p-6`, does nothing, so lay out in the host's own
-CSS. The sheet is minified and its nesting is flattened, so it needs no browser
-support for CSS nesting.
+`src/css/safelist.html` names, with the tokens they use: Roadie's intent,
+emphasis, semantic colour, text style, motion, and layering utilities, and
+each other class the docs site names or a Roadie package uses. Any other
+utility, such as `grid`, `gap-2`, or `p-6`, does nothing, so lay out in the
+host's own CSS. The sheet is minified and its nesting is flattened, so it
+needs no browser support for CSS nesting.
 
 ## JavaScript
 

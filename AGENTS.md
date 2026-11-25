@@ -55,8 +55,11 @@ pnpm --filter docs dev
 - A JS subpath needs a `tsdown.config.ts` entry unless a wildcard covers it.
 - A JS subpath needs its row in its package's generated `size-budget.json`,
   or `size` fails. Build, then run `pnpm --filter <package> size:update`.
-- A CSS `@utility` must be named in its package's `src/css/safelist.html` (core
-  and charts), or Tailwind purges it and the compiled sheet comes out empty.
+- Charts' `src/css/safelist.html` names every `@utility` in `charts.css`, or
+  Tailwind purges it. Core's holds what `roadie.compiled.css` ships: every
+  `cn()` family member, plus each class the docs name or a package uses, and
+  `safelist.test.ts` holds it to that, so a docs example that names a core
+  utility adds it there.
 - A new family where one class replaces another (like intent, emphasis, or
   z-index) gets a group in `packages/core/src/utils/cn.ts` and a row in
   `classFamilies.test.ts` beside it, or `cn()` keeps both classes and a
