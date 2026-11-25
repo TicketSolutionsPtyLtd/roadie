@@ -1,6 +1,6 @@
 'use client'
 
-import { useId } from 'react'
+import { type CSSProperties, useId } from 'react'
 
 import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 
@@ -18,6 +18,16 @@ import {
 import type { RecordGroup } from '../Records/groups'
 import { rowClass } from './RecordTableRow'
 import { Row, type RowsShared } from './RecordTableRows'
+import { SELECT_WIDTH } from './layout'
+
+// The first column's text: past the checkbox track and a cell's padding when
+// rows have checkboxes, else at the content inset, as the first cell's is.
+const textStart = (select: boolean) =>
+  ({
+    '--group-text-start': select
+      ? `calc(${SELECT_WIDTH}rem + var(--content-inset) + var(--spacing) * 2.5)`
+      : 'var(--content-inset)'
+  }) as CSSProperties
 
 type Toggle = (id: string, range: boolean, order?: readonly string[]) => void
 
@@ -85,7 +95,10 @@ function TableGroup({
           >
             {/* The frame's width and stuck at its start, so the title stays in
                 view as the columns scroll sideways. */}
-            <div className='sticky start-0 grid w-[100cqi] gap-1.5 px-(--content-inset)'>
+            <div
+              className='sticky start-0 grid w-[100cqi] gap-1.5'
+              style={textStart(shared.isSelected !== undefined)}
+            >
               <Heading
                 className={cn(
                   'text-sm font-semibold text-subtler',
@@ -97,8 +110,9 @@ function TableGroup({
                   aria-expanded={open}
                   aria-controls={open && !group.groups ? rowsId : undefined}
                   onClick={() => collapse.setOpen(path, !open)}
-                  // Padded as a cell is, so the title lines up with a column's text.
-                  className='group/title is-interactive flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg emphasis-subtler px-2.5 py-1 text-start'
+                  // Its fill spans the frame as a row's does, and its text
+                  // starts where the first column's does.
+                  className='group/title is-interactive flex w-full cursor-pointer items-center justify-between gap-3 emphasis-subtler border-0 py-1 ps-(--group-text-start) pe-(--content-inset) text-start'
                 >
                   <span className='flex gap-1.5'>
                     {group.label}{' '}
@@ -120,7 +134,7 @@ function TableGroup({
               {open && extra !== null && (
                 <div
                   data-slot='record-table-group-heading'
-                  className='px-2.5 text-sm text-subtle'
+                  className='ps-(--group-text-start) pe-(--content-inset) text-sm text-subtle'
                 >
                   {extra}
                 </div>
