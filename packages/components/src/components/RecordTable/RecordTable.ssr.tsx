@@ -46,14 +46,18 @@ export const SelectableInPane = allowing(
   { 390: phone(93, 142), 1280: { ticket: 'INNO-1678', shift: 98 } }
 )
 
-// Each group's title is a disclosure, open as the server paints it.
-export const GroupedByTwoLevels = () => (
-  <RecordTable
-    caption='Upcoming shows'
-    data={testShows(12)}
-    fields={groupedShowFields}
-    columns={[column.field('show'), ...columns]}
-    getRowId={(row) => row.id}
-    defaultView={{ layout: { type: 'table', groupBy: ['status', 'city'] } }}
-  />
+// Each group's title is a disclosure, open as the server paints it. A phone
+// swaps the wide table for narrow rows as every table here does.
+export const GroupedByTwoLevels = allowing(
+  () => (
+    <RecordTable
+      caption='Upcoming shows'
+      data={testShows(12)}
+      fields={groupedShowFields}
+      columns={[column.field('show'), ...columns]}
+      getRowId={(row) => row.id}
+      defaultView={{ layout: { type: 'table', groupBy: ['status', 'city'] } }}
+    />
+  ),
+  { 390: phone(14, 50) }
 )
