@@ -321,9 +321,6 @@ export function DateTime({
   return withYearDropped(time, machine, timeZone, [[text, withoutYear]])
 }
 
-const literal = (value: unknown) =>
-  JSON.stringify(value).replace(/</g, '\\u003c')
-
 /**
  * `element`, then a script that gives each of its `time`s its words without
  * the year, before first paint, when `machine`'s year is this year in
@@ -338,13 +335,11 @@ function withYearDropped(
   const year = machine?.slice(0, 4)
   const drops = times.some(([text, without]) => without && without !== text)
   if (!year || !drops) return <>{element}</>
-  const now = `new Intl.DateTimeFormat('en',{timeZone:${literal(timeZone)},year:'numeric'}).format(new Date())`
-  const words = literal(times.map(([, without]) => without ?? null))
-  const fix = `if(${now}!==${literal(year)})return;var w=${words},t=e.matches('time')?[e]:e.querySelectorAll('time');for(var i=0;i<t.length;i++)if(w[i])t[i].textContent=w[i]`
+  const words = times.map(([, without]) => without ?? null)
   return (
     <>
       {element}
-      <BeforePaint fix={fix} />
+      <BeforePaint fix={{ kind: 'drop-year', year, timeZone, words }} />
     </>
   )
 }

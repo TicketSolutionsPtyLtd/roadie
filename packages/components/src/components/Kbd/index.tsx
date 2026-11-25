@@ -14,13 +14,13 @@ import { cn } from '@oztix/roadie-core/utils'
 import { BeforePaint } from '../../utils/beforePaint'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { type KeyFace, keyFace } from './keys'
-import { type KeyPlatform, markPlatform, useKeyPlatform } from './platform'
+import { type KeyPlatform, useKeyPlatform } from './platform'
 
 // A touch screen has no keyboard to hint at, unless a container opts in.
 const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
 
-// Until hydration, `markPlatform` picks the face; unmarked, the other face
+// Until hydration, `BeforePaint` picks the face; unmarked, the other face
 // holds its room unseen.
 const APPLE_ONLY = 'not-in-data-[keyboard=apple]:hidden'
 const OTHER_ONLY =
@@ -217,7 +217,7 @@ export function Kbd({
   const marked = (root: ReactElement) => (
     <>
       {root}
-      {waits && <BeforePaint fix={markPlatform} />}
+      {waits && <BeforePaint fix={{ kind: 'keyboard' }} />}
     </>
   )
 
