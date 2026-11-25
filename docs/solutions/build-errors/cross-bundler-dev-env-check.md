@@ -16,7 +16,8 @@ keywords:
   - cross-bundler
 severity: medium
 related_files:
-  - packages/components/src/components/Carousel/index.tsx
+  - packages/components/src/utils/isDev.ts
+  - scripts/dev-only.mjs
 ---
 
 # `import.meta.env.DEV` is Vite-only
@@ -108,7 +109,27 @@ Three subtleties:
 - **When testing dev warnings under jsdom + Vitest, the warning will fire because Vitest ships Vite's `import.meta.env.DEV` support**. The green unit test does NOT prove the warning fires in a published consumer. Add a manual check: build the package, install it into a Next.js app (or the docs site), trigger the condition, and verify the warning actually shows in the browser console.
 - **Avoid adding `"types": ["node"]` just to satisfy `process.env.NODE_ENV` typing.** The local `declare const process` pattern keeps Node globals out of the DOM file surface.
 
+## Update: the check has to be written in place to leave production
+
+Measured in Nov 2026: a bundler replaces `process.env.NODE_ENV` inside
+`isDev()` and then keeps the function, the call, and the branch behind it.
+esbuild and rolldown inline no function, and `typeof process !== 'undefined' &&
+false` doesn't fold either. Only a bare `process.env.NODE_ENV !== 'production'`
+at the point of use lets the branch drop.
+
+So the components, charts, and editor builds run `scripts/dev-only.mjs`
+before the React Compiler. It writes each imported `isDev()` call as that bare
+check, guards `useDevWarning`'s message with it so the text drops too, and puts
+each top-level `X.displayName = …` behind it, as Base UI and React ship theirs.
+Source keeps calling `isDev()`; never copy the helper into a file, since only an
+imported `isDev` is rewritten.
+
+The rewritten check has no `typeof process` guard. That's safe for these
+packages because their peers (Base UI, React) already read
+`process.env.NODE_ENV` unguarded at module load, so an app that runs them has
+the define.
+
 ## Related files
 
-- `packages/components/src/components/Carousel/index.tsx`: `isDevEnvironment()` implementation with the cross-bundler pattern.
-- Any future package-level dev-only diagnostics should reuse the same helper (or a shared `isDev` export) rather than re-implementing the check and risking drift.
+- `packages/components/src/utils/isDev.ts` and `packages/editor/src/Editor/isDev.ts`: the shared helper. Import it rather than re-implement it.
+- `scripts/dev-only.mjs`: the build step that writes each call as the bare check.
