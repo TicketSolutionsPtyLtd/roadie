@@ -25,10 +25,11 @@ const phone = (shift: number, removed: number) => ({
   removed
 })
 
-export const SixtyRows = allowing(() => table(60), { 390: phone(40, 74) })
+export const SixtyRows = () => table(60)
 
+// The window trims a row past the screen once it measures; nothing moves.
 export const ThreeHundredRows = allowing(() => table(300), {
-  390: phone(40, 40),
+  390: phone(0, 1),
   1280: phone(0, 2)
 })
 

@@ -12,7 +12,13 @@ import {
   rowHeightClass,
   selectCellClass
 } from './RecordTableRow'
-import { type ColumnLayout, priorityClass, priorityProps } from './layout'
+import {
+  type ColumnLayout,
+  NARROW_ACTIONS_CLASS,
+  narrowRowClass,
+  priorityClass,
+  priorityProps
+} from './layout'
 import type { RecordTableColumn } from './types'
 
 const SKELETON_ROWS = 8
@@ -68,7 +74,12 @@ export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
       aria-hidden
       aria-rowindex={rowIndex}
       data-slot='record-table-placeholder-row'
-      className={cn(rowClass, rowHeightClass, 'border-b border-subtler')}
+      className={cn(
+        rowClass,
+        rowHeightClass,
+        narrowRowClass(layout),
+        'border-b border-subtler'
+      )}
     >
       {select && <div role='cell' className={selectCellClass} />}
       {columns.map((column, index) => (
@@ -82,7 +93,15 @@ export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
           {!blank && <Skeleton shape='text' className='animate-none' />}
         </div>
       ))}
-      {actions && <div role='cell' className={actionsCellClass} />}
+      {actions && (
+        <div
+          role='cell'
+          className={cn(
+            actionsCellClass,
+            layout.narrow && NARROW_ACTIONS_CLASS
+          )}
+        />
+      )}
     </div>
   )
 })

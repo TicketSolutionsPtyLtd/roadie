@@ -16,7 +16,13 @@ import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import { RowElement } from './RecordTableRowPlace'
-import { type ColumnLayout, priorityClass, priorityProps } from './layout'
+import {
+  type ColumnLayout,
+  NARROW_ACTIONS_CLASS,
+  narrowRowClass,
+  priorityClass,
+  priorityProps
+} from './layout'
 import type { RecordTableColumn } from './types'
 
 // WebKit builds without overflow-clip-margin drop the clip instead of the
@@ -30,7 +36,8 @@ export const rowClass =
 /** A body row's height, which the table sets and its window reads. */
 export const rowHeightClass = 'h-(--record-table-row-height)'
 
-const titleClampClass = 'line-clamp-2 min-w-0 wrap-anywhere'
+const titleClampClass =
+  'line-clamp-2 min-w-0 wrap-anywhere @max-[40rem]/record-table-frame:line-clamp-1'
 
 const isFigure = (column: RecordTableColumn) =>
   column.field.type === 'number' || column.field.type === 'money'
@@ -155,6 +162,7 @@ export const RecordTableRow = memo(function RecordTableRow({
       className={cn(
         rowClass,
         rowHeightClass,
+        narrowRowClass(layout),
         'border-b border-subtler',
         clickable && clickableRowClass,
         selectedRowClass
@@ -224,7 +232,11 @@ export const RecordTableRow = memo(function RecordTableRow({
         <div
           role='cell'
           data-row-control
-          className={cn(actionsCellClass, cellOverflowClass)}
+          className={cn(
+            actionsCellClass,
+            cellOverflowClass,
+            layout.narrow && NARROW_ACTIONS_CLASS
+          )}
         >
           <RecordsRowActions
             title={name ?? id}

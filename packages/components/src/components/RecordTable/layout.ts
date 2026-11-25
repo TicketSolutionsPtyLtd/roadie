@@ -2,7 +2,11 @@ import { type RecordField, formatRecordValue } from '@oztix/roadie-core/records'
 
 import { isDev } from '../../utils/isDev'
 import { NOT_AVAILABLE } from '../Records/RecordValue'
-import type { RecordColumnWidth, RecordTableColumn } from './types'
+import type {
+  RecordColumnWidth,
+  RecordTableColumn,
+  RecordTableNarrow
+} from './types'
 
 /** The column whose value names the row: the narrow title, else the first pinned text column, else the first text one. Never an image. */
 export function titleColumn<Column extends RecordTableColumn<never>>(
@@ -33,7 +37,15 @@ export type ColumnLayout = ColumnTier & {
   firstAt: ((typeof TIERS)[number][] | undefined)[]
   /** The tiers at which each column is the last cell shown, so it takes the end inset. */
   lastAt: ((typeof TIERS)[number][] | undefined)[]
+  /** Each column's place under 40rem, when the rows re-flow there rather than swap for a list. */
+  narrow?: NarrowRole[]
+  /** A description gives narrow rows a second line. */
+  twoLines: boolean
+  /** The narrow row's grid, as custom properties. */
+  narrowGrid?: Record<string, string>
 }
+
+type NarrowRole = Exclude<RecordTableNarrow, 'detail'>
 
 /** Where each priority tier starts, in rem of the table's width. */
 export const PRIORITY_HIDES_BELOW = { 3: 64, 2: 56, 1: 48 } as const
@@ -43,6 +55,8 @@ const TIERS = [1, 2, 3] as const
 export const TIER_CLASSES = {
   3: {
     hide: '@max-[64rem]/record-table-frame:hidden',
+    hideAboveNarrow:
+      '@min-[40rem]/record-table-frame:@max-[64rem]/record-table-frame:hidden',
     start: '@max-[64rem]/record-table-frame:ps-(--content-inset)',
     end: '@max-[64rem]/record-table-frame:pe-(--content-inset)',
     template:
@@ -50,6 +64,8 @@ export const TIER_CLASSES = {
   },
   2: {
     hide: '@max-[56rem]/record-table-frame:hidden',
+    hideAboveNarrow:
+      '@min-[40rem]/record-table-frame:@max-[56rem]/record-table-frame:hidden',
     start: '@max-[56rem]/record-table-frame:ps-(--content-inset)',
     end: '@max-[56rem]/record-table-frame:pe-(--content-inset)',
     template:
@@ -57,6 +73,8 @@ export const TIER_CLASSES = {
   },
   1: {
     hide: '@max-[48rem]/record-table-frame:hidden',
+    hideAboveNarrow:
+      '@min-[40rem]/record-table-frame:@max-[48rem]/record-table-frame:hidden',
     start: '@max-[48rem]/record-table-frame:ps-(--content-inset)',
     end: '@max-[48rem]/record-table-frame:pe-(--content-inset)',
     template:
@@ -64,12 +82,91 @@ export const TIER_CLASSES = {
   }
 } as const
 
+// Under 40rem the row is a grid of named areas, and each cell takes its role's.
+// The areas and tracks come from tierStyle, as the roles shown vary by table.
+const NARROW_ROW_CLASS =
+  '@max-[40rem]/record-table-frame:grid-cols-(--record-table-narrow-columns) @max-[40rem]/record-table-frame:[grid-template-areas:var(--record-table-narrow-areas)] @max-[40rem]/record-table-frame:gap-x-3 @max-[40rem]/record-table-frame:px-(--content-inset)'
+const TWO_LINES = '@max-[40rem]/record-table-frame:grid-rows-2'
+/** The row actions cell's place under 40rem, when the rows re-flow. */
+export const NARROW_ACTIONS_CLASS =
+  '@max-[40rem]/record-table-frame:[grid-area:actions]'
+const NARROW_CELL =
+  '@max-[40rem]/record-table-frame:px-0 @max-[40rem]/record-table-frame:first:ps-0 @max-[40rem]/record-table-frame:last:pe-0'
+// Full literals: Tailwind reads classes from source.
+const NARROW_CLASSES: Record<NarrowRole, string> = {
+  title: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:title] @max-[40rem]/record-table-frame:justify-start`,
+  description: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:description] @max-[40rem]/record-table-frame:items-start @max-[40rem]/record-table-frame:justify-start @max-[40rem]/record-table-frame:font-normal @max-[40rem]/record-table-frame:text-subtle`,
+  leading: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:leading]`,
+  trailing: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:trailing] @max-[40rem]/record-table-frame:justify-end`,
+  hidden: '@max-[40rem]/record-table-frame:hidden'
+}
+const TITLE_ABOVE = '@max-[40rem]/record-table-frame:items-end'
+
+/** The cell's place in a narrow row, or nothing when the table swaps for a list. */
+export const narrowClass = (layout: ColumnLayout, index: number) => {
+  const role = layout.narrow?.[index]
+  if (!role) return ''
+  return role === 'title' && layout.twoLines
+    ? `${NARROW_CLASSES.title} ${TITLE_ABOVE}`
+    : NARROW_CLASSES[role]
+}
+
+/** A body row's grid under 40rem, when the rows re-flow there. */
+export const narrowRowClass = (layout: ColumnLayout) =>
+  layout.narrow ? `${NARROW_ROW_CLASS} ${layout.twoLines ? TWO_LINES : ''}` : ''
+
+/** A narrow row's areas, leaving out a role no column takes so it adds no gap. */
+function narrowGrid(roles: readonly NarrowRole[], actions: boolean) {
+  const line = [
+    roles.includes('leading') && 'leading',
+    'title',
+    roles.includes('trailing') && 'trailing',
+    actions && 'actions'
+  ].filter((area) => area !== false)
+  const lines = roles.includes('description')
+    ? [line, line.map((area) => (area === 'title' ? 'description' : area))]
+    : [line]
+  return {
+    '--record-table-narrow-areas': lines
+      .map((areas) => `"${areas.join(' ')}"`)
+      .join(' '),
+    '--record-table-narrow-columns': line
+      .map((area) => (area === 'title' ? 'minmax(0, 1fr)' : 'auto'))
+      .join(' ')
+  }
+}
+
+/** The table's row height under 40rem, which a window reads from `--record-table-row-height`. */
+export const narrowContentClass = (layout: ColumnLayout) =>
+  layout.twoLines
+    ? '@max-[40rem]/record-table-frame:[--record-table-row-height:4rem]'
+    : ''
+
+/** Hides the header row from sight, not from screen readers, under 40rem. */
+export const NARROW_HEAD_CLASS = '@max-[40rem]/record-table-frame:sr-only'
+/** A sort button hides under 40rem, so no hidden header takes focus. */
+export const NARROW_SORT_CLASS = '@max-[40rem]/record-table-frame:invisible'
+
+/** Each column's narrow role: the title, then the first column of each other role; the rest hide. */
+function narrowRoles(columns: readonly RecordTableColumn[]): NarrowRole[] {
+  const title = titleColumn(columns)
+  const taken = new Set<RecordTableNarrow>()
+  return columns.map((column) => {
+    if (column === title) return 'title'
+    const role = column.narrow
+    if (!role || role === 'title' || role === 'detail' || taken.has(role))
+      return 'hidden'
+    taken.add(role)
+    return role
+  })
+}
+
 /** The frame is the container the tiers measure; only a table that reaches a pane's edges takes its inset (records-pane.css). */
 export const frameClass = '@container/record-table-frame [--content-inset:0px]'
 
 /** Picks the tier's template, so the header and rows agree. */
 export const contentTierClass = [
-  '[--record-table-columns:var(--record-table-columns-0)] [--record-table-min-width:var(--record-table-min-width-0)] [--record-table-row-height:3rem]',
+  '[--record-table-columns:var(--record-table-columns-0)] [--record-table-min-width:var(--record-table-min-width-0)] [--record-table-row-height:3rem] @max-[40rem]/record-table-frame:[--record-table-min-width:0px]',
   TIER_CLASSES[3].template,
   TIER_CLASSES[2].template,
   TIER_CLASSES[1].template
@@ -194,8 +291,9 @@ export function columnLayout(
   widths: readonly RecordColumnWidth[],
   {
     select = false,
-    actions = false
-  }: { select?: boolean; actions?: boolean } = {}
+    actions = false,
+    reflow = false
+  }: { select?: boolean; actions?: boolean; reflow?: boolean } = {}
 ): ColumnLayout {
   let pinnedOffset = select ? SELECT_WIDTH : 0
   const pinnedStart = columns.map((column, index) => {
@@ -236,29 +334,45 @@ export function columnLayout(
       if (last === -1 || last === columns.length - 1) continue
       lastAt[last] = [...(lastAt[last] ?? []), tier]
     }
-  return { ...tiers[0]!, tiers, pinnedStart, priority, firstAt, lastAt }
+  const narrow = reflow ? narrowRoles(columns) : undefined
+  const twoLines = narrow?.includes('description') ?? false
+  return {
+    ...tiers[0]!,
+    tiers,
+    pinnedStart,
+    priority,
+    firstAt,
+    lastAt,
+    narrow,
+    twoLines,
+    narrowGrid: narrow && narrowGrid(narrow, actions)
+  }
 }
 
 /** A cell's priority, which focus reads when its column hides. */
 export const priorityProps = (layout: ColumnLayout, index: number) => ({
-  'data-priority': layout.priority[index]
+  'data-priority': layout.priority[index],
+  'data-narrow': layout.narrow?.[index]
 })
 
 /** Hides a cell with its priority, and gives the inset to the first and last cells shown at each tier, which a hidden column's `first:` and `last:` would miss. */
 export const priorityClass = (layout: ColumnLayout, index: number) => {
   const priority = layout.priority[index]
+  // A column with a narrow place shows again under 40rem.
+  const placed = (layout.narrow?.[index] ?? 'hidden') !== 'hidden'
   return [
-    priority && TIER_CLASSES[priority].hide,
+    priority && TIER_CLASSES[priority][placed ? 'hideAboveNarrow' : 'hide'],
     ...(layout.firstAt[index] ?? []).map((tier) => TIER_CLASSES[tier].start),
-    ...(layout.lastAt[index] ?? []).map((tier) => TIER_CLASSES[tier].end)
+    ...(layout.lastAt[index] ?? []).map((tier) => TIER_CLASSES[tier].end),
+    narrowClass(layout, index)
   ]
     .filter(Boolean)
     .join(' ')
 }
 
 /** Each tier's template and minimum width, never `--record-table-columns` itself: an inline value would beat the container queries. */
-export const tierStyle = (layout: ColumnLayout) =>
-  Object.fromEntries(
+export const tierStyle = (layout: ColumnLayout) => ({
+  ...Object.fromEntries(
     layout.tiers.flatMap(({ template, minWidth }, tier) => [
       [`--record-table-columns-${tier}`, template],
       [
@@ -266,4 +380,6 @@ export const tierStyle = (layout: ColumnLayout) =>
         `calc(${minWidth}rem + 2 * var(--content-inset))`
       ]
     ])
-  )
+  ),
+  ...layout.narrowGrid
+})

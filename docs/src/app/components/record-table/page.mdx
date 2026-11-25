@@ -1354,13 +1354,17 @@ Under 40rem of its own width, 640px at the default text size, the table drops it
 | `'detail'` | Deprecated. A label and value on a card. Any detail column turns the rows into cards. |
 | `'hidden'` | Left out of the narrow layout. The default for every column but images. |
 
-The server can't measure the table, so it renders wide, and a phone switches to the list once the page hydrates. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
+A table that can't be selected and has no totals keeps its rows, cells, and column headers at every width, and CSS moves each cell to its place, so the server paints the narrow rows and nothing moves as the page hydrates. A screen reader reads each record the same way at every width: the headers hide from sight but not from it, and the columns left out of the narrow layout hide from both. A tap anywhere on a row opens its record. The row's text lines up with the header.
+
+To show records another way on a phone, such as [`RecordList`](/components/record-list) or [`RecordGrid`](/components/record-grid), your app chooses which to render: by route, by a device hint from the server, or with its own container query around both. RecordTable has no prop to switch, so the table keeps its semantics wherever it renders.
+
+A table that can be selected or shows totals still turns into a list once the page hydrates, since the server can't measure the table. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
 
 Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions float at the foot of the screen, keeping the first action and putting the rest in a More actions menu when they don't fit.
 
 #### List rows
 
-With no detail columns, each record is a list row of a fixed height: leading, title, description, and trailing. An image column becomes the leading thumbnail. Switch to Wide to see the same table turn back into columns.
+With no detail columns, each record is a row of a fixed height: leading, title, description, and trailing, then any row actions. An image column becomes the leading thumbnail. Switch to Wide to see the same table turn back into columns.
 
 ```tsx-live-noinline-expand
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']

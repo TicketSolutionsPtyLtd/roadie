@@ -52,10 +52,13 @@ import {
 } from './RecordTableTotals'
 import { shownColumns } from './columns'
 import {
+  NARROW_HEAD_CLASS,
+  NARROW_SORT_CLASS,
   SELECT_WIDTH,
   columnLayout,
   contentTierClass,
   frameClass,
+  narrowContentClass,
   priorityClass,
   priorityProps,
   tierStyle,
@@ -159,8 +162,12 @@ export function RecordTableContent({
   )
   const title = titleColumn(columns)
 
+  const { selectable, getRowHref, totals } = records
+  const cards = (config.narrow ?? narrowLayout(columns)) === 'cards'
+  // Rows re-flow under 40rem; deprecated cards, and for now selection and totals, still swap for a list.
+  const swaps = cards || selectable || totals !== undefined
   const isNarrow = useNarrow(frameRef, { placement: boxed })
-  const narrow = isNarrow ? (config.narrow ?? narrowLayout(columns)) : undefined
+  const narrow = isNarrow && swaps ? (cards ? 'cards' : 'list') : undefined
   const parts = useMemo(() => {
     const roles = narrowParts(columns)
     // A row lists details on its second line; a table's detail columns are for cards only.
@@ -171,7 +178,6 @@ export function RecordTableContent({
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
   const selecting = useSelectModeLayout(narrow !== undefined)
 
-  const { selectable, getRowHref } = records
   const { toggleRow, rowActions, isSelected } = frame
   const hasRowActions = rowActions !== undefined
   const missingLinkColumn = getRowHref !== undefined && title === undefined
@@ -195,13 +201,14 @@ export function RecordTableContent({
     () =>
       columnLayout(columns, widths, {
         select: selectable,
-        actions: hasRowActions
+        actions: hasRowActions,
+        reflow: !swaps
       }),
-    [columns, widths, selectable, hasRowActions]
+    [columns, widths, selectable, hasRowActions, swaps]
   )
   const style = tierStyle(layout) as CSSProperties
 
-  const { rows, range, totals } = records
+  const { rows, range } = records
   const headRows = totals ? 2 : 1
   const headTextClass = cn(headerTextClass, totals ? 'text-sm' : 'text-xs')
   const { busy, dimmed } = frame
@@ -370,6 +377,7 @@ export function RecordTableContent({
             className={cn(
               'text-sm tabular-nums',
               contentTierClass,
+              narrowContentClass(layout),
               boxed && 'grid grid-rows-[auto_1fr]'
             )}
             style={style}
@@ -407,6 +415,7 @@ export function RecordTableContent({
                 className={cn(
                   'h-9',
                   !totals && 'border-b border-normal',
+                  layout.narrow && NARROW_HEAD_CLASS,
                   // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
                   barShown
                     ? cn(
@@ -451,6 +460,10 @@ export function RecordTableContent({
                       key={column.key}
                       role='columnheader'
                       aria-sort={direction}
+                      // Its sort button hides under 40rem, so the header keeps its name.
+                      aria-label={
+                        layout.narrow ? column.field.label : undefined
+                      }
                       data-pin={column.pin || undefined}
                       {...priorityProps(layout, index)}
                       className={cn(
@@ -484,6 +497,7 @@ export function RecordTableContent({
                           }
                           className={cn(
                             'group is-interactive inline-flex items-center gap-1 rounded-sm font-semibold active:scale-100',
+                            layout.narrow && NARROW_SORT_CLASS,
                             (column.field.type === 'number' ||
                               column.field.type === 'money') &&
                               'flex-row-reverse',
@@ -541,7 +555,12 @@ export function RecordTableContent({
                 <div
                   aria-hidden
                   data-slot='record-table-progress'
-                  className='pointer-events-none absolute inset-x-0 bottom-0'
+                  className={cn(
+                    'pointer-events-none absolute inset-x-0 bottom-0',
+                    // The header row hides under 40rem, so the bar runs along the rows' top.
+                    layout.narrow &&
+                      '@max-[40rem]/record-table-frame:top-0 @max-[40rem]/record-table-frame:bottom-auto'
+                  )}
                 >
                   <RecordsProgress />
                 </div>
@@ -644,7 +663,7 @@ export function RecordTableContent({
 RecordTableContent.displayName = 'RecordTableContent'
 
 function inHiddenColumn(element: Element) {
-  const cell = element.closest('[data-priority]')
+  const cell = element.closest('[data-priority], [data-narrow]')
   return !!cell && getComputedStyle(cell).display === 'none'
 }
 

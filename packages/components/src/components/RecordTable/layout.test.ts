@@ -274,6 +274,7 @@ describe('TIER_CLASSES', () => {
       const at = `@max-[${rem}rem]/record-table-frame:`
       expect(TIER_CLASSES[Number(tier) as keyof typeof TIER_CLASSES]).toEqual({
         hide: `${at}hidden`,
+        hideAboveNarrow: `@min-[40rem]/record-table-frame:${at}hidden`,
         start: `${at}ps-(--content-inset)`,
         end: `${at}pe-(--content-inset)`,
         template: `${at}[--record-table-columns:var(--record-table-columns-${tier})] ${at}[--record-table-min-width:var(--record-table-min-width-${tier})]`

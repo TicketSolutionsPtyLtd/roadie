@@ -170,10 +170,10 @@ const itemsOf = () =>
 const PLACEHOLDER = '[data-slot="record-image-placeholder"]'
 
 describe('RecordTable narrow image columns by role in a browser', () => {
-  it('puts the thumbnail in a list row’s leading slot', () => {
+  it('puts the thumbnail in a narrow row’s leading place', () => {
     narrow(<RecordTable {...base} columns={columns} />)
-    const [missing, pictured] = itemsOf()
-    const leading = '[data-slot="list-item-leading"]'
+    const [, missing, pictured] = screen.getAllByRole('row')
+    const leading = '[data-narrow="leading"]'
     expect(pictured!.querySelector(`${leading} img`)).toHaveAttribute(
       'src',
       PICTURE
