@@ -56,6 +56,8 @@ export type SortableRootProps = {
   group?: string
   /** Identifies this list in its `group`, as the transfer's `from` and `to`. */
   value?: string
+  /** Names the set of lists in its `group` this one sits in, such as a board lane. The Move menu lists the item's own section, and opens each other one as a submenu, as in "Move SKU to done in Next week". */
+  section?: string
   /** Called on the list an item from another list in its group is dropped into. Without it, the list takes no items from others. */
   onTransfer?: (transfer: SortableTransfer) => void
   /** Return false to refuse an item from another list. Called when a drag starts and while the item is over this list. */
@@ -75,6 +77,7 @@ export function SortableRoot({
   label,
   group: shared,
   value: list,
+  section,
   onTransfer,
   canDrop,
   children
@@ -97,6 +100,7 @@ export function SortableRoot({
     disabled,
     shared,
     list,
+    section,
     onTransfer,
     canDrop
   }
@@ -123,15 +127,18 @@ export function SortableRoot({
       if (from === -1 || from === to || to < 0 || to >= items.length) return
       focusTarget = focus ? itemValue : null
       onReorder(moveItem(items, from, to), { value: itemValue, from, to })
-      announce(names.get(itemValue), to, items.length)
+      announce(arrival(names.get(itemValue), to, items.length))
     }
-    function announce(name: string | undefined, to: number, total: number) {
-      const text = moveAnnouncement({
+    function arrival(name: string | undefined, to: number, total: number) {
+      const { label, section } = latest.current
+      return moveAnnouncement({
         name,
         to,
         total,
-        collection: latest.current.label
+        collection: label && section ? `${label} in ${section}` : label
       })
+    }
+    function announce(text: string) {
       // Emptied first, so the same message twice is still read twice. The
       // focus claim lapses with it, in case the move was never applied.
       setAnnouncement('')
@@ -150,18 +157,19 @@ export function SortableRoot({
         ? { ...item, to: list, onTransfer }
         : null
     }
-    function receive(source: SortableSource, dryRun: boolean) {
+    function receive(source: SortableSource) {
       const transfer = transferFrom(source)
-      if (!transfer || dryRun) return transfer !== null
+      if (!transfer) return null
       const { onTransfer, ...item } = transfer
       const { items } = latest.current
       focusTarget = source.value
       onTransfer({ ...item, index: items.length })
-      announce(source.label, items.length, items.length + 1)
-      return true
+      return arrival(source.label, items.length, items.length + 1)
     }
     const self: SortableList = {
       name: () => latest.current.label ?? latest.current.list ?? '',
+      section: () => latest.current.section,
+      takes: (source) => transferFrom(source) !== null,
       receive
     }
     function accepts(source: SortableSource) {
@@ -182,7 +190,7 @@ export function SortableRoot({
       if (!transfer) return
       const { onTransfer, ...item } = transfer
       onTransfer({ ...item, index: to })
-      announce(source.label, to, items.length + 1)
+      announce(arrival(source.label, to, items.length + 1))
     }
     return {
       move,
@@ -198,10 +206,20 @@ export function SortableRoot({
           list,
           sameList: false
         }
-        return otherLists(shared, self, source).map((target) => ({
-          name: target.name(),
-          move: () => target.receive(source, false)
-        }))
+        return otherLists(shared, self, source).map((target) => {
+          const away = target.section()
+          const elsewhere = away !== latest.current.section
+          return {
+            name:
+              elsewhere && away ? `${target.name()} in ${away}` : target.name(),
+            section: elsewhere ? away : undefined,
+            // Said here, where the person is: the list it joined may be out of sight.
+            move: () => {
+              const text = target.receive(source)
+              if (text) announce(text)
+            }
+          }
+        })
       },
       nameItem: (itemValue: string, name: string | undefined) => {
         names.set(itemValue, name)

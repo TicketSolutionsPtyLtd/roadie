@@ -14,7 +14,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Sortable, type SortableHandleProps, type SortableMove } from '.'
 import budget from '../../../size-budget.json'
 import { List } from '../List'
-import { Lanes } from './lanesTestUtils'
+import { Lanes, listed } from './lanesTestUtils'
 
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
 
@@ -543,6 +543,37 @@ describe('Sortable Move to another list', () => {
     const { menu } = await openMenu('Date')
     expect(moves(menu)).toEqual(['Move Date to doing', 'Move Date to Finished'])
     expect(within(menu).getByRole('separator')).toBeInTheDocument()
+  })
+
+  it('offers the lists in another section from a submenu, and announces where the item went', async () => {
+    render(
+      <Lanes
+        initial={{ todo: ['Date'], doing: [], done: ['SKU'] }}
+        done={{ section: 'Next week' }}
+      />
+    )
+    const { user, menu } = await openMenu('Date')
+    expect(moves(menu)).toEqual([
+      'Move Date to doing',
+      'Move Date to Next week'
+    ])
+    await user.keyboard('{End}')
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Move Date to Next week' })
+    ).toHaveFocus()
+    await user.keyboard('{ArrowRight}')
+    await waitFor(() =>
+      expect(
+        screen.getByRole('menuitem', { name: 'Move Date to done in Next week' })
+      ).toHaveFocus()
+    )
+    await user.keyboard('{Enter}')
+    expect(listed('done')).toEqual(['SKU', 'Date'])
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole('status').map((status) => status.textContent)
+      ).toContain('Date moved to position 2 of 2 done in Next week')
+    )
   })
 
   it.each([

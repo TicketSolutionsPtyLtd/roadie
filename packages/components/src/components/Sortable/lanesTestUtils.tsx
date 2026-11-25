@@ -19,7 +19,10 @@ export function Lanes({
   onTransfer?: Transfer
   canDrop?: SortableProps['canDrop']
   done?: Partial<
-    Pick<SortableProps, 'disabled' | 'onTransfer' | 'label' | 'group'>
+    Pick<
+      SortableProps,
+      'disabled' | 'onTransfer' | 'label' | 'group' | 'section'
+    >
   >
   doneZone?: string
 }) {
