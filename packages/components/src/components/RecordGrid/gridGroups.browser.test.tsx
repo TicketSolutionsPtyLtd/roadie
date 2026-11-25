@@ -12,6 +12,7 @@ import {
 
 import { RecordGrid } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import {
   type TestShow,
@@ -51,6 +52,13 @@ const disclosure = (name: string) =>
   screen.getByRole('heading', { name }).closest('summary')!
 // A closed item keeps its cards in the DOM, out of sight.
 const shown = (element: Element) => element.checkVisibility()
+
+// Base UI opens a Select from a press in a frame and keeps a closed popup
+// mounted, inert, until its exit transition ends; Linux WebKit runs no frames
+// while idle. So each pick waits for its popup to go before the next one
+// (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md).
+const popupGone = () =>
+  withFrames(() => expect.poll(() => screen.queryByRole('listbox')).toBeNull())
 
 describe('RecordGrid grouped in a browser', { timeout: 30_000 }, () => {
   it('nests cards under a heading and count per group, h2 to h4 by level, leaving out empty ones', () => {
@@ -316,14 +324,20 @@ describe('RecordGrid grouped in a browser', { timeout: 30_000 }, () => {
         { timeout: 5000 }
       )
     )
-    await user.click(await screen.findByRole('option', { name: 'Status' }))
+    await user.click(
+      await withFrames(() => screen.findByRole('option', { name: 'Status' }))
+    )
+    await popupGone()
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'grid',
       fields: ['sold'],
       groupBy: ['status']
     })
     await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
-    await user.click(await screen.findByRole('option', { name: 'City' }))
+    await user.click(
+      await withFrames(() => screen.findByRole('option', { name: 'City' }))
+    )
+    await popupGone()
     expect(onViewChange.mock.lastCall![0].layout.groupBy).toEqual([
       'status',
       'city'
