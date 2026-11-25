@@ -12,7 +12,7 @@ import {
   recordFieldOptions,
   recordFilterOperators
 } from './fields'
-import { recordViewSchema } from './schema'
+import { BOARD_GROUP_LEVELS, recordViewSchema } from './schema'
 import type {
   RecordField,
   RecordFilter,
@@ -235,25 +235,33 @@ function dateFieldProblem(field: RecordField): string | null {
     : null
 }
 
-// The field a layout arranges records by has to exist and fit, or the layout
+// The fields a layout arranges records by have to exist and fit, or the layout
 // has nothing to draw, so these are errors rather than warnings.
-function arrangedBy(
-  layout: RecordLayout
-): [string, string, (field: RecordField) => string | null] | null {
-  switch (layout.type) {
-    case 'list':
-      return layout.groupBy === undefined
-        ? null
-        : ['layout.groupBy', layout.groupBy, groupByProblem]
-    case 'board':
-      return ['layout.groupBy', layout.groupBy, groupByProblem]
-    case 'calendar':
-      return ['layout.dateField', layout.dateField, dateFieldProblem]
-    case 'table':
-    case 'grid':
-    case 'map':
-      return null
-  }
+function groupProblems(
+  layout: RecordLayout,
+  fields: readonly RecordField[],
+  byKey: Map<string, RecordField>
+): RecordViewProblem[] {
+  if (layout.type === 'calendar' || layout.type === 'map') return []
+  const levels = layout.groupBy ?? []
+  return levels.flatMap((key, i) => {
+    const path = `layout.groupBy[${i}]`
+    const field = byKey.get(key)
+    if (!field) return [error(path, unknownField(key, fields))]
+    const problem = groupByProblem(field)
+    if (problem) return [error(path, problem)]
+    if (levels.indexOf(key) < i) {
+      return [error(path, `"${field.label}" is already a level`)]
+    }
+    return layout.type === 'board' && i >= BOARD_GROUP_LEVELS
+      ? [
+          warning(
+            path,
+            `A board draws at most two levels, so "${field.label}" shows only in other layouts`
+          )
+        ]
+      : []
+  })
 }
 
 function layoutProblems(
@@ -266,12 +274,17 @@ function layoutProblems(
       byKey.has(key) ? [] : [warning(`${path}[${i}]`, `Unknown field "${key}"`)]
     )
   )
-  const arranged = arrangedBy(view.layout)
-  if (!arranged) return unknownKeys
-  const [path, key, fits] = arranged
-  const field = byKey.get(key)
-  const problem = field ? fits(field) : unknownField(key, fields)
-  return problem ? [...unknownKeys, error(path, problem)] : unknownKeys
+  const { layout } = view
+  if (layout.type === 'calendar') {
+    const field = byKey.get(layout.dateField)
+    const problem = field
+      ? dateFieldProblem(field)
+      : unknownField(layout.dateField, fields)
+    return problem
+      ? [...unknownKeys, error('layout.dateField', problem)]
+      : unknownKeys
+  }
+  return [...unknownKeys, ...groupProblems(layout, fields, byKey)]
 }
 
 function schemaProblems(issues: readonly core.$ZodIssue[]) {
@@ -291,9 +304,10 @@ function withCanonicalRanges(view: RecordView): RecordView {
  * Checks a view against an entity's fields: its shape, that every field it
  * names exists, and that each filter's operator and value fit the field.
  * Layout keys a field list does not know are warnings, since a layout may
- * show columns, such as actions, that are not fields. A list or board's
- * `groupBy` must be a single-valued field with options, and a calendar's
- * `dateField` a date field. The view it returns
+ * show columns, such as actions, that are not fields. Each `groupBy` level
+ * must be a single-valued field with options, named once, and a calendar's
+ * `dateField` a date field. A board keeps a third level but draws two, so
+ * that's a warning. The view it returns
  * writes each relative date range in its one form (`canonicalDateRange`).
  */
 export function validateRecordView(

@@ -40,7 +40,6 @@ const EXEMPT: Record<string, string> = {
   RadioGroup: later,
   RecordBoard: later,
   RecordCalendar: later,
-  RecordList: later,
   Records: 'The engine the RecordTable and RecordGrid fixtures render.',
   ScrollRegion: 'A hook, with nothing of its own to render.',
   Switch: later,

@@ -16,7 +16,7 @@ export function boardLayout<Row extends object>(
     icon: <KanbanIcon weight='bold' className='size-4' aria-hidden />,
     // A part's functions and onMove read the consumer's Row; the board hands them the same row.
     config: config as unknown as BoardLayoutConfig,
-    layout: { type: 'board', groupBy: config.groupBy },
+    layout: { type: 'board', groupBy: [config.groupBy] },
     Content: RecordBoardContent
   }
 }

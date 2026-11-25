@@ -1,3 +1,5 @@
+import { Activity } from 'react'
+
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -130,7 +132,11 @@ describe('FileUpload', () => {
     expect(zone).toHaveAttribute('aria-busy', 'true')
     expect(trigger).toHaveAttribute('aria-busy', 'true')
     expect(zone).toHaveTextContent('Checking march.csv…')
-    expect(screen.getByRole('status')).toHaveTextContent('Checking march.csv.')
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Checking march.csv.'
+      )
+    )
     expect(container.firstElementChild).toHaveAttribute('data-checking')
 
     await userEvent.upload(fileInput(container), [
@@ -143,6 +149,69 @@ describe('FileUpload', () => {
     expect(trigger).not.toHaveAttribute('aria-busy')
     expect(zone).not.toHaveTextContent('Checking')
     expect(container.firstElementChild).not.toHaveAttribute('data-checking')
+  })
+
+  it('says Checking again when the same file is checked twice', async () => {
+    const results: ((message: string | null) => void)[] = []
+    const { container } = render(
+      <FileUpload
+        maxFiles={3}
+        validate={() =>
+          new Promise<string | null>((resolve) => results.push(resolve))
+        }
+      />
+    )
+    const status = screen.getByRole('status')
+    const changes: string[] = []
+    new MutationObserver(() => changes.push(status.textContent ?? '')).observe(
+      status,
+      { childList: true, characterData: true, subtree: true }
+    )
+    await userEvent.upload(fileInput(container), csv('march.csv'))
+    await waitFor(() => expect(status).toHaveTextContent('Checking march.csv.'))
+    await act(async () => results[0]!('march.csv is empty.'))
+    changes.length = 0
+    await userEvent.upload(fileInput(container), csv('march.csv'))
+    // Emptied, then said again, so a screen reader reads it a second time.
+    await waitFor(() => expect(changes).toContain('Checking march.csv.'))
+    expect(changes).toContain('')
+  })
+
+  it('says added again when the same file name is added twice', async () => {
+    const { container } = render(<FileUpload maxFiles={3} />)
+    const status = screen.getByRole('status')
+    await userEvent.upload(fileInput(container), csv('march.csv'))
+    await waitFor(() => expect(status).toHaveTextContent('march.csv added.'))
+    const changes: string[] = []
+    new MutationObserver(() => changes.push(status.textContent ?? '')).observe(
+      status,
+      { childList: true, characterData: true, subtree: true }
+    )
+    await userEvent.upload(fileInput(container), csv('march.csv'))
+    await waitFor(() => expect(changes).toContain('march.csv added.'))
+    expect(changes).toContain('')
+  })
+
+  it("doesn't say the last message again when shown from a hidden Activity", async () => {
+    const field = (mode: 'visible' | 'hidden') => (
+      <Activity mode={mode}>
+        <FileUpload maxFiles={3} />
+      </Activity>
+    )
+    const { container, rerender } = render(field('visible'))
+    const status = screen.getByRole('status')
+    await userEvent.upload(fileInput(container), csv('march.csv'))
+    await waitFor(() => expect(status).toHaveTextContent('march.csv added.'))
+    const changes: string[] = []
+    new MutationObserver(() => changes.push(status.textContent ?? '')).observe(
+      status,
+      { childList: true, characterData: true, subtree: true }
+    )
+    rerender(field('hidden'))
+    rerender(field('visible'))
+    await act(() => new Promise(requestAnimationFrame))
+    expect(changes).toEqual([])
+    expect(status).toHaveTextContent('march.csv added.')
   })
 
   it('stops showing a check that a Remove made stale', async () => {
@@ -913,6 +982,125 @@ describe('FileUpload', () => {
         ...document.querySelectorAll('[data-slot=file-upload-item-name]')
       ].map((name) => name.textContent)
       expect(order).toEqual(['set-1.csv', 'set-2.csv', 'set-3.csv'])
+    })
+
+    it('moves a collapsing row up to the next live row when the row above it finishes first', async () => {
+      // Each row's collapse finishes only when the test says so.
+      const finish = new Map<string, () => void>()
+      HTMLElement.prototype.getAnimations = function (this: HTMLElement) {
+        const name = this.querySelector(
+          '[data-slot=file-upload-item-name]'
+        )?.textContent
+        const finished = new Promise<void>((resolve) =>
+          finish.set(name ?? '', resolve)
+        )
+        return [{ finished } as unknown as Animation]
+      }
+      onTestFinished(() => {
+        delete (HTMLElement.prototype as Partial<HTMLElement>).getAnimations
+      })
+      render(<FileUpload maxFiles={6} defaultValue={files(5)} />)
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Remove set-4.csv' }))
+      await user.click(screen.getByRole('button', { name: 'Remove set-3.csv' }))
+      await user.click(screen.getByRole('button', { name: 'Remove set-2.csv' }))
+      const order = () =>
+        [...document.querySelectorAll('[data-slot=file-upload-item-name]')].map(
+          (name) => name.textContent
+        )
+      await act(async () => finish.get('set-3.csv')!())
+      // set-4 sat under set-3, which sat under set-2, still collapsing.
+      expect(order()).toEqual([
+        'set-1.csv',
+        'set-2.csv',
+        'set-4.csv',
+        'set-5.csv'
+      ])
+      await act(async () => finish.get('set-2.csv')!())
+      // Now under set-1, through a move.
+      await user.click(
+        screen.getByRole('button', { name: 'Reorder set-5.csv' })
+      )
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'Move set-5.csv up' })
+      )
+      expect(order()).toEqual(['set-5.csv', 'set-1.csv', 'set-4.csv'])
+    })
+
+    it("tells a full field's Trigger, laid out alone, why it is full", async () => {
+      const [first, second] = files(2) as [File, File]
+      const { rerender } = render(
+        <FileUpload maxFiles={2} value={[first, second]}>
+          <FileUpload.Trigger />
+        </FileUpload>
+      )
+      const trigger = screen.getByRole('button', { name: 'Choose files' })
+      expect(trigger).toHaveAccessibleDescription(
+        'Remove a file to add another'
+      )
+      rerender(
+        <FileUpload maxFiles={2} value={[first]}>
+          <FileUpload.Trigger />
+        </FileUpload>
+      )
+      expect(trigger).not.toHaveAccessibleDescription(
+        'Remove a file to add another'
+      )
+    })
+
+    it("doesn't tell a full field's Trigger why when it's disabled", () => {
+      const both = files(2)
+      render(
+        <>
+          <FileUpload maxFiles={2} defaultValue={both} disabled>
+            <FileUpload.Trigger>Field disabled</FileUpload.Trigger>
+          </FileUpload>
+          <FileUpload maxFiles={2} defaultValue={both}>
+            <FileUpload.Trigger disabled>Trigger disabled</FileUpload.Trigger>
+          </FileUpload>
+        </>
+      )
+      for (const name of ['Field disabled', 'Trigger disabled'])
+        expect(
+          screen.getByRole('button', { name })
+        ).not.toHaveAccessibleDescription('Remove a file to add another')
+    })
+
+    it('moves a collapsing row up past a row above it that goes at once', async () => {
+      // Collapses that never finish, so a FileUpload.Item row stays.
+      HTMLElement.prototype.getAnimations = () => [
+        { finished: new Promise(() => {}) } as unknown as Animation
+      ]
+      onTestFinished(() => {
+        delete (HTMLElement.prototype as Partial<HTMLElement>).getAnimations
+      })
+      render(
+        <FileUpload maxFiles={6} defaultValue={files(4)}>
+          <FileUpload.List>
+            {({ file }) =>
+              // set-2 is plain markup, so it goes at once when removed.
+              file.name === 'set-2.csv' ? (
+                <li>
+                  <span data-slot='file-upload-item-name'>{file.name}</span>
+                  <FileUpload.ItemRemove />
+                </li>
+              ) : (
+                <FileUpload.Item>
+                  <FileUpload.ItemName />
+                  <FileUpload.ItemRemove />
+                </FileUpload.Item>
+              )
+            }
+          </FileUpload.List>
+        </FileUpload>
+      )
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Remove set-3.csv' }))
+      await user.click(screen.getByRole('button', { name: 'Remove set-2.csv' }))
+      const order = [
+        ...document.querySelectorAll('[data-slot=file-upload-item-name]')
+      ].map((name) => name.textContent)
+      expect(order).toEqual(['set-1.csv', 'set-3.csv', 'set-4.csv'])
     })
 
     it('reads Choose files on the Trigger', () => {

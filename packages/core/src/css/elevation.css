@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════
    Elevation: intent-tinted shadows
    Overrides Tailwind's shadow scale with oklch() shadows
-   tinted by --intent-hue. Falls back to rgba() for old browsers.
+   tinted by --intent-hue.
 
    Each level is a hairline ring for the edge plus a stack of layers whose
    offset and blur double, lit from directly above. Higher levels add a
@@ -11,34 +11,21 @@
    (After Josh Comeau, "Designing Beautiful Shadows in CSS".)
    ═══════════════════════════════════════════════════════════ */
 
-/* ─── Hex fallbacks (all browsers) ─── */
-@theme {
-  --shadow-xs:
-    0 0 0 1px rgba(25, 45, 75, 0.04), 0 1px 1px 0 rgba(25, 45, 75, 0.07);
-  --shadow-sm:
-    0 0 0 1px rgba(25, 45, 75, 0.05), 0 1px 1px 0 rgba(25, 45, 75, 0.06),
-    0 2px 2px 0 rgba(25, 45, 75, 0.06);
-  --shadow-md:
-    0 0 0 1px rgba(25, 45, 75, 0.05), 0 1px 1px 0 rgba(25, 45, 75, 0.05),
-    0 2px 2px 0 rgba(25, 45, 75, 0.05), 0 4px 4px 0 rgba(25, 45, 75, 0.05);
-  --shadow-lg:
-    0 0 0 1px rgba(25, 45, 75, 0.05), 0 1px 1px 0 rgba(25, 45, 75, 0.045),
-    0 2px 2px 0 rgba(25, 45, 75, 0.045), 0 4px 4px 0 rgba(25, 45, 75, 0.045),
-    0 8px 8px 0 rgba(25, 45, 75, 0.045);
-  --shadow-xl:
-    0 0 0 1px rgba(25, 45, 75, 0.06), 0 1px 1px 0 rgba(25, 45, 75, 0.04),
-    0 2px 2px 0 rgba(25, 45, 75, 0.04), 0 4px 4px 0 rgba(25, 45, 75, 0.04),
-    0 8px 8px 0 rgba(25, 45, 75, 0.04), 0 16px 16px 0 rgba(25, 45, 75, 0.04);
-  --shadow-2xl:
-    0 0 0 1px rgba(25, 45, 75, 0.06), 0 1px 1px 0 rgba(25, 45, 75, 0.035),
-    0 2px 2px 0 rgba(25, 45, 75, 0.035), 0 4px 4px 0 rgba(25, 45, 75, 0.035),
-    0 8px 8px 0 rgba(25, 45, 75, 0.035), 0 16px 16px 0 rgba(25, 45, 75, 0.035),
-    0 32px 32px 0 rgba(25, 45, 75, 0.035);
-  --inset-shadow-xs: inset 0 1px 1px 0 rgba(25, 45, 75, 0.06);
-  --inset-shadow-sm:
-    inset 0 1px 2px 0 rgba(25, 45, 75, 0.07),
-    inset 0 2px 4px -2px rgba(25, 45, 75, 0.05);
+/* `inline reference`: Tailwind compiles each shadow utility to
+   var(--shadow-*), which the oklch blocks below declare, and writes no copy
+   of the token into the theme layer. */
+@theme inline reference {
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+  --inset-shadow-xs: var(--inset-shadow-xs);
+  --inset-shadow-sm: var(--inset-shadow-sm);
+}
 
+@theme {
   --rim-light-subtler: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
   --rim-light-subtle: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
   --rim-light-normal:
@@ -80,34 +67,6 @@
 
   .dark,
   .dark :where([class*='intent-'], [data-accent-scope]) {
-    --shadow-xs: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 1px 0 rgba(0, 0, 0, 0.3);
-    --shadow-sm:
-      0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 1px 0 rgba(0, 0, 0, 0.26),
-      0 2px 2px 0 rgba(0, 0, 0, 0.26);
-    --shadow-md:
-      0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 1px 0 rgba(0, 0, 0, 0.22),
-      0 2px 2px 0 rgba(0, 0, 0, 0.22), 0 4px 4px 0 rgba(0, 0, 0, 0.22);
-    --shadow-lg:
-      0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 1px 0 rgba(0, 0, 0, 0.2),
-      0 2px 2px 0 rgba(0, 0, 0, 0.2), 0 4px 4px 0 rgba(0, 0, 0, 0.2),
-      0 8px 8px 0 rgba(0, 0, 0, 0.2);
-    --shadow-xl:
-      0 0 0 1px rgba(0, 0, 0, 0.4), 0 1px 1px 0 rgba(0, 0, 0, 0.18),
-      0 2px 2px 0 rgba(0, 0, 0, 0.18), 0 4px 4px 0 rgba(0, 0, 0, 0.18),
-      0 8px 8px 0 rgba(0, 0, 0, 0.18), 0 16px 16px 0 rgba(0, 0, 0, 0.18);
-    --shadow-2xl:
-      0 0 0 1px rgba(0, 0, 0, 0.4), 0 1px 1px 0 rgba(0, 0, 0, 0.16),
-      0 2px 2px 0 rgba(0, 0, 0, 0.16), 0 4px 4px 0 rgba(0, 0, 0, 0.16),
-      0 8px 8px 0 rgba(0, 0, 0, 0.16), 0 16px 16px 0 rgba(0, 0, 0, 0.16),
-      0 32px 32px 0 rgba(0, 0, 0, 0.16);
-    --inset-shadow-xs:
-      inset 0 1px 2px 0 rgba(0, 0, 0, 0.2),
-      inset 0 -1px 0 0 rgba(255, 255, 255, 0.04);
-    --inset-shadow-sm:
-      inset 0 1px 3px 0 rgba(0, 0, 0, 0.25),
-      inset 0 2px 6px -2px rgba(0, 0, 0, 0.2),
-      inset 0 -1px 0 0 rgba(255, 255, 255, 0.05);
-
     --rim-light-subtler: inset 0 1px 0 0 rgba(255, 255, 255, 0.02);
     --rim-light-subtle: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
     --rim-light-normal: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
@@ -122,7 +81,7 @@
     --sheen-highlight: color-mix(in oklch, var(--intent-9) 34%, transparent);
   }
 
-  /* ─── OKLCH tinted shadows (modern browsers) ─── */
+  /* ─── OKLCH tinted shadows ─── */
   @supports (color: oklch(0 0 0)) {
     :root,
     :where([class*='intent-'], [data-accent-scope]) {
@@ -215,34 +174,4 @@
 /* ─── Rim light utility ─── */
 @utility rim-light {
   box-shadow: var(--rim-light);
-}
-
-/* ─── Point the shadow utilities at the tokens ───
-   Tailwind compiles a shadow utility's @theme value in at build time, so
-   the .dark and oklch overrides above never reached `shadow-*` or
-   `inset-shadow-*`: only rules reading var(--shadow-*) followed the theme.
-   Setting the variables Tailwind composes keeps rings and insets stacking. */
-@utility shadow-xs {
-  --tw-shadow: var(--shadow-xs);
-}
-@utility shadow-sm {
-  --tw-shadow: var(--shadow-sm);
-}
-@utility shadow-md {
-  --tw-shadow: var(--shadow-md);
-}
-@utility shadow-lg {
-  --tw-shadow: var(--shadow-lg);
-}
-@utility shadow-xl {
-  --tw-shadow: var(--shadow-xl);
-}
-@utility shadow-2xl {
-  --tw-shadow: var(--shadow-2xl);
-}
-@utility inset-shadow-xs {
-  --tw-inset-shadow: var(--inset-shadow-xs);
-}
-@utility inset-shadow-sm {
-  --tw-inset-shadow: var(--inset-shadow-sm);
 }
