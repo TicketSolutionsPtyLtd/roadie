@@ -29,9 +29,10 @@ const EVERY_STEP = [
 ].flatMap((line) => line.split(' '))
 
 // Every colour namespace reads the same keys, so the other utilities need a
-// sample, not every step.
+// sample, not every step. None is the colour a probe inherits (text is
+// neutral-12), or a missing utility would pass.
 const OTHER_UTILITIES = [
-  'text-neutral-12 border-neutral-7 fill-neutral-0 stroke-neutral-13',
+  'text-neutral-11 border-neutral-7 fill-neutral-0 stroke-neutral-13',
   'text-brand-11 border-brand-7 fill-brand-9 stroke-brand-0',
   'text-accent-11 border-accent-7 fill-accent-9 stroke-accent-13',
   'text-danger-11 border-danger-7 fill-danger-9 stroke-danger-0',
