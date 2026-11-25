@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -27,9 +27,15 @@ const safelist = [
 const documented = names(sources('docs/src', /\.(mdx|tsx)$/))
 
 // Core defines the utilities; the packages built on it are where they're used.
+// Only folders with a `src` count, so a `.DS_Store` or a package folder another
+// branch left behind doesn't throw.
 const used = names(
   readdirSync(join(repo, 'packages'))
-    .filter((name) => !['core', 'lint-plugin'].includes(name))
+    .filter(
+      (name) =>
+        !['core', 'lint-plugin'].includes(name) &&
+        existsSync(join(repo, 'packages', name, 'src'))
+    )
     .map((name) => sources(`packages/${name}/src`, /\.(tsx?|vue|css)$/))
     .join('\n')
 )
