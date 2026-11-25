@@ -152,3 +152,46 @@ describe('Records floating bulk actions in a browser', () => {
     await expect.poll(more).toBeNull()
   })
 })
+
+function Scrolling() {
+  const records = useRecords({
+    data: testShows(40),
+    fields: showFields,
+    getRowId: (row) => row.id,
+    selectable: true,
+    defaultSelection: { ids: ['show-0'] }
+  })
+  return (
+    <div
+      data-testid='scroller'
+      style={{ width: 360, height: 400, overflow: 'auto' }}
+    >
+      <Records.Root
+        records={records}
+        layouts={[tableLayout(showColumns)]}
+        caption='Shows'
+      >
+        <Records.Content />
+        <Records.BulkActions actions={bulkActions(['Export orders'])} />
+      </Records.Root>
+      <p style={{ height: 600 }}>After the shows</p>
+    </div>
+  )
+}
+
+describe('Records bulk actions in a scroll box', () => {
+  it('rides the foot of the box while the records run past it, then rests at their end', async () => {
+    render(<Scrolling />)
+    await settle()
+    const box = screen.getByTestId('scroller')
+    const records = slot(box, 'records')
+    expect(rect(records).bottom).toBeGreaterThan(rect(box).bottom)
+    expect(rect(box).bottom - rect(floating()).bottom).toBeCloseTo(INSET, 0)
+
+    box.scrollTop = rect(records).height
+    await settle()
+    expect(rect(records).bottom).toBeLessThan(rect(box).bottom)
+    expect(rect(floating()).bottom).toBeLessThanOrEqual(rect(records).bottom)
+    expect(rect(records).bottom - rect(floating()).bottom).toBeLessThan(INSET)
+  })
+})
