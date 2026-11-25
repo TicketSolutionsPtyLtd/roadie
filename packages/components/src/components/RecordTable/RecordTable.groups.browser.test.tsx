@@ -161,6 +161,41 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(screen.getAllByText('Brisbane venues')).toHaveLength(2)
   })
 
+  it("lines a title's text and its heading content up with the first column's text", () => {
+    const fields = showFields.map((one) =>
+      one.key === 'status'
+        ? { ...one, groupHeading: () => <span>Doors at 7</span> }
+        : one
+    )
+    // Where an element's first text starts, past any padding.
+    const textLeft = (element: Element) => {
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+      let node = walker.nextNode()
+      while (node && !node.textContent!.trim()) node = walker.nextNode()
+      const range = document.createRange()
+      range.selectNodeContents(node!)
+      return range.getBoundingClientRect().left
+    }
+    for (const selectable of [false, true]) {
+      const { unmount } = render(
+        <ShowTable
+          data={testShows(6)}
+          fields={fields}
+          selectable={selectable}
+          defaultView={byStatus}
+        />
+      )
+      const cell = screen.getByText('Ocean Alley 1').closest('[role="cell"]')!
+      const title = screen.getByRole('heading', { name: 'On sale 2' })
+      expect(textLeft(title)).toBeCloseTo(textLeft(cell), 0)
+      expect(textLeft(screen.getAllByText('Doors at 7')[0]!)).toBeCloseTo(
+        textLeft(cell),
+        0
+      )
+      unmount()
+    }
+  })
+
   it('collapses a group from its title, keeping it out of the view, as its records change', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()
