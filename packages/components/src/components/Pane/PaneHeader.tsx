@@ -50,13 +50,7 @@ const HEADER_PARTS = [
 ]
 const ROW_ONE = new Set(['pane-title-compact', 'pane-actions'])
 
-/**
- * Publishes the parts of the header's height that Back and Close showing
- * doesn't change, so the stylesheet sums them in the frame a push shows
- * them and the pane's content restyles once (INNO-1678). Where its sum
- * misses the header, as in an engine without `if()`, the measured height
- * wins.
- */
+/** The parts of the header's height Back and Close don't change, which CSS sums as they show (INNO-1678); the measured height wins where the sum misses. */
 function publishHeaderParts(header: HTMLElement, paneEl: HTMLElement) {
   // A stretched first row hides its own height while an edge control shows.
   let row = 0
@@ -66,12 +60,12 @@ function publishHeaderParts(header: HTMLElement, paneEl: HTMLElement) {
       paneEl.style.setProperty(name, value)
   }
   return () => {
-    const height = header.getBoundingClientRect().height
+    const style = getComputedStyle(header)
+    const height = parseFloat(style.height) || 0
     if (height === 0) {
       set('--pane-header-measured', 0)
       return
     }
-    const style = getComputedStyle(header)
     const pad = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
     const floor = parseFloat(style.minHeight)
     // The floor is one control tall: Back or Close.
@@ -192,10 +186,25 @@ export function PaneHeader({
 
     const observer =
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
-    observer?.observe(header)
+    // Back or Close showing may leave the header's size alone, as beside a
+    // row of actions, and the sum still has to be checked.
+    const observeChildren = () => {
+      observer?.observe(header)
+      for (const child of header.children) observer?.observe(child)
+    }
+    observeChildren()
+    const children =
+      typeof MutationObserver === 'undefined'
+        ? null
+        : new MutationObserver(() => {
+            observeChildren()
+            publish()
+          })
+    children?.observe(header, { childList: true })
     const untrack = inDrawer ? undefined : trackHeader?.(header)
     return () => {
       observer?.disconnect()
+      children?.disconnect()
       untrack?.()
       paneEl.removeAttribute('data-header')
       for (const name of HEADER_PARTS) paneEl.style.removeProperty(name)

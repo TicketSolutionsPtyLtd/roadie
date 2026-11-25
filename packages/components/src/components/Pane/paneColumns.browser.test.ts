@@ -309,8 +309,9 @@ describe('an inspector', () => {
   })
 
   it('tells the row it sits in that the inspector yielded', () => {
+    // In a header's actions, as Pane.InspectorTrigger is.
     const trigger =
-      '<button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button>'
+      '<header><div><button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button></div></header>'
     const yielded = () =>
       getComputedStyle(document.getElementById('trigger')!).display !== 'none'
 
@@ -339,7 +340,7 @@ describe('an inspector', () => {
     'tells the row a %s inspector yielded, at its own thresholds',
     (size) => {
       const trigger =
-        '<button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button>'
+        '<header><div><button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button></div></header>'
       const yielded = () =>
         getComputedStyle(document.getElementById('trigger')!).display !== 'none'
 

@@ -13,9 +13,10 @@
   inherits: false;
   initial-value: 0;
 }
+/* Inherited: pane-inspector-yielded reads it from any depth. */
 @property --pane-levels {
   syntax: '<integer>';
-  inherits: false;
+  inherits: true;
   initial-value: 0;
 }
 @property --pane-fit {
@@ -88,9 +89,7 @@
   inherits: false;
   initial-value: 0;
 }
-/* The stack's state stays on the row and its panes. Inherited, each change
-   would restyle every element in every pane (INNO-1678), so none of it
-   inherits, and a pane takes what its own math reads from the row. */
+/* Pane.Header's parts, which the header's height sums. */
 @property --pane-header-rest {
   syntax: '<length>';
   inherits: false;
@@ -125,6 +124,7 @@
   syntax: '*';
   inherits: false;
 }
+/* The stack's state stays off the panes' content: inherited, each change restyles it all (INNO-1678). */
 @property --pane-reach {
   syntax: '*';
   inherits: false;
@@ -396,9 +396,7 @@
   [data-slot='pane'][data-depth] [data-slot='pane-back'] {
     display: var(--pane-back);
   }
-  /* The header's height, summed from parts Pane.Header measures that Back
-     and Close showing doesn't change, so it moves in the frame they show
-     and the pane's content restyles once on a push (INNO-1678). */
+  /* Summed, so it moves in the frame Back or Close shows (INNO-1678). */
   [data-slot='pane'][data-header] {
     /* Rounded as offsetHeight is, which the observer publishes otherwise. */
     --pane-header-fit: round(
@@ -470,7 +468,6 @@
   }
   [data-slot='navigator-panes'] > [data-slot='pane'] {
     --pane-base: inherit;
-    --pane-levels: inherit;
     --pane-reach: inherit;
     --pane-columns: inherit;
     --pane-start: inherit;

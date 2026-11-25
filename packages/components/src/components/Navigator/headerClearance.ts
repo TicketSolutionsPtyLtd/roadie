@@ -69,6 +69,12 @@ export function createHeaderClearance() {
         : new ResizeObserver(schedule)
     resize?.observe(frameElement)
     for (const header of headers) resize?.observe(header)
+    // A viewport portals into the body, and may mount after the last measure.
+    const added =
+      typeof MutationObserver === 'undefined'
+        ? null
+        : new MutationObserver(schedule)
+    added?.observe(document.body, { childList: true })
     window.addEventListener('resize', schedule)
     frameElement.addEventListener('transitionend', schedule)
     frameElement.addEventListener('transitioncancel', schedule)
@@ -78,6 +84,7 @@ export function createHeaderClearance() {
     return () => {
       resize?.disconnect()
       resize = null
+      added?.disconnect()
       window.removeEventListener('resize', schedule)
       frameElement.removeEventListener('transitionend', schedule)
       frameElement.removeEventListener('transitioncancel', schedule)

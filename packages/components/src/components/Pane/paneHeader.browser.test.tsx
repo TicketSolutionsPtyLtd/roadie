@@ -1,5 +1,6 @@
 import { type ReactElement, type ReactNode, act } from 'react'
 
+import { ShareIcon } from '@phosphor-icons/react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
@@ -16,6 +17,7 @@ import { page } from 'vitest/browser'
 
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { IconButton } from '../Button/IconButton'
 import { Navigator } from '../Navigator'
 import { Skeleton } from '../Skeleton'
 import { COLLAPSE_AT, EXPAND_AT } from './PaneRoot'
@@ -283,6 +285,53 @@ describe('a pane header in a phone stack', () => {
       expect(heightOf(row)).toBeCloseTo(before, 0)
     }
   )
+
+  it('follows Close hiding where its actions hold the header still', async () => {
+    await page.viewport(1280, 800)
+    const wide = (deeper: boolean) => (
+      <div style={{ height: '100vh', display: 'grid' }}>
+        <Navigator value='/shows'>
+          <Pane column='list' aria-label='Shows'>
+            <Pane.Header>
+              <Pane.Title>Shows</Pane.Title>
+            </Pane.Header>
+          </Pane>
+          <Pane reached aria-label='Show'>
+            <Pane.Header onBack={() => {}}>
+              <Pane.Title>The Rolling Kazoos</Pane.Title>
+              <Pane.Actions>
+                <IconButton aria-label='Share'>
+                  <ShareIcon weight='bold' className='size-5' />
+                </IconButton>
+              </Pane.Actions>
+            </Pane.Header>
+            <p data-row>Doors 7pm</p>
+          </Pane>
+          <Pane reached={deeper} aria-label='Tickets'>
+            <Pane.Header onBack={() => {}}>
+              <Pane.Title>Tickets</Pane.Title>
+            </Pane.Header>
+          </Pane>
+        </Navigator>
+      </div>
+    )
+    const { rerender } = render(wide(false))
+    await settle()
+    const header = document.querySelector(
+      '[data-slot="pane"][aria-label="Show"] [data-slot="pane-header"]'
+    )!
+    const row = document.querySelector('[data-row]')!
+    const close = () =>
+      getComputedStyle(header.querySelector('[data-slot="pane-close"]')!)
+        .display
+    expect(close()).not.toBe('none')
+    expect(heightOf(row)).toBeCloseTo(header.getBoundingClientRect().height, 0)
+
+    act(() => rerender(wide(true)))
+    await settle()
+    expect(close()).toBe('none')
+    expect(heightOf(row)).toBeCloseTo(header.getBoundingClientRect().height, 0)
+  })
 })
 
 describe('a pane header from the server', () => {
