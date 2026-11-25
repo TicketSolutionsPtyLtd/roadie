@@ -1,7 +1,12 @@
 import { type ClassValue, clsx } from 'clsx'
-import { extendTailwindMerge } from 'tailwind-merge'
+import {
+  type ConfigExtension,
+  type DefaultClassGroupIds,
+  type DefaultThemeGroupIds,
+  extendTailwindMerge
+} from 'tailwind-merge'
 
-const twMerge = extendTailwindMerge<
+type RoadieClassGroupIds =
   | 'semantic-text-color'
   | 'semantic-bg-color'
   | 'semantic-border-color'
@@ -10,7 +15,9 @@ const twMerge = extendTailwindMerge<
   | 'selection'
   | 'link'
   | 'prose-size'
->({
+
+// Exported so classFamilies.test.ts can check each group against core's CSS.
+export const mergeConfig = {
   extend: {
     classGroups: {
       duration: [
@@ -84,7 +91,8 @@ const twMerge = extendTailwindMerge<
         'text-subtler',
         'text-strong',
         'text-inverted',
-        'text-on-strong'
+        'text-on-strong',
+        'text-mark'
       ],
       'semantic-bg-color': [
         'bg-normal',
@@ -94,6 +102,7 @@ const twMerge = extendTailwindMerge<
         'bg-inverted',
         'bg-raised',
         'bg-sunken',
+        'bg-mark',
         'surface-floating'
       ],
       'semantic-border-color': [
@@ -144,7 +153,12 @@ const twMerge = extendTailwindMerge<
       'semantic-border-color': ['border-color']
     }
   }
-})
+} satisfies ConfigExtension<
+  RoadieClassGroupIds | DefaultClassGroupIds,
+  DefaultThemeGroupIds
+>
+
+const twMerge = extendTailwindMerge<RoadieClassGroupIds>(mergeConfig)
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

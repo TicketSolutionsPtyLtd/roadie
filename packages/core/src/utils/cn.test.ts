@@ -30,44 +30,6 @@ describe('cn', () => {
     expect(cn('emphasis-sunken', 'emphasis-field')).toBe('emphasis-field')
   })
 
-  it('merges every emphasis preset in emphasis.css', () => {
-    const presets = readFileSync(
-      fileURLToPath(new URL('../css/emphasis.css', import.meta.url)),
-      'utf8'
-    ).match(/(?<=@utility )emphasis-[\w-]+/g)
-
-    expect(presets?.length).toBeGreaterThan(0)
-    for (const preset of presets ?? []) {
-      expect(cn(preset, 'emphasis-normal')).toBe('emphasis-normal')
-    }
-  })
-
-  it('merges every intent in intents.css', () => {
-    const intents = readFileSync(
-      fileURLToPath(new URL('../css/intents.css', import.meta.url)),
-      'utf8'
-    ).match(/(?<=@utility )intent-[\w-]+/g)
-
-    expect(intents).toContain('intent-brand-purple')
-    for (const intent of intents ?? []) {
-      expect(cn(intent, 'intent-neutral')).toBe('intent-neutral')
-      expect(cn('intent-neutral', intent)).toBe(intent)
-    }
-  })
-
-  it('lets a consumer’s link emphasis replace a component’s', () => {
-    const links = readFileSync(
-      fileURLToPath(new URL('../css/links.css', import.meta.url)),
-      'utf8'
-    ).match(/(?<=@utility )link-[\w-]+/g)
-
-    expect(links).toContain('link-subtle')
-    for (const link of links ?? []) {
-      expect(cn(link, 'link-normal')).toBe('link-normal')
-      expect(cn('link-normal', link)).toBe(link)
-    }
-  })
-
   it('dedupes the selection states, which each set the label colour', () => {
     const states = readFileSync(
       fileURLToPath(new URL('../css/emphasis.css', import.meta.url)),
@@ -153,18 +115,6 @@ describe('cn', () => {
   it('dedupes Roadie named z-index tiers', () => {
     expect(cn('z-overlay', 'z-modal')).toBe('z-modal')
     expect(cn('z-popover', 'z-tooltip')).toBe('z-tooltip')
-  })
-
-  it('dedupes every z-index tier layering.css defines', () => {
-    const css = readFileSync(
-      fileURLToPath(new URL('../css/layering.css', import.meta.url)),
-      'utf8'
-    )
-    const tiers = [...css.matchAll(/--z-index-([a-z][a-z-]*):/g)].map(
-      ([, tier]) => `z-${tier}`
-    )
-    expect(tiers).toContain('z-alert')
-    for (const tier of tiers) expect(cn('z-base', tier)).toBe(tier)
   })
 
   it('dedupes a Roadie named z-index against a numeric z-index', () => {
