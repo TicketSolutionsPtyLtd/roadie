@@ -47,7 +47,7 @@ export function namedRows(budget, subpaths) {
   const bad = rows.filter(({ subpath }) => !subpaths.includes(subpath))
   if (bad.length > 0)
     throw new Error(
-      `${BUDGET_FILE} has named rows that aren't "<exported subpath> { name, name }": ${bad.map(({ row }) => JSON.stringify(row)).join(', ')}`
+      `${BUDGET_FILE} has named rows that aren't "<exported subpath> { name, name }": ${bad.map(({ row }) => JSON.stringify(row)).join(', ')}. Fix each, or delete it if its subpath was removed.`
     )
   return rows
 }

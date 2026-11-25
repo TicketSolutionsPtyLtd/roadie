@@ -20,16 +20,22 @@ const { name, exports } = JSON.parse(readFileSync('package.json', 'utf8'))
 const budget = existsSync(BUDGET_FILE)
   ? JSON.parse(readFileSync(BUDGET_FILE, 'utf8'))
   : {}
+const subpaths = jsSubpaths(exports)
+// Before measuring, so a bad row fails in a second, not after the whole run.
+const rows = namedRows(
+  budget,
+  subpaths.map(({ subpath }) => subpath)
+)
 const started = performance.now()
 const measured = {}
 const files = {}
-for (const { subpath, file } of jsSubpaths(exports)) {
+for (const { subpath, file } of subpaths) {
   if (!existsSync(file))
     throw new Error(`${name}: ${file} is missing. Build the package first.`)
   files[subpath] = resolve(file)
   measured[subpath] = await measure(files[subpath])
 }
-for (const { row, subpath, names } of namedRows(budget, Object.keys(files)))
+for (const { row, subpath, names } of rows)
   measured[row] = await measure(files[subpath], names)
 const took = `${((performance.now() - started) / 1000).toFixed(1)}s`
 

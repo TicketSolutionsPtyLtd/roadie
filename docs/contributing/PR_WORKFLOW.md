@@ -99,7 +99,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   Set one, or raise one, to about 10% above what you measure, never just
   above it, or the next small change crosses it again. After changing a
   package's CSS, build it and run `pnpm --filter <package> size`, which reads
-  `dist`.
+  `dist`. The scanned budgets include core's floor, so after core's CSS grows,
+  run `size` in components, charts, and editor too.
 - **Changing Turbo config?** Read the installed turbo's `docs/README.md`
   first; the installed version may differ from what you know.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
