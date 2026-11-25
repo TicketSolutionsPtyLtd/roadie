@@ -71,16 +71,21 @@
     "lint": "oxlint src",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "build:css:size": "tailwindcss -i scripts/css-size.css -o node_modules/.cache/roadie/editor.css --minify",
+    "build:css:size": "tailwindcss -i scripts/css-rules.css -o node_modules/.cache/roadie/editor.rules.css --minify && tailwindcss -i scripts/css-scanned.css -o node_modules/.cache/roadie/editor.scanned.css --minify",
     "size": "pnpm build:css:size && size-limit && node ../../scripts/size-budget.mjs --check",
     "size:check": "pnpm size",
     "size:update": "node ../../scripts/size-budget.mjs --update"
   },
   "size-limit": [
     {
-      "name": "css/editor sheet",
-      "path": "node_modules/.cache/roadie/editor.css",
+      "name": "css/editor rules",
+      "path": "node_modules/.cache/roadie/editor.rules.css",
       "limit": "2.15 KB"
+    },
+    {
+      "name": "css/editor with dist scanned, and the floor",
+      "path": "node_modules/.cache/roadie/editor.scanned.css",
+      "limit": "18.6 KB"
     }
   ],
   "dependencies": {

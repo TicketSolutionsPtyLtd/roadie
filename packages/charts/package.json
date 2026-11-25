@@ -135,16 +135,21 @@
     "lint": "oxlint src",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "build:css:size": "tailwindcss -i scripts/css-size.css -o node_modules/.cache/roadie/charts.css --minify",
+    "build:css:size": "tailwindcss -i scripts/css-rules.css -o node_modules/.cache/roadie/charts.rules.css --minify && tailwindcss -i scripts/css-scanned.css -o node_modules/.cache/roadie/charts.scanned.css --minify",
     "size": "pnpm build:css:size && size-limit && node ../../scripts/size-budget.mjs --check",
     "size:check": "pnpm size",
     "size:update": "node ../../scripts/size-budget.mjs --update"
   },
   "size-limit": [
     {
-      "name": "css/charts sheet",
-      "path": "node_modules/.cache/roadie/charts.css",
+      "name": "css/charts rules",
+      "path": "node_modules/.cache/roadie/charts.rules.css",
       "limit": "1.25 KB"
+    },
+    {
+      "name": "css/charts with dist scanned, and the floor",
+      "path": "node_modules/.cache/roadie/charts.scanned.css",
+      "limit": "14.4 KB"
     }
   ],
   "dependencies": {

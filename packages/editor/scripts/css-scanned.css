@@ -1,0 +1,5 @@
+/* What `@oztix/roadie-editor/css` costs an app on top of the foundations floor:
+   its rules plus every utility its @source finds in dist, for Size Limit.
+   Build the package first. */
+@import '@oztix/roadie-core/css' source(none);
+@import '../src/css/editor.css';

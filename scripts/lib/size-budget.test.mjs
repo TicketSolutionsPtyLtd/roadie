@@ -9,6 +9,7 @@ import {
   checkBudget,
   jsSubpaths,
   namedImport,
+  namedRows,
   serialise
 } from './size-budget.mjs'
 
@@ -45,6 +46,25 @@ describe('namedImport', () => {
   ])
     test(`reads ${JSON.stringify(row)}`, () => {
       assert.deepEqual(namedImport(row), expected)
+    })
+})
+
+describe('namedRows', () => {
+  const exported = ['.', './spot']
+  test('lists each named row with its subpath and names', () => {
+    const budget = { '.': sizes(1), './spot { Heart }': {}, './spot': sizes(1) }
+    assert.deepEqual(namedRows(budget, exported), [
+      { row: './spot { Heart }', subpath: './spot', names: ['Heart'] }
+    ])
+  })
+
+  // --update keeps only the rows it measures, so these would vanish unseen.
+  for (const row of ['./spot {Heart}', '.  { cn }', './spt { Heart }'])
+    test(`refuses ${JSON.stringify(row)}`, () => {
+      assert.throws(
+        () => namedRows({ [row]: {} }, exported),
+        new RegExp(row.replace(/[{}.*]/g, '\\$&'))
+      )
     })
 })
 

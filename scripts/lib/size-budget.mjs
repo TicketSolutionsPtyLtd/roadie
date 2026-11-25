@@ -38,6 +38,20 @@ export function namedImport(row) {
   return match && { subpath: match[1], names: match[2].split(/,\s*/) }
 }
 
+// The named rows to measure. --update keeps only what it measures, so a row it
+// can't read, or one whose subpath is gone, stops the run instead of vanishing.
+export function namedRows(budget, subpaths) {
+  const rows = Object.keys(budget)
+    .filter((row) => row.includes('{'))
+    .map((row) => ({ row, ...namedImport(row) }))
+  const bad = rows.filter(({ subpath }) => !subpaths.includes(subpath))
+  if (bad.length > 0)
+    throw new Error(
+      `${BUDGET_FILE} has named rows that aren't "<exported subpath> { name, name }": ${bad.map(({ row }) => JSON.stringify(row)).join(', ')}`
+    )
+  return rows
+}
+
 function initialChunks(chunks) {
   const byName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]))
   const initial = new Set()

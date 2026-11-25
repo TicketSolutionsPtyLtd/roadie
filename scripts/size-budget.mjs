@@ -12,7 +12,7 @@ import {
   checkBudget,
   jsSubpaths,
   measure,
-  namedImport,
+  namedRows,
   serialise
 } from './lib/size-budget.mjs'
 
@@ -29,12 +29,8 @@ for (const { subpath, file } of jsSubpaths(exports)) {
   files[subpath] = resolve(file)
   measured[subpath] = await measure(files[subpath])
 }
-// A row whose subpath is gone stays unmeasured, so the check says so.
-for (const row of Object.keys(budget)) {
-  const named = namedImport(row)
-  if (named && files[named.subpath])
-    measured[row] = await measure(files[named.subpath], named.names)
-}
+for (const { row, subpath, names } of namedRows(budget, Object.keys(files)))
+  measured[row] = await measure(files[subpath], names)
 const took = `${((performance.now() - started) / 1000).toFixed(1)}s`
 
 if (process.argv.includes('--update')) {
