@@ -8,11 +8,10 @@ import type { RecordField } from '@oztix/roadie-core/records'
 
 import { List } from '../List'
 import { ListItemStatic } from '../List/ListItemStatic'
-import { RecordsGroupSettings } from '../Records/RecordsGroupSettings'
+import { RecordsLayoutGroupSettings } from '../Records/RecordsGroupSettings'
 import { useRecordsData } from '../Records/context'
 import { Sortable } from '../Sortable'
 import { Toggle } from '../Toggle'
-import { gridGroupFields, gridGroupLevelsLayout } from './groupBy'
 import {
   type DetailsLayout,
   definedDetails,
@@ -37,23 +36,11 @@ export function RecordGridSettings({ config, type = 'grid' }: SettingsProps) {
   return (
     <>
       <DetailsSettings config={config} type={type} />
-      {type === 'grid' && <GridGroupSettings />}
+      {type === 'grid' && <RecordsLayoutGroupSettings type='grid' />}
     </>
   )
 }
 RecordGridSettings.displayName = 'RecordGridSettings'
-
-function GridGroupSettings() {
-  const { fields, view, setLayout } = useRecordsData()
-  return (
-    <RecordsGroupSettings
-      levels={gridGroupFields(fields, view.layout).map(({ key }) => key)}
-      onLevels={(levels) =>
-        setLayout(gridGroupLevelsLayout(view.layout, levels))
-      }
-    />
-  )
-}
 
 function DetailsSettings({ config, type = 'grid' }: SettingsProps) {
   const records = useRecordsData()

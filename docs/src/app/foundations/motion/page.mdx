@@ -471,7 +471,8 @@ recipe.
 <Guideline title='Grow from where they are' description='An element that expands should expand from its anchor.'>
   <Guideline.Do code={`<div className='origin-[var(--transform-origin)] motion-scale'>…</div>`}>
     Scale a popup from its trigger. Base UI sets `--transform-origin`, and
-    Menu, Popover, Tooltip, Select, and Combobox already scale from it.
+    Menu, Popover, Tooltip, Select, Combobox, and Autocomplete already
+    scale from it.
   </Guideline.Do>
   <Guideline.Dont code={`<div className='origin-center motion-scale'>…</div>`}>
     Don't scale a popup from its centre when its trigger is in a corner. It

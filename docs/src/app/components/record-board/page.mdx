@@ -87,7 +87,7 @@ render(<Events />)
 
 ### Lanes
 
-Give `groupBy` two fields, and the second makes a lane across the columns for each of its options, in option order, then one for records with no value, such as "No milestone". Every lane shows, even with no cards. The column headers stay in view as the lanes scroll, and each counts its column across every lane. A lane's title opens and closes it for the session; it isn't saved in the view or the URL. Give the lane field `groupHeading` for content under each lane's title, such as a milestone's dates. Cards move between columns within their lane, and `onMove` gets only the column's field.
+Give `groupBy` two fields, and the second makes a lane across the columns for each of its options, in option order, then one for records with no value, such as "No milestone". Every lane shows, even with no cards. The column headers stay in view as the lanes scroll, and each counts its column across every lane. A lane's title opens and closes it for the session; it isn't saved in the view or the URL. Give the lane field `groupHeading` for content under each lane's title, such as a milestone's dates. A card drags to any column in any lane. `onMove` gets each grouping field the move changed: `{ activity: 'buy' }` within a lane, `{ milestone: 'launch' }` to the same column in another lane, or both, with null for "No activity" or "No milestone". A collapsed lane takes no drops until it opens, but the Move menu still moves a card into it.
 
 ```tsx-live-noinline-expand
 const stories = [
@@ -178,7 +178,7 @@ const layouts = [
 
 ### On a phone
 
-The columns sit in a row that scrolls sideways, each about 85% of the width, so the next column peeks in. A card dragged to the edge of the screen drops into the column there; the Move menu reaches every column. With lanes, the columns and their headers scroll sideways together, each lane a section inside every column, and lane titles stay at the start of the screen.
+The columns sit in a row that scrolls sideways, each about 85% of the width, so the next column peeks in. A card dragged to the edge of the screen drops into the column there; the Move menu reaches every column, and every lane. With lanes, the columns and their headers scroll sideways together, each lane a section inside every column, and lane titles stay at the start of the screen.
 
 ### Column counts
 
@@ -205,6 +205,7 @@ Each column and lane counts the records loaded into it. With a server, that's th
 
 - The board is a group named by the records' caption, holding a region for each column, named by its option.
 - With lanes, the board holds a region for each lane instead, named by its option. Its title is a heading inside the `summary` of a `details` element, so it opens and closes the lane and is announced as expanded or collapsed. Inside, each column's cards are a group named by the column. The column headers above the lanes are hidden from screen readers, since each group names its column.
-- Each card's handle opens a Move menu on click, Enter or Space. An item such as "Move Marzipan Thunderclap to Sold out" moves the card to that column, where it takes its place in the view's sort, and focus follows it. With lanes, the menu lists the columns in the card's lane.
-- The column a card joins announces the move. A rejected move shows its message in an alert.
+- Each card's handle opens a Move menu on click, Enter or Space. An item such as "Move Marzipan Thunderclap to Sold out" moves the card to that column, where it takes its place in the view's sort, and focus follows it. With lanes, the menu lists the columns in the card's lane, then each other lane as a submenu of its columns, opened with the Right arrow, as in "Move Search shows near me to Buy tickets in Launch". This keeps the menu to one item per column and lane, not one per pair.
+- A move from the menu is announced in the column the card left, as in "Search shows near me moved to position 1 of 1 Buy tickets in Launch". A dragged card's new column announces it. A rejected move shows its message in an alert.
+- A card moved into a collapsed lane leaves the lane collapsed, and focus goes to the lane's title.
 - Each card's title links to its record through `getRowHref`.

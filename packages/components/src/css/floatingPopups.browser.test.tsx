@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import roadieCss from '../../vitest.browser.css?inline'
 import { Autocomplete } from '../components/Autocomplete'
 import { Combobox } from '../components/Combobox'
+import { Menu } from '../components/Menu'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { Select } from '../components/Select'
 import { apcaLc, over, shownFill } from './contrastTestUtils'
@@ -111,4 +112,47 @@ describe.each(popups)('%s in dark mode', (_, popup, text) => {
     const label = await screen.findByText(text)
     expect(contrast(label)).toBeGreaterThanOrEqual(BODY_TEXT_LC)
   })
+})
+
+// What a change to popup elevation or motion moves: Menu is the reference.
+const RECIPE = [
+  'border-top-width',
+  'border-top-left-radius',
+  'box-shadow',
+  'backdrop-filter',
+  'transition-property',
+  'transition-duration',
+  'transition-timing-function'
+] as const
+
+async function recipe(slot: string) {
+  await expect
+    .poll(() => document.querySelector(`[data-slot=${slot}]`))
+    .not.toBeNull()
+  const style = getComputedStyle(document.querySelector(`[data-slot=${slot}]`)!)
+  return Object.fromEntries(RECIPE.map((name) => [name, style[name as never]]))
+}
+
+describe.each(['light', 'dark'])('list popups in %s mode', (mode) => {
+  const slots = ['select-popup', 'combobox-popup', 'autocomplete-popup']
+  it.each(popups.map(([name, popup], i) => [name, popup, slots[i]!] as const))(
+    '%s popup floats and moves like a Menu, without the blur',
+    async (_, popup, slot) => {
+      document.documentElement.classList.toggle('dark', mode === 'dark')
+      render(
+        <Menu defaultOpen>
+          <Menu.Trigger>Actions</Menu.Trigger>
+          <Menu.Content>
+            <Menu.Item>Edit</Menu.Item>
+          </Menu.Content>
+        </Menu>
+      )
+      const menu = await recipe('menu-popup')
+      cleanup()
+      render(popup())
+      // No blur: it repaints under every keystroke and frame of the exit,
+      // which Combobox.perf and Select.perf miss 60fps on.
+      expect(await recipe(slot)).toEqual({ ...menu, 'backdrop-filter': 'none' })
+    }
+  )
 })

@@ -5,6 +5,11 @@ import { useId } from 'react'
 import { Field } from '../Field'
 import { Select } from '../Select'
 import { useRecordsData } from './context'
+import {
+  type GroupedLayoutType,
+  groupFields,
+  groupLevelsLayout
+} from './groupBy'
 import { groupableFields } from './groups'
 
 const levelNames = ['Group by', 'Then by', 'And then by'] as const
@@ -73,3 +78,20 @@ export function RecordsGroupSettings({
   )
 }
 RecordsGroupSettings.displayName = 'RecordsGroupSettings'
+
+/** The shown layout's Group by levels, read from and written to the view. */
+export function RecordsLayoutGroupSettings({
+  type
+}: {
+  type: GroupedLayoutType
+}) {
+  const { fields, view, setLayout } = useRecordsData()
+  return (
+    <RecordsGroupSettings
+      levels={groupFields(fields, view.layout).map(({ key }) => key)}
+      onLevels={(levels) =>
+        setLayout(groupLevelsLayout(type, view.layout, levels))
+      }
+    />
+  )
+}
