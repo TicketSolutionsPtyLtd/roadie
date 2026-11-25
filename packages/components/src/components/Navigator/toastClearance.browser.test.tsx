@@ -53,34 +53,30 @@ async function settle() {
 function App({
   manager,
   position,
-  detailReached = true,
-  navigator = true
+  detailReached = true
 }: {
   manager: ReturnType<typeof createToastManager>
   position: ToastPosition
   detailReached?: boolean
-  navigator?: boolean
 }) {
   return (
     <Toast.Provider toastManager={manager}>
       <div style={{ height: '100vh', display: 'grid' }}>
-        {navigator && (
-          <Navigator value='/shows/corduroy'>
-            <Pane column='list'>
-              <Pane.Header>
-                <Pane.Title>Shows</Pane.Title>
-              </Pane.Header>
-              <p>Corduroy Lagoon Sessions</p>
-            </Pane>
-            <Pane reached={detailReached}>
-              <Pane.Header onBack={() => {}}>
-                <Pane.Title>Corduroy Lagoon Sessions</Pane.Title>
-                <Pane.Search value='' onValueChange={() => {}} />
-              </Pane.Header>
-              <div style={{ height: 4000 }}>Doors 7pm</div>
-            </Pane>
-          </Navigator>
-        )}
+        <Navigator value='/shows/corduroy'>
+          <Pane column='list'>
+            <Pane.Header>
+              <Pane.Title>Shows</Pane.Title>
+            </Pane.Header>
+            <p>Corduroy Lagoon Sessions</p>
+          </Pane>
+          <Pane reached={detailReached}>
+            <Pane.Header onBack={() => {}}>
+              <Pane.Title>Corduroy Lagoon Sessions</Pane.Title>
+              <Pane.Search value='' onValueChange={() => {}} />
+            </Pane.Header>
+            <div style={{ height: 4000 }}>Doors 7pm</div>
+          </Pane>
+        </Navigator>
       </div>
       <Toast.Viewport position={position} />
     </Toast.Provider>
@@ -89,7 +85,7 @@ function App({
 
 async function renderApp(position: ToastPosition) {
   const manager = createToastManager()
-  const { container, rerender } = render(
+  const { container, rerender, unmount } = render(
     <App manager={manager} position={position} />
   )
   await settle()
@@ -124,11 +120,7 @@ async function renderApp(position: ToastPosition) {
     )
     await settle()
   }
-  const unmountNavigator = async () => {
-    rerender(<App manager={manager} position={position} navigator={false} />)
-    await frames()
-  }
-  return { lowestHeaderEdge, toast, detail, popToList, unmountNavigator }
+  return { lowestHeaderEdge, toast, detail, popToList, unmount }
 }
 
 async function collapse(viewport: HTMLElement) {
@@ -211,17 +203,21 @@ describe('a top toast in a Pane app', () => {
     expect(WIDE.height - toast().bottom).toBeCloseTo(WIDE.edge, 0)
   })
 
-  it('writes the clearance on the toast viewport, not the page, and clears it once Navigator unmounts', async () => {
+  it('writes the clearance on each toast viewport, not the page, and clears it once the app unmounts', async () => {
     await page.viewport(WIDE.width, WIDE.height)
-    const { unmountNavigator } = await renderApp('top-end')
-    const viewport = () =>
-      document.querySelector<HTMLElement>('[data-slot="toast-viewport"]')!
+    render(
+      <Toast.Provider>
+        <Toast.Viewport data-testid='kept' position='top-end' />
+      </Toast.Provider>
+    )
+    const { unmount } = await renderApp('top-end')
+    const kept = document.querySelector<HTMLElement>('[data-testid="kept"]')!
     // On <html>, a change restyles the whole page (INNO-1678).
     expect(document.documentElement.style.getPropertyValue(CLEARANCE)).toBe('')
-    expect(viewport().style.getPropertyValue(CLEARANCE)).not.toBe('')
+    expect(kept.style.getPropertyValue(CLEARANCE)).not.toBe('')
+    unmount()
+    await frames()
 
-    await unmountNavigator()
-
-    expect(viewport().style.getPropertyValue(CLEARANCE)).toBe('')
+    expect(kept.style.getPropertyValue(CLEARANCE)).toBe('')
   })
 })
