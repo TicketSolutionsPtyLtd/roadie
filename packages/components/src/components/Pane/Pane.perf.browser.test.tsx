@@ -132,10 +132,11 @@ async function measureStep(scenario: string, step: () => void) {
 // A push of empty panes cost 32 to 48ms of style over two CI Perf runs
 // (CPU 1.8x to 2x); this is the higher plus 10%.
 const STYLE_CAP = 53
-// A push over content cost 218 to 272ms before INNO-1678 and CONTENT_CI after
-// it; this is the higher plus 10%. What's left is each pane's visibility,
-// pointer-events and --pane-back changing over its whole subtree.
-const CONTENT_STYLE_CAP = 120
+// A push over content cost 218 to 272ms of style before INNO-1678, and 113ms
+// (100 rows) and 145ms (a RecordTable) after it, at CPU 2.2x; this is the
+// higher plus 10%. What's left is each pane's visibility, pointer-events and
+// --pane-back changing over its whole subtree.
+const CONTENT_STYLE_CAP = 160
 
 const PUSHES: {
   name: string
@@ -150,16 +151,13 @@ const PUSHES: {
     name: '100 list rows',
     content: 'rows',
     onPush: false,
-    styleCap: CONTENT_STYLE_CAP,
-    pushMiss: 'INNO-1677',
-    popMiss: 'INNO-1677'
+    styleCap: CONTENT_STYLE_CAP
   },
   {
     name: 'a RecordTable of 100 the push mounts',
     content: 'table',
     onPush: true,
-    styleCap: CONTENT_STYLE_CAP,
-    pushMiss: 'INNO-1677'
+    styleCap: CONTENT_STYLE_CAP
   }
 ]
 
