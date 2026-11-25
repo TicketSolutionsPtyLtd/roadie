@@ -89,6 +89,7 @@ Keep the list. It's what step 5 checks off.
 | `@oztix/roadie-components/spot-illustrations`                                                                                                          | `spot-illustrations` | `SpotIllustration`, `createSpotIllustration`, and the CSS import |
 | `intent` on `Input`, `Textarea`, `Select.Trigger`, `Field.Input`, `Field.Textarea`                                                                     | None                 | Always, see step 5                                               |
 | `motion-fade-in`, `motion-scale-in`, `motion-pop-in`, `motion-fade-out`, `motion-scale-out`                                                            | None                 | Always, see step 5                                               |
+| `narrow: 'detail'` on a `RecordTable` column (one value of a type, so not in the manifest)                                                             | None                 | Always, see step 5                                               |
 | Anything else                                                                                                                                          | None                 | Follow its reason                                                |
 
 A codemod changes only what it can prove keeps behaviour, apart from the
@@ -239,6 +240,10 @@ Work through the reports and the step 2 list.
   `motion-scale-in` to `animate-scale-in`, and `motion-pop-in` to
   `animate-pop-in`. `motion-fade-out` and `motion-scale-out` have no
   replacement; use `motion-scale` or `motion-slide` for the exit.
+- **`RecordTable` cards.** Remove `narrow: 'detail'` from the columns, and
+  `narrow` from `tableLayout` and `RecordTable`. A narrow table then shows
+  list rows. Where the records should stay cards, show them in `RecordGrid`
+  and name the details in its `card`.
 - **`.vue` files.** jscodeshift can't parse them. Make the same widget
   renames by hand in each `<script>` block and template.
 - **Anything else.** Do what the reason says. If it names no replacement,
