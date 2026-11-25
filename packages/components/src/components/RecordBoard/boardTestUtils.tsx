@@ -5,7 +5,7 @@ import { screen, within } from '@testing-library/react'
 import { boardLayout } from '.'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
-import type { RecordsField } from '../Records/types'
+import type { RecordViewDefaults, RecordsField } from '../Records/types'
 import type { RecordGroupChanges } from './types'
 
 export type Move = (
@@ -24,6 +24,7 @@ export function Shows({
   fields = showFields,
   movable = true,
   selected,
+  defaultView,
   save = (_, status) => status ?? ''
 }: {
   onMove?: Move
@@ -32,6 +33,7 @@ export function Shows({
   fields?: readonly RecordsField[]
   movable?: boolean
   selected?: string[]
+  defaultView?: RecordViewDefaults
   /** The status the app stores once a move resolves, or undefined to leave its data as it was. */
   save?: (show: TestShow, status: string | null) => string | undefined
 }) {
@@ -40,6 +42,7 @@ export function Shows({
     data,
     fields,
     getRowId: (row) => row.id,
+    defaultView,
     selectable: selected !== undefined,
     defaultSelection: selected && { ids: selected }
   })

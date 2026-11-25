@@ -92,6 +92,38 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     )
   })
 
+  it('names the field the view groups by, when it isn’t the definition’s', async () => {
+    const user = userEvent.setup()
+    const onMove = vi.fn<Move>()
+    const city = recordFields<TestShow>().option('city', {
+      label: 'City',
+      options: [
+        { value: 'Brisbane', label: 'Brisbane' },
+        { value: 'Melbourne', label: 'Melbourne' }
+      ]
+    })
+    render(
+      <Shows
+        onMove={onMove}
+        save={() => undefined}
+        fields={[...showFields.filter(({ key }) => key !== 'city'), city]}
+        defaultView={{ layout: { type: 'board', groupBy: ['city'] } }}
+      />
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
+    )
+    await user.click(
+      await screen.findByRole('menuitem', {
+        name: 'Move Ocean Alley 1 to Melbourne'
+      })
+    )
+    expect(onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'show-0' }),
+      { city: 'Melbourne' }
+    )
+  })
+
   it('drags a card into an empty column', async () => {
     const onMove = vi.fn<Move>()
     render(<Shows onMove={onMove} shows={testShows(3)} />)
