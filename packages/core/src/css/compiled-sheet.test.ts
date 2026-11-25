@@ -90,6 +90,16 @@ describe('roadie.compiled.css', () => {
     expect(sheet.match(/--color-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
   })
 
+  it('declares shadows and the field edge without a copy for older browsers', () => {
+    const shadows = sheet.match(/(?<![\w-])--(?:inset-)?shadow-[\w-]+:[^;}]*/g)
+    expect(shadows?.length).toBeGreaterThan(0)
+    expect(shadows?.filter((d) => !d.includes('oklch('))).toEqual([])
+    expect(sheet.match(/--field-border-color:[^;}]*/g)).toEqual([
+      expect.stringContaining('color-mix('),
+      expect.stringContaining('color-mix(')
+    ])
+  })
+
   it('needs no browser support for CSS nesting', () => {
     expect(sheet.replace(/"[^"]*"|'[^']*'/g, '').includes('&')).toBe(false)
   })
