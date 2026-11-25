@@ -6,9 +6,12 @@ import { commands, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { Checkbox } from '../components/Checkbox'
+import { Combobox } from '../components/Combobox'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { RadioGroup } from '../components/RadioGroup'
 import { Select } from '../components/Select'
+import { Toggle } from '../components/Toggle'
+import { ToggleGroup } from '../components/ToggleGroup'
 import { pointAt } from '../utils/pointerTestUtils'
 import { setHoverCapable } from './testUtils'
 
@@ -252,28 +255,54 @@ describe('around an interactive emphasis', () => {
     expectLook(button.querySelector('span')!, PRESETS.subtle!.rest)
   })
 
-  // A caller's fill and shadow hold at rest and its border in every state;
-  // the emphasis repaints fill and shadow on hover, focus and press.
-  const edge = { border: '.border-strong' }
-  const CALLER: States = {
-    rest: { fill: '.bg-sunken', shadow: '.shadow-lg', ...edge },
-    hover: { ...PRESETS.normal!.hover, ...edge },
-    active: { ...PRESETS.normal!.active, ...edge }
-  }
-  describe.each(
-    Object.entries(
-      surfaces('emphasis-normal bg-sunken border-strong shadow-lg')
+  it('rests on the fill of a preset a variant puts over subtler', () => {
+    const { surface } = mount(
+      `<button data-on class="emphasis-subtler data-[on]:emphasis-subtle is-interactive">Shows</button>`
     )
-  )('a caller’s fill, edge and shadow on %s', (_, markup) => {
-    it.each(['rest', 'hover', 'focus', 'active'] as const)(
-      'show the %s look',
-      async (state) => {
+    expectLook(surface, PRESETS.subtle!.rest)
+  })
+
+  // A caller's edge holds in every state, and its fill and shadow at rest. On
+  // hover, focus and press the emphasis repaints what its state rules write.
+  const caller = {
+    fill: '.bg-sunken',
+    shadow: '.shadow-lg',
+    border: '.border-strong'
+  }
+  const repaintsFill = ['strong', 'normal', 'subtle', 'subtler']
+  const repaintsShadow = ['strong', 'normal', 'raised']
+  describe.each(Object.entries(PRESETS))(
+    'a caller’s fill, edge and shadow on emphasis-%s',
+    (emphasis, states) => {
+      const over = (state: Look): Look => ({
+        ...caller,
+        move: state.move,
+        ...(repaintsFill.includes(emphasis) && { fill: state.fill }),
+        ...(repaintsShadow.includes(emphasis) && { shadow: state.shadow })
+      })
+      const CALLER: States = {
+        // Subtler's interactive rest is a state rule of its own.
+        rest:
+          emphasis === 'subtler'
+            ? over(states.rest)
+            : { ...caller, move: 'none' },
+        hover: over(states.hover),
+        active: over(states.active)
+      }
+      const classes = `emphasis-${emphasis} bg-sunken border-strong shadow-lg`
+      it.each(
+        Object.entries(surfaces(classes)).flatMap(([utility, markup]) =>
+          (['rest', 'hover', 'focus', 'active'] as const).map(
+            (state) => [state, utility, markup] as const
+          )
+        )
+      )('show the %s look on %s', async (state, _, markup) => {
         const { surface, driver } = mount(markup)
         await enter(state, driver, surface)
         expectLook(surface, lookIn(CALLER, state))
-      }
-    )
-  })
+      })
+    }
+  )
 })
 
 const CALLERS: [string, ReactElement, string, Look][] = [
@@ -317,6 +346,69 @@ describe('components that colour an interactive emphasis', () => {
       expectLook(surface, { fill })
       await enter('hover', surface, surface)
       expectLook(surface, hover)
+    }
+  )
+})
+
+// Presets a variant swaps on one element, by pressed or focused state.
+const SWAPPED: [string, ReactElement, string, State, Look][] = [
+  ...(['normal', 'subtle'] as const).flatMap((emphasis) =>
+    [false, true].flatMap((pressed) =>
+      (['hover', 'active'] as const).map(
+        (state): [string, ReactElement, string, State, Look] => [
+          `a ${pressed ? 'pressed' : 'unpressed'} ${emphasis} Toggle`,
+          <Toggle emphasis={emphasis} defaultPressed={pressed}>
+            Favourite
+          </Toggle>,
+          'button',
+          state,
+          PRESETS[pressed ? 'strong' : emphasis]![state]
+        ]
+      )
+    )
+  ),
+  ...(['Grid', 'List'] as const).map(
+    (name): [string, ReactElement, string, State, Look] => [
+      `a ${name === 'List' ? 'pressed' : 'unpressed'} ToggleGroup item`,
+      <ToggleGroup multiple defaultValue={['list']}>
+        <ToggleGroup.Item value='list'>List</ToggleGroup.Item>
+        <ToggleGroup.Item value='grid'>Grid</ToggleGroup.Item>
+      </ToggleGroup>,
+      `button[aria-pressed=${name === 'List'}]`,
+      'hover',
+      { fill: PRESETS[name === 'List' ? 'strong' : 'subtler']!.hover.fill }
+    ]
+  ),
+  [
+    'a focused Combobox chip',
+    <Combobox
+      items={['Saltwater Choir']}
+      multiple
+      defaultValue={['Saltwater Choir']}
+    >
+      <Combobox.Chips>
+        <Combobox.Chip aria-label='Saltwater Choir'>
+          <Combobox.ChipLabel>Saltwater Choir</Combobox.ChipLabel>
+        </Combobox.Chip>
+      </Combobox.Chips>
+    </Combobox>,
+    '[data-slot=combobox-chip]',
+    'active',
+    PRESETS.strong!.active
+  ]
+]
+
+describe('components that swap an emphasis by state', () => {
+  withSheet(() => roadieCss)
+
+  it.each(SWAPPED)(
+    '%s shows its %s look',
+    async (_, element, selector, state, expected) => {
+      render(<div className='p-6'>{element}</div>)
+      const surface = document.querySelector<HTMLElement>(selector)!
+      if (selector.includes('chip')) surface.focus()
+      await enter(state, surface, surface)
+      expectLook(surface, expected)
     }
   )
 })
