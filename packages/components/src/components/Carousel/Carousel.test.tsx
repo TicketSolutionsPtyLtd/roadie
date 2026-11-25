@@ -58,6 +58,25 @@ describe('Carousel', () => {
     expect(region).toHaveAttribute('aria-label', 'Test carousel')
   })
 
+  it('leaves hidden controls and dots out of the accessibility tree without a stylesheet', () => {
+    const { queryAllByRole } = render(
+      <Carousel aria-label='Shows'>
+        <Carousel.Content>
+          <Carousel.Item>Show 1</Carousel.Item>
+        </Carousel.Content>
+        <Carousel.Dots />
+        <Carousel.Controls>
+          <Carousel.Previous />
+          <Carousel.Next />
+        </Carousel.Controls>
+      </Carousel>
+    )
+    expect(queryAllByRole('button')).toEqual([])
+    expect(
+      queryAllByRole('group').map((group) => group.getAttribute('aria-label'))
+    ).toEqual(['1 of 1'])
+  })
+
   it('renders the controls and dots on the server, as Embla has not measured yet', () => {
     const html = renderToString(
       <Carousel aria-label='Shows'>

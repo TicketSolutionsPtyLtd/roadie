@@ -39,6 +39,7 @@ export function CarouselDots({ className, max, ...props }: CarouselDotsProps) {
       role='group'
       aria-label='Choose slide to display'
       data-slot='carousel-dots'
+      hidden={!canScroll}
       data-hidden={!canScroll || undefined}
       className={cn(
         carouselDotsVariants({ direction }),

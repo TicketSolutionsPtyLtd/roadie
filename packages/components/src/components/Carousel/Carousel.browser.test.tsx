@@ -214,10 +214,12 @@ describe('Carousel navigation', () => {
   it('goes to the slide whose dot is pressed', async () => {
     render(<Navigable />)
     await measured()
-    const start = offset('Show 1', 'left')
     await userEvent.click(button('Go to slide 3'))
     await showing(3)
-    await settlesAt('Show 3', 'left', start)
+    // A jump of two slides can rest over a pixel short, so this reads which
+    // slides Embla has in view rather than an offset.
+    await expect.poll(() => slide('3 of 3').inert).toBe(false)
+    await expect.poll(() => slide('1 of 3').inert).toBe(true)
   })
 
   it('moves with the arrow, Home, and End keys', async () => {

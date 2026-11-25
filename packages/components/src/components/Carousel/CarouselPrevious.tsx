@@ -47,6 +47,7 @@ export function CarouselPrevious({
       aria-disabled={!canGoToPrev || undefined}
       data-disabled={!canGoToPrev || undefined}
       data-slot='carousel-previous'
+      hidden={!canScroll}
       data-hidden={!canScroll || undefined}
       onClick={canGoToPrev ? goToPrev : undefined}
       {...props}

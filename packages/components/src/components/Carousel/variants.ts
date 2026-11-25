@@ -99,7 +99,7 @@ export const carouselItemVariants = cva(
   }
 )
 
-// The attribute's specificity beats an app's own `flex` on the part.
+// `hidden` alone loses to a display class such as an app's own `flex`.
 export const carouselHiddenClass = 'data-hidden:hidden'
 
 export const carouselDotsVariants = cva('flex items-center justify-center', {

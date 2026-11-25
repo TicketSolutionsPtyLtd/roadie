@@ -25,6 +25,7 @@ export function CarouselNext({
       aria-disabled={!canGoToNext || undefined}
       data-disabled={!canGoToNext || undefined}
       data-slot='carousel-next'
+      hidden={!canScroll}
       data-hidden={!canScroll || undefined}
       onClick={canGoToNext ? goToNext : undefined}
       {...props}

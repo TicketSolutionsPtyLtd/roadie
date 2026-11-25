@@ -25,6 +25,7 @@ export function CarouselControls({
   return (
     <div
       data-slot='carousel-controls'
+      hidden={!forceVisible && !canScroll}
       data-hidden={(!forceVisible && !canScroll) || undefined}
       className={cn(
         'hidden items-center gap-2 md:flex',

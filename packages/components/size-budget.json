@@ -1,5 +1,5 @@
 {
-  ".": { "own": 230350, "full": 456379, "initial": 415218 },
+  ".": { "own": 230620, "full": 456356, "initial": 415132 },
   "./accordion": { "own": 1782, "full": 10655, "initial": 10655 },
   "./autocomplete": { "own": 7464, "full": 66457, "initial": 54098 },
   "./avatar": { "own": 2129, "full": 14676, "initial": 14676 },
@@ -10,7 +10,7 @@
   "./calendar-tile": { "own": 654, "full": 9036, "initial": 9036 },
   "./callout": { "own": 3354, "full": 16281, "initial": 16281 },
   "./card": { "own": 4598, "full": 13295, "initial": 13295 },
-  "./carousel": { "own": 7684, "full": 28507, "initial": 28507 },
+  "./carousel": { "own": 7721, "full": 28538, "initial": 28538 },
   "./checkbox": { "own": 2040, "full": 17305, "initial": 17305 },
   "./checkbox-group": { "own": 3177, "full": 19174, "initial": 19174 },
   "./code": { "own": 369, "full": 8753, "initial": 8753 },
