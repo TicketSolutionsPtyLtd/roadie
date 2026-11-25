@@ -131,4 +131,4 @@ copy the helper into a file, since only an imported `isDev` is rewritten.
 ## Related files
 
 - `packages/components/src/utils/isDev.ts` and `packages/editor/src/Editor/isDev.ts`: the shared helper. Import it rather than re-implement it.
-- `scripts/dev-only.mjs`: the build step that writes each call as the bare check.
+- `scripts/dev-only.mjs`: the build step that writes each call as the guarded check in place.
