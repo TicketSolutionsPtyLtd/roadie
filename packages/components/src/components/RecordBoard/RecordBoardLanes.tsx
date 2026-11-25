@@ -64,9 +64,13 @@ export function BoardLanes({
         aria-hidden
         data-slot='record-board-head'
         style={{ top: stickyTop }}
-        className={cn('sticky z-docked overflow-hidden', surfaceClass)}
+        // A rule under the column headers parts them from the lane titles.
+        className={cn(
+          'sticky z-docked mb-2 overflow-hidden border-b border-subtler',
+          surfaceClass
+        )}
       >
-        <div className={cn(tracksClass, 'py-1')}>
+        <div className={cn(tracksClass, 'py-2')}>
           {columns.map((column) => (
             <p
               key={column.key ?? ''}
