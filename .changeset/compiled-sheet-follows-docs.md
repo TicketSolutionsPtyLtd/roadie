@@ -10,4 +10,4 @@ A host that links the compiled sheet and writes one of these classes loses its s
 - Scale colours: `fill-brand-5`, `fill-brand-9`, `fill-info-5`, `fill-neutral-0`, `fill-neutral-12`, and `stroke-neutral-12`.
 - `divide-normal`.
 
-`fill-brand-secondary-5` leaves the safelist too; it never compiled to a rule. No theme variable or keyframe leaves the sheet, so the chart tokens (`--chart-*`, `--color-chart-*`) are all still there. The sheet is 6.8 kB smaller (151.3 kB, 16.5 kB with brotli).
+`fill-brand-secondary-5` leaves the safelist too; it never compiled to a rule. No theme variable or keyframe leaves the sheet, so the `--chart-*` tokens are all still there. The sheet is 6.8 kB smaller (151.3 kB, 16.5 kB with brotli).
