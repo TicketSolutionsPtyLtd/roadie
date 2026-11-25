@@ -165,7 +165,10 @@ async function edges(slot: string) {
     outer: layers.filter(
       (layer) => !layer.includes('inset') && !isClear(layer)
     ),
-    border: style.borderTopWidth
+    border: style.borderTopWidth,
+    // The rim's highlight, not the text colour a border falls back to.
+    top:
+      style.borderTopColor === style.getPropertyValue('--rim-light-edge').trim()
   }
 }
 
@@ -213,7 +216,8 @@ describe.each(['light', 'dark'])('list popups in %s mode', (mode) => {
       expect(await edges(slot)).toEqual({
         inset: [],
         outer: menu.outer,
-        border: '1px'
+        border: '1px',
+        top: true
       })
     }
   )

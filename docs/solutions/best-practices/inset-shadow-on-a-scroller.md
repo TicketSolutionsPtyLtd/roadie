@@ -63,4 +63,7 @@ of padding moves to the border, so rows stay where they were.
 `floatingPopups.browser.test.tsx` fails if a list popup has an inset shadow
 again.
 
-Give any element that scrolls a border, not an inset shadow, for its edge.
+Give a scroller whose content changes every frame (a filtered or virtualized
+list) a border, not an inset shadow, for its edge. Menu still scrolls with
+the inset rim; its frame tests don't type into it, and its blur is accepted
+by design (INNO-1522).
