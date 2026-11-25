@@ -9,7 +9,7 @@ export type RecordColumnWidth = { min: number; grow?: number }
  * Where a column shows when the table is under 40rem wide and its rows turn
  * into list rows or cards. Any `detail` column makes them cards, listing
  * each detail under the title. `hidden` leaves it to the wide table.
- * `detail` is deprecated: Cards leave RecordTable at the next major; for cards, use `RecordGrid`.
+ * `detail` is deprecated. Cards leave RecordTable at the next major; for cards, use `RecordGrid`.
  */
 export type RecordTableNarrow =
   | 'title'
@@ -25,7 +25,7 @@ export type RecordTableColumn<Row extends object = object> = RecordPart<Row> & {
   pin?: boolean
   /** Defaults to the column's content, or 3.75 for an image built with `tableColumns`. */
   width?: RecordColumnWidth
-  /** Where the column shows on narrow rows. `'detail'` is deprecated: Cards leave RecordTable at the next major; for cards, use `RecordGrid`. @default 'hidden', or 'leading' for an image built with `tableColumns` */
+  /** Where the column shows on narrow rows. `'detail'` is deprecated. Cards leave RecordTable at the next major; for cards, use `RecordGrid`. @default 'hidden', or 'leading' for an image built with `tableColumns` */
   narrow?: RecordTableNarrow
   /** Hides the column as the table narrows: 3 below 64rem, then 2 below 56rem, then 1 below 48rem. Ignored on a pinned column. */
   priority?: 1 | 2 | 3
