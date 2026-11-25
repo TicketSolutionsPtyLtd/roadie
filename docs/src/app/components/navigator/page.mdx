@@ -570,7 +570,7 @@ Items that don't fit fold into a More pane.
 | Where | What folds |
 | --- | --- |
 | Phone | Anything past five slots. With too many items, the top four stay beside More, or three beside a pinned circle. Extra pinned items always fold, and `Navigator.Search` goes first into the circle. |
-| Large screen, collapsed | Whatever doesn't fit the window's height. |
+| Large screen, collapsed | Whatever doesn't fit the window's height. It folds on the server's first paint, so nothing moves when the page loads. |
 | Large screen, expanded | Nothing. The cluster scrolls instead. |
 
 `visibilityPriority` on an item or a group decides which items stay: `'high'`,

@@ -1,8 +1,18 @@
 'use client'
 
-import { type RefObject, useEffect, useMemo, useState } from 'react'
+import {
+  type RefObject,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
-import { type PrimaryCapsule, fitPrimaryCluster } from './primaryCapacity'
+import {
+  type PrimaryCapsule,
+  fitPrimaryCluster,
+  foldThresholds
+} from './primaryCapacity'
 import { holdDuringLayoutTransitions } from './transitionHold'
 
 const NONE: ReadonlySet<string> = new Set()
@@ -11,6 +21,8 @@ type Measured = { viewport: number; brandPadding: number }
 
 // Half-pixel steps in rem, so sub-pixel jitter never republishes.
 const quantize = (px: number, rem: number) => Math.round(px * 2) / 2 / rem
+
+const subscribeToNothing = () => () => {}
 
 const sameMembers = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
   a.size === b.size && [...a].every((value) => b.has(value))
@@ -22,7 +34,18 @@ export function usePrimaryCapacity(
   capsules: PrimaryCapsule[],
   restingBrandPadding: number,
   enabled: boolean
-): { folded: ReadonlySet<string>; shown: boolean } {
+): {
+  folded: ReadonlySet<string>
+  shown: boolean
+  /** Server markup until measured: CSS folds by these heights instead. */
+  unmeasured: ReturnType<typeof foldThresholds> | null
+} {
+  const hydrating = useSyncExternalStore(
+    subscribeToNothing,
+    () => false,
+    () => true
+  )
+  const [fromServer] = useState(hydrating)
   const [measured, setMeasured] = useState<Measured>({
     viewport: 0,
     brandPadding: 0
@@ -80,5 +103,9 @@ export function usePrimaryCapacity(
   const [kept, setKept] = useState(fitted)
   const unchanged = sameMembers(kept, fitted)
   if (!unchanged) setKept(fitted)
-  return { folded: unchanged ? kept : fitted, shown }
+  const unmeasured = useMemo(
+    () => (fromServer && enabled && !shown ? foldThresholds(capsules) : null),
+    [fromServer, enabled, shown, capsules]
+  )
+  return { folded: unchanged ? kept : fitted, shown, unmeasured }
 }

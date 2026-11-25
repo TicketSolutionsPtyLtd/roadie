@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import {
   afterAll,
   afterEach,
@@ -14,6 +15,7 @@ import { page, userEvent } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { hydrationShift } from '../../utils/hydrationTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { FakeIcon, withStubLink } from './testUtils'
 
@@ -541,4 +543,45 @@ describe('the More tile’s label', () => {
 
     expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
   })
+})
+
+describe('a server-rendered vertical navigation', () => {
+  const rail = (height: string) => (
+    <div className={`${height} overflow-hidden`}>
+      <Navigator value='Discover' className='h-full'>
+        <Navigator.Primary aria-label='Main'>
+          {['Discover', 'My tickets', 'Saved', 'Wallet', 'Venues'].map(
+            (item) => (
+              <Navigator.Item key={item} value={item} icon={<FakeIcon />}>
+                {item}
+              </Navigator.Item>
+            )
+          )}
+          <Navigator.Group visibilityPriority='low'>
+            <Navigator.GroupTitle>Help</Navigator.GroupTitle>
+            {['Guides', 'Contact', 'Status'].map((item) => (
+              <Navigator.Item key={item} value={item} icon={<FakeIcon />}>
+                {item}
+              </Navigator.Item>
+            ))}
+          </Navigator.Group>
+          <Navigator.Item
+            value='Offers'
+            icon={<FakeIcon />}
+            visibilityPriority='high'
+          >
+            Offers
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    </div>
+  )
+
+  it.each(['h-60', 'h-100', 'h-140', 'h-200'])(
+    'folds into More before hydration, as the client does, in %s',
+    async (height) => {
+      const ui = rail(height)
+      expect(await hydrationShift(renderToString(ui), ui)).toEqual([])
+    }
+  )
 })
