@@ -97,7 +97,7 @@ boardLayout({
 
 ### Layouts
 
-Give `Records` a `boardLayout` beside the table, and people switch between them from View. A saved view holds `{ type: 'board', groupBy }`, so a view can make its columns from another option field. Switching to the board uses the layout's own `groupBy` until a view picks one. A field that holds a list, or has no options, can't make columns, and `validateRecordView` reports it.
+Give `Records` a `boardLayout` beside the table, and people switch between them from View. A saved view holds `{ type: 'board', groupBy: ['status'] }`, so a view can make its columns from another option field. Switching to the board uses the layout's own `groupBy` until a view picks one. A field that holds a list, or has no options, can't make columns, and `validateRecordView` reports it.
 
 ```tsx
 const layouts = [

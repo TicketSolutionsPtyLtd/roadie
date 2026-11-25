@@ -139,7 +139,7 @@ describe('listLayout in a browser', { timeout: 30_000 }, () => {
   })
 })
 
-const grouped = { layout: { type: 'list', groupBy: 'status' } } as const
+const grouped = { layout: { type: 'list', groupBy: ['status'] } } as const
 
 const groupsShown = () =>
   [...document.querySelectorAll('[data-slot="list-group"]')].map((group) => [
@@ -200,7 +200,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     const { view } = recordViewFromSearchParams(
       recordViewToSearchParams({
         query: { search: '', filters: [], sort: [] },
-        layout: { type: 'list', groupBy: 'status' }
+        layout: { type: 'list', groupBy: ['status'] }
       }),
       showFields
     )
@@ -234,7 +234,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(written.layout).toEqual({
       type: 'list',
       fields: ['gross'],
-      groupBy: 'status'
+      groupBy: ['status']
     })
     await user.click(
       await within(panel).findByRole(
@@ -244,7 +244,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
       )
     )
     expect(onViewChange.mock.lastCall![0].layout).toMatchObject({
-      groupBy: 'status'
+      groupBy: ['status']
     })
     unmount()
 
@@ -266,7 +266,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
       <ShowList
         data={testShows(3)}
         fields={showFields}
-        defaultView={{ layout: { type: 'list', groupBy: 'status' } }}
+        defaultView={{ layout: { type: 'list', groupBy: ['status'] } }}
       />
     )
     expect(groupsShown()).toHaveLength(3)

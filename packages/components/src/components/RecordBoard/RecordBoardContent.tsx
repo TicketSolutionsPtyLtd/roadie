@@ -249,13 +249,13 @@ function BoardSkeleton({ parts }: { parts: RecordCardParts }) {
   )
 }
 
-/** The field a board view makes its columns from: its `groupBy`, else the definition's, when that field can group. */
+/** The field a board view makes its columns from: its first `groupBy` level, else the definition's, when that field can group. */
 export function boardGroupField(
   fields: readonly RecordField[],
   layout: RecordLayout,
   fallback: string
 ): RecordField | undefined {
-  const key = layout.type === 'board' ? layout.groupBy : fallback
+  const key = layout.type === 'board' ? layout.groupBy[0] : fallback
   return groupableFields(fields).find((field) => field.key === key)
 }
 
