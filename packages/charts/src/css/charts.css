@@ -1,4 +1,6 @@
-/* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css. */
+/* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css.
+   Unlayered on purpose: the table view's scroller rule must beat DataTable's
+   own overflow-x, which is unlayered too. */
 @source '../../dist';
 @source './safelist.html';
 

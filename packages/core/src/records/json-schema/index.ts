@@ -4,7 +4,7 @@
  * or generate models from them. Draft-07, which most code generators read.
  * Kept on its own subpath so the records model doesn't carry them.
  */
-import { z } from 'zod'
+import * as z from 'zod'
 
 import { recordViewSchema, recordsRequestSchema } from '../schema'
 

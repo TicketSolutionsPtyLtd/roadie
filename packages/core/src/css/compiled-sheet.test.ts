@@ -83,7 +83,21 @@ describe('roadie.compiled.css', () => {
     ).toEqual([])
   })
 
+  // Every supported browser draws oklch(), so a hex copy of a colour step is
+  // bytes no browser uses.
+  it('declares the colour scales in oklch() alone', () => {
+    expect(sheet).toMatch(/--color-brand-light-9:oklch\(/)
+    expect(sheet.match(/--color-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
+  })
+
   it('needs no browser support for CSS nesting', () => {
     expect(sheet.replace(/"[^"]*"|'[^']*'/g, '').includes('&')).toBe(false)
+  })
+
+  // A token that only names a variable tokens.css declares belongs in
+  // `@theme inline reference`. Plain `@theme inline` also writes it into
+  // every app's theme layer as itself, where unlayered :root overrides it.
+  it('declares no custom property as itself', () => {
+    expect(sheet.match(/(--[\w-]+):\s*var\(\1\)(?=[;}])/g) ?? []).toEqual([])
   })
 })

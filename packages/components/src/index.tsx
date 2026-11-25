@@ -630,7 +630,8 @@ export {
 export {
   boardLayout,
   type BoardLayoutConfig,
-  type BoardLayoutDefinition
+  type BoardLayoutDefinition,
+  type RecordGroupChanges
 } from './components/RecordBoard'
 export {
   RecordCalendar,

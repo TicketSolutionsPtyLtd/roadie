@@ -10,6 +10,7 @@ import {
 } from '@oztix/roadie-core/colors'
 import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
+import { isDev } from '../utils/isDev'
 import { AccentScopeContext } from './AccentScopeContext'
 
 export {
@@ -257,21 +258,6 @@ function storeTheme(dark: boolean) {
   } catch {
     // localStorage unavailable
   }
-}
-
-/**
- * Dev-mode check that works across consumer bundlers (Next.js, Vite,
- * Webpack, Rollup). See `CarouselRoot.tsx` for the full rationale:
- * `process.env.NODE_ENV` is replaced at build time by every mainstream
- * bundler, and the `typeof process` guard covers runtimes that haven't
- * shimmed `process` on the client.
- */
-declare const process: { env?: { NODE_ENV?: string } } | undefined
-
-function isDev(): boolean {
-  return (
-    typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production'
-  )
 }
 
 // ---------------------------------------------------------------------------
