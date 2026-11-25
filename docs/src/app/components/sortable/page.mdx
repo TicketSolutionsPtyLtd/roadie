@@ -175,6 +175,11 @@ leaves gets no call, so keep the lists' items in one state, as here. Wrap each l
 list; a drop outside every row lands at the end. Return false from `canDrop` to turn an item down: here, Encore can't
 go on before the doors open.
 
+When lists sit in sets, such as a board's lanes, give each list a `section`
+naming its set. The Move menu then lists the lists in the item's own section,
+and each other section as a submenu of its lists, as in "Move Encore to late
+set in Saturday".
+
 ```tsx-live-noinline
 function RunningOrder() {
   const [lists, setLists] = useState({
@@ -290,11 +295,14 @@ render(<ColumnSettings />)
   a menu button. Enter or Space opens the Move menu, and moves past the ends
   are disabled. After a move, focus returns to the moved item's handle.
 - **Announcements**: every move, by menu or by drag, is announced in a polite
-  live region: "SKU moved to position 3 of 7 columns". A move into a
-  connected list is announced by the list it joins.
+  live region: "SKU moved to position 3 of 7 columns". A drag into a
+  connected list is announced by the list it joins, and a move from the menu
+  by the list the menu was in, which stays in sight. A list with a `section`
+  adds it, as in "done in Next week".
 - **Connected lists**: the Move menu also offers each other list in the
   `group` that would take the item, named by its `label` (or its `value`
-  without one), as in "Move Date to done".
+  without one), as in "Move Date to done". Lists in another `section` sit in
+  a submenu named for it, opened with the Right arrow.
   The item lands at the end of that list, and focus follows it.
 - **Pointer**: a press on the handle that turns into a drag never opens the
   menu. A click without a drag does.
