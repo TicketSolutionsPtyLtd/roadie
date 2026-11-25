@@ -91,3 +91,24 @@ describe('component sheets style only their own slots', () => {
     }
   )
 })
+
+const declared = (sheet: string) =>
+  new Set(
+    readFileSync(join(directory, sheet), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .matchAll(/(?:^|[{;\s])--([\w-]+)\s*:/g)
+      .map(([, name]) => name!)
+  )
+
+// A sheet sets only its own component's variables. A component that sets
+// another's does it in its classes, where a reader of that component sees it.
+describe("component sheets set only their own component's variables", () => {
+  const owners = new Set(Object.values(OWNER))
+  it.each(sheets)("%s sets no other component's variables", (sheet) => {
+    const owner = OWNER[sheet] ?? ''
+    const foreign = [...declared(sheet)].filter((name) =>
+      [...owners].some((other) => other !== owner && owns(other, name))
+    )
+    expect(foreign).toEqual([])
+  })
+})

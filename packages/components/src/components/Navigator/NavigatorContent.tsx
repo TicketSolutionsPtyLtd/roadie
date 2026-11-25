@@ -15,6 +15,8 @@ import {
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { isDev } from '../../utils/isDev'
 import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
@@ -59,7 +61,11 @@ import {
 } from './paneStack'
 import { textOf } from './splitSecondary'
 import { useTopPaneChrome } from './useTopPaneChrome'
-import { navigatorContentClass, navigatorPanesClass } from './variants'
+import {
+  navigatorContentClass,
+  navigatorPanesClass,
+  navigatorPanesPullBackClass
+} from './variants'
 
 type PlacedPane = { id: string } & PaneRegistration
 type RegisteredPane = PlacedPane & { node: HTMLElement }
@@ -585,7 +591,10 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
               data-level={level}
               data-reveal={revealRoot ? '' : undefined}
               data-overflow={moreOpen ? '' : undefined}
-              className={navigatorPanesClass}
+              className={cn(
+                navigatorPanesClass,
+                level === 0 && navigatorPanesPullBackClass
+              )}
             >
               {secondaryPane}
               {children}

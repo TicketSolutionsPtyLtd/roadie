@@ -45,7 +45,11 @@ import { primarySignature } from './primarySignature'
 import { splitPrimary } from './splitPrimary'
 import { useExpandMotion } from './useExpandMotion'
 import { useFramePending } from './useFramePending'
-import { navigatorPendingClass, navigatorRootClass } from './variants'
+import {
+  navigatorNestedRootClass,
+  navigatorPendingClass,
+  navigatorRootClass
+} from './variants'
 
 export type NavigatorRootProps = {
   /** The active destination's `value`; selection belongs to your router. */
@@ -310,7 +314,11 @@ export function NavigatorRoot({
                 ref={rootRef}
                 data-slot='navigator'
                 data-pending={pending === 'idle' ? undefined : pending}
-                className={cn(navigatorRootClass, className)}
+                className={cn(
+                  navigatorRootClass,
+                  !isOutermost && navigatorNestedRootClass,
+                  className
+                )}
               >
                 {pending === 'idle' ? null : (
                   <div

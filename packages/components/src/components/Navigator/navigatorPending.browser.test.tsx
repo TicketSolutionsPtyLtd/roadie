@@ -9,7 +9,12 @@ import { cn } from '@oztix/roadie-core/utils'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { useStylesheet } from '../Pane/testUtils'
 import { paneVariants } from '../Pane/variants'
-import { navigatorPanesClass, navigatorRootClass } from './variants'
+import {
+  navigatorNestedRootClass,
+  navigatorPanesClass,
+  navigatorPanesPullBackClass,
+  navigatorRootClass
+} from './variants'
 
 // Frozen for the whole file: a screenshot of an endless spin never settles.
 const STILL = `
@@ -56,12 +61,21 @@ function Frame({
   )
 }
 
-function Panes({ children }: { children?: ReactNode }) {
+function Panes({
+  level = 0,
+  children
+}: {
+  level?: number
+  children?: ReactNode
+}) {
   return (
     <div
       data-slot='navigator-panes'
-      data-level='0'
-      className={navigatorPanesClass}
+      data-level={level}
+      className={cn(
+        navigatorPanesClass,
+        level === 0 && navigatorPanesPullBackClass
+      )}
     >
       <div data-testid='pane' className={cn(paneVariants(), 'w-full')}>
         {children}
@@ -286,8 +300,11 @@ describe('the phone pull-back', () => {
     render(
       <Frame>
         <Panes>
-          <div data-slot='navigator'>
-            <Panes />
+          <div
+            data-slot='navigator'
+            className={cn(navigatorRootClass, navigatorNestedRootClass)}
+          >
+            <Panes level={1} />
           </div>
         </Panes>
       </Frame>
