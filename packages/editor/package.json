@@ -71,10 +71,18 @@
     "lint": "oxlint src",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "size": "node ../../scripts/size-budget.mjs --check",
-    "size:check": "node ../../scripts/size-budget.mjs --check",
+    "build:css:size": "tailwindcss -i scripts/css-size.css -o node_modules/.cache/roadie/editor.css --minify",
+    "size": "pnpm build:css:size && size-limit && node ../../scripts/size-budget.mjs --check",
+    "size:check": "pnpm size",
     "size:update": "node ../../scripts/size-budget.mjs --update"
   },
+  "size-limit": [
+    {
+      "name": "css/editor sheet",
+      "path": "node_modules/.cache/roadie/editor.css",
+      "limit": "2.15 KB"
+    }
+  ],
   "dependencies": {
     "@floating-ui/dom": "1.8.0",
     "@tiptap/core": "3.33.0",
@@ -105,6 +113,8 @@
     "@oztix/roadie-core": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@rolldown/plugin-babel": "0.3.1",
+    "@size-limit/file": "14.3.0",
+    "@tailwindcss/cli": "4.3.5",
     "@tailwindcss/vite": "4.3.5",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
@@ -117,6 +127,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "size-limit": "14.3.0",
     "tsdown": "0.23.7",
     "vite": "8.3.8",
     "vitest": "5.1.0"

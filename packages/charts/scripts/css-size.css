@@ -1,0 +1,6 @@
+/* The rules `@oztix/roadie-charts/css` adds to an app's sheet, for Size Limit.
+   Core is referenced, not imported, so its own budget covers the floor, and
+   dist isn't scanned, since an app's utilities depend on what it uses. */
+@reference '@oztix/roadie-core/css';
+@import '../src/css/charts.css';
+@source not '../dist';
