@@ -12,7 +12,7 @@ import type { RecordGroup } from './groups'
 /** A group's records, as a list or grid labelled by the group's title. */
 export type GroupLeaf = (group: RecordGroup, titleId: string) => ReactNode
 
-type GroupCollapse = {
+export type GroupCollapse = {
   /** Paths of the collapsed groups. */
   closed: ReadonlySet<string>
   setOpen: (path: string, open: boolean) => void
@@ -69,9 +69,8 @@ function shownGroups(groups: readonly RecordGroup[]): RecordGroup[] {
   )
 }
 
-// A group's place in the tree, by each level's field and value, so another
-// grouping never inherits its open state.
-const groupPath = (parent: string, group: RecordGroup) =>
+/** A group's place in the tree, by each level's field and value, so another grouping never inherits its open state. */
+export const groupPath = (parent: string, group: RecordGroup) =>
   `${parent}/${JSON.stringify([group.field?.key ?? null, group.key])}`
 
 // The ids in the order the innermost groups show them, which a nested group
@@ -90,14 +89,24 @@ function shownOrder(
   })
 }
 
-const groupHeadings = ['h2', 'h3', 'h4'] as const
+/** A group title's heading by level, outermost first. */
+export const groupHeadings = ['h2', 'h3', 'h4'] as const
 
-// Each level is its own tier of heading, largest outermost, whatever follows
-// it; a third level keeps the quiet group title.
-const titleTiers = [
+/** Each level is its own tier of heading, largest outermost, whatever follows it; a third level keeps the quiet group title. */
+export const titleTiers = [
   'text-display-ui-4 text-strong',
   'text-display-ui-6 text-strong'
 ]
+
+/** What the group's field gives under its title, or null for nothing. */
+export function groupHeadingContent(group: RecordGroup): ReactNode {
+  const extra = group.field?.groupHeading?.({
+    value: group.key,
+    label: group.label,
+    count: group.rows.length
+  })
+  return extra === false || extra === undefined ? null : extra
+}
 
 /**
  * A group of records under its title and count, holding its inner groups or
@@ -191,11 +200,7 @@ export function RecordGroupSection({
         {body}
       </li>
     )
-  const extra = group.field?.groupHeading?.({
-    value: group.key,
-    label: group.label,
-    count: group.rows.length
-  })
+  const extra = groupHeadingContent(group)
   const open = !collapse.closed.has(path)
   // An Accordion item per group: its summary holds the heading, so the whole
   // title row opens and closes it. Heading content can hold links, which a
@@ -236,7 +241,7 @@ export function RecordGroupSection({
             outerRing && '-mx-1 p-1'
           )}
         >
-          {extra != null && extra !== false && (
+          {extra != null && (
             // Where the title's text starts: a pixel in when rows bleed, as a
             // row's border sets its text, else the title row's border and padding.
             <div

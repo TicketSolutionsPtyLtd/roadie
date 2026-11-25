@@ -10,7 +10,7 @@ import {
   useState
 } from 'react'
 
-import type { RecordField, RecordLayout } from '@oztix/roadie-core/records'
+import type { RecordLayout } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { gridParts } from '../RecordGrid/parts'
@@ -23,7 +23,11 @@ import {
   noneLabel
 } from '../Records/groups'
 import type { RecordsContentProps } from '../Records/layouts'
-import type { RecordCardParts, RecordsRow } from '../Records/types'
+import type {
+  RecordCardParts,
+  RecordsField,
+  RecordsRow
+} from '../Records/types'
 import {
   RecordsLayoutFrame,
   RecordsLayoutState,
@@ -31,6 +35,7 @@ import {
 } from '../Records/useRecordsLayout'
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
 import { Sortable } from '../Sortable'
+import { type BoardLane, BoardLanes, laneKey } from './RecordBoardLanes'
 import type { BoardLayoutConfig } from './types'
 
 export type RecordBoardContentProps = RecordsContentProps & {
@@ -66,8 +71,8 @@ export function RecordBoardContent({
     () => gridParts(config, fields, view.layout),
     [config, fields, view.layout]
   )
-  const field = useMemo(
-    () => boardGroupField(fields, view.layout, config.groupBy),
+  const { column: field, lane: laneField } = useMemo(
+    () => boardGroupFields(fields, view.layout, config.groupBy),
     [fields, view.layout, config.groupBy]
   )
   const titleOf = useCallback(
@@ -90,20 +95,35 @@ export function RecordBoardContent({
       )
       ?.focus()
   }, [putBack])
-  const columns = useMemo(
-    () => (field ? boardColumns(rows, field, moves) : []),
+  const placed = useMemo(
+    () => (field ? placeMoves(rows, field, moves) : rows),
     [field, rows, moves]
   )
+  const columns = useMemo(
+    () => (field ? boardGroups(placed, field) : []),
+    [field, placed]
+  )
+  const lanes = useMemo(
+    () => laneField && boardLanes(placed, columns, laneField),
+    [laneField, placed, columns]
+  )
+  // Collapsed lanes: the session's, never the view's.
+  const [closed, setClosed] = useState<ReadonlySet<string>>(() => new Set())
   const { toggleRow } = frame
-  // Shift ranges run down each column in turn, as the cards read.
+  // Shift ranges run down each column in turn, lane by open lane, as the cards read.
   const onToggle = useCallback(
     (id: string, range: boolean) =>
       toggleRow(
         id,
         range,
-        columns.flatMap((column) => column.rows.map((record) => record.id))
+        (lanes && laneField
+          ? lanes
+              .filter((lane) => !closed.has(laneKey(laneField, lane)))
+              .flatMap((lane) => lane.cells)
+          : columns
+        ).flatMap((column) => column.rows.map((record) => record.id))
       ),
-    [toggleRow, columns]
+    [toggleRow, columns, lanes, laneField, closed]
   )
   // Cards have no checkboxes, so the board selects only through Select mode.
   const selecting = useSelectModeLayout(true)
@@ -113,6 +133,31 @@ export function RecordBoardContent({
     const record = rows.find((row) => row.id === id)
     if (record) void move(record, value)
   }
+  const cards = (column: Column, list: string, compact = false) => (
+    <BoardCards
+      column={column}
+      group={list}
+      compact={compact}
+      movable={movable}
+      onMove={onMove}
+      titleOf={titleOf}
+    >
+      {(record) => (
+        <RecordCard
+          id={record.id}
+          row={record.row}
+          parts={parts}
+          timeZone={timeZone}
+          href={records.getRowHref?.(record.row)}
+          selected={frame.isSelected?.(record.id)}
+          selecting={selecting}
+          onToggle={onToggle}
+          rowActions={frame.rowActions}
+          handle={movable && <Sortable.Handle size='xs' />}
+        />
+      )}
+    </BoardCards>
+  )
 
   const body =
     state === 'loading' ? (
@@ -126,55 +171,67 @@ export function RecordBoardContent({
             {error}
           </p>
         )}
-        <div
-          ref={bodyRef}
-          role='group'
-          aria-label={caption}
-          aria-busy={frame.busy || undefined}
-          data-slot='record-board-body'
-          className={columnsClass}
-        >
-          {columns.map((column) => (
-            <section
-              key={columnValue(column.key)}
-              aria-label={column.label}
-              data-slot='record-board-column'
-              className={columnClass}
-            >
-              <h2
-                aria-hidden
-                className='flex gap-1.5 px-2 pt-1 text-display-ui-6 text-strong'
+        {lanes && laneField ? (
+          <BoardLanes
+            bodyRef={bodyRef}
+            aria-label={caption}
+            aria-busy={frame.busy || undefined}
+            columns={columns}
+            lanes={lanes}
+            field={laneField}
+            closed={closed}
+            onOpenChange={(key, open) =>
+              setClosed((was) => {
+                const next = new Set(was)
+                if (open) next.delete(key)
+                else next.add(key)
+                return next
+              })
+            }
+            stickyTop={frame.stickyTop}
+            cell={(lane, column) => (
+              <div
+                key={columnValue(column.key)}
+                role='group'
+                aria-label={column.label}
+                data-slot='record-board-cell'
+                className={columnClass}
               >
-                {column.label}
-                <span className='font-normal text-subtle tabular-nums'>
-                  {column.rows.length}
-                </span>
-              </h2>
-              <BoardCards
-                column={column}
-                group={group}
-                movable={movable}
-                onMove={onMove}
-                titleOf={titleOf}
+                {/* Its own group per lane: cards move between columns, within their lane. */}
+                {cards(column, `${group}-${laneKey(laneField, lane)}`, true)}
+              </div>
+            )}
+          />
+        ) : (
+          <div
+            ref={bodyRef}
+            role='group'
+            aria-label={caption}
+            aria-busy={frame.busy || undefined}
+            data-slot='record-board-body'
+            className={columnsClass}
+          >
+            {columns.map((column) => (
+              <section
+                key={columnValue(column.key)}
+                aria-label={column.label}
+                data-slot='record-board-column'
+                className={columnClass}
               >
-                {(record) => (
-                  <RecordCard
-                    id={record.id}
-                    row={record.row}
-                    parts={parts}
-                    timeZone={timeZone}
-                    href={records.getRowHref?.(record.row)}
-                    selected={frame.isSelected?.(record.id)}
-                    selecting={selecting}
-                    onToggle={onToggle}
-                    rowActions={frame.rowActions}
-                    handle={movable && <Sortable.Handle size='xs' />}
-                  />
-                )}
-              </BoardCards>
-            </section>
-          ))}
-        </div>
+                <h2
+                  aria-hidden
+                  className='flex gap-1.5 px-2 pt-1 text-display-ui-6 text-strong'
+                >
+                  {column.label}
+                  <span className='font-normal text-subtle tabular-nums'>
+                    {column.rows.length}
+                  </span>
+                </h2>
+                {cards(column, group)}
+              </section>
+            ))}
+          </div>
+        )}
       </div>
     )
 
@@ -195,6 +252,7 @@ RecordBoardContent.displayName = 'RecordBoardContent'
 function BoardCards({
   column,
   group,
+  compact,
   movable,
   onMove,
   titleOf,
@@ -202,6 +260,8 @@ function BoardCards({
 }: {
   column: Column
   group: string
+  /** A lane's cell, shorter while empty. */
+  compact: boolean
   movable: boolean
   onMove: (id: string, value: string | null) => void
   titleOf: (record: Row) => string
@@ -221,7 +281,10 @@ function BoardCards({
     >
       <Sortable.DropZone
         render={<ul role='list' />}
-        className='grid min-h-24 content-start gap-2'
+        className={cn(
+          'grid content-start gap-2',
+          compact ? 'min-h-12' : 'min-h-24'
+        )}
       >
         {column.rows.map((record) => (
           <Sortable.Item
@@ -253,35 +316,68 @@ function BoardSkeleton({ parts }: { parts: RecordCardParts }) {
   )
 }
 
-/** The field a board view makes its columns from: its first `groupBy` level, else the definition's, when that field can group. */
-export function boardGroupField(
-  fields: readonly RecordField[],
+/** The fields a board view makes its columns and lanes from: its `groupBy` levels, else the definition's, each when that field can group. */
+export function boardGroupFields(
+  fields: readonly RecordsField[],
   layout: RecordLayout,
-  fallback: string
-): RecordField | undefined {
-  const key = layout.type === 'board' ? layout.groupBy[0] : fallback
-  return groupableFields(fields).find((field) => field.key === key)
+  fallback: string | readonly string[]
+): { column?: RecordsField; lane?: RecordsField } {
+  const [column, lane] =
+    layout.type === 'board'
+      ? layout.groupBy
+      : typeof fallback === 'string'
+        ? [fallback]
+        : fallback
+  const groupable = groupableFields(fields)
+  const find = (key: string | undefined) =>
+    fields.find((field) => field.key === key && groupable.includes(field))
+  return {
+    column: find(column),
+    lane: lane === column ? undefined : find(lane)
+  }
 }
 
-/** Every option's column with moves applied, then "No <field>" even when empty, so cards can move there. */
-function boardColumns(
+/** The rows with moves applied. */
+function placeMoves(
   rows: readonly Row[],
-  field: RecordField,
+  field: RecordsField,
   moves: ReadonlyMap<string, Move>
-): Column[] {
-  const placed = moves.size
-    ? rows.map((record) => {
-        const move = moves.get(record.id)
-        // Once the app hands over a new row, it holds the record's real value.
-        if (!move || (!move.pending && move.row !== record.row)) return record
-        return { ...record, row: { ...record.row, [field.key]: move.value } }
-      })
-    : rows
+): readonly Row[] {
+  if (!moves.size) return rows
+  return rows.map((record) => {
+    const move = moves.get(record.id)
+    // Once the app hands over a new row, it holds the record's real value.
+    if (!move || (!move.pending && move.row !== record.row)) return record
+    return { ...record, row: { ...record.row, [field.key]: move.value } }
+  })
+}
+
+/** Every option's group, then "No <field>" even when empty, so cards can move there. */
+function boardGroups(rows: readonly Row[], field: RecordsField): Column[] {
   // A blank option never holds a record, as blank values group under "No <field>".
-  const columns = groupRecords(placed, field).filter(({ key }) => key !== NONE)
-  return columns[columns.length - 1]?.key === null
-    ? columns
-    : [...columns, { key: null, label: noneLabel(field), rows: [] }]
+  const groups = groupRecords(rows, field).filter(({ key }) => key !== NONE)
+  return groups[groups.length - 1]?.key === null
+    ? groups
+    : [...groups, { key: null, label: noneLabel(field), rows: [] }]
+}
+
+/** A lane per option of the field, each holding its share of every column. */
+function boardLanes(
+  rows: readonly Row[],
+  columns: readonly Column[],
+  field: RecordsField
+): BoardLane[] {
+  const laneOf = new Map<string, string | null>()
+  const lanes = boardGroups(rows, field)
+  for (const lane of lanes)
+    for (const record of lane.rows) laneOf.set(record.id, lane.key)
+  return lanes.map((lane) => ({
+    ...lane,
+    cells: columns.map((column) => ({
+      ...column,
+      rows: column.rows.filter((record) => laneOf.get(record.id) === lane.key)
+    }))
+  }))
 }
 
 // An app rejects with a message people can read, such as a move it doesn't allow.
