@@ -467,10 +467,20 @@ function Group({
           const now = event.currentTarget.open
           if (now !== open) collapse.setOpen(path, now)
         }}
-        className='grid gap-1.5'
+        className={cn(
+          'grid gap-1.5',
+          // Its content slot clips as it animates, so it reaches as far as
+          // the rows' bleed, or an inner title's hover fill is cut.
+          shared.bleed && 'details-content:-mx-3 details-content:px-3'
+        )}
       >
         <Accordion.Trigger
-          className={cn('gap-3 rounded-lg px-3 py-1', shared.bleed && '-mx-3')}
+          className={cn(
+            // Auto width, so the bleed widens the row as a record row's does,
+            // and a border like a row's, so the title's text lines up with theirs.
+            'w-auto gap-3 rounded-lg border px-3 py-1',
+            shared.bleed && '-mx-3'
+          )}
         >
           {heading}
         </Accordion.Trigger>
@@ -478,7 +488,11 @@ function Group({
           className={cn('grid gap-1.5 p-0', shared.bleed && '-mx-3 px-3')}
         >
           {extra != null && extra !== false && (
-            <div data-slot='list-group-heading' className='text-sm text-subtle'>
+            // A pixel in, as a row's border sets its text.
+            <div
+              data-slot='list-group-heading'
+              className='px-px text-sm text-subtle'
+            >
               {extra}
             </div>
           )}

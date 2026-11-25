@@ -279,6 +279,50 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(above?.closest('[data-slot="records-header"]')).toBeNull()
   })
 
+  it("lines each title row's hover box up with a row's, at every level, and its text with the row's", () => {
+    render(
+      // Padded, so the rows' bleed is on screen.
+      <div style={{ padding: 24 }}>
+        <ShowList
+          data={testShows(6)}
+          fields={groupedShowFields.map((one) =>
+            one.key === 'city'
+              ? { ...one, groupHeading: () => <span>Suburb</span> }
+              : one
+          )}
+          getRowHref={(show) => `/shows/${show.id}`}
+          defaultView={{
+            layout: { type: 'list', groupBy: ['status', 'city'] }
+          }}
+        />
+      </div>
+    )
+    const row = document
+      .querySelector('[data-slot="record-table-list-row"] > div')!
+      .getBoundingClientRect()
+    const rowText = screen
+      .getByRole('link', { name: 'Ocean Alley 1' })
+      .getBoundingClientRect().left
+    for (const name of ['On sale 2', 'Perth 1']) {
+      const box = disclosure(name).getBoundingClientRect()
+      expect([box.left, box.right]).toEqual([row.left, row.right])
+      // Painted to its edges, not clipped by the group around it.
+      for (const x of [box.left + 2, box.right - 2]) {
+        expect(
+          document
+            .elementFromPoint(x, box.top + box.height / 2)
+            ?.closest('summary')
+        ).toBe(disclosure(name))
+      }
+      expect(
+        screen.getByRole('heading', { name }).getBoundingClientRect().left
+      ).toBeCloseTo(rowText, 0)
+    }
+    expect(
+      screen.getAllByText('Suburb')[0]!.getBoundingClientRect().left
+    ).toBeCloseTo(rowText, 0)
+  })
+
   it('collapses a group from its title, keeping it out of the view', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()
@@ -405,6 +449,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     const trigger = disclosure('On sale 2')
     expect(extra.getBoundingClientRect().left).toBeCloseTo(
       trigger.getBoundingClientRect().left +
+        parseFloat(getComputedStyle(trigger).borderLeftWidth) +
         parseFloat(getComputedStyle(trigger).paddingLeft),
       0
     )
