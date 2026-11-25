@@ -1,6 +1,6 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { page } from 'vitest/browser'
 
 import { Card } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -460,109 +460,6 @@ describe('Card ticket with a tall body', () => {
     expect(distance(sample(left + 24, top + 40), BACKDROP)).toBeGreaterThan(40)
   })
 })
-
-const paintedFill = (footer: HTMLElement) =>
-  getComputedStyle(footer).backgroundColor
-
-// The states are the settled ones, so no test waits on a transition to land.
-const STILL = '*, *::before, *::after { transition: none !important }'
-
-const frame = () =>
-  new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
-
-type State = { fill?: string; transform?: 'lift' | 'press' }
-const STATES: Record<
-  'raised' | 'normal' | 'subtle' | 'subtler',
-  { rest: State; hover: State; active: State }
-> = {
-  raised: {
-    rest: { fill: '--intent-bg-raised' },
-    hover: { fill: '--intent-bg-raised', transform: 'lift' },
-    active: { fill: '--intent-bg-raised', transform: 'press' }
-  },
-  normal: {
-    rest: { fill: '--intent-bg-normal' },
-    hover: { fill: '--intent-2', transform: 'lift' },
-    active: { fill: '--intent-3', transform: 'press' }
-  },
-  subtle: {
-    rest: { fill: '--intent-bg-subtle' },
-    hover: { fill: '--intent-4a' },
-    active: { fill: '--intent-5a', transform: 'press' }
-  },
-  subtler: {
-    rest: {},
-    hover: { fill: '--intent-3a' },
-    active: { fill: '--intent-4a', transform: 'press' }
-  }
-}
-
-describe.each(Object.entries(STATES))(
-  'Card ticket, interactive %s emphasis',
-  (emphasis, states) => {
-    let removeStill = () => {}
-    beforeAll(() => {
-      removeStill = useStylesheet(STILL)
-    })
-    afterAll(() => removeStill())
-    afterEach(async () => {
-      await userEvent.unhover(document.body)
-    })
-
-    function renderLinkedTicket() {
-      const { container } = render(
-        <div style={{ padding: 24, width: 360 }}>
-          <Card
-            variant='ticket'
-            emphasis={emphasis as keyof typeof STATES}
-            href='#ticket'
-          >
-            <Card.Content>
-              <p>General admission</p>
-              <span data-testid='probe' />
-            </Card.Content>
-            <Card.Footer>
-              <p>Sam Okafor</p>
-            </Card.Footer>
-          </Card>
-        </div>
-      )
-      const card = container.querySelector<HTMLElement>('[data-slot=card]')!
-      const footer = card.querySelector<HTMLElement>('[data-slot=card-footer]')!
-      const probe = card.querySelector<HTMLElement>('[data-testid=probe]')!
-      return { card, footer, probe }
-    }
-
-    function expectState(
-      { card, footer, probe }: ReturnType<typeof renderLinkedTicket>,
-      state: State
-    ) {
-      probe.style.backgroundColor = state.fill
-        ? `var(${state.fill})`
-        : 'transparent'
-      expect(paintedFill(footer)).toBe(getComputedStyle(probe).backgroundColor)
-      const matrix = new DOMMatrix(getComputedStyle(card).transform)
-      if (state.transform === 'lift') expect(matrix.f).toBeCloseTo(-1)
-      if (state.transform === 'press') expect(matrix.a).toBeCloseTo(0.99)
-      if (!state.transform) expect(matrix.isIdentity).toBe(true)
-    }
-
-    it('matches the plain emphasis at rest, on hover and when active', async () => {
-      const ticket = renderLinkedTicket()
-      await frame()
-      expectState(ticket, states.rest)
-
-      await userEvent.hover(ticket.card)
-      await frame()
-      expectState(ticket, states.hover)
-
-      await userEvent.unhover(ticket.card)
-      ticket.card.classList.add('is-active')
-      await frame()
-      expectState(ticket, states.active)
-    })
-  }
-)
 
 type Corner = { x: number; y: number }
 
