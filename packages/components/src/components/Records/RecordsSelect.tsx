@@ -5,7 +5,12 @@ import { useLayoutEffect, useRef } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Button } from '../Button'
-import { isSelecting, useRecordsContext } from './context'
+import {
+  isSelecting,
+  useRecordsContext,
+  useRecordsData,
+  useRecordsLayoutValue
+} from './context'
 import { useLeaveSelectOnEscape } from './selectMode'
 import { pageState } from './selection'
 import { useSurvivor } from './useBulkActions'
@@ -19,12 +24,21 @@ export type RecordsSelectProps = {
  * mode. Renders nothing while the shown layout gives each record a checkbox.
  */
 export function RecordsSelect({ className }: RecordsSelectProps) {
+  const { selectMode } = useRecordsLayoutValue()
+  const { selectable } = useRecordsData()
+  // Only the controls read the selection, so a tick in a table renders nothing here.
+  return selectMode && selectable ? (
+    <SelectControls className={className} />
+  ) : null
+}
+RecordsSelect.displayName = 'Records.Select'
+
+function SelectControls({ className }: RecordsSelectProps) {
   const { records, selectMode, setSelectControls } = useRecordsContext()
   const toggleRef = useRef<HTMLButtonElement>(null)
   const survivor = useSurvivor('selection')
   const leaveSelect = useLeaveSelectOnEscape()
-  const shown = selectMode && records.selectable
-  const selecting = shown && isSelecting(records, selectMode)
+  const selecting = isSelecting(records, selectMode)
 
   useLayoutEffect(() => {
     setSelectControls(selecting)
@@ -40,7 +54,6 @@ export function RecordsSelect({ className }: RecordsSelectProps) {
     if (active === null || active === document.body) toggleRef.current?.focus()
   })
 
-  if (!shown) return null
   const pageIds = records.rows.map((row) => row.id)
   const allShown = pageState(records.selection, pageIds) === true
   return (
@@ -73,4 +86,3 @@ export function RecordsSelect({ className }: RecordsSelectProps) {
     </div>
   )
 }
-RecordsSelect.displayName = 'Records.Select'

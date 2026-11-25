@@ -1,7 +1,8 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { RecordTable, tableColumns } from '.'
+import { renderProfiled } from '../../utils/renderTestUtils'
 import { RecordList } from '../RecordList'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 
@@ -136,5 +137,60 @@ describe('RecordList render budget', () => {
     expect(screen.getAllByRole('listitem')[0]).toBe(moved)
     expect(moved).toHaveAttribute('aria-posinset', '1')
     expect(moved).toHaveAttribute('aria-setsize', '119')
+  })
+})
+
+describe('RecordTable re-renders by component', () => {
+  const page = () =>
+    renderProfiled(
+      <RecordTable
+        caption='Shows'
+        data={testShows(200)}
+        fields={showFields}
+        columns={columns}
+        getRowId={(row) => row.id}
+        defaultPosition={{ pageSize: 100 }}
+        selectable
+      />
+    )
+
+  const parts = (counts: Record<string, number>) =>
+    Object.keys(counts)
+      .filter((name) => name.startsWith('Records.'))
+      .sort()
+
+  it('renders only what shows the selection on a tick', async () => {
+    const { measure } = page()
+    const box = within(screen.getAllByRole('row')[5]!).getByRole('checkbox')
+    const tick = await measure(() => fireEvent.click(box))
+    expect(box).toHaveAttribute('aria-checked', 'true')
+    // The state's owners, and the status that counts the selection.
+    expect(parts(tick)).toEqual([
+      'Records.Provider',
+      'Records.Root',
+      'Records.Status'
+    ])
+    // The ticked row, not every row on the page.
+    expect(tick.Row).toBe(1)
+    expect(tick.RecordsRowCheckbox).toBe(1)
+  })
+
+  it('renders the parts that show a search, not the toolbar around them', async () => {
+    const { measure } = page()
+    const firstMatch = screen.getAllByRole('row')[4]
+    const search = screen.getByRole('combobox', { name: 'Search and filter' })
+    const typed = await measure(() =>
+      fireEvent.change(search, { target: { value: 'H' } })
+    )
+    // The first match, under three rows the search drops, moves up.
+    expect(screen.getAllByRole('row')[1]).toBe(firstMatch)
+    expect(typed['Records.Header']).toBeUndefined()
+    expect(parts(typed)).toEqual(
+      expect.arrayContaining([
+        'Records.Search',
+        'Records.Pagination',
+        'Records.Status'
+      ])
+    )
   })
 })

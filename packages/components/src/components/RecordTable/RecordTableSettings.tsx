@@ -5,7 +5,7 @@ import { useId } from 'react'
 import { EyeIcon, EyeSlashIcon, PushPinIcon } from '@phosphor-icons/react'
 
 import { List } from '../List'
-import { useRecordsContext } from '../Records/context'
+import { useRecordsData } from '../Records/context'
 import { Sortable } from '../Sortable'
 import { Toggle } from '../Toggle'
 import { columnSettings, tableColumnsLayout } from './columns'
@@ -18,7 +18,7 @@ const listFormat = new Intl.ListFormat('en-AU', {
 
 /** The table's part of `Records.Options`: its columns, reordered by drag and shown or hidden. */
 export function RecordTableSettings({ config }: { config: TableLayoutConfig }) {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   const headingId = useId()
   const lastShownId = useId()
   const { pinned, columns } = columnSettings(

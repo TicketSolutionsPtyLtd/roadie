@@ -11,7 +11,7 @@ import type {
 
 import { Button, IconButton } from '../Button'
 import { Select } from '../Select'
-import { useRecordsContext } from './context'
+import { useRecordsData } from './context'
 import {
   addSort,
   firstDirection,
@@ -33,7 +33,7 @@ type Focus = { part: 'field' | 'remove'; level: number } | { part: 'add' }
 
 /** The view's sort in `Records.Options`: a field and direction per level. */
 export function RecordsSortSettings() {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   const headingId = useId()
   const sectionRef = useRef<HTMLElement>(null)
   // Where focus goes once the change shows, as the control used may be gone.
