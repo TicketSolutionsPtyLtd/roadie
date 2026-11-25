@@ -18,8 +18,7 @@ const OWNER: Record<string, string> = {
   'pane-measure.css': 'pane',
   'pane-print.css': 'pane',
   'record-table.css': 'record-table',
-  'records-pane.css': 'records',
-  'toast.css': 'toast'
+  'records-pane.css': 'records'
 }
 
 // Each exception says why, or which ticket removes it.
