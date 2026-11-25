@@ -160,4 +160,23 @@ describe('RecordTable under 40rem', () => {
     const body = document.querySelector('[data-slot="record-table-body"]')!
     await expect.poll(() => rect(body).height).toBeCloseTo(300 * 64, -1)
   })
+
+  it('keeps a pinned title in line with its description', TIMEOUT, async () => {
+    // Pinned after a wide pinned column, so its sticky start is well past where the grid puts it.
+    const columns = [
+      column.field('city', {
+        pin: true,
+        narrow: 'leading',
+        width: { min: 12 }
+      }),
+      column.field('show', { pin: true, narrow: 'title' }),
+      column.field('status', { narrow: 'description' }),
+      column.field('gross', { narrow: 'trailing' })
+    ]
+    render(<Shows width={360} columns={columns} actions />)
+    await frame()
+    const row = firstRow()
+    const [, show, status] = within(row).getAllByRole('cell')
+    expect(rect(show!).left).toBeCloseTo(rect(status!).left, 0)
+  })
 })

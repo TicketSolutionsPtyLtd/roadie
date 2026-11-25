@@ -90,8 +90,9 @@ const TWO_LINES = '@max-[40rem]/record-table-frame:grid-rows-2'
 /** The row actions cell's place under 40rem, when the rows re-flow. */
 export const NARROW_ACTIONS_CLASS =
   '@max-[40rem]/record-table-frame:[grid-area:actions]'
+// A pinned cell's sticky start would push it past its area, as nothing scrolls sideways.
 const NARROW_CELL =
-  '@max-[40rem]/record-table-frame:px-0 @max-[40rem]/record-table-frame:first:ps-0 @max-[40rem]/record-table-frame:last:pe-0'
+  '@max-[40rem]/record-table-frame:px-0 @max-[40rem]/record-table-frame:first:ps-0 @max-[40rem]/record-table-frame:last:pe-0 @max-[40rem]/record-table-frame:start-0'
 // Full literals: Tailwind reads classes from source.
 const NARROW_CLASSES: Record<NarrowRole, string> = {
   title: `${NARROW_CELL} @max-[40rem]/record-table-frame:[grid-area:title] @max-[40rem]/record-table-frame:justify-start`,
