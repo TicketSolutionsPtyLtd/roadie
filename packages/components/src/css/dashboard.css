@@ -1,4 +1,6 @@
-/* Dashboard grid: cards placed by data-size, container-queried by dashboard width. */
+/* Dashboard grid: cards placed by data-size, container-queried by dashboard width.
+   Unlayered for now: in a layer a card's col-span-* class would start to win,
+   which changes consumers' layouts, so layering waits for a minor. */
 
 [data-slot='dashboard'] {
   container: dashboard / inline-size;

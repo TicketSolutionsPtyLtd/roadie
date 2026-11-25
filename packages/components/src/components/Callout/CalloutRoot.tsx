@@ -1,5 +1,3 @@
-'use client'
-
 import type { ComponentProps, ReactNode } from 'react'
 
 import { XIcon } from '@phosphor-icons/react/ssr'
@@ -9,9 +7,9 @@ import { cn } from '@oztix/roadie-core/utils'
 import { isEmptyNode } from '../../utils/isEmptyNode'
 import type { RoadieIntent } from '../../variants'
 import { IconButton } from '../Button/IconButton'
-import { CalloutContext } from './CalloutContext'
 import { CalloutDescription } from './CalloutDescription'
 import { CalloutIcon } from './CalloutIcon'
+import { CalloutIntent } from './CalloutIntent'
 import { CalloutTitle } from './CalloutTitle'
 import { type CalloutEmphasis, calloutVariants } from './variants'
 
@@ -53,7 +51,7 @@ export function CalloutRoot({
   ...props
 }: CalloutProps) {
   return (
-    <CalloutContext value={intent}>
+    <CalloutIntent intent={intent}>
       <div
         data-slot='callout'
         className={cn(calloutVariants({ intent, emphasis }), className)}
@@ -87,7 +85,7 @@ export function CalloutRoot({
           )}
         </div>
       </div>
-    </CalloutContext>
+    </CalloutIntent>
   )
 }
 
