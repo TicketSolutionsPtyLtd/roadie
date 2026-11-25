@@ -88,6 +88,13 @@ function stuckInset(body: HTMLElement): number {
     : 0
 }
 
+/** The rem a custom property holds, or undefined unless it's a length in rem. */
+function rowRem(element: HTMLElement, name: string) {
+  const value = getComputedStyle(element).getPropertyValue(name).trim()
+  const rem = parseFloat(value)
+  return value.endsWith('rem') && rem > 0 ? rem : undefined
+}
+
 type Scroller = { element: HTMLElement | null; ready: boolean }
 
 /** How a window sizes its rows: fixed, or measured from an estimate. */
@@ -98,6 +105,8 @@ export type RowSizing = {
   measure?: boolean
   /** Rem between rows. */
   gapRem?: number
+  /** A custom property on the body holding the row height in rem, such as one a container query sets; it wins over `estimateRem`. */
+  heightVar?: string
 }
 
 export type RowWindowOptions = RowSizing & {
@@ -115,7 +124,8 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   measureInset,
   estimateRem = tableRowSize.estimateRem,
   measure: measureRows = false,
-  gapRem = 0
+  gapRem = 0,
+  heightVar
 }: RowWindowOptions) {
   const bodyRef = useRef<Body>(null)
   const [scroller, setScroller] = useState<Scroller>({
@@ -126,7 +136,8 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   const [inset, setInset] = useState(0)
   // Rows are sized in rem, so a larger root font makes them taller.
   const [rootFont, setRootFont] = useState(16)
-  const rowHeight = estimateRem * rootFont
+  const [styledRem, setStyledRem] = useState<number>()
+  const rowHeight = (styledRem ?? estimateRem) * rootFont
   const gap = gapRem * rootFont
 
   useLayoutEffect(() => {
@@ -142,6 +153,9 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
         getComputedStyle(document.documentElement).fontSize
       )
       if (root > 0) setRootFont(root)
+      // Read once per resize, never per row.
+      const styled = current && heightVar && rowRem(current, heightVar)
+      if (styled) setStyledRem(styled)
     }
     measure()
     const observer = new ResizeObserver(measure)
@@ -149,7 +163,7 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
     if (body.parentElement?.parentElement)
       observer.observe(body.parentElement.parentElement)
     return () => observer.disconnect()
-  }, [])
+  }, [heightVar])
 
   const latestMeasureInset = useRef(measureInset)
   useLayoutEffect(() => {

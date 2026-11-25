@@ -14,7 +14,6 @@ import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
-import { tableRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import { RowElement } from './RecordTableRowPlace'
 import { type ColumnLayout, priorityClass, priorityProps } from './layout'
@@ -27,6 +26,9 @@ const cellOverflowClass =
 
 export const rowClass =
   'grid min-w-(--record-table-min-width) grid-cols-(--record-table-columns)'
+
+/** A body row's height, which the table sets and its window reads. */
+export const rowHeightClass = 'h-(--record-table-row-height)'
 
 const titleClampClass = 'line-clamp-2 min-w-0 wrap-anywhere'
 
@@ -152,7 +154,7 @@ export const RecordTableRow = memo(function RecordTableRow({
       onAuxClick={linked ? onRowClick : undefined}
       className={cn(
         rowClass,
-        tableRowSize.heightClass,
+        rowHeightClass,
         'border-b border-subtler',
         clickable && clickableRowClass,
         selectedRowClass
