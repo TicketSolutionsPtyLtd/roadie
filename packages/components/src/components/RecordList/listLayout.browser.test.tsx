@@ -154,6 +154,13 @@ const groupsShown = () =>
       .map((item) => item.querySelector('a')?.textContent)
   ])
 
+// Each group is an Accordion item: its summary holds the title.
+const disclosure = (name: string) =>
+  screen.getByRole('heading', { name }).closest('summary')!
+const isOpen = (name: string) => disclosure(name).closest('details')!.open
+// A closed item keeps its rows in the DOM, out of sight.
+const shown = (element: Element) => element.checkVisibility()
+
 describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
   it('groups rows under a title and count per option, in option order, leaving out empty options, with no-value records last', () => {
     const shows = testShows(6)
@@ -239,7 +246,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(titleOf(['status'])).toEqual(titleOf(['status', 'city']))
   })
 
-  it("draws each title's disclosure in its heading's type", () => {
+  it('makes each title, at every level, the summary that opens its group', () => {
     render(
       <ShowList
         data={testShows(6)}
@@ -251,13 +258,25 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     )
     for (const level of [2, 3, 4]) {
       const heading = screen.getAllByRole('heading', { level })[0]!
-      const trigger = within(heading).getByRole('button')
-      const look = (element: HTMLElement) => {
-        const style = getComputedStyle(element)
-        return [style.fontSize, style.fontWeight, style.color]
-      }
-      expect(look(trigger)).toEqual(look(heading))
+      const summary = heading.closest('summary')!
+      expect(summary).not.toBeNull()
+      // The whole title row is the target, not just its text.
+      expect(summary.getBoundingClientRect().width).toBeGreaterThan(
+        heading.getBoundingClientRect().width
+      )
     }
+  })
+
+  it('leaves room above the first title for its focus ring, clear of the toolbar', async () => {
+    render(
+      <ShowList data={testShows(6)} fields={showFields} defaultView={grouped} />
+    )
+    const summary = disclosure('On sale 2')
+    summary.focus()
+    const { left, top } = summary.getBoundingClientRect()
+    // Just above the title, where its ring draws, is the list, not the toolbar.
+    const above = document.elementFromPoint(left + 16, top - 2)
+    expect(above?.closest('[data-slot="records-header"]')).toBeNull()
   })
 
   it('collapses a group from its title, keeping it out of the view', async () => {
@@ -273,24 +292,29 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
       />
     )
     const calls = onViewChange.mock.calls.length
-    const toggle = screen.getByRole('button', { name: 'On sale 2' })
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    const toggle = disclosure('On sale 2')
+    expect(isOpen('On sale 2')).toBe(true)
     expect(screen.getByRole('link', { name: 'Ocean Alley 1' })).toBeVisible()
     await user.click(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    await expect
-      .poll(() => screen.queryByRole('link', { name: 'Ocean Alley 1' }))
-      .toBeNull()
+    expect(isOpen('On sale 2')).toBe(false)
+    const oceanAlley = screen.getByRole('link', {
+      name: 'Ocean Alley 1',
+      hidden: true
+    })
+    await expect.poll(() => shown(oceanAlley)).toBe(false)
     expect(
       screen.getByRole('link', { name: 'Ball Park Music 1' })
     ).toBeVisible()
     // An inner group collapses on its own.
-    await user.click(screen.getByRole('button', { name: 'Melbourne 1' }))
-    await expect
-      .poll(() => screen.queryByRole('link', { name: 'Ball Park Music 1' }))
-      .toBeNull()
+    await user.click(disclosure('Melbourne 1'))
+    const ballPark = screen.getByRole('link', {
+      name: 'Ball Park Music 1',
+      hidden: true
+    })
+    await expect.poll(() => shown(ballPark)).toBe(false)
     await user.click(toggle)
-    expect(screen.getByRole('link', { name: 'Ocean Alley 1' })).toBeVisible()
+    // It opens with the Accordion's animation.
+    await expect.poll(() => shown(oceanAlley)).toBe(true)
     expect(onViewChange.mock.calls.length).toBe(calls)
   })
 
@@ -304,16 +328,10 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
       />
     )
     const { rerender } = render(list(6))
-    await user.click(screen.getByRole('button', { name: 'On sale 2' }))
+    await user.click(disclosure('On sale 2'))
     rerender(list(9))
-    expect(screen.getByRole('button', { name: 'On sale 3' })).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    )
-    expect(screen.getByRole('button', { name: 'Sold out 3' })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    )
+    expect(isOpen('On sale 3')).toBe(false)
+    expect(isOpen('Sold out 3')).toBe(true)
   })
 
   it("shows the field's heading content under each of its groups, at any level", () => {
@@ -352,12 +370,12 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
   it('lines heading content up with the title, and leaves no space for none', () => {
     // With nothing under it, a title sits one gap above its rows.
     const offGap = (name: string) => {
-      const title = screen.getByRole('heading', { name })
+      const summary = disclosure(name)
       const list = screen.getByRole('list', { name })
-      const gap = parseFloat(getComputedStyle(title.parentElement!).rowGap)
+      const gap = parseFloat(getComputedStyle(summary.parentElement!).rowGap)
       return (
         list.getBoundingClientRect().top -
-        title.getBoundingClientRect().bottom -
+        summary.getBoundingClientRect().bottom -
         gap
       )
     }
@@ -384,7 +402,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
       <ShowList data={testShows(6)} fields={fields} defaultView={grouped} />
     )
     const extra = screen.getByText('On sale (on_sale)')
-    const trigger = screen.getByRole('button', { name: 'On sale 2' })
+    const trigger = disclosure('On sale 2')
     expect(extra.getBoundingClientRect().left).toBeCloseTo(
       trigger.getBoundingClientRect().left +
         parseFloat(getComputedStyle(trigger).paddingLeft),
@@ -464,13 +482,13 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
       />
     )
     await user.click(screen.getByRole('button', { name: 'Select' }))
-    const soldOut = screen.getByRole('button', { name: 'Sold out 2' })
+    const soldOut = disclosure('Sold out 2')
     await user.click(soldOut)
-    await expect
-      .poll(() =>
-        screen.queryByRole('checkbox', { name: 'Select Ball Park Music 1' })
-      )
-      .toBeNull()
+    const hiddenBox = screen.getByRole('checkbox', {
+      name: 'Select Ball Park Music 1',
+      hidden: true
+    })
+    await expect.poll(() => shown(hiddenBox)).toBe(false)
     const box = (name: string) => screen.getByRole('checkbox', { name })
     await user.click(box('Select Ocean Alley 1'))
     await user.keyboard('{Shift>}')

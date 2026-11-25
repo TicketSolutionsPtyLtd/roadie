@@ -13,7 +13,7 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { surfaceClass, useSurface } from '../../utils/surface'
-import { Collapsible } from '../Collapsible'
+import { Accordion } from '../Accordion'
 import {
   listGroupSectionClass,
   listGroupTitleVariants,
@@ -294,7 +294,11 @@ function GroupedList({
   const listRef = useRef<HTMLUListElement>(null)
   useSurface(stickyTop === undefined ? noList : listRef)
   return (
-    <NarrowList {...listProps} bodyRef={listRef} grouped>
+    <NarrowList
+      {...listProps}
+      bodyRef={listRef}
+      grouped={headings ? 'headings' : true}
+    >
       {shown.map((group) => (
         <Group
           key={group.key ?? ''}
@@ -399,21 +403,14 @@ function Group({
       data-slot='list-group-title'
       className={cn(
         listGroupTitleVariants(),
-        headings && titleTiers[depth],
+        headings && [titleTiers[depth], 'px-0'],
         'flex gap-1.5',
-        shared.bleed && '-mx-3',
+        !headings && shared.bleed && '-mx-3',
         sticky !== undefined && ['sticky z-1 py-1', surfaceClass]
       )}
       style={sticky === undefined ? undefined : { top: sticky }}
     >
-      {headings ? (
-        // The title is the group's disclosure, inside its heading.
-        <Collapsible.Trigger className='gap-1.5 font-semibold'>
-          {title}
-        </Collapsible.Trigger>
-      ) : (
-        title
-      )}
+      {title}
     </Heading>
   )
   const body = group.groups ? (
@@ -458,28 +455,37 @@ function Group({
     label: group.label,
     count: group.rows.length
   })
+  const open = !collapse.closed.has(path)
+  // An Accordion item per group: its summary holds the heading, so the whole
+  // title row opens and closes it. Heading content can hold links, which a
+  // summary can't, so it follows the summary and hides with the group.
   return (
-    <Collapsible
-      open={!collapse.closed.has(path)}
-      onOpenChange={(open) => collapse.setOpen(path, open)}
-      render={<li data-slot='list-group' className={className} />}
-    >
-      {extra != null && extra !== false ? (
-        // The content belongs to its title, so they sit together.
-        <div className='grid gap-0.5'>
+    <li data-slot='list-group' className={className}>
+      <Accordion.Item
+        open={open}
+        onToggle={(event) => {
+          const now = event.currentTarget.open
+          if (now !== open) collapse.setOpen(path, now)
+        }}
+        className='grid gap-1.5'
+      >
+        <Accordion.Trigger
+          className={cn('gap-3 rounded-lg px-3 py-1', shared.bleed && '-mx-3')}
+        >
           {heading}
-          <div
-            data-slot='list-group-heading'
-            className={cn('px-3 text-sm text-subtle', shared.bleed && '-mx-3')}
-          >
-            {extra}
-          </div>
-        </div>
-      ) : (
-        heading
-      )}
-      <Collapsible.Panel>{body}</Collapsible.Panel>
-    </Collapsible>
+        </Accordion.Trigger>
+        <Accordion.Content
+          className={cn('grid gap-1.5 p-0', shared.bleed && '-mx-3 px-3')}
+        >
+          {extra != null && extra !== false && (
+            <div data-slot='list-group-heading' className='text-sm text-subtle'>
+              {extra}
+            </div>
+          )}
+          {body}
+        </Accordion.Content>
+      </Accordion.Item>
+    </li>
   )
 }
 
@@ -490,7 +496,7 @@ type ListProps = {
   bodyRef?: RefObject<HTMLUListElement | null>
   padding?: WindowPadding
   /** Holds groups, each with its own section of rows. */
-  grouped?: boolean
+  grouped?: boolean | 'headings'
   children: ReactNode
 }
 
@@ -513,7 +519,11 @@ function NarrowList({
       data-slot='record-table-body'
       className={cn(
         grouped
-          ? 'grid [&>li:first-child]:mt-0 [&>li:first-child]:border-t-0 [&>li:first-child]:pt-0'
+          ? [
+              'grid [&>li:first-child]:mt-0 [&>li:first-child]:border-t-0 [&>li:first-child]:pt-0',
+              // A title's focus ring draws above it, clear of a sticky toolbar.
+              grouped === 'headings' && 'pt-1.5'
+            ]
           : cards
             ? ['grid', cardGap.gapClass]
             : [listSectionClass, joinSelected],
