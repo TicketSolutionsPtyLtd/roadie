@@ -84,5 +84,5 @@ export const ListDetailAndInspector = allowing(
 
 export const FourteenDestinations = allowing(framed(pane('Discover'), 10), {
   390: track(88),
-  1280: { ticket: 'INNO-1690', shift: 515, removed: 20 }
+  1280: track(98)
 })
