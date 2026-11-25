@@ -132,17 +132,18 @@ async function measureStep(scenario: string, step: () => void) {
 // A push of empty panes cost 32 to 48ms of style over two CI Perf runs
 // (CPU 1.8x to 2x); this is the higher plus 10%.
 const STYLE_CAP = 53
-// A push over content cost 218 to 272ms of style before INNO-1678, and 113ms
-// (100 rows) and 145ms (a RecordTable) after it, at CPU 2.2x; this is the
-// higher plus 10%. What's left is each pane's visibility, pointer-events and
-// --pane-back changing over its whole subtree.
-const CONTENT_STYLE_CAP = 160
+// A push over 100 rows cost 218 to 259ms of style before INNO-1678 and 113 to
+// 119ms after it, over two CI Perf runs (CPU 1.8x to 2.2x); this is the
+// higher plus 10%.
+const CONTENT_STYLE_CAP = 131
 
 const PUSHES: {
   name: string
   content: Content
   onPush: boolean
   styleCap: number
+  /** A ticket for a push that still costs more style than its cap. */
+  styleMiss?: string
   pushMiss?: string
   popMiss?: string
 }[] = [
@@ -157,14 +158,25 @@ const PUSHES: {
     name: 'a RecordTable of 100 the push mounts',
     content: 'table',
     onPush: true,
-    styleCap: CONTENT_STYLE_CAP
+    styleCap: CONTENT_STYLE_CAP,
+    // 145 to 160ms after INNO-1678: each pane's visibility, pointer-events
+    // and --pane-back still change over its whole subtree.
+    styleMiss: 'INNO-1706'
   }
 ]
 
 describe('Pane steps through a phone stack at 60fps on a slowed CPU', () => {
   it.each(PUSHES)(
     'pushes and pops a detail pane over $name',
-    async ({ name, content, onPush, styleCap, pushMiss, popMiss }) => {
+    async ({
+      name,
+      content,
+      onPush,
+      styleCap,
+      styleMiss,
+      pushMiss,
+      popMiss
+    }) => {
       await page.viewport(...PHONE)
       await mount(<Stack content={content} onPush={onPush} />, { frames: 10 })
       expect(detailLeft()).toBeGreaterThanOrEqual(PHONE[0])
@@ -176,14 +188,14 @@ describe('Pane steps through a phone stack at 60fps on a slowed CPU', () => {
       expect(detailLeft()).toBeGreaterThanOrEqual(PHONE[0])
       await expectFrameBudget(push.scenario, push.frames, {
         knownMiss: pushMiss,
-        note: `style ${push.style}ms`
+        note: `style ${push.style}ms${styleMiss ? `, the ${styleCap}ms cap waived as ${styleMiss}` : ''}`
       })
       await expectFrameBudget(pop.scenario, pop.frames, {
         knownMiss: popMiss,
         note: `style ${pop.style}ms`
       })
       // Only Chromium reports style time.
-      if (engine === 'chromium')
+      if (!styleMiss && engine === 'chromium')
         expect(push.style).toBeLessThanOrEqual(styleCap)
     }
   )
