@@ -20,6 +20,7 @@ import {
 
 import { listLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
@@ -62,6 +63,28 @@ const descriptionOf = (item: HTMLElement) =>
   item.querySelector('[data-slot="list-item-description"]')?.textContent
 
 const column = tableColumns(showFields)
+
+// Base UI opens a Select from a press in a frame, and unmounts a closed popup
+// after its exit transition, and Linux WebKit runs no frames while idle. A
+// closing popup is inert, so a pick that finds its options before the reopen
+// lands fails on `pointer-events: none`
+// (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md).
+const popupGone = () =>
+  withFrames(() => expect.poll(() => screen.queryByRole('listbox')).toBeNull())
+
+/** Picks `option` from the select labelled `name`, then waits for its popup to go. */
+async function pick(
+  user: ReturnType<typeof userEvent.setup>,
+  panel: HTMLElement,
+  name: string,
+  option: string
+) {
+  await user.click(within(panel).getByRole('combobox', { name }))
+  await user.click(
+    await withFrames(() => screen.findByRole('option', { name: option }))
+  )
+  await popupGone()
+}
 
 function ShowList({
   caption,
@@ -154,6 +177,13 @@ const groupsShown = () =>
       .map((item) => item.querySelector('a')?.textContent)
   ])
 
+// Each group is an Accordion item: its summary holds the title.
+const disclosure = (name: string) =>
+  screen.getByRole('heading', { name }).closest('summary')!
+const isOpen = (name: string) => disclosure(name).closest('details')!.open
+// A closed item keeps its rows in the DOM, out of sight.
+const shown = (element: Element) => element.checkVisibility()
+
 describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
   it('groups rows under a title and count per option, in option order, leaving out empty options, with no-value records last', () => {
     const shows = testShows(6)
@@ -239,6 +269,217 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(titleOf(['status'])).toEqual(titleOf(['status', 'city']))
   })
 
+  it('makes each title, at every level, the summary that opens its group', () => {
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={groupedShowFields}
+        defaultView={{
+          layout: { type: 'list', groupBy: ['status', 'city', 'show'] }
+        }}
+      />
+    )
+    for (const level of [2, 3, 4]) {
+      const heading = screen.getAllByRole('heading', { level })[0]!
+      const summary = heading.closest('summary')!
+      expect(summary).not.toBeNull()
+      // The whole title row is the target, not just its text.
+      expect(summary.getBoundingClientRect().width).toBeGreaterThan(
+        heading.getBoundingClientRect().width
+      )
+    }
+  })
+
+  it('leaves room above the first title for its focus ring, clear of the toolbar', async () => {
+    render(
+      <ShowList data={testShows(6)} fields={showFields} defaultView={grouped} />
+    )
+    const summary = disclosure('On sale 2')
+    summary.focus()
+    const { left, top } = summary.getBoundingClientRect()
+    // Just above the title, where its ring draws, is the list, not the toolbar.
+    const above = document.elementFromPoint(left + 16, top - 2)
+    expect(above?.closest('[data-slot="records-header"]')).toBeNull()
+  })
+
+  it("lines each title row's hover box up with a row's, at every level, and its text with the row's", () => {
+    render(
+      // Padded, so the rows' bleed is on screen.
+      <div style={{ padding: 24 }}>
+        <ShowList
+          data={testShows(6)}
+          fields={groupedShowFields.map((one) =>
+            one.key === 'city'
+              ? { ...one, groupHeading: () => <span>Suburb</span> }
+              : one
+          )}
+          getRowHref={(show) => `/shows/${show.id}`}
+          defaultView={{
+            layout: { type: 'list', groupBy: ['status', 'city'] }
+          }}
+        />
+      </div>
+    )
+    const row = document
+      .querySelector('[data-slot="record-table-list-row"] > div')!
+      .getBoundingClientRect()
+    const rowText = screen
+      .getByRole('link', { name: 'Ocean Alley 1' })
+      .getBoundingClientRect().left
+    for (const name of ['On sale 2', 'Perth 1']) {
+      const box = disclosure(name).getBoundingClientRect()
+      expect([box.left, box.right]).toEqual([row.left, row.right])
+      // Painted to its edges, not clipped by the group around it.
+      for (const x of [box.left + 2, box.right - 2]) {
+        expect(
+          document
+            .elementFromPoint(x, box.top + box.height / 2)
+            ?.closest('summary')
+        ).toBe(disclosure(name))
+      }
+      expect(
+        screen.getByRole('heading', { name }).getBoundingClientRect().left
+      ).toBeCloseTo(rowText, 0)
+    }
+    expect(
+      screen.getAllByText('Suburb')[0]!.getBoundingClientRect().left
+    ).toBeCloseTo(rowText, 0)
+  })
+
+  it('collapses a group from its title, keeping it out of the view', async () => {
+    const user = userEvent.setup()
+    const onViewChange = vi.fn()
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={groupedShowFields}
+        getRowHref={(show) => `/shows/${show.id}`}
+        defaultView={{ layout: { type: 'list', groupBy: ['status', 'city'] } }}
+        onViewChange={onViewChange}
+      />
+    )
+    const calls = onViewChange.mock.calls.length
+    const toggle = disclosure('On sale 2')
+    expect(isOpen('On sale 2')).toBe(true)
+    expect(screen.getByRole('link', { name: 'Ocean Alley 1' })).toBeVisible()
+    await user.click(toggle)
+    expect(isOpen('On sale 2')).toBe(false)
+    const oceanAlley = screen.getByRole('link', {
+      name: 'Ocean Alley 1',
+      hidden: true
+    })
+    await expect.poll(() => shown(oceanAlley)).toBe(false)
+    expect(
+      screen.getByRole('link', { name: 'Ball Park Music 1' })
+    ).toBeVisible()
+    // An inner group collapses on its own.
+    await user.click(disclosure('Melbourne 1'))
+    const ballPark = screen.getByRole('link', {
+      name: 'Ball Park Music 1',
+      hidden: true
+    })
+    await expect.poll(() => shown(ballPark)).toBe(false)
+    await user.click(toggle)
+    // It opens with the Accordion's animation.
+    await expect.poll(() => shown(oceanAlley)).toBe(true)
+    expect(onViewChange.mock.calls.length).toBe(calls)
+  })
+
+  it('keeps a group collapsed as its records change', async () => {
+    const user = userEvent.setup()
+    const list = (count: number) => (
+      <ShowList
+        data={testShows(count)}
+        fields={showFields}
+        defaultView={grouped}
+      />
+    )
+    const { rerender } = render(list(6))
+    await user.click(disclosure('On sale 2'))
+    rerender(list(9))
+    expect(isOpen('On sale 3')).toBe(false)
+    expect(isOpen('Sold out 3')).toBe(true)
+  })
+
+  it("shows the field's heading content under each of its groups, at any level", () => {
+    const fields = groupedShowFields.map((one) =>
+      one.key === 'city'
+        ? {
+            ...one,
+            groupHeading: ({
+              value,
+              count
+            }: {
+              value: string | null
+              count: number
+            }) => <span>{`${value ?? 'Nowhere'} venues, ${count} shows`}</span>
+          }
+        : one
+    )
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={fields}
+        defaultView={{ layout: { type: 'list', groupBy: ['status', 'city'] } }}
+      />
+    )
+    expect(screen.getAllByText('Brisbane venues, 1 shows')).toHaveLength(2)
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={fields}
+        defaultView={{ layout: { type: 'list', groupBy: ['city'] } }}
+      />
+    )
+    expect(screen.getByText('Brisbane venues, 2 shows')).toBeVisible()
+  })
+
+  it('lines heading content up with the title, and leaves no space for none', () => {
+    // With nothing under it, a title sits one gap above its rows.
+    const offGap = (name: string) => {
+      const summary = disclosure(name)
+      const list = screen.getByRole('list', { name })
+      const gap = parseFloat(getComputedStyle(summary.parentElement!).rowGap)
+      return (
+        list.getBoundingClientRect().top -
+        summary.getBoundingClientRect().bottom -
+        gap
+      )
+    }
+    const fields = showFields.map((one) =>
+      one.key === 'status'
+        ? {
+            ...one,
+            groupHeading: ({
+              value,
+              label
+            }: {
+              value: string | null
+              label: string
+            }) =>
+              value === 'on_sale' ? (
+                <span>{`${label} (${value})`}</span>
+              ) : value === 'sold_out' ? (
+                false
+              ) : null
+          }
+        : one
+    )
+    render(
+      <ShowList data={testShows(6)} fields={fields} defaultView={grouped} />
+    )
+    const extra = screen.getByText('On sale (on_sale)')
+    const trigger = disclosure('On sale 2')
+    expect(extra.getBoundingClientRect().left).toBeCloseTo(
+      trigger.getBoundingClientRect().left +
+        parseFloat(getComputedStyle(trigger).borderLeftWidth) +
+        parseFloat(getComputedStyle(trigger).paddingLeft),
+      0
+    )
+    expect(offGap('Sold out 2')).toBeCloseTo(0, 0)
+    expect(offGap('Cancelled 2')).toBeCloseTo(0, 0)
+  })
+
   it('picks deeper levels from Then by, offering only fields not already used', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()
@@ -257,9 +498,12 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     ).toBeNull()
     await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
     expect(
-      (await screen.findAllByRole('option')).map((option) => option.textContent)
+      (await withFrames(() => screen.findAllByRole('option'))).map(
+        (option) => option.textContent
+      )
     ).toEqual(['None', 'Show', 'City'])
     await user.click(screen.getByRole('option', { name: 'City' }))
+    await popupGone()
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'list',
       groupBy: ['status', 'city']
@@ -267,8 +511,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     await expect
       .poll(() => screen.getAllByRole('heading', { level: 3 }).length)
       .toBeGreaterThan(0)
-    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
-    await user.click(await screen.findByRole('option', { name: 'None' }))
+    await pick(user, panel, 'Then by', 'None')
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'list',
       groupBy: ['status']
@@ -298,6 +541,38 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(checked('Julia Jacklin 1')).toBe('false')
   })
 
+  it('leaves a collapsed group out of a Shift range', async () => {
+    const user = userEvent.setup()
+    render(
+      <ShowList
+        data={testShows(6)}
+        fields={showFields}
+        selectable
+        defaultView={grouped}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Select' }))
+    const soldOut = disclosure('Sold out 2')
+    await user.click(soldOut)
+    const hiddenBox = screen.getByRole('checkbox', {
+      name: 'Select Ball Park Music 1',
+      hidden: true
+    })
+    await expect.poll(() => shown(hiddenBox)).toBe(false)
+    const box = (name: string) => screen.getByRole('checkbox', { name })
+    await user.click(box('Select Ocean Alley 1'))
+    await user.keyboard('{Shift>}')
+    await user.click(box('Select Julia Jacklin 1'))
+    await user.keyboard('{/Shift}')
+    const checked = (name: string) =>
+      box(`Select ${name}`).getAttribute('aria-checked')
+    await expect.poll(() => checked('Julia Jacklin 1')).toBe('true')
+    expect(checked('angie McMahon 1')).toBe('true')
+    await user.click(soldOut)
+    expect(checked('Ball Park Music 1')).toBe('false')
+    expect(checked('Alex Lahey 1')).toBe('false')
+  })
+
   it('drops the deeper levels when a level is set to None, and writes each change once', async () => {
     const user = userEvent.setup()
     const onViewChange = vi.fn()
@@ -313,20 +588,17 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     )
     await user.click(screen.getByRole('button', { name: 'Configure list' }))
     const panel = await screen.findByRole('dialog', { name: 'Configure list' })
-    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
-    await user.click(await screen.findByRole('option', { name: 'None' }))
+    await pick(user, panel, 'Then by', 'None')
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'list',
       groupBy: ['status']
     })
-    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
-    await user.click(await screen.findByRole('option', { name: 'City' }))
+    await pick(user, panel, 'Then by', 'City')
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'list',
       groupBy: ['status', 'city']
     })
-    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
-    await user.click(await screen.findByRole('option', { name: 'City' }))
+    await pick(user, panel, 'Group by', 'City')
     // Once each, though Then by loses its field too.
     expect(
       onViewChange.mock.calls.map(([view]) => view.layout.groupBy)
