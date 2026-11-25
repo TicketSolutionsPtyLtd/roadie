@@ -175,11 +175,6 @@ leaves gets no call, so keep the lists' items in one state, as here. Wrap each l
 list; a drop outside every row lands at the end. Return false from `canDrop` to turn an item down: here, Encore can't
 go on before the doors open.
 
-When lists sit in sets, such as a board's lanes, give each list a `section`
-naming its set. The Move menu then lists the lists in the item's own section,
-and each other section as a submenu of its lists, as in "Move Encore to late
-set in Saturday".
-
 ```tsx-live-noinline
 function RunningOrder() {
   const [lists, setLists] = useState({
@@ -224,6 +219,11 @@ function RunningOrder() {
 
 render(<RunningOrder />)
 ```
+
+When lists sit in sets, such as a board's lanes, give each list a `section`
+naming its set. The Move menu then offers the lists in the item's own section,
+and each other section as a submenu of its lists, as in "Move Doors to late set
+in Saturday".
 
 ### With a popover
 
