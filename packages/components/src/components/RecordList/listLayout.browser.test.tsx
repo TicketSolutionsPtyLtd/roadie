@@ -20,6 +20,7 @@ import {
 
 import { listLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
@@ -62,6 +63,28 @@ const descriptionOf = (item: HTMLElement) =>
   item.querySelector('[data-slot="list-item-description"]')?.textContent
 
 const column = tableColumns(showFields)
+
+// Base UI opens a Select from a press in a frame, and unmounts a closed popup
+// after its exit transition, and Linux WebKit runs no frames while idle. A
+// closing popup is inert, so a pick that finds its options before the reopen
+// lands fails on `pointer-events: none`
+// (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md).
+const popupGone = () =>
+  withFrames(() => expect.poll(() => screen.queryByRole('listbox')).toBeNull())
+
+/** Picks `option` from the select labelled `name`, then waits for its popup to go. */
+async function pick(
+  user: ReturnType<typeof userEvent.setup>,
+  panel: HTMLElement,
+  name: string,
+  option: string
+) {
+  await user.click(within(panel).getByRole('combobox', { name }))
+  await user.click(
+    await withFrames(() => screen.findByRole('option', { name: option }))
+  )
+  await popupGone()
+}
 
 function ShowList({
   caption,
@@ -475,9 +498,12 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     ).toBeNull()
     await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
     expect(
-      (await screen.findAllByRole('option')).map((option) => option.textContent)
+      (await withFrames(() => screen.findAllByRole('option'))).map(
+        (option) => option.textContent
+      )
     ).toEqual(['None', 'Show', 'City'])
     await user.click(screen.getByRole('option', { name: 'City' }))
+    await popupGone()
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'list',
       groupBy: ['status', 'city']
@@ -485,8 +511,7 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     await expect
       .poll(() => screen.getAllByRole('heading', { level: 3 }).length)
       .toBeGreaterThan(0)
-    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
-    await user.click(await screen.findByRole('option', { name: 'None' }))
+    await pick(user, panel, 'Then by', 'None')
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'list',
       groupBy: ['status']
@@ -563,20 +588,17 @@ describe('listLayout grouped in a browser', { timeout: 30_000 }, () => {
     )
     await user.click(screen.getByRole('button', { name: 'Configure list' }))
     const panel = await screen.findByRole('dialog', { name: 'Configure list' })
-    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
-    await user.click(await screen.findByRole('option', { name: 'None' }))
+    await pick(user, panel, 'Then by', 'None')
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'list',
       groupBy: ['status']
     })
-    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
-    await user.click(await screen.findByRole('option', { name: 'City' }))
+    await pick(user, panel, 'Then by', 'City')
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'list',
       groupBy: ['status', 'city']
     })
-    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
-    await user.click(await screen.findByRole('option', { name: 'City' }))
+    await pick(user, panel, 'Group by', 'City')
     // Once each, though Then by loses its field too.
     expect(
       onViewChange.mock.calls.map(([view]) => view.layout.groupBy)
