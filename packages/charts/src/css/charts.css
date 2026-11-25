@@ -1,5 +1,6 @@
 /* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css.
-   Its rules sit in the components layer, so a consumer's class wins over them. */
+   Its rules sit in the components layer, so a class wins over them, except
+   the one at the end that must beat a class. */
 @source '../../dist';
 @source './safelist.html';
 
@@ -190,13 +191,6 @@
     min-height: var(--chart-plot-height, 220px);
   }
 
-  /* Without scripts the plot is never measured, so show the server drawing. */
-  @media (scripting: none) {
-    [data-slot='chart-plot-host'] .ts-chart-host {
-      opacity: 1;
-    }
-  }
-
   /* Server markup is drawn at the engine's default size until hydration. */
   [data-slot='chart-plot'] .ts-chart-surface > svg {
     width: 100%;
@@ -338,5 +332,14 @@
     forced-color-adjust: none;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+}
+
+/* Without scripts the plot is never measured, so show the server drawing.
+   Unlayered on purpose: it must beat the opacity-0 class ChartPlot puts on the
+   same element. */
+@media (scripting: none) {
+  [data-slot='chart-plot-host'] .ts-chart-host {
+    opacity: 1;
   }
 }
