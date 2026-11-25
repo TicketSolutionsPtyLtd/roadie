@@ -338,6 +338,7 @@ export default defineConfig({
         // Parity tests: each checks a generated file or a mirrored constant
         // against the CSS it comes from, not rendered behaviour.
         'packages/core/src/utils/cn.test.ts',
+        'packages/core/src/utils/classFamilies.test.ts',
         // palette.ts mirrors tokens.css.
         'packages/core/src/dataviz/parity.test.ts',
         // DEFAULT_ACCENT_COLOR mirrors the accent step 9 in tokens.css.
