@@ -39,6 +39,8 @@ linters already enforce.
 - Forms: `Field` wraps every control and owns invalid/required/disabled.
 - CSS after a `:has()` must end on a class, a variable or a rare attribute
   (AGENTS.md, Selectors); a guard test enforces it.
+- A component sheet styles only its own component's `data-slot`s
+  (AGENTS.md, Sheets); `slotOwnership.test.ts` enforces it.
 - Public CVA props are typed as inline literal unions, not
   `VariantProps<…>['x']`. Booleans are bare adjectives (`disabled`,
   `combined`), never `is*`.

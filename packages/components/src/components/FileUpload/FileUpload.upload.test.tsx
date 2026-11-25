@@ -108,16 +108,22 @@ describe('FileUpload uploads', () => {
     const files = [csv('march.csv'), csv('april.csv')]
     const { rerender } = render(<FileUpload value={[]} onUpload={onUpload} />)
     rerender(<FileUpload value={files} onUpload={onUpload} />)
+    // Each message is written a frame after it's emptied.
     const status = screen.getByRole('status')
-    expect(status).toHaveTextContent('2 files added.')
+    await waitFor(() => expect(status).toHaveTextContent('2 files added.'))
 
     await waitFor(() => expect(calls).toHaveLength(2))
     act(() => calls[1]!.onProgress(0.5))
+    await act(() => new Promise(requestAnimationFrame))
     expect(status).toHaveTextContent('2 files added.')
     await act(async () => calls[1]!.resolve(null))
-    expect(status).toHaveTextContent('april.csv uploaded. 1 of 2 uploaded.')
+    await waitFor(() =>
+      expect(status).toHaveTextContent('april.csv uploaded. 1 of 2 uploaded.')
+    )
     await act(async () => calls[0]!.resolve(null))
-    expect(status).toHaveTextContent('march.csv uploaded. 2 of 2 uploaded.')
+    await waitFor(() =>
+      expect(status).toHaveTextContent('march.csv uploaded. 2 of 2 uploaded.')
+    )
   })
 
   it('counts uploads that finish together', async () => {
@@ -130,7 +136,9 @@ describe('FileUpload uploads', () => {
       calls[0]!.resolve(null)
       calls[1]!.resolve(null)
     })
-    expect(screen.getByRole('status')).toHaveTextContent('2 of 2 uploaded.')
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('2 of 2 uploaded.')
+    )
   })
 
   it('marks a failed upload and starts the next in its place', async () => {
@@ -162,6 +170,7 @@ describe('FileUpload uploads', () => {
     expect(calls[0]!.signal.aborted).toBe(true)
     await waitFor(() => expect(calls).toHaveLength(4))
     await act(async () => calls[0]!.resolve(null))
+    await act(() => new Promise(requestAnimationFrame))
     expect(screen.getByRole('status')).not.toHaveTextContent('a.csv uploaded')
   })
 

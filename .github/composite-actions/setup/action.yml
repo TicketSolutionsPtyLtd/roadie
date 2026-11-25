@@ -25,7 +25,7 @@ runs:
     # One key per job and commit, so jobs never race to save the same key.
     # A job with no cache of its own yet starts from CI's build job, whose
     # cache holds every package build. Restore keys match by prefix, so `@`
-    # ends the scope: `build-` would also match docs.yml's `build-and-deploy`.
+    # ends the scope: `build` alone would also match any `build-…` scope.
     - name: Name Turbo cache
       if: inputs.turbo-cache == 'true'
       shell: bash

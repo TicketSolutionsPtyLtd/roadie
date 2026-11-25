@@ -23,7 +23,7 @@ const slashed = (path) => path.replaceAll('\\', '/')
 const IMPORTS = `import Link from 'next/link'
 import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { observeElementRect } from '@tanstack/virtual-core/utils'
-import { z } from 'zod'
+import * as z from 'zod'
 import { schema } from './schema'
 import router from 'next/dist/client/router'
 export const seed = [Link, draggable, observeElementRect, z, schema, router]
@@ -110,6 +110,12 @@ const dashboard = 'packages/core/src/dashboard'
 
 const MISTAKES =
   "export const Seed = () => <div className='dark:bg-normal z-[5]' />\n"
+
+it('catches a named zod import in package source', () => {
+  const path = 'packages/core/src/records/seed.ts'
+  const source = "import { z } from 'zod'\nexport { z }\n"
+  expect(lintSeeds([[path, source]]).get(path)).toEqual(['no-named-zod-import'])
+})
 
 it("applies Roadie's recommended rules to every package", () => {
   const seeds = ['charts', 'components', 'core', 'editor', 'widgets'].map(
@@ -236,6 +242,7 @@ describe('oxlint excludeFiles exceptions', () => {
     ],
     ...[
       'packages/core/src/utils/cn.test.ts',
+      'packages/core/src/utils/classFamilies.test.ts',
       'packages/core/src/dataviz/parity.test.ts',
       'packages/core/src/theme/parity.test.ts',
       'packages/core/src/dataviz/skill-parity.test.ts',

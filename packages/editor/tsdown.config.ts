@@ -1,6 +1,7 @@
 import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'tsdown'
 
+import { devOnlyPreset } from '../../scripts/dev-only.mjs'
 import {
   cacheTransforms,
   skipUnchangedWrites
@@ -40,10 +41,12 @@ export default defineConfig(({ watch }) => ({
   outExtensions: () => ({ js: '.js' }),
   plugins: watch
     ? [
-        cacheTransforms(babel({ presets: [reactCompilerPreset] })),
+        cacheTransforms(
+          babel({ presets: [devOnlyPreset, reactCompilerPreset] })
+        ),
         skipUnchangedWrites()
       ]
-    : [babel({ presets: [reactCompilerPreset] })],
+    : [babel({ presets: [devOnlyPreset, reactCompilerPreset] })],
   deps: {
     neverBundle: [
       'react',

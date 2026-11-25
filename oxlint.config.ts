@@ -311,7 +311,10 @@ export default defineConfig({
     }),
     roadieRules(
       ['packages/*/src/**/*.{ts,tsx}'],
-      { 'roadie/no-import-meta-env': 'error' },
+      {
+        'roadie/no-import-meta-env': 'error',
+        'roadie/no-named-zod-import': 'error'
+      },
       ['**/*.test.{ts,tsx}']
     ),
     // The testing preset covers the tests; these are the helpers they wait in.
@@ -338,6 +341,7 @@ export default defineConfig({
         // Parity tests: each checks a generated file or a mirrored constant
         // against the CSS it comes from, not rendered behaviour.
         'packages/core/src/utils/cn.test.ts',
+        'packages/core/src/utils/classFamilies.test.ts',
         // palette.ts mirrors tokens.css.
         'packages/core/src/dataviz/parity.test.ts',
         // DEFAULT_ACCENT_COLOR mirrors the accent step 9 in tokens.css.

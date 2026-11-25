@@ -27,7 +27,12 @@ export type FileUploadContextValue = {
   invalid: boolean
   labelId?: string
   describedBy?: string
+  /** Says why a full field won't open the picker. Set while it's full and enabled. */
+  fullId?: string
 }
+
+/** What a full field asks for: the Dropzone's title and the Trigger's description. */
+export const fullMessage = 'Remove a file to add another'
 
 export const FileUploadContext = createContext<FileUploadContextValue | null>(
   null
