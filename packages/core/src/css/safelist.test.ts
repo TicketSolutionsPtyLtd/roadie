@@ -56,16 +56,26 @@ const css = sources('packages/core/src/css', /\.css$/).replace(
   /\/\*[\s\S]*?\*\//g,
   ''
 )
-const chartSteps = new Set(
-  [...css.matchAll(/--color-chart-([\w-]+)\s*:/g)].map(([, step]) => step)
-)
+const themeKeys = (namespace: string) =>
+  new Set(
+    [...css.matchAll(new RegExp(`--${namespace}-([\\w-]+)\\s*:`, 'g'))].map(
+      ([, key = '']) => key
+    )
+  )
+// Colour utilities as the token manifest names them (src/tokens/manifest.ts).
+const colourUtilities = [
+  ...[...themeKeys('color')].flatMap((key) =>
+    ['bg', 'text', 'border', 'fill', 'stroke'].map(
+      (prefix) => `${prefix}-${key}`
+    )
+  ),
+  ...[...themeKeys('border-color')].map((key) => `divide-${key}`)
+]
 const roadieUtilities = [
   ...[...css.matchAll(/@utility\s+([\w-]+)\s*\{/g)].map(
     ([, name = '']) => name
   ),
-  ...[...chartSteps].flatMap((step) =>
-    ['bg', 'text', 'fill', 'stroke'].map((prefix) => `${prefix}-chart-${step}`)
-  )
+  ...colourUtilities
 ]
 
 describe('safelist.html, what roadie.compiled.css ships', () => {
@@ -78,7 +88,7 @@ describe('safelist.html, what roadie.compiled.css ships', () => {
     ).toEqual([])
   })
 
-  it('names every Roadie utility the docs name', () => {
+  it('names every Roadie utility and colour utility the docs name', () => {
     expect(
       roadieUtilities.filter(
         (name) => documented.has(name) && !safelist.includes(name)
