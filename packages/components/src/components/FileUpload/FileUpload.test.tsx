@@ -1066,6 +1066,43 @@ describe('FileUpload', () => {
         ).not.toHaveAccessibleDescription('Remove a file to add another')
     })
 
+    it('moves a collapsing row up past a row above it that goes at once', async () => {
+      // Collapses that never finish, so a FileUpload.Item row stays.
+      HTMLElement.prototype.getAnimations = () => [
+        { finished: new Promise(() => {}) } as unknown as Animation
+      ]
+      onTestFinished(() => {
+        delete (HTMLElement.prototype as Partial<HTMLElement>).getAnimations
+      })
+      render(
+        <FileUpload maxFiles={6} defaultValue={files(4)}>
+          <FileUpload.List>
+            {({ file }) =>
+              // set-2 is plain markup, so it goes at once when removed.
+              file.name === 'set-2.csv' ? (
+                <li>
+                  <span data-slot='file-upload-item-name'>{file.name}</span>
+                  <FileUpload.ItemRemove />
+                </li>
+              ) : (
+                <FileUpload.Item>
+                  <FileUpload.ItemName />
+                  <FileUpload.ItemRemove />
+                </FileUpload.Item>
+              )
+            }
+          </FileUpload.List>
+        </FileUpload>
+      )
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Remove set-3.csv' }))
+      await user.click(screen.getByRole('button', { name: 'Remove set-2.csv' }))
+      const order = [
+        ...document.querySelectorAll('[data-slot=file-upload-item-name]')
+      ].map((name) => name.textContent)
+      expect(order).toEqual(['set-1.csv', 'set-3.csv', 'set-4.csv'])
+    })
+
     it('reads Choose files on the Trigger', () => {
       render(
         <FileUpload maxFiles={3} defaultValue={[csv()]}>
