@@ -59,7 +59,7 @@ pnpm --filter docs dev
   Tailwind purges it. Core's holds what `roadie.compiled.css` ships: every
   `cn()` family member, plus each class the docs name or a package uses, and
   `safelist.test.ts` holds it to that, so a docs example that names a core
-  utility adds it there.
+  `@utility` or a `bg`, `text`, `fill`, or `stroke` chart colour adds it there.
 - A new family where one class replaces another (like intent, emphasis, or
   z-index) gets a group in `packages/core/src/utils/cn.ts` and a row in
   `classFamilies.test.ts` beside it, or `cn()` keeps both classes and a

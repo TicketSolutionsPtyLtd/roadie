@@ -86,8 +86,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   commit the file. After taking `main`, build and run the update again;
   never merge the table by hand.
   A new `@utility` goes in `src/css/safelist.html` as `AGENTS.md` says.
-  Core's CSS has hand-set Size Limit budgets in the `size-limit` field of its `package.json`
-  (`roadie.compiled.css`, brotli and raw, and what importing
+  Core's CSS has hand-set Size Limit budgets in the `size-limit` field of its
+  `package.json` (`roadie.compiled.css`, brotli and raw, and what importing
   `@oztix/roadie-core/css` costs an app before Tailwind scans a source file).
   Set one, or raise one, to about 10% above what you measure, never just
   above it, or the next small change crosses it again. After changing core's
