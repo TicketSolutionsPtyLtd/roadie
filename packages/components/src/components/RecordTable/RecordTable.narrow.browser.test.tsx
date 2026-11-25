@@ -212,6 +212,55 @@ describe('RecordTable narrow list rows in a browser', () => {
     ).toBeChecked()
   })
 
+  // A selectable table still swaps for a list under 40rem.
+  it('switches a selectable table to the list and back as the box resizes', async () => {
+    const { container } = render(
+      <Boxed width={360}>
+        <RecordTable {...base} data={testShows(20)} selectable />
+      </Boxed>
+    )
+    await expect
+      .poll(() => screen.queryByRole('list', { name: 'Shows' }))
+      .not.toBeNull()
+    await resize(container, 800)
+    await expect
+      .poll(() => screen.queryByRole('table', { name: 'Shows' }))
+      .not.toBeNull()
+    expect(screen.queryByRole('list', { name: 'Shows' })).toBeNull()
+    await resize(container, 360)
+    await expect
+      .poll(() => screen.queryByRole('list', { name: 'Shows' }))
+      .not.toBeNull()
+    expect(screen.queryByRole('table')).toBeNull()
+  })
+
+  it('still switches after its own scroll box comes and goes', async () => {
+    function Toggled() {
+      const [boxed, setBoxed] = useState(true)
+      return (
+        <Boxed width={800}>
+          <button type='button' onClick={() => setBoxed((was) => !was)}>
+            Toggle box
+          </button>
+          <RecordTable
+            {...base}
+            data={testShows(10)}
+            selectable
+            maxHeight={boxed ? '400px' : undefined}
+          />
+        </Boxed>
+      )
+    }
+    const { container } = render(<Toggled />)
+    await screen.findByRole('table', { name: 'Shows' })
+    screen.getByRole('button', { name: 'Toggle box' }).click()
+    await frame()
+    await resize(container, 360)
+    await expect
+      .poll(() => screen.queryByRole('list', { name: 'Shows' }))
+      .not.toBeNull()
+  })
+
   it('enters Select mode without an outline flashing round the rows', async () => {
     const user = userEvent.setup()
     const { container } = render(
