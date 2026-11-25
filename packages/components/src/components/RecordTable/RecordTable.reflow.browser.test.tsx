@@ -163,6 +163,24 @@ describe('RecordTable under 40rem', () => {
     }
   )
 
+  it(
+    'sets the title’s text just above its description, in subtler text',
+    TIMEOUT,
+    async () => {
+      render(<Shows width={360} />)
+      await frame()
+      const [show, city] = within(firstRow()).getAllByRole('cell')
+      const text = (cell: HTMLElement) => rect(cell.firstElementChild!)
+      const gap = text(city!).top - text(show!).bottom
+      expect(gap).toBeGreaterThanOrEqual(-1)
+      expect(gap).toBeLessThanOrEqual(8)
+      expect(getComputedStyle(city!).color).not.toBe(
+        getComputedStyle(show!).color
+      )
+      expect(Number(getComputedStyle(city!).fontWeight)).toBeLessThan(600)
+    }
+  )
+
   it('lays the row out on one line above 40rem', TIMEOUT, async () => {
     render(<Shows width={960} />)
     await frame()
