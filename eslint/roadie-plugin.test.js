@@ -104,6 +104,19 @@ const cases = {
   'no-dynamic-zod-import': {
     valid: ["import('./schema-types')", "import('zod-to-json')"],
     invalid: ["import('zod')", "import('./schema')"]
+  },
+  'no-named-zod-import': {
+    valid: [
+      "import * as z from 'zod'",
+      "import type { core, z } from 'zod'",
+      "import { type z } from 'zod'",
+      "import { z } from 'zod/mini'"
+    ],
+    invalid: [
+      "import { z } from 'zod'",
+      "import z from 'zod'",
+      "import { type core, z } from 'zod'"
+    ]
   }
 }
 
