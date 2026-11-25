@@ -9,6 +9,8 @@ import type { SortableAxis, TextDirection } from './order'
 
 export type SortableTransferTarget = {
   name: string
+  /** The list's section, when it isn't the item's own: its submenu in the Move menu. */
+  section?: string
   /** Lands the item at the end of that list. */
   move: () => void
 }

@@ -413,8 +413,8 @@ until the hex arrives.
 - `getAccentStyleSync(hex)` returns the inner CSS, for React.
 - `getAccentStyleTagSync(hex)` returns a full `<style>` tag, for any
   framework.
-- `getAccentStyleTag(hex)` is the async variant, with full hex fallbacks for
-  browsers without OKLCH.
+- `getAccentStyleTag(hex)` is deprecated. It resolves to the same tag as
+  `getAccentStyleTagSync`.
 - `accentFromPixels(pixels, { channels })` returns an accent hex, or `null`,
   from raw RGBA or RGB bytes, from `@oztix/roadie-core/colors`. See
   [Accent from an image](#accent-from-an-image).

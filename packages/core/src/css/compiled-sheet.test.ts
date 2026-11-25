@@ -90,6 +90,13 @@ describe('roadie.compiled.css', () => {
     expect(sheet.match(/--color-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
   })
 
+  it('declares the chart colours without a hex copy', () => {
+    expect(sheet).toMatch(/--chart-1:oklch\(/)
+    expect(sheet.match(/--chart-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
+    // One per mode: a third is Tailwind's copy of a mix left outside its check.
+    expect(sheet.match(/--chart-band:/g)).toHaveLength(2)
+  })
+
   it('declares shadows and the field edge without a copy for older browsers', () => {
     const shadows = sheet.match(/(?<![\w-])--(?:inset-)?shadow-[\w-]+:[^;}]*/g)
     expect(shadows?.length).toBeGreaterThan(0)

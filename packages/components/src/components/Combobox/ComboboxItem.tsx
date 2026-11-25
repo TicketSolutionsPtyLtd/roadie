@@ -12,6 +12,7 @@ import {
   optionHighlightClass
 } from '../../utils/optionHighlight'
 import { useVirtualItem } from '../../utils/virtualList'
+import { optionRowClass } from '../../variants'
 
 export type ComboboxItemProps = ComboboxPrimitive.Item.Props &
   RefAttributes<HTMLDivElement>
@@ -32,11 +33,7 @@ export function ComboboxItem({
   return (
     <ComboboxPrimitive.Item
       data-slot='combobox-item'
-      className={cn(
-        'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
-        optionHighlightClass(byPointer),
-        className
-      )}
+      className={cn(optionRowClass, optionHighlightClass(byPointer), className)}
       {...keepTouchTap({
         onPointerDownCapture,
         onPointerMove,

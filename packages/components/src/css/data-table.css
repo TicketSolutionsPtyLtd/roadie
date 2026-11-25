@@ -1,53 +1,66 @@
 /* DataTable rules over the parts every row and cell share: priority columns
    hiding as the table's container narrows (and Show all with them), the
    pinned column's fill, and a linked or group row's hover, press, overlay
-   and pointer hand-off. The rest is classes in the components. Unlayered on
-   purpose: the row's transform and outline, and a pinned title's overlay,
-   must beat is-interactive-within. */
+   and pointer hand-off. The rest is classes in the components. */
 
-@container data-table (width < 720px) {
-  [data-slot='data-table']:not([data-show-all]) [data-priority='3'] {
-    display: none;
+@layer components {
+  @container data-table (width < 720px) {
+    [data-slot='data-table']:not([data-show-all]) [data-priority='3'] {
+      display: none;
+    }
+  }
+
+  @container data-table (width < 560px) {
+    [data-slot='data-table']:not([data-show-all]) [data-priority='2'] {
+      display: none;
+    }
+  }
+
+  @container data-table (width < 400px) {
+    [data-slot='data-table']:not([data-show-all]) [data-priority='1'] {
+      display: none;
+    }
+  }
+
+  @container data-table (width >= 720px) {
+    [data-slot='data-table-show-all'] {
+      display: none;
+    }
+  }
+
+  [data-slot='data-table'] [data-pin] {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--data-card-surface, var(--intent-bg-normal));
+  }
+
+  /* A linked row (getRowHref) or a group row is an is-interactive-within
+     surface: its title link's or caret's overlay covers the row. Hovering the
+     row hovers the target. */
+  @media (hover: hover) {
+    [data-slot='data-table'] tr:is([data-linked], [data-group]):hover > td {
+      background-color: color-mix(
+        in oklch,
+        var(--intent-9) 6%,
+        var(--data-card-surface, var(--intent-bg-normal)) 94%
+      );
+    }
+  }
+
+  /* A pinned cell paints above the overlay, so presses pass through it to the
+     overlay as they do on any other cell. A target inside it takes them back. */
+  [data-slot='data-table'] tr:is([data-linked], [data-group]) > [data-pin] {
+    pointer-events: none;
+
+    & [data-interactive-target] {
+      pointer-events: auto;
+    }
   }
 }
 
-@container data-table (width < 560px) {
-  [data-slot='data-table']:not([data-show-all]) [data-priority='2'] {
-    display: none;
-  }
-}
-
-@container data-table (width < 400px) {
-  [data-slot='data-table']:not([data-show-all]) [data-priority='1'] {
-    display: none;
-  }
-}
-
-@container data-table (width >= 720px) {
-  [data-slot='data-table-show-all'] {
-    display: none;
-  }
-}
-
-[data-slot='data-table'] [data-pin] {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  background: var(--data-card-surface, var(--intent-bg-normal));
-}
-
-/* A linked row (getRowHref) or a group row is an is-interactive-within
-   surface: its title link's or caret's overlay covers the row. Hovering the
-   row hovers the target. */
-@media (hover: hover) {
-  [data-slot='data-table'] tr:is([data-linked], [data-group]):hover > td {
-    background-color: color-mix(
-      in oklch,
-      var(--intent-9) 6%,
-      var(--data-card-surface, var(--intent-bg-normal)) 94%
-    );
-  }
-}
+/* Unlayered on purpose from here: these must beat is-interactive-within, a
+   utility on the same row and target. */
 
 /* A table row doesn't shrink on press like a card does. Its own outline is
    hidden by cells, and WebKit never paints it, so the title link or caret
@@ -76,14 +89,4 @@
   > [data-pin]:not(:first-child)
   [data-interactive-target]::after {
   inset-inline: -100cqi;
-}
-
-/* A pinned cell paints above the overlay, so presses pass through it to the
-   overlay as they do on any other cell. A target inside it takes them back. */
-[data-slot='data-table'] tr:is([data-linked], [data-group]) > [data-pin] {
-  pointer-events: none;
-
-  & [data-interactive-target] {
-    pointer-events: auto;
-  }
 }
