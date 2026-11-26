@@ -36,6 +36,12 @@ describe('searchDraft', () => {
       held: 'Per'
     },
     {
+      name: 'reads each echo in turn while the parent catches up',
+      events: [sent('a'), sent('ab'), typed('abc'), shown('a'), shown('ab')],
+      draft: 'abc',
+      held: 'ab'
+    },
+    {
       name: 'takes a search set from outside over the draft',
       events: [typed('Perth'), shown('Ocean')],
       draft: 'Ocean',
