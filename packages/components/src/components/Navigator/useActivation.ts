@@ -11,7 +11,6 @@ import {
 } from './activation'
 import { opensElsewhere } from './opensElsewhere'
 
-/** Resolves a tap with `resolveActivation` and applies its steps, in order. */
 export function useActivation() {
   const { activateItem, setOverflowOpen, closeOverflowOnRoute, setValue } = use(
     NavigatorActionsContext
