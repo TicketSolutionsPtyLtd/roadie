@@ -606,6 +606,10 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
           )
 
         expect(below(join)).toBeLessThan(2)
+        // Inside the hole, the columns' rounded corners cast a trace: 3 in
+        // dark mode, about what the old filters cast into the notch.
+        for (const x of [join - 4, join, join + 4])
+          expect(distance(sample(x, bottom - 6), BACKDROP)).toBeLessThan(5)
         // The shadow still runs under the rest of the card.
         expect(below(join - NOTCH_RADIUS - 24)).toBeGreaterThan(2)
         expect(below(join + NOTCH_RADIUS + 24)).toBeGreaterThan(2)
@@ -613,28 +617,31 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
     )
 
     it.runIf(emphasis === 'raised')(
-      'casts the shadow for its state from each column',
-      () => {
+      'casts the shadow for its state under each column',
+      async () => {
         const removeStill = useStylesheet(
           '*, *::before, *::after { transition: none !important }'
         )
         onTestFinished(removeStill)
-        const { card } = renderTicket('horizontal', 560)
-        const shadows = () =>
-          ['::before', '::after'].map(
-            (pseudo) => getComputedStyle(card, pseudo).boxShadow
+        const { host, card, footer } = renderTicket('horizontal', 560)
+        // Dark mode's shadow is the darkest, so the gap is widest there.
+        host.classList.add('dark')
+        // Deep enough that only rest's 4px layer reaches it, not pressed's.
+        const shade = async () => {
+          const sample = await capture(host)
+          const { bottom } = card.getBoundingClientRect()
+          const join = footer.getBoundingClientRect().left
+          return [join - NOTCH_RADIUS - 24, join + NOTCH_RADIUS + 24].map((x) =>
+            distance(sample(x, bottom + 4), BACKDROP)
           )
-        const rest = shadows()
+        }
+        const rest = await shade()
         card.classList.add('is-interactive', 'is-active')
-        const pressed = shadows()
+        const pressed = await shade()
 
-        expect(getComputedStyle(card).boxShadow).not.toMatch(/2px 2px/)
-        expect(rest[0]).toMatch(/4px 4px/)
-        expect(rest[1]).toBe(rest[0])
-        // Pressed drops to the one close shadow.
-        expect(pressed[0]).toMatch(/2px 2px/)
-        expect(pressed[0]).not.toMatch(/4px 4px/)
-        expect(pressed[1]).toBe(pressed[0])
+        rest.forEach((value, column) =>
+          expect(value).toBeGreaterThan(pressed[column]! + 2)
+        )
       }
     )
 
@@ -660,6 +667,9 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
         }
         const stacked = await shadowBelow('auto')
         const vertical = await shadowBelow('vertical')
+
+        // The middle sample, 2px under the card, is in the shadow.
+        expect(distance(vertical[7]!, BACKDROP)).toBeGreaterThan(2)
 
         stacked.forEach((pixel, index) =>
           expect(distance(pixel, vertical[index]!)).toBeLessThanOrEqual(2)
@@ -750,6 +760,39 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
     })
   }
 )
+
+describe('Card ticket, horizontal with a link', () => {
+  it('takes no clicks outside its rounded corners', () => {
+    const { container } = render(
+      <div style={{ padding: 24, width: 560 }}>
+        <Card variant='ticket' emphasis='raised' direction='horizontal'>
+          <Card.Content style={{ height: 120 }}>
+            <Card.Title>
+              <Card.Link href='#weekly-pass'>Weekly Pass</Card.Link>
+            </Card.Title>
+          </Card.Content>
+          <Card.Footer>
+            <p>28 tickets</p>
+          </Card.Footer>
+        </Card>
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-slot=card]')!
+    const link = container.querySelector('a')!
+    const { left, right, top, bottom } = card.getBoundingClientRect()
+    const hits = (x: number, y: number) =>
+      link.contains(document.elementFromPoint(x, y))
+
+    expect(hits(left + 40, top + 40)).toBe(true)
+    for (const [x, y] of [
+      [left + 2, top + 2],
+      [left + 2, bottom - 2],
+      [right - 2, top + 2],
+      [right - 2, bottom - 2]
+    ] as const)
+      expect(hits(x, y)).toBe(false)
+  })
+})
 
 describe('Card ticket, split auto with a header', () => {
   it('runs the footer the full height, with no ancestor container', () => {

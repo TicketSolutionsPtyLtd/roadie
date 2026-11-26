@@ -1,7 +1,7 @@
 /* Card variant='ticket'. The body and footer each paint the fill and are cut
    at the join: with corner-shape: scoop where supported, and with a
-   half-notch mask on each part elsewhere. The shadow is a box-shadow, on
-   the root, or on a split ticket on a caster under each column. The edge
+   half-notch mask on each part elsewhere. The shadow is a box-shadow on
+   the root or, on a split ticket, on a caster under each column. The edge
    is drawn by the parts, inside their own boxes, so it stops at the
    notches: inset shadows along their outer sides, with their
    outer corners taking the card's radius, and a ring around each notch in
@@ -60,6 +60,7 @@
     --ticket-root-shadow: var(--ticket-shadow);
     --ticket-caster: initial;
     --card-part-overflow: initial;
+    --ticket-overlay-radius: initial;
 
     &:has(> [data-slot='card-footer']) {
       --ticket-root-edge: 0px;
@@ -78,6 +79,7 @@
         --ticket-root-shadow: 0 0 #0000;
         --ticket-caster: block;
         --card-part-overflow: clip;
+        --ticket-overlay-radius: var(--radius-4xl, 2rem);
 
         position: relative;
         isolation: isolate;
@@ -109,6 +111,12 @@
       box-shadow: var(--ticket-shadow);
       pointer-events: none;
       transition: box-shadow var(--duration-moderate) var(--ease-standard);
+    }
+
+    /* With the root no longer clipping, a Card.Link's overlay would take
+       clicks in the square corners outside the card's curve. */
+    & [data-interactive-target]::after {
+      border-radius: var(--ticket-overlay-radius, revert-layer);
     }
 
     &::before {

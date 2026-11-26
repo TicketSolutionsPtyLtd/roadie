@@ -37,8 +37,8 @@ are small.
 
 For the ticket that meant:
 
-- The three shadows are a `box-shadow` on the root, which follows its
-  rounded corners.
+- The shadow is a `box-shadow` on the root, which follows its rounded
+  corners (on a split ticket, on casters; see below).
 - The edge can't be on the root: a root ring runs straight across the mouth
   of each notch, because only the parts know where the join is. So each part
   draws its outer sides as `inset` box-shadows, with its outer corners taking
@@ -60,7 +60,9 @@ For the ticket that meant:
   column, not by a container query: Firefox can miss a container query on
   a pseudo-element of the container itself until the card is resized.
   A stacked ticket keeps the root's shadow: its notches are on the sides,
-  where the shadow is only a faint blur.
+  where the shadow is only a faint blur. Without the root's clip, a
+  `Card.Link` overlay is rounded to the card's radius, so its square corners
+  don't take clicks.
 
 What's lost: the faint shadow the filters cast into each notch, and on a
 stacked raised ticket the faint blur of the root's shadow at each side
@@ -80,4 +82,7 @@ perf test runs only with `--perf`, so `CardTicket.browser.test.tsx` also
 checks, in every engine, that the ticket has no `filter`, draws its edge
 along every outer side and corner and around the notch, leaves each notch's
 mouth open, draws the same edge with no footer, and that a ticket nested in
-a notched part takes none of its notches.
+a notched part takes none of its notches. For a split ticket it checks that
+no shadow falls under the bottom notch, light and dark, that the shadow
+follows the card's state, that a stacked auto ticket casts the vertical
+one's shadow, and that a link takes no clicks outside the corners.
