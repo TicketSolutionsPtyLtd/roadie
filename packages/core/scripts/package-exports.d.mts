@@ -23,5 +23,5 @@ export function readExports(packageDir: string): ExportEntry[]
 /** False for tests, test helpers, fixtures, and hydration fixtures, in `src` or a build. */
 export function isShipped(file: string): boolean
 
-/** Every TypeScript file under `src` that ships, relative to `packageDir`, for a build's entries. */
+/** Glob patterns for a build's entries: every TypeScript file under `src` that ships, relative to `packageDir`. */
 export function shippedSources(packageDir?: string): string[]

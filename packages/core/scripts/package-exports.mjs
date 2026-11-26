@@ -46,8 +46,15 @@ export function isShipped(file) {
   return ![TEST_FOLDER, TEST_FILE, TEST_HELPER].some((test) => test.test(file))
 }
 
+// A glob less each file isShipped leaves out, not a file list, so `tsdown
+// --watch` reads its entries again when a file is added or deleted. A test
+// added while it runs stays out by its suffix until the next start.
 export function shippedSources(packageDir = '.') {
-  return globSync('src/**/*.{ts,tsx}', { cwd: packageDir }).filter(isShipped)
+  const sources = 'src/**/*.{ts,tsx}'
+  const unshipped = globSync(sources, { cwd: packageDir })
+    .filter((file) => !isShipped(file))
+    .map((file) => `!${file}`)
+  return [sources, '!**/*.test.{ts,tsx}', ...unshipped]
 }
 
 export function exportEntries(exports, packageDir) {

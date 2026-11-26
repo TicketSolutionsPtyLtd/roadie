@@ -1,7 +1,12 @@
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { exportEntries, isShipped, readExports } from './package-exports.mjs'
+import {
+  exportEntries,
+  isShipped,
+  readExports,
+  shippedSources
+} from './package-exports.mjs'
 
 const fixture = path.join(import.meta.dirname, 'manifest/fixtures/workspace')
 
@@ -151,5 +156,20 @@ describe('isShipped', () => {
     'src/components/Pane/PaneColumns.tsx'
   ])('ships %s', (file) => {
     expect(isShipped(file)).toBe(true)
+  })
+})
+
+// A glob, not a file list, is what makes tsdown --watch re-read its entries.
+describe('shippedSources', () => {
+  it('globs src, less each file that does not ship', () => {
+    const components = path.join(import.meta.dirname, '../../components')
+    const patterns = shippedSources(components)
+    expect(patterns.slice(0, 2)).toEqual([
+      'src/**/*.{ts,tsx}',
+      '!**/*.test.{ts,tsx}'
+    ])
+    expect(patterns).toContain('!src/components/Pane/paneColumns.ts')
+    expect(patterns).toContain('!src/components/Toolbar/Toolbar.ssr.tsx')
+    expect(patterns).not.toContain('!src/components/Kbd/index.tsx')
   })
 })
