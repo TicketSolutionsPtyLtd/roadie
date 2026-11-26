@@ -26,7 +26,7 @@ import {
   type ExportEntry,
   readExports
 } from '../core/scripts/package-exports.mjs'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const PERF_TESTS = 'src/**/*.perf.browser.test.{ts,tsx}'

@@ -8,6 +8,7 @@ import {
 } from 'react-docgen-typescript'
 import ts from 'typescript'
 
+import { isShipped } from '../package-exports.mjs'
 import { programFor } from './exports.ts'
 import { unwrap } from './text.ts'
 
@@ -231,7 +232,7 @@ function publicPartsOf(indexFile: string, compound: string) {
 export function componentFiles(entryFile: string) {
   const dir = path.dirname(entryFile)
   return readdirSync(dir)
-    .filter((name) => name.endsWith('.tsx') && !/\.(test|ssr)\./.test(name))
+    .filter((name) => name.endsWith('.tsx') && isShipped(name))
     .sort()
     .map((name) => path.join(dir, name))
 }
