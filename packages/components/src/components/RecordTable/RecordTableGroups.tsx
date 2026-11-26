@@ -19,6 +19,7 @@ import type { RecordGroup } from '../Records/groups'
 import { rowClass } from './RecordTableRow'
 import { Row, type RowsShared } from './RecordTableRows'
 import { SELECT_WIDTH } from './layout'
+import type { RecordTableColumn } from './types'
 
 // Under 40rem a group title's text starts where the rows' title text does:
 // past a leading thumbnail (2.5rem) and the row's gap, or in Select mode past
@@ -36,11 +37,16 @@ const NARROW_START = {
 // Under 40rem the title row spans the frame alone, not the columns' tracks, which would overflow it.
 const NARROW_GROUP_ROW = '@max-[40rem]/record-table-frame:grid-cols-1'
 
+// RecordImage's 2.5rem thumbnail; a custom cell sizes itself.
+const thumbnail = (column: RecordTableColumn) =>
+  column.kind === 'image' && !column.cell
+
 /**
  * Where a group title's text starts, so it lines up with the rows' title
  * text: past the checkbox track and any leading thumbnail columns, whose
- * widths are set. A grown column before the title has no known width, so the
- * title lines up with the first column's text instead.
+ * widths are set. A column before the title that grows, hides by priority or
+ * draws its own cell has no known width, so the title lines up with the first
+ * column's text instead.
  */
 export function groupTextStart(
   { columns, layout, title }: Pick<RowsShared, 'columns' | 'layout' | 'title'>,
@@ -50,9 +56,9 @@ export function groupTextStart(
   const before = columns.slice(0, Math.max(titleAt, 0))
   const thumbnails = before.every(
     (column, index) =>
-      column.kind === 'image' &&
+      thumbnail(column) &&
       column.width !== undefined &&
-      column.width.grow === undefined &&
+      !column.width.grow &&
       layout.priority[index] === undefined
   )
   const past =
@@ -64,7 +70,7 @@ export function groupTextStart(
   return {
     className: cn(
       '[--group-text-start:var(--group-text-start-wide)]',
-      columns[leadingAt]?.kind === 'image'
+      columns[leadingAt] && thumbnail(columns[leadingAt])
         ? NARROW_START.thumbnail
         : NARROW_START.plain,
       select && NARROW_START.selecting

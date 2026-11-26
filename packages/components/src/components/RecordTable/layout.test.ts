@@ -335,6 +335,18 @@ describe('a group title', () => {
       'var(--content-inset)'
     ],
     [
+      'past a thumbnail that grows by 0',
+      [{ ...image, width: { min: 3.75, grow: 0 } }, show],
+      false,
+      'calc(3.75rem + var(--content-inset) + var(--spacing) * 2.5)'
+    ],
+    [
+      'at the first column, past a thumbnail with its own cell',
+      [{ ...image, cell: () => null }, show],
+      false,
+      'var(--content-inset)'
+    ],
+    [
       'at the first column, past a thumbnail that hides',
       [{ ...image, priority: 1 as const }, show],
       false,
@@ -351,6 +363,9 @@ describe('a group title', () => {
     expect(start([image, show]).className).toContain('+2.5rem+')
     expect(
       start([{ ...city, narrow: 'leading' }, show]).className
+    ).not.toContain('+2.5rem+')
+    expect(
+      start([{ ...image, cell: () => null }, show]).className
     ).not.toContain('+2.5rem+')
   })
 })
