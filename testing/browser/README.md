@@ -18,4 +18,5 @@ Tests only: it's private and never published.
   it. `apcaLc` and `oklchLightness` take sRGB; `flatten`, `over`,
   `isPainted`, `shownFill`, and `shownText` read the colours the page paints;
   `textContrast` and `fillContrast` give an element's Lc; `minimumLc` holds
-  0010's floor for each role.
+  0010's floor for each role, and `textRole` says which role an element's
+  text plays.
