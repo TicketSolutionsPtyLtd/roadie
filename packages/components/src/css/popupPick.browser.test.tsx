@@ -18,10 +18,19 @@ afterEach(() => {
 // Chromium keep running them, so the race needs frames held back.
 function slowFrames() {
   const frame = window.requestAnimationFrame.bind(window)
+  const cancelFrame = window.cancelAnimationFrame.bind(window)
+  const cancels = new Map<number, () => void>()
   vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
-    window.setTimeout(() => frame(callback), 400)
-    return 0
+    const id = window.setTimeout(() => {
+      const queued = frame(callback)
+      cancels.set(id, () => cancelFrame(queued))
+    }, 400)
+    cancels.set(id, () => window.clearTimeout(id))
+    return id
   })
+  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) =>
+    cancels.get(id)?.()
+  )
 }
 
 describe(

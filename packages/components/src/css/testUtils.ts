@@ -91,17 +91,22 @@ type Name = string | RegExp
 type Opener = Element | { panel: HTMLElement; name: Name }
 
 type Pick = {
-  /** Leave out when the popup is already open, say from typing. */
+  /** Leave out whenever the popup is already open, say from typing, as a click on its trigger would close it. */
   from?: Opener
   /** For a pick that leaves its popup open, such as a multiple select. */
   staysOpen?: boolean
 }
 
-// Waits for every popup with `role` to unmount. Base UI keeps a closed popup
-// mounted, its positioner inert, until its exit transition ends.
+// Waits for every popup with `role` on the page to unmount, as a picked
+// submenu item's parent menu closes too. Base UI keeps a closed popup mounted,
+// its positioner inert, until its exit transition ends.
 export const waitPopupGone = (role: 'listbox' | 'menu' = 'listbox') =>
   withFrames(() =>
-    expect.poll(() => screen.queryAllByRole(role)).toHaveLength(0)
+    expect
+      .poll(() => screen.queryAllByRole(role), {
+        message: `A ${role} is still open. Pass staysOpen for a pick that leaves it open.`
+      })
+      .toHaveLength(0)
   )
 
 // Base UI opens a popup from a press in a frame, and Linux WebKit runs no
@@ -125,16 +130,15 @@ async function pick(
   const found = await withFrames(() => screen.findByRole(item, { name }))
   await user.click(found)
   if (!staysOpen) await waitPopupGone(item === 'option' ? 'listbox' : 'menu')
-  return found
 }
 
-/** Opens a Select or Combobox popup `from` its trigger, picks `option`, and waits for the popup to go. */
+/** Opens a Select or Combobox popup `from` its trigger, picks `option`, and, unless it `staysOpen`, waits for every listbox to go. */
 export const pickOption = (
   user: Clicker,
   { option, ...rest }: Pick & { option: Name }
 ) => pick(user, rest, 'combobox', 'option', option)
 
-/** Opens a menu `from` its trigger button, picks `item`, and waits for every menu to go. */
+/** Opens a menu `from` its trigger button, picks `item`, and, unless it `staysOpen`, waits for every menu to go. */
 export const pickMenuItem = (
   user: Clicker,
   { item, ...rest }: Pick & { item: Name }
