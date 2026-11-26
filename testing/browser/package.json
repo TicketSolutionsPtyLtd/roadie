@@ -2,12 +2,13 @@
   "name": "@oztix/roadie-browser-testing",
   "version": "0.0.0",
   "private": true,
-  "description": "Browser-test helpers every Roadie package shares: the real-mouse command, the frame-waiting popup picks, and the APCA contrast kit. Tests only; never published.",
+  "description": "Browser-test helpers every Roadie package shares: the real-mouse command, the frame-waiting popup picks, the APCA contrast kit, and the stylesheet helpers. Tests only; never published.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./config": "./src/config.ts",
-    "./contrast": "./src/contrast.ts"
+    "./contrast": "./src/contrast.ts",
+    "./stylesheet": "./src/stylesheet.ts"
   },
   "scripts": {
     "lint": "oxlint src",

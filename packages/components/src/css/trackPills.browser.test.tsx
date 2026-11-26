@@ -7,13 +7,11 @@ import {
   oklchLightness,
   shownFill
 } from '@oztix/roadie-browser-testing/contrast'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { Tabs } from '../components/Tabs'
 import { ToggleGroup } from '../components/ToggleGroup'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {

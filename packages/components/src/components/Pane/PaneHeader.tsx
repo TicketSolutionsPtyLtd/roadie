@@ -16,6 +16,7 @@ import { CaretLeftIcon, XIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { mergeRefs } from '../../utils/mergeRefs'
+import { stuckMoved } from '../../utils/stickyStack'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { IconButton } from '../Button/IconButton'
 import { Drawer } from '../Drawer'
@@ -173,16 +174,22 @@ export function PaneHeader({
     )
     if (!header || !paneEl) return
 
-    const publish = inDrawer
+    const publishParts = inDrawer
       ? () =>
           paneEl.style.setProperty(
             '--pane-header-height',
             `${header.offsetHeight}px`
           )
       : publishHeaderParts(header, paneEl)
+    const publish = () => {
+      publishParts()
+      stuckMoved(header)
+    }
     if (!inDrawer) paneEl.setAttribute('data-header', '')
 
-    publish()
+    // The observer's first delivery tells the sticky stack: telling it here
+    // reads styles just written, a restyle on every push.
+    publishParts()
 
     const observer =
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
