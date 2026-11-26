@@ -394,6 +394,7 @@ describe('buildManifest', () => {
         name: 'Chip',
         import: '@fixture/skins/chip/react',
         docs: 'https://example.com/docs/components/chip/',
+        status: 'beta',
         summary: 'A removable filter chip',
         description: 'A removable filter chip.',
         props: [

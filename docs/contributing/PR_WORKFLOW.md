@@ -291,7 +291,7 @@ the PR only when the review is clean.
   For baselines CI renders, link the run and embed a few representative
   images.
 - **Open it as a draft** (`gh pr create --draft`). CI on a draft runs only
-  the `check` job: lint, typecheck, formatting, the component docs and PR
+  the `check` job: lint, typecheck, formatting, the docs content and PR
   size checks, and the affected unit tests. No build or browser tests.
 - **Mark it ready once local checks pass**: `pnpm test:gated` on the touched
   packages, lint, typecheck, and the docs build if docs changed, with the

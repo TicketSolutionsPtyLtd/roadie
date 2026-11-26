@@ -101,6 +101,30 @@ describe('parseDocsPage status', () => {
       )
     ).toThrow("/components/badge/ has status 'experimental'")
   })
+
+  it.each(['/components/badge/', '/charts/bar-chart/'])(
+    'fails when %s documents a component with no status',
+    (route) => {
+      expect(() =>
+        parseDocsPage(
+          "export const metadata = {\n  title: 'Badge'\n}\n\n<PropsDefinitions component='Badge' />\n",
+          route
+        )
+      ).toThrow(`${route} documents Badge but sets no status`)
+    }
+  )
+
+  it.each([
+    ['a guide with no props table', '/charts/dashboards/', ''],
+    [
+      'a foundation',
+      '/foundations/theming/',
+      "<PropsDefinitions component='RoadieProvider' />"
+    ]
+  ])('lets %s go without a status', (_, route, body) => {
+    const mdx = `export const metadata = {\n  title: 'X'\n}\n\n${body}\n`
+    expect(parseDocsPage(mdx, route).status).toBeUndefined()
+  })
 })
 
 describe('pageForComponent', () => {

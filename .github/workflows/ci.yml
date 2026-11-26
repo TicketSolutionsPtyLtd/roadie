@@ -121,9 +121,6 @@ jobs:
       - name: Setup
         uses: ./.github/composite-actions/setup
 
-      - name: Check component docs
-        run: node scripts/check-component-docs.mjs
-
       - name: Check docs content
         run: node scripts/check-docs-content.mjs
 
