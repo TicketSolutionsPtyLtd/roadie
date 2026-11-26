@@ -12,6 +12,7 @@ import {
   type CheckboxGroupDirection
 } from '../Checkbox/CheckboxGroupContext'
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { checkboxGroupVariants } from './variants'
 
 export type CheckboxGroupRootProps = CheckboxGroupPrimitive.Props &
@@ -32,6 +33,7 @@ export function CheckboxGroupRoot({
   invalid,
   required,
   disabled,
+  'aria-describedby': ariaDescribedBy,
   ...props
 }: CheckboxGroupRootProps) {
   const fieldContext = useFieldContext()
@@ -39,6 +41,10 @@ export function CheckboxGroupRoot({
   const resolvedRequired = required ?? fieldContext.required
   const inField = !!fieldContext.fieldId
   const [labelId, setLabelId] = useState<string>()
+  const fieldProps = useFieldControlProps({
+    invalid: resolvedInvalid,
+    'aria-describedby': ariaDescribedBy
+  })
 
   return (
     <CheckboxGroupContext
@@ -58,14 +64,8 @@ export function CheckboxGroupRoot({
         aria-labelledby={
           labelId ?? ((inField && fieldContext.labelId) || undefined)
         }
-        aria-describedby={
-          (inField &&
-            (fieldContext.invalid
-              ? fieldContext.errorTextId
-              : fieldContext.helperTextId)) ||
-          undefined
-        }
         {...props}
+        aria-describedby={fieldProps['aria-describedby']}
       />
     </CheckboxGroupContext>
   )

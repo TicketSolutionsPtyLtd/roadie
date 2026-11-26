@@ -42,7 +42,9 @@ export function SliderThumb({
     <SliderPrimitive.Thumb
       data-slot='slider-thumb'
       inputRef={mergedInputRef}
-      aria-describedby={ariaDescribedBy ?? describedBy}
+      aria-describedby={
+        [describedBy, ariaDescribedBy].filter(Boolean).join(' ') || undefined
+      }
       className={cn(sliderThumbVariants({ size }), className)}
       {...props}
     />

@@ -36,6 +36,7 @@ import type { CalendarDateRange } from '../Calendar/selection'
 import { useToday } from '../Calendar/today'
 import { Drawer } from '../Drawer'
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { selectTriggerVariants } from '../Select/variants'
 import { Tabs } from '../Tabs'
 import type { DateRangePickerProps } from './DateRangePicker'
@@ -343,14 +344,12 @@ export function ExtendedDateRangePicker({
   const anchorRef = useRef<HTMLButtonElement>(null)
   const startRef = useRef<HTMLInputElement>(null)
   const requiredId = useId()
-  const describedBy =
-    [
-      isInvalid ? field.errorTextId : field.helperTextId,
-      isRequired && requiredId,
-      ariaDescribedBy
-    ]
-      .filter(Boolean)
-      .join(' ') || undefined
+  const { 'aria-describedby': describedBy } = useFieldControlProps({
+    invalid: isInvalid,
+    'aria-describedby':
+      [isRequired && requiredId, ariaDescribedBy].filter(Boolean).join(' ') ||
+      undefined
+  })
   const readOptions = {
     today: today ?? undefined,
     timeZone: zone,

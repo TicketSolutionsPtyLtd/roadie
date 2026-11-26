@@ -9,6 +9,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { isEmptyNode } from '../../utils/isEmptyNode'
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { CheckboxGroupContext } from './CheckboxGroupContext'
 import {
   type CheckboxSize,
@@ -45,6 +46,7 @@ export function Checkbox({
   disabled: disabledProp,
   id,
   children,
+  'aria-describedby': ariaDescribedBy,
   ...props
 }: CheckboxProps) {
   const group = use(CheckboxGroupContext)
@@ -58,7 +60,6 @@ export function Checkbox({
   const invalid = invalidProp ?? (inField ? field.invalid : undefined)
   const required = requiredProp ?? (inField ? field.required : undefined)
   const disabled = disabledProp ?? (inField ? field.disabled : undefined)
-  const fieldTextId = field.invalid ? field.errorTextId : field.helperTextId
   const generatedId = useId()
   const hasLabel = !isEmptyNode(label)
   const hasDescription = !isEmptyNode(description)
@@ -66,9 +67,14 @@ export function Checkbox({
   const descriptionId = hasDescription
     ? `${generatedId}-description`
     : undefined
+  const fieldProps = useFieldControlProps({
+    invalid,
+    'aria-describedby': ariaDescribedBy
+  })
   const describedBy =
-    [descriptionId, inField && fieldTextId].filter(Boolean).join(' ') ||
-    undefined
+    [descriptionId, inField ? fieldProps['aria-describedby'] : ariaDescribedBy]
+      .filter(Boolean)
+      .join(' ') || undefined
 
   const checkbox = (
     <CheckboxPrimitive.Root
