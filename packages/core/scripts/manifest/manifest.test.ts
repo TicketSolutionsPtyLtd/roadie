@@ -446,6 +446,22 @@ describe('buildManifest', () => {
     ])
   })
 
+  it('fails when a component folder that exports no component has no page', () => {
+    expect(() =>
+      buildManifest({ ...options, packageDir: `${workspaceRoot}plain` })
+    ).toThrow('No docs page for @fixture/plain/stand')
+  })
+
+  it('fails when a component page sets no status', () => {
+    expect(() =>
+      buildManifest({
+        ...options,
+        packageDir: `${workspaceRoot}plain`,
+        documentedSubpaths: { '@fixture/plain/stand': '/components/pill/' }
+      })
+    ).toThrow('No status on /components/board/')
+  })
+
   it('fails when a compound part has no docs', () => {
     expect(() =>
       buildManifest({ ...options, packageDir: `${workspaceRoot}cast` })
