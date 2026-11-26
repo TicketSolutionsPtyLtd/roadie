@@ -62,11 +62,10 @@ describe('roadie.compiled.css', () => {
     sheet = buildCompiledSheet()
   }, 30_000)
 
-  it('holds Roadie utilities and no class safelist.html leaves out', () => {
-    const safelist = readFileSync(
-      join(import.meta.dirname, 'safelist.html'),
-      'utf8'
-    )
+  it('holds Roadie utilities and no class the safelists leave out', () => {
+    const safelist = ['safelist.html', 'safelist.families.html']
+      .map((file) => readFileSync(join(import.meta.dirname, file), 'utf8'))
+      .join('\n')
     const safelisted = new Set(
       [...safelist.matchAll(/class="([^"]*)"/g)].flatMap(([, names = '']) =>
         names.trim().split(/\s+/).filter(Boolean)

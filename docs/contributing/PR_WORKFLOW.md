@@ -89,7 +89,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   fails; to add one, put the row in with `{}` and run `size:update`. The
   update can't recreate a named row, so keep both sides' named rows when
   `main` conflicts with the table.
-  A new `@utility` goes in `src/css/safelist.html` as `AGENTS.md` says.
+  A new `@utility` goes in `src/css/safelist.html`, or, when it joins a
+  `cn()` family, into the generated `safelist.families.html` through
+  `test -u`, as `AGENTS.md` says.
   CSS has hand-set Size Limit budgets in the `size-limit` field of a
   `package.json`: core's (`roadie.compiled.css`, brotli and raw, and what importing
   `@oztix/roadie-core/css` costs an app before Tailwind scans a source file),

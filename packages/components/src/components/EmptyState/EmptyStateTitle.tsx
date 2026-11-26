@@ -1,12 +1,9 @@
-'use client'
-
-import { type ComponentProps, use } from 'react'
+import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
-import { EmptyStateContext } from './EmptyStateContext'
-import { emptyStateTitleVariants } from './variants'
+import { emptyStateTitleClass } from './variants'
 
 export type EmptyStateTitleProps = ComponentProps<'h2'> & {
   /** Change the heading level, e.g. `render={<h1 />}`. Defaults to `<h2>`. */
@@ -18,12 +15,11 @@ export function EmptyStateTitle({
   render,
   ...props
 }: EmptyStateTitleProps) {
-  const size = use(EmptyStateContext)
   return resolveRender(
     'h2',
     {
       'data-slot': 'empty-state-title',
-      className: cn(emptyStateTitleVariants({ size }), className),
+      className: cn(emptyStateTitleClass, className),
       ...props
     },
     render

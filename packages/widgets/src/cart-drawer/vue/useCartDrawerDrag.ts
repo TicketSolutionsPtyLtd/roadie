@@ -9,8 +9,12 @@ import {
   watch
 } from 'vue'
 
-import { MEASURE_PROGRESS_MAX, TAP_PX, decideSnapTarget } from '../../cart'
-import { DRAWER_SPRING, openDrawerHeight } from '../../cart/drawer'
+import { MEASURE_PROGRESS_MAX } from '../../cart'
+import {
+  DRAWER_SPRING,
+  createDrawerDrag,
+  openDrawerHeight
+} from '../../cart/drawer'
 
 export type UseCartDrawerDragReturn = {
   state: Ref<'open' | 'closed'>
@@ -95,10 +99,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       state.value === 'open' ? maxHeight.value : closedHeight.value
   })
 
-  // Gates re-entry and filters concurrent multi-touch pointers.
-  let activePointerId: number | null = null
-  // Detaches in-flight drag listeners so an unmount mid-drag doesn't leak them.
-  let dragCleanup: (() => void) | null = null
+  const drag = createDrawerDrag()
 
   const isClosedEnoughToMeasure = () => progress.value < MEASURE_PROGRESS_MAX
 
@@ -194,7 +195,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     stopHeightAnim()
     headerTracker.disconnect()
     footerTracker.disconnect()
-    dragCleanup?.()
+    drag.dispose()
     if (typeof window === 'undefined') return
     window.removeEventListener('resize', updateViewport)
     window.visualViewport?.removeEventListener('resize', updateViewport)
@@ -221,75 +222,24 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
 
   const handleDragStart = (e: PointerEvent) => {
     if (typeof window === 'undefined') return
-    // Re-entry guard: honour only the first pointer to avoid duplicate listeners on multi-touch.
-    if (activePointerId !== null) return
-    const pointerId = e.pointerId
-    activePointerId = pointerId
-
-    const startY = e.clientY
-    const startHeight = dragHeight.value
-    const wasOpen = state.value === 'open'
-
-    let lastClientY = startY
-    let lastTime = Date.now()
-    let velocity = 0
+    const started = drag.start({
+      pointer: e,
+      wasOpen: state.value === 'open',
+      getHeight: () => dragHeight.value,
+      setHeight: (px) => (dragHeight.value = px),
+      bounds: () => ({
+        closedHeight: closedHeight.value,
+        maxHeight: maxHeight.value
+      }),
+      onRelease: (target) => {
+        isDragging.value = false
+        snapTo(target)
+      }
+    })
+    if (!started) return
     isDragging.value = true
     // Hand the height over to the pointer: cancel any in-flight snap spring.
     stopHeightAnim()
-
-    const detach = () => {
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-      window.removeEventListener('pointercancel', onUp)
-      activePointerId = null
-      dragCleanup = null
-    }
-
-    const onMove = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointerId) return
-      const delta = startY - ev.clientY // positive = dragged up = opening
-      dragHeight.value = Math.min(
-        maxHeight.value,
-        Math.max(closedHeight.value, startHeight + delta)
-      )
-
-      const now = Date.now()
-      const dt = now - lastTime
-      if (dt > 0) {
-        velocity = ((lastClientY - ev.clientY) / dt) * 1000
-      }
-      lastClientY = ev.clientY
-      lastTime = now
-    }
-
-    const onUp = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointerId) return
-      detach()
-      isDragging.value = false
-
-      const currentHeight = dragHeight.value
-      const totalMove = Math.abs(currentHeight - startHeight)
-
-      if (totalMove < TAP_PX) {
-        snapTo(wasOpen ? 'closed' : 'open')
-        return
-      }
-
-      // Core uses Y-position (up = negative); this hook tracks height (up = positive), so invert.
-      const target = decideSnapTarget({
-        velocity: -velocity,
-        offset: -(currentHeight - startHeight),
-        currentState: wasOpen ? 'open' : 'closed',
-        openY: 0,
-        closedY: maxHeight.value - closedHeight.value
-      })
-      snapTo(target)
-    }
-
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-    window.addEventListener('pointercancel', onUp)
-    dragCleanup = detach
   }
 
   return {

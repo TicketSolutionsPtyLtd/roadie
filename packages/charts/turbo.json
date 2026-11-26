@@ -23,7 +23,8 @@
         "!src/**/testChart.ts",
         "!src/**/browserTesting.tsx",
         "!src/**/testUtils.{ts,tsx}",
-        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*"
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*",
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/fixtures/**"
       ]
     }
   }
