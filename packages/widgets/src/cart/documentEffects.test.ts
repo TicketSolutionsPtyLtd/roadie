@@ -29,6 +29,14 @@ describe('lockBodyScroll (refcounted)', () => {
     expect(document.body.style.overflow).toBe('')
   })
 
+  it('restores the original overflow value, not a hardcoded empty string', () => {
+    document.body.style.overflow = 'scroll'
+    const release = lockBodyScroll()
+    expect(document.body.style.overflow).toBe('hidden')
+    release()
+    expect(document.body.style.overflow).toBe('scroll')
+  })
+
   it('is idempotent — double-release does not corrupt the count', () => {
     const releaseA = lockBodyScroll()
     const releaseB = lockBodyScroll()
