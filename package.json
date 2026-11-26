@@ -15,6 +15,7 @@
     "test:browser": "turbo test:browser",
     "test:gated": "node scripts/test-gated.mjs",
     "preview": "node scripts/preview.mjs",
+    "screenshots": "node scripts/pr-screenshots.mjs",
     "cleanup": "node scripts/cleanup.mjs",
     "format": "oxfmt",
     "format:check": "oxfmt --check",

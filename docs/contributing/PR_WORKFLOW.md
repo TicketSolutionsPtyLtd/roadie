@@ -28,9 +28,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   pushed, unlock the worktree if no session is using it, then
   `git worktree remove <path>`; the branch stays.
 
-  Delete every helper branch you make (a rebase, review or screenshots
-  branch) once it has done its job: `git branch -D <branch>`. A pushed
-  screenshots branch stays on GitHub, where the PR's images point.
+  Delete every helper branch you make (a rebase or review branch) once it
+  has done its job: `git branch -D <branch>`. Screenshots need no local
+  branch (section 7).
 
   Every subagent brief says to remove its own scratch files and never leave
   a background server running. Delete only files you created, by exact path.
@@ -282,12 +282,14 @@ the PR only when the review is clean.
   so names are fine there. Leave merged history alone.
 - **Evidence renders inline on GitHub**, because the maintainer reviews on a
   phone. Take viewport-only screenshots, with no browser chrome, address bar,
-  or local URL. Push them to an orphan branch named
-  `<prefix>/<topic>-screenshots` that holds only the images (the pre-push
-  hook skips a branch with no history in common with `main`), and embed them
-  in the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
-  Never link local files, gists, or artifacts. For baselines CI renders, link
-  the run and embed a few representative images.
+  or local URL. Once the PR exists, `pnpm screenshots <pr> <images…>`
+  uploads them to `pr-<pr>/` on the repo's `screenshots` branch through the
+  GitHub API and prints the markdown to paste under Evidence. It makes no
+  local commit, so no hook runs and `--no-verify` never comes up; a retake
+  under the same file name replaces the image in the PR. Never link local
+  files, gists, or artifacts, and never push your own screenshots branch.
+  For baselines CI renders, link the run and embed a few representative
+  images.
 - **Open it as a draft** (`gh pr create --draft`). CI on a draft runs only
   the `check` job: lint, typecheck, formatting, the component docs and PR
   size checks, and the affected unit tests. No build or browser tests.
