@@ -79,9 +79,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   entry in `package.json`; for JavaScript, a `tsdown.config.ts` entry unless
   a wildcard already covers it (components does) and a size budget.
   Components, charts, and blocks write `exports` from their source folders
-  (`pnpm --filter <package> generate:exports`, which `build` runs), so a new
-  folder gets its subpath there; core, editor, widgets, and illustrations
-  list `exports` by hand.
+  (`pnpm --filter <package> generate:exports`, which `build` runs, through
+  core's `scripts/generate-exports.mjs`), so a new folder gets its subpath
+  there; core, editor, widgets, and illustrations list `exports` by hand.
   Each package keeps a generated table, `size-budget.json`, of each JS
   subpath's brotli bytes: its own code (`own`), with its dependencies
   (`full`), and without what only an `import()` reaches (`initial`). `size`
