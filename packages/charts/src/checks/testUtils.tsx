@@ -11,6 +11,10 @@ import {
   isPainted,
   minimumLc
 } from '@oztix/roadie-browser-testing/contrast'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { BarChart } from '../BarChart'
@@ -23,7 +27,6 @@ import { channelExample } from '../RankedBars/examples'
 import { StackedBars } from '../StackedBars'
 import { ticketMixExample } from '../StackedBars/examples'
 import { afterResize } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 
 // The same checks as packages/components/src/checks, which this package can't
 // import: its tsconfig's rootDir is src. Chart text is all under 14px, so

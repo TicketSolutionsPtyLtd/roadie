@@ -10,13 +10,12 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { CommandPalette } from '../CommandPalette'
 import { Pane } from '../Pane'
-import { useStylesheet } from '../Pane/testUtils'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

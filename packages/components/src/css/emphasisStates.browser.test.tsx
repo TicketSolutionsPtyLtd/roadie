@@ -4,11 +4,12 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Card } from '../components/Card'
 import { Checkbox } from '../components/Checkbox'
 import { Combobox } from '../components/Combobox'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { RadioGroup } from '../components/RadioGroup'
 import { Select } from '../components/Select'
 import { Toggle } from '../components/Toggle'
@@ -20,8 +21,6 @@ import { setHoverCapable } from './testUtils'
 // pressed, read from computed style. An expected fill or shadow names tokens
 // (`intent-2` is `var(--intent-2)`, and a space separates shadow layers), a
 // literal value, or `.class` for a caller's utility, resolved on a probe.
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 type Move = 'lift' | 'press' | 'none'
 type Look = { fill?: string; shadow?: string; border?: string; move?: Move }
