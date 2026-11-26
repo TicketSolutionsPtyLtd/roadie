@@ -9,13 +9,8 @@ import {
   watch
 } from 'vue'
 
-import {
-  MEASURE_PROGRESS_MAX,
-  MOBILE_OPEN_TOP_INSET_PX,
-  TAP_PX,
-  VIEWPORT_MARGIN_PX,
-  decideSnapTarget
-} from '../../cart'
+import { MEASURE_PROGRESS_MAX, TAP_PX, decideSnapTarget } from '../../cart'
+import { DRAWER_SPRING, openDrawerHeight } from '../../cart/drawer'
 
 export type UseCartDrawerDragReturn = {
   state: Ref<'open' | 'closed'>
@@ -39,17 +34,6 @@ type Options = {
   initialState?: 'open' | 'closed'
 }
 
-function computeViewportMaxHeight(): number {
-  if (typeof window === 'undefined') return 0
-  if (window.innerWidth < 640) {
-    // clientHeight is what `position: fixed` is measured against.
-    const layoutH = document.documentElement.clientHeight || window.innerHeight
-    return Math.max(0, layoutH - MOBILE_OPEN_TOP_INSET_PX)
-  }
-  const vh = window.visualViewport?.height ?? window.innerHeight
-  return Math.max(0, vh - VIEWPORT_MARGIN_PX)
-}
-
 export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const initialState = opts.initialState ?? 'closed'
   const state = ref<'open' | 'closed'>(initialState)
@@ -57,7 +41,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const headerHeight = ref(53)
   const footerHeight = ref(64)
   const closedHeight = computed(() => headerHeight.value + footerHeight.value)
-  const maxHeight = ref(computeViewportMaxHeight())
+  const maxHeight = ref(openDrawerHeight())
   const isDragging = ref(false)
   const motionQuery =
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
@@ -72,10 +56,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     initialState === 'open' ? maxHeight.value : closedHeight.value
   )
 
-  // Spring the height like the React skin (same damping/stiffness) instead of
-  // an instant set + CSS transition. Driving the ref each frame means `progress`
-  // (and every progress-derived surface) ramps with the spring rather than
-  // snapping 0↔1 on toggle.
+  // Animate the ref each frame, not a CSS transition, so `progress` ramps with
+  // the spring rather than snapping 0↔1 on toggle.
   let heightAnim: AnimationPlaybackControls | null = null
   const stopHeightAnim = () => {
     heightAnim?.stop()
@@ -88,9 +70,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       return
     }
     heightAnim = animate(dragHeight.value, target, {
-      type: 'spring',
-      damping: 30,
-      stiffness: 300,
+      ...DRAWER_SPRING,
       onUpdate: (v) => {
         dragHeight.value = v
       },
@@ -198,7 +178,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const setFooterElement = footerTracker.setElement
 
   const updateViewport = () => {
-    maxHeight.value = computeViewportMaxHeight()
+    maxHeight.value = openDrawerHeight()
   }
 
   onMounted(() => {

@@ -17,13 +17,8 @@ import {
   useTransform
 } from 'motion/react'
 
-import {
-  MEASURE_PROGRESS_MAX,
-  MOBILE_OPEN_TOP_INSET_PX,
-  TAP_PX,
-  VIEWPORT_MARGIN_PX,
-  decideSnapTarget
-} from '../../cart'
+import { MEASURE_PROGRESS_MAX, TAP_PX, decideSnapTarget } from '../../cart'
+import { DRAWER_SPRING, openDrawerHeight } from '../../cart/drawer'
 
 export type UseCartDrawerDragReturn = {
   state: 'open' | 'closed'
@@ -46,17 +41,6 @@ type UseCartDrawerDragOptions = {
   initialState?: 'open' | 'closed'
 }
 
-function computeViewportMaxHeight(): number {
-  if (typeof window === 'undefined') return 0
-  if (window.innerWidth < 640) {
-    // clientHeight is what `position: fixed` is measured against; inset keeps it clear of top chrome.
-    const layoutH = document.documentElement.clientHeight || window.innerHeight
-    return Math.max(0, layoutH - MOBILE_OPEN_TOP_INSET_PX)
-  }
-  const vh = window.visualViewport?.height ?? window.innerHeight
-  return Math.max(0, vh - VIEWPORT_MARGIN_PX)
-}
-
 export function useCartDrawerDrag(
   opts: UseCartDrawerDragOptions = {}
 ): UseCartDrawerDragReturn {
@@ -67,7 +51,7 @@ export function useCartDrawerDrag(
   const [headerHeight, setHeaderHeight] = useState(53)
   const [footerHeight, setFooterHeight] = useState(64)
   // Derived from the viewport, not the drawer's rendered height, to avoid a 0-high measurement loop.
-  const [maxHeight, setMaxHeight] = useState(() => computeViewportMaxHeight())
+  const [maxHeight, setMaxHeight] = useState(() => openDrawerHeight())
   const [isDragging, setIsDragging] = useState(false)
 
   const closedHeight = headerHeight + footerHeight
@@ -144,7 +128,7 @@ export function useCartDrawerDrag(
   // Keep maxHeight fresh against viewport + visualViewport resizes.
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const update = () => setMaxHeight(computeViewportMaxHeight())
+    const update = () => setMaxHeight(openDrawerHeight())
     update()
     window.addEventListener('resize', update)
     window.visualViewport?.addEventListener('resize', update)
@@ -175,9 +159,7 @@ export function useCartDrawerDrag(
       animate(
         dragHeight,
         target,
-        reducedMotion
-          ? { duration: 0 }
-          : { type: 'spring', damping: 30, stiffness: 300 }
+        reducedMotion ? { duration: 0 } : DRAWER_SPRING
       )
       setState(next)
     },

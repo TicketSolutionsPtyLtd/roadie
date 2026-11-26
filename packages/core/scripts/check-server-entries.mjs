@@ -7,7 +7,9 @@
 // imports a hook or createContext by name, or calls one as it loads, throws here.
 import { readFileSync } from 'node:fs'
 import { registerHooks } from 'node:module'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+
+import { readExports } from './package-exports.mjs'
 
 const root = pathToFileURL(`${process.cwd()}/`)
 const pkg = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
@@ -61,9 +63,9 @@ registerHooks({
 })
 
 // By file: this script lives in core, which doesn't depend on the package it checks.
-const entries = Object.entries(pkg.exports)
-  .filter(([, target]) => typeof target === 'object' && target.import)
-  .map(([subpath, target]) => [pkg.name + subpath.slice(1), target.import])
+const entries = readExports(fileURLToPath(root))
+  .filter((entry) => entry.kind === 'js')
+  .map(({ subpath, target }) => [pkg.name + subpath.slice(1), target])
 
 const failures = []
 for (const [specifier, file] of entries) {

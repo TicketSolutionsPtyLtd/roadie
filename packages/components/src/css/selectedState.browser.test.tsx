@@ -10,16 +10,17 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
-import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
-import type { RoadieIntent } from '../variants'
 import {
   apcaLc,
   minimumLc,
   oklchLightness,
   over,
   shownFill
-} from './contrastTestUtils'
+} from '@oztix/roadie-browser-testing/contrast'
+
+import roadieCss from '../../vitest.browser.css?inline'
+import { useStylesheet } from '../components/Pane/testUtils'
+import type { RoadieIntent } from '../variants'
 import { setHoverCapable } from './testUtils'
 
 // The selected state of a quiet control, checked on the utilities rather than

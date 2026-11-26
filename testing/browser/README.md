@@ -14,3 +14,8 @@ Tests only: it's private and never published.
   wiggle stays on the last element a pick clicked, so a submenu opened by
   hover stays open. See
   `docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md`.
+- `@oztix/roadie-browser-testing/contrast`: APCA as decision 0010 measures
+  it. `apcaLc` and `oklchLightness` take sRGB; `flatten`, `over`,
+  `isPainted`, `shownFill`, and `shownText` read the colours the page paints;
+  `textContrast` and `fillContrast` give an element's Lc; `minimumLc` holds
+  0010's floor for each role.

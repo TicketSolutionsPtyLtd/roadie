@@ -19,18 +19,10 @@ const isBare = (id) =>
   !id.startsWith('.') && !id.startsWith('\0') && !isAbsolute(id)
 const allowance = (bytes) => Math.max(bytes * 0.03, 300)
 
-// codebase-design proposal 2 would give exports one shared reader.
-const importTarget = (target) =>
-  typeof target === 'string' || target == null
-    ? target
-    : importTarget(target.import ?? target.default)
-
-export function jsSubpaths(exports) {
-  return Object.entries(exports)
-    .map(([subpath, target]) => ({ subpath, file: importTarget(target) }))
-    .filter(
-      ({ subpath, file }) => file?.endsWith('.js') && !subpath.includes('*')
-    )
+export function jsSubpaths(entries) {
+  return entries
+    .filter(({ subpath, kind }) => kind === 'js' && !subpath.includes('*'))
+    .map(({ subpath, target }) => ({ subpath, file: target }))
 }
 
 export function namedImport(row) {
