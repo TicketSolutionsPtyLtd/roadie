@@ -133,6 +133,14 @@ describe('reconcileSelection', () => {
     ).toEqual(selection)
   })
 
+  it('shows the selection held now, not an equal one taken earlier', () => {
+    const { selection } = reconcileSelection(
+      taken('Ocean', { ids: ['a', 'x'] }),
+      inputs
+    )
+    expect(selection).toBe(picked)
+  })
+
   it('keeps holding what it took while nothing changes', () => {
     const held = reconcileSelection(taken(''), inputs).taken
     const again = reconcileSelection(held, inputs)
