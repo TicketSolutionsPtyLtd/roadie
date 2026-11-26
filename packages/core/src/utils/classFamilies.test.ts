@@ -7,7 +7,7 @@ import {
   renderClassGroups,
   renderFamilySafelist
 } from './classFamilies'
-import { cn, mergeConfig } from './cn'
+import { cn } from './cn'
 
 const cssFolder = new URL('../css/', import.meta.url)
 const read = (file: string) => readFileSync(new URL(file, cssFolder), 'utf8')
@@ -60,30 +60,6 @@ describe('class families where one class replaces another', () => {
     ])
     expect(groups).toContain(`'semantic-text-color': ['x']`)
     expect(groups).toContain(`x: ['semantic-text-color']`)
-  })
-
-  // Parity guard while cn.ts still holds hand-written groups.
-  it('matches the hand-written cn() groups set for set', () => {
-    const { classGroups } = mergeConfig.extend
-    const handWritten = Object.fromEntries(
-      Object.entries(classGroups).map(([group, entries]) => [
-        group,
-        new Set(
-          (entries as (string | Record<string, string[]>)[]).flatMap((entry) =>
-            typeof entry === 'string'
-              ? [entry]
-              : Object.entries(entry).flatMap(([prefix, values]) =>
-                  values.map((value) => `${prefix}-${value}`)
-                )
-          )
-        )
-      ])
-    )
-    expect(
-      Object.fromEntries(
-        families.map(({ group, members }) => [group, new Set(members)])
-      )
-    ).toEqual(handWritten)
   })
 
   describe.each(families)('$group', ({ members }) => {
