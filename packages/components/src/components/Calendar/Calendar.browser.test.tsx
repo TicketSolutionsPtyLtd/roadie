@@ -14,9 +14,11 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+
 import { Calendar, type CalendarDateRange, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { nudgeFrames, setHoverCapable, withFrames } from '../../css/testUtils'
+import { nudgeFrames, setHoverCapable } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { ScrollArea } from '../ScrollArea'
 

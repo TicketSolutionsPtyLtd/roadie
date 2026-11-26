@@ -17,6 +17,8 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
@@ -24,8 +26,7 @@ import {
   LINE_END,
   MOD,
   clickIntoEditor,
-  enterEndingComposition,
-  pickOption
+  enterEndingComposition
 } from './testUtils'
 
 const LABEL = 'Newsletter'

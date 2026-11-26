@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  ANNOTATION_LABEL_LIMIT,
-  CHART_PLOT_KINDS,
-  chartPlotSchema,
-  plotSchema
-} from './plots'
+import { ANNOTATION_LABEL_LIMIT } from './layout'
+import { CHART_PLOT_KINDS, chartPlotSchema, plotSchema } from './plots'
 
 const days = [
   { day: '2026-10-01', sold: 120, similar: 110 },

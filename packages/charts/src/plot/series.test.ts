@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { SERIES_CAP as CORE_SERIES_CAP } from '@oztix/roadie-core/dashboard'
+import { SERIES_CAP } from '@oztix/roadie-core/dashboard-layout'
 
 import { cssPaint } from './paint'
 import {
   OTHER,
-  SERIES_CAP,
   asList,
   emphasisColor,
   rollupOther,
@@ -15,10 +14,6 @@ import {
 } from './series'
 
 describe('series', () => {
-  it('matches the core series cap', () => {
-    expect(SERIES_CAP).toBe(CORE_SERIES_CAP)
-  })
-
   it('lists series in first-seen order, or one named series', () => {
     const rows = [{ s: 'GA' }, { s: 'VIP' }, { s: 'GA' }]
     expect(seriesNames(rows, 's', 'Sold')).toEqual(['GA', 'VIP'])

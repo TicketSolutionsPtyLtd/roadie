@@ -10,9 +10,11 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+
 import { Menu } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable, withFrames } from '../../css/testUtils'
+import { setHoverCapable } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition: none !important }'

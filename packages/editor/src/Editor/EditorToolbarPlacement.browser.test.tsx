@@ -11,12 +11,12 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Pane } from '@oztix/roadie-components/pane'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { pickMenuItem } from './testUtils'
 
 const LABEL = 'Event description'
 const PHONE = { width: 390, height: 700 }

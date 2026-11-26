@@ -10,17 +10,17 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem, pickOption } from '@oztix/roadie-browser-testing'
+import {
+  apcaLc,
+  shownFill,
+  shownText
+} from '@oztix/roadie-browser-testing/contrast'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { apcaLc, shownFill, shownText } from './contrastTestUtils'
-import {
-  LINE_END,
-  MOD,
-  clickIntoEditor,
-  pickMenuItem,
-  pickOption
-} from './testUtils'
+import { LINE_END, MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Email'
 

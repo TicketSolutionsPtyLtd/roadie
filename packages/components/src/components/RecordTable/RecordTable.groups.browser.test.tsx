@@ -12,11 +12,11 @@ import {
   vi
 } from 'vitest'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
 import type { RecordField } from '@oztix/roadie-core/records'
 
 import { tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { pickOption } from '../../css/testUtils'
 import { Pane } from '../Pane'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
