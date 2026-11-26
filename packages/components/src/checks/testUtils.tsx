@@ -5,6 +5,14 @@ import axe, { type NodeResult } from 'axe-core'
 import { afterAll, beforeAll, expect } from 'vitest'
 import { commands, page, server, userEvent } from 'vitest/browser'
 
+import {
+  apcaLc,
+  flatten,
+  isPainted,
+  minimumLc,
+  over
+} from '@oztix/roadie-browser-testing/contrast'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Autocomplete } from '../components/Autocomplete'
 import { Calendar } from '../components/Calendar'
@@ -16,7 +24,6 @@ import { DataCard } from '../components/DataCard'
 import { DatePicker } from '../components/DatePicker'
 import { Field } from '../components/Field'
 import { loadBrandFont, useStylesheet } from '../components/Pane/testUtils'
-import { apcaLc, flatten, minimumLc, over } from '../css/contrastTestUtils'
 
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'
@@ -335,10 +342,6 @@ type Pair = {
   /** A fill measured against what's under it, rather than painted on it. */
   isFill?: boolean
 }
-
-const isPainted = (colour: string) =>
-  flatten('#000', colour).join() !== '0,0,0' ||
-  flatten('#fff', colour).join() !== '255,255,255'
 
 // Every element at the centre, in paint order. Call it inside
 // withPointerEvents, since indicators and popups often turn them off.

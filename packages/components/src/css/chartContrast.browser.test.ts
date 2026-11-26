@@ -1,8 +1,13 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import {
+  apcaLc,
+  flatten,
+  minimumLc
+} from '@oztix/roadie-browser-testing/contrast'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { useStylesheet } from '../components/Pane/testUtils'
-import { apcaLc, flatten, minimumLc } from './contrastTestUtils'
 
 // Core's chart tokens live in its sheets, but only this package runs browser
 // tests, so the resolved dark values are checked here.

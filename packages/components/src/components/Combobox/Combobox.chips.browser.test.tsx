@@ -10,9 +10,13 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import {
+  oklchLightness,
+  shownFill
+} from '@oztix/roadie-browser-testing/contrast'
+
 import { Combobox } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { oklchLightness, shownFill } from '../../css/contrastTestUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 
