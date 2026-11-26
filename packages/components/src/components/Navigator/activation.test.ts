@@ -125,9 +125,14 @@ describe('resolveActivation on a bar tab', () => {
       want: [...stay, 'expandBar', 'scrollToTop']
     },
     {
-      name: 'expands a collapsed bar from deeper in',
+      name: 'expands a collapsed bar from deeper in, before toggling the list',
       slot: active,
-      state: { route: '/events/1', secondary: owns, collapsed: true },
+      state: {
+        route: '/events/1',
+        secondary: owns,
+        collapsed: true,
+        showList: false
+      },
       want: [...stay, 'expandBar']
     },
     {
@@ -135,6 +140,12 @@ describe('resolveActivation on a bar tab', () => {
       slot: active,
       state: { route: '/events/1', secondary: owns, showList: false },
       want: [...stay, 'showList true']
+    },
+    {
+      name: 'follows its link to its list route when the app leaves the list alone',
+      slot: active,
+      state: { route: '/events/1', secondary: owns },
+      want: [...opening, 'closeMoreOnRoute']
     },
     {
       name: 'follows the link back to an overview',
@@ -145,6 +156,15 @@ describe('resolveActivation on a bar tab', () => {
         showList: false
       },
       want: [...opening, 'closeMoreOnRoute', 'setValue /events']
+    },
+    {
+      name: 'ignores an overview another destination owns',
+      slot: active,
+      state: {
+        route: '/events/1',
+        secondary: { value: '/venues', overview: true }
+      },
+      want: [...opening, 'closeMoreOnRoute']
     },
     {
       name: 'scrolls to the top on its top route',
