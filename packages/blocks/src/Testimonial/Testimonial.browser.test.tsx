@@ -16,7 +16,7 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, expectReadable, setMode } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 import { carousel, quote as fixture } from './fixtures'
 
@@ -279,16 +279,8 @@ describe('Testimonial contrast', () => {
         screen.getByText('Head of Programming'),
         screen.getByText('Thimble Orbit Presents')
       ]
-      for (const element of large)
-        expect(
-          textContrast(element),
-          element.textContent!
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-      for (const element of body)
-        expect(
-          textContrast(element),
-          element.textContent!
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      for (const element of large) expectReadable(element, element.textContent!)
+      for (const element of body) expectReadable(element, element.textContent!)
     }
   )
 

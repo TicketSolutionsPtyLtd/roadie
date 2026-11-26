@@ -16,7 +16,7 @@ import {
   textAlignOf,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, expectReadable, setMode } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 import { sideBySideDefinition } from './definition'
 
@@ -463,14 +463,8 @@ describe('SideBySide contrast on every panel', () => {
             screen.getByText('Body text on the panel.'),
             ...container.querySelectorAll('li p:last-child')
           ]
-          for (const element of large)
-            expect(textContrast(element), at).toBeGreaterThanOrEqual(
-              MINIMUM_LC.large
-            )
-          for (const element of body)
-            expect(textContrast(element), at).toBeGreaterThanOrEqual(
-              MINIMUM_LC.body
-            )
+          for (const element of large) expectReadable(element, at)
+          for (const element of body) expectReadable(element, at)
           unmount()
         }
       } finally {

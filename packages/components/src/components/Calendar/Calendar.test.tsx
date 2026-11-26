@@ -1340,6 +1340,15 @@ describe('Calendar week view', () => {
     expect(shownDays()).toContain('2027-04-20')
   })
 
+  it('turns on past the month a day was chosen in after entering week view', async () => {
+    render(<Calendar today={TODAY} views={['week', 'month']} />)
+    await userEvent.click(day('2027-03-10'))
+    await userEvent.click(screen.getByRole('button', { name: 'Week' }))
+    for (let i = 0; i < 4; i++)
+      await userEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(shownDays()[0]).toBe('2027-04-05')
+  })
+
   it('stays quiet when only the layout changes', () => {
     const { rerender } = render(
       <Calendar today={TODAY} view='week' layout='scroll' />

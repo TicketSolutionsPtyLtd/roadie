@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { mergeConfig } from '../utils/cn'
+import { classGroups } from '../utils/classGroups.generated'
 
 const repo = resolve(import.meta.dirname, '../../../..')
 
@@ -18,11 +18,15 @@ const sources = (folder: string, files: RegExp) =>
 // a className, or prose.
 const names = (text: string) => new Set(text.split(/[^\w-]+/))
 
-const safelist = [
-  ...readFileSync(join(import.meta.dirname, 'safelist.html'), 'utf8').matchAll(
-    /class="([^"]*)"/g
-  )
-].flatMap(([, classes = '']) => classes.trim().split(/\s+/))
+const classesIn = (file: string) =>
+  [
+    ...readFileSync(join(import.meta.dirname, file), 'utf8').matchAll(
+      /class="([^"]*)"/g
+    )
+  ].flatMap(([, classes = '']) => classes.trim().split(/\s+/))
+
+const safelist = classesIn('safelist.html')
+const shipped = [...safelist, ...classesIn('safelist.families.html')]
 
 const documented = names(sources('docs/src', /\.(mdx|tsx)$/))
 
@@ -40,17 +44,7 @@ const used = names(
     .join('\n')
 )
 
-const replaceable = new Set(
-  Object.values(mergeConfig.extend.classGroups).flatMap((group) =>
-    group.flatMap((entry) =>
-      typeof entry === 'string'
-        ? [entry]
-        : Object.entries(entry).flatMap(([prefix, values]) =>
-            values.map((value) => `${prefix}-${String(value)}`)
-          )
-    )
-  )
-)
+const familyMembers = new Set(Object.values(classGroups).flat())
 
 const css = sources('packages/core/src/css', /\.css$/).replace(
   /\/\*[\s\S]*?\*\//g,
@@ -78,20 +72,21 @@ const roadieUtilities = [
   ...colourUtilities
 ]
 
-describe('safelist.html, what roadie.compiled.css ships', () => {
-  it('names only classes a cn() family holds, the docs name, or a package uses', () => {
+describe('safelist.html, what roadie.compiled.css ships beyond the families', () => {
+  it('names only classes the docs name or a package uses', () => {
     expect(
-      safelist.filter(
-        (name) =>
-          !replaceable.has(name) && !documented.has(name) && !used.has(name)
-      )
+      safelist.filter((name) => !documented.has(name) && !used.has(name))
     ).toEqual([])
+  })
+
+  it('leaves the cn() family members to safelist.families.html', () => {
+    expect(safelist.filter((name) => familyMembers.has(name))).toEqual([])
   })
 
   it('names every Roadie utility and colour utility the docs name', () => {
     expect(
       roadieUtilities.filter(
-        (name) => documented.has(name) && !safelist.includes(name)
+        (name) => documented.has(name) && !shipped.includes(name)
       )
     ).toEqual([])
   })
