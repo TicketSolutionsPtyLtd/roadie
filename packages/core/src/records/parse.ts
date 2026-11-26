@@ -942,45 +942,44 @@ function finish(options: ParseRecordQueryOptions) {
 /**
  * One chip for values joined by "or", as "melb or syd", since a chip's values
  * OR. The first part reads in full, as an option field's is or is not, and
- * each part after it as another of that field's values.
+ * each part after it as another of that field's values. `read` reads the
+ * first part, so `parseRecordValue` joins values as `field:value` does.
  */
 function joinedValues(
   input: string,
   fields: readonly RecordField[],
-  options: ParseRecordQueryOptions
+  read: (first: string) => Candidate[]
 ): Candidate[] {
   const parts = input.split(/ or /i)
   if (parts.length < 2 || parts.some((part) => !part.trim())) return []
   const [first = '', ...rest] = parts
   const whole: [number, number] = [0, input.split(' ').length]
-  return readText(first, fields, options).flatMap(
-    ({ partial: _partial, ...candidate }) => {
-      if (candidate.kind !== 'filter' || candidate.remainder) return []
-      const filter = candidate.value
-      if (filter.operator !== 'is' && filter.operator !== 'is-not') return []
-      const field = fields.find((each) => each.key === filter.field)
-      if (!field || !isRecordOptionField(field)) return []
-      const values = new Set(filter.values)
-      let score = candidate.score
-      for (const part of rest) {
-        const [best] = optionReadings(field, part.toLowerCase()).sort(
-          (a, b) => b.quality - a.quality
-        )
-        if (!best || best.filter.operator !== 'is') return []
-        for (const value of best.filter.values) values.add(value)
-        score = Math.min(score, best.quality)
-      }
-      return [
-        {
-          ...candidate,
-          id: `filter:${recordFilterKey({ ...filter, values: [...values] })}`,
-          value: { ...filter, values: [...values] },
-          score,
-          span: whole
-        }
-      ]
+  return read(first).flatMap(({ partial: _partial, ...candidate }) => {
+    if (candidate.kind !== 'filter' || candidate.remainder) return []
+    const filter = candidate.value
+    if (filter.operator !== 'is' && filter.operator !== 'is-not') return []
+    const field = fields.find((each) => each.key === filter.field)
+    if (!field || !isRecordOptionField(field)) return []
+    const values = new Set(filter.values)
+    let score = candidate.score
+    for (const part of rest) {
+      const [best] = optionReadings(field, part.toLowerCase()).sort(
+        (a, b) => b.quality - a.quality
+      )
+      if (!best || best.filter.operator !== 'is') return []
+      for (const value of best.filter.values) values.add(value)
+      score = Math.min(score, best.quality)
     }
-  )
+    return [
+      {
+        ...candidate,
+        id: `filter:${recordFilterKey({ ...filter, values: [...values] })}`,
+        value: { ...filter, values: [...values] },
+        score,
+        span: whole
+      }
+    ]
+  })
 }
 
 /**
@@ -1037,7 +1036,9 @@ export function parseRecordQuery(
       .map((field, i) => strip(fieldSuggestion(field, 0, '', [0, 0], i)))
   }
 
-  const joined = joinedValues(input, fields, options)
+  const joined = joinedValues(input, fields, (first) =>
+    readText(first, fields, options)
+  )
   const read = readText(input, fields, options)
   return (joined.length > 0 ? rank([...joined, ...read]) : read)
     .slice(0, limit)
@@ -1087,8 +1088,9 @@ function readText(
 /**
  * Every filter typed text reads as for one field, best first, as `field:value`
  * reads in `parseRecordQuery`: a number, comparison or range, an option or
- * place, a date phrase, yes or no, `empty`, and a leading `!` or `-` as the
- * opposite. Each filter once; none for a field that doesn't filter.
+ * place, values joined by `or`, a date phrase, yes or no, `empty`, and a
+ * leading `!` or `-` as the opposite. Each filter once; none for a field
+ * that doesn't filter.
  */
 export function parseRecordValue(
   text: string,
@@ -1097,7 +1099,9 @@ export function parseRecordValue(
   const { field } = options
   if (!isFilterable(field)) return []
   const value = text.trim().replace(/\s+/g, ' ')
-  return rank(valueCandidates(field, value, options, [0, 1]) ?? []).flatMap(
+  const read = (part: string) =>
+    valueCandidates(field, part, options, [0, 1]) ?? []
+  return rank([...joinedValues(value, [field], read), ...read(value)]).flatMap(
     (candidate) => (candidate.kind === 'filter' ? [candidate.value] : [])
   )
 }

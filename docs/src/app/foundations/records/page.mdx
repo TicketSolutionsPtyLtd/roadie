@@ -719,10 +719,10 @@ const fresh = filters.filter(
 
 `parseRecordValue(text, { field, now, timeZone })` reads text as one field's
 value, exactly as `field:value` does in `parseRecordQuery`: numbers,
-comparisons and ranges, options and places, date phrases, yes and no,
-`empty`, and a leading `!` or `-` as the opposite. It returns every filter the
-text reads as, best first, each once, and none for a field that doesn't
-filter. Label one with `describeRecordFilter`.
+comparisons and ranges, options and places, options joined by `or`, date
+phrases, yes and no, `empty`, and a leading `!` or `-` as the opposite. It
+returns every filter the text reads as, best first, each once, and none for a
+field that doesn't filter. Label one with `describeRecordFilter`.
 
 `recordFilterKey(filter)` is a filter's identity, as `equalRecordViews`
 compares chips. Filters that filter the same way share it, whatever their key

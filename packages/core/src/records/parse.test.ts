@@ -1637,6 +1637,16 @@ describe('parseRecordValue', () => {
     ['city', '!melb', { operator: 'is-not', values: ['melbourne'] }],
     ['city', '-melb', { operator: 'is-not', values: ['melbourne'] }],
     ['city', 'empty', { operator: 'is-not-set' }],
+    [
+      'city',
+      'melb or syd',
+      { operator: 'is', values: ['melbourne', 'sydney'] }
+    ],
+    [
+      'city',
+      '!melb or syd',
+      { operator: 'is-not', values: ['melbourne', 'sydney'] }
+    ],
     ['name', 'disco', { operator: 'contains', value: 'disco' }],
     ['orderNumber', 'OZ-12345', { operator: 'is', values: ['OZ-12345'] }],
     ['featured', 'yes', { operator: 'is-true' }],
