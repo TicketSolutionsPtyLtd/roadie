@@ -329,10 +329,17 @@ export default defineConfig({
       { 'roadie/no-fixed-sleep': 'error' }
     ),
     ...(testing.overrides as OxlintOverride[]),
-    // The pick helpers live in components' css/testUtils.ts.
-    roadieRules(['packages/components/**/*.browser.test.tsx'], {
-      'roadie/no-unwaited-popup-pick': 'error'
-    }),
+    // The pick helpers live in components' css/testUtils.ts and, for the
+    // editor, which can't import them, in its Editor/testUtils.ts.
+    roadieRules(
+      [
+        'packages/components/**/*.browser.test.tsx',
+        'packages/editor/**/*.browser.test.tsx'
+      ],
+      {
+        'roadie/no-unwaited-popup-pick': 'error'
+      }
+    ),
     roadieRules(
       [
         // Has its own setup (INNO-1238).

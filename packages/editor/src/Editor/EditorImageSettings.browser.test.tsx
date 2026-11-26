@@ -24,7 +24,8 @@ import {
   LINE_END,
   MOD,
   clickIntoEditor,
-  enterEndingComposition
+  enterEndingComposition,
+  pickOption
 } from './testUtils'
 
 const LABEL = 'Newsletter'
@@ -221,12 +222,10 @@ describe('Editor image settings', () => {
       })
     )
 
-    await userEvent.click(
-      within(dialog).getByRole('combobox', { name: 'Links to' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'View in browser' })
-    )
+    await pickOption(userEvent, {
+      from: within(dialog).getByRole('combobox', { name: 'Links to' }),
+      option: 'View in browser'
+    })
     await waitFor(() =>
       expect(savedImage(onValueChange)).toMatchObject({ variable: 'view_url' })
     )

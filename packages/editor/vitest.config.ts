@@ -18,6 +18,31 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 const reducedMotion: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ reducedMotion: active ? 'reduce' : 'no-preference' })
 
+type PointerStep =
+  | { type: 'move'; x: number; y: number; steps?: number }
+  | { type: 'wait'; ms: number }
+
+// A real mouse, so the popup picks in testUtils.ts can keep frames running.
+// Points are in the test frame's CSS pixels; the frame may sit offset and
+// scaled.
+const pointer: BrowserCommand<[steps: PointerStep[]]> = async (
+  { page, frame },
+  steps
+) => {
+  const testFrame = await frame()
+  const box = await (await testFrame.frameElement()).boundingBox()
+  if (!box) throw new Error('The test frame has no box')
+  const width = await testFrame.evaluate(() => window.innerWidth)
+  const scale = box.width / width
+  for (const step of steps) {
+    if (step.type === 'move')
+      await page.mouse.move(box.x + step.x * scale, box.y + step.y * scale, {
+        steps: step.steps ?? 1
+      })
+    else await page.waitForTimeout(step.ms)
+  }
+}
+
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const ROOT = fileURLToPath(new URL('./', import.meta.url))
 
@@ -98,7 +123,7 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             viewport: { width: 1280, height: 800 },
-            commands: { reducedMotion },
+            commands: { pointer, reducedMotion },
             instances: browserInstances
           }
         }

@@ -141,7 +141,7 @@ const rules = {
           context.report({
             node: target,
             message:
-              'Pick with pickOption or pickMenuItem from src/css/testUtils.ts, which find the item with frames running and wait for the popup to go, or, for an item clicked while its popup stays open, find it inside withFrames. See docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md.'
+              'Pick with pickOption or pickMenuItem from src/css/testUtils.ts (in the editor, src/Editor/testUtils.ts), which find the item with frames running and wait for the popup to go, or, for an item clicked while its popup stays open, find it inside withFrames. See docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md.'
           })
         }
       }

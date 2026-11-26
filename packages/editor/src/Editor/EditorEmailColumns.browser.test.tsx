@@ -20,7 +20,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
-import { MOD, selectParagraph } from './testUtils'
+import { MOD, pickMenuItem, selectParagraph } from './testUtils'
 
 const LABEL = 'Newsletter'
 
@@ -168,9 +168,7 @@ describe('Editor email columns', () => {
     await clickText('Lineup')
 
     await userEvent.keyboard(`{${MOD}>}/{/${MOD}}`)
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Column actions' })
-    )
+    await pickMenuItem(userEvent, { item: 'Column actions', staysOpen: true })
     const menu = await screen.findByRole('menu')
     await waitFor(() =>
       expect(within(menu).getByRole('group', { name: 'Column' })).toBeVisible()
@@ -192,9 +190,10 @@ describe('Editor email columns', () => {
       await screen.findByRole('button', { name: 'Layout: Equal' })
     )
     const layoutMenu = await screen.findByRole('menu')
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: 'Wide left (2:1)' })
-    )
+    await pickMenuItem(userEvent, {
+      item: 'Wide left (2:1)',
+      role: 'menuitemradio'
+    })
     await waitFor(() =>
       expect(lastDoc(onValueChange)[0]!.attrs).toEqual({ layout: 'wide-left' })
     )
@@ -206,9 +205,10 @@ describe('Editor email columns', () => {
     // Its focus hand-back runs on unmount, after the exit, not on close.
     await waitFor(() => expect(layoutMenu).not.toBeInTheDocument())
     expect(stackTrigger).toBeInTheDocument()
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: 'Right first' })
-    )
+    await pickMenuItem(userEvent, {
+      item: 'Right first',
+      role: 'menuitemradio'
+    })
 
     await waitFor(() =>
       expect(lastDoc(onValueChange)[0]!.attrs).toEqual({

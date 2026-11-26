@@ -10,6 +10,7 @@ import {
   LINE_START,
   MOD,
   clickIntoEditor,
+  pickMenuItem,
   selectParagraph
 } from './testUtils'
 
@@ -290,12 +291,11 @@ describe('Editor block selection', () => {
     await userEvent.keyboard('{Escape}{Shift>}{ArrowDown}{/Shift}')
     await userEvent.keyboard(`{${MOD}>}/{/${MOD}}`)
 
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Turn into' })
-    )
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: 'Heading 3' })
-    )
+    await pickMenuItem(userEvent, { item: 'Turn into', staysOpen: true })
+    await pickMenuItem(userEvent, {
+      item: 'Heading 3',
+      role: 'menuitemradio'
+    })
 
     await waitFor(() =>
       expect(

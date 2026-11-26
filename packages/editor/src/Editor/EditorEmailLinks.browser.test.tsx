@@ -10,7 +10,7 @@ import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { MOD, selectParagraph } from './testUtils'
+import { MOD, pickOption, selectParagraph } from './testUtils'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
@@ -273,12 +273,10 @@ describe('Editor email buttons that link to link variables', () => {
     const onValueChange = renderEmail(email(button({ href: TICKETS })))
     const dialog = await openSettings()
 
-    await userEvent.click(
-      within(dialog).getByRole('combobox', { name: 'Links to' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Unsubscribe page' })
-    )
+    await pickOption(userEvent, {
+      from: within(dialog).getByRole('combobox', { name: 'Links to' }),
+      option: 'Unsubscribe page'
+    })
     expect(within(dialog).queryByRole('textbox', { name: 'Link' })).toBe(null)
 
     await waitFor(() =>
@@ -315,12 +313,10 @@ describe('Editor email buttons that link to link variables', () => {
     expect(
       within(dialog).getByRole('combobox', { name: 'Links to' })
     ).toHaveTextContent('Unsubscribe page')
-    await userEvent.click(
-      within(dialog).getByRole('combobox', { name: 'Links to' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'A web address' })
-    )
+    await pickOption(userEvent, {
+      from: within(dialog).getByRole('combobox', { name: 'Links to' }),
+      option: 'A web address'
+    })
     const link = within(dialog).getByRole('textbox', { name: 'Link' })
     await userEvent.click(link)
     await userEvent.keyboard('{Enter}')

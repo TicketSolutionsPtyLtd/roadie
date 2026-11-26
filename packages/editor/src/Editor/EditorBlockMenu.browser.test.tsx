@@ -14,7 +14,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { LINE_END, MOD } from './testUtils'
+import { LINE_END, MOD, pickMenuItem } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -87,10 +87,11 @@ describe('Editor block menu', () => {
     const onValueChange = renderLineup()
     await openMenuOn('Support')
 
-    await userEvent.click(screen.getByRole('menuitem', { name: 'Turn into' }))
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: 'Heading 2' })
-    )
+    await pickMenuItem(userEvent, {
+      from: screen.getByRole('menuitem', { name: 'Turn into' }),
+      item: 'Heading 2',
+      role: 'menuitemradio'
+    })
 
     await waitFor(() =>
       expect(lastDoc(onValueChange).content![1]).toEqual({
@@ -106,12 +107,11 @@ describe('Editor block menu', () => {
     const onValueChange = renderLineup()
     await userEvent.click(await row('Support'))
     await userEvent.keyboard(`${LINE_END}{${MOD}>}/{/${MOD}}`)
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Turn into' })
-    )
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: 'Heading 2' })
-    )
+    await pickMenuItem(userEvent, { item: 'Turn into', staysOpen: true })
+    await pickMenuItem(userEvent, {
+      item: 'Heading 2',
+      role: 'menuitemradio'
+    })
     await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
 
     await userEvent.keyboard('!')

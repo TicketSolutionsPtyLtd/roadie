@@ -6,7 +6,7 @@ import { Dialog } from '@oztix/roadie-components/dialog'
 
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
-import { LINE_END, MOD } from './testUtils'
+import { LINE_END, MOD, pickMenuItem } from './testUtils'
 
 const LABEL = 'Newsletter'
 
@@ -66,10 +66,11 @@ async function insertButton() {
 }
 
 async function choose(trigger: string | RegExp, option: string) {
-  await userEvent.click(await screen.findByRole('button', { name: trigger }))
-  await userEvent.click(
-    await screen.findByRole('menuitemradio', { name: option })
-  )
+  await pickMenuItem(userEvent, {
+    from: await screen.findByRole('button', { name: trigger }),
+    item: option,
+    role: 'menuitemradio'
+  })
 }
 
 // The menus portal to the body, so React unmounts them before the body empties.

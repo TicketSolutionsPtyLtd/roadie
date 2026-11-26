@@ -28,6 +28,7 @@ import {
   LINE_START,
   MOD,
   clickIntoEditor,
+  pickMenuItem,
   selectParagraph
 } from './testUtils'
 
@@ -1142,9 +1143,11 @@ describe('Editor rich preset', () => {
     const textbox = await focusedTextbox()
     const blockType = () => screen.getByRole('button', { name: /^Block type/ })
     const choose = async (name: string) => {
-      await userEvent.click(blockType())
-      await userEvent.click(await screen.findByRole('menuitemradio', { name }))
-      await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+      await pickMenuItem(userEvent, {
+        from: blockType(),
+        item: name,
+        role: 'menuitemradio'
+      })
     }
 
     await choose('Heading 3')

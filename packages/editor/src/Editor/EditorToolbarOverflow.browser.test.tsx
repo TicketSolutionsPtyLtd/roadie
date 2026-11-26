@@ -16,7 +16,7 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, Preset } from '../schema'
-import { LINE_END, clickIntoEditor } from './testUtils'
+import { LINE_END, clickIntoEditor, pickMenuItem } from './testUtils'
 
 const LABEL = 'Event description'
 const TEXT = 'Gates open at 4pm'
@@ -650,10 +650,10 @@ describe('Editor toolbar in a narrow column', () => {
     const bubble = await screen.findByRole('toolbar', {
       name: 'Selection formatting'
     })
-    await userEvent.click(within(bubble).getByRole('button', { name: 'More' }))
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Pin toolbar to top' })
-    )
+    await pickMenuItem(userEvent, {
+      from: within(bubble).getByRole('button', { name: 'More' }),
+      item: 'Pin toolbar to top'
+    })
 
     const toolbar = await shownToolbar()
     await waitFor(() => expect(rows(toolbar)).toBe(1))
