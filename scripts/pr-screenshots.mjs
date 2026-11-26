@@ -37,14 +37,8 @@ try {
     pr,
     paths.map((path) => ({ path, bytes: statSync(path).size }))
   )
-  const repo = gh([
-    'repo',
-    'view',
-    '--json',
-    'nameWithOwner',
-    '--jq',
-    '.nameWithOwner'
-  ]).trim()
+  const view = 'repo view --json nameWithOwner --jq .nameWithOwner'
+  const repo = gh(view.split(' ')).trim()
   await upload({
     api,
     repo,
