@@ -4,9 +4,11 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+
 import { DatePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable, withFrames } from '../../css/testUtils'
+import { setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 

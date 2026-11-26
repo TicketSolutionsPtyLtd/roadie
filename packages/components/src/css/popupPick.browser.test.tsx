@@ -2,11 +2,12 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { pickMenuItem, pickOption } from '@oztix/roadie-browser-testing'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Menu } from '../components/Menu'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { Select } from '../components/Select'
-import { pickMenuItem, pickOption } from './testUtils'
 
 beforeAll(() => useStylesheet(roadieCss))
 afterEach(() => {

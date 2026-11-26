@@ -11,12 +11,13 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, Preset } from '../schema'
-import { LINE_END, clickIntoEditor, pickMenuItem } from './testUtils'
+import { LINE_END, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Event description'
 const TEXT = 'Gates open at 4pm'

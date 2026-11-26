@@ -2,9 +2,10 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+
 import { Records, useRecords } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { pickOption } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'

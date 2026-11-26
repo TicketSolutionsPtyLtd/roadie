@@ -2,9 +2,7 @@ import * as z from 'zod'
 
 import { isUnsafeImageSrc } from '../utils/isUnsafeHref'
 import { valueFormat, valueFormatOptions, xFormat } from './fields'
-
-export const ANNOTATION_LABEL_LIMIT = 20
-export const SERIES_CAP = 6
+import { ANNOTATION_LABEL_LIMIT } from './layout'
 
 const safeUrl = z
   .string()

@@ -4,8 +4,9 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+
 import roadieCss from '../../../vitest.browser.css?inline'
-import { withFrames } from '../../css/testUtils'
 import { List } from '../List'
 import { Pane } from '../Pane'
 import { forgetPaneScroll } from '../Pane/paneScroll'

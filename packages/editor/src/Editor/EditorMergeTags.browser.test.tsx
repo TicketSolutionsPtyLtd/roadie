@@ -16,10 +16,12 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { MOD, enterEndingComposition, pickOption } from './testUtils'
+import { MOD, enterEndingComposition } from './testUtils'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'

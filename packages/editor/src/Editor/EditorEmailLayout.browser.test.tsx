@@ -2,10 +2,11 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { JSONContent } from '../schema'
-import { pickMenuItem } from './testUtils'
 
 const LABEL = 'Newsletter'
 
