@@ -175,10 +175,13 @@ export function describeDrawerGeometry(
 
     it('keeps publishing the docked height while another drawer stays mounted', async () => {
       const unmountOther = mountOne()
-      await show()
-      await settlesAt(dockedHeight)
-      unmount()
-      unmount = unmountOther
+      try {
+        await show()
+        await settlesAt(dockedHeight)
+      } finally {
+        unmount()
+        unmount = unmountOther
+      }
       await settlesAt(publishedHeight)
     })
 
@@ -196,6 +199,7 @@ export function describeDrawerGeometry(
       await userEvent.click(page.getByRole('button', { name: 'Open cart' }))
       await settlesAt(openAt1280By800)
       watcher.disconnect()
+      expect(heights.length).toBeGreaterThan(2)
       const drops = heights.slice(1).map((h, i) => heights[i]! - h)
       // The spring overshoots by about 3px; a jump falls back by hundreds.
       expect(Math.max(0, ...drops)).toBeLessThan(10)
