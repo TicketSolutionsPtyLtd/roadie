@@ -1,8 +1,9 @@
 /* Card variant='ticket'. The body and footer each paint the fill and are cut
    at the join: with corner-shape: scoop where supported, and with a
-   half-notch mask on each part elsewhere. The shadow is a box-shadow on
-   the root. The edge is drawn by the parts, inside their own boxes, so it
-   stops at the notches: inset shadows along their outer sides, with their
+   half-notch mask on each part elsewhere. The shadow is a box-shadow, on
+   the root, or on a split ticket on a caster under each column. The edge
+   is drawn by the parts, inside their own boxes, so it stops at the
+   notches: inset shadows along their outer sides, with their
    outer corners taking the card's radius, and a ring around each notch in
    their background. A box-shadow edge on the root would run straight across
    each notch's mouth. Never a filter: a filtered card is redrawn on every
@@ -22,11 +23,18 @@
     --card-edge-solid: transparent;
     --card-fill: var(--emphasis-fill-state, var(--emphasis-fill));
 
+    /* The shadow for this state, resolved here since the emphasis values
+       don't inherit, so the casters below can read it. */
+    --ticket-shadow: var(
+      --emphasis-shadow-state,
+      var(--emphasis-shadow, 0 0 #0000)
+    );
+
     overflow: clip;
     color: var(--intent-text-normal);
     box-shadow:
       0 0 0 var(--ticket-root-edge) var(--card-edge),
-      var(--emphasis-shadow-state, var(--emphasis-shadow, 0 0 #0000));
+      var(--ticket-root-shadow);
     transition: background-color var(--duration-moderate) var(--ease-standard);
 
     :where(.dark) & {
@@ -49,6 +57,9 @@
     --ticket-scoop-shape: initial;
     --ticket-root-edge: var(--card-edge-width);
     --ticket-part-edge: 0px;
+    --ticket-root-shadow: var(--ticket-shadow);
+    --ticket-caster: initial;
+    --card-part-overflow: initial;
 
     &:has(> [data-slot='card-footer']) {
       --ticket-root-edge: 0px;
@@ -56,11 +67,56 @@
       --card-part-fill: var(--card-fill);
       --card-part-transition: background-color var(--duration-moderate)
         var(--ease-standard);
+
+      /* A shadow on the root runs straight under the notches at the ends of
+         a side join, and the bottom one casts it down across the notch's
+         mouth. So a split ticket's shadow comes from the casters below, one
+         per column, and the root stops clipping so they show; each part
+         clips its own content instead. A stacked join's notches are on the
+         sides, where the shadow is a faint blur, so the root keeps it. */
+      &:is([data-direction='horizontal'], [data-direction='auto']) {
+        --ticket-root-shadow: 0 0 #0000;
+        --ticket-caster: block;
+        --card-part-overflow: clip;
+
+        position: relative;
+        isolation: isolate;
+        overflow: visible;
+      }
     }
 
     & > * {
       background-color: var(--card-part-fill, revert-layer);
       transition: var(--card-part-transition, revert-layer);
+      overflow: var(--card-part-overflow, revert-layer);
+    }
+
+    /* The shadow casters, behind the parts: one per column, each with the
+       card's radius on every corner, so the shadow thins out toward the join
+       and nothing casts under a notch's mouth. Stacked on auto, the second
+       column is empty: the first caster covers the card, as the root's
+       shadow would, and the second has no area to cast from. Not a container
+       query: Firefox can miss one on a pseudo-element of the container
+       itself until the card is resized. */
+    &::before,
+    &::after {
+      content: '';
+      display: var(--ticket-caster, none);
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      box-shadow: var(--ticket-shadow);
+      pointer-events: none;
+      transition: box-shadow var(--duration-moderate) var(--ease-standard);
+    }
+
+    &::before {
+      grid-column: 1 / 2;
+    }
+
+    &::after {
+      grid-column: 2 / -1;
     }
 
     & > [data-slot='card-footer'] {

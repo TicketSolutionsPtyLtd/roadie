@@ -1,5 +1,13 @@
 import { cleanup, render } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { page } from 'vitest/browser'
 
 import { Card } from '.'
@@ -477,7 +485,10 @@ function expectHoles(
 describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
   'Card ticket, horizontal, %s emphasis',
   (emphasis) => {
-    function renderTicket(direction: 'horizontal' | 'auto', width: number) {
+    function renderTicket(
+      direction: 'horizontal' | 'auto' | 'vertical',
+      width: number
+    ) {
       const { container } = render(
         <div
           data-testid='host'
@@ -568,9 +579,91 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
         const join = footer.getBoundingClientRect().left
 
         expect(distance(sample(join, top - 1), BACKDROP)).toBeLessThan(2)
-        // Raised's shadow runs under the card, the bottom notch's mouth too.
-        if (emphasis === 'normal')
-          expect(distance(sample(join, bottom), BACKDROP)).toBeLessThan(2)
+        expect(distance(sample(join, bottom), BACKDROP)).toBeLessThan(2)
+      }
+    )
+
+    // A shadow cast by the whole card ran straight under the bottom notch,
+    // drawing a line across its mouth. Dark mode's shadow is the darkest.
+    it.runIf(emphasis === 'raised').each([
+      ['horizontal', 560, 'light'],
+      ['horizontal', 560, 'dark'],
+      ['auto', 720, 'light'],
+      ['auto', 720, 'dark']
+    ] as const)(
+      'casts no shadow under the bottom notch when %s at %ipx, in %s',
+      async (direction, width, theme) => {
+        const { host, card, footer } = renderTicket(direction, width)
+        host.classList.toggle('dark', theme === 'dark')
+        const sample = await capture(host)
+        const { bottom } = card.getBoundingClientRect()
+        const join = footer.getBoundingClientRect().left
+        const below = (x: number) =>
+          Math.max(
+            ...[0, 1, 2, 3].map((depth) =>
+              distance(sample(x, bottom + depth), BACKDROP)
+            )
+          )
+
+        expect(below(join)).toBeLessThan(2)
+        // The shadow still runs under the rest of the card.
+        expect(below(join - NOTCH_RADIUS - 24)).toBeGreaterThan(2)
+        expect(below(join + NOTCH_RADIUS + 24)).toBeGreaterThan(2)
+      }
+    )
+
+    it.runIf(emphasis === 'raised')(
+      'casts the shadow for its state from each column',
+      () => {
+        const removeStill = useStylesheet(
+          '*, *::before, *::after { transition: none !important }'
+        )
+        onTestFinished(removeStill)
+        const { card } = renderTicket('horizontal', 560)
+        const shadows = () =>
+          ['::before', '::after'].map(
+            (pseudo) => getComputedStyle(card, pseudo).boxShadow
+          )
+        const rest = shadows()
+        card.classList.add('is-interactive', 'is-active')
+        const pressed = shadows()
+
+        expect(getComputedStyle(card).boxShadow).not.toMatch(/2px 2px/)
+        expect(rest[0]).toMatch(/4px 4px/)
+        expect(rest[1]).toBe(rest[0])
+        // Pressed drops to the one close shadow.
+        expect(pressed[0]).toMatch(/2px 2px/)
+        expect(pressed[0]).not.toMatch(/4px 4px/)
+        expect(pressed[1]).toBe(pressed[0])
+      }
+    )
+
+    it.runIf(emphasis === 'raised')(
+      'casts the same shadow stacked on auto as it does vertical',
+      async () => {
+        const shadowBelow = async (direction: 'auto' | 'vertical') => {
+          const { host, card } = renderTicket(direction, 352)
+          const sample = await capture(host)
+          const { left, right, bottom } = card.getBoundingClientRect()
+          const xs = [
+            left + 8,
+            left + 24,
+            (left + right) / 2,
+            right - 24,
+            right - 8
+          ]
+          const pixels = xs.flatMap((x) =>
+            [0, 2, 4].map((depth) => sample(x, bottom + depth))
+          )
+          cleanup()
+          return pixels
+        }
+        const stacked = await shadowBelow('auto')
+        const vertical = await shadowBelow('vertical')
+
+        stacked.forEach((pixel, index) =>
+          expect(distance(pixel, vertical[index]!)).toBeLessThanOrEqual(2)
+        )
       }
     )
 
