@@ -24,6 +24,15 @@ describe('EmptyStateRoot', () => {
     expect(screen.getByText('page')).toHaveAttribute('data-size', 'lg')
   })
 
+  it('keeps data-size in step with size, whatever the props say', () => {
+    render(
+      <EmptyStateRoot size='sm' {...{ 'data-size': 'lg' }}>
+        small
+      </EmptyStateRoot>
+    )
+    expect(screen.getByText('small')).toHaveAttribute('data-size', 'sm')
+  })
+
   it('names the default size too, so a nested root scopes its parts', () => {
     render(<EmptyStateRoot>plain</EmptyStateRoot>)
     expect(screen.getByText('plain')).toHaveAttribute('data-size', 'md')

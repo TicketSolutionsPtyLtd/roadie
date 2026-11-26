@@ -27,9 +27,10 @@ export function EmptyStateRoot({
     <EmptyStateSizeProvider size={size}>
       <div
         data-slot='empty-state'
-        data-size={size}
         className={cn(emptyStateVariants({ size, intent }), className)}
         {...props}
+        // After the props, so the parts always match the root's own size.
+        data-size={size}
       />
     </EmptyStateSizeProvider>
   )
