@@ -1,6 +1,6 @@
 'use client'
 
-import { useLayoutEffect, useRef } from 'react'
+import { use, useLayoutEffect, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -12,6 +12,7 @@ import {
   useRecordsData,
   useRecordsLayoutValue
 } from './context'
+import { SearchFocusContext } from './searchFocus'
 import { useLeaveSelectOnEscape } from './selectMode'
 import { pageState } from './selection'
 import { hiddenByStyle } from './tableFocus'
@@ -28,13 +29,16 @@ export type RecordsSelectProps = {
 export function RecordsSelect({ className }: RecordsSelectProps) {
   const { selectMode, layouts } = useRecordsLayoutValue()
   const { selectable, view } = useRecordsData()
-  if (!selectable || !selectModeApplies(layouts, view, selectMode)) return null
-  // Only the controls read the selection, so a tick in a table renders nothing here.
+  // Records.Header is the container that hides it above 40rem; elsewhere it waits for the layout to measure.
+  const inHeader = use(SearchFocusContext) !== null
+  const upFront = inHeader && selectModeApplies(layouts, view, false)
+  if (!selectable || !(selectMode || upFront)) return null
+  // Only the controls read the selection, so a tick renders only them.
   return (
     <SelectControls
       className={cn(
         // A layout that selects this way only when narrow has checkboxes above 40rem.
-        !selectMode && '@min-[40rem]:hidden',
+        !selectMode && '@min-[40rem]/records-header:hidden',
         className
       )}
     />

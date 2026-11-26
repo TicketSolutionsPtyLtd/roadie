@@ -47,7 +47,7 @@ export function tableLayout<Row extends object>(
     Settings: hasSettings(columns as readonly RecordTableColumn[])
       ? RecordTableSettingsLazy
       : undefined,
-    // Narrow rows have no header, so their bar floats.
+    // A table that turns into a list has no header row, so its bar floats there.
     bulkActions: 'header',
     // Re-flowed rows hide their checkboxes under 40rem until Select; deprecated cards say so as they mount.
     selectMode:

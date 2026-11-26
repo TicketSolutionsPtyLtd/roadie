@@ -6,6 +6,7 @@ import { RecordsConfirm, attempt, needsConfirm } from './RecordsConfirm'
 import { useRecordsContext, useRecordsStable } from './context'
 import { formatCount, selectionExact } from './count'
 import { deselect, pageState, withinMatching } from './selection'
+import { hiddenByStyle } from './tableFocus'
 import type { RecordName, RecordsBulkAction } from './types'
 
 /** Where focus lands once a bar that held it unmounts: the selection control, else the rows. */
@@ -18,10 +19,13 @@ export function useSurvivor(kind: 'selection' | 'rows') {
   return { [SURVIVOR]: kind, [SCOPE]: scope }
 }
 
+// The first one shown: a table's Select hides in CSS above 40rem, and Select page with the header row below it.
 const findSurvivor = (scope: string, kind: string, from: Document = document) =>
-  from.querySelector<HTMLElement>(
-    `[${SCOPE}="${scope}"][${SURVIVOR}="${kind}"]`
-  )
+  [
+    ...from.querySelectorAll<HTMLElement>(
+      `[${SCOPE}="${scope}"][${SURVIVOR}="${kind}"]`
+    )
+  ].find((survivor) => !hiddenByStyle(survivor))
 
 /** Hands focus to Select, else the rows, when an element holding it unmounts, such as a record's checkbox leaving Select mode. */
 export function useKeepFocusOnLeave(ref: RefObject<HTMLElement | null>) {

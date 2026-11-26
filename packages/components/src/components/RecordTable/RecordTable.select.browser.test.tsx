@@ -183,12 +183,14 @@ function NarrowShows({
   width = 360,
   rows = 8,
   onExport = () => {},
-  selection
+  selection,
+  more = []
 }: {
   width?: number
   rows?: number
   onExport?: (selection: unknown) => void
   selection?: string[]
+  more?: string[]
 }) {
   return (
     <div style={{ width }}>
@@ -205,7 +207,8 @@ function NarrowShows({
           {
             label: 'Export',
             onAction: ({ selection }) => onExport(selection)
-          }
+          },
+          ...more.map((label) => ({ label, onAction: () => {} }))
         ]}
       />
     </div>
@@ -309,6 +312,56 @@ describe('RecordTable Select mode on re-flowed rows in a browser', () => {
       screen.getByRole('checkbox', { name: 'Select Ball Park Music 1' })
     ).toBeVisible()
     expect(bulkBar()!.textContent).toContain('1 selected')
+  })
+})
+
+describe('RecordTable bulk bar focus in a browser', () => {
+  it('fits the header bar to a narrow table, with the rest in More actions', async () => {
+    const { container } = render(
+      <NarrowShows
+        selection={['show-0']}
+        more={['Archive shows', 'Print door list', 'Email ticket holders']}
+      />
+    )
+    await frame()
+    await frame()
+    const bar = bulkBar()!
+    expect(rect(bar).right).toBeLessThanOrEqual(
+      rect(slot(container, 'record-table-frame')).right + 1
+    )
+    expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth)
+    expect(within(bar).getAllByRole('button').at(-1)).toHaveAccessibleName(
+      'More actions'
+    )
+    expect(within(bar).getByRole('button', { name: 'Export' })).toBeVisible()
+  })
+
+  it('hands focus to Select page, not the hidden Select, as the bar goes above 40rem', async () => {
+    render(<NarrowShows width={WIDE_BOX} />)
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    within(bulkBar()!).getAllByRole('button')[0]!.focus()
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(bulkBar).toBeNull()
+    expect(document.activeElement).toBe(
+      screen.getByRole('checkbox', { name: 'Select page' })
+    )
+  })
+
+  it('leaves Select mode with Escape from the bar under 40rem', async () => {
+    render(<NarrowShows />)
+    await frame()
+    await userEvent.click(screen.getByRole('button', { name: 'Select' }))
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    within(bulkBar()!).getAllByRole('button')[0]!.focus()
+    await userEvent.keyboard('{Escape}')
+    await expect
+      .poll(() => screen.queryByRole('button', { name: 'Select' }))
+      .not.toBeNull()
+    expect(shownCheckboxes()).toEqual([])
   })
 })
 
