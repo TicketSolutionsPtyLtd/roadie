@@ -41,12 +41,11 @@ const knownLowContrast = (element: Element) =>
 export const MINIMUM_FILL_LC = 15
 
 /**
- * The Lc an element's text needs: decision 0010's floor for its role, where
- * buttons and links of a few words are labels, or the floor of a shortfall
- * that already shipped.
+ * The Lc an element's text needs: decision 0010's floor for its role by size
+ * and surface, or the floor of a shortfall that already shipped.
  */
 export function textFloor(element: Element): number {
-  const role = textRole(element, 'a, button')
+  const role = textRole(element)
   return (
     (role === 'body text' && knownLowContrast(element)?.floor) ||
     minimumLc[role]
