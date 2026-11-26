@@ -16,6 +16,7 @@ import {
   useWindowVirtualizer
 } from '@tanstack/react-virtual'
 
+import { findStickyContainer } from '../../utils/stickyStack'
 import type { WindowView } from './recordsWindow'
 import {
   type Watched,
@@ -24,7 +25,7 @@ import {
   useRowRestore
 } from './rowPosition'
 import { tableRowSize } from './rowSizing'
-import { findScrollParent, findStickyContainer } from './scrollParent'
+import { findScrollParent } from './scrollParent'
 import { RECORDS_SCROLLER } from './tableFocus'
 import type { RecordsRangeState } from './types'
 
