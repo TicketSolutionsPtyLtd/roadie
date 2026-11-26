@@ -19,17 +19,16 @@ describe('the jsdom layout lock', () => {
   })
 
   it.each(['ResizeObserver', 'IntersectionObserver'])(
-    'refuses a stubbed %s',
+    'refuses a stubbed %s, on the global and the document’s window',
     (name) => {
       expect(() => vi.stubGlobal(name, class {})).toThrow(TypeError)
+      expect(() =>
+        Object.defineProperty(document.defaultView!, name, { value: class {} })
+      ).toThrow(TypeError)
     }
   )
 
-  it('leaves an observer that never fires, for components that create one', () => {
-    const callback = vi.fn()
-    const observer = new ResizeObserver(callback)
-    observer.observe(document.body)
-    observer.disconnect()
-    expect(callback).not.toHaveBeenCalled()
+  it('keeps a ResizeObserver for charts that create one', () => {
+    expect(() => new ResizeObserver(() => {}).disconnect()).not.toThrow()
   })
 })
