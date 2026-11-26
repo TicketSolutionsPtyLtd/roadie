@@ -148,10 +148,14 @@ export const mergeConfig = {
       link: ['link-normal', 'link-strong', 'link-subtle'],
       'prose-size': ['prose-sm', 'prose-lg']
     },
+    // Both ways, so the later class wins whichever family each comes from.
     conflictingClassGroups: {
       'semantic-text-color': ['text-color'],
+      'text-color': ['semantic-text-color'],
       'semantic-bg-color': ['bg-color'],
-      'semantic-border-color': ['border-color']
+      'bg-color': ['semantic-bg-color'],
+      'semantic-border-color': ['border-color'],
+      'border-color': ['semantic-border-color']
     }
   }
 } satisfies ConfigExtension<
