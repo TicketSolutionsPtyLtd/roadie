@@ -2,6 +2,8 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Button } from '../components/Button'
 import { Navigator } from '../components/Navigator'
@@ -16,8 +18,7 @@ import {
   type RowSpec,
   contentMarkup,
   mount,
-  rowMarkup,
-  useStylesheet
+  rowMarkup
 } from '../components/Pane/testUtils'
 import {
   paneHeaderVariants,

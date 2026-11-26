@@ -2,10 +2,11 @@ import { cleanup, render } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { DateTime } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { hydrationShift } from '../../utils/hydrationTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

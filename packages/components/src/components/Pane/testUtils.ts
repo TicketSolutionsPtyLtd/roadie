@@ -17,11 +17,6 @@ import {
 } from './paneColumns'
 import { type PaneInspectorSize, paneVariants } from './variants'
 
-export {
-  loadBrandFont,
-  useStylesheet
-} from '@oztix/roadie-browser-testing/stylesheet'
-
 export const REM = 16
 export const STACK_INSET = 12
 
