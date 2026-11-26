@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { RecordField } from '@oztix/roadie-core/records'
 
-import { textStartClass } from './RecordTableGroups'
+import { groupTextStart } from './RecordTableGroups'
 import {
   PRIORITY_HIDES_BELOW,
   SELECT_WIDTH,
@@ -286,7 +286,71 @@ describe('TIER_CLASSES', () => {
 })
 
 describe('a group title', () => {
-  it('starts past the checkbox track, SELECT_WIDTH wide', () => {
-    expect(textStartClass(true)).toContain(`calc(${SELECT_WIDTH}rem+`)
+  const show = { key: 'show', field: text('show') }
+  const image = {
+    key: 'image',
+    field: text('image'),
+    kind: 'image' as const,
+    width: { min: 3.75 },
+    narrow: 'leading' as const
+  }
+  const city = { key: 'city', field: text('city') }
+  const start = (columns: RecordTableColumn[], select = false) => {
+    const layout = columnLayout(columns, columnWidths(columns, [], 'UTC'), {
+      select,
+      reflow: true
+    })
+    const title = columns.find((column) => column.key === 'show')
+    return groupTextStart({ columns, layout, title }, select)
+  }
+  const wide = (columns: RecordTableColumn[], select = false) =>
+    (start(columns, select).style as Record<string, string>)[
+      '--group-text-start-wide'
+    ]
+
+  it.each([
+    ['the first column', [show, city], false, 'var(--content-inset)'],
+    [
+      'past the checkbox track, SELECT_WIDTH wide',
+      [show, city],
+      true,
+      `calc(${SELECT_WIDTH}rem + var(--content-inset) + var(--spacing) * 2.5)`
+    ],
+    [
+      'past a leading thumbnail',
+      [image, show],
+      false,
+      'calc(3.75rem + var(--content-inset) + var(--spacing) * 2.5)'
+    ],
+    [
+      'past the checkbox and a thumbnail',
+      [image, show],
+      true,
+      `calc(${SELECT_WIDTH + 3.75}rem + var(--content-inset) + var(--spacing) * 2.5)`
+    ],
+    [
+      'at the first column, past a column that grows',
+      [city, show],
+      false,
+      'var(--content-inset)'
+    ],
+    [
+      'at the first column, past a thumbnail that hides',
+      [{ ...image, priority: 1 as const }, show],
+      false,
+      'var(--content-inset)'
+    ]
+  ] satisfies [string, RecordTableColumn[], boolean, string][])(
+    'starts wide at %s',
+    (_, columns, select, expected) => {
+      expect(wide(columns, select)).toBe(expected)
+    }
+  )
+
+  it('starts narrow past a leading thumbnail, not another leading value', () => {
+    expect(start([image, show]).className).toContain('+2.5rem+')
+    expect(
+      start([{ ...city, narrow: 'leading' }, show]).className
+    ).not.toContain('+2.5rem+')
   })
 })

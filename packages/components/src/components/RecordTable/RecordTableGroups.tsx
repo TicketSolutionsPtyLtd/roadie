@@ -1,6 +1,6 @@
 'use client'
 
-import { useId } from 'react'
+import { type CSSProperties, useId } from 'react'
 
 import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 
@@ -18,23 +18,64 @@ import {
 import type { RecordGroup } from '../Records/groups'
 import { rowClass } from './RecordTableRow'
 import { Row, type RowsShared } from './RecordTableRows'
+import { SELECT_WIDTH } from './layout'
 
-// The first column's text: past the checkbox track (SELECT_WIDTH) and a
-// cell's padding when rows have checkboxes, else at the content inset, as the
-// first cell's is. Under 40rem the checkbox hides until Select mode, so the
-// title's text starts at the inset, where the re-flowed rows' does.
-const TEXT_START_NARROW =
-  '@max-[40rem]/record-table-frame:[--group-text-start:var(--content-inset)]'
+// Under 40rem a group title's text starts where the rows' title text does:
+// past a leading thumbnail (2.5rem) and the row's gap, or in Select mode past
+// the checkbox, whose label is its box (1.25rem), padding and border wide.
+// A leading value of any other kind sizes to its content, so the title starts
+// at the rows' edge.
+const NARROW_START = {
+  plain:
+    '@max-[40rem]/record-table-frame:[--group-text-start:var(--content-inset)]',
+  thumbnail:
+    '@max-[40rem]/record-table-frame:[--group-text-start:calc(var(--content-inset)+2.5rem+var(--spacing)*3)]',
+  selecting:
+    '@max-[40rem]/record-table-frame:in-data-selecting:[--group-text-start:calc(var(--content-inset)+var(--spacing)*11+2px)]'
+}
 // Under 40rem the title row spans the frame alone, not the columns' tracks, which would overflow it.
 const NARROW_GROUP_ROW = '@max-[40rem]/record-table-frame:grid-cols-1'
-/** Exported for its test, which checks the checkbox track against SELECT_WIDTH. */
-export const textStartClass = (select: boolean) =>
-  cn(
-    select
-      ? '[--group-text-start:calc(2.5rem+var(--content-inset)+var(--spacing)*2.5)]'
-      : '[--group-text-start:var(--content-inset)]',
-    TEXT_START_NARROW
+
+/**
+ * Where a group title's text starts, so it lines up with the rows' title
+ * text: past the checkbox track and any leading thumbnail columns, whose
+ * widths are set. A grown column before the title has no known width, so the
+ * title lines up with the first column's text instead.
+ */
+export function groupTextStart(
+  { columns, layout, title }: Pick<RowsShared, 'columns' | 'layout' | 'title'>,
+  select: boolean
+) {
+  const titleAt = title ? columns.indexOf(title) : -1
+  const before = columns.slice(0, Math.max(titleAt, 0))
+  const thumbnails = before.every(
+    (column, index) =>
+      column.kind === 'image' &&
+      column.width !== undefined &&
+      column.width.grow === undefined &&
+      layout.priority[index] === undefined
   )
+  const past =
+    (select ? SELECT_WIDTH : 0) +
+    (thumbnails
+      ? before.reduce((sum, column) => sum + column.width!.min, 0)
+      : 0)
+  const leadingAt = layout.narrow?.indexOf('leading') ?? -1
+  return {
+    className: cn(
+      '[--group-text-start:var(--group-text-start-wide)]',
+      columns[leadingAt]?.kind === 'image'
+        ? NARROW_START.thumbnail
+        : NARROW_START.plain,
+      select && NARROW_START.selecting
+    ),
+    style: {
+      '--group-text-start-wide': past
+        ? `calc(${past}rem + var(--content-inset) + var(--spacing) * 2.5)`
+        : 'var(--content-inset)'
+    } as CSSProperties
+  }
+}
 
 type Toggle = (id: string, range: boolean, order?: readonly string[]) => void
 
@@ -86,6 +127,7 @@ function TableGroup({
   const open = !collapse.closed.has(path)
   const Heading = groupHeadings[Math.min(depth, groupHeadings.length - 1)]!
   const extra = groupHeadingContent(group)
+  const textStart = groupTextStart(shared, shared.isSelected !== undefined)
   return (
     <>
       <div role='rowgroup' data-slot='record-table-group'>
@@ -108,8 +150,9 @@ function TableGroup({
             <div
               className={cn(
                 'sticky start-0 grid w-[100cqi] gap-1.5',
-                textStartClass(shared.isSelected !== undefined)
+                textStart.className
               )}
+              style={textStart.style}
             >
               <Heading
                 className={cn(
