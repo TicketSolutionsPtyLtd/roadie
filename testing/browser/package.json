@@ -8,6 +8,7 @@
     ".": "./src/index.ts",
     "./config": "./src/config.ts",
     "./contrast": "./src/contrast.ts",
+    "./jsdom": "./src/jsdom.ts",
     "./stylesheet": "./src/stylesheet.ts"
   },
   "scripts": {
