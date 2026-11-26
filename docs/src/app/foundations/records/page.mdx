@@ -702,9 +702,7 @@ with "Location is in Melbourne" applied, `melb syd` can take both words.
 
 ### Your own filter UI
 
-An app that builds its own filter editor or search can read a value, compare
-filters, and check that a filter fits with the rules the records engine uses
-itself.
+An app with its own filter editor or search can use the engine's own rules.
 
 ```ts
 const filters = parseRecordValue('20 and 50', { field, now, timeZone })
@@ -731,8 +729,8 @@ written, so `last-month` and a period of month -1 are one filter. Compare it
 or use it as a key, but never parse it: its text may change.
 
 `recordFilterFits(filter, fields)` says whether your fields can apply a
-filter: its field exists, filters, and takes its operator. It doesn't check
-the value. `validateRecordView` does, and says why.
+filter: its field exists, filters, and takes its operator. `validateRecordView`
+checks the value too, and says why.
 
 ## URL format
 
