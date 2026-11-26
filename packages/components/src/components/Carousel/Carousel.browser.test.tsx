@@ -681,18 +681,20 @@ describe('Carousel dots', () => {
   function Holding({
     count = 20,
     max,
-    className
+    className,
+    getDotLabel
   }: {
     count?: number
     max?: number
     className?: string
+    getDotLabel?: (index: number, count: number) => string
   }) {
     return (
       <div className={className} style={{ width: 400, padding: 32 }}>
         <Carousel aria-label='Tickets' opts={{ slidesToScroll: 1 }}>
           <Carousel.Header>
             <Carousel.Title>Tickets</Carousel.Title>
-            <Carousel.Dots max={max} />
+            <Carousel.Dots max={max} getDotLabel={getDotLabel} />
           </Carousel.Header>
           <Carousel.Content overflow='hidden'>
             {Array.from({ length: count }, (_, index) => (
@@ -715,6 +717,54 @@ describe('Carousel dots', () => {
       .element(page.getByRole('button', { name: `Go to slide ${slide}` }))
       .toHaveAttribute('aria-current', 'true')
   const width = (slide: number) => dot(slide).getBoundingClientRect().width
+
+  const names = () =>
+    screen
+      .getAllByRole('button', { name: /^(Go to slide|Ticket)/ })
+      .map((dot) => dot.getAttribute('aria-label'))
+
+  it('names each dot after its slide by default', async () => {
+    render(<Holding count={3} />)
+    await expect
+      .poll(names)
+      .toEqual(['Go to slide 1', 'Go to slide 2', 'Go to slide 3'])
+  })
+
+  it('names each dot with getDotLabel, given its slide and the slide count', async () => {
+    render(
+      <Holding
+        count={3}
+        getDotLabel={(index, count) => `Ticket ${index} ${count}`}
+      />
+    )
+    await expect.poll(names).toEqual(['Ticket 0 3', 'Ticket 1 3', 'Ticket 2 3'])
+  })
+
+  it('names the slides a windowed strip shows, not their place in the window', async () => {
+    render(
+      <Holding
+        max={7}
+        getDotLabel={(index, count) => `Ticket ${index + 1} of ${count}`}
+      />
+    )
+    await expect.poll(() => names().length).toBe(7)
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Ticket 7 of 20' })
+    )
+    await expect
+      .element(page.getByRole('button', { name: 'Ticket 7 of 20' }))
+      .toHaveAttribute('aria-current', 'true')
+    expect(names()).toEqual([
+      'Ticket 4 of 20',
+      'Ticket 5 of 20',
+      'Ticket 6 of 20',
+      'Ticket 7 of 20',
+      'Ticket 8 of 20',
+      'Ticket 9 of 20',
+      'Ticket 10 of 20'
+    ])
+  })
 
   it('draws a dot for every slide without max', async () => {
     render(<Holding />)

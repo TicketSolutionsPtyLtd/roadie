@@ -842,6 +842,36 @@ Inside an `emphasis-strong` surface, the current dot takes the text colour of th
 </div>
 ```
 
+### Naming the dots
+
+Each dot is named "Go to slide N" by default, and the strip of dots "Choose slide to display". When the slides are things someone picks between, name them for what they are: pass `aria-label` for the strip and `getDotLabel` for each dot. It gets the 0-based index of the slide the dot goes to and the number of slides (pages, when slides scroll in groups), and the index stays the slide's when `max` windows the strip.
+
+```tsx-live
+<Carousel aria-label='Your tickets' opts={{ slidesToScroll: 1 }}>
+  <Carousel.Header>
+    <Carousel.Title>Your tickets</Carousel.Title>
+    <Carousel.Dots
+      aria-label='Choose a ticket'
+      getDotLabel={(index, count) => `Ticket ${index + 1} of ${count}`}
+    />
+  </Carousel.Header>
+  <Carousel.Content overflow='hidden'>
+    {Array.from({ length: 5 }, (_, i) => (
+      <Carousel.Item key={i}>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>General admission</Card.Title>
+            <Card.Description>Ticket {i + 1} of 5</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+    ))}
+  </Carousel.Content>
+</Carousel>
+```
+
+To name each dot after its slide, such as the ticket holder or the ticket type, look the name up by index: `getDotLabel={(index) => tickets[index].name}`.
+
 ### Vertical
 
 Pass `direction='vertical'` to flip the axis. The Previous/Next icons swap to up/down carets automatically.
@@ -959,6 +989,7 @@ Carousel is a compound component. Available parts:
 - **Region role.** The carousel root has `role='region'` and `aria-roledescription='carousel'`. The accessible name comes from `Carousel.Title` / `Carousel.TitleLink` (via `aria-labelledby`) when present, otherwise from the `aria-label` prop on the root.
 - **Slide group role.** Each `Carousel.Item` has `role='group'`, `aria-roledescription='slide'`, and `aria-label='N of M'`. Non-active slides are marked `inert` so their interactive content stays out of the tab order.
 - **Live region.** `Carousel.Content` is `aria-live='off'` while autoplay is running and `aria-live='polite'` otherwise. Transient hover/focus pauses do not flip the live region. Only an explicit pause via `Carousel.PlayPause` does.
+- **Dots.** `Carousel.Dots` is a group named "Choose slide to display", and each dot a button named "Go to slide N" with `aria-current` on the current one. Pass `aria-label` and `getDotLabel` to name them for what the slides hold.
 - **Keyboard.** When the viewport has focus: `ArrowLeft`/`ArrowRight` (or `ArrowUp`/`ArrowDown` in vertical mode) move between slides; `Home`/`End` jump to the first/last slide. Arrow keys never hijack focus when the user is interacting with a focusable element inside a slide.
 - **Pause behaviour.** Autoplay pauses on hover, focus, and `pointerdown`. Explicit pause (via `Carousel.PlayPause`) is sticky. Autoplay does not auto-resume after a user click. WCAG 2.2.2 compliant.
 - **Reduced motion.** When `prefers-reduced-motion: reduce` is set, autoplay is disabled entirely (no plugin instantiated) and Embla's `duration` is set to `0` for instant transitions. Live changes to the OS preference take effect via a `matchMedia` change listener.

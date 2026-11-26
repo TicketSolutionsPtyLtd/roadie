@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useCarouselContext } from './CarouselContext'
+import { dotWindow } from './dotWindow'
 import { carouselDotsVariants, carouselHiddenClass } from './variants'
 
 export type CarouselDotsProps = ComponentProps<'div'> & {
@@ -15,22 +16,23 @@ export type CarouselDotsProps = ComponentProps<'div'> & {
    * it. Leave it off to draw a dot for every slide.
    */
   max?: number
+  /**
+   * Names each dot, given the 0-based index of the slide it goes to and the
+   * number of slides (pages, when slides scroll in groups). The index counts
+   * from the first slide, not from the start of the window `max` draws.
+   * Defaults to "Go to slide N".
+   */
+  getDotLabel?: (index: number, count: number) => string
 }
 
-/** The first dot to draw, and how many, to keep `selected` mid-window. */
-export function dotWindow(count: number, selected: number, max?: number) {
-  const size =
-    max !== undefined && Number.isFinite(max) && max >= 1
-      ? Math.min(Math.floor(max), count)
-      : count
-  const start = Math.max(
-    0,
-    Math.min(selected - Math.floor(size / 2), count - size)
-  )
-  return { start, size }
-}
+const defaultDotLabel = (index: number) => `Go to slide ${index + 1}`
 
-export function CarouselDots({ className, max, ...props }: CarouselDotsProps) {
+export function CarouselDots({
+  className,
+  max,
+  getDotLabel = defaultDotLabel,
+  ...props
+}: CarouselDotsProps) {
   const { direction, snapCount, selectedIndex, canScroll, goTo } =
     useCarouselContext()
   const { start, size } = dotWindow(snapCount, selectedIndex, max)
@@ -59,7 +61,7 @@ export function CarouselDots({ className, max, ...props }: CarouselDotsProps) {
           <button
             key={index}
             type='button'
-            aria-label={`Go to slide ${index + 1}`}
+            aria-label={getDotLabel(index, snapCount)}
             aria-current={isActive ? 'true' : undefined}
             aria-disabled={isActive || undefined}
             data-slot='carousel-dot'
