@@ -1,17 +1,12 @@
-import { existsSync } from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 
+import {
+  type ExportEntry,
+  type ExportTarget,
+  exportEntries
+} from '../package-exports.mjs'
 import { compareText, unwrap } from './text.ts'
-
-export type ExportTarget = string | { [condition: string]: string }
-
-export type Entry = {
-  subpath: string
-  target: string
-  kind: 'js' | 'css' | 'json' | 'asset'
-  source?: string
-}
 
 export type Deprecation = { export: string; reason: string }
 
@@ -24,41 +19,20 @@ export type ModuleExports = {
   deprecated: Deprecation[]
 }
 
-const SOURCE_EXTENSIONS = ['.tsx', '.ts']
-
-function targetOf(value: ExportTarget) {
-  if (typeof value === 'string') return value
-  return (
-    value.import ?? value.default ?? value.style ?? Object.values(value)[0]!
-  )
-}
-
-export function sourceFor(target: string, packageDir: string) {
-  const stem = target.replace(/^\.\/dist\//, 'src/').replace(/\.js$/, '')
-  for (const extension of SOURCE_EXTENSIONS) {
-    const candidate = path.join(packageDir, stem + extension)
-    if (existsSync(candidate)) return candidate
-  }
-  throw new Error(`No source for export target ${target} in ${packageDir}`)
-}
-
-export function exportEntries(
+// The manifest reads the API of every JavaScript subpath, so each needs a source.
+export function manifestEntries(
   exports: Record<string, ExportTarget>,
   packageDir: string
-): Entry[] {
-  return Object.entries(exports).map(([subpath, value]) => {
-    const target = targetOf(value)
-    if (target.endsWith('.css')) return { subpath, target, kind: 'css' }
-    if (target.endsWith('.json')) return { subpath, target, kind: 'json' }
-    // Files shipped as they are, such as images, have no API to read.
-    if (!target.endsWith('.js')) return { subpath, target, kind: 'asset' }
-    return {
-      subpath,
-      target,
-      kind: 'js',
-      source: sourceFor(target, packageDir)
-    }
-  })
+): ExportEntry[] {
+  const entries = exportEntries(exports, packageDir)
+  const sourceless = entries.find(
+    (entry) => entry.kind === 'js' && !entry.source
+  )
+  if (sourceless)
+    throw new Error(
+      `No source for export target ${sourceless.target} in ${packageDir}`
+    )
+  return entries
 }
 
 // Resolving every import again for each component's program took most of the

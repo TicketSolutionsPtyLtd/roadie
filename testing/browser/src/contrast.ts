@@ -101,3 +101,29 @@ export const minimumLc = {
   'display text': 45,
   'non-text UI': 45
 } as const
+
+export type TextRole = keyof typeof minimumLc
+
+/**
+ * The role an element's text plays, so its floor in `minimumLc`. Text in an
+ * element matching `shortLabels`, 14px or larger and semibold, is a label.
+ */
+export function textRole(element: Element, shortLabels?: string): TextRole {
+  const { fontSize, fontWeight } = getComputedStyle(element)
+  const size = parseFloat(fontSize)
+  const weight = Number(fontWeight)
+  const bold = weight >= 700
+  if (element.closest('.emphasis-strong')) return 'label on a strong fill'
+  // APCA's size bands: large from 24px or 16px bold, display from 36px or
+  // 24px bold.
+  if (size >= 36 || (bold && size >= 24)) return 'display text'
+  if (size >= 24 || (bold && size >= 16)) return 'large text'
+  if (
+    shortLabels &&
+    element.closest(shortLabels) &&
+    size >= 14 &&
+    weight >= 600
+  )
+    return 'label'
+  return 'body text'
+}
