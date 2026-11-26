@@ -301,6 +301,25 @@ describe('placePane', () => {
       ]
     },
     {
+      name: 'the secondary list under a list declared at depth 0 before it',
+      panes: [
+        pane('home', { column: 'list', depth: 0 }),
+        pane('nav', { column: 'list', kind: 'generated-secondary' })
+      ],
+      opts: {
+        draws: {
+          ...closed,
+          rootList: true,
+          rootListDrawn: true,
+          secondaryPane: true
+        }
+      },
+      want: [
+        ['ahead', 1, false],
+        ['top', 0, true]
+      ]
+    },
+    {
       name: 'open More over a row that starts on a detail',
       panes: [
         event,
