@@ -702,8 +702,9 @@ with "Location is in Melbourne" applied, `melb syd` can take both words.
 
 ### Your own filter UI
 
-An app that builds its own filter editor or search can ask the same questions
-`Records.Search` does.
+An app that builds its own filter editor or search can read a value, compare
+filters, and check that a filter fits with the rules the records engine uses
+itself.
 
 ```ts
 const filters = parseRecordValue('20 and 50', { field, now, timeZone })
