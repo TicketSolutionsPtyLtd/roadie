@@ -57,10 +57,10 @@ import {
   derivePositions,
   deriveRootIndex,
   deriveTopIndex,
-  misplacedClaims,
   orderByDocumentPosition,
   provisionalDepth,
-  provisionalPosition
+  provisionalPosition,
+  servedClaims
 } from './paneStack'
 import { textOf } from './splitSecondary'
 import { coverWhileLeaving, uncover } from './tapCover'
@@ -455,7 +455,7 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
   useEffect(() => {
     if (!isDev()) return
     const live = orderByDocumentPosition(Array.from(panes.current.values()))
-    for (const { id, served, sits } of misplacedClaims(
+    for (const { id, served, sits } of servedClaims(
       live,
       draws,
       claims.current

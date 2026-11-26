@@ -249,7 +249,7 @@ export function claimRenderedDepth(
 }
 
 /** Each live pane that was served, with the depth it sits at when that differs. */
-export function misplacedClaims(
+export function servedClaims(
   live: readonly PlacedPane[],
   draws: DrawnPanes,
   claims: RenderClaims

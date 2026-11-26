@@ -10,10 +10,10 @@ import {
   derivePositions,
   deriveRootIndex,
   deriveTopIndex,
-  misplacedClaims,
   provisionalDepth,
   provisionalPosition,
-  resolveDepths
+  resolveDepths,
+  servedClaims
 } from './paneStack'
 
 const entry = (over: Partial<PaneEntry> = {}): PaneEntry => ({
@@ -223,22 +223,22 @@ describe('claimRenderedDepth', () => {
   })
 })
 
-describe('misplacedClaims', () => {
-  it('names each served pane that sits at another depth', () => {
+describe('servedClaims', () => {
+  it('gives each served pane the depth it sits at when that moved', () => {
     const claims: RenderClaims = new Map()
     // Rendered b before a, but a comes first in the document.
     serve(claims, [pane('b'), pane('a')])
-    expect(misplacedClaims([pane('a'), pane('b')], closed, claims)).toEqual([
+    expect(servedClaims([pane('a'), pane('b')], closed, claims)).toEqual([
       { id: 'a', served: 2, sits: 1 },
       { id: 'b', served: 1, sits: 2 }
     ])
-    expect(misplacedClaims([pane('b'), pane('a')], closed, claims)).toEqual([
+    expect(servedClaims([pane('b'), pane('a')], closed, claims)).toEqual([
       { id: 'b', served: 1, sits: null },
       { id: 'a', served: 2, sits: null }
     ])
   })
 
   it('skips a pane that was never served', () => {
-    expect(misplacedClaims([list], closed, new Map())).toEqual([])
+    expect(servedClaims([list], closed, new Map())).toEqual([])
   })
 })
