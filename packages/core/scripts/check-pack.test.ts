@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { packProblems } from './check-pack.mjs'
+import { exportEntries } from './package-exports.mjs'
 
 const maps: Record<string, object> = {
   'dist/a.js.map': { sources: ['../src/a.ts'], sourcesContent: ['code'] },
@@ -153,11 +154,11 @@ describe('packProblems', () => {
   })
 
   it('flags an export the tarball leaves out', () => {
-    const exports = {
+    const exports = exportEntries({
       '.': { types: './dist/index.d.ts', import: './dist/index.js' },
       './roadie.manifest.json': './dist/roadie.manifest.json',
       './css': { style: './src/css/ui.css', default: './src/css/ui.css' }
-    }
+    })
     expect(
       packProblems(
         ['dist/index.d.ts', 'dist/index.js', 'src/css/ui.css'],
@@ -170,7 +171,7 @@ describe('packProblems', () => {
   })
 
   it('accepts a wildcard export with a file to match', () => {
-    const exports = { './thumbnails/*': './src/thumbnails/*' }
+    const exports = exportEntries({ './thumbnails/*': './src/thumbnails/*' })
     expect(packProblems(['src/thumbnails/hero.svg'], read, exports)).toEqual([])
     expect(packProblems(['dist/index.js'], read, exports)).toEqual([
       "exports points at ./src/thumbnails/*, which the tarball doesn't ship"
@@ -178,7 +179,7 @@ describe('packProblems', () => {
   })
 
   it('accepts an export that files leaves out by name', () => {
-    const exports = { './internal': './src/internal.js' }
+    const exports = exportEntries({ './internal': './src/internal.js' })
     expect(packProblems([], read, exports, ['src/internal.js'])).toEqual([])
   })
 })
