@@ -92,12 +92,7 @@ function assignedDisplayName(source: ts.SourceFile, name: string) {
   return undefined
 }
 
-/**
- * Names an export after its own `displayName`, or else its export name.
- * react-docgen-typescript's own lookup can hand a file's one `displayName` to
- * every export in it, so a helper beside a component takes the component's
- * name, and the component's docs are dropped as a duplicate.
- */
+// The parser's own lookup hands a file's one `displayName` to every export in it.
 export function exportDisplayName(symbol: ts.Symbol) {
   const name = symbol.getName()
   if (FILE_NAMED_EXPORTS.has(name)) return undefined
@@ -106,11 +101,7 @@ export function exportDisplayName(symbol: ts.Symbol) {
   return (source && assignedDisplayName(source, name)) ?? name
 }
 
-// The parser caches a dependency's prop by file and name, so one component
-// gets another's copy: a prop we redeclare over a dependency's loses our
-// declaration and `keepProp` drops it, our `rel` shows up on parts that never
-// declare it, and two Base UI types in one file share a `nativeButton`
-// default. This cache never hits.
+// The parser caches a dependency's prop by file and name, so one component gets another's copy.
 const noPropCache = {
   has: () => false,
   get: () => undefined,
@@ -122,9 +113,7 @@ Object.defineProperty(Parser.prototype, 'propertiesOfPropsCache', {
   set: () => {}
 })
 
-// TypeScript joins the docs of every declaration of a prop. Ours add to a
-// dependency's, but two dependency types that both declare a prop repeat it,
-// so a prop only dependencies declare takes the first one's docs.
+// TypeScript joins every declaration's docs, so a prop only dependencies declare repeats itself.
 const findDocComment = Parser.prototype.findDocComment
 Parser.prototype.findDocComment = function (symbol) {
   const declarations = symbol.declarations ?? []
@@ -209,8 +198,7 @@ function toProp(prop: PropItem, componentName: string): ManifestProp | null {
     prop.description ?? '',
     (prop as PropItem & { tags?: Record<string, string> }).tags
   )
-  // A prop we redeclare over a dependency's comes from our declaration, which
-  // names no parent when it sits in a type literal.
+  // A prop we redeclare comes from our declaration, unnamed in a type literal.
   const own = prop.declarations?.find((d) => isOurs(d.fileName))
   const parent = own
     ? own.name === 'TypeLiteral'
@@ -335,11 +323,7 @@ function declaredProps(program: ts.Program, files: string[], typeName: string) {
   return []
 }
 
-/**
- * Fails when a part leaves out a prop its `<Part>Props` type declares in our
- * sources, as when react-docgen-typescript documents a helper under the
- * part's name, or drops a prop we redeclare over a dependency's.
- */
+// Fails when a part leaves out a prop its `<Part>Props` type declares in our sources.
 export function checkPartProps(
   parts: ManifestPart[],
   program: ts.Program,
