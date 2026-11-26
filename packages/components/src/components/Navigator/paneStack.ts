@@ -150,3 +150,119 @@ export function resolveDepths(
   })
   return depths
 }
+
+export type PlacedPane = { id: string } & PaneRegistration
+
+/** What this render draws, not the snapshot, which learns of a pane a commit late. */
+export type DrawnPanes = {
+  /** The active secondary has a list, drawn or displaced by More. */
+  rootList: boolean
+  rootListDrawn: boolean
+  secondaryPane: boolean
+  overflow: boolean
+  moreOpen: boolean
+}
+
+/** Where a pane rendered while hydrating: `written` is drawn, `rank` is what registration should resolve. */
+type RenderClaim = {
+  pane: PlacedPane
+  written: number | null
+  rank: number | null
+}
+/** In render order: Fizz and hydration both walk the row in document order. */
+export type RenderClaims = Map<string, RenderClaim>
+
+const SECONDARY_ROOT: DepthEntry = {
+  column: 'list',
+  kind: 'generated-secondary'
+}
+const OPEN_MORE: DepthEntry = {
+  column: 'list',
+  kind: 'generated-overflow',
+  reached: true
+}
+
+/** Each drawn pane's depth in the row. */
+export function depthsOf(panes: readonly PlacedPane[], draws: DrawnPanes) {
+  const drawn = panes.filter((pane) => {
+    if (pane.kind === 'generated-secondary') return draws.secondaryPane
+    if (pane.kind === 'secondary') return draws.rootListDrawn
+    if (pane.kind === 'generated-overflow') return draws.overflow
+    return true
+  })
+  const rootPending =
+    draws.rootList && !drawn.some((pane) => isSecondaryKind(pane.kind))
+  const morePending =
+    draws.moreOpen && !drawn.some((pane) => isOverflowKind(pane.kind))
+  const held = [
+    ...(rootPending ? [SECONDARY_ROOT] : []),
+    ...(morePending ? [OPEN_MORE] : [])
+  ]
+  const resolved = resolveDepths([...held, ...drawn])
+  const shift = held.length
+  return new Map(
+    drawn.map((pane, index) => [pane.id, resolved[index + shift] ?? null])
+  )
+}
+
+// True when this row's ranks sit one shallower than the written scale.
+function liftOf(
+  panes: readonly PlacedPane[],
+  depths: ReadonlyMap<string, number | null>
+): boolean {
+  const first = panes.find((pane) => (depths.get(pane.id) ?? null) !== null)
+  return (
+    first !== undefined &&
+    depths.get(first.id) === 0 &&
+    (provisionalDepth(first) ?? 0) > 0
+  )
+}
+
+// A declared depth wins; a row opening on a detail is written from 1 so More can take 0.
+function renderOrderDepth(
+  panes: readonly PlacedPane[],
+  draws: DrawnPanes
+): Omit<RenderClaim, 'pane'> {
+  const pane = panes.at(-1)
+  if (pane?.depth !== undefined) {
+    const written = provisionalDepth(pane)
+    return { written, rank: written }
+  }
+  const depths = depthsOf(panes, draws)
+  const rank = pane ? (depths.get(pane.id) ?? null) : null
+  const lift = liftOf(panes, depths)
+  return { written: rank === null ? null : rank + (lift ? 1 : 0), rank }
+}
+
+/** The depth a pane is served at while hydrating, from the panes rendered before it; a pane claims once. */
+export function claimRenderedDepth(
+  claims: RenderClaims,
+  pane: PlacedPane,
+  draws: DrawnPanes
+) {
+  const claimed = claims.get(pane.id)
+  if (claimed) return claimed.written
+  const before = Array.from(claims.values(), (claim) => claim.pane)
+  const claim = { pane, ...renderOrderDepth([...before, pane], draws) }
+  claims.set(pane.id, claim)
+  return claim.written
+}
+
+/** Each live pane that was served, with the depth it sits at when that differs. */
+export function misplacedClaims(
+  live: readonly PlacedPane[],
+  draws: DrawnPanes,
+  claims: RenderClaims
+): { id: string; served: number | null; sits: number | null }[] {
+  const resolved = depthsOf(live, draws)
+  const lift = liftOf(live, resolved)
+  return live.flatMap(({ id }) => {
+    const claim = claims.get(id)
+    if (!claim) return []
+    const rank = resolved.get(id) ?? null
+    const moved = rank !== null && claim.written !== null && claim.rank !== rank
+    return [
+      { id, served: claim.written, sits: moved ? rank + (lift ? 1 : 0) : null }
+    ]
+  })
+}
