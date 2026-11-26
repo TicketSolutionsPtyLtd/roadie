@@ -166,7 +166,11 @@ const PUSHES: {
     styleCap: CONTENT_STYLE_CAP,
     // Mostly mounting the table, and each pane's visibility and --pane-back
     // still change over its whole subtree.
-    styleMiss: 'INNO-1706'
+    styleMiss: 'INNO-1706',
+    // Its frames missed the budget in 5 of 24 CI jobs on main after #1089
+    // (the table mounting inside the push's first frames), so it failed
+    // unrelated PRs.
+    pushMiss: 'INNO-1706'
   }
 ]
 
