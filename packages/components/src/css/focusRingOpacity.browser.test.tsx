@@ -6,6 +6,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import roadieCss from '../../vitest.browser.css?inline'
 import { Checkbox } from '../components/Checkbox'
 import { Field } from '../components/Field'
+import { NumberField } from '../components/NumberField'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { RadioGroup } from '../components/RadioGroup'
 import { Slider } from '../components/Slider'
@@ -64,6 +65,15 @@ const CONTROLS: [string, string, ReactElement, () => HTMLElement][] = [
     () => screen.getByRole('textbox')
   ],
   [
+    'field group',
+    'accent',
+    <NumberField key='group' aria-label='Tickets' defaultValue={2} />,
+    () =>
+      screen
+        .getByRole('textbox')
+        .closest<HTMLElement>('[data-slot="number-field-group"]')!
+  ],
+  [
     'checkbox',
     'accent',
     <Checkbox key='checkbox' label='Presale alerts' />,
@@ -112,5 +122,39 @@ describe.each([
     const button = await focusAfterKey(screen.getByRole('button'))
 
     expect(getComputedStyle(button).outlineColor).toBe(step9At30('neutral'))
+  })
+
+  it('rings a buttons-only stepper at 30% of accent step 9', async () => {
+    document.documentElement.classList.toggle('dark', dark)
+    render(
+      <NumberField
+        aria-label='Tickets'
+        defaultValue={2}
+        emphasis='subtler'
+        editable={false}
+      />
+    )
+
+    const input = await focusAfterKey(screen.getByRole('textbox'))
+    const group = input.closest('[data-slot="number-field-group"]')!
+
+    expect(getComputedStyle(group).outlineColor).toBe(step9At30('accent'))
+  })
+
+  it('rings an is-interactive-within surface at 30% of neutral step 9', async () => {
+    document.documentElement.classList.toggle('dark', dark)
+    render(
+      <div data-testid='surface' className='is-interactive-within grid p-4'>
+        <a data-interactive-target href='#gates'>
+          Gates
+        </a>
+      </div>
+    )
+
+    await focusAfterKey(screen.getByRole('link'))
+
+    expect(getComputedStyle(screen.getByTestId('surface')).outlineColor).toBe(
+      step9At30('neutral')
+    )
   })
 })
