@@ -3,3 +3,4 @@
    `roadie.css`, so an app that imports that still scans its own sources. */
 @import '../src/css/roadie.css' source(none);
 @source '../src/css/safelist.html';
+@source '../src/css/safelist.families.html';

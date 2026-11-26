@@ -15,6 +15,8 @@ import {
 } from 'vitest'
 import { page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { IconButton } from '../Button/IconButton'
@@ -22,7 +24,6 @@ import { Navigator } from '../Navigator'
 import { Skeleton } from '../Skeleton'
 import { COLLAPSE_AT, EXPAND_AT } from './PaneRoot'
 import { forgetPaneScroll } from './paneScroll'
-import { useStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

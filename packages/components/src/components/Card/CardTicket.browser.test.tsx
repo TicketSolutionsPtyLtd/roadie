@@ -10,9 +10,10 @@ import {
 } from 'vitest'
 import { page } from 'vitest/browser'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Card } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 
 const BACKDROP = [255, 0, 255]
 const NOTCH_RADIUS = 12
@@ -619,9 +620,7 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
     it.runIf(emphasis === 'raised')(
       'casts the shadow for its state under each column',
       async () => {
-        const removeStill = useStylesheet(
-          '*, *::before, *::after { transition: none !important }'
-        )
+        const removeStill = useStylesheet(STILL)
         onTestFinished(removeStill)
         const { host, card, footer } = renderTicket('horizontal', 560)
         // Dark mode's shadow is the darkest, so the gap is widest there.

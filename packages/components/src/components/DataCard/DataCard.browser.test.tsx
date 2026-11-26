@@ -2,12 +2,15 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import { COPY_LIMITS } from '@oztix/roadie-core/dashboard-layout'
 
 import { DataCard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Meter } from '../Meter'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Sparkline } from '../Sparkline'
 import { StatTile } from '../StatTile'
 
@@ -499,5 +502,30 @@ describe('DataCard label lines', () => {
       lineHeight * lineCount,
       0
     )
+  })
+})
+
+// The sm EmptyState's title style is a variant, so the stat tile replaces
+// it as one (INNO-1736).
+describe("A StatTile's empty message", () => {
+  it('reads as body text, not a heading', () => {
+    const { getByText } = render(
+      <StatTile
+        label='Tickets sold'
+        value={0}
+        state='empty'
+        emptyMessage='No sales yet.'
+      />
+    )
+    const message = getComputedStyle(getByText('No sales yet.'))
+    const probe = document.createElement('p')
+    probe.className = 'text-sm'
+    document.body.append(probe)
+    const body = getComputedStyle(probe)
+    expect([message.fontSize, message.fontWeight]).toEqual([
+      body.fontSize,
+      body.fontWeight
+    ])
+    probe.remove()
   })
 })

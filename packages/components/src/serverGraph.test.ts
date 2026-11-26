@@ -156,6 +156,14 @@ describe('a Server Component importing an entry', () => {
         'Callout/CalloutIcon.tsx',
         'Callout/CalloutIntent.tsx'
       ]
+    ],
+    // The other parts read the size from the root's data-size (INNO-1736).
+    [
+      'EmptyState',
+      [
+        'EmptyState/EmptyStateIconTile.tsx',
+        'EmptyState/EmptyStateSizeProvider.tsx'
+      ]
     ]
   ])(
     'keeps %s server-rendered up to its interactive parts',

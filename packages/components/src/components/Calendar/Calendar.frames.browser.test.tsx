@@ -2,11 +2,12 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Calendar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
 import { durationToken } from '../../utils/motionTokens'
-import { useStylesheet } from '../Pane/testUtils'
 import {
   expectOneContinuousMotion,
   expectOneReshape,

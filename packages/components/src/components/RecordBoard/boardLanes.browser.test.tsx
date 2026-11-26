@@ -16,10 +16,13 @@ import {
   waitPopupGone,
   withFrames
 } from '@oztix/roadie-browser-testing'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { groupedShowFields, testShows } from '../Records/testUtils'
 import type { RecordsField } from '../Records/types'
 import { type Move, Shows, cell, cellTitles, lane } from './boardTestUtils'

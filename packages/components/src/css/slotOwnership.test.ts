@@ -11,6 +11,7 @@ const OWNER: Record<string, string> = {
   'card-ticket.css': 'card',
   'collapsible-text.css': 'collapsible',
   'dashboard.css': 'dashboard',
+  'empty-state.css': 'empty-state',
   'data-table.css': 'data-table',
   'navigator-pending.css': 'navigator',
   'number-field.css': 'number-field',

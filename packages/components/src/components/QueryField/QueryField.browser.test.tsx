@@ -13,20 +13,18 @@ import {
 import { page, userEvent } from 'vitest/browser'
 
 import { pickOption } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { pointAt } from '../../utils/pointerTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'
 import type {
   QueryFieldChip,
   QueryFieldOperator,
   QueryFieldSuggestionGroup
 } from './types'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {

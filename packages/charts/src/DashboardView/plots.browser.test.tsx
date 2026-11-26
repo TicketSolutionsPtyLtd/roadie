@@ -1,10 +1,10 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import type { StaticPlot } from '@oztix/roadie-core/dashboard'
 
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../testUtils'
 import { PlotView } from './plots'
 
 let removeStylesheet = () => {}

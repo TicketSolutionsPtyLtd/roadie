@@ -3,8 +3,9 @@ import type { CSSProperties } from 'react'
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
 
 // Every --intent-* an intent sets, pinned per context in a snapshot taken
 // before intents.css was rewritten to read its own scale (INNO-1672). Each

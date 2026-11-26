@@ -15,14 +15,13 @@ import {
 import { commands, userEvent } from 'vitest/browser'
 
 import { withFrames } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import { Calendar, type CalendarDateRange, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames, setHoverCapable } from '../../css/testUtils'
-import { useStylesheet } from '../Pane/testUtils'
 import { ScrollArea } from '../ScrollArea'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 // 1 March 2027 is a Monday.
 const TODAY = '2027-03-10'
 
@@ -1702,6 +1701,61 @@ describe('Calendar scrolling months', () => {
     await expect
       .poll(() => june.getBoundingClientRect().top)
       .toBeCloseTo(weekdays().getBoundingClientRect().bottom, 0)
+  })
+
+  describe('while the page around it settles', () => {
+    // Scroll anchoring would hold the month still by itself in Chromium and
+    // Firefox, so it's off, as in WebKit.
+    async function openSettling() {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      onTestFinished(() => {
+        vi.useRealTimers()
+      })
+      render(
+        <div
+          data-testid='scroller'
+          className='h-100 w-97.5 overflow-y-auto bg-raised'
+          style={{ overflowAnchor: 'none' }}
+        >
+          <div data-testid='above' />
+          <Calendar
+            today={TODAY}
+            layout='scroll'
+            defaultSelected='2027-06-12'
+          />
+        </div>
+      )
+      const june = document.querySelector('[data-month="2027-06-01"]')!
+      const belowWeekdays = () =>
+        june.getBoundingClientRect().top -
+        weekdays().getBoundingClientRect().bottom
+      await expect.poll(belowWeekdays).toBeCloseTo(0, 0)
+      const growAbove = async (height: number) => {
+        screen.getByTestId('above').style.height = `${height}px`
+        await withFrames(nudgeFrames)
+      }
+      return { belowWeekdays, growAbove }
+    }
+
+    it('keeps its month under the weekday row', async () => {
+      const { belowWeekdays, growAbove } = await openSettling()
+      await growAbove(120)
+      await expect.poll(belowWeekdays).toBeCloseTo(0, 0)
+    })
+
+    it('leaves the scroll to the reader once they take over', async () => {
+      const { belowWeekdays, growAbove } = await openSettling()
+      scroller().dispatchEvent(new WheelEvent('wheel'))
+      await growAbove(120)
+      expect(belowWeekdays()).toBeCloseTo(120, 0)
+    })
+
+    it('stops after a second', async () => {
+      const { belowWeekdays, growAbove } = await openSettling()
+      vi.advanceTimersByTime(1000)
+      await growAbove(120)
+      expect(belowWeekdays()).toBeCloseTo(120, 0)
+    })
   })
 
   it('pins the weekday row, painted over the days, as the months scroll', async () => {

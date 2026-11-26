@@ -10,10 +10,11 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { CommandPalette } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { venues } from '../../utils/frameTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

@@ -30,6 +30,8 @@ describe('countChangedLines', () => {
       '120\t0\tpackages/charts/src/BarChart/__snapshots__/scan-rate-dark.svg',
       '40\t40\tpackages/components/src/Foo/Foo.test.tsx.snap',
       '300\t300\tpackages/core/src/css/dataviz.css',
+      '20\t20\tpackages/core/src/css/safelist.families.html',
+      '100\t50\tpackages/core/src/utils/classGroups.generated.ts',
       '60\t30\tpackages/components/size-budget.json',
       '5\t0\t.changeset/new-thing.md',
       '12\t0\tpackages/charts/CHANGELOG.md',
@@ -37,7 +39,7 @@ describe('countChangedLines', () => {
     ].join('\n')
     expect(countChangedLines(numstat)).toEqual({
       total: 9,
-      excludedLines: 2617,
+      excludedLines: 2807,
       files: 1
     })
   })
@@ -45,9 +47,11 @@ describe('countChangedLines', () => {
   it('keeps hand-written files that sit beside generated ones', () => {
     const numstat = [
       '4\t0\tpackages/core/src/css/dataviz-textures.css',
-      '2\t0\t.changeset/config.json'
+      '2\t0\t.changeset/config.json',
+      '3\t0\tpackages/core/src/css/safelist.html',
+      '5\t0\tpackages/core/src/utils/classFamilies.ts'
     ].join('\n')
-    expect(countChangedLines(numstat).total).toBe(6)
+    expect(countChangedLines(numstat).total).toBe(14)
   })
 
   it('counts binary files as zero lines', () => {

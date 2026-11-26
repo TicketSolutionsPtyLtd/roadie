@@ -202,7 +202,7 @@ async function readListings(route: string, name: string): Promise<Listing[]> {
       description: metadata?.description ?? '',
       category: metadata?.category ?? 'Other',
       order: metadata?.order,
-      // Widget pages aren't in the component docs check, so the build requires theirs.
+      // The manifest asks only component and chart pages for a status, so the build asks widget pages.
       status: parseStatus(
         metadata?.status,
         `${route}/${name}`,

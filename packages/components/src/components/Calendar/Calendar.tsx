@@ -55,7 +55,8 @@ import {
   weekCaption,
   weekdayNames
 } from './labels'
-import { between, lastDayOf, monthOf } from './months'
+import { between, monthNumberOf, monthOf, weekTouches, yearOf } from './months'
+import { useScrollLayout } from './scrollLayout'
 import {
   type CalendarDateRange,
   type CalendarMode,
@@ -65,6 +66,7 @@ import {
 } from './selection'
 import { type Peek, type SwipeStep, useSwipeToTurn } from './swipe'
 import { useToday } from './today'
+import { type MonthRun, viewModel } from './view'
 
 type CalendarBaseProps = Omit<
   ComponentProps<'div'>,
@@ -267,42 +269,6 @@ const dayVariants = cva(
   }
 )
 
-const yearOf = (date: string) => plainDateParts(monthOf(date)).year
-
-const monthNumberOf = (date: string) => plainDateParts(monthOf(date)).month
-
-/** Months either side of the opening month a scrolling calendar starts with. */
-const SCROLL_BEFORE = 3
-const SCROLL_AFTER = 6
-/** What tells a scrolling calendar the reader has taken over its scroll. */
-const TAKE_OVER = ['pointerdown', 'wheel', 'touchstart', 'keydown'] as const
-/** Months a scrolling calendar adds as it nears an end. */
-// A few at a time: a dozen at once lays out ~500 days in one frame and drops
-// frames on a phone, and the scroll is kept steady when months join above.
-const SCROLL_STEP = 4
-
-function monthsBetween(from: string, to: string): number {
-  return (
-    (yearOf(to) - yearOf(from)) * 12 + monthNumberOf(to) - monthNumberOf(from)
-  )
-}
-
-/** The box the months scroll in. Sideways scrolling alone makes `overflow-y` auto too, so it must also be taller inside than out. */
-function scrollingAncestor(node: HTMLElement): HTMLElement | null {
-  for (let el = node.parentElement; el; el = el.parentElement) {
-    if (
-      /auto|scroll/.test(getComputedStyle(el).overflowY) &&
-      el.scrollHeight > el.clientHeight
-    )
-      return el
-  }
-  return null
-}
-
-function weekTouches(start: string, month: string) {
-  return monthOf(start) === month || monthOf(addDays(start, 6)) === month
-}
-
 function firstSelectedOf(mode: CalendarMode, selection: CalendarSelection) {
   if (mode === 'single') return selection as string | null
   if (mode === 'multiple') return (selection as readonly string[])[0] ?? null
@@ -366,23 +332,6 @@ export function Calendar(props: CalendarProps) {
   const showViewToggle =
     !scrolling && !!views?.includes('week') && views.includes('month')
   const tiles = weekView || !!getDayContent
-  const boundedSpan =
-    startMonth && endMonth
-      ? (yearOf(endMonth) - yearOf(startMonth)) * 12 +
-        monthNumberOf(endMonth) -
-        monthNumberOf(startMonth) +
-        1
-      : Infinity
-  const numberOfMonths =
-    scrolling || weekView
-      ? 1
-      : Math.max(1, Math.min(Math.floor(numberOfMonthsProp), boundedSpan))
-  // Several months that can't sit side by side page up and down, as one
-  // column, whatever `direction` asks for.
-  const [stacked, setStacked] = useState(false)
-  const vertical = direction === 'vertical' || (stacked && numberOfMonths > 1)
-  // Turning up and down, months move whole, each title in the gap above it.
-  const wholeMonths = vertical
   const today = useToday(todayProp, timeZone)
   // The grid is Gregorian, so its labels must be too, whatever the locale prefers.
   const locale = new Intl.Locale(localeProp, { calendar: 'gregory' }).toString()
@@ -400,18 +349,6 @@ export function Calendar(props: CalendarProps) {
         ? uncontrolled.selection
         : emptySelection
 
-  const firstAllowedMonth = startMonth ? monthOf(startMonth) : null
-  const lastAllowedMonth = endMonth
-    ? addMonths(monthOf(endMonth), 1 - numberOfMonths)
-    : null
-  const clampMonth = (month: string) => {
-    if (lastAllowedMonth && compareDates(month, lastAllowedMonth) > 0)
-      month = lastAllowedMonth
-    if (firstAllowedMonth && compareDates(month, firstAllowedMonth) < 0)
-      month = firstAllowedMonth
-    return month
-  }
-
   const [initialAnchor] = useState(
     () => defaultMonth ?? firstSelectedOf(mode, selection)
   )
@@ -427,48 +364,55 @@ export function Calendar(props: CalendarProps) {
   const waitingForToday = shownMonth === null
   const standIn = waitingForToday && !scrolling
   const estimated = waitingForToday && scrolling
-  const firstMonth = clampMonth(shownMonth ?? '2000-01-01')
 
-  // A scrolling calendar shows a run of months around the first one, which
-  // grows at either end as it is scrolled or the keyboard leaves it.
-  const [run, setRun] = useState<{ start: string; count: number } | null>(null)
-  const runAround = (month: string) => {
-    const start = clampMonth(addMonths(month, -SCROLL_BEFORE))
-    const last = clampMonth(addMonths(month, SCROLL_AFTER))
-    return { start, count: monthsBetween(start, last) + 1 }
-  }
-  // A first month already in the run, such as one scrolled to, keeps it.
-  const inRun = (month: string, of: NonNullable<typeof run>) =>
-    compareDates(month, of.start) >= 0 &&
-    compareDates(month, addMonths(of.start, of.count - 1)) <= 0
-  const currentRun = run && inRun(firstMonth, run) ? run : runAround(firstMonth)
-  const months = scrolling
-    ? Array.from({ length: currentRun.count }, (_, i) =>
-        addMonths(currentRun.start, i)
-      )
-    : Array.from({ length: numberOfMonths }, (_, i) => addMonths(firstMonth, i))
-
+  const [run, setRun] = useState<MonthRun | null>(null)
   const [focusedDate, setFocusedDate] = useState<string | null>(null)
-  // Null until the reader turns a week, and kept while it touches the month
-  // shown, so switching views or a parent's `month` lands somewhere sensible.
+  // Null until the reader turns a week.
   const [navigatedWeek, setNavigatedWeek] = useState<string | null>(null)
-  const weekFor = (month: string) =>
-    startOfWeek(
-      [focusedDate, firstSelectedOf(mode, selection), today].find(
-        (date): date is string => !!date && monthOf(date) === month
-      ) ?? month,
-      weekStart
-    )
-  const shownWeek =
-    navigatedWeek && weekTouches(navigatedWeek, firstMonth)
-      ? navigatedWeek
-      : weekFor(firstMonth)
-  const visibleStart = weekView ? shownWeek : months[0]!
-  const lastVisibleDay = weekView
-    ? addDays(shownWeek, 6)
-    : lastDayOf(months[months.length - 1]!)
-  const isVisible = (date: string) =>
-    between(date, visibleStart, lastVisibleDay)
+  const firstSelected = firstSelectedOf(mode, selection)
+  const page = viewModel({
+    scrolling,
+    weekView,
+    numberOfMonths: numberOfMonthsProp,
+    startMonth,
+    endMonth,
+    weekStart,
+    shownMonth,
+    run,
+    navigatedWeek,
+    focusedDate,
+    chosen:
+      mode === 'multiple'
+        ? (selection as readonly string[])
+        : firstSelected
+          ? [firstSelected]
+          : [],
+    today,
+    disabled: disabled === true
+  })
+  const {
+    numberOfMonths,
+    firstAllowedMonth,
+    lastAllowedMonth,
+    minDate,
+    maxDate,
+    clampMonth,
+    firstMonth,
+    months,
+    shownWeek,
+    visibleStart,
+    lastVisibleDay,
+    isVisible,
+    focusTarget,
+    canTurn,
+    monthOfWeek
+  } = page
+  // Several months that can't sit side by side page up and down, as one
+  // column, whatever `direction` asks for.
+  const [stacked, setStacked] = useState(false)
+  const vertical = direction === 'vertical' || (stacked && numberOfMonths > 1)
+  // Turning up and down, months move whole, each title in the gap above it.
+  const wholeMonths = vertical
   const [hasFocus, setHasFocus] = useState(false)
   const [hoverDate, setHoverDate] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
@@ -476,12 +420,7 @@ export function Calendar(props: CalendarProps) {
     null
   )
   const servedFocus = useRef<{ date: string } | null>(null)
-  const autoFocused = useRef(false)
-
-  const focusTarget =
-    [focusedDate, firstSelectedOf(mode, selection), today].find(
-      (date): date is string => !!date && isVisible(date)
-    ) ?? visibleStart
+  const autoFocusDone = useRef(false)
 
   const labels = useMemo(
     () => ({
@@ -491,8 +430,6 @@ export function Calendar(props: CalendarProps) {
     [weekStart, locale]
   )
 
-  const minDate = firstAllowedMonth
-  const maxDate = endMonth ? lastDayOf(monthOf(endMonth)) : null
   const days = dayModel({
     mode,
     selection,
@@ -534,38 +471,13 @@ export function Calendar(props: CalendarProps) {
     if (!weekTouches(start, firstMonth)) changeMonth(month)
   }
 
-  const canTurn = (step: SwipeStep) => {
-    if (disabled === true) return false
-    if (weekView) {
-      const edge = addDays(shownWeek, step === 1 ? 7 : -1)
-      return step === 1
-        ? !maxDate || compareDates(edge, maxDate) <= 0
-        : !minDate || compareDates(edge, minDate) >= 0
-    }
-    const limit = step === 1 ? lastAllowedMonth : firstAllowedMonth
-    return !limit || compareDates(firstMonth, limit) * step < 0
-  }
-
   function turn(step: SwipeStep) {
     // Applied after a slide, so the bounds are checked as they are then.
     if (!canTurn(step)) return
-    if (!weekView) return turnMonth(addMonths(firstMonth, step))
+    const to = page.turnTo(step)
+    if (!to.week) return turnMonth(to.month)
     setPendingFocus(null)
-    const start = addDays(shownWeek, step * 7)
-    showWeek(start, monthOf(step === 1 ? start : addDays(start, 6)))
-  }
-
-  // The month a week opens on: a chosen day's in it, then the focused day's,
-  // then the month holding most of it, which its fourth day is always in.
-  function monthOfWeek(start: string) {
-    const end = addDays(start, 6)
-    const chosen = [
-      ...(mode === 'multiple'
-        ? (selection as readonly string[])
-        : [firstSelectedOf(mode, selection)]),
-      focusedDate
-    ].find((date): date is string => !!date && between(date, start, end))
-    return monthOf(chosen ?? addDays(start, 3))
+    showWeek(to.week, to.month)
   }
 
   function changeView(next: CalendarView) {
@@ -599,23 +511,23 @@ export function Calendar(props: CalendarProps) {
 
   // Entering week view, by the toggle or a parent, a day picked in a later
   // month shown is the one the week should hold.
-  const monthViewShown = useRef<{ start: string; end: string } | null>(null)
-  useIsomorphicLayoutEffect(() => {
-    if (!weekView)
-      monthViewShown.current = { start: visibleStart, end: lastVisibleDay }
-  })
-  useIsomorphicLayoutEffect(() => {
-    const shown = monthViewShown.current
-    if (!weekView || !shown) return
-    const chosen = [focusedDate, firstSelectedOf(mode, selection)].find(
+  function enterWeek(shown: { start: string; end: string }) {
+    const chosen = [focusedDate, firstSelected].find(
       (date): date is string => !!date && between(date, shown.start, shown.end)
     )
     if (!chosen || monthOf(chosen) === firstMonth) return
     setNavigatedWeek(startOfWeek(chosen, weekStart))
     changeMonth(chosen)
-    // Only as the view turns to week; the rest is read as it was then.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weekView])
+  }
+  const monthViewShown = useRef<{ start: string; end: string } | null>(null)
+  useIsomorphicLayoutEffect(() => {
+    const shown = monthViewShown.current
+    // Held only while month view shows, so a week is entered once.
+    monthViewShown.current = weekView
+      ? null
+      : { start: visibleStart, end: lastVisibleDay }
+    if (weekView && shown) enterWeek(shown)
+  })
 
   const swipeable = !scrolling && !waitingForToday && disabled !== true
   // The page a turn or a drag brings in, shown beside the days only then.
@@ -771,34 +683,15 @@ export function Calendar(props: CalendarProps) {
 
   // The day's own onFocus records it, so the tab stop never moves to a day
   // that a controlled parent hasn't shown yet.
-  function extendRun(to: string) {
-    const month = monthOf(to)
-    const start =
-      compareDates(month, currentRun.start) < 0 ? month : currentRun.start
-    const last = months[months.length - 1]!
-    const end = compareDates(month, last) > 0 ? month : last
-    setRun({
-      start,
-      count: monthsBetween(start, end) + 1
-    })
-  }
-
   function moveFocus(date: string) {
     setHoverDate(null)
     setPendingFocus({ date })
-    if (scrolling) {
-      if (!isVisible(date)) extendRun(date)
-      return
-    }
-    if (weekView) {
-      if (!isVisible(date))
-        showWeek(startOfWeek(date, weekStart), monthOf(date))
-      return
-    }
+    const to = page.reveal(date)
+    if (to.run) return setRun(to.run)
+    if (to.week) return showWeek(to.week, to.month!)
+    if (scrolling || weekView) return
     setNavigatedWeek(null)
-    if (compareDates(date, firstMonth) < 0) changeMonth(date)
-    else if (compareDates(date, lastVisibleDay) > 0)
-      changeMonth(addMonths(monthOf(date), 1 - numberOfMonths))
+    if (to.month) changeMonth(to.month)
   }
 
   // A turn applies after its slide out, so it reads the calendar as it is
@@ -834,12 +727,6 @@ export function Calendar(props: CalendarProps) {
     pageTurn(step, () => latest.turnMonth(first), { immediate: true })
   }
 
-  function clampDate(date: string) {
-    if (minDate && compareDates(date, minDate) < 0) return minDate
-    if (maxDate && compareDates(date, maxDate) > 0) return maxDate
-    return date
-  }
-
   function onDayKeyDown(event: KeyboardEvent<HTMLButtonElement>, date: string) {
     if (event.key === 'Escape' && extending && disabled !== true) {
       event.preventDefault()
@@ -868,7 +755,7 @@ export function Calendar(props: CalendarProps) {
       !event.shiftKey &&
       !weekView
     ) {
-      const target = clampDate(next)
+      const target = page.clampDate(next)
       if (target === from) return
       if (isVisible(target) && !queuedFocus.current) return moveFocus(target)
       queuedFocus.current = target
@@ -879,7 +766,7 @@ export function Calendar(props: CalendarProps) {
       return
     }
     landTurn()
-    latestRef.current!.moveFocus(clampDate(next))
+    latestRef.current!.moveFocus(page.clampDate(next))
   }
 
   // Not on a page coming in, which can show the same dates and is inert.
@@ -899,212 +786,25 @@ export function Calendar(props: CalendarProps) {
   }, [pendingFocus, firstMonth, visibleStart, lastVisibleDay])
 
   const todayKnown = today !== null
+  // Once, as on an input, but only after hydration knows today.
   useEffect(() => {
-    if (!autoFocus || autoFocused.current || !todayKnown) return
-    autoFocused.current = true
-    focusDay(focusTarget)
-    // Once, as on an input, but only after hydration knows today.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [todayKnown])
-
-  // Brings the first month to the top of the list, under the weekdays, when
-  // it opens and whenever the first month changes.
-  // Scrolls only for a new first month, never back to one the parent
-  // keeps, and not for the one the list reported as it scrolled.
-  const scrolledTo = useRef<string | null>(null)
-  const reported = useRef<string | null>(null)
-  const settling = useRef<(() => void) | null>(null)
-  useIsomorphicLayoutEffect(() => {
-    if (!scrolling || waitingForToday || scrolledTo.current === firstMonth)
-      return
-    if (reported.current === firstMonth) {
-      scrolledTo.current = firstMonth
-      return
-    }
-    const root = rootRef.current
-    const month = root?.querySelector(`[data-month="${firstMonth}"]`)
-    const scroller = root && scrollingAncestor(root)
-    // Hidden or not laid out yet, so try again on a later render.
-    if (!month || !scroller || scroller.clientHeight === 0) return
-    scrolledTo.current = firstMonth
-    // A month reported before this one is no longer where the list rests.
-    reported.current = null
-    const target = firstMonth
-    const align = () => {
-      const weekdays = weekdaysRef.current
-      const month = rootRef.current?.querySelector(`[data-month="${target}"]`)
-      if (!weekdays || !month) return
-      const stuckAt =
-        scroller.getBoundingClientRect().top +
-        weekdays.getBoundingClientRect().height +
-        (parseFloat(getComputedStyle(weekdays).top) || 0)
-      const by = month.getBoundingClientRect().top - stuckAt
-      if (Math.abs(by) >= 1) scroller.scrollBy({ top: by, behavior: 'instant' })
-      aligned = scroller.scrollTop
-    }
-    let aligned = scroller.scrollTop
-    align()
-    // Content around the list can still move as it opens, such as a tab
-    // panel on its way out, so it stays aligned until the reader takes over.
-    settling.current?.()
-    if (typeof ResizeObserver === 'undefined') return
-    // Next frame, as scrolling inside the observer's callback loops it.
-    let frame = 0
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(align)
-    })
-    observer.observe(scroller.firstElementChild ?? root)
-    // A scroll that isn't its own is the reader's, or the page's.
-    const onScroll = () => {
-      if (Math.abs(scroller.scrollTop - aligned) > 1) stop()
-    }
-    const stop = () => {
-      observer.disconnect()
-      cancelAnimationFrame(frame)
-      clearTimeout(timer)
-      for (const type of TAKE_OVER) scroller.removeEventListener(type, stop)
-      scroller.removeEventListener('scroll', onScroll)
-      settling.current = null
-    }
-    const timer = setTimeout(stop, 1000)
-    for (const type of TAKE_OVER)
-      scroller.addEventListener(type, stop, { passive: true })
-    scroller.addEventListener('scroll', onScroll, { passive: true })
-    settling.current = stop
+    if (autoFocusDone.current || !todayKnown) return
+    autoFocusDone.current = true
+    if (autoFocus) focusDay(focusTarget)
   })
-  // Only once it has really gone: a development remount keeps the same DOM.
-  useEffect(
-    () => () =>
-      queueMicrotask(() => {
-        if (!rootRef.current?.isConnected) settling.current?.()
-      }),
-    []
+
+  const { earlierRef, laterRef, canAddEarlier, canAddLater } = useScrollLayout(
+    rootRef,
+    weekdaysRef,
+    {
+      active: scrolling && !waitingForToday,
+      page,
+      run,
+      setRun,
+      changeMonth,
+      onMonthChange
+    }
   )
-
-  // Months added above would push what is in view down; the scroll moves
-  // with them. Engines that anchor scrolling themselves leave nothing to do.
-  const keptInView = useRef<{ month: string; top: number } | null>(null)
-  useIsomorphicLayoutEffect(() => {
-    const kept = keptInView.current
-    if (!kept) return
-    keptInView.current = null
-    const root = rootRef.current
-    const month = root?.querySelector(`[data-month="${kept.month}"]`)
-    const scroller = root && scrollingAncestor(root)
-    if (!month || !scroller) return
-    scroller.scrollBy({
-      top: month.getBoundingClientRect().top - kept.top,
-      behavior: 'instant'
-    })
-  })
-
-  // The month at the top of a scrolled list is the first month, so a parent
-  // that moves `month` somewhere already in view still scrolls to it.
-  const followTop = () => {
-    // Its own aligning isn't the reader scrolling.
-    if (settling.current) return
-    const root = rootRef.current
-    const scroller = root && scrollingAncestor(root)
-    const weekdays = weekdaysRef.current
-    if (!root || !scroller || !weekdays) return
-    const below = weekdays.getBoundingClientRect().bottom
-    const top = Array.from(
-      root.querySelectorAll<HTMLElement>('[data-slot="calendar-month"]')
-    ).find((month) => month.getBoundingClientRect().bottom > below + 1)
-    const month = top?.dataset.month
-    // Back at the month a parent still holds, after reporting another it
-    // hasn't taken up yet.
-    const back =
-      month === firstMonth && !!reported.current && reported.current !== month
-    if (!month || (month === firstMonth && !back)) return
-    reported.current = month
-    // Held, so the run doesn't recentre on the month scrolled to.
-    if (run !== currentRun) setRun(currentRun)
-    if (back) onMonthChange?.(month)
-    else changeMonth(month)
-  }
-  const followTopRef = useRef(followTop)
-  useIsomorphicLayoutEffect(() => {
-    followTopRef.current = followTop
-  })
-  useEffect(() => {
-    if (!scrolling || waitingForToday) return
-    const scroller = rootRef.current && scrollingAncestor(rootRef.current)
-    if (!scroller) return
-    let frame = 0
-    const onScroll = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => followTopRef.current())
-    }
-    scroller.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      cancelAnimationFrame(frame)
-      scroller.removeEventListener('scroll', onScroll)
-    }
-  }, [scrolling, waitingForToday, months.length])
-
-  const earlierRef = useRef<HTMLDivElement>(null)
-  const laterRef = useRef<HTMLDivElement>(null)
-  const canAddEarlier =
-    !firstAllowedMonth || compareDates(visibleStart, firstAllowedMonth) > 0
-  const canAddLater =
-    !lastAllowedMonth ||
-    compareDates(months[months.length - 1]!, lastAllowedMonth) < 0
-  const growRun = (earlier: boolean) => {
-    if (earlier) {
-      const month = rootRef.current?.querySelector(
-        `[data-month="${visibleStart}"]`
-      )
-      if (month)
-        keptInView.current = {
-          month: visibleStart,
-          top: month.getBoundingClientRect().top
-        }
-      extendRun(clampMonth(addMonths(visibleStart, -SCROLL_STEP)))
-    } else {
-      extendRun(clampMonth(addMonths(months[months.length - 1]!, SCROLL_STEP)))
-    }
-  }
-  const grownAt = useRef<number | null>(null)
-  const growRunRef = useRef(growRun)
-  useIsomorphicLayoutEffect(() => {
-    growRunRef.current = growRun
-  })
-  useEffect(() => {
-    if (!scrolling || waitingForToday) return
-    if (typeof IntersectionObserver === 'undefined') return
-    const root = rootRef.current && scrollingAncestor(rootRef.current)
-    const scrolled = () => (root ? root.scrollTop : window.scrollY)
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // With no box of its own to scroll, months added above would push
-        // the page down, so the list only grows below.
-        const near = entries.find(
-          (entry) =>
-            entry.isIntersecting &&
-            (root || entry.target !== earlierRef.current)
-        )
-        // Only after a scroll: a new observer reports an end still in reach,
-        // and growing for that alone would never stop.
-        if (!near || grownAt.current === scrolled()) return
-        grownAt.current = scrolled()
-        growRunRef.current(near.target === earlierRef.current)
-      },
-      { root, rootMargin: '400px 0px' }
-    )
-    if (canAddEarlier && earlierRef.current)
-      observer.observe(earlierRef.current)
-    if (canAddLater && laterRef.current) observer.observe(laterRef.current)
-    return () => observer.disconnect()
-  }, [
-    scrolling,
-    waitingForToday,
-    canAddEarlier,
-    canAddLater,
-    visibleStart,
-    months.length
-  ])
 
   const navDisabled = disabled === true
   const todayYear = yearOf(today ?? firstMonth)
