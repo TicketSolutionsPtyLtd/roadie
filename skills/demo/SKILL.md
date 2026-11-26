@@ -137,8 +137,8 @@ keeps out of a public screenshot (Roadie: PR workflow section 7).
   and mark the body "awaiting demo approval", and don't mark it ready until
   the OK.
 - Once the PR exists, put the shots under Evidence as the host workflow says
-  (Roadie: PR workflow section 7); `/roadie:pr` writes the body. `gh` can't
-  upload images. In Roadie, `pnpm screenshots <pr> <images…>` puts them on
+  (Roadie: PR workflow section 7); `/roadie:pr` writes the body. `gh` has no
+  image upload command. In Roadie, `pnpm screenshots <pr> <images…>` puts them on
   the `screenshots` branch through the GitHub API and prints the markdown to
   paste; no local branch, commit, or hook is involved. Elsewhere, commit them
   alone to an orphan `<prefix>/<topic>-screenshots` branch, push it, and

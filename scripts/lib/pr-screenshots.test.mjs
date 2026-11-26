@@ -174,13 +174,33 @@ describe('upload', () => {
     })
   }
 
-  test('passes on errors other than a lost race', async () => {
-    const api = async () => {
-      throw Object.assign(new Error('HTTP 403'), { status: 403 })
-    }
-    await assert.rejects(
-      upload({ api, repo: 'o/r', pr: '1', files: [shot('pr-1/a.png')] }),
-      /403/
-    )
-  })
+  // [call that fails, its status, how many ref writes upload makes]
+  for (const [failing, status, writes] of [
+    ['GET ref/heads/screenshots', 500, 0],
+    ['PATCH refs/heads/screenshots', 403, 1],
+    ['PATCH refs/heads/screenshots', 422, 5]
+  ]) {
+    test(`stops after ${writes} ref writes on ${status} from ${failing}`, async () => {
+      const gh = fakeGitHub()
+      await upload({
+        api: gh.api,
+        repo: 'o/r',
+        pr: '1',
+        files: [shot('pr-1/a.png')]
+      })
+      const api = async (method, path, body) => {
+        if (`${method} ${path.replace('repos/o/r/git/', '')}` === failing) {
+          gh.calls.push(failing)
+          throw Object.assign(new Error(`HTTP ${status}`), { status })
+        }
+        return gh.api(method, path, body)
+      }
+      gh.calls.length = 0
+      await assert.rejects(
+        upload({ api, repo: 'o/r', pr: '2', files: [shot('pr-2/a.png')] }),
+        new RegExp(String(status))
+      )
+      assert.equal(gh.calls.filter((call) => /refs/.test(call)).length, writes)
+    })
+  }
 })
