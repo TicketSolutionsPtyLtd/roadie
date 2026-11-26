@@ -7,6 +7,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
+import { readExports } from '../packages/core/scripts/package-exports.mjs'
 import {
   BUDGET_FILE,
   checkBudget,
@@ -16,11 +17,11 @@ import {
   serialise
 } from './lib/size-budget.mjs'
 
-const { name, exports } = JSON.parse(readFileSync('package.json', 'utf8'))
+const { name } = JSON.parse(readFileSync('package.json', 'utf8'))
 const budget = existsSync(BUDGET_FILE)
   ? JSON.parse(readFileSync(BUDGET_FILE, 'utf8'))
   : {}
-const subpaths = jsSubpaths(exports)
+const subpaths = jsSubpaths(readExports('.'))
 // Before measuring, so a bad row fails in a second, not after the whole run.
 const rows = namedRows(
   budget,
