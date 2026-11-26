@@ -44,6 +44,7 @@ import { surfaceClass, useSurface } from '../../utils/surface'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { IconButton } from '../Button/IconButton'
 import { ToggleGroup } from '../ToggleGroup'
+import { dayModel } from './day'
 import { dateForKey } from './keys'
 import {
   dayLabel,
@@ -54,15 +55,13 @@ import {
   weekCaption,
   weekdayNames
 } from './labels'
+import { between, lastDayOf, monthOf } from './months'
 import {
   type CalendarDateRange,
   type CalendarMode,
   type CalendarSelection,
-  isSelected,
   lengthRule,
-  previewRange,
-  selectDate,
-  withinLength
+  selectDate
 } from './selection'
 import { type Peek, type SwipeStep, useSwipeToTurn } from './swipe'
 import { useToday } from './today'
@@ -268,23 +267,9 @@ const dayVariants = cva(
   }
 )
 
-// Lenient on purpose: a month prop such as '2026-11', read from a URL, still
-// names its month rather than throwing during render.
-function monthOf(date: string): string {
-  return `${date.slice(0, 7)}-01`
-}
-
-function lastDayOf(month: string): string {
-  return addDays(addMonths(month, 1), -1)
-}
-
 const yearOf = (date: string) => plainDateParts(monthOf(date)).year
 
 const monthNumberOf = (date: string) => plainDateParts(monthOf(date)).month
-
-function between(date: string, start: string, end: string) {
-  return compareDates(date, start) >= 0 && compareDates(date, end) <= 0
-}
 
 /** Months either side of the opening month a scrolling calendar starts with. */
 const SCROLL_BEFORE = 3
@@ -506,38 +491,24 @@ export function Calendar(props: CalendarProps) {
     [weekStart, locale]
   )
 
-  // Either way round, as a `{ start, end }` matcher is.
-  const previewDays =
-    previewRangeProp &&
-    (compareDates(previewRangeProp.start, previewRangeProp.end) <= 0
-      ? previewRangeProp
-      : { start: previewRangeProp.end, end: previewRangeProp.start })
-  const range = mode === 'range' ? (selection as CalendarDateRange) : null
-  const extending = !!range?.start && !range.end
-  const isOutOfRange = (date: string) =>
-    extending &&
-    date !== range!.start &&
-    !withinLength(range!.start!, date, { min, max })
-  const previewTarget = hoverDate ?? (hasFocus ? focusTarget : null)
-  const preview =
-    range && previewTarget && !isOutOfRange(previewTarget)
-      ? previewRange(range, previewTarget)
-      : null
-  const span =
-    range?.start && range.end
-      ? { start: range.start, end: range.end }
-      : (preview ??
-        (extending ? { start: range!.start!, end: range!.start! } : null))
-
   const minDate = firstAllowedMonth
   const maxDate = endMonth ? lastDayOf(monthOf(endMonth)) : null
-  const disabledMatchers = typeof disabled === 'boolean' ? undefined : disabled
-
-  const isDayDisabled = (date: string) =>
-    disabled === true ||
-    (minDate !== null && compareDates(date, minDate) < 0) ||
-    (maxDate !== null && compareDates(date, maxDate) > 0) ||
-    matchesDate(date, disabledMatchers)
+  const days = dayModel({
+    mode,
+    selection,
+    min,
+    max,
+    disabled,
+    minDate,
+    maxDate,
+    today,
+    previewTarget: hoverDate ?? (hasFocus ? focusTarget : null),
+    previewRange: previewRangeProp,
+    showOutsideDays,
+    tiles
+  })
+  const { extending, isOutOfRange } = days
+  const isDayDisabled = days.isDisabled
 
   const monthsLabel = (month: string) =>
     numberOfMonths === 1
@@ -1214,49 +1185,18 @@ export function Calendar(props: CalendarProps) {
     column: number,
     idSuffix = ''
   ) {
-    const outside = monthOf(date) !== month
-    if (outside && !showOutsideDays) {
-      return <td key={date} role='gridcell' className='p-0' />
-    }
-    const selected = isSelected(mode, selection, date)
-    const inSpan = !!span && between(date, span.start, span.end)
-    const rangeStart = inSpan && date === span!.start
-    const rangeEnd = inSpan && date === span!.end
-    const rangeMiddle = inSpan && !rangeStart && !rangeEnd
-    const previewing = !!preview && inSpan
-    const isDisabled = isDayDisabled(date)
-    const outOfRange = isOutOfRange(date)
-    const isToday = date === today
-    const isFocusTarget = !outside && date === focusTarget
-    const multiDay = !!span && span.start !== span.end
-    const firstVisible = column === 0 || (!showOutsideDays && date === month)
-    const lastVisible =
-      column === 6 || (!showOutsideDays && date === lastDayOf(month))
+    const day = days.day(date, month, column)
+    if (!day) return <td key={date} role='gridcell' className='p-0' />
+    const { outside, selected, rangeStart, rangeEnd, previewBand } = day
     const content = getDayContent?.(date)
     const hasContent = content != null && content !== false && content !== ''
+    const look = day.look === 'plain' && hasContent ? 'filled' : day.look
+    const isDisabled = day.disabled
+    const isToday = day.today
+    const isFocusTarget = !outside && date === focusTarget
     const contentId = hasContent
       ? `${id}-content-${month}-${date}${idSuffix}`
       : undefined
-    const look =
-      rangeStart || rangeEnd || (mode !== 'range' && selected)
-        ? 'chosen'
-        : rangeMiddle
-          ? tiles
-            ? 'middle-tile'
-            : 'middle'
-          : hasContent
-            ? 'filled'
-            : 'plain'
-    const band = rangeMiddle && !tiles
-    const inPreview =
-      !!previewDays && between(date, previewDays.start, previewDays.end)
-    // The chosen span wins where they overlap.
-    const shown = inPreview && !inSpan
-    const shownSpans = !!previewDays && previewDays.start !== previewDays.end
-    // One band, ends included, running on beneath the chosen span's ends so
-    // the span draws over it; a single day is a circle, as a chosen one is.
-    const shownBand = inPreview && shownSpans && !tiles && !rangeMiddle
-    const shownDay = shown && (!shownSpans || tiles)
 
     const modifierAttributes = Object.fromEntries(
       Object.entries(modifiers ?? {})
@@ -1271,19 +1211,13 @@ export function Calendar(props: CalendarProps) {
         aria-selected={selected}
         className={cn(
           'relative p-0',
-          band && 'bg-subtle intent-accent',
-          band && firstVisible && 'rounded-s-full',
-          band && lastVisible && 'rounded-e-full',
-          shownBand && 'bg-subtle',
-          shownBand &&
-            (firstVisible || date === previewDays!.start) &&
-            'rounded-s-full',
-          shownBand &&
-            (lastVisible || date === previewDays!.end) &&
-            'rounded-e-full',
-          !tiles &&
-            multiDay &&
-            ((rangeStart && !lastVisible) || (rangeEnd && !firstVisible)) &&
+          day.band && 'bg-subtle intent-accent',
+          day.band && day.firstVisible && 'rounded-s-full',
+          day.band && day.lastVisible && 'rounded-e-full',
+          previewBand && 'bg-subtle',
+          previewBand?.roundStart && 'rounded-s-full',
+          previewBand?.roundEnd && 'rounded-e-full',
+          day.halfBand &&
             "before:absolute before:inset-y-0 before:w-1/2 before:bg-subtle before:content-[''] before:intent-accent",
           rangeStart && 'before:end-0',
           rangeEnd && 'before:start-0'
@@ -1295,14 +1229,14 @@ export function Calendar(props: CalendarProps) {
           data-date={date}
           data-selected={selected ? '' : undefined}
           data-range-start={rangeStart ? '' : undefined}
-          data-range-middle={rangeMiddle ? '' : undefined}
+          data-range-middle={day.rangeMiddle ? '' : undefined}
           data-range-end={rangeEnd ? '' : undefined}
-          data-range-preview={previewing ? '' : undefined}
-          data-previewed={shown ? '' : undefined}
+          data-range-preview={day.previewing ? '' : undefined}
+          data-previewed={day.previewed ? '' : undefined}
           data-today={isToday ? '' : undefined}
           data-outside={outside ? '' : undefined}
           data-disabled={isDisabled ? '' : undefined}
-          data-out-of-range={outOfRange ? '' : undefined}
+          data-out-of-range={day.outOfRange ? '' : undefined}
           data-focused={hasFocus && isFocusTarget ? '' : undefined}
           data-content={hasContent ? '' : undefined}
           aria-label={[
@@ -1319,10 +1253,10 @@ export function Calendar(props: CalendarProps) {
           className={cn(
             dayVariants({
               shape: weekView ? 'week' : tiles ? 'tile' : 'circle',
-              look: look === 'plain' && shownDay ? 'filled' : look,
+              look,
               outside
             }),
-            outOfRange && 'opacity-50',
+            day.outOfRange && 'opacity-50',
             // Scrolled into view below the pinned weekdays, not under them.
             scrolling && 'scroll-mt-10'
           )}

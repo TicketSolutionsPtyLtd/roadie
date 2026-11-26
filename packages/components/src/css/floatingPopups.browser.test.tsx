@@ -1,13 +1,14 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { apcaLc, over, shownFill } from '@oztix/roadie-browser-testing/contrast'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Autocomplete } from '../components/Autocomplete'
 import { Combobox } from '../components/Combobox'
 import { Menu } from '../components/Menu'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { Select } from '../components/Select'
-import { apcaLc, over, shownFill } from './contrastTestUtils'
 
 // Body text, decision 0010.
 const BODY_TEXT_LC = 75
