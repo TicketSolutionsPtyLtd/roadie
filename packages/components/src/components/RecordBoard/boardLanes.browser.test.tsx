@@ -12,7 +12,12 @@ import {
 import { userEvent as browserUser } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { releaseDragPointer, withFrames } from '../../css/testUtils'
+import {
+  pickMenuItem,
+  releaseDragPointer,
+  waitPopupGone,
+  withFrames
+} from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { groupedShowFields, testShows } from '../Records/testUtils'
 import type { RecordsField } from '../Records/types'
@@ -53,29 +58,11 @@ const lanes = () =>
 const disclosure = (name: string) =>
   within(lane(name)).getByRole('heading').closest('summary')!
 const shown = (element: Element) => element.checkVisibility()
-// Base UI keeps a closed menu mounted, inert, until its exit transition ends,
-// and Linux WebKit runs no frames while idle. So each move waits for its menu
-// to go before the next one opens
-// (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md).
-const menuGone = () =>
-  withFrames(() => expect.poll(() => screen.queryByRole('menu')).toBeNull())
-
-const moveTo = async (
-  user: ReturnType<typeof userEvent.setup>,
-  name: string
-) => {
-  await user.click(
-    screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-  )
-  await user.click(
-    await withFrames(() =>
-      screen.findByRole('menuitem', {
-        name: `Move Ocean Alley 1 to ${name}`
-      })
-    )
-  )
-  await menuGone()
-}
+const moveTo = (user: ReturnType<typeof userEvent.setup>, name: string) =>
+  pickMenuItem(user, {
+    from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+    item: `Move Ocean Alley 1 to ${name}`
+  })
 
 // By keyboard, as a pointer that jumps straight into a submenu meets the
 // parent menu's hover guard.
@@ -107,7 +94,7 @@ const moveAcross = async (
   )
   await arrowTo(user, `Move Ocean Alley 1 to ${columnName} in ${laneName}`)
   await user.keyboard('{Enter}')
-  await menuGone()
+  await waitPopupGone('menu')
 }
 const announced = () =>
   screen.getAllByRole('status').map((status) => status.textContent)
