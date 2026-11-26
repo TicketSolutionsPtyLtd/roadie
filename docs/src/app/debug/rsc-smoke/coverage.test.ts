@@ -17,7 +17,8 @@ describe('the RSC canary', () => {
   it('renders every compound from its subpath', () => {
     const compounds = [components, editor].flatMap((manifest) =>
       manifest.components.filter(
-        (component) => 'parts' in component && component.parts.length > 0
+        (component) =>
+          'parts' in component && (component.parts?.length ?? 0) > 0
       )
     )
     const missing = compounds
