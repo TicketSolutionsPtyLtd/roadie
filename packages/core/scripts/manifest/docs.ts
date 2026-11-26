@@ -32,8 +32,6 @@ function metadataField(mdx: string, field: string) {
 
 /** What `status` may be. `docs/contributing/DOCS_PAGES.md` defines each. */
 export const PAGE_STATUSES = ['alpha', 'beta', 'stable', 'deprecated']
-// A component's or chart's own page shows its status; foundations and guides don't.
-const OWN_PAGES = /^\/(components|charts)\//
 
 export function parseDocsPage(mdx: string, route: string): DocsPage {
   const status = metadataField(mdx, 'status')
@@ -47,10 +45,6 @@ export function parseDocsPage(mdx: string, route: string): DocsPage {
         ? [(single ?? double)!]
         : Array.from(list.matchAll(QUOTED), ([, a, b]) => (a ?? b)!)
   )
-  if (status === undefined && components[0] && OWN_PAGES.test(route))
-    throw new Error(
-      `${route} documents ${components[0]} but sets no status. Set metadata.status to one of ${PAGE_STATUSES.join(', ')}; docs/contributing/DOCS_PAGES.md says which.`
-    )
   // A page with no live example, such as a widget's, shows its usage code.
   const example = (
     mdx.match(LIVE_FENCE) ?? mdx.match(USAGE)?.[1]?.match(TSX_FENCE)
@@ -101,4 +95,28 @@ export function pageForComponent(
   // A page that lists it, such as Records on RecordTable's, beats one that only shares its name.
   if (listing[0]) return { page: listing[0], own: false }
   return named[0] && { page: named[0], own: true }
+}
+
+const COMPONENT_FOLDER = /^\.\/dist\/(?:components\/)?([A-Z]\w+)\//
+
+/**
+ * The page a component folder's subpath is documented on, `null` when it has
+ * none, or `undefined` for a target in no component folder. For a subpath
+ * that exports no component, such as RecordBoard's layout.
+ */
+export function folderPage(
+  pages: DocsPage[],
+  target: string
+): PageMatch | null | undefined {
+  const folder = COMPONENT_FOLDER.exec(target)?.[1]
+  return folder === undefined
+    ? undefined
+    : (pageForComponent(pages, folder) ?? null)
+}
+
+/** The route of a component's or chart's own page when it sets no status; foundations and guides needn't. */
+export function missingStatus(match: PageMatch | undefined) {
+  const page = match?.own ? match.page : undefined
+  if (page && !page.status && /^\/(components|charts)\//.test(page.route))
+    return page.route
 }

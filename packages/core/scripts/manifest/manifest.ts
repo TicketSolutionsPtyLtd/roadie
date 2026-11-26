@@ -11,7 +11,14 @@ import {
   readComponents,
   readFileComponents
 } from './components.ts'
-import { type PageMatch, pageForComponent, readDocsPages } from './docs.ts'
+import {
+  PAGE_STATUSES,
+  type PageMatch,
+  folderPage,
+  missingStatus,
+  pageForComponent,
+  readDocsPages
+} from './docs.ts'
 import { createProgram, manifestEntries, moduleExports } from './exports.ts'
 import { type ManifestType, type TypeSource, readTypes } from './types.ts'
 
@@ -180,6 +187,8 @@ export function buildManifest({
   const pageAt = (route: string) =>
     pages.find((page) => page.route === route.split('#')[0])
   const linksUsed = new Set<string>()
+  const noStatus = new Set<string>()
+  const noPage: string[] = []
 
   const exports: ManifestExport[] = []
   const components: ManifestComponent[] = []
@@ -193,6 +202,8 @@ export function buildManifest({
   const addComponents = (importName: string, docs: ManifestPart[]) => {
     for (const { root, parts } of groupCompounds(docs)) {
       const match = pageForComponent(pages, root.name)
+      const unstatused = missingStatus(match)
+      if (unstatused) noStatus.add(unstatused)
       const links = documentedElsewhere[importName]
       const route = match
         ? undefined
@@ -304,6 +315,14 @@ export function buildManifest({
           new Set(reExported.map(([name]) => name))
         )
       )
+    } else if (
+      !(importName in documentedElsewhere) &&
+      !(importName in documentedSubpaths)
+    ) {
+      const match = folderPage(pages, entry.target)
+      if (match === null) noPage.push(importName)
+      const unstatused = missingStatus(match ?? undefined)
+      if (unstatused) noStatus.add(unstatused)
     }
   }
 
@@ -325,9 +344,15 @@ export function buildManifest({
   const undocumented = components
     .filter((component) => !component.docs)
     .map((component) => `${component.import} ${component.name}`)
+    .concat(noPage)
   if (undocumented.length > 0) {
     throw new Error(
       `No docs page for ${undocumented.join(', ')}. Give it a page, or link where it's documented in scripts/manifest/elsewhere.ts.`
+    )
+  }
+  if (noStatus.size > 0) {
+    throw new Error(
+      `No status on ${[...noStatus].join(', ')}. Set metadata.status to one of ${PAGE_STATUSES.join(', ')}; docs/contributing/DOCS_PAGES.md says which.`
     )
   }
   const unused = Object.entries(documentedElsewhere)
