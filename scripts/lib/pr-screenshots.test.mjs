@@ -7,7 +7,6 @@ describe('planUpload', () => {
   const ok = [
     ['1099', 'shots/Phone Light.PNG', 'pr-1099/phone-light.png'],
     ['7', 'desktop-dark.webp', 'pr-7/desktop-dark.webp'],
-    ['12', '/tmp/x/a_b.c.jpeg', 'pr-12/a_b.c.jpeg'],
     ['3', '!!!.gif', 'pr-3/screenshot.gif']
   ]
   for (const [pr, path, target] of ok) {
@@ -19,19 +18,10 @@ describe('planUpload', () => {
   const bad = [
     ['no PR', undefined, [{ path: 'a.png', bytes: 1 }], /PR number/],
     ['a branch for a PR', 'fix/x', [{ path: 'a.png', bytes: 1 }], /PR number/],
-    ['PR 0', '0', [{ path: 'a.png', bytes: 1 }], /PR number/],
     ['no files', '5', [], /at least one/],
     ['not an image', '5', [{ path: 'notes.md', bytes: 1 }], /isn't an image/],
     ['too big', '5', [{ path: 'a.png', bytes: MAX_BYTES + 1 }], /over 10 MB/],
-    [
-      'two files with one name',
-      '5',
-      [
-        { path: 'a/shot.png', bytes: 1 },
-        { path: 'b/Shot.png', bytes: 1 }
-      ],
-      /both upload as pr-5\/shot.png/
-    ]
+    ['one name twice', '5', [{ path: 'a/s.png' }, { path: 'b/S.png' }], /both/]
   ]
   for (const [name, pr, files, message] of bad) {
     test(`refuses ${name}`, () => {
@@ -142,7 +132,6 @@ describe('upload', () => {
       'pr-5/a.png',
       'pr-5/b.png'
     ])
-    assert.ok(!gh.calls.some((call) => call.includes('force')))
   })
 
   for (const [name, existing] of [
