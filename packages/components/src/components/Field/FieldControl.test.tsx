@@ -197,3 +197,55 @@ it('leaves the error text out for a control set valid in an invalid Field', () =
   )
   expect(screen.getByRole('textbox')).toHaveAccessibleDescription(HELP)
 })
+
+const SET_VALID: [name: string, role: string, render: () => ReactNode][] = [
+  ['Checkbox', 'checkbox', () => <Checkbox invalid={false} />],
+  ['Switch', 'switch', () => <Switch invalid={false} />],
+  [
+    'CheckboxGroup',
+    'group',
+    () => (
+      <CheckboxGroup invalid={false}>
+        <Checkbox value='email' label='Email' />
+      </CheckboxGroup>
+    )
+  ],
+  [
+    'RadioGroup',
+    'radiogroup',
+    () => (
+      <RadioGroup invalid={false}>
+        <RadioGroup.Item value='email' label='Email' />
+      </RadioGroup>
+    )
+  ],
+  [
+    'Slider',
+    'slider',
+    () => (
+      <Slider invalid={false}>
+        <Slider.Control>
+          <Slider.Track>
+            <Slider.Thumb />
+          </Slider.Track>
+        </Slider.Control>
+      </Slider>
+    )
+  ],
+  ['DateRangePicker', 'button', () => <DateRangePicker invalid={false} />]
+]
+
+it.each(SET_VALID)(
+  'leaves the error text out for a %s set valid in an invalid Field',
+  (_, role, renderControl) => {
+    render(
+      <Field invalid>
+        <Field.Label>Contact</Field.Label>
+        {renderControl()}
+        <Field.HelperText>{HELP}</Field.HelperText>
+        <Field.ErrorText>{ERROR}</Field.ErrorText>
+      </Field>
+    )
+    expect(screen.getByRole(role)).toHaveAccessibleDescription(HELP)
+  }
+)
