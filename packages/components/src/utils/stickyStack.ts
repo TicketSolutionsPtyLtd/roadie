@@ -23,6 +23,8 @@ const PANE_HEADER = 'var(--pane-header-height, 0px)'
 /** The parts publishing a height, by `stack/tier` in the order they mounted, and who renders when they change. */
 const tiers = new Map<string, HTMLElement[]>()
 const listeners = new Map<string, Set<() => void>>()
+/** Every part mounted, by its stack, for what's stuck over an element. */
+const parts = new Map<HTMLElement, string>()
 
 function changed(stack: string) {
   for (const listener of listeners.get(stack) ?? []) listener()
@@ -92,6 +94,15 @@ export function useStickyPart(
   useLayoutEffect(() => {
     const element = ref.current
     if (!element) return
+    parts.set(element, stack)
+    return () => {
+      parts.delete(element)
+    }
+  }, [ref, stack, placement])
+
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!element) return
     const box = findStickyContainer(element)
     const parts = box?.dataset.slot === 'pane-viewport' ? [PANE_HEADER] : []
     for (let below = 1; below < tier; below++) {
@@ -124,4 +135,52 @@ export function useStickyPart(
   }, [ref, stack, tier, publishOn, version])
 
   return top
+}
+
+const follows = (part: Node, element: Node) =>
+  (part.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING) !==
+  0
+
+/**
+ * Px from the top of the box an element sticks in to the bottom of the parts
+ * stuck over it, for scroll padding: those before it in the stack of the part
+ * around it, sticking in that part's box.
+ */
+export function stuckInset(element: HTMLElement) {
+  let around: HTMLElement | undefined
+  for (const part of parts.keys())
+    if (part.contains(element) && (!around || around.contains(part)))
+      around = part
+  if (!around) return 0
+  const stack = parts.get(around)
+  const box = findStickyContainer(around)
+  let inset = 0
+  for (const [part, name] of parts) {
+    if (name !== stack || part.contains(element) || !follows(part, element))
+      continue
+    if (findStickyContainer(part) !== box) continue
+    const top = parseFloat(getComputedStyle(part).top) || 0
+    inset = Math.max(inset, top + part.offsetHeight)
+  }
+  return inset
+}
+
+const watchers = new Set<{ element: HTMLElement; onChange: () => void }>()
+
+/** Calls `onChange` when a part stuck in a box around `element` moves, as a pane header compacting, though nothing renders. */
+export function watchStuck(element: HTMLElement, onChange: () => void) {
+  const watcher = { element, onChange }
+  watchers.add(watcher)
+  return () => {
+    watchers.delete(watcher)
+  }
+}
+
+/** Tells what sits in a part's box that the part moved, from the observer callback that saw it, so a restore reads its new place at once. */
+export function stuckMoved(part: HTMLElement) {
+  // No style read on a pane push with nothing watching.
+  if (watchers.size === 0) return
+  const box = findStickyContainer(part)
+  for (const { element, onChange } of watchers)
+    if (box?.contains(element)) onChange()
 }
