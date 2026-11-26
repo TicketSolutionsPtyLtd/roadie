@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { dotWindow } from './CarouselDots'
+import { dotWindow } from './dotWindow'
 
 describe('dotWindow', () => {
   it.each([
