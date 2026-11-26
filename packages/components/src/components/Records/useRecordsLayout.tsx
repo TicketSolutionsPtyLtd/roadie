@@ -4,6 +4,7 @@ import { type ReactNode, useCallback, useLayoutEffect, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useStickyPart } from '../../utils/stickyStack'
 import { Progress } from '../Progress'
 import { ScrollArea } from '../ScrollArea'
 import { RecordsEmpty, RecordsError } from './RecordsStates'
@@ -11,7 +12,6 @@ import { useRecordsContext } from './context'
 import type { RecordsContentProps } from './layouts'
 import { VIRTUALISE_AFTER } from './recordsWindow'
 import { useLeaveSelectOnEscape } from './selectMode'
-import { useStickyTop } from './stickyTop'
 import { useKeepFocusInTable } from './tableFocus'
 import { useSurvivor } from './useBulkActions'
 import type { RecordsState } from './useRecords'
@@ -29,12 +29,16 @@ export function useRecordsLayout({
   maxHeight
 }: Pick<RecordsContentProps, 'fill' | 'maxHeight'>) {
   const context = useRecordsContext()
-  const { records, toolbar, scope, setContentFill } = context
+  const { records, scope, setContentFill } = context
   const leaveSelect = useLeaveSelectOnEscape()
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const boxed = fill || Boolean(maxHeight)
-  const stickyTop = useStickyTop(frameRef, toolbar, scope, boxed)
+  const stickyTop = useStickyPart(frameRef, {
+    tier: 2,
+    stack: scope,
+    placement: boxed
+  })
   useLayoutEffect(() => {
     setContentFill(fill)
     return () => setContentFill(false)
