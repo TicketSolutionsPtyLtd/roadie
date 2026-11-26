@@ -1,105 +1,92 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
+import { parseTokenManifest, sheetOrder } from '../tokens/manifest'
+import {
+  classFamilies,
+  renderClassGroups,
+  renderFamilySafelist
+} from './classFamilies'
 import { cn, mergeConfig } from './cn'
 
 const cssFolder = new URL('../css/', import.meta.url)
-const css = readdirSync(cssFolder)
-  .filter((file) => file.endsWith('.css'))
-  .map((file) => readFileSync(new URL(file, cssFolder), 'utf8'))
-  .join('\n')
-  .replace(/\/\*[\s\S]*?\*\//g, '')
-
-const safelist = [
-  ...readFileSync(new URL('safelist.html', cssFolder), 'utf8').matchAll(
-    /class="([^"]*)"/g
+const read = (file: string) => readFileSync(new URL(file, cssFolder), 'utf8')
+const families = classFamilies(
+  parseTokenManifest(
+    sheetOrder(read('roadie.css')).map((file) => [file, read(file)])
   )
-].flatMap(([, names = '']) => names.trim().split(/\s+/))
-
-const utilities = (name: RegExp) =>
-  [...css.matchAll(/@utility\s+([\w-]+)\s*\{/g)]
-    .map(([, utility = '']) => utility)
-    .filter((utility) => name.test(utility))
-
-const themed = (namespace: string, prefix: string) =>
-  [...css.matchAll(new RegExp(`--${namespace}-([\\w-]+)\\s*:`, 'g'))].map(
-    ([, step]) => `${prefix}-${step}`
-  )
-
-const families = [
-  {
-    group: 'duration',
-    members: themed('transition-duration', 'duration'),
-    safelisted: /^duration-/
-  },
-  { group: 'ease', members: themed('ease', 'ease'), safelisted: /^ease-/ },
-  {
-    group: 'animate',
-    members: utilities(/^animate-/),
-    safelisted: /^animate-/
-  },
-  { group: 'z', members: themed('z-index', 'z'), safelisted: /^z-/ },
-  {
-    group: 'font-size',
-    members: utilities(/^text-/),
-    safelisted: /^text-(display|ui|prose|code)\b/
-  },
-  {
-    group: 'semantic-text-color',
-    members: themed('text-color', 'text'),
-    safelisted: /^text-(?!display|ui|prose|code|chart|.*-\d+$)/
-  },
-  {
-    group: 'semantic-bg-color',
-    members: [...themed('background-color', 'bg'), ...utilities(/^surface-/)],
-    safelisted: /^(bg-(?!chart|.*-\d+$)|surface-)/
-  },
-  {
-    group: 'semantic-border-color',
-    members: themed('border-color', 'border'),
-    safelisted: /^border-(?!chart|.*-\d+$)/
-  },
-  {
-    group: 'intent',
-    members: utilities(/^intent-/),
-    safelisted: /^intent-/
-  },
-  {
-    group: 'emphasis',
-    members: utilities(/^emphasis-/),
-    safelisted: /^emphasis-/
-  },
-  {
-    group: 'selection',
-    members: utilities(/^is-(un)?selected/),
-    safelisted: /^is-(un)?selected/
-  },
-  { group: 'link', members: utilities(/^link-/), safelisted: /^link-/ },
-  {
-    group: 'prose-size',
-    members: utilities(/^prose-/),
-    safelisted: /^prose-/
-  }
-]
-
-const { classGroups } = mergeConfig.extend
-const grouped = (group: string) =>
-  (classGroups[group as keyof typeof classGroups] ?? []).flatMap((entry) =>
-    typeof entry === 'string'
-      ? [entry]
-      : Object.entries(entry).flatMap(([prefix, values]) =>
-          values.map((value) => `${prefix}-${String(value)}`)
-        )
-  )
+)
 
 describe('class families where one class replaces another', () => {
-  it('has a row for every cn() group', () => {
-    expect(families.map(({ group }) => group).sort()).toEqual(
-      Object.keys(classGroups).sort()
+  it('writes cn()’s groups from core’s CSS. Run `pnpm --filter @oztix/roadie-core test -u` after changing a family’s CSS', async () => {
+    await expect(renderClassGroups(families)).toMatchFileSnapshot(
+      './classGroups.generated.ts'
     )
   })
 
-  describe.each(families)('$group', ({ group, members, safelisted }) => {
+  it('writes the family safelist from core’s CSS. Run `pnpm --filter @oztix/roadie-core test -u` after changing a family’s CSS', async () => {
+    await expect(renderFamilySafelist(families)).toMatchFileSnapshot(
+      '../css/safelist.families.html'
+    )
+  })
+
+  it('takes a new utility or theme key in a family’s namespace into its group and the safelist', () => {
+    const fixture = classFamilies(
+      parseTokenManifest([
+        [
+          'fixture.css',
+          `@theme { --z-index-base: 0; --z-index-fixture: 1; }
+           @utility intent-neutral { color: red; }
+           @utility intent-fixture { color: blue; }
+           @utility intent { color: green; }`
+        ]
+      ])
+    )
+    const groups = renderClassGroups(fixture)
+    const safelist = renderFamilySafelist(fixture)
+    for (const name of ['z-fixture', 'intent-fixture']) {
+      expect(groups).toContain(`'${name}'`)
+      expect(safelist).toMatch(new RegExp(`class="[^"]*\\b${name}\\b`))
+    }
+    expect(fixture.find(({ group }) => group === 'intent')?.members).toEqual([
+      'intent-neutral',
+      'intent-fixture'
+    ])
+  })
+
+  it('writes each conflict both ways', () => {
+    const groups = renderClassGroups([
+      { group: 'semantic-text-color', members: ['text-a'], conflicts: 'x' }
+    ])
+    expect(groups).toContain(`'semantic-text-color': ['x']`)
+    expect(groups).toContain(`x: ['semantic-text-color']`)
+  })
+
+  // Parity guard while cn.ts still holds hand-written groups.
+  it('matches the hand-written cn() groups set for set', () => {
+    const { classGroups } = mergeConfig.extend
+    const handWritten = Object.fromEntries(
+      Object.entries(classGroups).map(([group, entries]) => [
+        group,
+        new Set(
+          (entries as (string | Record<string, string[]>)[]).flatMap((entry) =>
+            typeof entry === 'string'
+              ? [entry]
+              : Object.entries(entry).flatMap(([prefix, values]) =>
+                  values.map((value) => `${prefix}-${value}`)
+                )
+          )
+        )
+      ])
+    )
+    expect(
+      Object.fromEntries(
+        families.map(({ group, members }) => [group, new Set(members)])
+      )
+    ).toEqual(handWritten)
+  })
+
+  describe.each(families)('$group', ({ members }) => {
     it('is defined in core’s CSS', () => {
       expect(members.length).toBeGreaterThan(1)
     })
@@ -108,16 +95,6 @@ describe('class families where one class replaces another', () => {
       for (const earlier of members)
         for (const later of members)
           expect(cn(earlier, later), `${earlier} then ${later}`).toBe(later)
-    })
-
-    it('names in cn() exactly the members core’s CSS defines', () => {
-      expect(new Set(grouped(group))).toEqual(new Set(members))
-    })
-
-    it('safelists exactly the members core’s CSS defines', () => {
-      expect(new Set(safelist.filter((name) => safelisted.test(name)))).toEqual(
-        new Set(members)
-      )
     })
   })
 })
