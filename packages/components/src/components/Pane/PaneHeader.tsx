@@ -187,7 +187,9 @@ export function PaneHeader({
     }
     if (!inDrawer) paneEl.setAttribute('data-header', '')
 
-    publish()
+    // The observer's first delivery tells the sticky stack: telling it here
+    // reads styles just written, a restyle on every push.
+    publishParts()
 
     const observer =
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)

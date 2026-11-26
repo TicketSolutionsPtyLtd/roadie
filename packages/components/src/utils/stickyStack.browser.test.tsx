@@ -1,7 +1,7 @@
 import { type CSSProperties, type ReactNode, useRef, useState } from 'react'
 
 import { act, cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { withFrames } from '@oztix/roadie-browser-testing'
 
@@ -236,6 +236,8 @@ describe('stuckInset', () => {
         <Part name='toolbar' tier={1} />
         <Part name='other' stack='venues' tier={1} height={200} />
         <Frame head={head} boxed={boxed} />
+        {/* After the rows, so never over them. */}
+        <Part name='later' tier={1} height={300} />
       </Box>
     )
     expect(stuckInset(rows())).toBe(expected)
@@ -288,8 +290,40 @@ describe('watchStuck', () => {
     )
     let moves = 0
     const unwatch = watchStuck(rows(), () => moves++)
+    // The header's first observation tells it once; the resize must tell it again.
+    await withFrames(() => expect.poll(() => moves).toBeGreaterThan(0))
+    moves = 0
     screen.getByTestId('grow').style.height = '120px'
     await withFrames(() => expect.poll(() => moves).toBeGreaterThan(0))
     unwatch()
   })
+
+  it(
+    'reads no more styles mounting a pane, as on a push, while records elsewhere watch',
+    TIMEOUT,
+    () => {
+      const reads = () => {
+        const read = vi.spyOn(window, 'getComputedStyle')
+        render(
+          <Pane>
+            <Pane.Header>
+              <Pane.Title>Show</Pane.Title>
+            </Pane.Header>
+          </Pane>
+        )
+        const count = read.mock.calls.length
+        read.mockRestore()
+        cleanup()
+        return count
+      }
+      reads()
+      const idle = reads()
+      const elsewhere = document.body.appendChild(document.createElement('div'))
+      const unwatch = watchStuck(elsewhere, () => {})
+      const watched = reads()
+      unwatch()
+      elsewhere.remove()
+      expect(watched).toBe(idle)
+    }
+  )
 })
