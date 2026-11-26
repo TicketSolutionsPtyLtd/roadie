@@ -123,6 +123,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
+    "@oztix/roadie-browser-testing": "workspace:*",
     "@oztix/roadie-components": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@rolldown/plugin-babel": "0.3.1",

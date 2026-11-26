@@ -12,11 +12,12 @@ import {
 } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
 import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 
 import { DateRangePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { nudgeFrames, setHoverCapable, withFrames } from '../../css/testUtils'
+import { nudgeFrames, setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
