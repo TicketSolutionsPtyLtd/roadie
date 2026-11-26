@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { ANNOTATION_LABEL_LIMIT } from './layout'
 import {
-  ANNOTATION_LABEL_LIMIT,
   CHART_PLOT_KINDS,
   chartPlotSchema,
   plotSchema
