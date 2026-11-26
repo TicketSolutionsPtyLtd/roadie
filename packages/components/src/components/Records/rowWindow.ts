@@ -107,6 +107,8 @@ export type RowSizing = {
   gapRem?: number
   /** A custom property on the body holding the row height in rem, such as one a container query sets; it wins over `estimateRem`. */
   heightVar?: string
+  /** Changes when the styles setting `heightVar` may have changed with no resize, so the window reads it again. */
+  heightKey?: unknown
 }
 
 export type RowWindowOptions = RowSizing & {
@@ -125,7 +127,8 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   estimateRem = tableRowSize.estimateRem,
   measure: measureRows = false,
   gapRem = 0,
-  heightVar
+  heightVar,
+  heightKey
 }: RowWindowOptions) {
   const bodyRef = useRef<Body>(null)
   const [scroller, setScroller] = useState<Scroller>({
@@ -164,6 +167,13 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
       observer.observe(body.parentElement.parentElement)
     return () => observer.disconnect()
   }, [heightVar])
+
+  // Again when the styles change without a resize, as when a column goes.
+  useLayoutEffect(() => {
+    const body = bodyRef.current
+    const styled = body && heightVar && rowRem(body, heightVar)
+    if (styled) setStyledRem(styled)
+  }, [heightVar, heightKey])
 
   const latestMeasureInset = useRef(measureInset)
   useLayoutEffect(() => {

@@ -75,7 +75,7 @@ describe('RecordTable in a box centres a state in the space below the header', (
 describe('RecordTable in a box keeps what stands for rows at the top', () => {
   for (const [what, width, narrow, item, props] of [
     ['rows', WIDE, undefined, 'record-table-row', { data: testShows(3) }],
-    ['rows', NARROW, 'list', 'record-table-list-row', { data: testShows(3) }],
+    ['rows', NARROW, 'list', 'record-table-row', { data: testShows(3) }],
     ['cards', NARROW, 'cards', 'record-table-card', { data: testShows(3) }],
     // Placeholders stand in for rows, so they sit where the rows will land.
     [
