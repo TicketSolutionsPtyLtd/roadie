@@ -18,6 +18,7 @@ export type DrawerMountProps = {
   onNavigate: (href: string) => void
   locale: string
   currency: string
+  initialState?: 'open' | 'closed'
 }
 
 const inTenMinutes = () => new Date(Date.now() + 10 * 60 * 1000).toISOString()
@@ -111,14 +112,17 @@ export function describeDrawerGeometry(
   mount: (props: DrawerMountProps) => () => void
 ) {
   let unmount = () => {}
-  const show = async () => {
-    unmount = mount({
+  const mountOne = (extra: Partial<DrawerMountProps> = {}) =>
+    mount({
       cart: cartClient(),
       collectionId: 'col-1',
       onNavigate: () => {},
       locale: 'en-AU',
-      currency: 'AUD'
+      currency: 'AUD',
+      ...extra
     })
+  const show = async (extra: Partial<DrawerMountProps> = {}) => {
+    unmount = mountOne(extra)
     await expect
       .poll(() => document.getElementById('cart-drawer-body'))
       .not.toBeNull()
@@ -139,10 +143,7 @@ export function describeDrawerGeometry(
       )
       .toBeLessThanOrEqual(within)
   const openAt1280By800 = () => OPEN_AT_1280_BY_800
-  // The React skin's close spring ends at the docked height it had when it
-  // started, while the footer re-measures a few pixels shorter as it
-  // collapses, by how far it got (INNO-1755).
-  const settlesDocked = () => settlesAt(publishedHeight, 10)
+  const settlesDocked = () => settlesAt(publishedHeight)
 
   let style: HTMLStyleElement
   beforeAll(() => {
@@ -164,6 +165,71 @@ export function describeDrawerGeometry(
       await settlesAt(dockedHeight)
       await settlesAt(publishedHeight)
       expect(pageScrolls()).toBe(true)
+    })
+
+    it('starts open when initialState is open and open is omitted', async () => {
+      await show({ initialState: 'open' })
+      await settlesAt(openAt1280By800)
+      expect(page.getByRole('dialog').element()).toBe(parts().drawer)
+    })
+
+    it('keeps publishing the docked height while another drawer stays mounted', async () => {
+      const unmountOther = mountOne()
+      try {
+        await show()
+        await settlesAt(dockedHeight)
+      } finally {
+        unmount()
+        unmount = unmountOther
+      }
+      await settlesAt(publishedHeight)
+    })
+
+    it('springs up from docked on open, never drawing a frame at full height first', async () => {
+      await show()
+      await settlesAt(dockedHeight)
+      const { drawer } = parts()
+      // Every height the drawer is given, so a write a later frame undoes
+      // still counts, whichever frame paints.
+      const heights: number[] = []
+      const watcher = new MutationObserver(() =>
+        heights.push(parseFloat(drawer.style.height))
+      )
+      watcher.observe(drawer, { attributeFilter: ['style'] })
+      await userEvent.click(page.getByRole('button', { name: 'Open cart' }))
+      await settlesAt(openAt1280By800)
+      watcher.disconnect()
+      expect(heights.length).toBeGreaterThan(2)
+      const drops = heights.slice(1).map((h, i) => heights[i]! - h)
+      // The spring overshoots by about 3px; a jump falls back by hundreds.
+      expect(Math.max(0, ...drops)).toBeLessThan(10)
+    })
+
+    it('hands a still-settling spring over to a drag', async () => {
+      await show()
+      await settlesAt(dockedHeight)
+      vi.useFakeTimers({ toFake: ['Date'] })
+      await userEvent.click(page.getByRole('button', { name: 'Open cart' }))
+      // In the spring's tail, where the header moves slowly enough to press.
+      await expect
+        .poll(drawerHeight, { interval: 16 })
+        .toBeGreaterThan(OPEN_AT_1280_BY_800 - 20)
+      const box = parts().header.getBoundingClientRect()
+      const x = box.left + box.width / 2
+      const y = box.top + box.height / 2
+      await commands.pointer([{ type: 'move', x, y }, { type: 'down' }])
+      vi.advanceTimersByTime(500)
+      await commands.pointer([{ type: 'move', x, y: y + 100 }])
+      await frame()
+      await frame()
+      const held = drawerHeight()
+      await frame()
+      await frame()
+      // Held 100px under where the pointer took it, not carried on up to open.
+      expect(drawerHeight()).toBe(held)
+      expect(held).toBeLessThan(OPEN_AT_1280_BY_800 - 50)
+      await commands.pointer([{ type: 'up' }])
+      await settlesAt(openAt1280By800)
     })
 
     it.each([

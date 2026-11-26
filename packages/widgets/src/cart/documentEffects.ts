@@ -43,6 +43,8 @@ function applyMaxHeight(): void {
 
 /** Register/refresh this instance's docked height; republishes the max. */
 export function setDrawerHeightVar(key: object, px: number): void {
+  // A server render never unmounts, so a key kept there would never clear.
+  if (typeof document === 'undefined') return
   heights.set(key, px)
   applyMaxHeight()
 }

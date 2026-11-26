@@ -25,7 +25,11 @@ import {
 } from '../../cart'
 import CartContents from '../../cart-contents/vue/CartContents.vue'
 import CartEmptyState from '../../cart-contents/vue/CartEmptyState.vue'
-import { lockBodyScroll } from '../../cart/documentEffects'
+import {
+  clearDrawerHeightVar,
+  lockBodyScroll,
+  setDrawerHeightVar
+} from '../../cart/documentEffects'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
 import type { CartDrawerProps } from './types'
@@ -35,6 +39,9 @@ import { useCartDrawerDrag } from './useCartDrawerDrag'
 const props = withDefaults(defineProps<CartDrawerProps>(), {
   refreshKey: undefined,
   lockBodyScroll: true,
+  // Without a default, Vue casts an absent boolean to false, and `open` would
+  // always override `initialState`.
+  open: undefined,
   initialState: 'closed',
   context: 'collection',
   onOpenChange: undefined,
@@ -244,12 +251,13 @@ watch(
   { immediate: true }
 )
 
+// Keyed per instance, so two drawers don't clobber each other's height.
+const heightKey = {}
 watch(
   closedHeight,
   (h) => {
     props.onHeightChange?.(h)
-    if (typeof document === 'undefined') return
-    document.documentElement.style.setProperty('--cart-drawer-height', `${h}px`)
+    setDrawerHeightVar(heightKey, h)
   },
   { immediate: true }
 )
@@ -327,9 +335,9 @@ onBeforeUnmount(() => {
   trap?.deactivate()
   releaseScrollLock?.()
   releaseScrollLock = null
+  clearDrawerHeightVar(heightKey)
   if (typeof document !== 'undefined') {
     document.removeEventListener('keydown', onKeydown)
-    document.documentElement.style.removeProperty('--cart-drawer-height')
   }
 })
 
