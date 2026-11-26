@@ -1709,7 +1709,9 @@ describe('Calendar scrolling months', () => {
     // Firefox, so it's off, as in WebKit.
     async function openSettling() {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-      onTestFinished(() => vi.useRealTimers())
+      onTestFinished(() => {
+        vi.useRealTimers()
+      })
       render(
         <div
           data-testid='scroller'
