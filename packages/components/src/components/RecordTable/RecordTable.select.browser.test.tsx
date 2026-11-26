@@ -280,6 +280,15 @@ describe('RecordTable Select mode on re-flowed rows in a browser', () => {
     expect(title()).toBeGreaterThan(before + 20)
   })
 
+  it('tints the gaps between a selected row’s cells too', async () => {
+    const { container } = render(<NarrowShows selection={['show-0']} />)
+    await frame()
+    const [selected, rest] = tableRows(container)
+    const cell = within(selected!).getAllByRole('cell')[2]!
+    expect(background(selected!)).toBe(background(cell))
+    expect(background(selected!)).not.toBe(background(rest!))
+  })
+
   it('tints the row, not the checkbox, while the row is hovered', async () => {
     const { container } = render(<NarrowShows rows={3} />)
     await userEvent.click(screen.getByRole('button', { name: 'Select' }))

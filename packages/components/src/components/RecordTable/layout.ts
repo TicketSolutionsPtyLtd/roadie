@@ -85,8 +85,9 @@ export const TIER_CLASSES = {
 // Under 40rem the row is a grid of named areas, and each cell takes its role's.
 // The areas and tracks come from tierStyle, as the roles shown vary by table.
 // In Select mode the checkbox takes the leading area, or adds one; a hidden checkbox's area would leave a gap.
+// The row paints a selected or hovered tint itself, so the gaps between its cells take it too.
 const NARROW_ROW_CLASS =
-  '@max-[40rem]/record-table-frame:grid-cols-(--record-table-narrow-columns) @max-[40rem]/record-table-frame:[grid-template-areas:var(--record-table-narrow-areas)] @max-[40rem]/record-table-frame:in-data-selecting:grid-cols-(--record-table-narrow-columns-selecting) @max-[40rem]/record-table-frame:in-data-selecting:[grid-template-areas:var(--record-table-narrow-areas-selecting)] @max-[40rem]/record-table-frame:gap-x-3 @max-[40rem]/record-table-frame:px-(--content-inset)'
+  '@max-[40rem]/record-table-frame:grid-cols-(--record-table-narrow-columns) @max-[40rem]/record-table-frame:[grid-template-areas:var(--record-table-narrow-areas)] @max-[40rem]/record-table-frame:in-data-selecting:grid-cols-(--record-table-narrow-columns-selecting) @max-[40rem]/record-table-frame:in-data-selecting:[grid-template-areas:var(--record-table-narrow-areas-selecting)] @max-[40rem]/record-table-frame:gap-x-3 @max-[40rem]/record-table-frame:px-(--content-inset) @max-[40rem]/record-table-frame:bg-(--record-table-row-surface,transparent)'
 const TWO_LINES = '@max-[40rem]/record-table-frame:grid-rows-2'
 /** The row actions cell's place under 40rem, when the rows re-flow. */
 export const NARROW_ACTIONS_CLASS =
