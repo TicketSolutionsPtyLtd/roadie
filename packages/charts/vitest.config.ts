@@ -21,6 +21,10 @@ import {
   sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
+import {
+  type ExportEntry,
+  readExports
+} from '../core/scripts/package-exports.mjs'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
@@ -78,6 +82,7 @@ const BUILT_IMPORT = /\b(?:import|from)\s*['"]([^'"]+)['"]/g
 function importedPackages() {
   const packages = new Set<string>()
   const visited = new Set<string>()
+  const exportsByDir = new Map<string, ExportEntry[]>()
 
   function add(specifier: string, packageDir: string, chain: string[]) {
     if (/^node:|^vitest\b/.test(specifier)) return
@@ -87,10 +92,11 @@ function importedPackages() {
     }
     const name = specifier.split('/').slice(0, 2).join('/')
     const dir = realpathSync(join(packageDir, 'node_modules', name))
-    const { exports } = JSON.parse(
-      readFileSync(join(dir, 'package.json'), 'utf8')
-    )
-    const entry = exports[`.${specifier.slice(name.length)}`]?.import
+    const subpath = `.${specifier.slice(name.length)}`
+    if (!exportsByDir.has(dir)) exportsByDir.set(dir, readExports(dir))
+    const entry = exportsByDir
+      .get(dir)
+      ?.find((e) => e.subpath === subpath && e.kind === 'js')?.target
     if (entry) visitBuilt(join(dir, entry), dir, [...chain, name])
   }
 

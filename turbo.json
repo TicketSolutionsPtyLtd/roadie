@@ -39,7 +39,8 @@
       "dependsOn": ["build"],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/packages/core/scripts/check-*.mjs"
+        "$TURBO_ROOT$/packages/core/scripts/check-*.mjs",
+        "$TURBO_ROOT$/packages/core/scripts/package-exports.mjs"
       ],
       "outputs": []
     },
