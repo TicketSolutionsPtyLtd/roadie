@@ -14,7 +14,7 @@ import { userEvent as browserUser } from 'vitest/browser'
 import { recordFields } from '@oztix/roadie-core/records'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { releaseDragPointer } from '../../css/testUtils'
+import { pickMenuItem, releaseDragPointer } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { type Move, Shows, column, titles } from './boardTestUtils'
@@ -58,14 +58,10 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     const user = userEvent.setup()
     const onMove = vi.fn<Move>()
     render(<Shows onMove={onMove} />)
-    await user.click(
-      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-    )
-    await user.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Ocean Alley 1 to Cancelled'
-      })
-    )
+    await pickMenuItem(user, {
+      from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      item: 'Move Ocean Alley 1 to Cancelled'
+    })
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
       { status: 'cancelled' }
@@ -78,14 +74,10 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     const user = userEvent.setup()
     const onMove = vi.fn<Move>()
     render(<Shows onMove={onMove} />)
-    await user.click(
-      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-    )
-    await user.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Ocean Alley 1 to No status'
-      })
-    )
+    await pickMenuItem(user, {
+      from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      item: 'Move Ocean Alley 1 to No status'
+    })
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
       { status: null }
@@ -110,14 +102,10 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
         defaultView={{ layout: { type: 'board', groupBy: ['city'] } }}
       />
     )
-    await user.click(
-      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-    )
-    await user.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Ocean Alley 1 to Melbourne'
-      })
-    )
+    await pickMenuItem(user, {
+      from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      item: 'Move Ocean Alley 1 to Melbourne'
+    })
     expect(onMove).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'show-0' }),
       { city: 'Melbourne' }
@@ -151,14 +139,10 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
         }
       />
     )
-    await user.click(
-      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-    )
-    await user.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Ocean Alley 1 to Cancelled'
-      })
-    )
+    await pickMenuItem(user, {
+      from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      item: 'Move Ocean Alley 1 to Cancelled'
+    })
     // Shown in its new column while the app saves it.
     await expect.poll(() => titles('Cancelled')).toContain('Ocean Alley 1')
     reject(new Error('Cancelled shows can’t go back on sale.'))
@@ -196,14 +180,10 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
       />
     )
     const moveTo = async (column: string) => {
-      await user.click(
-        screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-      )
-      await user.click(
-        await screen.findByRole('menuitem', {
-          name: `Move Ocean Alley 1 to ${column}`
-        })
-      )
+      await pickMenuItem(user, {
+        from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+        item: `Move Ocean Alley 1 to ${column}`
+      })
     }
     await moveTo('Cancelled')
     await moveTo('Sold out')
@@ -262,14 +242,10 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
         save={() => undefined}
       />
     )
-    await user.click(
-      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-    )
-    await user.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Ocean Alley 1 to Cancelled'
-      })
-    )
+    await pickMenuItem(user, {
+      from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      item: 'Move Ocean Alley 1 to Cancelled'
+    })
     await expect.poll(() => titles('Cancelled')).toContain('Ocean Alley 1')
     await act(async () => confirm())
     expect(titles('Cancelled')).toContain('Ocean Alley 1')
@@ -279,14 +255,10 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
   it('shows the value the app saved when it differs from the column', async () => {
     const user = userEvent.setup()
     render(<Shows save={() => 'sold_out'} />)
-    await user.click(
-      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-    )
-    await user.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Ocean Alley 1 to Cancelled'
-      })
-    )
+    await pickMenuItem(user, {
+      from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      item: 'Move Ocean Alley 1 to Cancelled'
+    })
     await expect.poll(() => titles('Sold out')).toContain('Ocean Alley 1')
     expect(titles('Cancelled')).not.toContain('Ocean Alley 1')
   })
@@ -294,14 +266,10 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
   it('says the card wasn’t moved when the rejection has no message', async () => {
     const user = userEvent.setup()
     render(<Shows onMove={() => Promise.reject(new Error(''))} />)
-    await user.click(
-      screen.getByRole('button', { name: 'Reorder Ocean Alley 1' })
-    )
-    await user.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Ocean Alley 1 to Cancelled'
-      })
-    )
+    await pickMenuItem(user, {
+      from: screen.getByRole('button', { name: 'Reorder Ocean Alley 1' }),
+      item: 'Move Ocean Alley 1 to Cancelled'
+    })
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Ocean Alley 1 wasn’t moved. Try again.'
     )

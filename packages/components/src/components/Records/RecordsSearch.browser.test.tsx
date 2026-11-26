@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
+import { pickOption } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { RecordTable, tableColumns } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'
@@ -94,12 +95,11 @@ describe('Records.Search in a browser', TIMEOUT, () => {
         }}
       />
     )
-    await userEvent.click(
-      within(chip('Status')).getByRole('button', { name: /^Status/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Sold out' })
-    )
+    await pickOption(userEvent, {
+      from: within(chip('Status')).getByRole('button', { name: /^Status/ }),
+      option: 'Sold out',
+      staysOpen: true
+    })
     await expect
       .poll(() => chip('Status')?.textContent)
       .toContain('On sale or Sold out')
@@ -161,12 +161,9 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     await expect.element(field).toHaveValue('100')
     await userEvent.clear(field)
     await userEvent.type(field, '250')
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Sold is more than 250' })
-    )
+    await pickOption(userEvent, { option: 'Sold is more than 250' })
     await expect.poll(() => chip('Sold')?.textContent).toContain('250')
     expect(screen.queryByRole('dialog')).toBeNull()
-    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
     expect(chip('Sold')).not.toHaveAttribute('data-selected')
   })
 })
@@ -193,10 +190,11 @@ describe.each([
   async function chooseStarts(defaultView?: RecordViewDefaults) {
     await page.viewport(width, height)
     render(<Shows defaultView={defaultView} />)
-    await userEvent.click(searchInput())
-    await userEvent.click(
-      await screen.findByRole('option', { name: /^Starts/ })
-    )
+    await pickOption(userEvent, {
+      from: searchInput(),
+      option: /^Starts/,
+      staysOpen: true
+    })
   }
 
   async function underCondition(name: string) {
@@ -387,10 +385,11 @@ describe('Records.Search dates on a narrow toolbar', TIMEOUT, () => {
   it('keeps the search on the row while the calendar is pressed', async () => {
     await page.viewport(390, 844)
     render(<Shows />)
-    await userEvent.click(searchInput())
-    await userEvent.click(
-      await screen.findByRole('option', { name: /^Starts/ })
-    )
+    await pickOption(userEvent, {
+      from: searchInput(),
+      option: /^Starts/,
+      staysOpen: true
+    })
     await userEvent.click(operator('is after'))
     await expect.poll(calendar).toBeTruthy()
     const toolbar = document.querySelector('[data-slot=records-header]')!

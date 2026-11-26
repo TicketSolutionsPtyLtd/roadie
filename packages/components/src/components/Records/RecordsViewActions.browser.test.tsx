@@ -7,7 +7,7 @@ import { page, userEvent } from 'vitest/browser'
 import type { RecordView } from '@oztix/roadie-core/records'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { withFrames } from '../../css/testUtils'
+import { pickMenuItem, withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { RecordTable, tableColumns } from '../RecordTable'
 import { showFields, testShows } from './testUtils'
@@ -94,10 +94,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
 
   it('saves as a new view in a dialog and returns focus to the button', async () => {
     render(<Shows />)
-    await userEvent.click(trigger())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Save as new view' })
-    )
+    await pickMenuItem(userEvent, { from: trigger(), item: 'Save as new view' })
     const dialog = await screen.findByRole('dialog', {
       name: 'Save as new view'
     })
@@ -113,10 +110,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
 
   it('selects the whole name to rename it', async () => {
     render(<Shows />)
-    await userEvent.click(trigger())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Rename view' })
-    )
+    await pickMenuItem(userEvent, { from: trigger(), item: 'Rename view' })
     const name = within(
       await screen.findByRole('dialog', { name: 'Rename view' })
     ).getByRole<HTMLInputElement>('textbox', { name: 'Name' })
@@ -133,10 +127,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
   it('asks for the name in a bottom drawer on a phone', async () => {
     await page.viewport(390, 844)
     render(<Shows />)
-    await userEvent.click(trigger())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Save as new view' })
-    )
+    await pickMenuItem(userEvent, { from: trigger(), item: 'Save as new view' })
     const drawer = await screen.findByRole('dialog', {
       name: 'Save as new view'
     })
@@ -162,10 +153,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
   it('returns focus to the button from a phone drawer closed with Escape', async () => {
     await page.viewport(390, 844)
     render(<Shows />)
-    await userEvent.click(trigger())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Rename view' })
-    )
+    await pickMenuItem(userEvent, { from: trigger(), item: 'Rename view' })
     await screen.findByRole('dialog', { name: 'Rename view' })
     await userEvent.keyboard('{Escape}')
     await withFrames(() =>
@@ -177,10 +165,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
   it('asks to delete in an alert dialog on a phone, then returns focus', async () => {
     await page.viewport(390, 844)
     render(<Shows />)
-    await userEvent.click(trigger())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Delete view' })
-    )
+    await pickMenuItem(userEvent, { from: trigger(), item: 'Delete view' })
     const alert = await screen.findByRole('alertdialog')
     expect(alert).toHaveAttribute('data-slot', 'dialog-popup')
     await userEvent.click(
@@ -195,10 +180,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
 
   it('keeps focus on the button after Reset', async () => {
     render(<Shows />)
-    await userEvent.click(trigger())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Reset view' })
-    )
+    await pickMenuItem(userEvent, { from: trigger(), item: 'Reset view' })
     await expect.poll(() => document.activeElement).toBe(trigger())
     expect(trigger()).toHaveAccessibleName('View: Upcoming shows in every city')
   })
@@ -240,10 +222,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
       .not.toBeNull()
     expect(fits()).toEqual([])
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(390)
-    await userEvent.click(trigger())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Reset view' })
-    )
+    await pickMenuItem(userEvent, { from: trigger(), item: 'Reset view' })
     expect(trigger()).toHaveAccessibleName('View: Upcoming shows in every city')
     await expect.poll(() => document.activeElement).toBe(trigger())
   })

@@ -122,7 +122,9 @@ Playwright Linux image right after the click that opens a drawer: 1 frame by
   `popupPick.browser.test.tsx` holds frames back 400ms, which fails two picks
   in a row with the CI error until the helper waits. Don't use them for a
   submenu opened by hovering: the corner wiggle moves the pointer off its
-  trigger and closes it.
+  trigger and closes it. The `roadie/no-unwaited-popup-pick` lint rule flags
+  a click on an option or menu item found with `findByRole` outside
+  `withFrames` in components' browser tests.
 - **Focus into a list opened by a key.** Base UI focuses the first option of
   a Select opened with ArrowDown in a frame (`enqueueFocus`); later arrow
   keys move focus at once. A poll for that first option kept finding the
