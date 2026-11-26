@@ -16,11 +16,10 @@ import {
 } from '../_test/browser'
 import {
   MINIMUM_FILL_LC,
-  MINIMUM_LC,
   MODES,
+  expectReadable,
   fillContrast,
-  setMode,
-  textContrast
+  setMode
 } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 
@@ -488,16 +487,8 @@ describe('CallToAction intent and emphasis', () => {
         screen.getByRole('link', { name: 'Talk to us' }),
         screen.getByRole('link', { name: 'Create my event' })
       ]
-      for (const element of large)
-        expect(
-          textContrast(element),
-          element.textContent!
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-      for (const element of body)
-        expect(
-          textContrast(element),
-          element.textContent!
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      for (const element of large) expectReadable(element, element.textContent!)
+      for (const element of body) expectReadable(element, element.textContent!)
       expect(getComputedStyle(guide).textDecorationColor).toBe(
         getComputedStyle(guide).color
       )

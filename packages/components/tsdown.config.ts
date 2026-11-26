@@ -6,6 +6,7 @@ import {
   cacheTransforms,
   skipUnchangedWrites
 } from '../../scripts/tsdown-watch.mjs'
+import { shippedSources } from '../core/scripts/package-exports.mjs'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 // Unbundle mode: every source file under `src/` emits as its own output
@@ -33,17 +34,7 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 // Verify after build with:
 //   head -c 13 dist/components/Fieldset/FieldsetRoot.js   # → "use client";
 export default defineConfig(({ watch }) => ({
-  // paneColumns is the model the browser tests measure the stylesheet against,
-  // renderCounter replaces React's DevTools hook for the perf tests, and a
-  // `.ssr.tsx` is a component's hydration fixture, so none is shipped.
-  entry: [
-    'src/**/*.{ts,tsx}',
-    '!**/*.test.{ts,tsx}',
-    '!**/{testUtils,*TestUtils}.{ts,tsx}',
-    '!**/*.ssr.tsx',
-    '!**/paneColumns.ts',
-    '!**/renderCounter.ts'
-  ],
+  entry: shippedSources(),
   unbundle: true,
   suppressWarnings: 'module level directive "use client"',
   format: ['esm'],

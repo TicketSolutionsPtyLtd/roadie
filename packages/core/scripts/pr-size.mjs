@@ -9,6 +9,8 @@ export const EXCLUDED = [
   /(^|\/)__snapshots__\//,
   /\.snap$/,
   /^packages\/core\/src\/css\/dataviz\.css$/,
+  /^packages\/core\/src\/css\/safelist\.families\.html$/,
+  /^packages\/core\/src\/utils\/classGroups\.generated\.ts$/,
   /^packages\/[^/]+\/size-budget\.json$/,
   /^\.changeset\/[^/]+\.md$/,
   /(^|\/)CHANGELOG\.md$/
