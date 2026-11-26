@@ -844,7 +844,7 @@ Inside an `emphasis-strong` surface, the current dot takes the text colour of th
 
 ### Naming the dots
 
-Each dot is named "Go to slide N" by default, and the strip of dots "Choose slide to display". When the slides are things someone picks between, name them for what they are: pass `aria-label` for the strip and `getDotLabel` for each dot. It gets the 0-based index of the slide the dot goes to and the number of slides (pages, when slides scroll in groups), and the index stays the slide's when `max` windows the strip.
+Each dot is named "Go to slide N" by default, and the strip of dots "Choose slide to display". When the slides are things someone picks between, name them for what they are: pass `aria-label` for the strip and `getDotLabel` for each dot. It gets the 0-based index of the slide the dot goes to and the number of slides, and the index stays the slide's when `max` windows the strip. When slides scroll in groups, the default, both count pages instead: the index is the page's, not a slide's.
 
 ```tsx-live
 <Carousel aria-label='Your tickets' opts={{ slidesToScroll: 1 }}>
@@ -870,7 +870,7 @@ Each dot is named "Go to slide N" by default, and the strip of dots "Choose slid
 </Carousel>
 ```
 
-To name each dot after its slide, such as the ticket holder or the ticket type, look the name up by index: `getDotLabel={(index) => tickets[index].name}`.
+To name each dot after its slide, such as the ticket holder or the ticket type, scroll one slide at a time with `opts={{ slidesToScroll: 1 }}` and look the name up by index: `getDotLabel={(index) => tickets[index].name}`.
 
 ### Vertical
 

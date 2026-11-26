@@ -17,10 +17,11 @@ export type CarouselDotsProps = ComponentProps<'div'> & {
    */
   max?: number
   /**
-   * Names each dot, given the 0-based index of the slide it goes to and the
-   * number of slides (pages, when slides scroll in groups). The index counts
-   * from the first slide, not from the start of the window `max` draws.
-   * Defaults to "Go to slide N".
+   * Names each dot, given the 0-based index of the snap it goes to and the
+   * number of snaps. A snap is a slide when one slide scrolls at a time, and
+   * a page when slides scroll in groups. The index counts from the first
+   * snap, not from the start of the window `max` draws. Defaults to "Go to
+   * slide N".
    */
   getDotLabel?: (index: number, count: number) => string
 }
