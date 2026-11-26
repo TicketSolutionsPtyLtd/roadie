@@ -16,7 +16,7 @@ import {
   textAlignOf,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, expectReadable, setMode } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
@@ -276,15 +276,9 @@ describe('Gallery', () => {
         />
       )
 
-      expect(
-        textContrast(screen.getByRole('heading', { level: 2 }))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-      expect(textContrast(screen.getByText('people'))).toBeGreaterThanOrEqual(
-        MINIMUM_LC.large
-      )
-      expect(
-        textContrast(screen.getByText('From festivals to local venues.'))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expectReadable(screen.getByRole('heading', { level: 2 }))
+      expectReadable(screen.getByText('people'))
+      expectReadable(screen.getByText('From festivals to local venues.'))
       expect(await axeViolations(container)).toEqual([])
     }
   )
@@ -313,18 +307,10 @@ describe('Gallery', () => {
         />
       )
 
-      expect(
-        textContrast(screen.getByRole('heading', { level: 2 }))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-      expect(textContrast(screen.getByText('people'))).toBeGreaterThanOrEqual(
-        MINIMUM_LC.large
-      )
-      expect(
-        textContrast(screen.getByText('From festivals to local venues.'))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
-      expect(
-        textContrast(screen.getByRole('link', { name: 'Become a partner' }))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expectReadable(screen.getByRole('heading', { level: 2 }))
+      expectReadable(screen.getByText('people'))
+      expectReadable(screen.getByText('From festivals to local venues.'))
+      expectReadable(screen.getByRole('link', { name: 'Become a partner' }))
       expect(await axeViolations(container)).toEqual([])
     }
   )
