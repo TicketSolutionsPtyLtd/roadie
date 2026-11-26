@@ -23,9 +23,11 @@ const KNOWN_LOW_CONTRAST: {
 }[] = [
   {
     // Cards' secondary text on a tinted card in a tinted section, where the
-    // tints stack. Lc 70.0 at the lowest, in light mode.
+    // tints stack. Lc 70.0 at the lowest, in light mode. Other blocks'
+    // stacked tints aren't covered: they hold to 75.
     matches: (element) =>
       element.matches('.text-subtle') &&
+      !!element.closest('[data-block="cards"]') &&
       !!element.closest(TINTED)?.parentElement?.closest(TINTED),
     floor: 69,
     ticket: 'INNO-1756'
