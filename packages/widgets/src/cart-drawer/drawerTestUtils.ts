@@ -7,7 +7,7 @@ import {
   it,
   vi
 } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { commands, page, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import type { CartClient, CartDetails, CartSummary } from '../cart'
@@ -81,33 +81,29 @@ function dockedHeight() {
   return heightOf(header) + heightOf(footer)
 }
 
-const drawerHeight = () => heightOf(parts().drawer)
+// Unrounded, so a spring still easing by a fraction of a pixel isn't at rest.
+const drawerHeight = () => parts().drawer.getBoundingClientRect().height
 
 const publishedHeight = () =>
   parseFloat(
     document.documentElement.style.getPropertyValue('--cart-drawer-height')
   )
 
-/** Drags the header by dy px (negative is up), taking `ms` from press to release. */
-function drag(dy: number, ms: number) {
-  const { header } = parts()
-  const box = header.getBoundingClientRect()
+/** Drags the header with the mouse by dy px (negative is up), over `ms` of clock time. */
+async function drag(dy: number, ms: number) {
+  const box = parts().header.getBoundingClientRect()
   const x = box.left + box.width / 2
   const y = box.top + box.height / 2
-  const at = (type: string, clientY: number, target: EventTarget) =>
-    target.dispatchEvent(
-      new PointerEvent(type, {
-        bubbles: true,
-        pointerId: 1,
-        clientX: x,
-        clientY
-      })
-    )
-  at('pointerdown', y, header)
+  await commands.pointer([{ type: 'move', x, y }, { type: 'down' }])
   vi.advanceTimersByTime(ms)
-  at('pointermove', y + dy, window)
-  at('pointerup', y + dy, window)
+  await commands.pointer([{ type: 'move', x, y: y + dy }, { type: 'up' }])
 }
+
+const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+
+const pageScrolls = () => getComputedStyle(document.body).overflow !== 'hidden'
+
+const OPEN_AT_1280_BY_800 = 800 - 32
 
 /** One suite for both skins, so they can't drift apart. */
 export function describeDrawerGeometry(
@@ -127,12 +123,26 @@ export function describeDrawerGeometry(
       .poll(() => document.getElementById('cart-drawer-body'))
       .not.toBeNull()
   }
-  // Within a pixel, as offsetHeight rounds and the spring ends fractional.
-  const settlesAt = (height: () => number) =>
+  // At rest for two frames, so a spring's overshoot or a passing frame doesn't
+  // count, and within a pixel, as the parts' offsetHeight rounds.
+  const settlesAt = (height: () => number, within = 1) =>
     expect
-      .poll(() => Math.abs(drawerHeight() - height()), { timeout: 3000 })
-      .toBeLessThanOrEqual(1)
-  const viewportOpen = () => 768
+      .poll(
+        async () => {
+          const before = drawerHeight()
+          await frame()
+          await frame()
+          const after = drawerHeight()
+          return before === after ? Math.abs(after - height()) : Infinity
+        },
+        { timeout: 3000 }
+      )
+      .toBeLessThanOrEqual(within)
+  const openAt1280By800 = () => OPEN_AT_1280_BY_800
+  // The React skin's close spring ends at the docked height it had when it
+  // started, while the footer re-measures a few pixels shorter as it
+  // collapses, by how far it got (INNO-1755).
+  const settlesDocked = () => settlesAt(publishedHeight, 10)
 
   let style: HTMLStyleElement
   beforeAll(() => {
@@ -153,28 +163,27 @@ export function describeDrawerGeometry(
       await expect.poll(dockedHeight).toBeGreaterThan(100)
       await settlesAt(dockedHeight)
       await settlesAt(publishedHeight)
-      expect(document.body.style.overflow).toBe('')
+      expect(pageScrolls()).toBe(true)
     })
 
     it.each([
-      { width: 1280, height: 800, open: 768 },
-      { width: 375, height: 700, open: 670 }
+      { width: 1280, height: 800, open: OPEN_AT_1280_BY_800 },
+      { width: 375, height: 700, open: 700 - 30 }
     ])(
       'opens with a tap to fill a $width by $height viewport, locking page scroll until Escape',
       async ({ width, height, open }) => {
         await page.viewport(width, height)
         await show()
         await settlesAt(dockedHeight)
-        const docked = drawerHeight()
 
         await userEvent.click(page.getByRole('button', { name: 'Open cart' }))
         await settlesAt(() => open)
         expect(page.getByRole('dialog').element()).toBe(parts().drawer)
-        expect(document.body.style.overflow).toBe('hidden')
+        expect(pageScrolls()).toBe(false)
 
         await userEvent.keyboard('{Escape}')
-        await settlesAt(() => docked)
-        expect(document.body.style.overflow).toBe('')
+        await settlesDocked()
+        expect(pageScrolls()).toBe(true)
       }
     )
 
@@ -191,11 +200,12 @@ export function describeDrawerGeometry(
         await settlesAt(publishedHeight)
         if (from === 'open') {
           await userEvent.click(page.getByRole('button', { name: 'Open cart' }))
-          await settlesAt(viewportOpen)
+          await settlesAt(openAt1280By800)
         }
         vi.useFakeTimers({ toFake: ['Date'] })
-        drag(dy, ms)
-        await settlesAt(to === 'open' ? viewportOpen : publishedHeight)
+        await drag(dy, ms)
+        if (to === 'open') await settlesAt(openAt1280By800)
+        else await settlesDocked()
       }
     )
   })
