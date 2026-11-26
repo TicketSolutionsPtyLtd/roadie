@@ -183,8 +183,8 @@ export function RecordTableContent({
   // Title rows aren't records, so a grouped table counts no rows.
   const counted = partial && !groups
   const cards = (config.narrow ?? narrowLayout(columns)) === 'cards'
-  // Rows re-flow under 40rem; deprecated cards, and for now totals and groups, still swap for a list.
-  const swaps = cards || totals !== undefined || groups !== undefined
+  // Rows, totals and group titles re-flow under 40rem; only deprecated cards swap.
+  const swaps = cards
   const isNarrow = useNarrow(frameRef, { placement: boxed })
   const narrow = isNarrow && swaps ? (cards ? 'cards' : 'list') : undefined
   // Re-flowed rows fit the frame, so nothing scrolls sideways to name or tab to.
@@ -698,8 +698,11 @@ export function RecordTableContent({
       <ScrollArea.Scrollbar
         keepMounted
         data-slot='record-table-scrollbar'
+        // Under 40rem the head shows only a totals line or the bulk bar, of no set height, so the bar runs beside it.
         className={
-          narrow ? undefined : totals ? 'mt-16' : 'mt-9 @max-[40rem]:mt-0'
+          narrow
+            ? undefined
+            : cn(totals ? 'mt-16' : 'mt-9', '@max-[40rem]:mt-0')
         }
       >
         <ScrollArea.Thumb />

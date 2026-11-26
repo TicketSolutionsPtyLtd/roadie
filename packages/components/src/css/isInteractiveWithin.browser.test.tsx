@@ -247,7 +247,7 @@ describe('is-interactive-within around another is-interactive-within', () => {
     })
   })
 
-  describe('a card around RecordTable list rows', () => {
+  describe('a card around re-flowed RecordTable rows', () => {
     function renderList() {
       render(
         <Surface emphasis='normal'>
@@ -259,8 +259,6 @@ describe('is-interactive-within around another is-interactive-within', () => {
               data={testShows(3)}
               getRowId={(row) => row.id}
               getRowHref={(row) => `#${row.id}`}
-              // List rows: a table with totals still swaps for them.
-              totals
             />
           </div>
         </Surface>
@@ -273,9 +271,7 @@ describe('is-interactive-within around another is-interactive-within', () => {
       return document.querySelector<HTMLElement>('[data-row-link]')!
     }
     const listRow = () =>
-      document.querySelector<HTMLElement>(
-        '[data-slot=record-table-list-row] > .is-interactive-within'
-      )!
+      document.querySelector<HTMLElement>('[data-slot=record-table-row]')!
 
     it('stays still while a row is pressed, and the row takes it', async () => {
       renderList()

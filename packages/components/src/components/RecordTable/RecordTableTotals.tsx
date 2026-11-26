@@ -12,9 +12,14 @@ import {
 } from './RecordTableRow'
 import {
   type ColumnLayout,
-  priorityClass,
+  NARROW_HIDDEN_CLASS,
+  NARROW_TOTALS_LABEL_CLASS,
+  NARROW_TOTALS_ROW_CLASS,
+  NARROW_TOTAL_HEADING_CLASS,
+  NARROW_TOTAL_VALUE_CLASS,
   priorityProps,
-  titleColumn
+  titleColumn,
+  totalsCellClass
 } from './layout'
 import type { RecordTableColumn } from './types'
 
@@ -38,7 +43,11 @@ function totalOf(
   )
 }
 
-/** The totals under a wide table's headings: one cell per column, the label as the row's header. */
+/**
+ * The totals under a wide table's headings: one cell per column, the label as
+ * the row's header. Under 40rem, when the rows re-flow, the same cells wrap
+ * onto one line, the label first, each total beside its column's heading.
+ */
 export function RecordTableTotalsRow({
   totals,
   columns,
@@ -66,21 +75,35 @@ export function RecordTableTotalsRow({
       role='row'
       aria-rowindex={rowIndex}
       data-slot='record-table-totals'
-      className={cn(rowClass, 'h-7 border-b border-normal', totalsTextClass)}
+      className={cn(
+        rowClass,
+        'h-7 border-b border-normal',
+        totalsTextClass,
+        layout.narrow && NARROW_TOTALS_ROW_CLASS
+      )}
     >
-      {select && <div role='cell' data-select='' className={selectCellClass} />}
+      {select && (
+        <div
+          role='cell'
+          data-select=''
+          className={cn(selectCellClass, layout.narrow && NARROW_HIDDEN_CLASS)}
+        />
+      )}
       {columns.map((column, index) => {
+        const label = index === labelIndex
+        const value = label ? undefined : totalOf({ totals, timeZone }, column)
         const shared = {
           'data-pin': column.pin || undefined,
           ...priorityProps(layout, index),
           className: cn(
             cellClass(column),
-            priorityClass(layout, index),
-            'items-start'
+            totalsCellClass(layout, index, label || value !== undefined),
+            'items-start',
+            label && NARROW_TOTALS_LABEL_CLASS
           ),
           style: pinStyle(layout.pinnedStart[index])
         }
-        if (index === labelIndex)
+        if (label)
           return (
             <div key={column.key} role='rowheader' {...shared}>
               <span className='truncate'>{totals.label}</span>
@@ -88,16 +111,35 @@ export function RecordTableTotalsRow({
           )
         return (
           <div key={column.key} role='cell' {...shared}>
-            {totalOf({ totals, timeZone }, column)}
+            {value !== undefined && layout.narrow && (
+              // Shown and read only under 40rem, where the header row hides and
+              // a column left out of the narrow rows hides its header.
+              <span
+                data-slot='record-table-total-heading'
+                className={NARROW_TOTAL_HEADING_CLASS}
+              >
+                {column.field.label}
+              </span>
+            )}
+            {layout.narrow ? (
+              <span className={NARROW_TOTAL_VALUE_CLASS}>{value}</span>
+            ) : (
+              value
+            )}
           </div>
         )
       })}
-      {actions && <div role='cell' className={actionsCellClass} />}
+      {actions && (
+        <div
+          role='cell'
+          className={cn(actionsCellClass, layout.narrow && NARROW_HIDDEN_CLASS)}
+        />
+      )}
     </div>
   )
 }
 
-/** The totals above narrow rows, which have no columns: the label, then each heading and its total. */
+/** The totals above deprecated cards, which have no columns: the label, then each heading and its total. */
 export function RecordTableNarrowTotals({
   totals,
   columns,

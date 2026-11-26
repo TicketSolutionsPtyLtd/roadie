@@ -54,6 +54,11 @@ const titleOnly = [
   column.field('show', { pin: true, narrow: 'title' }),
   column.field('gross', { narrow: 'trailing' })
 ]
+// A detail column turns the rows into deprecated cards, the one layout that still swaps.
+const swapColumns = [
+  ...narrowColumns,
+  column.field('status', { narrow: 'detail' })
+]
 const base = {
   caption: 'Shows',
   fields: showFields,
@@ -61,11 +66,6 @@ const base = {
   getRowId: (row: TestShow) => row.id
 }
 
-const listRows = (container: HTMLElement) => [
-  ...container.querySelectorAll<HTMLElement>(
-    '[data-slot="record-table-list-row"]'
-  )
-]
 // A table that can't be selected keeps its rows and re-flows them.
 const tableRows = (container: HTMLElement) => [
   ...container.querySelectorAll<HTMLElement>('[data-slot="record-table-row"]')
@@ -212,11 +212,16 @@ describe('RecordTable narrow list rows in a browser', () => {
     ).toBeChecked()
   })
 
-  // A table with totals still swaps for a list under 40rem.
-  it('switches a table with totals to the list and back as the box resizes', async () => {
+  // Deprecated cards still swap for a list under 40rem.
+  it('switches a table with cards to the list and back as the box resizes', async () => {
     const { container } = render(
       <Boxed width={360}>
-        <RecordTable {...base} data={testShows(20)} selectable totals />
+        <RecordTable
+          {...base}
+          columns={swapColumns}
+          data={testShows(20)}
+          selectable
+        />
       </Boxed>
     )
     await expect
@@ -244,9 +249,9 @@ describe('RecordTable narrow list rows in a browser', () => {
           </button>
           <RecordTable
             {...base}
+            columns={swapColumns}
             data={testShows(10)}
             selectable
-            totals
             maxHeight={boxed ? '400px' : undefined}
           />
         </Boxed>
@@ -300,28 +305,29 @@ describe('RecordTable narrow list rows in a browser', () => {
     expect(viewport.scrollWidth).toBe(viewport.clientWidth)
   })
 
-  it('keeps rows whole inside their own scroll box', async () => {
+  it('keeps cards whole inside their own scroll box', async () => {
     const { container } = render(
       <Boxed width={360}>
         <RecordTable
           {...base}
+          columns={swapColumns}
           data={testShows(10)}
           selectable
-          totals
           defaultSelection={{ ids: ['show-0'] }}
           maxHeight='400px'
         />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(10)
+    const cards = () => [
+      ...container.querySelectorAll('[data-slot="record-table-card"]')
+    ]
+    await expect.poll(() => cards().length).toBeGreaterThan(0)
     const viewport = container
-      .querySelector<HTMLElement>('[data-slot="record-table-viewport"]')!
+      .querySelector('[data-slot="record-table-viewport"]')!
       .getBoundingClientRect()
-    const surface = listRows(container)[0]!.firstElementChild!
-    const box = surface.getBoundingClientRect()
-    expect(box.left).toBeGreaterThanOrEqual(viewport.left)
-    expect(box.right).toBeLessThanOrEqual(viewport.right)
-    expect(getComputedStyle(surface).borderTopLeftRadius).not.toBe('0px')
+    const card = cards()[0]!.getBoundingClientRect()
+    expect(card.left).toBeGreaterThanOrEqual(viewport.left)
+    expect(card.right).toBeLessThanOrEqual(viewport.right)
   })
 
   it("keeps focus on a record's checkbox as Select mode goes wide", async () => {
@@ -347,56 +353,6 @@ describe('RecordTable narrow list rows in a browser', () => {
       .toBe(
         within(table).getByRole('checkbox', { name: 'Select Julia Jacklin 1' })
       )
-  })
-
-  it('joins selected neighbours into one block', async () => {
-    const { container } = render(
-      <Boxed width={360}>
-        <RecordTable
-          {...base}
-          data={testShows(10)}
-          selectable
-          totals
-          defaultSelection={{ ids: ['show-1', 'show-2', 'show-4'] }}
-        />
-      </Boxed>
-    )
-    await expect.poll(() => listRows(container).length).toBe(10)
-    const surface = (id: string) =>
-      getComputedStyle(
-        container.querySelector<HTMLElement>(
-          `[data-slot="record-table-list-row"][data-row-id="${id}"] > div`
-        )!
-      )
-    const bottomCorners = (id: string) => [
-      surface(id).borderBottomLeftRadius,
-      surface(id).borderBottomRightRadius
-    ]
-    expect(['show-0', 'show-1', 'show-2', 'show-4'].map(bottomCorners)).toEqual(
-      [
-        ['12px', '12px'],
-        ['0px', '0px'],
-        ['12px', '12px'],
-        ['12px', '12px']
-      ]
-    )
-    expect(surface('show-2').borderTopLeftRadius).toBe('0px')
-    expect(surface('show-2').borderBottomLeftRadius).not.toBe('0px')
-    expect(surface('show-2').borderBottomLeftRadius).toBe(
-      surface('show-5').borderTopLeftRadius
-    )
-    expect(surface('show-4').borderTopLeftRadius).not.toBe('0px')
-    expect(surface('show-1').borderTopLeftRadius).not.toBe('0px')
-    const divider = (id: string) =>
-      getComputedStyle(
-        container.querySelector(
-          `[data-row-id="${id}"] [data-slot="list-item-content"]`
-        )!,
-        '::after'
-      ).backgroundColor !== 'rgba(0, 0, 0, 0)'
-    expect(
-      ['show-0', 'show-1', 'show-2', 'show-3', 'show-4', 'show-5'].map(divider)
-    ).toEqual([false, false, false, false, false, true])
   })
 
   it('keeps focus on the record’s link as the table narrows', async () => {

@@ -380,16 +380,64 @@ export const priorityProps = (layout: ColumnLayout, index: number) => ({
   'data-narrow': layout.narrow?.[index]
 })
 
-/** Hides a cell with its priority, and gives the inset to the first and last cells shown at each tier, which a hidden column's `first:` and `last:` would miss. */
-export const priorityClass = (layout: ColumnLayout, index: number) => {
+const tierClasses = (
+  layout: ColumnLayout,
+  index: number,
+  shownNarrow: boolean
+) => {
   const priority = layout.priority[index]
-  // A column with a narrow place shows again under 40rem.
-  const placed = (layout.narrow?.[index] ?? 'hidden') !== 'hidden'
   return [
-    priority && TIER_CLASSES[priority][placed ? 'hideAboveNarrow' : 'hide'],
+    priority &&
+      TIER_CLASSES[priority][shownNarrow ? 'hideAboveNarrow' : 'hide'],
     ...(layout.firstAt[index] ?? []).map((tier) => TIER_CLASSES[tier].start),
-    ...(layout.lastAt[index] ?? []).map((tier) => TIER_CLASSES[tier].end),
+    ...(layout.lastAt[index] ?? []).map((tier) => TIER_CLASSES[tier].end)
+  ]
+}
+
+/** Hides a cell with its priority, and gives the inset to the first and last cells shown at each tier, which a hidden column's `first:` and `last:` would miss. */
+export const priorityClass = (layout: ColumnLayout, index: number) =>
+  [
+    // A column with a narrow place shows again under 40rem.
+    ...tierClasses(
+      layout,
+      index,
+      (layout.narrow?.[index] ?? 'hidden') !== 'hidden'
+    ),
     narrowClass(layout, index)
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+/** The totals row under 40rem, when the rows re-flow: one wrapping line, its label first. */
+export const NARROW_TOTALS_ROW_CLASS =
+  '@max-[40rem]/record-table-frame:flex @max-[40rem]/record-table-frame:h-auto @max-[40rem]/record-table-frame:flex-wrap @max-[40rem]/record-table-frame:gap-x-3 @max-[40rem]/record-table-frame:gap-y-0.5 @max-[40rem]/record-table-frame:px-(--content-inset) @max-[40rem]/record-table-frame:py-2'
+/** The totals label under 40rem, first on the line. */
+export const NARROW_TOTALS_LABEL_CLASS =
+  '@max-[40rem]/record-table-frame:order-first @max-[40rem]/record-table-frame:font-semibold'
+/** A column's heading beside its total, shown only under 40rem, where the header row hides. */
+export const NARROW_TOTAL_HEADING_CLASS =
+  'hidden @max-[40rem]/record-table-frame:inline'
+/** A total's value under 40rem, stronger than its heading. */
+export const NARROW_TOTAL_VALUE_CLASS =
+  '@max-[40rem]/record-table-frame:text-normal'
+/** The totals row's checkbox and actions cells, which have nothing to show on the line. */
+export const NARROW_HIDDEN_CLASS = NARROW_CLASSES.hidden
+
+/**
+ * A totals cell's classes: as `priorityClass`, but under 40rem a cell with a
+ * total, or the label, shows on the totals line whatever its narrow place.
+ */
+export const totalsCellClass = (
+  layout: ColumnLayout,
+  index: number,
+  shown: boolean
+) => {
+  if (!layout.narrow) return priorityClass(layout, index)
+  return [
+    ...tierClasses(layout, index, shown),
+    shown
+      ? `${NARROW_CELL} @max-[40rem]/record-table-frame:gap-1`
+      : NARROW_CLASSES.hidden
   ]
     .filter(Boolean)
     .join(' ')

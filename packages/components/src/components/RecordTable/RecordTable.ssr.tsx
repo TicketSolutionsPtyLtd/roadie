@@ -51,18 +51,28 @@ export const SelectableInPane = allowing(
   }
 )
 
-// Each group's title is a disclosure, open as the server paints it. A phone
-// swaps the wide table for narrow rows as every table here does.
-export const GroupedByTwoLevels = allowing(
-  () => (
-    <RecordTable
-      caption='Upcoming shows'
-      data={testShows(12)}
-      fields={groupedShowFields}
-      columns={[column.field('show'), ...columns]}
-      getRowId={(row) => row.id}
-      defaultView={{ layout: { type: 'table', groupBy: ['status', 'city'] } }}
-    />
-  ),
-  { 390: phone(44, 50) }
+// Each group's title is a disclosure, open as the server paints it, and a
+// phone re-flows the grouped rows as it does any other table's.
+export const GroupedByTwoLevels = () => (
+  <RecordTable
+    caption='Upcoming shows'
+    data={testShows(12)}
+    fields={groupedShowFields}
+    columns={[column.field('show'), ...columns]}
+    getRowId={(row) => row.id}
+    defaultView={{ layout: { type: 'table', groupBy: ['status', 'city'] } }}
+  />
+)
+
+// A phone wraps the totals onto one line above the rows.
+export const WithTotals = () => (
+  <RecordTable
+    caption='Upcoming shows'
+    data={testShows(20)}
+    fields={showFields}
+    columns={[column.field('show', { pin: true }), ...columns]}
+    getRowId={(row) => row.id}
+    defaultPosition={{ pageSize: 20 }}
+    totals
+  />
 )
