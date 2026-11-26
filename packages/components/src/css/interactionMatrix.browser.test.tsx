@@ -12,6 +12,14 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import {
+  apcaLc,
+  flatten,
+  minimumLc,
+  over,
+  shownFill
+} from '@oztix/roadie-browser-testing/contrast'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Button } from '../components/Button'
 import { IconButton } from '../components/Button/IconButton'
@@ -25,13 +33,6 @@ import { Toggle } from '../components/Toggle'
 import { ToggleGroup } from '../components/ToggleGroup'
 import { pointAt } from '../utils/pointerTestUtils'
 import { type RoadieIntent, intentVariants } from '../variants'
-import {
-  apcaLc,
-  flatten,
-  minimumLc,
-  over,
-  shownFill
-} from './contrastTestUtils'
 import { focusAfterKey, focusRing } from './testUtils'
 
 // One matrix over these components and their emphases, since hover, focus
