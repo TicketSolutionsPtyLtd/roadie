@@ -1,18 +1,21 @@
 'use client'
 
-import { useLayoutEffect, useRef } from 'react'
+import { use, useLayoutEffect, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Button } from '../Button'
 import {
   isSelecting,
+  selectModeApplies,
   useRecordsContext,
   useRecordsData,
   useRecordsLayoutValue
 } from './context'
+import { SearchFocusContext } from './searchFocus'
 import { useLeaveSelectOnEscape } from './selectMode'
 import { pageState } from './selection'
+import { hiddenByStyle } from './tableFocus'
 import { useSurvivor } from './useBulkActions'
 
 export type RecordsSelectProps = {
@@ -24,12 +27,22 @@ export type RecordsSelectProps = {
  * mode. Renders nothing while the shown layout gives each record a checkbox.
  */
 export function RecordsSelect({ className }: RecordsSelectProps) {
-  const { selectMode } = useRecordsLayoutValue()
-  const { selectable } = useRecordsData()
-  // Only the controls read the selection, so a tick in a table renders nothing here.
-  return selectMode && selectable ? (
-    <SelectControls className={className} />
-  ) : null
+  const { selectMode, layouts } = useRecordsLayoutValue()
+  const { selectable, view } = useRecordsData()
+  // Records.Header is the container that hides it above 40rem; elsewhere it waits for the layout to measure.
+  const inHeader = use(SearchFocusContext) !== null
+  const upFront = inHeader && selectModeApplies(layouts, view, false)
+  if (!selectable || !(selectMode || upFront)) return null
+  // Only the controls read the selection, so a tick renders only them.
+  return (
+    <SelectControls
+      className={cn(
+        // A layout that selects this way only when narrow has checkboxes above 40rem.
+        !selectMode && '@min-[40rem]/records-header:hidden',
+        className
+      )}
+    />
+  )
 }
 RecordsSelect.displayName = 'Records.Select'
 
@@ -38,12 +51,13 @@ function SelectControls({ className }: RecordsSelectProps) {
   const toggleRef = useRef<HTMLButtonElement>(null)
   const survivor = useSurvivor('selection')
   const leaveSelect = useLeaveSelectOnEscape()
-  const selecting = isSelecting(records, selectMode)
+  const selecting = isSelecting(records, true)
 
+  // Only a floating bar reads it, and a layout that selects this way only when narrow keeps its bar in the header.
   useLayoutEffect(() => {
-    setSelectControls(selecting)
+    setSelectControls(selecting && selectMode)
     return () => setSelectControls(false)
-  }, [selecting, setSelectControls])
+  }, [selecting, selectMode, setSelectControls])
 
   // Leaving from a record's checkbox unmounts it; focus lands back here.
   const was = useRef(selecting)
@@ -51,7 +65,9 @@ function SelectControls({ className }: RecordsSelectProps) {
     if (was.current === selecting) return
     was.current = selecting
     const active = document.activeElement
-    if (active === null || active === document.body) toggleRef.current?.focus()
+    // A re-flowed row's checkbox hides as Select mode ends, focus and all.
+    if (active === null || active === document.body || hiddenByStyle(active))
+      toggleRef.current?.focus()
   })
 
   const pageIds = records.rows.map((row) => row.id)

@@ -54,12 +54,16 @@ function Shows({ cards = false }: { cards?: boolean }) {
 
 const records = () => [
   ...document.querySelectorAll<HTMLElement>(
-    '[data-slot="record-table-list-row"], [data-slot="record-table-card"]'
+    '[data-slot="record-table-row"], [data-slot="record-table-card"]'
   )
 ]
 
+// A re-flowed table keeps its bar in the header row; cards float theirs.
+const barOf = (cards: boolean) =>
+  screen.queryByRole(cards ? 'group' : 'toolbar', { name: 'Bulk actions' })
+
 describe.each([
-  ['list rows', false],
+  ['re-flowed rows', false],
   ['cards', true]
 ])('RecordTable narrow %s tapped on a phone', (_, cards) => {
   it('opens a record with a tap on its row', TIMEOUT, async () => {
@@ -77,7 +81,8 @@ describe.each([
     await tapOn(screen.getByRole('button', { name: 'Select' }))
     await screen.findByRole('button', { name: 'Done' })
     await tapOn(within(records()[0]!).getByText('Brisbane'))
-    const bar = await screen.findByRole('group', { name: 'Bulk actions' })
+    await expect.poll(() => barOf(cards)).not.toBeNull()
+    const bar = barOf(cards)!
     await expect.poll(() => bar.textContent).toContain('1 selected')
     await tapOn(within(records()[2]!).getByText('Sydney'))
     await expect.poll(() => bar.textContent).toContain('2 selected')
@@ -101,7 +106,7 @@ describe.each([
       await commands.swipe(from, { x: from.x, y: from.y - 200 })
       await expect.poll(() => box.scrollTop).toBeGreaterThan(0)
       // Fails if a record selects on press rather than on its click.
-      expect(screen.queryByRole('group', { name: 'Bulk actions' })).toBeNull()
+      expect(barOf(cards)).toBeNull()
     }
   )
 })

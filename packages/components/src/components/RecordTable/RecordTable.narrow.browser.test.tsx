@@ -136,13 +136,13 @@ describe('RecordTable narrow list rows in a browser', () => {
         />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(20)
+    await expect.poll(() => tableRows(container).length).toBe(20)
     const left = container
       .querySelector<HTMLElement>('[data-slot="records"]')!
       .getBoundingClientRect().left
-    const title = listRows(container)[0]!.querySelector<HTMLElement>(
-      '[data-slot="list-item-title"]'
-    )!
+    const title = within(tableRows(container)[0]!).getByRole('link', {
+      name: 'Ocean Alley 1'
+    })
     // Within a pixel: the link's own box rounds differently per engine.
     expect(
       Math.abs(title.getBoundingClientRect().left - left)
@@ -201,7 +201,7 @@ describe('RecordTable narrow list rows in a browser', () => {
     await resize(container, 360)
     await expect
       .poll(() =>
-        listRows(container)
+        tableRows(container)
           .filter((row) => row.hasAttribute('data-selected'))
           .map((row) => row.dataset.rowId)
       )
@@ -212,11 +212,11 @@ describe('RecordTable narrow list rows in a browser', () => {
     ).toBeChecked()
   })
 
-  // A selectable table still swaps for a list under 40rem.
-  it('switches a selectable table to the list and back as the box resizes', async () => {
+  // A table with totals still swaps for a list under 40rem.
+  it('switches a table with totals to the list and back as the box resizes', async () => {
     const { container } = render(
       <Boxed width={360}>
-        <RecordTable {...base} data={testShows(20)} selectable />
+        <RecordTable {...base} data={testShows(20)} selectable totals />
       </Boxed>
     )
     await expect
@@ -246,6 +246,7 @@ describe('RecordTable narrow list rows in a browser', () => {
             {...base}
             data={testShows(10)}
             selectable
+            totals
             maxHeight={boxed ? '400px' : undefined}
           />
         </Boxed>
@@ -272,12 +273,12 @@ describe('RecordTable narrow list rows in a browser', () => {
         />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(6)
+    await expect.poll(() => tableRows(container).length).toBe(6)
     await user.click(screen.getByRole('button', { name: 'Select' }))
     await frame()
-    for (const row of listRows(container)) {
-      const style = getComputedStyle(row.firstElementChild!)
-      expect(parseFloat(style.outlineWidth) || 0).toBe(0)
+    for (const row of tableRows(container)) {
+      // Chromium reports a width for an outline that is none.
+      expect(getComputedStyle(row).outlineStyle).toBe('none')
     }
   })
 
@@ -306,6 +307,7 @@ describe('RecordTable narrow list rows in a browser', () => {
           {...base}
           data={testShows(10)}
           selectable
+          totals
           defaultSelection={{ ids: ['show-0'] }}
           maxHeight='400px'
         />
@@ -354,6 +356,7 @@ describe('RecordTable narrow list rows in a browser', () => {
           {...base}
           data={testShows(10)}
           selectable
+          totals
           defaultSelection={{ ids: ['show-1', 'show-2', 'show-4'] }}
         />
       </Boxed>
@@ -738,7 +741,7 @@ describe('RecordTable Select mode in a browser', () => {
     expect(transition('Done')).toBe(transition('Select all'))
   })
 
-  it('floats the bulk actions, with each Select mode control once', async () => {
+  it('puts the bulk actions in the header row, with each Select mode control once', async () => {
     const user = userEvent.setup()
     inBox(
       // A short page, so it renders quickly and still offers every match.
@@ -750,16 +753,13 @@ describe('RecordTable Select mode in a browser', () => {
     )
     await enterSelect(user)
     await user.click(screen.getByRole('button', { name: 'Select all' }))
-    const floating = screen.getByRole('group', { name: 'Bulk actions' })
-    expect(floating).toHaveAttribute('data-slot', 'records-bulk-actions')
-    expect(screen.queryByRole('toolbar', { name: 'Bulk actions' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Clear selection' })).toBeNull()
+    expect(
+      within(listOf()).getByRole('toolbar', { name: 'Bulk actions' })
+    ).toBeVisible()
+    expect(screen.queryByRole('group', { name: 'Bulk actions' })).toBeNull()
     expect(
       screen.getAllByRole('button', { name: 'Deselect all' })
     ).toHaveLength(1)
-    expect(
-      within(floating).getByRole('button', { name: /^Select all 20/ })
-    ).toBeInTheDocument()
   })
 
   it('makes the checkbox the row target instead of the link', async () => {
@@ -773,12 +773,9 @@ describe('RecordTable Select mode in a browser', () => {
     const box = within(listOf()).getByRole('checkbox', {
       name: 'Select Ocean Alley 1'
     })
-    expect(box).toHaveAttribute('data-interactive-target')
     await user.click(box)
     expect(box).toHaveAttribute('aria-checked', 'true')
-    expect(box.closest('[data-slot="record-table-list-row"]')).toHaveAttribute(
-      'data-selected'
-    )
+    expect(box.closest('[data-row-id]')).toHaveAttribute('data-selected')
   })
 
   it('selects cards by their checkbox too', async () => {
@@ -862,14 +859,14 @@ describe('RecordTable Select mode in a browser', () => {
     await expect
       .poll(() => screen.queryByRole('button', { name: 'Done' }))
       .not.toBeNull()
-    expect(within(listOf()).getAllByRole('checkbox')).toHaveLength(6)
+    // Each row's, and Select page in the bar.
+    expect(within(listOf()).getAllByRole('checkbox')).toHaveLength(7)
     expect(
       within(listOf()).getByRole('checkbox', { name: 'Select Ocean Alley 1' })
     ).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByRole('group', { name: 'Bulk actions' })).toHaveAttribute(
-      'data-slot',
-      'records-bulk-actions'
-    )
+    expect(
+      within(listOf()).getByRole('toolbar', { name: 'Bulk actions' })
+    ).toBeVisible()
   })
 
   it('keeps a running bulk action busy, and settles it, across a switch to narrow', async () => {
@@ -890,10 +887,11 @@ describe('RecordTable Select mode in a browser', () => {
       )
     )
     await resize(container, 360)
-    const floating = await screen.findByRole('group', { name: 'Bulk actions' })
-    expect(
-      within(floating).getByRole('button', { name: 'Export' })
-    ).toHaveAttribute('aria-busy', 'true')
+    const bar = await screen.findByRole('toolbar', { name: 'Bulk actions' })
+    expect(within(bar).getByRole('button', { name: 'Export' })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
     await user.click(
       within(listOf()).getByRole('checkbox', {
         name: 'Select Ball Park Music 1'
@@ -1025,8 +1023,7 @@ describe('RecordTable Select mode in a browser', () => {
       )
     }
     render(<Twice />)
-    expect(screen.getByRole('list', { name: 'Shows' })).toBeInTheDocument()
-    expect(screen.getByRole('table', { name: 'Shows' })).toBeInTheDocument()
+    expect(screen.getAllByRole('table', { name: 'Shows' })).toHaveLength(2)
   })
 })
 

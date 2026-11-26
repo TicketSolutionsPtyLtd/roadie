@@ -16,7 +16,7 @@ import {
   type AutocompleteProps
 } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable } from '../../css/testUtils'
+import { pickOption, setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -178,9 +178,7 @@ describe('Autocomplete with object items', () => {
     const input = screen.getByRole('combobox', { name: 'Event' })
     await userEvent.click(input)
     await userEvent.keyboard('Apricot')
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Apricot Cyclone Fest' })
-    )
+    await pickOption(userEvent, { option: 'Apricot Cyclone Fest' })
     await expect
       .poll(() => (input as HTMLInputElement).value)
       .toBe(eventText(apricot))

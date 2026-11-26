@@ -4,7 +4,7 @@ import { page, userEvent } from 'vitest/browser'
 
 import { Combobox, type ComboboxInputGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable } from '../../css/testUtils'
+import { setHoverCapable, withFrames } from '../../css/testUtils'
 import { pointAt } from '../../utils/pointerTestUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
@@ -56,7 +56,9 @@ function Genres() {
 async function tapJazz() {
   render(<Genres />)
   await userEvent.click(screen.getByRole('combobox', { name: 'Genres' }))
-  const tapped = await screen.findByRole('option', { name: 'Jazz' })
+  const tapped = await withFrames(() =>
+    screen.findByRole('option', { name: 'Jazz' })
+  )
   const resting = screen.getByRole('option', { name: 'Rock' })
   await pointAt(tapped)
   await userEvent.click(tapped)

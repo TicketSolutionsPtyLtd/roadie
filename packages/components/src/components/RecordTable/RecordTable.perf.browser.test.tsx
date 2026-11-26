@@ -337,7 +337,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     pressSelect(container)
     await settle()
     const checkbox = container.querySelector<HTMLElement>(
-      '[data-slot="record-table-list-row"] [role="checkbox"]'
+      '[data-slot="record-table-row"] [role="checkbox"]'
     )!
     // The first tick brings in Select mode's bulk bar.
     await expectFrameBudget(
@@ -350,7 +350,8 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     expect(checkbox.getAttribute('aria-checked')).toBe('true')
   })
 
-  it('scrolls list rows under the translucent bulk bar at 60fps', async () => {
+  // A re-flowed table's bar takes its sticky header row.
+  it('scrolls re-flowed rows under the bulk bar at 60fps', async () => {
     const container = await mount(
       <div style={NARROW_BOX} data-testid='scroller'>
         <RecordTable
@@ -369,19 +370,19 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     await frame()
     container
       .querySelector<HTMLElement>(
-        '[data-slot="record-table-list-row"] [role="checkbox"]'
+        '[data-slot="record-table-row"] [role="checkbox"]'
       )!
       .click()
     await frame()
     await frame()
-    const bar = container.querySelector<HTMLElement>(
-      '[data-slot="records-bulk-actions"]'
-    )
-    expect(bar).not.toBeNull()
-    expect(getComputedStyle(bar!).backdropFilter).not.toBe('none')
+    expect(
+      container.querySelector(
+        '[data-slot="record-table-head"] [data-slot="records-bulk-actions"]'
+      )
+    ).not.toBeNull()
     const box = scroller(container)
     await expectFrameBudget(
-      'RecordTable, list rows under the bulk bar, scroll',
+      'RecordTable, re-flowed rows under the bulk bar, scroll',
       await measureFrames(scrollBy(box)),
       { longestTask: 50, knownMiss: 'INNO-1528' }
     )
@@ -404,7 +405,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     await frame()
     await frame()
     const checkbox = container.querySelector<HTMLElement>(
-      '[data-slot="record-table-list-row"] [role="checkbox"]'
+      '[data-slot="record-table-row"] [role="checkbox"]'
     )!
     const cost = await styleCost(() => checkbox.click())
     expect(checkbox.getAttribute('aria-checked')).toBe('true')

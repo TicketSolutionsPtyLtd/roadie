@@ -796,7 +796,9 @@ describe('DateRangePicker suggestions in a drawer', TIMEOUT, () => {
     const start = within(drawer).getByRole('combobox', { name: 'Start' })
     await userEvent.click(start)
     await userEvent.type(start, 'tom')
-    const option = await screen.findByRole('option', { name: /^Tomorrow/ })
+    const option = await withFrames(() =>
+      screen.findByRole('option', { name: /^Tomorrow/ })
+    )
     const list = screen.getByRole('listbox')
     expect(box(list).left).toBeGreaterThanOrEqual(0)
     expect(box(list).right).toBeLessThanOrEqual(window.innerWidth)

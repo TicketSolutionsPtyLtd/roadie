@@ -422,6 +422,9 @@ describe('boardLayout with lanes in a browser', { timeout: 30_000 }, () => {
       })
     )
     await browserUser.click(
+      // A hover wakes the frames that open the submenu, and the helper's
+      // corner wiggle would move the pointer off its trigger and close it.
+      // eslint-disable-next-line roadie/no-unwaited-popup-pick
       await screen.findByRole('menuitem', {
         name: 'Move Ocean Alley 1 to Cancelled in Melbourne'
       })

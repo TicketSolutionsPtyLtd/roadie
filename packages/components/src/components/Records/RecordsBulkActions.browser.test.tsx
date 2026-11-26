@@ -13,8 +13,8 @@ import { userEvent } from 'vitest/browser'
 import { Records, useRecords } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
-import { RecordTable, tableLayout } from '../RecordTable'
-import { frame, rect, showColumns, slot } from '../RecordTable/testUtils'
+import { RecordList, listLayout } from '../RecordList'
+import { frame, rect, slot } from '../RecordTable/testUtils'
 import { showFields, testShows } from './testUtils'
 import type { RecordsBulkAction } from './types'
 
@@ -25,6 +25,9 @@ beforeAll(async () => {
 })
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
+
+// A list's bar floats; a re-flowed table keeps its bar in the header row.
+const row = { title: 'show', description: 'city' } as const
 
 // The bar's inset from the records' edges, each side.
 const INSET = 16
@@ -38,11 +41,11 @@ function Shows({
 }) {
   return (
     <div data-testid='width' style={{ width }}>
-      <RecordTable
+      <RecordList
         caption='Shows'
         data={testShows(8)}
         fields={showFields}
-        columns={showColumns}
+        row={row}
         getRowId={(row) => row.id}
         defaultSelection={{ ids: ['show-0'] }}
         bulkActions={actions}
@@ -70,7 +73,7 @@ function Composed({
     <div data-testid='width' style={{ width }}>
       <Records.Root
         records={records}
-        layouts={[tableLayout(showColumns)]}
+        layouts={[listLayout(row)]}
         caption='Shows'
       >
         <Records.Content />
@@ -182,7 +185,7 @@ function Scrolling({
     >
       <Records.Root
         records={records}
-        layouts={[tableLayout(showColumns)]}
+        layouts={[listLayout(row)]}
         caption='Shows'
       >
         <Records.Content />
