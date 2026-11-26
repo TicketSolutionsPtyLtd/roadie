@@ -105,6 +105,33 @@ describe.each([
   }
 )
 
+// A tall photo caps at sm and md, and runs the full width uncapped at lg.
+describe.each([
+  ['sm', 96],
+  ['md', 160],
+  ['lg', 448 * 4]
+] as const)('a %s EmptyState with a tall photo', (size, height) => {
+  beforeAll(() => page.viewport(1280, 800))
+
+  it(`draws it ${height}px tall`, async () => {
+    render(
+      <EmptyState size={size}>
+        <EmptyState.Illustration>
+          <img
+            alt='Tall'
+            src={`data:image/svg+xml,${encodeURIComponent(
+              "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='400'/>"
+            )}`}
+          />
+        </EmptyState.Illustration>
+      </EmptyState>
+    )
+    const img = screen.getByAltText<HTMLImageElement>('Tall')
+    await img.decode()
+    expect(img.getBoundingClientRect().height).toBe(height)
+  })
+})
+
 // A nested root scopes its parts, whichever size its ancestor root has.
 describe.each([
   ['sm', 'md', 'text-display-ui-3'],
