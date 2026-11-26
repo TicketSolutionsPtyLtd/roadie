@@ -35,16 +35,16 @@ export function searchDraft(
   event: SearchDraftEvent
 ): SearchDraft {
   const { search } = event
-  if (event.type === 'typed')
+  if (
+    event.type === 'typed' ||
+    (event.type === 'sent' && search === heldSearch(state))
+  )
     return search === state.draft ? state : { ...state, draft: search }
   if (event.type === 'sent')
     return {
       ...state,
       draft: search,
-      sent:
-        search === heldSearch(state)
-          ? state.sent
-          : [...state.sent, search].slice(-20)
+      sent: [...state.sent, search].slice(-20)
     }
   if (search !== state.seen) {
     const echo = state.sent.indexOf(search)

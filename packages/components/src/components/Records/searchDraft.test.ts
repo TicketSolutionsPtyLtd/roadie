@@ -83,15 +83,26 @@ describe('searchDraft', () => {
     expect(run([shown('Ocean')], echoed).outside).toBe(1)
   })
 
-  it('stays the same object while the parent shows what it holds', () => {
-    const state = run([sent('Per'), shown('Per')])
-    expect(searchDraft(state, shown('Per'))).toBe(state)
-  })
+  it.each([shown('Per'), typed('Per'), sent('Per')])(
+    'stays the same object for $type of what it already shows and holds',
+    (event) => {
+      const state = run([sent('Per'), shown('Per')])
+      expect(searchDraft(state, event)).toBe(state)
+    }
+  )
 
   it('remembers only the last 20 searches sent', () => {
     const many = Array.from({ length: 25 }, (_, index) => sent(`s${index}`))
     // An echo of one forgotten reads as a change from outside.
-    expect(run([...many, shown('s3')]).outside).toBe(1)
+    expect(run([...many, shown('s4')]).outside).toBe(1)
     expect(run([...many, shown('s5')]).outside).toBe(0)
+  })
+
+  it('never remembers a search the parent will already hold, so repeats keep earlier ones', () => {
+    const repeats = Array.from({ length: 20 }, () => sent('b'))
+    const state = run([sent('a'), ...repeats, shown('a')])
+    expect(state.outside).toBe(0)
+    expect(state.draft).toBe('b')
+    expect(heldSearch(state)).toBe('b')
   })
 })
