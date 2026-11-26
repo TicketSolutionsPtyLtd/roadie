@@ -1,7 +1,44 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
-import { MAX_BYTES, markdown, planUpload, upload } from './pr-screenshots.mjs'
+import {
+  MAX_BYTES,
+  markdown,
+  parseArgs,
+  planUpload,
+  upload
+} from './pr-screenshots.mjs'
+
+describe('parseArgs', () => {
+  const ok = [
+    ['no repo', ['5', 'a.png'], { pr: '5', paths: ['a.png'] }],
+    [
+      'a repo first',
+      ['--repo', 'acme/roadie', '5', 'a.png'],
+      { repo: 'acme/roadie', pr: '5', paths: ['a.png'] }
+    ],
+    [
+      'a repo after the images',
+      ['5', 'a.png', '--repo=acme/roadie.js'],
+      { repo: 'acme/roadie.js', pr: '5', paths: ['a.png'] }
+    ]
+  ]
+  for (const [name, argv, expected] of ok) {
+    test(`reads ${name}`, () => {
+      assert.deepEqual(parseArgs(argv), expected)
+    })
+  }
+
+  for (const argv of [
+    ['--repo'],
+    ['--repo', 'roadie', '5'],
+    ['--repo=a/b/c', '5']
+  ]) {
+    test(`refuses ${argv.join(' ')}`, () => {
+      assert.throws(() => parseArgs(argv), /owner\/name/)
+    })
+  }
+})
 
 describe('planUpload', () => {
   const ok = [

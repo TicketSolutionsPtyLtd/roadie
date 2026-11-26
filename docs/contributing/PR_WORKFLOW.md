@@ -286,7 +286,9 @@ the PR only when the review is clean.
   uploads them to `pr-<pr>/` on the repo's `screenshots` branch through the
   GitHub API and prints the markdown to paste under Evidence. It makes no
   local commit, so no hook runs and `--no-verify` never comes up; a retake
-  under the same file name replaces the image in the PR. Never link local
+  under the same file name replaces the image in the PR. In a checkout with
+  several remotes and no `gh repo set-default`, add `--repo owner/name`.
+  Never link local
   files, gists, or artifacts, and never push your own screenshots branch.
   For baselines CI renders, link the run and embed a few representative
   images.
