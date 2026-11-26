@@ -9,13 +9,12 @@ import {
   watch
 } from 'vue'
 
+import { MEASURE_PROGRESS_MAX } from '../../cart'
 import {
-  MEASURE_PROGRESS_MAX,
-  MOBILE_OPEN_TOP_INSET_PX,
-  TAP_PX,
-  VIEWPORT_MARGIN_PX,
-  decideSnapTarget
-} from '../../cart'
+  DRAWER_SPRING,
+  createDrawerDrag,
+  openDrawerHeight
+} from '../../cart/drawer'
 
 export type UseCartDrawerDragReturn = {
   state: Ref<'open' | 'closed'>
@@ -39,17 +38,6 @@ type Options = {
   initialState?: 'open' | 'closed'
 }
 
-function computeViewportMaxHeight(): number {
-  if (typeof window === 'undefined') return 0
-  if (window.innerWidth < 640) {
-    // clientHeight is what `position: fixed` is measured against.
-    const layoutH = document.documentElement.clientHeight || window.innerHeight
-    return Math.max(0, layoutH - MOBILE_OPEN_TOP_INSET_PX)
-  }
-  const vh = window.visualViewport?.height ?? window.innerHeight
-  return Math.max(0, vh - VIEWPORT_MARGIN_PX)
-}
-
 export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const initialState = opts.initialState ?? 'closed'
   const state = ref<'open' | 'closed'>(initialState)
@@ -57,7 +45,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const headerHeight = ref(53)
   const footerHeight = ref(64)
   const closedHeight = computed(() => headerHeight.value + footerHeight.value)
-  const maxHeight = ref(computeViewportMaxHeight())
+  const maxHeight = ref(openDrawerHeight())
   const isDragging = ref(false)
   const motionQuery =
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
@@ -72,10 +60,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     initialState === 'open' ? maxHeight.value : closedHeight.value
   )
 
-  // Spring the height like the React skin (same damping/stiffness) instead of
-  // an instant set + CSS transition. Driving the ref each frame means `progress`
-  // (and every progress-derived surface) ramps with the spring rather than
-  // snapping 0↔1 on toggle.
+  // Animate the ref each frame, not a CSS transition, so `progress` ramps with
+  // the spring rather than snapping 0↔1 on toggle.
   let heightAnim: AnimationPlaybackControls | null = null
   const stopHeightAnim = () => {
     heightAnim?.stop()
@@ -88,9 +74,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       return
     }
     heightAnim = animate(dragHeight.value, target, {
-      type: 'spring',
-      damping: 30,
-      stiffness: 300,
+      ...DRAWER_SPRING,
       onUpdate: (v) => {
         dragHeight.value = v
       },
@@ -115,10 +99,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       state.value === 'open' ? maxHeight.value : closedHeight.value
   })
 
-  // Gates re-entry and filters concurrent multi-touch pointers.
-  let activePointerId: number | null = null
-  // Detaches in-flight drag listeners so an unmount mid-drag doesn't leak them.
-  let dragCleanup: (() => void) | null = null
+  const drag = createDrawerDrag()
 
   const isClosedEnoughToMeasure = () => progress.value < MEASURE_PROGRESS_MAX
 
@@ -198,7 +179,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const setFooterElement = footerTracker.setElement
 
   const updateViewport = () => {
-    maxHeight.value = computeViewportMaxHeight()
+    maxHeight.value = openDrawerHeight()
   }
 
   onMounted(() => {
@@ -214,7 +195,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     stopHeightAnim()
     headerTracker.disconnect()
     footerTracker.disconnect()
-    dragCleanup?.()
+    drag.dispose()
     if (typeof window === 'undefined') return
     window.removeEventListener('resize', updateViewport)
     window.visualViewport?.removeEventListener('resize', updateViewport)
@@ -241,75 +222,24 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
 
   const handleDragStart = (e: PointerEvent) => {
     if (typeof window === 'undefined') return
-    // Re-entry guard: honour only the first pointer to avoid duplicate listeners on multi-touch.
-    if (activePointerId !== null) return
-    const pointerId = e.pointerId
-    activePointerId = pointerId
-
-    const startY = e.clientY
-    const startHeight = dragHeight.value
-    const wasOpen = state.value === 'open'
-
-    let lastClientY = startY
-    let lastTime = Date.now()
-    let velocity = 0
+    const started = drag.start({
+      pointer: e,
+      wasOpen: state.value === 'open',
+      getHeight: () => dragHeight.value,
+      setHeight: (px) => (dragHeight.value = px),
+      bounds: () => ({
+        closedHeight: closedHeight.value,
+        maxHeight: maxHeight.value
+      }),
+      onRelease: (target) => {
+        isDragging.value = false
+        snapTo(target)
+      }
+    })
+    if (!started) return
     isDragging.value = true
     // Hand the height over to the pointer: cancel any in-flight snap spring.
     stopHeightAnim()
-
-    const detach = () => {
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-      window.removeEventListener('pointercancel', onUp)
-      activePointerId = null
-      dragCleanup = null
-    }
-
-    const onMove = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointerId) return
-      const delta = startY - ev.clientY // positive = dragged up = opening
-      dragHeight.value = Math.min(
-        maxHeight.value,
-        Math.max(closedHeight.value, startHeight + delta)
-      )
-
-      const now = Date.now()
-      const dt = now - lastTime
-      if (dt > 0) {
-        velocity = ((lastClientY - ev.clientY) / dt) * 1000
-      }
-      lastClientY = ev.clientY
-      lastTime = now
-    }
-
-    const onUp = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointerId) return
-      detach()
-      isDragging.value = false
-
-      const currentHeight = dragHeight.value
-      const totalMove = Math.abs(currentHeight - startHeight)
-
-      if (totalMove < TAP_PX) {
-        snapTo(wasOpen ? 'closed' : 'open')
-        return
-      }
-
-      // Core uses Y-position (up = negative); this hook tracks height (up = positive), so invert.
-      const target = decideSnapTarget({
-        velocity: -velocity,
-        offset: -(currentHeight - startHeight),
-        currentState: wasOpen ? 'open' : 'closed',
-        openY: 0,
-        closedY: maxHeight.value - closedHeight.value
-      })
-      snapTo(target)
-    }
-
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-    window.addEventListener('pointercancel', onUp)
-    dragCleanup = detach
   }
 
   return {

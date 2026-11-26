@@ -154,6 +154,9 @@ const PUSHES: {
     content: 'rows',
     onPush: false,
     styleCap: CONTENT_STYLE_CAP,
+    // Missed in 4 of 13 main Perf runs after #1089: the whole-subtree restyle
+    // sometimes spans two frames. Its style cap still holds.
+    pushMiss: 'INNO-1706',
     // Missed in 1 of 17 CI jobs on the same commit (p95 33.3ms, with 123ms of
     // style against 75 to 115ms in the rest): the pop restyles each pane's
     // whole subtree, as the push does.

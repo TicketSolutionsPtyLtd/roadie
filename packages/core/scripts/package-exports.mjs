@@ -1,7 +1,7 @@
 // The one reader of a package.json `exports` block. Plain JavaScript with no
 // TypeScript import, so build configs, tests and scripts in every package can
 // share it; types are in package-exports.d.mts.
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, globSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 const SOURCE_EXTENSIONS = ['.tsx', '.ts']
@@ -33,9 +33,34 @@ function sourceFor(target, packageDir) {
   ).find((candidate) => existsSync(candidate))
 }
 
+// Tests, their helpers and fixtures, and a component's `.ssr.tsx` hydration
+// fixture. paneColumns is the model browser tests measure the stylesheet
+// against, and renderCounter stands in for React's DevTools hook in perf tests.
+const TEST_FOLDER =
+  /(^|\/)(__tests__|__mocks__|__screenshots__|__snapshots__|__fixtures__|fixtures?|_?tests?)\//
+const TEST_FILE =
+  /\.(test|spec|ssr)(-d)?\.(d\.)?[cm]?[jt]sx?$|(^|\/)(fixtures|testChart|browserTesting|paneColumns|renderCounter)\.[^/]*$/
+const TEST_HELPER = /((^|[/._-])[Tt]est[-_]?[Uu]tils|\wTestUtils)\b/
+
+export function isShipped(file) {
+  return ![TEST_FOLDER, TEST_FILE, TEST_HELPER].some((test) => test.test(file))
+}
+
+// A glob less each file isShipped leaves out, not a file list, so `tsdown
+// --watch` reads its entries again when a file is added or deleted. A test
+// added while it runs stays out by its suffix until the next start.
+export function shippedSources(packageDir = '.') {
+  const sources = 'src/**/*.{ts,tsx}'
+  const unshipped = globSync(sources, { cwd: packageDir })
+    .filter((file) => !isShipped(file))
+    .map((file) => `!${file}`)
+  return [sources, '!**/*.test.{ts,tsx}', ...unshipped]
+}
+
 export function exportEntries(exports, packageDir) {
   const subpaths = typeof exports === 'string' ? { '.': exports } : exports
-  return Object.entries(subpaths ?? {}).map(([subpath, value]) => {
+  const visible = Object.entries(subpaths ?? {}).filter(([, v]) => v !== null)
+  return visible.map(([subpath, value]) => {
     const target = targetOf(value)
     const kind = kindOf(target)
     const entry = { subpath, target, kind, files: filesOf(value) }
