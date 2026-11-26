@@ -60,13 +60,8 @@ const CONTROLS: Control[] = [
   ],
   ['OTPField', 'group', (own) => <OTPField length={4} {...own} />],
   ['PhoneField', 'textbox', (own) => <PhoneField {...own} />],
-  ['DateField', 'combobox', (own) => <DateField {...own} />]
-]
-
-const QUERY_FIELD: Control = [
-  'QueryField',
-  'combobox',
-  () => <QueryField suggest={() => []} />
+  ['DateField', 'combobox', (own) => <DateField {...own} />],
+  ['QueryField', 'combobox', () => <QueryField suggest={() => []} />]
 ]
 
 const HELP = 'We only use it for this order'
@@ -113,7 +108,7 @@ function renderInField(
   return screen.getByRole(role)
 }
 
-describe.each([...CONTROLS, QUERY_FIELD])('%s in a Field', (...control) => {
+describe.each(CONTROLS)('%s in a Field', (...control) => {
   // QueryField takes no aria-describedby of its own.
   const cases =
     control[0] === 'QueryField' ? FIELD_CASES : [...FIELD_CASES, ...OWN_CASES]
