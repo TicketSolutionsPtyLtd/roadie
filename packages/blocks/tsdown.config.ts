@@ -6,7 +6,7 @@ import {
   skipUnchangedWrites
 } from '../../scripts/tsdown-watch.mjs'
 import { shippedSources } from '../core/scripts/package-exports.mjs'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 // Unbundle mode is load-bearing for RSC safety, and keeps 'use client' per file
 // so its warning is noise — see packages/components/tsdown.config.ts.

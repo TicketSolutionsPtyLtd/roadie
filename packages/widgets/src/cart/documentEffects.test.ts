@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   clearDrawerHeightVar,
@@ -65,5 +65,20 @@ describe('drawer height CSS var (per-instance registry)', () => {
 
     clearDrawerHeightVar(a)
     expect(document.documentElement.style.getPropertyValue(VAR)).toBe('')
+  })
+
+  it('keeps nothing from a server render, which never unmounts', () => {
+    const server = {}
+    vi.stubGlobal('document', undefined)
+    try {
+      setDrawerHeightVar(server, 300)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+    const client = {}
+    setDrawerHeightVar(client, 100)
+    expect(document.documentElement.style.getPropertyValue(VAR)).toBe('100px')
+    clearDrawerHeightVar(client)
+    clearDrawerHeightVar(server)
   })
 })
