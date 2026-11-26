@@ -7,7 +7,7 @@ import {
   skipUnchangedWrites
 } from '../../scripts/tsdown-watch.mjs'
 import { shippedSources } from '../core/scripts/package-exports.mjs'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 // Unbundle mode: every source file under `src/` emits as its own output
 // file, preserving the source directory structure 1:1. This is load-bearing
