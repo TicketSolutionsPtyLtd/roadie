@@ -16,7 +16,8 @@
         "package.json",
         "tsconfig.json",
         "!src/**/*.test.*",
-        "!scripts/**/*.test.*"
+        "!scripts/**/*.test.*",
+        "!scripts/**/fixtures/**"
       ],
       "outputs": ["dist/**"]
     },
@@ -31,7 +32,8 @@
         "package.json",
         "tsconfig.json",
         "!src/**/*.test.*",
-        "!scripts/**/*.test.*"
+        "!scripts/**/*.test.*",
+        "!scripts/**/fixtures/**"
       ],
       "outputs": ["dist/**"]
     },
