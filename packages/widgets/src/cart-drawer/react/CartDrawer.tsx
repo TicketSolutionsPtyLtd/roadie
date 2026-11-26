@@ -35,12 +35,12 @@ import {
 } from '../../cart'
 import { CartContents } from '../../cart-contents/react/CartContents'
 import { CartEmptyState } from '../../cart-contents/react/CartEmptyState'
-import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
 import {
   lockBodyScroll as acquireBodyScrollLock,
   clearDrawerHeightVar,
   setDrawerHeightVar
-} from './documentEffects'
+} from '../../cart/documentEffects'
+import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
 import { useCartDetails, useCartSummary } from './useCart'
 import { useCartBounce } from './useCartBounce'
 import { useCartDrawerDrag } from './useCartDrawerDrag'

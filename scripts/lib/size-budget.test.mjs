@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { after, describe, test } from 'node:test'
 
+import { exportEntries } from '../../packages/core/scripts/package-exports.mjs'
 import {
   bundle,
   checkBudget,
@@ -17,17 +18,19 @@ const sizes = (bytes) => ({ own: bytes, full: bytes, initial: bytes })
 
 describe('jsSubpaths', () => {
   test('lists the JavaScript an import of each subpath loads', () => {
-    const subpaths = jsSubpaths({
-      '.': { types: './dist/index.d.ts', import: './dist/index.js' },
-      './css': { style: './src/css/a.css', default: './src/css/a.css' },
-      './badge': { types: './dist/Badge.d.ts', default: './dist/Badge.js' },
-      './vue': './dist/vue.js',
-      './nested': {
-        import: { types: './dist/n.d.ts', default: './dist/n.js' }
-      },
-      './roadie.manifest.json': './dist/roadie.manifest.json',
-      './icons/*': { import: './dist/icons/*.js' }
-    })
+    const subpaths = jsSubpaths(
+      exportEntries({
+        '.': { types: './dist/index.d.ts', import: './dist/index.js' },
+        './css': { style: './src/css/a.css', default: './src/css/a.css' },
+        './badge': { types: './dist/Badge.d.ts', default: './dist/Badge.js' },
+        './vue': './dist/vue.js',
+        './nested': {
+          import: { types: './dist/n.d.ts', default: './dist/n.js' }
+        },
+        './roadie.manifest.json': './dist/roadie.manifest.json',
+        './icons/*': { import: './dist/icons/*.js' }
+      })
+    )
     assert.deepEqual(subpaths, [
       { subpath: '.', file: './dist/index.js' },
       { subpath: './badge', file: './dist/Badge.js' },

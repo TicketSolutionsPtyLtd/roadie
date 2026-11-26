@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import type { TokenEntry } from '../../src/tokens/manifest.ts'
+import type { ExportTarget } from '../package-exports.mjs'
 import {
   type ManifestPart,
   componentFiles,
@@ -11,12 +12,7 @@ import {
   readFileComponents
 } from './components.ts'
 import { type PageMatch, pageForComponent, readDocsPages } from './docs.ts'
-import {
-  type ExportTarget,
-  createProgram,
-  exportEntries,
-  moduleExports
-} from './exports.ts'
+import { createProgram, manifestEntries, moduleExports } from './exports.ts'
 import { type ManifestType, type TypeSource, readTypes } from './types.ts'
 
 export const MANIFEST_FILE = 'roadie.manifest.json'
@@ -172,7 +168,7 @@ export function buildManifest({
   const pkg = JSON.parse(
     readFileSync(path.join(packageDir, 'package.json'), 'utf8')
   ) as PackageJson
-  const entries = exportEntries(pkg.exports, packageDir)
+  const entries = manifestEntries(pkg.exports, packageDir)
   const sources = entries.flatMap((entry) => entry.source ?? [])
   const program = createProgram(
     [...new Set([...sources, ...sources.flatMap(componentFiles)])],
