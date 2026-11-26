@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  type RefObject,
-  useCallback,
-  useLayoutEffect,
-  useState,
-  useSyncExternalStore
-} from 'react'
+import { type RefObject, useLayoutEffect, useState } from 'react'
 
 const STAYS_PUT = new Set(['visible', 'clip'])
 
@@ -29,16 +23,9 @@ const PANE_HEADER = 'var(--pane-header-height, 0px)'
 /** The parts publishing a height, by `stack/tier` in the order they mounted, and who renders when they change. */
 const tiers = new Map<string, HTMLElement[]>()
 const listeners = new Map<string, Set<() => void>>()
-const versions = new Map<string, number>()
 
 function changed(stack: string) {
-  versions.set(stack, (versions.get(stack) ?? 0) + 1)
   for (const listener of listeners.get(stack) ?? []) listener()
-}
-
-function forget(stack: string) {
-  const parts = [...tiers.keys()].some((key) => key.startsWith(`${stack}/`))
-  if (!parts && !listeners.has(stack)) versions.delete(stack)
 }
 
 // The first part mounted keeps its tier while it's in the document.
@@ -66,34 +53,28 @@ export type StickyPartOptions = {
   placement?: unknown
 }
 
-const alone = () => () => {}
-
 /** The `top` for a sticky part, which joins its stack. */
 export function useStickyPart(
   ref: RefObject<HTMLElement | null>,
   { tier, stack, publishOn, placement }: StickyPartOptions
 ) {
-  // Renders when a part joins or leaves the stack, never when one resizes.
-  const subscribe = useCallback(
-    (onChange: () => void) => {
-      const set = listeners.get(stack) ?? new Set()
-      listeners.set(stack, set.add(onChange))
-      return () => {
-        set.delete(onChange)
-        if (set.size === 0) listeners.delete(stack)
-        forget(stack)
-      }
-    },
-    [stack]
-  )
-  const version = useSyncExternalStore(
-    tier > 1 || publishOn ? subscribe : alone,
-    () => versions.get(stack) ?? 0,
-    () => 0
-  )
   const [top, setTop] = useState(PANE_HEADER)
-
+  const [version, setVersion] = useState(0)
   const publishes = publishOn !== undefined
+
+  // Renders when a part joins or leaves the stack, never when one resizes.
+  // Subscribed before paint, so a part mounting beside it in one commit lands.
+  useLayoutEffect(() => {
+    if (tier <= 1 && !publishes) return
+    const set = listeners.get(stack) ?? new Set()
+    const onChange = () => setVersion((count) => count + 1)
+    listeners.set(stack, set.add(onChange))
+    return () => {
+      set.delete(onChange)
+      if (set.size === 0) listeners.delete(stack)
+    }
+  }, [stack, tier, publishes])
+
   useLayoutEffect(() => {
     const element = ref.current
     if (!element || !publishes) return
@@ -105,7 +86,6 @@ export function useStickyPart(
       if (rest.length > 0) tiers.set(key, rest)
       else tiers.delete(key)
       changed(stack)
-      forget(stack)
     }
   }, [ref, stack, tier, publishes])
 
