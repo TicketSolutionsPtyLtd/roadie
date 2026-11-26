@@ -1,6 +1,6 @@
-import { type CSSProperties, type ReactNode, useRef } from 'react'
+import { type CSSProperties, type ReactNode, useRef, useState } from 'react'
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { withFrames } from '@oztix/roadie-browser-testing'
@@ -103,6 +103,23 @@ describe('useStickyPart', () => {
       expect(renders).toBe(0)
     }
   )
+
+  it('sticks a part under a lower tier that joins later', TIMEOUT, () => {
+    function Later() {
+      const [shown, setShown] = useState(false)
+      if (shown) return <Part name='toolbar' tier={1} />
+      return <button onClick={() => setShown(true)}>Add toolbar</button>
+    }
+    render(
+      <Box pane>
+        <Later />
+        <Part name='head' tier={2} />
+      </Box>
+    )
+    expect(top('head')).toBe(64)
+    act(() => screen.getByRole('button', { name: 'Add toolbar' }).click())
+    expect(top('head')).toBe(64 + 40)
+  })
 
   it(
     'leaves out a lower tier in another box, as when the part moves into one',
