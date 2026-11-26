@@ -8,6 +8,8 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+import { readExports } from './package-exports.mjs'
+
 const TEST_FOLDER =
   /(^|\/)(__tests__|__mocks__|__screenshots__|__snapshots__|__fixtures__|fixtures?|_?tests?)\//
 // The named helpers are the ones scripts/turbo-inputs.test.mjs lists.
@@ -18,11 +20,6 @@ const TEST_LIBRARY =
   /(?:^|\/)node_modules\/((?:@testing-library|@vitest)\/[^/]+|aria-query|axe-core|vitest)\//
 const testLibrary = (file) => TEST_LIBRARY.exec(file)?.[1]
 
-function exportTargets(exports) {
-  if (typeof exports === 'string') return [exports]
-  return Object.values(exports ?? {}).flatMap(exportTargets)
-}
-
 function shipsTarget(target, files, shipped) {
   const file = target.replace(/^\.\//, '')
   if (!file.includes('*')) return shipped.has(file)
@@ -32,11 +29,12 @@ function shipsTarget(target, files, shipped) {
   )
 }
 
-// `withheld` is what package.json `files` leaves out by name, such as an export
-// only this repo uses.
-export function packProblems(files, readFile, exports, withheld = []) {
+// `entries` come from readExports. `withheld` is what package.json `files`
+// leaves out by name, such as an export only this repo uses.
+export function packProblems(files, readFile, entries = [], withheld = []) {
   const shipped = new Set(files)
-  const problems = exportTargets(exports)
+  const problems = entries
+    .flatMap((entry) => entry.files)
     .filter((target) => !withheld.includes(target.replace(/^\.\//, '')))
     .filter((target) => !shipsTarget(target, files, shipped))
     .map(
@@ -92,7 +90,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const problems = packProblems(
     files,
     (file) => readFileSync(file, 'utf8'),
-    pkg.exports,
+    readExports('.'),
     pkg.files
       .filter((entry) => entry.startsWith('!'))
       .map((entry) => entry.slice(1))

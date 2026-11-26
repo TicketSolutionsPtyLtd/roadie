@@ -5,8 +5,8 @@ import { h, nextTick } from 'vue'
 
 import type { CartClient, CartDetails, CartSummary } from '../../cart'
 import { buildCheckoutUrl } from '../../cart'
+import { lockBodyScroll } from '../../cart/documentEffects'
 import CartDrawer from './CartDrawer.vue'
-import { lockBodyScroll } from './documentEffects'
 
 // @number-flow/vue is an animated Web Component that jsdom never upgrades, so
 // it renders no digit text under test (see CartUrgencyBadge.test.ts). Stub it
