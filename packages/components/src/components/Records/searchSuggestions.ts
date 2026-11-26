@@ -1,4 +1,8 @@
-import { type DateRangeValue, plainDateOf } from '@oztix/roadie-core/datetime'
+import {
+  type DateRangeValue,
+  parseDatePhrase,
+  plainDateOf
+} from '@oztix/roadie-core/datetime'
 import {
   type RecordField,
   type RecordFilter,
@@ -679,6 +683,31 @@ function typedPresets(
     .map(({ item }) => item)
 }
 
+/** The words a typed run of days stands for, such as Next weekend, by its row's id. */
+function phraseWords(
+  field: RecordField,
+  typed: string,
+  context: SearchContext
+) {
+  if (field.type !== 'date') return new Map<string, string>()
+  return new Map(
+    parseDatePhrase(typed, context).flatMap(({ value, description }) =>
+      description && typeof value === 'object' && 'start' in value
+        ? [
+            [
+              filterSuggestion({
+                field: field.key,
+                operator: 'between',
+                value: [value.start, value.end]
+              }).id,
+              description
+            ]
+          ]
+        : []
+    )
+  )
+}
+
 function parsedValues(
   field: RecordField,
   typed: string,
@@ -686,9 +715,14 @@ function parsedValues(
   context: SearchContext
 ): SearchSuggestion[] {
   const presets = typedPresets(field, typed, context)
+  const words = phraseWords(field, typed, context)
   const parsed = parseRecordValue(typed, { ...context, field })
     .slice(0, 10)
     .map(filterSuggestion)
+    .map((item) => {
+      const description = words.get(item.id)
+      return description ? { ...item, description } : item
+    })
     .map((item) =>
       isRecordOptionField(field) ? withOperator(item, option) : item
     )

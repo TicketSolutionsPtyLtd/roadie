@@ -422,6 +422,16 @@ describe('valueSuggestions', () => {
       }
     })
   })
+
+  it('names the words a typed run of days stands for', () => {
+    const [weekend] = valuesOf(
+      valueSuggestions(byKey('starts'), 'next weekend', context())
+    ).items
+    expect(weekend).toMatchObject({
+      label: '10 to 11 Oct',
+      description: 'Next weekend'
+    })
+  })
 })
 
 describe('valueSuggestions for text and numbers', () => {
