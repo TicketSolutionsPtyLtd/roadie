@@ -242,6 +242,8 @@ describe('RecordTable totals', () => {
         expect.stringMatching(/^Sold [\d,]+$/),
         expect.stringMatching(/^Gross \$\S+$/)
       ])
+      // Sold's header hides with its column, so the total reads its own heading.
+      expect(screen.getByRole('cell', { name: /^Sold [\d,]+$/ })).toBeVisible()
       expect(totals.scrollWidth).toBeLessThanOrEqual(totals.clientWidth)
       expect(rect(totals).right).toBeLessThanOrEqual(
         rect(slot(container, 'record-table-frame')).right + 1

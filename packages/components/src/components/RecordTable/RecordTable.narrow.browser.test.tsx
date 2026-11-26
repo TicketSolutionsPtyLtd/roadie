@@ -305,6 +305,31 @@ describe('RecordTable narrow list rows in a browser', () => {
     expect(viewport.scrollWidth).toBe(viewport.clientWidth)
   })
 
+  it('keeps cards whole inside their own scroll box', async () => {
+    const { container } = render(
+      <Boxed width={360}>
+        <RecordTable
+          {...base}
+          columns={swapColumns}
+          data={testShows(10)}
+          selectable
+          defaultSelection={{ ids: ['show-0'] }}
+          maxHeight='400px'
+        />
+      </Boxed>
+    )
+    const cards = () => [
+      ...container.querySelectorAll('[data-slot="record-table-card"]')
+    ]
+    await expect.poll(() => cards().length).toBeGreaterThan(0)
+    const viewport = container
+      .querySelector('[data-slot="record-table-viewport"]')!
+      .getBoundingClientRect()
+    const card = cards()[0]!.getBoundingClientRect()
+    expect(card.left).toBeGreaterThanOrEqual(viewport.left)
+    expect(card.right).toBeLessThanOrEqual(viewport.right)
+  })
+
   it("keeps focus on a record's checkbox as Select mode goes wide", async () => {
     const user = userEvent.setup()
     const { container } = render(

@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { RecordField } from '@oztix/roadie-core/records'
 
+import { textStartClass } from './RecordTableGroups'
 import {
   PRIORITY_HIDES_BELOW,
+  SELECT_WIDTH,
   TIER_CLASSES,
   columnLayout,
   columnWidths
@@ -281,4 +283,10 @@ describe('TIER_CLASSES', () => {
       })
     }
   )
+})
+
+describe('a group title', () => {
+  it('starts past the checkbox track, SELECT_WIDTH wide', () => {
+    expect(textStartClass(true)).toContain(`calc(${SELECT_WIDTH}rem+`)
+  })
 })

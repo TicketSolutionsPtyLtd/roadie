@@ -27,7 +27,8 @@ const TEXT_START_NARROW =
   '@max-[40rem]/record-table-frame:[--group-text-start:var(--content-inset)]'
 // Under 40rem the title row spans the frame alone, not the columns' tracks, which would overflow it.
 const NARROW_GROUP_ROW = '@max-[40rem]/record-table-frame:grid-cols-1'
-const textStartClass = (select: boolean) =>
+/** Exported for its test, which checks the checkbox track against SELECT_WIDTH. */
+export const textStartClass = (select: boolean) =>
   cn(
     select
       ? '[--group-text-start:calc(2.5rem+var(--content-inset)+var(--spacing)*2.5)]'

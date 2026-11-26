@@ -39,10 +39,12 @@ function Table(props: Partial<RecordTableProps<TestShow>>) {
   )
 }
 
-/** A cell's text as read, without the heading shown beside it under 40rem. */
+/** A cell's text, without the heading shown beside it only under 40rem. */
 function cellText(cell: Element) {
   const copy = cell.cloneNode(true) as Element
-  copy.querySelectorAll('[aria-hidden]').forEach((part) => part.remove())
+  copy
+    .querySelectorAll('[data-slot="record-table-total-heading"]')
+    .forEach((part) => part.remove())
   return copy.textContent
 }
 

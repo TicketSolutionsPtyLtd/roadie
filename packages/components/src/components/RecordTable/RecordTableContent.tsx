@@ -698,7 +698,7 @@ export function RecordTableContent({
       <ScrollArea.Scrollbar
         keepMounted
         data-slot='record-table-scrollbar'
-        // Under 40rem the head is at most a totals line that wraps, so the bar runs beside it.
+        // Under 40rem the head shows only a totals line or the bulk bar, of no set height, so the bar runs beside it.
         className={
           narrow
             ? undefined

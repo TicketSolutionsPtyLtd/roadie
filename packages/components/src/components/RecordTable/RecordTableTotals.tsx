@@ -112,8 +112,12 @@ export function RecordTableTotalsRow({
         return (
           <div key={column.key} role='cell' {...shared}>
             {value !== undefined && layout.narrow && (
-              // The column header names the cell; this shows it where the header row hides.
-              <span aria-hidden className={NARROW_TOTAL_HEADING_CLASS}>
+              // Shown and read only under 40rem, where the header row hides and
+              // a column left out of the narrow rows hides its header.
+              <span
+                data-slot='record-table-total-heading'
+                className={NARROW_TOTAL_HEADING_CLASS}
+              >
                 {column.field.label}
               </span>
             )}

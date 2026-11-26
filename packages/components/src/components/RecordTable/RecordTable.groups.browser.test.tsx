@@ -27,6 +27,7 @@ import {
   testShows
 } from '../Records/testUtils'
 import type { UseRecordsOptions } from '../Records/useRecords'
+import { frame } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -392,8 +393,7 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
           selectable={selectable}
         />
       )
-      // A frame for the window and container queries to settle.
-      await new Promise(requestAnimationFrame)
+      await frame()
       expect(screen.queryByRole('listitem')).toBeNull()
       const heading = screen.getByRole('heading', {
         level: 2,
@@ -416,10 +416,10 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
       expect(
         Math.abs(textStart - title.getBoundingClientRect().left)
       ).toBeLessThanOrEqual(1)
-      const frame = container.querySelector<HTMLElement>(
+      const tableFrame = container.querySelector<HTMLElement>(
         '[data-slot="record-table-frame"]'
       )!
-      expect(frame.hasAttribute('data-narrow')).toBe(false)
+      expect(tableFrame.hasAttribute('data-narrow')).toBe(false)
       const scroller = container.querySelector<HTMLElement>(
         '[data-slot="record-table-scroller"]'
       )!
