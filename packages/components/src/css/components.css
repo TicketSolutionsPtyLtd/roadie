@@ -9,6 +9,7 @@
 @import './card-direction.css';
 @import './card-ticket.css';
 @import './callout.css';
+@import './empty-state.css';
 @import './collapsible-text.css';
 @import './data-table.css';
 @import './records-pane.css';

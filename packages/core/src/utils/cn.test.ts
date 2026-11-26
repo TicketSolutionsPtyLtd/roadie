@@ -13,6 +13,17 @@ describe('cn', () => {
     expect(cn('border-subtle', 'border-strong')).toBe('border-strong')
   })
 
+  it.each([
+    ['text-neutral-9', 'text-normal'],
+    ['text-normal', 'text-neutral-9'],
+    ['text-normal', 'text-chart-1'],
+    ['bg-raised', 'bg-danger-3'],
+    ['border-subtle', 'border-accent-9'],
+    ['surface-floating', 'bg-danger-3']
+  ])('lets %s be replaced by %s, in either colour family', (earlier, later) => {
+    expect(cn(earlier, later)).toBe(later)
+  })
+
   it('lets a bg utility override the floating surface fill', () => {
     expect(cn('surface-floating p-1', 'bg-raised')).toBe('p-1 bg-raised')
     expect(cn('bg-(--intent-bg-raised)', 'surface-floating')).toBe(

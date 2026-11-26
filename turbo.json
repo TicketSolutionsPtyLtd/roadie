@@ -16,7 +16,8 @@
         "package.json",
         "tsconfig.json",
         "!src/**/*.test.*",
-        "!scripts/**/*.test.*"
+        "!scripts/**/*.test.*",
+        "!scripts/**/fixtures/**"
       ],
       "outputs": ["dist/**"]
     },
@@ -31,7 +32,8 @@
         "package.json",
         "tsconfig.json",
         "!src/**/*.test.*",
-        "!scripts/**/*.test.*"
+        "!scripts/**/*.test.*",
+        "!scripts/**/fixtures/**"
       ],
       "outputs": ["dist/**"]
     },
@@ -39,7 +41,8 @@
       "dependsOn": ["build"],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/packages/core/scripts/check-*.mjs"
+        "$TURBO_ROOT$/packages/core/scripts/check-*.mjs",
+        "$TURBO_ROOT$/packages/core/scripts/package-exports.mjs"
       ],
       "outputs": []
     },
@@ -47,6 +50,7 @@
       "dependsOn": ["^build"],
       "inputs": [
         "**/*.{ts,tsx,mts,cts}",
+        "$TURBO_ROOT$/packages/core/scripts/package-exports.d.mts",
         "src/**/*.json",
         "tsconfig*.json",
         "!**/roadie-core/**",

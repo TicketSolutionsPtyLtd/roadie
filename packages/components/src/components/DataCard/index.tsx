@@ -280,7 +280,8 @@ export function DataCard({
             {/* A card can't know the page's heading outline. */}
             <EmptyState.Title
               render={<p />}
-              className={isStat ? 'text-sm' : undefined}
+              // The sm text style is a variant, which a plain class can't replace.
+              className={isStat ? 'empty-state-sm:text-sm text-sm' : undefined}
             >
               {state === 'empty'
                 ? emptyMessage
