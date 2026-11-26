@@ -341,7 +341,7 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
       screen.getByRole('group', { name: 'Bulk actions' })
     ).toHaveTextContent('1 selected')
     await switchTo('Table', user)
-    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull()
+    // The table's Select controls stay, for CSS to hide above 40rem (RecordTable.select.browser.test.tsx).
     expect(
       screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
     ).toBeChecked()

@@ -44,7 +44,11 @@ export const SelectableInPane = allowing(
       </Pane>
     </div>
   ),
-  { 390: phone(93, 142), 1280: { ticket: 'INNO-1678', shift: 98 } }
+  // The pane's scrollbar starts under its header once measured, at either width.
+  {
+    390: { ticket: 'INNO-1678', shift: 80 },
+    1280: { ticket: 'INNO-1678', shift: 98 }
+  }
 )
 
 // Each group's title is a disclosure, open as the server paints it. A phone

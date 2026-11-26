@@ -2,7 +2,11 @@
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
 
-import { handedOver, tableFocusTarget } from '../Records/tableFocus'
+import {
+  handedOver,
+  hiddenByStyle,
+  tableFocusTarget
+} from '../Records/tableFocus'
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -11,7 +15,8 @@ type Held = { inside: boolean; rowId?: string }
 
 /**
  * Keeps focus with the record across a switch between the table and the
- * list: the same record's link or first control, else the scroller.
+ * list, or in and out of Select mode: the same record's link or first
+ * control shown, else the scroller.
  */
 export function useLayoutFocus(
   ref: RefObject<HTMLElement | null>,
@@ -64,6 +69,8 @@ export function useLayoutFocus(
     const lost =
       !active ||
       active === document.body ||
+      // A re-flowed row's checkbox hides in CSS as Select mode ends, focus and all.
+      hiddenByStyle(active) ||
       (rowId !== undefined && active === tableFocusTarget(active))
     if (!element || !inside || !lost) return
     const row = [
@@ -71,7 +78,9 @@ export function useLayoutFocus(
     ].find((candidate) => candidate.dataset.rowId === rowId)
     const target =
       row?.querySelector<HTMLElement>('[data-row-link]') ??
-      row?.querySelector<HTMLElement>(FOCUSABLE) ??
+      [...(row?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].find(
+        (control) => !hiddenByStyle(control)
+      ) ??
       element.querySelector<HTMLElement>('[data-slot="record-table-scroller"]')
     target?.focus()
   }, [ref, layout])

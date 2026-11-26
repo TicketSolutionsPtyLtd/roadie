@@ -17,6 +17,7 @@ import { RecordTable, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
+import { RecordList } from '../RecordList'
 import {
   Records,
   type RecordsBulkAction,
@@ -338,7 +339,8 @@ describe('RecordTable selection bar', () => {
   })
 })
 
-describe('RecordTable floating bulk bar on narrow records', () => {
+// A re-flowed table keeps its bar in the header row; a list's floats.
+describe('The floating bulk bar on narrow records', () => {
   const compare: RecordsBulkAction = {
     label: 'Compare',
     icon: <ScalesIcon weight='bold' className='size-4' aria-hidden />,
@@ -352,11 +354,11 @@ describe('RecordTable floating bulk bar on narrow records', () => {
   function Narrow({ bulkActions }: { bulkActions: RecordsBulkAction[] }) {
     return (
       <div style={{ width: 360 }}>
-        <RecordTable
+        <RecordList
           caption='Shows'
           data={testShows(8)}
           fields={showFields}
-          columns={wideColumns}
+          row={{ title: 'show', description: 'city' }}
           getRowId={(row) => row.id}
           defaultSelection={{ ids: ['show-0'] }}
           bulkActions={bulkActions}

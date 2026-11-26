@@ -201,10 +201,7 @@ describe('A toolbar in a pane', () => {
   })
 
   it('folds its actions into the menu under 40rem of room inside it', async () => {
-    const container = await renderAt(660, wide, {
-      slot: 'record-table-list-row',
-      actions: true
-    })
+    const container = await renderAt(660, wide, { actions: true })
     const toolbar = slot(container, 'records-header')
     await expect
       .poll(() => toolbar.querySelector('[aria-label="More actions"]'))
@@ -240,7 +237,11 @@ describe('A table in a pane measures the room its columns get', () => {
   })
 
   it('turns narrow under 40rem of room, not of the pane', async () => {
-    await renderAt(668, wide, { slot: 'record-table-list-row' })
+    const container = await renderAt(668, wide)
+    // Re-flowed rows hide the header row from sight.
+    expect(
+      getComputedStyle(slot(container, 'record-table-head-row')).position
+    ).toBe('absolute')
   })
 
   it('ends the last header with its cells while bulk actions wait', async () => {
@@ -301,9 +302,7 @@ describe.each([390, 360, 1280])(
   'A stuck toolbar in a pane at %ipx',
   (width) => {
     it('paints the pane’s margins beside it and down to the rows', async () => {
-      const container = await renderAt(width, wide, {
-        slot: width < 640 ? 'record-table-list-row' : 'record-table-row'
-      })
+      const container = await renderAt(width, wide)
       slot(container, 'pane-viewport').scrollTop = 1500
       await nudgeFrames()
       const toolbar = slot(container, 'records-header')
@@ -331,9 +330,7 @@ describe.each([390, 360, 1280])(
 
 describe.each([390, 360])('Narrow rows in a pane at %ipx', (width) => {
   it('keep the pane’s inset', async () => {
-    const container = await renderAt(width, wide, {
-      slot: 'record-table-list-row'
-    })
+    const container = await renderAt(width, wide)
     expect(rect(slot(container, 'record-table-frame')).left).toBeCloseTo(
       searchLeft(container),
       0

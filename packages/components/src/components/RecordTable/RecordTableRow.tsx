@@ -19,6 +19,7 @@ import { RowElement } from './RecordTableRowPlace'
 import {
   type ColumnLayout,
   NARROW_ACTIONS_CLASS,
+  NARROW_SELECT_CLASS,
   narrowRowClass,
   priorityClass,
   priorityProps
@@ -113,6 +114,11 @@ type RecordTableRowProps = {
   href?: string
 }
 
+const checkboxShown = (row: HTMLElement) => {
+  const cell = row.querySelector('[data-slot="record-table-select-cell"]')
+  return cell !== null && getComputedStyle(cell).display !== 'none'
+}
+
 // Memoised so rows a change doesn't touch skip re-rendering.
 export const RecordTableRow = memo(function RecordTableRow({
   id,
@@ -136,7 +142,10 @@ export const RecordTableRow = memo(function RecordTableRow({
     handleRowClick(
       event.nativeEvent,
       event.currentTarget,
-      selectable ? (range) => onToggle(id, range) : undefined
+      // A re-flowed row hides its checkbox until Select mode, and follows its link until then.
+      selectable && checkboxShown(event.currentTarget)
+        ? (range) => onToggle(id, range)
+        : undefined
     )
   return (
     <RowElement
@@ -169,7 +178,15 @@ export const RecordTableRow = memo(function RecordTableRow({
       )}
     >
       {selectable && (
-        <div role='cell' className={cn(selectCellClass, cellOverflowClass)}>
+        <div
+          role='cell'
+          data-slot='record-table-select-cell'
+          className={cn(
+            selectCellClass,
+            cellOverflowClass,
+            layout.narrow && NARROW_SELECT_CLASS
+          )}
+        >
           <RecordsRowCheckbox
             id={id}
             title={name ?? id}
