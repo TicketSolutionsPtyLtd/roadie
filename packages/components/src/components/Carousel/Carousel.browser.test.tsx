@@ -682,11 +682,13 @@ describe('Carousel dots', () => {
     count = 20,
     max,
     className,
+    label,
     getDotLabel
   }: {
     count?: number
     max?: number
     className?: string
+    label?: string
     getDotLabel?: (index: number, count: number) => string
   }) {
     return (
@@ -694,7 +696,11 @@ describe('Carousel dots', () => {
         <Carousel aria-label='Tickets' opts={{ slidesToScroll: 1 }}>
           <Carousel.Header>
             <Carousel.Title>Tickets</Carousel.Title>
-            <Carousel.Dots max={max} getDotLabel={getDotLabel} />
+            <Carousel.Dots
+              max={max}
+              aria-label={label}
+              getDotLabel={getDotLabel}
+            />
           </Carousel.Header>
           <Carousel.Content overflow='hidden'>
             {Array.from({ length: count }, (_, index) => (
@@ -738,6 +744,16 @@ describe('Carousel dots', () => {
       />
     )
     await expect.poll(names).toEqual(['Ticket 0 3', 'Ticket 1 3', 'Ticket 2 3'])
+  })
+
+  it('names the strip of dots with aria-label', async () => {
+    render(<Holding count={3} label='Choose a ticket' />)
+    await expect
+      .element(page.getByRole('group', { name: 'Choose a ticket' }))
+      .toBeVisible()
+    expect(
+      screen.queryByRole('group', { name: 'Choose slide to display' })
+    ).toBeNull()
   })
 
   it('names the slides a windowed strip shows, not their place in the window', async () => {
