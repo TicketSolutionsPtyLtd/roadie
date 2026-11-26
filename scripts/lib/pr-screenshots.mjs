@@ -20,7 +20,11 @@ export function parseArgs(argv) {
     else if (arg.startsWith('--repo=')) repo = arg.slice('--repo='.length)
     else rest.push(arg)
   }
-  if (repo !== undefined && !/^[\w.-]+\/[\w.-]+$/.test(repo)) {
+  const parts = repo?.split('/') ?? []
+  const named =
+    parts.length === 2 &&
+    parts.every((part) => /^[\w.-]+$/.test(part) && !/^\.\.?$/.test(part))
+  if (repo !== undefined && !named) {
     throw new Error(`--repo takes owner/name, not "${repo}".`)
   }
   const [pr, ...paths] = rest

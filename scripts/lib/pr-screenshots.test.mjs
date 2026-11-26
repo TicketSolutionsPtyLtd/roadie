@@ -32,7 +32,9 @@ describe('parseArgs', () => {
   for (const argv of [
     ['--repo'],
     ['--repo', 'roadie', '5'],
-    ['--repo=a/b/c', '5']
+    ['--repo=a/b/c', '5'],
+    ['--repo', '../..', '5'],
+    ['--repo', 'acme/.', '5']
   ]) {
     test(`refuses ${argv.join(' ')}`, () => {
       assert.throws(() => parseArgs(argv), /owner\/name/)
