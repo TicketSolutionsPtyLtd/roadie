@@ -117,6 +117,19 @@ describe('recordFilterFits', () => {
     expect(recordFilterFits(filter, fields)).toBe(!unfit)
   })
 
+  it('reads a repeated key as validateRecordView does, the last one', () => {
+    const repeated: RecordField[] = [
+      { key: 'notes', label: 'Notes', type: 'text' },
+      { key: 'notes', label: 'Notes', type: 'text', filterable: false }
+    ]
+    expect(
+      recordFilterFits(
+        { field: 'notes', operator: 'contains', value: 'x' },
+        repeated
+      )
+    ).toBe(false)
+  })
+
   it('is false for a field the fields lack', () => {
     expect(
       recordFilterFits({ field: 'nope', operator: 'is-set' }, eventFields)

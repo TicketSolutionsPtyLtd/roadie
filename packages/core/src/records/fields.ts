@@ -140,7 +140,7 @@ export function recordFilterFits(
   filter: RecordFilter,
   fields: readonly RecordField[]
 ): boolean {
-  const field = fields.find((f) => f.key === filter.field)
+  const field = fieldIndex(fields).get(filter.field)
   return (
     field !== undefined &&
     isFilterable(field) &&
