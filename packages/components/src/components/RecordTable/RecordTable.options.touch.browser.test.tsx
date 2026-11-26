@@ -2,10 +2,11 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { settledBox } from '../../utils/touchTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
 import { showFields, testShows } from '../Records/testUtils'
 import { tableColumns } from './columns'
 

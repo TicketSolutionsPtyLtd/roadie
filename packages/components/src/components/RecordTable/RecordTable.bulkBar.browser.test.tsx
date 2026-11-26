@@ -13,10 +13,14 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RecordTable, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { RecordList } from '../RecordList'
 import {
   Records,

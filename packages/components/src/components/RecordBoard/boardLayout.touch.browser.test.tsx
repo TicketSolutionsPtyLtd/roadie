@@ -10,9 +10,10 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
-import { useStylesheet } from '../Pane/testUtils'
 import { groupedShowFields } from '../Records/testUtils'
 import {
   type Move,
