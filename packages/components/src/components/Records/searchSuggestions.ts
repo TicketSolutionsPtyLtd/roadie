@@ -7,7 +7,10 @@ import {
   describeRecordFilter,
   isRecordOptionField,
   parseRecordQuery,
+  parseRecordValue,
   recordFieldOptions,
+  recordFilterFits,
+  recordFilterKey,
   recordFilterOperators,
   recordOperatorLabel
 } from '@oztix/roadie-core/records'
@@ -309,31 +312,12 @@ export function valueText(
   }
 }
 
-function canonical(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonical)
-  if (value && typeof value === 'object')
-    return Object.fromEntries(
-      Object.entries(value)
-        .filter(([, item]) => item !== undefined)
-        .sort(([a], [b]) => (a < b ? -1 : 1))
-        .map(([key, item]) => [key, canonical(item)])
-    )
-  return value
-}
-
-/** The same whatever its key order, and for a list of values, their order. */
-export function filterKey(filter: RecordFilter): string {
-  const values =
-    'values' in filter ? { values: [...new Set(filter.values)].sort() } : {}
-  return JSON.stringify(canonical({ ...filter, ...values }))
-}
-
 export const sameFilter = (a: RecordFilter, b: RecordFilter) =>
-  filterKey(a) === filterKey(b)
+  recordFilterKey(a) === recordFilterKey(b)
 
 function filterSuggestion(filter: RecordFilter): SearchSuggestion {
   return {
-    id: `filter:${filterKey(filter)}`,
+    id: `filter:${recordFilterKey(filter)}`,
     kind: 'filter',
     label: '',
     value: { type: 'filter', filter }
@@ -487,32 +471,9 @@ function withOperator(
   return { ...item, ...filterSuggestion(filter), label: item.label }
 }
 
-// parseRecordQuery reads a lone number as `eq`, with any `$` and commas.
-function numberReader(field: RecordField, context: SearchContext) {
-  return (text: string) => {
-    const [reading] = parseRecordQuery(`${field.key}:${text}`, {
-      ...context,
-      fields: [field]
-    })
-    return reading?.kind === 'filter' ? reading.value : null
-  }
-}
-
-const RANGE_SEPARATOR = /-|\.\.|to|and/gi
-
-/** A range typed either way round, such as "50-20" or "20 and 50", low to high. */
-function typedRange(
-  typed: string,
-  readNumber: (text: string) => RecordFilter | null
-): [number, number] | null {
-  for (const { 0: separator, index } of typed.matchAll(RANGE_SEPARATOR)) {
-    const low = readNumber(typed.slice(0, index))
-    const high = readNumber(typed.slice(index + separator.length))
-    if (low?.operator === 'eq' && high?.operator === 'eq')
-      return [Math.min(low.value, high.value), Math.max(low.value, high.value)]
-  }
-  return null
-}
+/** A number field's reading of typed text, such as `eq` for a lone number. */
+const readNumber = (field: RecordField, text: string, context: SearchContext) =>
+  parseRecordValue(text, { ...context, field })[0] ?? null
 
 /** Typed text, or a number or range, compared by the step's operator: none for what it can't read. */
 function typedFilters(
@@ -529,12 +490,8 @@ function typedFilters(
       ? [{ field: key, operator, values: [typed] }]
       : []
   }
-  const readNumber = numberReader(field, context)
-  if (operator === 'between') {
-    const range = typedRange(typed, readNumber)
-    return range ? [{ field: key, operator, value: range }] : []
-  }
-  const read = readNumber(typed)
+  const read = readNumber(field, typed, context)
+  if (operator === 'between') return read?.operator === 'between' ? [read] : []
   return read?.operator === 'eq' &&
     (operator === 'eq' ||
       operator === 'neq' ||
@@ -548,7 +505,7 @@ const isOneNumber = (
   field: RecordField,
   text: string,
   context: SearchContext
-) => numberReader(field, context)(text)?.operator === 'eq'
+) => readNumber(field, text, context)?.operator === 'eq'
 
 /**
  * What a text or number step asks for while nothing typed reads under its
@@ -584,10 +541,11 @@ export function valueHint(
     if (!typed) return `Type ${one}.`
     return `Type ${one} like ${money ? '$50' : '50'}.`
   }
-  const first = numberReader(
+  const first = readNumber(
     field,
+    typed.replace(/\s*(?:-|\.\.|to|and)$/i, ''),
     context
-  )(typed.replace(/\s*(?:-|\.\.|to|and)$/i, ''))
+  )
   if (first?.operator === 'eq') {
     const { value } = describeRecordFilter(first, context.fields, context)
     const second = money ? 'amount' : 'number'
@@ -728,24 +686,14 @@ function parsedValues(
   context: SearchContext
 ): SearchSuggestion[] {
   const presets = typedPresets(field, typed, context)
-  const parsed = parseRecordQuery(`${field.key}:${typed}`, {
-    ...context,
-    fields: [field]
-  })
-    .filter((suggestion) => suggestion.kind === 'filter')
-    .map((suggestion) => fromParsed(suggestion))
+  const parsed = parseRecordValue(typed, { ...context, field })
+    .slice(0, 10)
+    .map(filterSuggestion)
     .map((item) =>
       isRecordOptionField(field) ? withOperator(item, option) : item
     )
-  const isPreset = (item: SearchSuggestion) =>
-    item.value.type === 'filter' &&
-    presets.some(
-      (preset) =>
-        preset.value.type === 'filter' &&
-        item.value.type === 'filter' &&
-        sameFilter(preset.value.filter, item.value.filter)
-    )
-  return [...presets, ...parsed.filter((item) => !isPreset(item))]
+  const presetIds = new Set(presets.map(({ id }) => id))
+  return [...presets, ...parsed.filter(({ id }) => !presetIds.has(id))]
 }
 
 const readOptions = ({ now, timeZone }: SearchContext) => ({
@@ -953,16 +901,6 @@ export const scopeChipId = (index: number) => `scope:${index}`
 
 const NOT_APPLIED = 'Not applied: these records can’t be filtered this way'
 
-/** Whether these fields can apply a filter, as the records decide. */
-function fits(filter: RecordFilter, fields: readonly RecordField[]) {
-  const field = fields.find(({ key }) => key === filter.field)
-  return (
-    !!field &&
-    field.filterable !== false &&
-    recordFilterOperators(field).includes(filter.operator)
-  )
-}
-
 /**
  * Each filter's chip id, by what it filters rather than where it sits, so a
  * click on a chip that has just moved never reaches its neighbour.
@@ -970,7 +908,7 @@ function fits(filter: RecordFilter, fields: readonly RecordField[]) {
 export function filterChipIds(filters: readonly RecordFilter[]): string[] {
   const seen = new Map<string, number>()
   return filters.map((filter) => {
-    const key = filterKey(filter)
+    const key = recordFilterKey(filter)
     const count = seen.get(key) ?? 0
     seen.set(key, count + 1)
     return `filter:${key}#${count}`
@@ -989,7 +927,8 @@ export function searchChips(
     ...scope.map((filter, index) => {
       const { label, detail } = describe(filter)
       const unusable =
-        skippedScope.includes(index) || !fits(filter, context.fields)
+        skippedScope.includes(index) ||
+        !recordFilterFits(filter, context.fields)
       const description = unusable ? NOT_APPLIED : detail
       return {
         id: scopeChipId(index),

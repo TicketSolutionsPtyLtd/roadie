@@ -1,4 +1,8 @@
-import type { RecordQuery, RecordSelection } from '@oztix/roadie-core/records'
+import {
+  type RecordQuery,
+  type RecordSelection,
+  recordFilterKey
+} from '@oztix/roadie-core/records'
 
 export const EMPTY_SELECTION: RecordSelection = { ids: [] }
 
@@ -114,15 +118,4 @@ export const matchKey = ({
   search,
   filters
 }: Pick<RecordQuery, 'search' | 'filters'>) =>
-  JSON.stringify([
-    search.trim(),
-    filters
-      .map((filter) =>
-        JSON.stringify(
-          'values' in filter
-            ? { ...filter, values: [...filter.values].sort() }
-            : filter
-        )
-      )
-      .sort()
-  ])
+  JSON.stringify([search.trim(), filters.map(recordFilterKey).sort()])

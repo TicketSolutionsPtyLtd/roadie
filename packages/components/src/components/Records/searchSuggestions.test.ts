@@ -6,7 +6,6 @@ import {
   type SearchGroup,
   type ValueOperator,
   filterChipIds,
-  filterKey,
   heldHint,
   mergeFilter,
   pendingLabel,
@@ -132,6 +131,23 @@ describe('topSuggestions', () => {
         { field: 'city', operator: 'is', values: ['melbourne'] }
       ])
     ).toContainEqual(['City is not Melbourne', undefined, ''])
+  })
+
+  it('marks a filter applied when the view writes it another way', () => {
+    const [top] = topSuggestions(
+      'starts last month',
+      context([
+        {
+          field: 'starts',
+          operator: 'within',
+          value: { period: 'month', offset: -1 }
+        }
+      ])
+    )[0]!.items
+    expect(top?.value).toMatchObject({
+      filter: { operator: 'within', value: 'last-month' }
+    })
+    expect(top?.description).toMatch(/already applied/i)
   })
 
   it('offers an applied value beside a new one, so taking it reads its words', () => {
@@ -505,33 +521,6 @@ describe('valueSuggestions for text and numbers', () => {
     ).items
     expect(row).toMatchObject({ selected: true })
     expect(row!.remainder).toBeUndefined()
-  })
-})
-
-describe('filterKey', () => {
-  it('reads filters alike whatever their key or value order', () => {
-    expect(
-      filterKey({ field: 'city', operator: 'is', values: ['b', 'a'] })
-    ).toBe(
-      filterKey({
-        values: ['a', 'b'],
-        operator: 'is',
-        field: 'city'
-      } as RecordFilter)
-    )
-    expect(
-      filterKey({
-        field: 'starts',
-        operator: 'within',
-        value: { direction: 'next', amount: 7, unit: 'day' }
-      })
-    ).toBe(
-      filterKey({
-        field: 'starts',
-        operator: 'within',
-        value: { unit: 'day', amount: 7, direction: 'next' }
-      })
-    )
   })
 })
 
