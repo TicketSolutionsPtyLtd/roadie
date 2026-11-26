@@ -79,10 +79,34 @@ attempt.
   the trap above. A pseudo-element can't read its originating element's
   parked state through a container query either: the query never matches.
 
-## Where that leaves it
+## What shipped
 
-Holding the header's height and keeping taps off a leaving pane are both
-possible, but not with one rule every engine runs the same way. The next
-attempt needs a cover WebKit invalidates, or a signal for "the slide has
-ended" that isn't a running animation. A tap cover drawn by Navigator,
-which knows when its push ends, would do the first.
+A parked pane no longer flips `pointer-events`. `visibility`, which
+transitions, still hides it once its slide ends. While it slides, Navigator
+appends a real element to it, `[data-pane-tap-cover]`, which sits over the
+content and takes the taps. WebKit draws it, unlike the `::before` cover,
+since nothing about it hangs on an inherited value.
+
+- **When to draw it.** In the insertion effect that finds the top pane: when
+  the top changes during a push (the row has `data-pushing`), the old top is
+  covered, and a pane that becomes top again is uncovered at once.
+- **When to lift it.** On the pane's own `translate` `transitionend` or
+  `transitioncancel`, or three frames on when no `transitionrun` came, as on
+  a wide screen or with reduced motion.
+- **Not `getAnimations()`.** Reading the slide that way forces a style pass
+  in the frame after the push. With it, the RecordTable push missed its frame
+  budget in 5 of 16 CI jobs. With transition events, it missed in none of 8.
+- **Not a `data-slot`.** Many `:has()` arguments name `data-slot`, so
+  inserting an element that carries one makes Chromium check their anchors.
+
+On eight CI runners in the same hour, the 100-row push cost 86 to 102ms of
+style (median 93), against 85 to 127ms (median 107) on `main`. The RecordTable
+push still costs 151 to 205ms, mostly the mount, so its cap stays waived, as
+does the 100-row pop, which still flips the returning pane's `visibility`.
+`navigatorPushTaps.browser.test.tsx` proves the cover in all three engines.
+
+## What's left
+
+Holding Back on parked panes moved nothing measurable on its own. The pop
+and the RecordTable push need the `visibility` flip gone too, which needs a
+way to hide a pane that every engine draws through a slide.
