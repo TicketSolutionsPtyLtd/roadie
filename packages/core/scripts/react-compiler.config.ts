@@ -1,4 +1,3 @@
-import { defineRolldownBabelPreset } from '@rolldown/plugin-babel'
 import { relative } from 'node:path'
 
 type CompilerEvent = {
@@ -24,8 +23,11 @@ function logEvent(filename: string | null, event: CompilerEvent) {
   console.warn(message)
 }
 
+// The Babel preset every package that builds with the React Compiler passes
+// to @rolldown/plugin-babel; core has no such dependency, so it's written as
+// the plain object defineRolldownBabelPreset would return.
 // Client modules only: the compiler's cache is a hook, which server components can't call.
-export const reactCompilerPreset = defineRolldownBabelPreset({
+export const reactCompilerPreset = {
   preset: () => ({
     plugins: [
       ['babel-plugin-react-compiler', { target: '19', logger: { logEvent } }]
@@ -37,4 +39,4 @@ export const reactCompilerPreset = defineRolldownBabelPreset({
       code: /^['"]use client['"]/m
     }
   }
-})
+}
