@@ -7,12 +7,12 @@ import { globSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { basename, dirname, join } from 'node:path'
 import { describe, it } from 'node:test'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
+
+import { isShipped } from '../packages/core/scripts/package-exports.mjs'
+import { reactCompilerPreset } from '../packages/core/scripts/react-compiler.config.ts'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-// What the builds leave out, as in turbo-inputs.test.mjs.
-const TEST_ONLY =
-  /\.test\.|__screenshots__\/|__snapshots__\/|(?:^|\/)(?:testUtils|\w+TestUtils|fixtures|testChart|browserTesting)\.\w+$|\/_test\//
 const NAMED = /(?:function|const|let)\s+([A-Za-z_$][\w$]*)/
 const NO_MEMO = /^use no (?:memo|forget)$/
 const MODULE_OPTED_OUT =
@@ -58,9 +58,7 @@ const SKIPS = {
 }
 
 /** Each function the compiler skips under `packages/<name>`, with the compiler's reason. */
-async function skipsIn(config) {
-  const dir = dirname(config)
-  const { reactCompilerPreset } = await import(pathToFileURL(config).href)
+async function skipsIn(dir) {
   const { id, code: client } = reactCompilerPreset.rolldown.filter
   // The Babel the build's plugin runs, which only components names itself.
   const require = createRequire(join(dir, 'package.json'))
@@ -71,7 +69,7 @@ async function skipsIn(config) {
   for (const file of globSync('src/**/*.{ts,tsx}', { cwd: dir })) {
     const path = join(dir, file)
     // Before the read: a screenshot folder is named after its test file.
-    if (TEST_ONLY.test(file) || !id.test(path)) continue
+    if (!isShipped(file) || !id.test(path)) continue
     const code = readFileSync(path, 'utf8')
     if (!client.test(code)) continue
     const lines = code.split('\n')
@@ -112,14 +110,15 @@ async function skipsIn(config) {
 
 describe('React Compiler', () => {
   it('skips only the functions listed with a reason', async () => {
-    const configs = globSync('packages/*/react-compiler.config.ts', {
-      cwd: root
-    })
-    assert.ok(configs.length >= 4, 'finds the packages that compile')
+    const compiled = globSync('packages/*/tsdown.config.ts', { cwd: root })
+      .filter((config) =>
+        readFileSync(join(root, config), 'utf8').includes('reactCompilerPreset')
+      )
+      .map((config) => join(root, dirname(config)))
+    assert.ok(compiled.length >= 4, 'finds the packages that compile')
     const skips = new Map()
-    for (const config of configs)
-      for (const [skip, reason] of await skipsIn(join(root, config)))
-        skips.set(skip, reason)
+    for (const dir of compiled)
+      for (const [skip, reason] of await skipsIn(dir)) skips.set(skip, reason)
     assert.deepEqual(
       [...skips].filter(([skip]) => !(skip in SKIPS)),
       [],
