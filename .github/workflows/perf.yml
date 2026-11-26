@@ -72,8 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [components]
-        sample: [1, 2, 3, 4, 5, 6, 7, 8]
+        package: [components, charts]
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -98,6 +97,6 @@ jobs:
         if: always() && hashFiles('frames.jsonl') != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: frames-${{ matrix.package }}-${{ matrix.sample }}
+          name: frames-${{ matrix.package }}
           path: frames.jsonl
           retention-days: 14
