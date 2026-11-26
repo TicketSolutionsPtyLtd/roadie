@@ -744,4 +744,31 @@ describe('useRecords selection set with its query', () => {
     expect(result.current.selection).toEqual({ allMatching: true, except: [] })
     expect(changes).toEqual([])
   })
+
+  it('reads an outside selection as outside, even when it equals an old pick', async () => {
+    const { result, rerender } = renderHook(
+      ({ view, selection }: { view: RecordView; selection: RecordSelection }) =>
+        useRecordsState({
+          data: shows,
+          fields: showFields,
+          getRowId: (row) => row.id,
+          view,
+          selection
+        }),
+      {
+        initialProps: {
+          view: view(),
+          selection: { ids: [] } as RecordSelection
+        }
+      }
+    )
+    const all = { allMatching: true, except: [] } as const
+    await act(() => result.current.selectAllMatching())
+    rerender({ view: view(), selection: all })
+    rerender({ view: view(), selection: { ids: [] } })
+    await act(async () =>
+      rerender({ view: view({ search: 'Ocean' }), selection: all })
+    )
+    expect(result.current.selection).toEqual(all)
+  })
 })
