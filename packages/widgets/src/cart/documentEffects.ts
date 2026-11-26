@@ -1,11 +1,5 @@
-'use client'
-
-// Module-level coordination for the two global document side effects the
-// CartDrawer needs. Multiple drawer instances on a page (responsive variants,
-// StrictMode double-mount, hot reload) would otherwise corrupt each other:
-// one instance's cleanup would unlock body scroll while another is still modal,
-// or remove the height CSS var another instance still owns. Refcount the scroll
-// lock; track heights per instance and publish the max live value.
+// Refcounted and keyed per instance, so concurrent holders (both skins,
+// StrictMode, the expiry modals over an open drawer) don't undo each other.
 
 const CART_HEIGHT_VAR = '--cart-drawer-height'
 
@@ -14,7 +8,8 @@ let prevOverflow = ''
 
 /**
  * Acquire the body scroll lock. Returns a release fn (idempotent, safe to call
- * more than once). The body unlocks only when the last holder releases.
+ * more than once). The body unlocks, restoring its prior overflow, only when the
+ * last holder releases.
  */
 export function lockBodyScroll(): () => void {
   if (typeof document === 'undefined') return () => {}
