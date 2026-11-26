@@ -259,7 +259,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
   const scroller = (container: HTMLElement) =>
     container.querySelector<HTMLElement>('[data-testid="scroller"]')!
 
-  it('scrolls 10,000 records as list rows at 60fps', async () => {
+  it('scrolls 10,000 re-flowed rows at 60fps', async () => {
     const container = await mount(
       <div style={NARROW_BOX} data-testid='scroller'>
         <RecordTable
@@ -273,11 +273,11 @@ describe('RecordTable narrow rows, CPU 4x', () => {
       </div>
     )
     expect(
-      container.querySelector('[data-slot="record-table-list-row"]')
+      container.querySelector('[data-slot="record-table-row"]')
     ).not.toBeNull()
     const box = scroller(container)
     await expectFrameBudget(
-      'RecordTable, 10,000 list rows, scroll',
+      'RecordTable, 10,000 re-flowed narrow rows, scroll',
       await measureFrames(scrollBy(box)),
       { longestTask: 50 }
     )
@@ -426,7 +426,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     )
     const rows = [
       ...container.querySelectorAll<HTMLElement>(
-        '[data-slot="record-table-list-row"]'
+        '[data-slot="record-table-row"]'
       )
     ].slice(0, 8)
     await userEvent.hover(rows[0]!)
