@@ -2,11 +2,12 @@ import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
 import { forgetPaneScroll } from '../Pane/paneScroll'
-import { useStylesheet } from '../Pane/testUtils'
 import { Toast, type ToastPosition, createToastManager } from '../Toast'
 
 // Frozen so the stack's geometry can be read straight away.
