@@ -11,8 +11,6 @@ import { DashboardPeriod, type DashboardPeriodValue } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import type { DateRangePreset } from '../DateRangePicker/range'
 
-// The drawer and popover open and close with no slide, so a wait needs a
-// frame, not 300ms of them.
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'
 const TIMEOUT = { timeout: 15_000 }
@@ -20,6 +18,8 @@ const TIMEOUT = { timeout: 15_000 }
 let removeStylesheets = () => {}
 beforeAll(() => {
   const removeRoadie = useStylesheet(roadieCss)
+  // The drawer and popover open and close with no slide, so a wait needs a
+  // frame, not 300ms of them.
   const removeStill = useStylesheet(STILL)
   removeStylesheets = () => {
     removeRoadie()

@@ -16,11 +16,10 @@ import {
   testShows
 } from '../components/Records/testUtils'
 
-// The states are the settled ones, so no test waits on a transition to land.
-
 let removeStylesheets = () => {}
 beforeAll(() => {
   const removeRoadie = useStylesheet(roadieCss)
+  // The states are the settled ones, so no test waits on a transition to land.
   const removeStill = useStylesheet(STILL)
   removeStylesheets = () => {
     removeRoadie()

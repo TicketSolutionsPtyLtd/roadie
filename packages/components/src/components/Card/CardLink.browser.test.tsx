@@ -7,11 +7,10 @@ import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import { Card } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 
-// The states are the settled ones, so no test waits on a transition to land.
-
 let removeStylesheets = () => {}
 beforeAll(() => {
   const removeRoadie = useStylesheet(roadieCss)
+  // The states are the settled ones, so no test waits on a transition to land.
   const removeStill = useStylesheet(STILL)
   removeStylesheets = () => {
     removeRoadie()
