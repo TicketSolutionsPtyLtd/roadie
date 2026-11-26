@@ -2,12 +2,15 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import { COPY_LIMITS } from '@oztix/roadie-core/dashboard-layout'
 
 import { DataCard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Meter } from '../Meter'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Sparkline } from '../Sparkline'
 import { StatTile } from '../StatTile'
 

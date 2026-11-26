@@ -14,6 +14,10 @@ import {
   over,
   textRole
 } from '@oztix/roadie-browser-testing/contrast'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { Autocomplete } from '../components/Autocomplete'
@@ -25,7 +29,6 @@ import {
 import { DataCard } from '../components/DataCard'
 import { DatePicker } from '../components/DatePicker'
 import { Field } from '../components/Field'
-import { loadBrandFont, useStylesheet } from '../components/Pane/testUtils'
 
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'

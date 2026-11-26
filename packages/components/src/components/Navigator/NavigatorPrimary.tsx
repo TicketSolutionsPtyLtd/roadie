@@ -47,12 +47,12 @@ import {
   deriveMobileSlots,
   phoneBarCapacity
 } from './mobileSlots'
-import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
 import { opensPalette, usePaletteMissing, withoutSearch } from './searchSlot'
 import { textOf } from './splitSecondary'
+import { useActivation } from './useActivation'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
   navigatorCapsuleClass,
@@ -85,13 +85,9 @@ export function NavigatorPrimary({
   className
 }: NavigatorPrimaryProps) {
   const {
-    setValue,
     primaryDerived,
-    setNavCollapsed,
-    setPinExpanded,
     scrollActivePaneToTop,
     setOverflowOpen,
-    closeOverflowOnRoute,
     overflowPaneId,
     setOverflowItems,
     overflowOpenerRef,
@@ -117,6 +113,7 @@ export function NavigatorPrimary({
   const brandRef = useRef<HTMLDivElement>(null)
 
   const palette = useRegisteredPalette()
+  const activate = useActivation(palette)
   const platform = useKeyPlatform()
   const missing = usePaletteMissing(
     declared.ordered.some(opensPalette),
@@ -286,75 +283,25 @@ export function NavigatorPrimary({
     const selectDestination = (
       event: MouseEvent,
       tab: NavigatorSlotMeta,
-      active: boolean,
-      href: string | undefined
-    ) => {
-      if (opensPalette(tab)) {
-        palette?.open()
-        return
-      }
-      activateItem(tab.value)
-      if (opensElsewhere(event)) return
-      setOpenMenu(null)
-      // A tap that stays on this route closes More now; one that navigates leaves it to the route.
-      const stay = () => {
-        event.preventDefault()
-        setOverflowOpen(false)
-      }
-      const go = () => {
-        if (href === undefined) setOverflowOpen(false)
-        else closeOverflowOnRoute()
-      }
-      if (!active) {
-        go()
-        setValue(tab.value)
-        return
-      }
-      const expandBar = () => {
-        setPinExpanded(true)
-        setNavCollapsed(false)
-      }
-      const ownsSecondary = activeSecondary?.value === tab.value
-      const onDestinationRoute = isActiveValue(tab.value, activeValue)
-      const hasOverview = ownsSecondary && activeSecondary?.overview === true
-      if (ownsSecondary && onDestinationRoute) {
-        stay()
-        if (collapsed) expandBar()
-        scrollActivePaneToTop()
-        return
-      }
-      if (collapsed) {
-        stay()
-        expandBar()
-        return
-      }
-      if (
-        ownsSecondary &&
-        !hasOverview &&
-        onShowListChange &&
-        !onDestinationRoute
-      ) {
-        stay()
-        onShowListChange(!showList)
-        return
-      }
-      if (hasOverview) {
-        go()
-        setValue(tab.value)
-        return
-      }
-      if (isActiveValue(tab.topValue, activeValue)) {
-        stay()
-        scrollActivePaneToTop()
-        return
-      }
-      if (tab.href === undefined) {
-        stay()
-        setValue(tab.topValue)
-        return
-      }
-      go()
-    }
+      active: boolean
+    ) =>
+      activate(
+        event,
+        'tab',
+        {
+          value: tab.value,
+          href: tab.href,
+          topValue: tab.topValue,
+          active,
+          palette: opensPalette(tab)
+        },
+        {
+          route: activeValue,
+          collapsed,
+          secondary: activeSecondary,
+          showList: onShowListChange ? showList : undefined
+        }
+      )
 
     const renderTab = (tab: NavigatorSlotMeta, tabProps: NavigatorTabProps) =>
       tab.menu ? (
@@ -403,7 +350,7 @@ export function NavigatorPrimary({
         collapsed,
         circleSide: isStartCircle ? 'start' : undefined,
         index: tabIndex,
-        onClick: (event) => selectDestination(event, tab, active, href)
+        onClick: (event) => selectDestination(event, tab, active)
       })
     })
     const pinnedHref = pinnedTab?.href
@@ -420,12 +367,12 @@ export function NavigatorPrimary({
           collapsed,
           index: 0,
           onClick: (event) =>
-            selectDestination(event, pinnedTab, pinnedIsActive, pinnedHref)
+            selectDestination(event, pinnedTab, pinnedIsActive)
         })
       : null
     return { tabs, pinned }
   }, [
-    palette,
+    activate,
     searchShortcut,
     slots.tabs,
     pinnedTab,
@@ -440,13 +387,7 @@ export function NavigatorPrimary({
     showList,
     onShowListChange,
     activateItem,
-    setOverflowOpen,
-    closeOverflowOnRoute,
-    setOpenMenu,
-    setValue,
-    setPinExpanded,
-    setNavCollapsed,
-    scrollActivePaneToTop
+    setOverflowOpen
   ])
 
   return (

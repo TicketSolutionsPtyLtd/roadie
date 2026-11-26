@@ -12,9 +12,13 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Collapsible } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {

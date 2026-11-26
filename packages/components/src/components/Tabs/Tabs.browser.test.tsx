@@ -15,10 +15,10 @@ import {
   minimumLc,
   shownFill
 } from '@oztix/roadie-browser-testing/contrast'
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import { Tabs } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 import type { TabsRootEmphasis, TabsRootSize } from './variants'
 
 let removeStylesheet = () => {}

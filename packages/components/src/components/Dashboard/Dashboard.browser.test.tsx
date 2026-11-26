@@ -9,6 +9,7 @@ import {
   vi
 } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import {
   CARD_SIZES,
   CARD_SPANS,
@@ -19,7 +20,6 @@ import {
 import { Dashboard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { DataCard } from '../DataCard'
-import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

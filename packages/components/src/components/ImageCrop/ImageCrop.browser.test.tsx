@@ -10,11 +10,11 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import type { ImageCropValue } from '@oztix/roadie-core/image'
 
 import { ImageCrop, type ImageCropProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 
 function makePhoto(width: number, height: number) {
   const canvas = document.createElement('canvas')
