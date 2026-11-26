@@ -6,15 +6,24 @@ import { NavigatorActionsContext } from './NavigatorContext'
 import {
   type ActivationSlot,
   type ActivationState,
+  type ActivationStep,
   type ActivationSurface,
   resolveActivation
 } from './activation'
 import { opensElsewhere } from './opensElsewhere'
 
-export function useActivation() {
-  const { activateItem, setOverflowOpen, closeOverflowOnRoute, setValue } = use(
-    NavigatorActionsContext
-  )
+export function useActivation(palette: { open: () => void } | null = null) {
+  const {
+    activateItem,
+    setOverflowOpen,
+    closeOverflowOnRoute,
+    setValue,
+    setOpenMenu,
+    setPinExpanded,
+    setNavCollapsed,
+    scrollActivePaneToTop,
+    onShowListChange
+  } = use(NavigatorActionsContext)
   return useCallback(
     (
       event: MouseEvent,
@@ -22,17 +31,45 @@ export function useActivation() {
       slot: ActivationSlot,
       state: Omit<ActivationState, 'elsewhere'> = {}
     ) => {
-      const elsewhere = opensElsewhere(event)
-      for (const step of resolveActivation(surface, slot, {
-        ...state,
-        elsewhere
-      })) {
-        if (step.kind === 'activate') activateItem(step.value)
-        else if (step.kind === 'closeMore') setOverflowOpen(false)
-        else if (step.kind === 'closeMoreOnRoute') closeOverflowOnRoute()
-        else setValue(step.value)
+      const apply = (step: ActivationStep) => {
+        switch (step.kind) {
+          case 'openPalette':
+            return palette?.open()
+          case 'activate':
+            return activateItem(step.value)
+          case 'closeMenu':
+            return setOpenMenu(null)
+          case 'preventDefault':
+            return event.preventDefault()
+          case 'closeMore':
+            return setOverflowOpen(false)
+          case 'closeMoreOnRoute':
+            return closeOverflowOnRoute()
+          case 'setValue':
+            return setValue(step.value)
+          case 'expandBar':
+            setPinExpanded(true)
+            return setNavCollapsed(false)
+          case 'scrollToTop':
+            return scrollActivePaneToTop()
+          case 'showList':
+            return onShowListChange?.(step.show)
+        }
       }
+      const elsewhere = opensElsewhere(event)
+      resolveActivation(surface, slot, { ...state, elsewhere }).forEach(apply)
     },
-    [activateItem, setOverflowOpen, closeOverflowOnRoute, setValue]
+    [
+      palette,
+      activateItem,
+      setOverflowOpen,
+      closeOverflowOnRoute,
+      setValue,
+      setOpenMenu,
+      setPinExpanded,
+      setNavCollapsed,
+      scrollActivePaneToTop,
+      onShowListChange
+    ]
   )
 }
