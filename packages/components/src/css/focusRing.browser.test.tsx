@@ -45,7 +45,7 @@ function step9At(scale: string, alpha: number) {
 describe('base focus ring', () => {
   it.each([
     ['light', false, '--focus-ring-opacity'],
-    ['dark', true, '--focus-ring-opacity-dark']
+    ['dark', true, '--focus-ring-opacity']
   ])(
     'shows a plain link a 4px neutral ring with no gap in %s mode',
     async (_mode, dark, opacity) => {

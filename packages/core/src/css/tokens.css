@@ -238,7 +238,19 @@
   /* ═══ Focus ring ═══ */
   --focus-ring-width: 4px;
   --focus-ring-opacity: 30%;
-  --focus-ring-opacity-dark: 20%;
+}
+
+/* ═══ Focus ring per mode ═══
+   Every ring reads --focus-ring-opacity, so dark mode sets it here and no
+   ring keeps a dark twin. Plain blocks, so the alias ships unused. */
+.dark {
+  --focus-ring-opacity: 30%;
+}
+
+:root,
+.dark {
+  /* Use --focus-ring-opacity, which dark mode sets too. Remove in v3. */
+  --focus-ring-opacity-dark: var(--focus-ring-opacity); /* @deprecated */
 }
 
 /* ═══════════════════════════════════════════════════════════
