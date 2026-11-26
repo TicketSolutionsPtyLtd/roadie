@@ -927,6 +927,30 @@ describe('Calendar', () => {
     expect(day('2027-03-20')).toHaveFocus()
   })
 
+  it('leaves focus where the reader moves it after autoFocus', () => {
+    const { rerender } = render(
+      <>
+        <Calendar today={TODAY} autoFocus />
+        <button>Elsewhere</button>
+      </>
+    )
+    const elsewhere = screen.getByRole('button', { name: 'Elsewhere' })
+    act(() => elsewhere.focus())
+    rerender(
+      <>
+        <Calendar today={TODAY} autoFocus className='later' />
+        <button>Elsewhere</button>
+      </>
+    )
+    expect(elsewhere).toHaveFocus()
+  })
+
+  it('takes no focus when autoFocus turns on after mount, as on an input', () => {
+    const { rerender } = render(<Calendar today={TODAY} />)
+    rerender(<Calendar today={TODAY} autoFocus />)
+    expect(document.body).toHaveFocus()
+  })
+
   it('spreads other props onto the root', () => {
     const { container } = render(
       <Calendar today={TODAY} className='custom' id='cal' />
