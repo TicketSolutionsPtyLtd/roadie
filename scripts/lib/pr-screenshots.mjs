@@ -9,6 +9,28 @@ export const MAX_BYTES = 10 * 1024 * 1024
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp'])
 const ATTEMPTS = 5
 
+// `--repo owner/name` names the repo where `gh repo view` can't, such as a
+// checkout with several remotes and no default.
+export function parseArgs(argv) {
+  const rest = []
+  let repo
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+    if (arg === '--repo') repo = argv[++i] ?? ''
+    else if (arg.startsWith('--repo=')) repo = arg.slice('--repo='.length)
+    else rest.push(arg)
+  }
+  const parts = repo?.split('/') ?? []
+  const named =
+    parts.length === 2 &&
+    parts.every((part) => /^[\w.-]+$/.test(part) && !/^\.\.?$/.test(part))
+  if (repo !== undefined && !named) {
+    throw new Error(`--repo takes owner/name, not "${repo}".`)
+  }
+  const [pr, ...paths] = rest
+  return { ...(repo && { repo }), pr, paths }
+}
+
 // Checks the command line and returns where each file goes on the branch,
 // or throws with a message the script prints as is.
 export function planUpload(pr, files) {
