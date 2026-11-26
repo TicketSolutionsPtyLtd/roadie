@@ -52,7 +52,10 @@ Ruled out:
   jobs, failed the next run at 50ms: even 33 jobs can miss the tail, so
   don't lower a cap on a single round of runs.
 - Pane's 100-row pop goes back to a known miss under INNO-1706, the
-  whole-subtree restyle that also drives its style time.
+  whole-subtree restyle that also drives its style time. Its push joined it
+  on 26 Nov, after missing in 4 of 13 Perf runs on `main` and 2 of 16 sample
+  jobs: one or two 58 to 88ms long frames, with its style still under the
+  cap, so the style cap stays on.
 - A transition that's sometimes two long frames is real work to fix, not
   noise. Look at `longTasks` in the frame report: two where one is usual
   means work arriving a frame late.
