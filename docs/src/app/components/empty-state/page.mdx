@@ -93,6 +93,11 @@ Each size takes its own media: `sm` an IconTile, `md` a
 illustration, as in Whole page. Pick the icon or illustration by the message,
 as the Guidelines say.
 
+The parts take their size from the nearest `EmptyState`, so a nested one keeps
+its own. To restyle a part at `sm` or `lg`, prefix the class with that size's
+variant, as in `className='empty-state-sm:text-sm'`; a plain class changes
+only `md`.
+
 ```tsx-live layout=stack gap=8
 <EmptyState size='sm'>
   <EmptyState.IconTile>

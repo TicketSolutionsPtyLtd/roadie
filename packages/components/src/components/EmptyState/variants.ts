@@ -31,40 +31,24 @@ export const emptyStateVariants = cva('grid justify-items-center text-center', {
   defaultVariants: { size: 'md' }
 })
 
-export const emptyStateTitleVariants = cva('text-balance text-strong', {
-  variants: {
-    size: {
-      sm: 'text-display-ui-5',
-      md: 'text-display-ui-3',
-      lg: 'text-display-prose-2'
-    }
-  },
-  defaultVariants: { size: 'md' }
-})
+// The parts style each size off the nearest root's data-size (empty-state.css),
+// so they need no context. The plain classes are md.
+export const emptyStateTitleClass = [
+  'text-balance text-strong text-display-ui-3',
+  'empty-state-sm:text-display-ui-5 empty-state-lg:text-display-prose-2'
+].join(' ')
 
 // text-<size>/prose scales the body while keeping prose leading; the adjacent
 // rule tightens the description up to a directly preceding Title.
-export const emptyStateDescriptionVariants = cva(
+export const emptyStateDescriptionClass = [
   'text-pretty tracking-prose text-subtle',
-  {
-    variants: {
-      size: {
-        sm: 'max-w-sm text-sm/prose [[data-slot=empty-state-title]+&]:-mt-3',
-        md: 'max-w-md text-base/prose [[data-slot=empty-state-title]+&]:-mt-4',
-        lg: 'max-w-lg text-lg/prose [[data-slot=empty-state-title]+&]:-mt-6'
-      }
-    },
-    defaultVariants: { size: 'md' }
-  }
-)
+  'max-w-md text-base/prose [[data-slot=empty-state-title]+&]:-mt-4',
+  'empty-state-sm:max-w-sm empty-state-sm:text-sm/prose empty-state-sm:[[data-slot=empty-state-title]+&]:-mt-3',
+  'empty-state-lg:max-w-lg empty-state-lg:text-lg/prose empty-state-lg:[[data-slot=empty-state-title]+&]:-mt-6'
+].join(' ')
 
-export const emptyStateIllustrationVariants = cva('grid justify-items-center', {
-  variants: {
-    size: {
-      sm: '[&_img]:max-h-24 [&_svg]:size-16',
-      md: '[&_img]:max-h-40 [&_svg]:size-40',
-      lg: 'w-full max-w-md [&_img]:w-full [&_svg]:size-full'
-    }
-  },
-  defaultVariants: { size: 'md' }
-})
+export const emptyStateIllustrationClass = [
+  'grid justify-items-center [&_img]:max-h-40 [&_svg]:size-40',
+  'empty-state-sm:[&_img]:max-h-24 empty-state-sm:[&_svg]:size-16',
+  'empty-state-lg:w-full empty-state-lg:max-w-md empty-state-lg:[&_img]:max-h-none empty-state-lg:[&_img]:w-full empty-state-lg:[&_svg]:size-full'
+].join(' ')

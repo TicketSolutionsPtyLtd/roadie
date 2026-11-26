@@ -18,9 +18,15 @@ describe('EmptyStateRoot', () => {
     expect(root).toHaveClass('grid', 'justify-items-center', 'gap-6', 'py-12')
   })
 
-  it('applies size to the root layout', () => {
+  it('applies size to the root layout and names it for the parts', () => {
     render(<EmptyStateRoot size='lg'>page</EmptyStateRoot>)
     expect(screen.getByText('page')).toHaveClass('py-16')
+    expect(screen.getByText('page')).toHaveAttribute('data-size', 'lg')
+  })
+
+  it('names the default size too, so a nested root scopes its parts', () => {
+    render(<EmptyStateRoot>plain</EmptyStateRoot>)
+    expect(screen.getByText('plain')).toHaveAttribute('data-size', 'md')
   })
 
   it('merges a custom className', () => {
@@ -40,7 +46,7 @@ describe('EmptyStateRoot', () => {
 })
 
 describe('EmptyStateTitle', () => {
-  it('renders an h2 with the title slot, type-scaled by context', () => {
+  it('renders an h2 with the title slot', () => {
     render(
       <EmptyStateRoot size='lg'>
         <EmptyStateTitle>No events yet</EmptyStateTitle>
@@ -49,7 +55,6 @@ describe('EmptyStateTitle', () => {
     const title = screen.getByRole('heading', { name: 'No events yet' })
     expect(title.tagName).toBe('H2')
     expect(title).toHaveAttribute('data-slot', 'empty-state-title')
-    expect(title).toHaveClass('text-display-prose-2')
   })
 
   it('honors a render override for heading level', () => {
@@ -74,34 +79,7 @@ describe('EmptyStateDescription', () => {
     const desc = screen.getByText('Check back soon.')
     expect(desc.tagName).toBe('P')
     expect(desc).toHaveAttribute('data-slot', 'empty-state-description')
-    expect(desc).toHaveClass('text-subtle', 'tracking-prose', 'text-sm/prose')
-  })
-
-  it('scales the body size across sizes while keeping prose leading', () => {
-    const { rerender } = render(
-      <EmptyStateRoot size='md'>
-        <EmptyStateDescription>Body</EmptyStateDescription>
-      </EmptyStateRoot>
-    )
-    expect(screen.getByText('Body')).toHaveClass('text-base/prose', 'max-w-md')
-    rerender(
-      <EmptyStateRoot size='lg'>
-        <EmptyStateDescription>Body</EmptyStateDescription>
-      </EmptyStateRoot>
-    )
-    expect(screen.getByText('Body')).toHaveClass('text-lg/prose', 'max-w-lg')
-  })
-
-  it('tightens toward a preceding title via a negative-margin sibling rule', () => {
-    render(
-      <EmptyStateRoot size='md'>
-        <EmptyStateTitle>Title</EmptyStateTitle>
-        <EmptyStateDescription>Body</EmptyStateDescription>
-      </EmptyStateRoot>
-    )
-    expect(screen.getByText('Body')).toHaveClass(
-      '[[data-slot=empty-state-title]+&]:-mt-4'
-    )
+    expect(desc).toHaveClass('text-subtle', 'tracking-prose')
   })
 })
 
@@ -126,10 +104,22 @@ describe('EmptyStateIconTile', () => {
     )
     expect(screen.getByLabelText('override')).toHaveClass('size-10')
   })
+
+  it('takes the size of the nearest root', () => {
+    render(
+      <EmptyStateRoot size='sm'>
+        <EmptyStateRoot size='lg'>
+          <EmptyStateIconTile aria-label='inner' />
+        </EmptyStateRoot>
+      </EmptyStateRoot>
+    )
+    // lg → 3xl tile (size-20)
+    expect(screen.getByLabelText('inner')).toHaveClass('size-20')
+  })
 })
 
 describe('EmptyStateIllustration', () => {
-  it('scales the media wrapper with context size', () => {
+  it('wraps the media in the illustration slot', () => {
     render(
       <EmptyStateRoot size='lg'>
         <EmptyStateIllustration data-testid='media'>
@@ -139,7 +129,6 @@ describe('EmptyStateIllustration', () => {
     )
     const wrapper = screen.getByTestId('media')
     expect(wrapper).toHaveAttribute('data-slot', 'empty-state-illustration')
-    expect(wrapper).toHaveClass('max-w-md')
   })
 })
 

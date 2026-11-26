@@ -1,10 +1,8 @@
-'use client'
-
 import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { EmptyStateContext } from './EmptyStateContext'
+import { EmptyStateSizeProvider } from './EmptyStateSizeProvider'
 import {
   type EmptyStateIntent,
   type EmptyStateSize,
@@ -18,6 +16,7 @@ export type EmptyStateProps = ComponentProps<'div'> & {
   intent?: EmptyStateIntent
 }
 
+// The parts style themselves off data-size; only IconTile reads the provider.
 export function EmptyStateRoot({
   className,
   size = 'md',
@@ -25,13 +24,14 @@ export function EmptyStateRoot({
   ...props
 }: EmptyStateProps) {
   return (
-    <EmptyStateContext value={size}>
+    <EmptyStateSizeProvider size={size}>
       <div
         data-slot='empty-state'
+        data-size={size}
         className={cn(emptyStateVariants({ size, intent }), className)}
         {...props}
       />
-    </EmptyStateContext>
+    </EmptyStateSizeProvider>
   )
 }
 
