@@ -23,3 +23,7 @@ Tests only: it's private and never published.
 - `@oztix/roadie-browser-testing/stylesheet`: `useStylesheet` adds CSS to
   the page and returns its remover, `loadBrandFont` waits for the brand
   font, and `STILL` turns transitions off.
+- `@oztix/roadie-browser-testing/jsdom`: `lockLayout`, for a jsdom setup
+  file. It installs observers that never fire, then locks them and every
+  geometry read, so a test that fakes layout throws and moves to a
+  `*.browser.test.tsx`.
