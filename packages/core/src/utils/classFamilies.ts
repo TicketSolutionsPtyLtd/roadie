@@ -62,7 +62,13 @@ export function classFamilies(
         if (!token.name.startsWith(variablePrefix)) return []
         return (token.classes ?? []).filter((c) => c.startsWith(classPrefix))
       }
-      if (utilities && token.kind === 'utility' && utilities.test(token.name))
+      // A functional `@utility name-*` is a pattern, not a class to list.
+      if (
+        utilities &&
+        token.kind === 'utility' &&
+        !token.name.endsWith('*') &&
+        utilities.test(token.name)
+      )
         return [token.name]
       return []
     })

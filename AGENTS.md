@@ -64,9 +64,11 @@ pnpm --filter docs dev
 - A new family where one class replaces another (like intent, emphasis, or
   z-index) gets a rule in `packages/core/src/utils/classFamilies.ts`, or
   `cn()` keeps both classes and a consumer's class can't override the
-  component's. A new member of an existing family needs only its CSS: run
-  `pnpm --filter @oztix/roadie-core test -u`, which regenerates `cn()`'s
-  groups and the family safelist from core's CSS.
+  component's. A new member of an existing family needs no edit to `cn()` or
+  a safelist: add its CSS and run `pnpm --filter @oztix/roadie-core test -u`,
+  which regenerates `cn()`'s groups and the family safelist from core's CSS.
+  A new `animate-*`, `duration-*`, or `ease-*` also goes in
+  `skills/motion/SKILL.md`, which `motion-skill-parity.test.ts` checks.
 - A component folder with client state gets a `Component.ssr.tsx` hydration
   fixture (`src/hydration.browser.test.tsx` runs it), or an `EXEMPT` entry
   with a reason in `src/hydrationFixtures.test.ts`, which fails otherwise.

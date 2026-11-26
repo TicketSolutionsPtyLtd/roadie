@@ -38,7 +38,8 @@ describe('class families where one class replaces another', () => {
           `@theme { --z-index-base: 0; --z-index-fixture: 1; }
            @utility intent-neutral { color: red; }
            @utility intent-fixture { color: blue; }
-           @utility intent { color: green; }`
+           @utility intent { color: green; }
+           @utility intent-* { color: --value(--color-*); }`
         ]
       ])
     )
