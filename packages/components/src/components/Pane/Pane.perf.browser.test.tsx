@@ -154,6 +154,11 @@ const PUSHES: {
     content: 'rows',
     onPush: false,
     styleCap: CONTENT_STYLE_CAP,
+    // Its frames missed the budget in 4 of 13 Perf runs on main after #1089,
+    // and 2 of 16 sample jobs (p95 33.3ms, one or two 58 to 88ms long frames,
+    // style 93 to 151ms): the push restyles each pane's whole subtree, and
+    // that work sometimes spills into a second frame. Its style cap holds.
+    pushMiss: 'INNO-1706',
     // Missed in 1 of 17 CI jobs on the same commit (p95 33.3ms, with 123ms of
     // style against 75 to 115ms in the rest): the pop restyles each pane's
     // whole subtree, as the push does.
