@@ -10,9 +10,10 @@ import {
   vi
 } from 'vitest'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+
 import { RecordGrid } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { pickOption } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import {
   type TestShow,

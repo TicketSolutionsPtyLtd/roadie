@@ -1,8 +1,4 @@
-type PointerStep =
-  | { type: 'move'; x: number; y: number; steps?: number }
-  | { type: 'down' }
-  | { type: 'up' }
-  | { type: 'wait'; ms: number }
+import type { PointerStep } from '@oztix/roadie-browser-testing/config'
 
 declare module 'vitest/browser' {
   interface BrowserCommands {

@@ -12,6 +12,7 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Field } from '@oztix/roadie-components/field'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
@@ -28,7 +29,6 @@ import {
   LINE_START,
   MOD,
   clickIntoEditor,
-  pickMenuItem,
   selectParagraph
 } from './testUtils'
 

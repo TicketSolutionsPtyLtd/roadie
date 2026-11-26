@@ -12,9 +12,11 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { pickOption, setHoverCapable } from '../../css/testUtils'
+import { setHoverCapable } from '../../css/testUtils'
 import { pointAt } from '../../utils/pointerTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'

@@ -13,17 +13,13 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 import { Editor, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, Preset } from '../schema'
-import {
-  LINE_END,
-  clickIntoEditor,
-  pickMenuItem,
-  selectParagraph
-} from './testUtils'
+import { LINE_END, clickIntoEditor, selectParagraph } from './testUtils'
 import type { EditorToolbarMode } from './variants'
 
 const LABEL = 'Event description'

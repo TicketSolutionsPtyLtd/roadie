@@ -2,6 +2,8 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
@@ -10,7 +12,6 @@ import {
   LINE_START,
   MOD,
   clickIntoEditor,
-  pickMenuItem,
   selectParagraph
 } from './testUtils'
 
