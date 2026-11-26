@@ -6,11 +6,13 @@ import { afterAll, beforeAll, expect } from 'vitest'
 import { commands, page, server, userEvent } from 'vitest/browser'
 
 import {
+  type TextRole,
   apcaLc,
   flatten,
   isPainted,
   minimumLc,
-  over
+  over,
+  textRole
 } from '@oztix/roadie-browser-testing/contrast'
 
 import roadieCss from '../../vitest.browser.css?inline'
@@ -312,30 +314,8 @@ export async function expectNoSeriousViolations() {
   expect(found).toEqual([])
 }
 
-type Role = keyof typeof minimumLc
-
-// APCA's size bands: large from 24px or 16px bold, display from 36px or 24px
-// bold.
-function textRole(element: Element, shortLabels?: string): Role {
-  const { fontSize, fontWeight } = getComputedStyle(element)
-  const size = parseFloat(fontSize)
-  const weight = Number(fontWeight)
-  const bold = weight >= 700
-  if (element.closest('.emphasis-strong')) return 'label on a strong fill'
-  if (size >= 36 || (bold && size >= 24)) return 'display text'
-  if (size >= 24 || (bold && size >= 16)) return 'large text'
-  if (
-    shortLabels &&
-    element.closest(shortLabels) &&
-    size >= 14 &&
-    weight >= 600
-  )
-    return 'label'
-  return 'body text'
-}
-
 type Pair = {
-  role: Role
+  role: TextRole
   element: Element
   what: string
   colour: string
@@ -461,7 +441,7 @@ export function measureContrast({
 }
 
 type KnownLowContrast = {
-  role: Role
+  role: TextRole
   matches: (pair: Pair) => boolean
   /** Just under the lowest Lc measured when listed, so a worse pair fails. */
   floor: number
