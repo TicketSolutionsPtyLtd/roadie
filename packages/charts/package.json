@@ -166,6 +166,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
+    "@oztix/roadie-browser-testing": "workspace:*",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-frames": "workspace:*",
     "@phosphor-icons/react": "2.1.10",

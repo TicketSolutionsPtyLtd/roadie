@@ -17,10 +17,12 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem, pickOption } from '@oztix/roadie-browser-testing'
+
 import { Editor, type EditorPreviewRecipient, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { pickMenuItem, pickOption, selectParagraph } from './testUtils'
+import { selectParagraph } from './testUtils'
 
 const LABEL = 'Newsletter'
 

@@ -13,11 +13,12 @@ import {
   vi
 } from 'vitest'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
 import type { RecordPosition } from '@oztix/roadie-core/records'
 
 import { RecordGrid, gridLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { nudgeFrames, withFrames } from '../../css/testUtils'
+import { nudgeFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, type RecordsRangeResult, useRecords } from '../Records'

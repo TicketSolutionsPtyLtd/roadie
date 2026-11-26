@@ -13,6 +13,8 @@ import {
 } from 'vitest'
 import { userEvent, page as viewport } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
@@ -24,7 +26,7 @@ import {
   reactNodeView
 } from '../extensions'
 import type { EditorValue } from '../schema'
-import { LINE_END, MOD, clickIntoEditor, pickMenuItem } from './testUtils'
+import { LINE_END, MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Page'
 

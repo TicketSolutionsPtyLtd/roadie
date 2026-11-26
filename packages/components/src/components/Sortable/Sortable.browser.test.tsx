@@ -14,9 +14,11 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { keepFramesRunning } from '@oztix/roadie-browser-testing'
+
 import { Sortable, type SortableMove, type SortableProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { keepFramesRunning, releaseDragPointer } from '../../css/testUtils'
+import { releaseDragPointer } from '../../css/testUtils'
 import { List } from '../List'
 import { useStylesheet } from '../Pane/testUtils'
 import { Popover } from '../Popover'
