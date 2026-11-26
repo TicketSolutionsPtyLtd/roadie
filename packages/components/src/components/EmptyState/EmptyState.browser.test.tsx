@@ -158,6 +158,18 @@ describe.each([
   }
 )
 
+// Charts names its root chart-empty, so the size can't key on data-slot.
+it('sizes the parts of a root with its own data-slot', () => {
+  render(
+    <EmptyState size='sm' data-slot='chart-empty'>
+      <EmptyState.Title>No sales</EmptyState.Title>
+    </EmptyState>
+  )
+  expect(
+    getComputedStyle(screen.getByRole('heading', { name: 'No sales' })).fontSize
+  ).toBe(fontSizeOf('text-display-ui-5'))
+})
+
 describe('EmptyState title', () => {
   it('grows with the empty state', () => {
     const sizes = (['sm', 'md', 'lg'] as const).map((size) => {

@@ -19,17 +19,20 @@ export type EmptyStateIntent =
 
 // Root gap is the wider spacing between media, message and actions; the
 // description's negative margin tightens it back to the title.
-export const emptyStateVariants = cva('grid justify-items-center text-center', {
-  variants: {
-    intent: intentVariants,
-    size: {
-      sm: 'gap-4 py-8',
-      md: 'gap-6 py-12',
-      lg: 'gap-8 py-16 md:py-24'
-    }
-  },
-  defaultVariants: { size: 'md' }
-})
+export const emptyStateVariants = cva(
+  'group/empty-state grid justify-items-center text-center',
+  {
+    variants: {
+      intent: intentVariants,
+      size: {
+        sm: 'gap-4 py-8',
+        md: 'gap-6 py-12',
+        lg: 'gap-8 py-16 md:py-24'
+      }
+    },
+    defaultVariants: { size: 'md' }
+  }
+)
 
 // The parts style each size off the nearest root's data-size (empty-state.css),
 // so they need no context. The plain classes are md.

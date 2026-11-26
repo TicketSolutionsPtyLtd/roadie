@@ -1,10 +1,12 @@
 /* EmptyState sizes. A part takes its size from the nearest root's data-size,
    so it reads no context and renders on the server. md is the parts' plain
-   classes; these variants override them at sm and lg. A root of another size
-   inside an sm root stops the outer sm from reaching its parts, so a nested
-   EmptyState keeps its own size. That holds two roots deep, which is as deep
-   as an empty state nests in practice. :where() adds no specificity. */
+   classes; these variants override them at sm and lg. The root is found by
+   its group/empty-state class, since a consumer may rename its data-slot
+   (charts does). A root of another size inside an sm root stops the outer sm
+   from reaching its parts, so a nested EmptyState keeps its own size. That
+   holds two roots deep, which is as deep as an empty state nests in practice.
+   :where() adds no specificity. */
 
-@custom-variant empty-state-sm (&:where([data-slot='empty-state'][data-size='sm'] *):not(:where([data-slot='empty-state'][data-size='sm'] [data-slot='empty-state']:not([data-size='sm']) *)));
+@custom-variant empty-state-sm (&:where(.group\/empty-state[data-size='sm'] *):not(:where(.group\/empty-state[data-size='sm'] .group\/empty-state:not([data-size='sm']) *)));
 
-@custom-variant empty-state-lg (&:where([data-slot='empty-state'][data-size='lg'] *):not(:where([data-slot='empty-state'][data-size='lg'] [data-slot='empty-state']:not([data-size='lg']) *)));
+@custom-variant empty-state-lg (&:where(.group\/empty-state[data-size='lg'] *):not(:where(.group\/empty-state[data-size='lg'] .group\/empty-state:not([data-size='lg']) *)));
