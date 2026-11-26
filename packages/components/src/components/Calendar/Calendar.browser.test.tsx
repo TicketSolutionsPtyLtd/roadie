@@ -1703,6 +1703,61 @@ describe('Calendar scrolling months', () => {
       .toBeCloseTo(weekdays().getBoundingClientRect().bottom, 0)
   })
 
+  describe('while the page around it settles', () => {
+    // Scroll anchoring would hold the month still by itself in Chromium and
+    // Firefox, so it's off, as in WebKit.
+    async function openSettling() {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      onTestFinished(() => {
+        vi.useRealTimers()
+      })
+      render(
+        <div
+          data-testid='scroller'
+          className='h-100 w-97.5 overflow-y-auto bg-raised'
+          style={{ overflowAnchor: 'none' }}
+        >
+          <div data-testid='above' />
+          <Calendar
+            today={TODAY}
+            layout='scroll'
+            defaultSelected='2027-06-12'
+          />
+        </div>
+      )
+      const june = document.querySelector('[data-month="2027-06-01"]')!
+      const belowWeekdays = () =>
+        june.getBoundingClientRect().top -
+        weekdays().getBoundingClientRect().bottom
+      await expect.poll(belowWeekdays).toBeCloseTo(0, 0)
+      const growAbove = async (height: number) => {
+        screen.getByTestId('above').style.height = `${height}px`
+        await withFrames(nudgeFrames)
+      }
+      return { belowWeekdays, growAbove }
+    }
+
+    it('keeps its month under the weekday row', async () => {
+      const { belowWeekdays, growAbove } = await openSettling()
+      await growAbove(120)
+      await expect.poll(belowWeekdays).toBeCloseTo(0, 0)
+    })
+
+    it('leaves the scroll to the reader once they take over', async () => {
+      const { belowWeekdays, growAbove } = await openSettling()
+      scroller().dispatchEvent(new WheelEvent('wheel'))
+      await growAbove(120)
+      expect(belowWeekdays()).toBeCloseTo(120, 0)
+    })
+
+    it('stops after a second', async () => {
+      const { belowWeekdays, growAbove } = await openSettling()
+      vi.advanceTimersByTime(1000)
+      await growAbove(120)
+      expect(belowWeekdays()).toBeCloseTo(120, 0)
+    })
+  })
+
   it('pins the weekday row, painted over the days, as the months scroll', async () => {
     render(<Scrolling />)
     const top = scroller().getBoundingClientRect().top
