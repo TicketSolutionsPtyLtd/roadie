@@ -28,7 +28,6 @@ import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
 } from './mobileSlots'
-import { opensElsewhere } from './opensElsewhere'
 import { badgeDot, presentNavIcon } from './presentNavIcon'
 import {
   firstRoutedSecondary,
@@ -37,6 +36,7 @@ import {
   splitItemChildren,
   textOf
 } from './splitSecondary'
+import { useActivation } from './useActivation'
 import {
   navigatorItemIconlessLabelClass,
   navigatorItemInitialClass,
@@ -74,9 +74,8 @@ export function NavigatorItem({
   className,
   children
 }: NavigatorItemProps) {
-  const { setValue, setOverflowOpen, closeOverflowOnRoute, activateItem } = use(
-    NavigatorActionsContext
-  )
+  const { activateItem } = use(NavigatorActionsContext)
+  const activate = useActivation()
   const { value: active } = use(NavigatorSelectionContext)
   const { openMenu, overflowOpen } = use(NavigatorDisclosureContext)
   const { expanded } = use(NavigatorExpansionContext)
@@ -107,14 +106,8 @@ export function NavigatorItem({
   const targetHref = effectiveHref
 
   // The element can be Root's structural copy, so its handler resolves through the current tree.
-  const handleClick = (event: MouseEvent) => {
-    if (!opensElsewhere(event)) {
-      if (targetHref === undefined || isCurrent) setOverflowOpen(false)
-      else closeOverflowOnRoute()
-      setValue(value)
-    }
-    activateItem(value)
-  }
+  const handleClick = (event: MouseEvent) =>
+    activate(event, 'item', { value, href: targetHref }, { route: active })
 
   useDevWarning(
     declaresMenuWithSecondary &&
