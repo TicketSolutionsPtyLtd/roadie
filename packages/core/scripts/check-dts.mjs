@@ -6,7 +6,6 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 
 const NEEDLE = 'ComponentProps<typeof'
 
@@ -25,7 +24,7 @@ export function dtsLeaks(distDir) {
     .map((file) => file.replaceAll('\\', '/'))
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (import.meta.main) {
   const leaks = dtsLeaks(join(process.cwd(), 'dist'))
   if (leaks.length > 0) {
     console.error(
