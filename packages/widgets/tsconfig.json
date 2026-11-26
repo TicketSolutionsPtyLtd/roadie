@@ -12,5 +12,11 @@
     "types": ["vitest/globals", "@testing-library/jest-dom/vitest", "node"]
   },
   "include": ["src"],
-  "exclude": ["dist", "node_modules"]
+  // Browser tests bring vitest/browser's matchers, which clash with jest-dom's.
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src/**/*.browser.test.*",
+    "src/cart-drawer/drawerTestUtils.ts"
+  ]
 }
