@@ -26,7 +26,7 @@ import {
   sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const TOUCH_TESTS = 'src/**/*.touch.browser.test.{ts,tsx}'

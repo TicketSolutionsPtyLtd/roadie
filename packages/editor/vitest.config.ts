@@ -15,7 +15,7 @@ import {
   sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 const reducedMotion: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ reducedMotion: active ? 'reduce' : 'no-preference' })
