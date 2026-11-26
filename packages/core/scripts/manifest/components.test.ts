@@ -112,7 +112,7 @@ describe('checkPartProps', () => {
 
 describe('readFileComponents', () => {
   // A component file beside a stand-in for a dependency's types.
-  function readDots(source: string[]) {
+  function readDots(source: string[], names = ['Dot']) {
     const dir = mkdtempSync(path.join(tmpdir(), 'dots-'))
     onTestFinished(() => rmSync(dir, { recursive: true }))
     const dependency = path.join(dir, 'node_modules/@base-ui/react')
@@ -156,9 +156,37 @@ describe('readFileComponents', () => {
       createDocgenParser(program),
       program,
       [file],
-      new Set(['Dot'])
+      new Set(names)
     )
   }
+
+  it("names an export from its own displayName, not a helper's", () => {
+    const parts = readDots(
+      [
+        '/** The first dot to draw. */',
+        'export function firstDot(count: number) {',
+        '  return count',
+        '}',
+        'export type MarkerProps = {',
+        '  /** The most dots to draw. */',
+        '  max?: number',
+        '}',
+        'export function Marker(props: MarkerProps) {',
+        '  return firstDot(props.max ?? 0)',
+        '}',
+        "Marker.displayName = 'Pill.Dot'"
+      ],
+      ['Pill.Dot']
+    )
+    expect(parts).toEqual([
+      {
+        name: 'Pill.Dot',
+        props: [
+          { name: 'max', type: 'number', description: 'The most dots to draw.' }
+        ]
+      }
+    ])
+  })
 
   it("keeps a prop the component's type redeclares over a dependency's", () => {
     const [dot] = readDots([
