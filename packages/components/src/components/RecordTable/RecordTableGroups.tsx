@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, useId } from 'react'
+import { useId } from 'react'
 
 import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 
@@ -18,16 +18,22 @@ import {
 import type { RecordGroup } from '../Records/groups'
 import { rowClass } from './RecordTableRow'
 import { Row, type RowsShared } from './RecordTableRows'
-import { SELECT_WIDTH } from './layout'
 
-// The first column's text: past the checkbox track and a cell's padding when
-// rows have checkboxes, else at the content inset, as the first cell's is.
-const textStart = (select: boolean) =>
-  ({
-    '--group-text-start': select
-      ? `calc(${SELECT_WIDTH}rem + var(--content-inset) + var(--spacing) * 2.5)`
-      : 'var(--content-inset)'
-  }) as CSSProperties
+// The first column's text: past the checkbox track (SELECT_WIDTH) and a
+// cell's padding when rows have checkboxes, else at the content inset, as the
+// first cell's is. Under 40rem the checkbox hides until Select mode, so the
+// title's text starts at the inset, where the re-flowed rows' does.
+const TEXT_START_NARROW =
+  '@max-[40rem]/record-table-frame:[--group-text-start:var(--content-inset)]'
+// Under 40rem the title row spans the frame alone, not the columns' tracks, which would overflow it.
+const NARROW_GROUP_ROW = '@max-[40rem]/record-table-frame:grid-cols-1'
+const textStartClass = (select: boolean) =>
+  cn(
+    select
+      ? '[--group-text-start:calc(2.5rem+var(--content-inset)+var(--spacing)*2.5)]'
+      : '[--group-text-start:var(--content-inset)]',
+    TEXT_START_NARROW
+  )
 
 type Toggle = (id: string, range: boolean, order?: readonly string[]) => void
 
@@ -82,7 +88,10 @@ function TableGroup({
   return (
     <>
       <div role='rowgroup' data-slot='record-table-group'>
-        <div role='row' className={rowClass}>
+        <div
+          role='row'
+          className={cn(rowClass, shared.layout.narrow && NARROW_GROUP_ROW)}
+        >
           <div
             role='cell'
             aria-colspan={shared.columnCount}
@@ -96,8 +105,10 @@ function TableGroup({
             {/* The frame's width and stuck at its start, so the title stays in
                 view as the columns scroll sideways. */}
             <div
-              className='sticky start-0 grid w-[100cqi] gap-1.5'
-              style={textStart(shared.isSelected !== undefined)}
+              className={cn(
+                'sticky start-0 grid w-[100cqi] gap-1.5',
+                textStartClass(shared.isSelected !== undefined)
+              )}
             >
               <Heading
                 className={cn(

@@ -381,23 +381,50 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
     expect(checked('Alex Lahey 1')).toBe('false')
   })
 
-  it('groups narrow rows as the list does', () => {
-    render(
-      <ShowTable
-        width={375}
-        data={testShows(6)}
-        fields={showFields}
-        defaultView={byStatus}
-      />
-    )
-    const heading = screen.getByRole('heading', { level: 2, name: 'On sale 2' })
-    expect(heading.closest('summary')).not.toBeNull()
-    expect(
-      within(screen.getByRole('list', { name: 'On sale 2' })).getAllByRole(
-        'listitem'
+  for (const selectable of [false, true])
+    it(`re-flows grouped rows under their titles at 375px${selectable ? ', selectable' : ''}`, async () => {
+      const { container } = render(
+        <ShowTable
+          width={375}
+          data={testShows(6)}
+          fields={showFields}
+          defaultView={byStatus}
+          selectable={selectable}
+        />
       )
-    ).toHaveLength(2)
-  })
+      // A frame for the window and container queries to settle.
+      await new Promise(requestAnimationFrame)
+      expect(screen.queryByRole('listitem')).toBeNull()
+      const heading = screen.getByRole('heading', {
+        level: 2,
+        name: 'On sale 2'
+      })
+      expect(screen.getByRole('table', { name: 'Shows' })).toContainElement(
+        heading
+      )
+      const rows = heading.closest('[role="rowgroup"]')!
+        .nextElementSibling as HTMLElement
+      expect(within(rows).getAllByRole('row')).toHaveLength(2)
+      // The title's text starts where the rows' text does, past no checkbox.
+      const button = within(heading).getByRole('button')
+      const textStart =
+        button.getBoundingClientRect().left +
+        parseFloat(getComputedStyle(button).paddingInlineStart)
+      const title = within(within(rows).getAllByRole('row')[0]!)
+        .getAllByRole('cell')
+        .find((cell) => cell.dataset.narrow === 'title')!
+      expect(
+        Math.abs(textStart - title.getBoundingClientRect().left)
+      ).toBeLessThanOrEqual(1)
+      const frame = container.querySelector<HTMLElement>(
+        '[data-slot="record-table-frame"]'
+      )!
+      expect(frame.hasAttribute('data-narrow')).toBe(false)
+      const scroller = container.querySelector<HTMLElement>(
+        '[data-slot="record-table-scroller"]'
+      )!
+      expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth)
+    })
 
   it('groups from Configure, keeping the columns, and ungroups from None', async () => {
     const user = userEvent.setup()

@@ -39,6 +39,13 @@ function Table(props: Partial<RecordTableProps<TestShow>>) {
   )
 }
 
+/** A cell's text as read, without the heading shown beside it under 40rem. */
+function cellText(cell: Element) {
+  const copy = cell.cloneNode(true) as Element
+  copy.querySelectorAll('[aria-hidden]').forEach((part) => part.remove())
+  return copy.textContent
+}
+
 // By slot: an open search suggestion hides the table from role queries.
 const totalsRow = () =>
   document.querySelector<HTMLElement>('[data-slot="record-table-totals"]')!
@@ -50,7 +57,7 @@ const totals = () =>
       .filter((cell) => !cell.hasAttribute('data-select'))
       .map((cell, index) => [
         ['show', 'city', 'sold', 'gross'][index],
-        cell.textContent
+        cellText(cell)
       ])
   )
 
@@ -137,7 +144,7 @@ describe('RecordTable totals', () => {
     )
     const cells = [
       ...totalsRow().querySelectorAll('[role="rowheader"], [role="cell"]')
-    ].map((cell) => [cell.getAttribute('role'), cell.textContent])
+    ].map((cell) => [cell.getAttribute('role'), cellText(cell)])
     expect(cells).toEqual([
       ['cell', count.format(soldOf(SHOWS))],
       ['cell', ''],
@@ -152,7 +159,7 @@ describe('RecordTable totals', () => {
     )
     const cells = [
       ...totalsRow().querySelectorAll('[role="rowheader"], [role="cell"]')
-    ].map((cell) => [cell.getAttribute('role'), cell.textContent])
+    ].map((cell) => [cell.getAttribute('role'), cellText(cell)])
     expect(cells).toEqual([
       ['cell', count.format(soldOf(SHOWS))],
       ['rowheader', 'Totals for 120 shows']
