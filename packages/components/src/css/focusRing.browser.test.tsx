@@ -1,7 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { focusAfterKey, focusRing, plainLinkRing } from './testUtils'
 
 const STILL = '*, *::before, *::after { transition-duration: 0s !important }'

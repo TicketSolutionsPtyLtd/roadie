@@ -2,6 +2,8 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Accordion } from '../components/Accordion'
 import { Autocomplete } from '../components/Autocomplete'
@@ -13,7 +15,6 @@ import {
   navigatorExpandToggleClass,
   navigatorItemVariants
 } from '../components/Navigator/variants'
-import { useStylesheet } from '../components/Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition-duration: 0s !important }'
 

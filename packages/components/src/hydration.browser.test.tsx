@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page, server } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../vitest.browser.css?inline'
-import { useStylesheet } from './components/Pane/testUtils'
 import { type Fixture, hydrationShift } from './utils/hydrationTestUtils'
 
 // One file per component, each export a fixture: a component with no props.

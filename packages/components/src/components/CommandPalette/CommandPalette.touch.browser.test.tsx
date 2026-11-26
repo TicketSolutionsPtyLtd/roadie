@@ -2,10 +2,11 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { CommandPalette } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { tapOn } from '../../utils/touchTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
 
 const TIMEOUT = { timeout: 20_000 }
 
