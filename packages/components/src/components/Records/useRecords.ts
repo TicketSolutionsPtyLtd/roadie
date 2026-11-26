@@ -43,6 +43,7 @@ import {
 import { applyQuery, isFiltered, toView } from './query'
 import { MAX_RANGE_ROWS } from './ranges'
 import { sameData } from './sameData'
+import { heldSearch, searchDraft, startSearchDraft } from './searchDraft'
 import {
   EMPTY_SELECTION,
   type TakenSelection,
@@ -790,36 +791,24 @@ export function useRecordsState<Row extends object>({
 
   // A server's search waits for typing to pause, so the field shows a draft.
   const committed = view.query.search
-  const [draft, setDraft] = useState(committed)
-  const [seen, setSeen] = useState(committed)
-  // Searches sent and not yet seen back, oldest first, so a slow parent's
-  // late echo of an earlier one isn't read as a change from outside.
-  const [sent, setSent] = useState<readonly string[]>([])
-  // Bumped by each search set from outside, which voids a pending draft.
-  const [outside, setOutside] = useState(0)
-  if (server && committed !== seen) {
-    setSeen(committed)
-    const echo = sent.indexOf(committed)
-    if (echo !== -1) setSent(sent.slice(echo + 1))
-    else {
-      // A search set from outside, like a reset or the URL, replaces the draft.
-      setDraft(committed)
-      setSent([])
-      setOutside(outside + 1)
-    }
-  } else if (server && sent.length > 0 && committed === sent.at(-1))
-    // The parent holds the last search sent, so earlier ones it skipped
-    // can't echo back and mask a later change from outside.
-    setSent([])
+  const [searchState, setSearchState] = useState(() =>
+    startSearchDraft(committed)
+  )
+  if (server) {
+    const shown = searchDraft(searchState, {
+      type: 'shown',
+      search: committed
+    })
+    if (shown !== searchState) setSearchState(shown)
+  }
+  const { draft, outside } = searchState
   const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(searchTimer.current), [])
-  // What the parent will hold once every search sent has echoed.
-  const expected = server ? (sent.at(-1) ?? committed) : committed
+  const expected = server ? heldSearch(searchState) : committed
   const replaceDraft = (next: string) => {
     clearTimeout(searchTimer.current)
     if (!server) return
-    setDraft(next)
-    if (next !== expected) setSent((held) => [...held, next].slice(-20))
+    setSearchState((held) => searchDraft(held, { type: 'sent', search: next }))
   }
 
   // Writes build on each other until the view shown changes, as a parent's
@@ -881,7 +870,7 @@ export function useRecordsState<Row extends object>({
   const setSearch = (next: string) => {
     if (!latest.current.server || next === '')
       return latest.current.commitSearch(next)
-    setDraft(next)
+    setSearchState((held) => searchDraft(held, { type: 'typed', search: next }))
     clearTimeout(searchTimer.current)
     const base = latest.current.outside
     searchTimer.current = setTimeout(() => {
