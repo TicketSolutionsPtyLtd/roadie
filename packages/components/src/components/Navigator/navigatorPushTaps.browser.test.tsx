@@ -12,12 +12,20 @@ import { forgetPaneScroll } from '../Pane/paneScroll'
 import { useStylesheet } from '../Pane/testUtils'
 import { Navigator } from './index'
 
-let removeStylesheet = () => {}
+// A slower slide, so a slow runner still taps mid-slide (Linux WebKit ran 300ms out before the poll saw it).
+const SLOW_SLIDE = ':root { --duration-slow: 1.5s; }'
+
+let removeStylesheets = () => {}
 beforeAll(() => {
-  removeStylesheet = useStylesheet(roadieCss)
+  const removeRoadie = useStylesheet(roadieCss)
+  const removeSlow = useStylesheet(SLOW_SLIDE)
+  removeStylesheets = () => {
+    removeSlow()
+    removeRoadie()
+  }
 })
 afterAll(async () => {
-  removeStylesheet()
+  removeStylesheets()
   await page.viewport(1920, 1080)
 })
 afterEach(() => {
@@ -76,7 +84,7 @@ async function untilFrame(done: () => boolean) {
 const click = (x: number, y: number) =>
   commands.pointer([{ type: 'move', x, y }, { type: 'down' }, { type: 'up' }])
 
-describe('a phone push', () => {
+describe('a phone push', { timeout: 15_000 }, () => {
   it("doesn't open the leaving pane's row again on a quick second tap, and the row opens once the pane is back", async () => {
     await page.viewport(390, 844)
     opened = 0
