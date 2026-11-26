@@ -292,6 +292,42 @@ describe('where oxlint applies no-fixed-sleep', () => {
   })
 })
 
+describe('where oxlint applies no-unwaited-popup-pick', () => {
+  const pick = `declare const user: { click(element: Element): Promise<void> }
+declare const screen: { findByRole(role: string): Promise<Element> }
+await user.click(await screen.findByRole('option'))
+`
+  const cases = [
+    [
+      `${components}/Select/Select.browser.test.tsx`,
+      ['no-unwaited-popup-pick']
+    ],
+    [`${components}/Select/Select.test.tsx`, []],
+    [`${components}/Select/index.tsx`, []],
+    ['packages/editor/src/Editor/Editor.browser.test.tsx', []]
+  ]
+  let found
+  beforeAll(() => {
+    found = lintSeeds(cases.map(([path]) => [path, pick]))
+  })
+
+  it.each(cases)('%s reports %j', (path, expected) => {
+    expect(found.get(path)).toEqual(expected)
+  })
+
+  // oxlint's scopes, not ESLint's, resolve the const.
+  it('follows a const that holds the item', () => {
+    const path = `${components}/Menu/Menu.browser.test.tsx`
+    const source = pick.replace(
+      "await user.click(await screen.findByRole('option'))",
+      "const item = await screen.findByRole('menuitem')\nawait user.click(item)"
+    )
+    expect(lintSeeds([[path, source]]).get(path)).toEqual([
+      'no-unwaited-popup-pick'
+    ])
+  })
+})
+
 describe('where oxlint applies no-cva-output-assertion', () => {
   const assertion = `import { expect } from 'vitest'
 expect(buttonVariants()).toContain('h-12')

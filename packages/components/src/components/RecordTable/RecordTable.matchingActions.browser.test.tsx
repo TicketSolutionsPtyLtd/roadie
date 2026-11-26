@@ -12,6 +12,7 @@ import { userEvent } from 'vitest/browser'
 
 import { RecordTable, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { pickMenuItem } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, type RecordsAction, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
@@ -67,10 +68,7 @@ describe('RecordTable table actions in a narrow toolbar', () => {
   it('runs an action from the menu', async () => {
     const onAction = vi.fn()
     render(<Shows actions={actions(onAction)} />)
-    await userEvent.click(more())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Export CSV' })
-    )
+    await pickMenuItem(userEvent, { from: more(), item: 'Export CSV' })
     expect(onAction).toHaveBeenCalledOnce()
   })
 
@@ -78,10 +76,7 @@ describe('RecordTable table actions in a narrow toolbar', () => {
     let finish = () => {}
     const onAction = vi.fn(() => new Promise<void>((done) => (finish = done)))
     render(<Shows actions={[{ label: 'Export CSV', onAction }]} />)
-    await userEvent.click(more())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Export CSV' })
-    )
+    await pickMenuItem(userEvent, { from: more(), item: 'Export CSV' })
     await waitFor(() => expect(more()).toHaveAttribute('aria-busy', 'true'))
     expect(more()).toHaveAttribute('aria-disabled', 'true')
     await act(async () => finish())

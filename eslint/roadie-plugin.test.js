@@ -89,6 +89,27 @@ const cases = {
       }
     ]
   },
+  'no-unwaited-popup-pick': {
+    valid: [
+      "await pickOption(user, { from: select, option: 'City' })",
+      "await user.click(await withFrames(() => screen.findByRole('option')))",
+      // A known gap: this finds a closing popup's option just the same, but
+      // today each such click follows a wait in the same open popup.
+      "await user.click(screen.getByRole('option', { name: 'City' }))",
+      "fireEvent.click(await screen.findByRole('option'))",
+      "await user.click(await screen.findByRole('button', { name: 'Save' }))",
+      "let item = await screen.findByRole('menuitem')\nawait user.click(item)",
+      "const item = screen.getByRole('menuitem')\nawait user.click(item)"
+    ],
+    invalid: [
+      "await user.click(await screen.findByRole('option', { name: 'City' }))",
+      "await userEvent.click(await within(menu).findByRole('menuitem'))",
+      "await user.click(await findByRole('menuitemradio', { name: 'Left' }))",
+      "await user.click((await screen.findAllByRole('option'))[1])",
+      "await user.click((await screen.findAllByRole('option')).at(-1))",
+      "const item = await screen.findByRole('menuitemcheckbox')\nawait user.click(item)"
+    ]
+  },
   'no-import-meta-env': {
     valid: ["const dev = process.env.NODE_ENV !== 'production'"],
     invalid: ['const dev = import.meta.env.DEV']
