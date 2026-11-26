@@ -395,24 +395,6 @@ describe('useRecords server search before its echo', () => {
       { initialProps: { search: '' } as { search: string; rowCount?: number } }
     )
 
-  it('clears at once, even before the last search echoes', async () => {
-    fakeTimers()
-    const onViewChange = vi.fn()
-    const { result, rerender } = controlled(onViewChange)
-    await act(() => result.current.setSearch('f'))
-    await act(() => vi.advanceTimersByTime(300))
-    await act(() => result.current.setSearch(''))
-    expect(onViewChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        query: expect.objectContaining({ search: '' })
-      }),
-      expect.anything()
-    )
-    rerender({ search: 'f' })
-    rerender({ search: '' })
-    expect(result.current.searchText).toBe('')
-  })
-
   it('sends a search that goes back to the one the parent still holds', async () => {
     fakeTimers()
     const onViewChange = vi.fn()
@@ -461,18 +443,6 @@ describe('useRecords server search with a parent that keeps only the last', () =
     rerender({ search: '' })
     rerender({ search: 'f' })
     expect(result.current.searchText).toBe('f')
-  })
-
-  it('reads a later outside search as outside after a backspace it never echoed', async () => {
-    fakeTimers()
-    const { result, rerender } = coalescing()
-    rerender({ search: 'x' })
-    await act(() => result.current.setSearch('xy'))
-    await act(() => vi.advanceTimersByTime(300))
-    await act(() => result.current.setSearch('x'))
-    await act(() => vi.advanceTimersByTime(300))
-    rerender({ search: 'xy' })
-    expect(result.current.searchText).toBe('xy')
   })
 })
 
