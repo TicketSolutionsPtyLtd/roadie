@@ -15,6 +15,8 @@ tags:
     combobox,
     select,
     autocomplete,
+    menu,
+    command-palette,
     perf
   ]
 problem_type: best_practice
@@ -64,6 +66,29 @@ of padding moves to the border, so rows stay where they were.
 again.
 
 Give a scroller whose content changes every frame (a filtered or virtualized
-list) a border, not an inset shadow, for its edge. Menu still scrolls with
-the inset rim; its frame tests don't type into it, and its blur is accepted
-by design (INNO-1522).
+list) a border, not an inset shadow, for its edge. Menu and CommandPalette
+keep the inset rim, which measures free for them (below).
+
+## Menu and CommandPalette: measured, no cost
+
+Menu scrolls with the inset rim, and CommandPalette's popup carries it, so
+both were measured (INNO-1649). A throwaway frame test ran on 8 CI runners at
+once, 7 rounds each, alternating which variant ran first and dropping the
+first round: the shipped rim against the rim cleared through
+`--rim-light-own`, 48 runs per variant
+([run](https://github.com/TicketSolutionsPtyLtd/roadie/actions/runs/45732353229)).
+
+| Scenario                                             | Rim: dropped per run | No rim: dropped per run |
+| ---------------------------------------------------- | -------------------- | ----------------------- |
+| Menu, scrolling 40 items in a `max-h-80` popup       | 0                    | 0                       |
+| Menu, open and close                                 | 0                    | 0                       |
+| CommandPalette, typing over 2,000 items, virtualized | 9.17                 | 9.42                    |
+| CommandPalette, scrolling 2,000 items, virtualized   | 207.8                | 209.5                   |
+
+Paired by runner and round, the rim's share is -0.25 ± 0.71 frames a run for
+typing and -1.6 ± 1.8 for scrolling: nothing. Every CommandPalette run missed
+its budget either way, which is the backdrop blur (INNO-1522). The palette's
+rim sits on the Dialog popup, which doesn't scroll. Its scroller is the List,
+which has no fill, so its scrolling layer is transparent with or without the
+rim. A Menu is short and its rows don't change, and scrolling one drops
+nothing either way. Neither gets the border.
