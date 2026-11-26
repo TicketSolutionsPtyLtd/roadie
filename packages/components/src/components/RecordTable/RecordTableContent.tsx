@@ -55,10 +55,13 @@ import {
 } from './RecordTableTotals'
 import { shownColumns } from './columns'
 import {
+  NARROW_HEAD_CLASS,
+  NARROW_SORT_CLASS,
   SELECT_WIDTH,
   columnLayout,
   contentTierClass,
   frameClass,
+  narrowContentClass,
   priorityClass,
   priorityProps,
   tierStyle,
@@ -162,8 +165,30 @@ export function RecordTableContent({
   )
   const title = titleColumn(columns)
 
+  const { selectable, getRowHref, totals, rows, range, fields } = records
+  const grouping = useMemo(
+    () => groupFields(fields, viewLayout),
+    [fields, viewLayout]
+  )
+  // A range table loads rows as they scroll into view, so it stays ungrouped
+  // until groups can come from the server.
+  const groups = useMemo(
+    () =>
+      grouping.length > 0 && !range
+        ? groupRecordsBy(rows, grouping)
+        : undefined,
+    [grouping, range, rows]
+  )
+  // Title rows aren't records, so a grouped table counts no rows.
+  const counted = partial && !groups
+  const cards = (config.narrow ?? narrowLayout(columns)) === 'cards'
+  // Rows re-flow under 40rem; deprecated cards, and for now selection, totals and groups, still swap for a list.
+  const swaps =
+    cards || selectable || totals !== undefined || groups !== undefined
   const isNarrow = useNarrow(frameRef, { placement: boxed })
-  const narrow = isNarrow ? (config.narrow ?? narrowLayout(columns)) : undefined
+  const narrow = isNarrow && swaps ? (cards ? 'cards' : 'list') : undefined
+  // Re-flowed rows fit the frame, so nothing scrolls sideways to name or tab to.
+  const fits = isNarrow && !swaps
   const parts = useMemo(() => {
     const roles = narrowParts(columns)
     // A row lists details on its second line; a table's detail columns are for cards only.
@@ -174,7 +199,6 @@ export function RecordTableContent({
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
   const selecting = useSelectModeLayout(narrow !== undefined)
 
-  const { selectable, getRowHref } = records
   const { toggleRow, rowActions, isSelected } = frame
   const hasRowActions = rowActions !== undefined
   const missingLinkColumn = getRowHref !== undefined && title === undefined
@@ -198,28 +222,13 @@ export function RecordTableContent({
     () =>
       columnLayout(columns, widths, {
         select: selectable,
-        actions: hasRowActions
+        actions: hasRowActions,
+        reflow: !swaps
       }),
-    [columns, widths, selectable, hasRowActions]
+    [columns, widths, selectable, hasRowActions, swaps]
   )
   const style = tierStyle(layout) as CSSProperties
 
-  const { rows, range, totals, fields } = records
-  const grouping = useMemo(
-    () => groupFields(fields, viewLayout),
-    [fields, viewLayout]
-  )
-  // A range table loads rows as they scroll into view, so it stays ungrouped
-  // until groups can come from the server.
-  const groups = useMemo(
-    () =>
-      grouping.length > 0 && !range
-        ? groupRecordsBy(rows, grouping)
-        : undefined,
-    [grouping, range, rows]
-  )
-  // Title rows aren't records, so a grouped table counts no rows.
-  const counted = partial && !groups
   const headRows = totals ? 2 : 1
   const headTextClass = cn(headerTextClass, totals ? 'text-sm' : 'text-xs')
   const { busy, dimmed } = frame
@@ -375,9 +384,11 @@ export function RecordTableContent({
       data-slot='record-table-frame'
       data-narrow={narrow ? '' : undefined}
       // In a box, the viewport is the region: it holds the focus.
-      role={boxed || narrow ? undefined : 'region'}
+      role={boxed || narrow || fits ? undefined : 'region'}
       aria-label={
-        boxed || narrow ? undefined : `${caption ?? 'Table'}, scrolls sideways`
+        boxed || narrow || fits
+          ? undefined
+          : `${caption ?? 'Table'}, scrolls sideways`
       }
       // Full width: a size container takes no width from its rows. In a
       // box, full height too, so a state centres in it, and clipped, so
@@ -401,6 +412,7 @@ export function RecordTableContent({
             className={cn(
               'text-sm tabular-nums',
               contentTierClass,
+              narrowContentClass(layout),
               boxed && 'grid grid-rows-[auto_1fr]'
             )}
             style={style}
@@ -438,6 +450,7 @@ export function RecordTableContent({
                 className={cn(
                   'h-9',
                   !totals && 'border-b border-normal',
+                  layout.narrow && NARROW_HEAD_CLASS,
                   // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
                   barShown
                     ? cn(
@@ -482,6 +495,10 @@ export function RecordTableContent({
                       key={column.key}
                       role='columnheader'
                       aria-sort={direction}
+                      // Its sort button hides under 40rem, so the header keeps its name.
+                      aria-label={
+                        layout.narrow ? column.field.label : undefined
+                      }
                       data-pin={column.pin || undefined}
                       {...priorityProps(layout, index)}
                       className={cn(
@@ -515,6 +532,7 @@ export function RecordTableContent({
                           }
                           className={cn(
                             'group is-interactive inline-flex items-center gap-1 rounded-sm font-semibold active:scale-100',
+                            layout.narrow && NARROW_SORT_CLASS,
                             (column.field.type === 'number' ||
                               column.field.type === 'money') &&
                               'flex-row-reverse',
@@ -572,7 +590,12 @@ export function RecordTableContent({
                 <div
                   aria-hidden
                   data-slot='record-table-progress'
-                  className='pointer-events-none absolute inset-x-0 bottom-0'
+                  className={cn(
+                    'pointer-events-none absolute inset-x-0 bottom-0',
+                    // The header row hides under 40rem, so the bar runs along the rows' top.
+                    layout.narrow &&
+                      '@max-[40rem]/record-table-frame:top-0 @max-[40rem]/record-table-frame:bottom-auto'
+                  )}
                 >
                   <RecordsProgress />
                 </div>
@@ -603,7 +626,7 @@ export function RecordTableContent({
                   {...frame.rowsSurvivor}
                   // Focusable, so not Base UI's presentation role; the frame names the region.
                   role={undefined}
-                  tabIndex={0}
+                  tabIndex={fits ? -1 : 0}
                   className={cn('isolate', dimmed && 'opacity-60')}
                   style={SIDEWAYS_ONLY}
                   onScroll={(event) => {
@@ -653,11 +676,13 @@ export function RecordTableContent({
           {content}
         </ScrollArea.Content>
       </ScrollArea.Viewport>
-      {/* Starts under the sticky header, as a pane's does under its own. */}
+      {/* Starts under the sticky header, as a pane's does under its own; re-flowed rows hide the header under 40rem. */}
       <ScrollArea.Scrollbar
         keepMounted
         data-slot='record-table-scrollbar'
-        className={narrow ? undefined : totals ? 'mt-16' : 'mt-9'}
+        className={
+          narrow ? undefined : totals ? 'mt-16' : 'mt-9 @max-[40rem]:mt-0'
+        }
       >
         <ScrollArea.Thumb />
       </ScrollArea.Scrollbar>
@@ -675,8 +700,13 @@ export function RecordTableContent({
 RecordTableContent.displayName = 'RecordTableContent'
 
 function inHiddenColumn(element: Element) {
-  const cell = element.closest('[data-priority]')
-  return !!cell && getComputedStyle(cell).display === 'none'
+  const cell = element.closest('[data-priority], [data-narrow]')
+  if (!cell) return false
+  // A sort button hides under 40rem while its header stays for screen readers.
+  return (
+    getComputedStyle(cell).display === 'none' ||
+    getComputedStyle(element).visibility === 'hidden'
+  )
 }
 
 /** Moves focus to the table when a priority tier hides the column holding it, which CSS does without unmounting it. */

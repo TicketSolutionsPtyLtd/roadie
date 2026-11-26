@@ -128,7 +128,8 @@ function VirtualRows({
   const { bodyRef, view } = useRowWindow({
     count: rows.length,
     getItemKey,
-    heightVar: ROW_HEIGHT_VAR
+    heightVar: ROW_HEIGHT_VAR,
+    heightKey: shared.layout.twoLines
   })
   const { cells, padding } = recordsWindow(view, { rows })
   return (
@@ -162,7 +163,8 @@ function RangeRows({
     range,
     row,
     onRow,
-    heightVar: ROW_HEIGHT_VAR
+    heightVar: ROW_HEIGHT_VAR,
+    heightKey: shared.layout.twoLines
   })
   const { cells, padding } = recordsWindow(view, { range })
   return (
