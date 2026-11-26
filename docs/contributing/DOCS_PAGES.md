@@ -52,8 +52,9 @@ with its skeleton and the rules on top of these.
 ## Status
 
 `status` says how settled the API a page documents is. Every component,
-chart, and widget page sets one: `scripts/check-component-docs.mjs` fails a
-component or chart page without it, and the docs build fails a widget page.
+chart, and widget page sets one: each package's manifest, which its build
+writes, fails a component or chart page with a props table and no status,
+and the docs build fails a widget page.
 A foundation page that documents a code API, such as Records or Linking,
 may set one. Any value other than these four fails the docs build.
 

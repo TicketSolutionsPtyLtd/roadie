@@ -2,11 +2,13 @@ import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import {
   type ComponentDoc,
+  Parser,
   type PropItem,
   withCompilerOptions
 } from 'react-docgen-typescript'
-import type ts from 'typescript'
+import ts from 'typescript'
 
+import { isShipped } from '../package-exports.mjs'
 import { programFor } from './exports.ts'
 import { unwrap } from './text.ts'
 
@@ -58,13 +60,88 @@ function keepProp(prop: PropItem) {
   )
 }
 
+// react-docgen-typescript names these exports after their file.
+const FILE_NAMED_EXPORTS = new Set([
+  'default',
+  '__function',
+  'Stateless',
+  'StatelessComponent',
+  'StyledComponentClass',
+  'StyledComponent',
+  'IStyledComponent',
+  'FunctionComponent',
+  'ForwardRefExoticComponent',
+  'MemoExoticComponent'
+])
+
+function assignedDisplayName(source: ts.SourceFile, name: string) {
+  for (const statement of source.statements) {
+    if (!ts.isExpressionStatement(statement)) continue
+    const { expression } = statement
+    if (
+      ts.isBinaryExpression(expression) &&
+      expression.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+      ts.isPropertyAccessExpression(expression.left) &&
+      ts.isIdentifier(expression.left.expression) &&
+      expression.left.expression.text === name &&
+      expression.left.name.text === 'displayName' &&
+      ts.isStringLiteralLike(expression.right)
+    ) {
+      return expression.right.text
+    }
+  }
+  return undefined
+}
+
+// The parser's own lookup hands a file's one `displayName` to every export in it.
+export function exportDisplayName(symbol: ts.Symbol) {
+  const name = symbol.getName()
+  if (FILE_NAMED_EXPORTS.has(name)) return undefined
+  const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0]
+  const source = declaration?.getSourceFile()
+  return (source && assignedDisplayName(source, name)) ?? name
+}
+
+// The parser caches a dependency's prop by file and name, so one component gets another's copy.
+const noPropCache = {
+  has: () => false,
+  get: () => undefined,
+  set: () => noPropCache
+}
+Object.defineProperty(Parser.prototype, 'propertiesOfPropsCache', {
+  configurable: true,
+  get: () => noPropCache,
+  set: () => {}
+})
+
+// TypeScript joins every declaration's docs, so a prop only dependencies declare repeats itself.
+const findDocComment = Parser.prototype.findDocComment
+Parser.prototype.findDocComment = function (symbol) {
+  const declarations = symbol.declarations ?? []
+  if (
+    declarations.length > 1 &&
+    !declarations.some((d) => isOurs(d.getSourceFile().fileName))
+  ) {
+    const { checker } = this as unknown as { checker: ts.TypeChecker }
+    for (const declaration of declarations) {
+      const name = ts.getNameOfDeclaration(declaration)
+      const own = name && checker.getSymbolAtLocation(name)
+      if (!own || own === symbol) continue
+      const doc = findDocComment.call(this, own)
+      if (doc.fullComment || doc.tags.default) return doc
+    }
+  }
+  return findDocComment.call(this, symbol)
+}
+
 export function createDocgenParser(program: ts.Program) {
   return withCompilerOptions(program.getCompilerOptions(), {
     savePropValueAsString: true,
     shouldExtractLiteralValuesFromEnum: true,
     shouldRemoveUndefinedFromOptional: true,
     skipChildrenPropWithoutDoc: true,
-    propFilter: keepProp
+    propFilter: keepProp,
+    componentNameResolver: exportDisplayName
   })
 }
 
@@ -122,7 +199,13 @@ function toProp(prop: PropItem, componentName: string): ManifestProp | null {
     prop.description ?? '',
     (prop as PropItem & { tags?: Record<string, string> }).tags
   )
-  const parent = prop.parent?.name
+  // A prop we redeclare comes from our declaration, unnamed in a type literal.
+  const own = prop.declarations?.find((d) => isOurs(d.fileName))
+  const parent = own
+    ? own.name === 'TypeLiteral'
+      ? undefined
+      : own.name
+    : prop.parent?.name
   return {
     name: prop.name,
     type: formatType(prop.type),
@@ -149,7 +232,7 @@ function publicPartsOf(indexFile: string, compound: string) {
 export function componentFiles(entryFile: string) {
   const dir = path.dirname(entryFile)
   return readdirSync(dir)
-    .filter((name) => name.endsWith('.tsx') && !/\.(test|ssr)\./.test(name))
+    .filter((name) => name.endsWith('.tsx') && isShipped(name))
     .sort()
     .map((name) => path.join(dir, name))
 }
@@ -213,6 +296,55 @@ export function toPart(doc: ComponentDoc): ManifestPart {
   }
 }
 
+function declaredProps(program: ts.Program, files: string[], typeName: string) {
+  const checker = program.getTypeChecker()
+  for (const file of files) {
+    const source = program.getSourceFile(file)
+    const module = source && checker.getSymbolAtLocation(source)
+    if (!module) continue
+    let symbol = checker
+      .getExportsOfModule(module)
+      .find((candidate) => candidate.getName() === typeName)
+    if (!symbol) continue
+    if (symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = checker.getAliasedSymbol(symbol)
+    }
+    return checker
+      .getPropertiesOfType(checker.getDeclaredTypeOfSymbol(symbol))
+      .filter(
+        (prop) =>
+          !SKIPPED_PROPS.has(prop.name) &&
+          // Undocumented `children` and `className` never reach the manifest.
+          (!['children', 'className'].includes(prop.name) ||
+            prop.getDocumentationComment(checker).length > 0) &&
+          !!prop.declarations?.some((d) => isOurs(d.getSourceFile().fileName))
+      )
+      .map((prop) => prop.name)
+  }
+  return []
+}
+
+// Fails when a part leaves out a prop its `<Part>Props` type declares in our sources.
+export function checkPartProps(
+  parts: ManifestPart[],
+  program: ts.Program,
+  files: string[]
+) {
+  for (const part of parts) {
+    const typeName = `${part.name.replace(/\./g, '')}Props`
+    const listed = new Set(part.props.map((prop) => prop.name))
+    const missing = declaredProps(program, files, typeName).filter(
+      (name) => !listed.has(name)
+    )
+    if (missing.length > 0) {
+      throw new Error(
+        `${part.name} leaves out ${missing.join(', ')}, which ${typeName} declares. ` +
+          'react-docgen-typescript documented another export or prop in its place.'
+      )
+    }
+  }
+}
+
 export function readComponents(
   parser: ReturnType<typeof createDocgenParser>,
   program: ts.Program,
@@ -221,14 +353,15 @@ export function readComponents(
 ): ManifestPart[] {
   const compound = path.basename(path.dirname(entryFile))
   const publicParts = publicPartsOf(entryFile, compound)
+  const files = componentFiles(entryFile)
+  const own = programFor(program, files)
   const parts = namedDocs(
-    parser.parseWithProgramProvider(componentFiles(entryFile), () =>
-      programFor(program, componentFiles(entryFile))
-    ),
+    parser.parseWithProgramProvider(files, () => own),
     compound,
     exportedValues,
     publicParts
   ).map(toPart)
+  checkPartProps(parts, own, files)
 
   const documented = new Set(parts.map((part) => part.name))
   const missing = [...publicParts].filter(
@@ -250,8 +383,11 @@ export function readFileComponents(
   files: string[],
   names: Set<string>
 ): ManifestPart[] {
-  return parser
-    .parseWithProgramProvider(files, () => programFor(program, files))
+  const own = programFor(program, files)
+  const parts = parser
+    .parseWithProgramProvider(files, () => own)
     .filter((doc) => names.has(doc.displayName))
     .map(toPart)
+  checkPartProps(parts, own, files)
+  return parts
 }

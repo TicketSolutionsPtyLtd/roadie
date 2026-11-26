@@ -1,9 +1,10 @@
 'use client'
 
-import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useStickyPart } from '../../utils/stickyStack'
 import { surfaceClass, useSurface } from '../../utils/surface'
 import { RecordsActions } from './RecordsActions'
 import { RecordsConfigure } from './RecordsOptions'
@@ -13,10 +14,9 @@ import {
   RecordsViewActions,
   type RecordsViewActionsProps
 } from './RecordsViewActions'
-import { useRecordsLayoutValue, useRecordsStable } from './context'
+import { useRecordsStable } from './context'
 import { SearchFocusContext } from './searchFocus'
 import { useLeaveSelectOnEscape } from './selectMode'
-import { usePublishToolbarHeight, useStickyTop } from './stickyTop'
 import type { RecordsAction } from './types'
 
 export type RecordsHeaderProps<Row extends object = object> = {
@@ -45,30 +45,17 @@ export function RecordsHeader<Row extends object>({
   viewActions,
   className
 }: RecordsHeaderProps<Row>) {
-  const { setToolbar, scope } = useRecordsStable()
-  const { toolbar } = useRecordsLayoutValue()
+  const { scope } = useRecordsStable()
   const leaveSelect = useLeaveSelectOnEscape()
   const ref = useRef<HTMLDivElement>(null)
-  const top = useStickyTop(ref, null, scope)
+  // The content's sticky parts stack under it while both are stuck.
+  const top = useStickyPart(ref, {
+    tier: 1,
+    stack: scope,
+    publishOn: '[data-slot="records"]'
+  })
   useSurface(ref)
   const [searchFocused, setSearchFocused] = useState(false)
-
-  // The content's header stacks under this toolbar while both are stuck.
-  useLayoutEffect(() => {
-    const element = ref.current
-    if (!element) return
-    // The first toolbar mounted keeps the place another one would take.
-    setToolbar((held) =>
-      held && held !== element && held.isConnected ? held : element
-    )
-    return () => setToolbar((held) => (held === element ? null : held))
-  }, [setToolbar])
-  // Takes the place another toolbar left, which this one's own effect won't notice.
-  useLayoutEffect(() => {
-    const element = ref.current
-    if (toolbar === null && element) setToolbar((held) => held ?? element)
-  }, [toolbar, setToolbar])
-  usePublishToolbarHeight(ref, toolbar, scope)
 
   return (
     <div

@@ -2,6 +2,8 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { PANE_CHROME_NONE } from './PaneChromeContext'
@@ -10,7 +12,6 @@ import {
   type PaneStackContextValue
 } from './PaneStackContext'
 import { forgetPaneScroll } from './paneScroll'
-import { useStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

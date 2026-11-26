@@ -1,11 +1,14 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  flatten,
+  apcaLc as sharedApcaLc
+} from '@oztix/roadie-browser-testing/contrast'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import { getAccentChromaSync, getOklchHueSync } from '@oztix/roadie-core/colors'
 
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
-import { flatten, apcaLc as sharedApcaLc } from './contrastTestUtils'
 import { setHoverCapable } from './testUtils'
 
 // Core's colour tokens live in its sheets, but only this package runs browser
@@ -45,7 +48,6 @@ const ACCENTS = [
 }))
 // APCA's floor for bold, button-sized labels.
 const STRONG_LABEL_LC = 60
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {

@@ -10,12 +10,16 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { BarChart } from '../BarChart'
 import { Chart } from '../Chart'
 import { LineChart } from '../LineChart'
 import { StackedArea } from '../StackedArea'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 import { afterResize } from './browserTesting'
 
 const days = Array.from({ length: 8 }, (_, i) => ({

@@ -14,6 +14,10 @@ import {
 
 import { withFrames } from '@oztix/roadie-browser-testing'
 import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+import {
   type RecordView,
   type RecordsRequest,
   recordFields
@@ -21,7 +25,6 @@ import {
 
 import { calendarLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
 

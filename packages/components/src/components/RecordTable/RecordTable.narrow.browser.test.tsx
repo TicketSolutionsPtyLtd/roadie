@@ -18,6 +18,10 @@ import {
   vi
 } from 'vitest'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import type { RecordPosition } from '@oztix/roadie-core/records'
 
 import {
@@ -28,7 +32,6 @@ import {
 } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Menu } from '../Menu'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
 import { useNarrow } from '../Records/narrow'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'

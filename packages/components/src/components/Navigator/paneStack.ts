@@ -150,3 +150,202 @@ export function resolveDepths(
   })
   return depths
 }
+
+export type PlacedPane = { id: string } & PaneRegistration
+
+/** What this render draws, not the snapshot, which learns of a pane a commit late. */
+export type DrawnPanes = {
+  /** The active secondary has a list, drawn or displaced by More. */
+  rootList: boolean
+  rootListDrawn: boolean
+  secondaryPane: boolean
+  overflow: boolean
+  moreOpen: boolean
+}
+
+/** Where a pane rendered while hydrating: `written` is drawn, `rank` is what registration should resolve. */
+type RenderClaim = {
+  pane: PlacedPane
+  written: number | null
+  rank: number | null
+}
+/** In render order: Fizz and hydration both walk the row in document order. */
+export type RenderClaims = Map<string, RenderClaim>
+
+const SECONDARY_ROOT: DepthEntry = {
+  column: 'list',
+  kind: 'generated-secondary'
+}
+const OPEN_MORE: DepthEntry = {
+  column: 'list',
+  kind: 'generated-overflow',
+  reached: true
+}
+
+function depthsOf(panes: readonly PlacedPane[], draws: DrawnPanes) {
+  const drawn = panes.filter((pane) => {
+    if (pane.kind === 'generated-secondary') return draws.secondaryPane
+    if (pane.kind === 'secondary') return draws.rootListDrawn
+    if (pane.kind === 'generated-overflow') return draws.overflow
+    return true
+  })
+  const rootPending =
+    draws.rootList && !drawn.some((pane) => isSecondaryKind(pane.kind))
+  const morePending =
+    draws.moreOpen && !drawn.some((pane) => isOverflowKind(pane.kind))
+  const held = [
+    ...(rootPending ? [SECONDARY_ROOT] : []),
+    ...(morePending ? [OPEN_MORE] : [])
+  ]
+  const resolved = resolveDepths([...held, ...drawn])
+  const shift = held.length
+  return new Map(
+    drawn.map((pane, index) => [pane.id, resolved[index + shift] ?? null])
+  )
+}
+
+// True when this row's ranks sit one shallower than the written scale.
+function liftOf(
+  panes: readonly PlacedPane[],
+  depths: ReadonlyMap<string, number | null>
+): boolean {
+  const first = panes.find((pane) => (depths.get(pane.id) ?? null) !== null)
+  return (
+    first !== undefined &&
+    depths.get(first.id) === 0 &&
+    (provisionalDepth(first) ?? 0) > 0
+  )
+}
+
+// A declared depth wins; a row opening on a detail is written from 1 so More can take 0.
+function renderOrderDepth(
+  panes: readonly PlacedPane[],
+  draws: DrawnPanes
+): Omit<RenderClaim, 'pane'> {
+  const pane = panes.at(-1)
+  if (pane?.depth !== undefined) {
+    const written = provisionalDepth(pane)
+    return { written, rank: written }
+  }
+  const depths = depthsOf(panes, draws)
+  const rank = pane ? (depths.get(pane.id) ?? null) : null
+  const lift = liftOf(panes, depths)
+  return { written: rank === null ? null : rank + (lift ? 1 : 0), rank }
+}
+
+/** The depth a pane is served at while hydrating, from the panes rendered before it; a pane claims once. */
+export function claimRenderedDepth(
+  claims: RenderClaims,
+  pane: PlacedPane,
+  draws: DrawnPanes
+) {
+  const claimed = claims.get(pane.id)
+  if (claimed) return claimed.written
+  const before = Array.from(claims.values(), (claim) => claim.pane)
+  const claim = { pane, ...renderOrderDepth([...before, pane], draws) }
+  claims.set(pane.id, claim)
+  return claim.written
+}
+
+/** Each live pane that was served, with the depth it sits at when that differs. */
+export function servedClaims(
+  live: readonly PlacedPane[],
+  draws: DrawnPanes,
+  claims: RenderClaims
+): { id: string; served: number | null; sits: number | null }[] {
+  const resolved = depthsOf(live, draws)
+  const lift = liftOf(live, resolved)
+  return live.flatMap(({ id }) => {
+    const claim = claims.get(id)
+    if (!claim) return []
+    const rank = resolved.get(id) ?? null
+    const moved = rank !== null && claim.written !== null && claim.rank !== rank
+    return [
+      { id, served: claim.written, sits: moved ? rank + (lift ? 1 : 0) : null }
+    ]
+  })
+}
+
+/** The registered row: ranks, positions, and the root, from what this render draws. */
+export function paneModel<T extends PlacedPane>(
+  ordered: readonly T[],
+  draws: DrawnPanes,
+  revealRoot: boolean
+) {
+  const depths = depthsOf(ordered, draws)
+  // Open More is the root and the top; closed, it is never reached.
+  const stack = ordered.map((pane) => ({
+    ...pane,
+    rank: isOverflowKind(pane.kind)
+      ? pane.reached
+        ? -1
+        : Infinity
+      : (depths.get(pane.id) ?? provisionalDepth(pane) ?? Infinity)
+  }))
+  return {
+    stack,
+    depths,
+    draws,
+    revealRoot,
+    positions: derivePositions(stack, revealRoot),
+    rootIndex: deriveRootIndex(stack)
+  }
+}
+
+export type PaneChromes<C> = {
+  top: C
+  none: C
+  /** The secondary's Back, for the pane at depth 1; null when it has none. */
+  back: { top: C; below: C } | null
+}
+
+export type PlacementModel<C> = ReturnType<typeof paneModel> & {
+  chrome: PaneChromes<C>
+  claims: RenderClaims
+}
+
+/** Where a pane sits; `entry` places one not yet registered, by render order while `hydrating`. */
+export function placePane<C>(
+  model: PlacementModel<C>,
+  id: string,
+  entry: PaneRegistration,
+  hydrating = false
+) {
+  const { stack, positions, revealRoot, depths, chrome } = model
+  const index = stack.findIndex((pane) => pane.id === id)
+  const position =
+    index === -1
+      ? provisionalPosition(entry, revealRoot)
+      : // The snapshot learns of a `reached` flip a commit late; the pane knows now.
+        stack[index]?.reached === entry.reached
+        ? (positions[index] ?? null)
+        : (derivePositions(
+            stack.map((pane, at) =>
+              at === index ? { ...pane, reached: entry.reached } : pane
+            ),
+            revealRoot
+          )[index] ?? null)
+  const resolved = depths.get(id)
+  const registered = resolved !== undefined
+  const depth = registered
+    ? resolved
+    : hydrating
+      ? claimRenderedDepth(model.claims, { id, ...entry }, model.draws)
+      : provisionalDepth(entry)
+  const top = position === 'top'
+  const placedChrome =
+    chrome.back === null || position === 'ahead' || depth !== 1
+      ? top
+        ? chrome.top
+        : chrome.none
+      : top
+        ? chrome.back.top
+        : chrome.back.below
+  return {
+    position,
+    depth,
+    chrome: placedChrome,
+    isRoot: index !== -1 && index === model.rootIndex,
+    registered
+  }
+}

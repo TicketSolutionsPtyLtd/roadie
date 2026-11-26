@@ -2,6 +2,8 @@ import { cleanup, render } from '@testing-library/react'
 import axe from 'axe-core'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
@@ -10,7 +12,6 @@ import {
   createShowDashboard,
   portfolioDates
 } from '../examples'
-import { useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
