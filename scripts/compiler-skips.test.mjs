@@ -26,8 +26,6 @@ const VIRTUAL =
 // Rewrite what the compiler names rather than add to this list. An entry that
 // compiles again fails too, so the list only gets shorter.
 const SKIPS = {
-  'components/src/components/Calendar/Calendar.tsx#Calendar':
-    'Two react-hooks lint disables turn the compiler off for it',
   'components/src/components/Calendar/swipe.ts#useSwipeToTurn':
     '??= and ++ on variables its gesture closures share',
   'components/src/components/Carousel/CarouselRoot.tsx#CarouselRoot': `${OPTED_OUT}it memoises its boundary values by hand`,
