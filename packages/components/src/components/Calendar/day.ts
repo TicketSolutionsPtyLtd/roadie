@@ -112,7 +112,7 @@ export function dayModel(options: DayModelOptions) {
       today: date === today,
       firstVisible,
       lastVisible,
-      // Before content under the day's number, which fills a plain day too.
+      // Content, which Calendar adds, also fills a plain day.
       look: look === 'plain' && previewDay ? ('filled' as const) : look,
       band: rangeMiddle && !tiles,
       // Half a band from a range end toward the rest of the range.
