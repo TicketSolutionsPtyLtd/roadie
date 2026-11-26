@@ -8,8 +8,8 @@ const fixture = path.join(import.meta.dirname, 'manifest/fixtures/workspace')
 describe('exportEntries', () => {
   it.each([
     [
-      'conditions',
-      { types: './dist/a.d.ts', import: './dist/a.js' },
+      'import before default',
+      { default: './dist/a.cjs', import: './dist/a.js' },
       './dist/a.js',
       'js'
     ],
@@ -49,7 +49,7 @@ describe('exportEntries', () => {
     const [entry] = exportEntries({
       './load': {
         types: './dist/load.d.ts',
-        node: './dist/load.node.js',
+        node: { default: './dist/load.node.js' },
         import: './dist/load.js'
       }
     })
@@ -65,6 +65,12 @@ describe('exportEntries', () => {
       expect.objectContaining({ subpath: '.', target: './src/index.js' })
     ])
   })
+
+  it('leaves out the source of JavaScript that has none', () => {
+    const [entry] = exportEntries({ './widget': './src/widget.js' }, fixture)
+    expect(entry).toEqual(expect.objectContaining({ kind: 'js' }))
+    expect(entry?.source).toBeUndefined()
+  })
 })
 
 describe('readExports', () => {
@@ -77,11 +83,5 @@ describe('readExports', () => {
       ['./chip/react', path.join(dir, 'src/widgets/chip/react/index.ts')],
       ['./chip/vue', path.join(dir, 'src/widgets/chip/vue/index.ts')]
     ])
-  })
-
-  it('leaves out the source of JavaScript that has none', () => {
-    const [entry] = exportEntries({ './widget': './src/widget.js' }, fixture)
-    expect(entry).toEqual(expect.objectContaining({ kind: 'js' }))
-    expect(entry?.source).toBeUndefined()
   })
 })

@@ -19,7 +19,6 @@ const isBare = (id) =>
   !id.startsWith('.') && !id.startsWith('\0') && !isAbsolute(id)
 const allowance = (bytes) => Math.max(bytes * 0.03, 300)
 
-/** The JavaScript subpaths among `readExports` entries, wildcards left out. */
 export function jsSubpaths(entries) {
   return entries
     .filter(({ subpath, kind }) => kind === 'js' && !subpath.includes('*'))
