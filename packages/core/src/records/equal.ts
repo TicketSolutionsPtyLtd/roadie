@@ -1,23 +1,13 @@
-import { encodeFilter } from './encoding'
-import type { RecordFilter, RecordLayout, RecordView } from './types'
+import { recordFilterKey } from './filterKey'
+import type { RecordLayout, RecordView } from './types'
 
 function normaliseSearch(search: string): string {
   return search.trim().replace(/\s+/g, ' ')
 }
 
-function filterKey(filter: RecordFilter): string {
-  if ('values' in filter) {
-    return encodeFilter({
-      ...filter,
-      values: [...new Set(filter.values)].sort()
-    })
-  }
-  return encodeFilter(filter)
-}
-
 // A repeated chip filters nothing more, so chips compare as a set.
 function chipKeys(view: RecordView): string[] {
-  return [...new Set(view.query.filters.map(filterKey))].sort()
+  return [...new Set(view.query.filters.map(recordFilterKey))].sort()
 }
 
 function sameList(a: readonly string[], b: readonly string[]): boolean {

@@ -7,13 +7,13 @@ import {
 } from '../datetime/parse'
 import type { DateRangeValue } from '../datetime/ranges'
 import { describeRecordFilter } from './describe'
-import { encodeFilter } from './encoding'
 import {
   isFilterable,
   isRecordOptionField,
   momentOf,
   recordFieldOptions
 } from './fields'
+import { recordFilterKey } from './filterKey'
 import { recordOperatorSpec } from './operators'
 import { identifierPattern } from './pattern'
 import type {
@@ -62,6 +62,15 @@ export type ParseRecordQueryOptions = RecordQueryOptions & {
   limit?: number
   locale?: string
 }
+
+export type ParseRecordValueOptions = RecordQueryOptions & {
+  /** The field the text is a value of. */
+  field: RecordField
+  locale?: string
+}
+
+/** What reading one field's value needs. */
+type ValueOptions = RecordQueryOptions & { locale?: string }
 
 type Candidate = RecordSuggestion & {
   span: [number, number]
@@ -313,7 +322,7 @@ function booleanReadings(field: RecordField, text: string): Reading[] {
 function dateReadings(
   dateFields: readonly RecordField[],
   text: string,
-  options: ParseRecordQueryOptions
+  options: ValueOptions
 ): Reading[] {
   const phrases = parseDatePhrase(text, options)
   return phrases.flatMap((phrase, p) =>
@@ -357,7 +366,7 @@ function identifierReadings(
 function fieldValueReadings(
   field: RecordField,
   value: string,
-  options: ParseRecordQueryOptions
+  options: ValueOptions
 ): Reading[] {
   // Every filterable field can be empty.
   return [
@@ -377,7 +386,7 @@ function fieldValueReadings(
 function typedValueReadings(
   field: RecordField,
   value: string,
-  options: ParseRecordQueryOptions
+  options: ValueOptions
 ): Reading[] {
   const text = value.toLowerCase()
   switch (field.type) {
@@ -424,7 +433,7 @@ function negatedFilter(filter: RecordFilter): RecordFilter | null {
 function negate(readings: readonly Reading[]): Reading[] {
   return readings.flatMap(({ exact: _exact, ...reading }) => {
     const filter = negatedFilter(reading.filter)
-    const negates = `filter:${encodeFilter(reading.filter)}`
+    const negates = `filter:${recordFilterKey(reading.filter)}`
     return filter ? [{ ...reading, filter, negates }] : []
   })
 }
@@ -449,7 +458,7 @@ function filterSuggestion(
   order: number
 ): Candidate {
   return {
-    id: `filter:${encodeFilter(reading.filter)}`,
+    id: `filter:${recordFilterKey(reading.filter)}`,
     kind: 'filter',
     label: reading.label,
     value: reading.filter,
@@ -964,13 +973,32 @@ function joinedValues(
       return [
         {
           ...candidate,
-          id: `filter:${encodeFilter({ ...filter, values: [...values] })}`,
+          id: `filter:${recordFilterKey({ ...filter, values: [...values] })}`,
           value: { ...filter, values: [...values] },
           score,
           span: whole
         }
       ]
     }
+  )
+}
+
+/**
+ * Each reading of `field:value`'s value, a leading `!`, `!=`, `≠` or `-`
+ * reading the opposite, or null when no value is left to read.
+ */
+function valueCandidates(
+  field: RecordField,
+  text: string,
+  options: ValueOptions,
+  span: [number, number]
+): Candidate[] | null {
+  const negated = negatedValue(text)
+  const value = negated ?? text
+  if (!value) return null
+  const readings = fieldValueReadings(field, value, options)
+  return (negated === null ? readings : negate(readings)).map((reading, i) =>
+    filterSuggestion(reading, round(reading.quality), '', span, i)
   )
 }
 
@@ -1030,17 +1058,11 @@ function readText(
 
   const named = namedField(input, fields)
   if (named) {
-    const { field } = named
-    const negated = negatedValue(named.value)
-    const value = negated ?? named.value
-    const read = (readings: Reading[]) =>
-      negated === null ? readings : negate(readings)
-    const readings = value
-      ? read(fieldValueReadings(field, value, options)).map((reading, i) =>
-          filterSuggestion(reading, round(reading.quality), '', whole, i)
-        )
-      : [fieldSuggestion(field, 1, '', whole, 0)]
-    return rank([...identifiers, ...readings])
+    const readings = valueCandidates(named.field, named.value, options, whole)
+    return rank([
+      ...identifiers,
+      ...(readings ?? [fieldSuggestion(named.field, 1, '', whole, 0)])
+    ])
   }
 
   const spans = spanCandidates(words, fields, options)
@@ -1059,5 +1081,23 @@ function readText(
   return rank(
     [...identifiers, ...spans, ...statements.candidates],
     statements.compared
+  )
+}
+
+/**
+ * Every filter typed text reads as for one field, best first, as `field:value`
+ * reads in `parseRecordQuery`: a number, comparison or range, an option or
+ * place, a date phrase, yes or no, `empty`, and a leading `!` or `-` as the
+ * opposite. Each filter once; none for a field that doesn't filter.
+ */
+export function parseRecordValue(
+  text: string,
+  options: ParseRecordValueOptions
+): RecordFilter[] {
+  const { field } = options
+  if (!isFilterable(field)) return []
+  const value = text.trim().replace(/\s+/g, ' ')
+  return rank(valueCandidates(field, value, options, [0, 1]) ?? []).flatMap(
+    (candidate) => (candidate.kind === 'filter' ? [candidate.value] : [])
   )
 }

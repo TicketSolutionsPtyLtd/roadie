@@ -23,6 +23,7 @@ export type { RelativeRange } from '../datetime/ranges'
 export {
   isRecordOptionField,
   recordFieldOptions,
+  recordFilterFits,
   recordFilterOperators,
   recordPlaceReader,
   recordPlaces
@@ -64,7 +65,7 @@ export type {
   RecordsRequestPaging
 } from './request'
 export { compileRecordQuery, matchesRecordQuery, recordDates } from './match'
-export { parseRecordQuery } from './parse'
+export { parseRecordQuery, parseRecordValue } from './parse'
 export {
   describeRecordFilter,
   recordOperatorLabel,
@@ -74,7 +75,11 @@ export type {
   DescribeRecordFilterOptions,
   RecordFilterDescription
 } from './describe'
-export type { ParseRecordQueryOptions, RecordSuggestion } from './parse'
+export type {
+  ParseRecordQueryOptions,
+  ParseRecordValueOptions,
+  RecordSuggestion
+} from './parse'
 export {
   recordViewFromSearchParams,
   recordViewToSearchParams
@@ -84,3 +89,4 @@ export type {
   RecordSearchParamsResult
 } from './searchParams'
 export { equalRecordViews } from './equal'
+export { recordFilterKey } from './filterKey'
