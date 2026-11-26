@@ -101,9 +101,10 @@ describe('coverage', () => {
     )
   })
 
-  it('names every utility in the safelist, or the compiled sheet drops it', () => {
+  it('names every utility in a safelist, or the compiled sheet drops it', () => {
     const safelisted = new Set(
-      read('safelist.html')
+      [read('safelist.html'), read('safelist.families.html')]
+        .join('\n')
         .match(/class="[^"]*"/g)!
         .flatMap((attr) => attr.slice(7, -1).split(/\s+/))
     )
