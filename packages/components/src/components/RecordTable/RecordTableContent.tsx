@@ -182,18 +182,13 @@ export function RecordTableContent({
   )
   // Title rows aren't records, so a grouped table counts no rows.
   const counted = partial && !groups
+  // Rows, totals and group titles re-flow under 40rem; only deprecated cards swap the table for a list.
   const cards = (config.narrow ?? narrowLayout(columns)) === 'cards'
-  // Rows, totals and group titles re-flow under 40rem; only deprecated cards swap.
-  const swaps = cards
   const isNarrow = useNarrow(frameRef, { placement: boxed })
-  const narrow = isNarrow && swaps ? (cards ? 'cards' : 'list') : undefined
+  const narrow = isNarrow && cards ? 'cards' : undefined
   // Re-flowed rows fit the frame, so nothing scrolls sideways to name or tab to.
-  const fits = isNarrow && !swaps
-  const parts = useMemo(() => {
-    const roles = narrowParts(columns)
-    // A row lists details on its second line; a table's detail columns are for cards only.
-    return narrow === 'cards' ? cardParts(roles) : { ...roles, details: [] }
-  }, [columns, narrow])
+  const fits = isNarrow && !cards
+  const parts = useMemo(() => cardParts(narrowParts(columns)), [columns])
   useKeepFocusShown(frameRef, boxed)
   // Narrow rows select only through Select mode; wide rows have checkboxes and keep it.
   const selecting = useSelectModeLayout(isNarrow)
@@ -225,9 +220,9 @@ export function RecordTableContent({
       columnLayout(columns, widths, {
         select: selectable,
         actions: hasRowActions,
-        reflow: !swaps
+        reflow: !cards
       }),
-    [columns, widths, selectable, hasRowActions, swaps]
+    [columns, widths, selectable, hasRowActions, cards]
   )
   const style = tierStyle(layout) as CSSProperties
 
@@ -281,7 +276,7 @@ export function RecordTableContent({
     state === 'loading' ? (
       <NarrowSkeleton
         parts={parts}
-        layout={narrow ?? 'list'}
+        layout='cards'
         size={records.position.pageSize}
       />
     ) : state ? (
@@ -401,7 +396,7 @@ export function RecordTableContent({
       }
       // Full width: a size container takes no width from its rows. In a
       // box, full height too, so a state centres in it, and clipped, so
-      // narrow rows never scroll it sideways.
+      // cards never scroll it sideways.
       className={cn(
         'w-full',
         frameClass,

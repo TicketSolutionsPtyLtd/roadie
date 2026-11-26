@@ -150,7 +150,7 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
 - `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, at every width, and sticks it to the foot of deprecated cards.
 
-On a phone the table turns into list rows: the event, its venue, and its status. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
+On a phone the table re-flows its rows: the event, its venue, and its status. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
@@ -273,7 +273,7 @@ A column presents one field. `tableColumns(fields).field(key, options)` takes:
 - `cell` to render the value yourself, such as an order number in `font-mono`. The column sizes from the field's text and reserves no room for an empty value, since your cell draws its own. If it falls back to `RecordValue`, which reads "Not available", give the column a `width`.
 - `kind: 'image'` to show the value, an image URL, as a 40px thumbnail, with `alt` to describe it from the row. Its header is read to screen readers but not shown, and it never sorts from there; give its field `searchable: false` and `sortable: false`. A record without an image shows a neutral tile with an image icon.
 - `priority` to hide the column as the table narrows. See [Column priority](#column-priority).
-- `narrow` to place the column when the table turns into list rows or cards. See [Narrow layouts](#narrow-layouts).
+- `narrow` to place the column when the table re-flows its rows or turns into cards. See [Narrow layouts](#narrow-layouts).
 
 The view's `layout.columns` orders and hides columns: `order` lists keys to bring forward and `hidden` lists keys to leave out. Pinned columns stay first and shown whatever the view says.
 
@@ -1394,7 +1394,7 @@ render(
 
 ### Column priority
 
-Give columns people can do without a `priority`, so they hide as a wide table narrows, before it turns into list rows. Priority 3 hides below 64rem of the table's own width, 2 below 56rem, and 1 below 48rem, and the header and rows hide together. Pinned columns and the title never hide, so `pin` and `narrow: 'title'` win over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
+Give columns people can do without a `priority`, so they hide as a wide table narrows, before its rows re-flow. Priority 3 hides below 64rem of the table's own width, 2 below 56rem, and 1 below 48rem, and the header and rows hide together. Pinned columns and the title never hide, so `pin` and `narrow: 'title'` win over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
 
 ```tsx
 const columns = [
@@ -1407,7 +1407,7 @@ const columns = [
 
 ### Narrow layouts
 
-Under 40rem of its own width, 640px at the default text size, the table drops its columns and lists its records. It measures the table, not the screen, so a table in a side panel turns into a list on a wide monitor too. Each column picks its place with `narrow`:
+Under 40rem of its own width, 640px at the default text size, the table drops its columns and re-flows each record into a row of a title and its details. It measures the table, not the screen, so a table in a side panel re-flows on a wide monitor too. Each column picks its place with `narrow`:
 
 | `narrow` | Where the column goes |
 | --- | --- |
@@ -1426,7 +1426,7 @@ Only deprecated cards still swap the table for a list once the page hydrates, si
 
 Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions take the header row, which shows again while records are selected, keeping the first action and putting the rest in a More actions menu when they don't fit. Cards stick them to the foot of the scrolling box instead.
 
-#### List rows
+#### Rows
 
 With no detail columns, each record is a row of a fixed height: leading, title, description, and trailing, then any row actions. An image column becomes the leading thumbnail. Switch to Wide to see the same table turn back into columns.
 
@@ -1500,7 +1500,7 @@ render(<NarrowEvents />)
 
 Give columns `narrow: 'detail'` and each record becomes a card, with the details listed under its title as labels and values. An image column becomes the card's 16:9 banner, with the trailing value on its top end. Cards grow to fit their content, and past 100 records the list measures each as it renders.
 
-To choose for yourself, pass `narrow: 'list'` or `narrow: 'cards'` to `tableLayout`, or `narrow` to `RecordTable`. List rows leave out detail columns, and cards without details show just the title, description, and trailing.
+To choose for yourself, pass `narrow: 'list'` or `narrow: 'cards'` to `tableLayout`, or `narrow` to `RecordTable`. Rows leave out detail columns, and cards without details show just the title, description, and trailing.
 
 ```tsx-live-noinline
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
