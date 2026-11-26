@@ -205,10 +205,10 @@ describe('claimRenderedDepth', () => {
       want: [1, 2]
     },
     {
-      name: 'a detail behind a secondary list still to draw',
-      panes: [pane('a')],
+      name: 'a row behind a secondary list still to draw',
+      panes: [list, pane('a')],
       draws: { ...closed, rootList: true },
-      want: [1]
+      want: [1, 2]
     },
     {
       name: 'a declared depth',
