@@ -107,6 +107,16 @@ describe('buildManifest', () => {
       ],
       parts: [
         {
+          name: 'Pill.Dot',
+          props: [
+            {
+              name: 'max',
+              type: 'number',
+              description: 'The most dots to draw at once.'
+            }
+          ]
+        },
+        {
           name: 'Pill.Icon',
           props: [
             {
@@ -195,6 +205,20 @@ describe('buildManifest', () => {
     ])
   })
 
+  it('documents a part from its own component when its file also exports a helper', () => {
+    const pill = manifest.components.find((c) => c.name === 'Pill')
+    expect(pill?.parts?.find((part) => part.name === 'Pill.Dot')).toEqual({
+      name: 'Pill.Dot',
+      props: [
+        {
+          name: 'max',
+          type: 'number',
+          description: 'The most dots to draw at once.'
+        }
+      ]
+    })
+  })
+
   it('lists only exported components', () => {
     const names = manifest.components.flatMap((c) => [
       c.name,
@@ -202,6 +226,7 @@ describe('buildManifest', () => {
     ])
     expect(names).toEqual([
       'Pill',
+      'Pill.Dot',
       'Pill.Icon',
       'Pill.Glyph',
       'Tag',

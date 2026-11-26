@@ -21,8 +21,13 @@ type SliderValueType = number | readonly number[]
 export type SliderDirection = 'horizontal' | 'vertical'
 
 export type SliderRootProps<Value extends SliderValueType = SliderValueType> =
-  Omit<SliderPrimitive.Root.Props<Value>, 'orientation'> &
+  Omit<SliderPrimitive.Root.Props<Value>, 'orientation' | 'locale'> &
     RefAttributes<HTMLDivElement> & {
+      /**
+       * The locale `Intl.NumberFormat` formats the value in.
+       * @default 'en-AU'
+       */
+      locale?: Intl.LocalesArgument | undefined
       /**
        * Which way the track runs. `vertical` runs up the page.
        * @default 'horizontal'

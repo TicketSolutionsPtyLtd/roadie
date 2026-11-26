@@ -1,13 +1,18 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import {
+  checkPartProps,
   componentFiles,
+  createDocgenParser,
   formatType,
   isOurs,
+  readFileComponents,
   splitDeprecation
 } from './components'
+import { createProgram } from './exports'
 
 describe('splitDeprecation', () => {
   it.each([
@@ -75,6 +80,119 @@ describe('isOurs', () => {
     expect(isOurs('/repo/node_modules/@base-ui/react/button/Button.d.ts')).toBe(
       false
     )
+  })
+})
+
+describe('checkPartProps', () => {
+  const pillDir = fileURLToPath(
+    new URL('./fixtures/workspace/pkg/src/components/Pill/', import.meta.url)
+  )
+  const files = componentFiles(path.join(pillDir, 'index.tsx'))
+  const program = createProgram(
+    files,
+    fileURLToPath(
+      new URL('./fixtures/workspace/tsconfig.react.json', import.meta.url)
+    )
+  )
+  const max = { name: 'max', type: 'number' }
+
+  it.each([
+    ['a part with props', { name: 'Pill.Dot', props: [max] }],
+    ['a part with no props type', { name: 'Pill.Frame', props: [] }]
+  ])('passes %s', (_, part) => {
+    expect(() => checkPartProps([part], program, files)).not.toThrow()
+  })
+
+  it('fails when a part leaves out a prop its props type declares', () => {
+    expect(() =>
+      checkPartProps([{ name: 'Pill.Dot', props: [] }], program, files)
+    ).toThrow('Pill.Dot leaves out max, which PillDotProps declares')
+  })
+})
+
+describe('readFileComponents', () => {
+  // A component file beside a stand-in for a dependency's types.
+  function readDots(source: string[]) {
+    const dir = mkdtempSync(path.join(tmpdir(), 'dots-'))
+    onTestFinished(() => rmSync(dir, { recursive: true }))
+    const dependency = path.join(dir, 'node_modules/@base-ui/react')
+    mkdirSync(dependency, { recursive: true })
+    mkdirSync(path.join(dir, 'components'))
+    writeFileSync(
+      path.join(dependency, 'index.d.ts'),
+      [
+        "export interface DomAttributes { 'aria-label'?: string | undefined }",
+        'export interface ButtonProps {',
+        '  /**',
+        '   * Renders a button element.',
+        '   * @default true',
+        '   */',
+        '  native?: boolean | undefined',
+        '}',
+        'export interface TriggerProps {',
+        '  /**',
+        '   * Renders a native button element.',
+        '   * @default true',
+        '   */',
+        '  native?: boolean',
+        '}'
+      ].join('\n')
+    )
+    const file = path.join(dir, 'components/Dot.tsx')
+    writeFileSync(
+      file,
+      [
+        "import type { ButtonProps, DomAttributes, TriggerProps } from '@base-ui/react'",
+        ...source
+      ].join('\n')
+    )
+    const program = createProgram(
+      [file],
+      fileURLToPath(
+        new URL('./fixtures/workspace/tsconfig.react.json', import.meta.url)
+      )
+    )
+    return readFileComponents(
+      createDocgenParser(program),
+      program,
+      [file],
+      new Set(['Dot'])
+    )
+  }
+
+  it("keeps a prop the component's type redeclares over a dependency's", () => {
+    const [dot] = readDots([
+      'export function Plain(props: DomAttributes) {',
+      "  return props['aria-label']",
+      '}',
+      'export type DotProps = DomAttributes & {',
+      '  /** Names the dot. */',
+      "  'aria-label'?: string",
+      '}',
+      'export function Dot(props: DotProps) {',
+      "  return props['aria-label']",
+      '}'
+    ])
+    expect(dot?.props).toEqual([
+      { name: 'aria-label', type: 'string', description: 'Names the dot.' }
+    ])
+  })
+
+  it("takes a prop two dependency types declare from the first one's docs", () => {
+    const [dot] = readDots([
+      'export function Dot(props: ButtonProps & TriggerProps) {',
+      '  return props.native',
+      '}'
+    ])
+    expect(dot?.props).toEqual([
+      {
+        name: 'native',
+        type: 'boolean',
+        default: 'true',
+        description: 'Renders a button element.',
+        from: 'ButtonProps'
+      }
+    ])
   })
 })
 
