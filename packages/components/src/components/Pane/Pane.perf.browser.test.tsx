@@ -164,8 +164,8 @@ const PUSHES: {
     content: 'table',
     onPush: true,
     styleCap: CONTENT_STYLE_CAP,
-    // 145 to 160ms after INNO-1678: each pane's visibility, pointer-events
-    // and --pane-back still change over its whole subtree.
+    // Mostly mounting the table, and each pane's visibility and --pane-back
+    // still change over its whole subtree.
     styleMiss: 'INNO-1706'
   }
 ]

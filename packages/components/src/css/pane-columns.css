@@ -820,10 +820,16 @@
       transition-timing-function: var(--ease-enter);
     }
   }
+  /* A parked pane keeps `pointer-events`, which would restyle its subtree;
+     Navigator covers it while it slides away (INNO-1706). */
+  [data-slot='pane'][data-stack] > [data-pane-tap-cover] {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-index-overlay);
+  }
   @container style(--pane-parked-0: 1) {
     [data-slot='pane'][data-stack][data-depth='0'] {
       visibility: hidden;
-      pointer-events: none;
       content-visibility: auto;
       transition-property: translate, opacity, visibility, z-index;
       transition-timing-function:
@@ -833,7 +839,6 @@
   @container style(--pane-parked-1: 1) {
     [data-slot='pane'][data-stack][data-depth='1'] {
       visibility: hidden;
-      pointer-events: none;
       content-visibility: auto;
       transition-property: translate, opacity, visibility, z-index;
       transition-timing-function:
@@ -843,7 +848,6 @@
   @container style(--pane-parked-2: 1) {
     [data-slot='pane'][data-stack][data-depth='2'] {
       visibility: hidden;
-      pointer-events: none;
       content-visibility: auto;
       transition-property: translate, opacity, visibility, z-index;
       transition-timing-function:
@@ -853,7 +857,6 @@
   @container style(--pane-parked-3: 1) {
     [data-slot='pane'][data-stack][data-depth='3'] {
       visibility: hidden;
-      pointer-events: none;
       content-visibility: auto;
       transition-property: translate, opacity, visibility, z-index;
       transition-timing-function:

@@ -60,6 +60,7 @@ import {
   resolveDepths
 } from './paneStack'
 import { textOf } from './splitSecondary'
+import { coverWhileLeaving, uncover } from './tapCover'
 import { useTopPaneChrome } from './useTopPaneChrome'
 import {
   navigatorContentClass,
@@ -383,10 +384,20 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     const row = rowRef.current
     if (!row) return
     const was = shape.current
+    const wasTop = topNode.current
     shape.current = shapeOf(row, level)
     topNode.current =
       shape.current[deriveTopIndex(shape.current, revealRoot)]?.node ?? null
     if (isSiblingSwap(was, shape.current)) cut()
+    if (wasTop !== topNode.current) {
+      uncover(topNode.current)
+      if (
+        wasTop instanceof HTMLElement &&
+        wasTop.isConnected &&
+        row.hasAttribute('data-pushing')
+      )
+        coverWhileLeaving(wasTop)
+    }
     // The only arrival signal where the engine lacks the Navigation API.
     if (!sameNodes(was, shape.current)) arrived.current = true
   })
