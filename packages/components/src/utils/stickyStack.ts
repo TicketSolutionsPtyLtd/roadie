@@ -176,11 +176,16 @@ export function watchStuck(element: HTMLElement, onChange: () => void) {
   }
 }
 
+const boxes = new WeakMap<HTMLElement, HTMLElement | null>()
+
 /** Tells what sits in a part's box that the part moved, from the observer callback that saw it, so a restore reads its new place at once. */
 export function stuckMoved(part: HTMLElement) {
   // No style read on a pane push with nothing watching.
   if (watchers.size === 0) return
-  const box = findStickyContainer(part)
+  // Read once: on later calls the part has just written inherited values,
+  // and a style read would restyle what sits under them early.
+  let box = boxes.get(part)
+  if (box === undefined) boxes.set(part, (box = findStickyContainer(part)))
   for (const { element, onChange } of watchers)
     if (box?.contains(element)) onChange()
 }

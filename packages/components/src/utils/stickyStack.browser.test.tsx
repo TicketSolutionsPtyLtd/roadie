@@ -326,4 +326,23 @@ describe('watchStuck', () => {
       expect(watched).toBe(idle)
     }
   )
+
+  it(
+    'reads no styles telling of a part again, as a header compacting on scroll writes its height',
+    TIMEOUT,
+    () => {
+      render(
+        <Box pane>
+          <div data-testid='header' />
+        </Box>
+      )
+      const unwatch = watchStuck(document.body, () => {})
+      stuckMoved(screen.getByTestId('header'))
+      const read = vi.spyOn(window, 'getComputedStyle')
+      stuckMoved(screen.getByTestId('header'))
+      expect(read).not.toHaveBeenCalled()
+      read.mockRestore()
+      unwatch()
+    }
+  )
 })
