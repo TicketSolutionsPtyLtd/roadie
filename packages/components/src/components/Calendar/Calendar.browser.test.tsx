@@ -15,14 +15,13 @@ import {
 import { commands, userEvent } from 'vitest/browser'
 
 import { withFrames } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import { Calendar, type CalendarDateRange, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames, setHoverCapable } from '../../css/testUtils'
-import { useStylesheet } from '../Pane/testUtils'
 import { ScrollArea } from '../ScrollArea'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 // 1 March 2027 is a Monday.
 const TODAY = '2027-03-10'
 

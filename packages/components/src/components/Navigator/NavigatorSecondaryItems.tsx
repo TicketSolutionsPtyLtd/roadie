@@ -3,15 +3,11 @@
 import { Fragment, memo, use, useMemo } from 'react'
 
 import { List, type ListProps } from '../List'
-import {
-  NavigatorActionsContext,
-  NavigatorSelectionContext,
-  isActiveValue
-} from './NavigatorContext'
-import { opensElsewhere } from './opensElsewhere'
+import { NavigatorSelectionContext, isActiveValue } from './NavigatorContext'
 import { presentSecondaryIcon } from './presentNavIcon'
 import { type SecondaryRow, secondaryRows } from './secondaryData'
 import { textOf } from './splitSecondary'
+import { useActivation } from './useActivation'
 import { useSecondary } from './useNavigatorSecondary'
 
 export type NavigatorSecondaryItemsProps = Omit<ListProps, 'children'> & {
@@ -35,7 +31,7 @@ const SecondaryItemsRow = memo(function SecondaryItemsRow({
   current,
   showDescriptions
 }: SecondaryItemsRowProps) {
-  const { setValue, activateItem } = use(NavigatorActionsContext)
+  const activate = useActivation()
   return (
     <List.Item
       title={row.label}
@@ -48,10 +44,7 @@ const SecondaryItemsRow = memo(function SecondaryItemsRow({
       trailing={row.badge}
       href={row.href}
       current={current && 'page'}
-      onClick={(event) => {
-        if (!opensElsewhere(event)) setValue(row.value)
-        activateItem(row.value)
-      }}
+      onClick={(event) => activate(event, 'secondary', { value: row.value })}
     />
   )
 })

@@ -2,6 +2,11 @@ import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RankedBars } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
@@ -13,7 +18,6 @@ import {
   expectTableKeepsHeight,
   renderInCard
 } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 import { attendanceExample, channelExample, suburbExample } from './examples'
 import type { RankedBarsProps } from './types'
 

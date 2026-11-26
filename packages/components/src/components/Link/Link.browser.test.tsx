@@ -10,14 +10,13 @@ import {
 } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Link, type LinkProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { pointAt } from '../../utils/pointerTestUtils'
 import { Callout } from '../Callout'
-import { useStylesheet } from '../Pane/testUtils'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeRoadie = () => {}
 let removeStill = () => {}
