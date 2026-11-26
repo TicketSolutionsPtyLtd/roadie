@@ -444,6 +444,18 @@ describe('useRecords server search with a parent that keeps only the last', () =
     rerender({ search: 'f' })
     expect(result.current.searchText).toBe('f')
   })
+
+  it('reads a later outside search as outside after views set in one go', () => {
+    const { result, rerender } = coalescing()
+    rerender({ search: 'x' })
+    act(() => {
+      result.current.setView(view({ search: 'y' }))
+      result.current.setView(view({ search: 'x' }))
+    })
+    rerender({ search: 'x' })
+    rerender({ search: 'y' })
+    expect(result.current.searchText).toBe('y')
+  })
 })
 
 describe('useRecords browser page past the end', () => {
