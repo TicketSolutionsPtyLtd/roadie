@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
+import type { PaneRegistration } from '../Pane/PaneStackContext'
 import {
+  type DrawnPanes,
   type PaneEntry,
+  type PlacedPane,
+  type RenderClaims,
+  claimRenderedDepth,
   derivePositions,
   deriveRootIndex,
   deriveTopIndex,
   provisionalDepth,
   provisionalPosition,
-  resolveDepths
+  resolveDepths,
+  servedClaims
 } from './paneStack'
 
 const entry = (over: Partial<PaneEntry> = {}): PaneEntry => ({
@@ -163,5 +169,76 @@ describe('resolveDepths', () => {
         { column: 'list', kind: 'overflow', reached: true }
       ])
     ).toEqual([0, 0, 1, 0])
+  })
+})
+
+const closed: DrawnPanes = {
+  rootList: false,
+  rootListDrawn: false,
+  secondaryPane: false,
+  overflow: false,
+  moreOpen: false
+}
+const pane = (id: string, over: Partial<PaneRegistration> = {}) =>
+  ({
+    id,
+    column: 'detail',
+    reached: false,
+    tabBar: 'auto',
+    kind: 'pane',
+    ...over
+  }) satisfies PlacedPane
+const list = pane('list', { column: 'list' })
+
+const serve = (
+  claims: RenderClaims,
+  panes: readonly PlacedPane[],
+  draws = closed
+) => panes.map((served) => claimRenderedDepth(claims, served, draws))
+
+describe('claimRenderedDepth', () => {
+  it.each([
+    { name: 'a list then a detail', panes: [list, pane('a')], want: [0, 1] },
+    {
+      name: 'a row of details, from 1 so More can take 0',
+      panes: [pane('a'), pane('b')],
+      want: [1, 2]
+    },
+    {
+      name: 'a row behind a secondary list still to draw',
+      panes: [list, pane('a')],
+      draws: { ...closed, rootList: true },
+      want: [1, 2]
+    },
+    {
+      name: 'a declared depth',
+      panes: [list, pane('a', { depth: 3 })],
+      want: [0, 3]
+    }
+  ])('serves $name at its render-order depth', ({ panes, draws, want }) => {
+    const claims: RenderClaims = new Map()
+    expect(serve(claims, panes, draws)).toEqual(want)
+    // StrictMode renders each pane twice; the second render keeps its claim.
+    expect(serve(claims, panes, draws)).toEqual(want)
+  })
+})
+
+describe('servedClaims', () => {
+  it('gives each served pane the depth it sits at when that moved', () => {
+    const claims: RenderClaims = new Map()
+    // Rendered b before a, but a comes first in the document.
+    serve(claims, [pane('b'), pane('a')])
+    expect(servedClaims([pane('a'), pane('b')], closed, claims)).toEqual([
+      { id: 'a', served: 2, sits: 1 },
+      { id: 'b', served: 1, sits: 2 }
+    ])
+    expect(servedClaims([pane('b'), pane('a')], closed, claims)).toEqual([
+      { id: 'b', served: 1, sits: null },
+      { id: 'a', served: 2, sits: null }
+    ])
+  })
+
+  it('skips a pane that was never served', () => {
+    expect(servedClaims([list], closed, new Map())).toEqual([])
   })
 })

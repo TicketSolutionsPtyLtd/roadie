@@ -18,6 +18,7 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
+import { useStickyPart } from '../../utils/stickyStack'
 import { surfaceClass, useSurface } from '../../utils/surface'
 import { SortIcon } from '../DataTable/SortIcon'
 import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
@@ -28,7 +29,6 @@ import type { RecordsContentProps } from '../Records/layouts'
 import { useNarrow } from '../Records/narrow'
 import { pageState } from '../Records/selection'
 import { firstDirection } from '../Records/sortOptions'
-import { useStickyTop } from '../Records/stickyTop'
 import { hiddenByStyle, tableFocusTarget } from '../Records/tableFocus'
 import {
   RecordsLayoutState,
@@ -142,7 +142,6 @@ export function RecordTableContent({
   const {
     records,
     caption,
-    toolbar,
     scope,
     bulkMounted,
     setBulkSlot,
@@ -155,7 +154,11 @@ export function RecordTableContent({
   const totalsClipRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  const headTop = useStickyTop(headRef, toolbar, scope, boxed)
+  const headTop = useStickyPart(headRef, {
+    tier: 2,
+    stack: scope,
+    placement: boxed
+  })
   // On the table, so the head and pinned cells inherit it.
   useSurface(contentRef, boxed)
   const allColumns = config.columns
