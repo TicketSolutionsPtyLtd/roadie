@@ -45,14 +45,14 @@ import { MAX_RANGE_ROWS } from './ranges'
 import { sameData } from './sameData'
 import {
   EMPTY_SELECTION,
+  type TakenSelection,
   selectedCount as countSelected,
   isSelected,
   matchKey,
-  sameSelection,
+  reconcileSelection,
   selectPage as selectPageIds,
   toggle,
-  toggleRange,
-  withinMatching
+  toggleRange
 } from './selection'
 import {
   type RecordsResolvedTotals,
@@ -746,36 +746,24 @@ export function useRecordsState<Row extends object>({
     search: view.query.search,
     filters: scopedQuery.filters
   })
-  // A search's matches exist only once it renders, so pruning waits for it.
-  const searchApplied = search === view.query.search
-  const [taken, setTaken] = useState({
+  const [taken, setTaken] = useState<TakenSelection>({
     held: heldSelection,
     key: queryKey,
     selection: heldSelection
   })
-  let selection = heldSelection
-  // A selection set with its query, like one restored from the URL, keeps it.
-  if (!sameSelection(taken.held, heldSelection)) {
-    const own =
-      picked !== null && sameSelection(picked.selection, heldSelection)
-    // Read once: a later outside change that happens to equal it is not ours.
-    if (picked !== null) setPicked(null)
-    setTaken({
-      held: heldSelection,
-      key: own ? picked.key : queryKey,
-      selection
-    })
-  } else if (searchApplied && taken.key !== queryKey) {
-    // Derived in render, so no paint pairs the old selection with the new query.
-    const empty = 'ids' in heldSelection && heldSelection.ids.length === 0
-    // Only the server knows what a new search matches.
-    selection = empty
-      ? heldSelection
-      : server || 'allMatching' in heldSelection
-        ? EMPTY_SELECTION
-        : withinMatching(heldSelection, matchingIds)
-    setTaken({ held: heldSelection, key: queryKey, selection })
-  } else if (taken.selection !== taken.held) selection = taken.selection
+  // Derived in render, so no paint pairs the old selection with the new query.
+  const reconciled = reconcileSelection(taken, {
+    held: heldSelection,
+    picked,
+    key: queryKey,
+    // A search's matches exist only once it renders, so pruning waits for it.
+    applied: search === view.query.search,
+    server,
+    matching: matchingIds
+  })
+  const { selection } = reconciled
+  if (reconciled.pickRead) setPicked(null)
+  if (reconciled.taken !== taken) setTaken(reconciled.taken)
   // Compared by identity: each derivation makes a new record, while the
   // selections inside it can be the same shared EMPTY_SELECTION.
   const notified = useRef<typeof taken | null>(null)
