@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Writes package.json `exports` from src/components; run after adding or
-// removing a component. Indicator is internal (Field, Select and RadioGroup
+// removing a component. Indicator is internal (Field, Select, and RadioGroup
 // use it), and SpotIllustration keeps its older `./spot-illustrations` key.
 import { generateExports } from '../../core/scripts/generate-exports.mjs'
 

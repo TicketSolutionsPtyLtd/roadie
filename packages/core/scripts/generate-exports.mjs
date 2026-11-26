@@ -1,10 +1,5 @@
-// Writes a package.json `exports` block with one subpath per source folder
-// that has an index, for the packages whose build emits a folder per
-// component (components, charts and blocks). Their own
-// scripts/generate-package-exports.mjs names the folder and the fixed
-// subpaths before and after. Unbundled output keeps each leaf its own client
-// module, which Server Components need to dot into a compound:
-// docs/solutions/rsc-patterns/compound-export-namespace.md.
+// One subpath per component folder, since Server Components dot into a
+// compound only through its own module (docs/solutions/rsc-patterns/compound-export-namespace.md).
 import {
   existsSync,
   readFileSync,
