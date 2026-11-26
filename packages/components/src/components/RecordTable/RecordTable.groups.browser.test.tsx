@@ -16,7 +16,7 @@ import type { RecordField } from '@oztix/roadie-core/records'
 
 import { tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { withFrames } from '../../css/testUtils'
+import { pickOption } from '../../css/testUtils'
 import { Pane } from '../Pane'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
@@ -97,13 +97,6 @@ const groupsShown = () => {
 }
 
 const toggle = (name: string) => screen.getByRole('button', { name })
-
-// Base UI opens a Select from a press in a frame and keeps a closed popup
-// mounted, inert, until its exit transition ends; Linux WebKit runs no frames
-// while idle. So each pick waits for its popup to go before the next one
-// (docs/solutions/test-failures/linux-webkit-no-frames-while-idle.md).
-const popupGone = () =>
-  withFrames(() => expect.poll(() => screen.queryByRole('listbox')).toBeNull())
 
 describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
   it('heads each group with a row spanning the table, its title and count, in option order, with no-value records last', () => {
@@ -424,23 +417,16 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
     const panel = await screen.findByRole('dialog', {
       name: 'Configure table'
     })
-    await user.click(
-      await within(panel).findByRole('combobox', { name: 'Group by' })
-    )
-    await user.click(
-      await withFrames(() => screen.findByRole('option', { name: 'Status' }))
-    )
-    await popupGone()
+    await pickOption(user, {
+      from: { panel, name: 'Group by' },
+      option: 'Status'
+    })
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'table',
       columns: { hidden: ['sold'] },
       groupBy: ['status']
     })
-    await user.click(within(panel).getByRole('combobox', { name: 'Then by' }))
-    await user.click(
-      await withFrames(() => screen.findByRole('option', { name: 'City' }))
-    )
-    await popupGone()
+    await pickOption(user, { from: { panel, name: 'Then by' }, option: 'City' })
     expect(onViewChange.mock.lastCall![0].layout.groupBy).toEqual([
       'status',
       'city'
@@ -448,11 +434,10 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
     await expect
       .poll(() => screen.queryAllByRole('heading', { level: 3 }).length)
       .toBeGreaterThan(0)
-    await user.click(within(panel).getByRole('combobox', { name: 'Group by' }))
-    await user.click(
-      await withFrames(() => screen.findByRole('option', { name: 'None' }))
-    )
-    await popupGone()
+    await pickOption(user, {
+      from: { panel, name: 'Group by' },
+      option: 'None'
+    })
     expect(onViewChange.mock.lastCall![0].layout).toEqual({
       type: 'table',
       columns: { hidden: ['sold'] }

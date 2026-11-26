@@ -110,10 +110,19 @@ Playwright Linux image right after the click that opens a drawer: 1 frame by
   mouse press's open with `requestAnimationFrame`). Until both land, the next
   `findByRole('option')` finds the closing popup's options and the click
   fails with "Unable to perform pointer interaction as the element has
-  `pointer-events: none`". After each pick, wait for
-  `queryByRole('listbox')` to be null, and find the next options, in
-  `withFrames` (the `pick` helper in
-  `RecordList/listLayout.browser.test.tsx`, INNO-1739).
+  `pointer-events: none`". Menus do the same. It broke main's WebKit job four
+  times in a day (#1072, #1080, #1083, #1086). Pick with
+  `pickOption(user, { from, option })` or `pickMenuItem(user, { from, item })`
+  from `packages/components/src/css/testUtils.ts`: each clicks `from` (an
+  element, or `{ panel, name }` for a combobox or button inside a panel),
+  finds the item in `withFrames`, clicks it, then waits for every listbox or
+  menu to unmount (`waitPopupGone`). Leave out `from` when typing opened the
+  popup, and pass `staysOpen: true` for a pick that leaves it open, such as a
+  multiple select or a field that moves on to its values.
+  `popupPick.browser.test.tsx` holds frames back 400ms, which fails two picks
+  in a row with the CI error until the helper waits. Don't use them for a
+  submenu opened by hovering: the corner wiggle moves the pointer off its
+  trigger and closes it.
 - **Focus into a list opened by a key.** Base UI focuses the first option of
   a Select opened with ArrowDown in a frame (`enqueueFocus`); later arrow
   keys move focus at once. A poll for that first option kept finding the
