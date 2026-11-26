@@ -78,6 +78,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Wire new public subpaths everywhere they ship from:** an `exports`
   entry in `package.json`; for JavaScript, a `tsdown.config.ts` entry unless
   a wildcard already covers it (components does) and a size budget.
+  Components, charts, and blocks write `exports` from their source folders
+  (`pnpm --filter <package> generate:exports`, which `build` runs, through
+  core's `scripts/generate-exports.mjs`), so a new folder gets its subpath
+  there; core, editor, widgets, and illustrations list `exports` by hand.
   Each package keeps a generated table, `size-budget.json`, of each JS
   subpath's brotli bytes: its own code (`own`), with its dependencies
   (`full`), and without what only an `import()` reaches (`initial`). `size`
@@ -293,7 +297,7 @@ the PR only when the review is clean.
   For baselines CI renders, link the run and embed a few representative
   images.
 - **Open it as a draft** (`gh pr create --draft`). CI on a draft runs only
-  the `check` job: lint, typecheck, formatting, the component docs and PR
+  the `check` job: lint, typecheck, formatting, the docs content and PR
   size checks, and the affected unit tests. No build or browser tests.
 - **Mark it ready once local checks pass**: `pnpm test:gated` on the touched
   packages, lint, typecheck, and the docs build if docs changed, with the

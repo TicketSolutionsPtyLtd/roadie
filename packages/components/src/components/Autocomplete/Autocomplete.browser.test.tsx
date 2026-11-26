@@ -11,6 +11,7 @@ import {
 import { page, userEvent } from 'vitest/browser'
 
 import { pickOption } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import {
   Autocomplete,
@@ -20,9 +21,6 @@ import {
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
-import { useStylesheet } from '../Pane/testUtils'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {

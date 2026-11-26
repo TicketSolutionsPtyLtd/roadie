@@ -10,6 +10,10 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import type {
   ChartCard,
   DashboardPeriodSpec,
@@ -19,7 +23,6 @@ import type {
 import { DashboardView, type DashboardViewProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { afterResize } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 
 const days = Array.from({ length: 8 }, (_, i) => ({
   day: `2026-10-0${i + 1}`,

@@ -419,6 +419,7 @@ describe('buildManifest', () => {
         name: 'Chip',
         import: '@fixture/skins/chip/react',
         docs: 'https://example.com/docs/components/chip/',
+        status: 'beta',
         summary: 'A removable filter chip',
         description: 'A removable filter chip.',
         props: [
@@ -443,6 +444,22 @@ describe('buildManifest', () => {
         reason: 'Renamed to `Chip`.'
       }
     ])
+  })
+
+  it('fails when a component folder that exports no component has no page', () => {
+    expect(() =>
+      buildManifest({ ...options, packageDir: `${workspaceRoot}plain` })
+    ).toThrow('No docs page for @fixture/plain/stand')
+  })
+
+  it('fails when a component page sets no status', () => {
+    expect(() =>
+      buildManifest({
+        ...options,
+        packageDir: `${workspaceRoot}plain`,
+        documentedSubpaths: { '@fixture/plain/stand': '/components/pill/' }
+      })
+    ).toThrow('No status on /components/board/')
   })
 
   it('fails when a compound part has no docs', () => {

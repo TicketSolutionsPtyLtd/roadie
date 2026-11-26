@@ -21,10 +21,10 @@ import {
 import type { NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSlotMeta } from './mobileSlots'
-import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { opensPalette } from './searchSlot'
 import { textOf } from './splitSecondary'
+import { useActivation } from './useActivation'
 
 export type NavigatorOverflowItemsProps = Omit<ListProps, 'children'>
 
@@ -53,9 +53,8 @@ export function NavigatorOverflowItems({
   className,
   ...props
 }: NavigatorOverflowItemsProps) {
-  const { setValue, setOverflowOpen, activateItem } = use(
-    NavigatorActionsContext
-  )
+  const { activateItem } = use(NavigatorActionsContext)
+  const activate = useActivation()
   const { value } = use(NavigatorSelectionContext)
   const { overflowItems, openMenu } = use(NavigatorDisclosureContext)
   const palette = useRegisteredPalette()
@@ -131,15 +130,14 @@ export function NavigatorOverflowItems({
         trailing={slot.badge}
         href={href}
         current={active && (isActiveValue(slot.value, value) ? 'page' : true)}
-        onClick={(event) => {
-          activateItem(slot.value)
-          if (opensElsewhere(event)) return
-          // A routed row leaves More to the route, so the old page never shows between.
-          if (href === undefined || isActiveValue(slot.value, value)) {
-            setOverflowOpen(false)
-          }
-          setValue(slot.value)
-        }}
+        onClick={(event) =>
+          activate(
+            event,
+            'overflow',
+            { value: slot.value, href },
+            { route: value }
+          )
+        }
       />
     )
   }

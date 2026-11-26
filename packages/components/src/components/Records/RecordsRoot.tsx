@@ -65,7 +65,6 @@ export function RecordsProvider<Row extends object>({
       `[Roadie] Records has two layouts of one type (${types.join(', ')}). Records shows and offers only the first of each.`
   )
   const [contentFill, setContentFill] = useState(false)
-  const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
   const [selectMode, setSelectMode] = useState(false)
   const [bulkMounted, setBulkMounted] = useState(false)
   const [bulkSlot, setBulkSlot] = useState<HTMLElement | null>(null)
@@ -91,7 +90,6 @@ export function RecordsProvider<Row extends object>({
   // keeps each value while what it holds does.
   const stable = {
     scope,
-    setToolbar,
     setContentFill,
     setSelectMode,
     setBulkMounted,
@@ -105,7 +103,6 @@ export function RecordsProvider<Row extends object>({
   const layout = {
     layouts,
     caption,
-    toolbar,
     contentFill,
     selectMode,
     bulkMounted,

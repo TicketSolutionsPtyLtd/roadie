@@ -20,3 +20,6 @@ Tests only: it's private and never published.
   `textContrast` and `fillContrast` give an element's Lc; `minimumLc` holds
   0010's floor for each role, and `textRole` says which role an element's
   text plays.
+- `@oztix/roadie-browser-testing/stylesheet`: `useStylesheet` adds CSS to
+  the page and returns its remover, `loadBrandFont` waits for the brand
+  font, and `STILL` turns transitions off.
