@@ -3,14 +3,20 @@
 // docs. That only holds while no shipped file imports a helper.
 import assert from 'node:assert/strict'
 import { execSync } from 'node:child_process'
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import {
+  existsSync,
+  globSync,
+  readFileSync,
+  readdirSync,
+  statSync
+} from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { describe, it } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
+import { isShipped } from '../packages/core/scripts/package-exports.mjs'
+
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TEST_ONLY =
-  /\.(?:test|ssr)\.|__screenshots__\/|__snapshots__\/|(?:^|\/)(?:testUtils|\w+TestUtils|fixtures|testChart|browserTesting)\.\w+$|\/_test\//
 const IMPORT = /(?:from|import)\s*\(?\s*['"`]((?:\.{1,2}|@)\/[^'"`]+)['"`]/g
 
 // build:quiet is pnpm dev's build. The docs build hashes its source with the
@@ -45,7 +51,7 @@ describe('build inputs', () => {
   it('leave out tests and test helpers', () => {
     const tested = builds.flatMap((task) =>
       Object.keys(task.inputs)
-        .filter((file) => TEST_ONLY.test(file))
+        .filter((file) => !isShipped(file))
         .map((file) => `${task.taskId}: ${file}`)
     )
     // A helper here would ship: exclude it in the package's tsdown entry and
@@ -66,7 +72,7 @@ describe('build inputs', () => {
             .map(([, specifier]) => resolveImport(dir, path, specifier))
             .filter((target) => target?.startsWith(join(dir, 'src')))
             .map((target) => relative(dir, target))
-            .filter((target) => TEST_ONLY.test(target) && !inputs.has(target))
+            .filter((target) => !isShipped(target) && !inputs.has(target))
             .map((target) => `${task.taskId}: ${file} imports ${target}`)
         })
     })
@@ -74,33 +80,24 @@ describe('build inputs', () => {
   })
 })
 
-// A helper turbo leaves out must be one tsdown leaves out too, or it ships
-// unhashed. Packages with explicit entries emit only what they import, which
-// the import check covers.
+// A file turbo leaves out of a package's build hash must be one the build
+// leaves out of its entries too, or it ships unhashed.
 describe('package build exclusions', () => {
-  it('leave out only what tsdown leaves out of its entries', () => {
-    const unshipped = (glob) =>
-      glob.replace(/^!src\/\*\*\//, '**/').replace(/^!/, '')
-    const extra = builds
+  it("leave out only files that don't ship", () => {
+    const shippedButUnhashed = builds
       .filter((task) => task.directory.startsWith('packages/'))
       .flatMap((task) => {
-        const config = readFileSync(
-          join(root, task.directory, 'tsdown.config.ts'),
-          'utf8'
-        )
-        const entry = config.match(/entry:\s*\[([^\]]*)\]/)?.[1]
-        if (entry === undefined) return []
-        const tsdown = new Set(
-          [...entry.matchAll(/'!([^']+)'/g)].map(([, glob]) => glob)
-        )
-        return task.resolvedTaskDefinition.inputs
+        const { inputs, outputs } = task.resolvedTaskDefinition
+        const dir = join(root, task.directory)
+        return inputs
           .filter((glob) => glob.startsWith('!src/'))
-          .filter((glob) => !glob.includes('*.test.'))
-          .map(unshipped)
-          .filter((glob) => !tsdown.has(glob))
-          .map((glob) => `${task.taskId}: ${glob}`)
+          .filter((glob) => !outputs.includes(glob.slice(1)))
+          .flatMap((glob) => globSync(glob.slice(1), { cwd: dir }))
+          .filter((file) => statSync(join(dir, file)).isFile())
+          .filter(isShipped)
+          .map((file) => `${task.taskId}: ${file}`)
       })
-    assert.deepEqual(extra, [])
+    assert.deepEqual(shippedButUnhashed, [])
   })
 })
 
