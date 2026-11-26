@@ -123,7 +123,7 @@
     "check:package": "pnpm check:dts && pnpm check:server && pnpm check:exports && pnpm check:pack",
     "generate:exports": "node scripts/generate-package-exports.mjs",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
-    "check:dts": "node scripts/check-dts.mjs",
+    "check:dts": "node ../core/scripts/check-dts.mjs",
     "check:server": "node --conditions=react-server ../core/scripts/check-server-entries.mjs",
     "check:use-client": "node ../core/scripts/check-use-client.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
