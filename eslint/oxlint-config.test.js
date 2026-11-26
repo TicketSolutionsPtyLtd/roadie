@@ -279,6 +279,7 @@ describe('where oxlint applies no-fixed-sleep', () => {
     ['packages/components/src/utils/touchTestUtils.ts', ['no-fixed-sleep']],
     [`${charts}/plot/browserTesting.tsx`, ['no-fixed-sleep']],
     ['packages/widgets/vitest.setup.ts', ['no-fixed-sleep']],
+    ['testing/browser/src/index.ts', ['no-fixed-sleep']],
     [`${components}/RecordTable/renderCounter.ts`, ['no-fixed-sleep']],
     [`${components}/RecordTable/index.tsx`, []]
   ]
@@ -308,7 +309,7 @@ await user.click(await screen.findByRole('option'))
       'packages/editor/src/Editor/Editor.browser.test.tsx',
       ['no-unwaited-popup-pick']
     ],
-    ['packages/editor/src/Editor/testUtils.ts', []]
+    ['testing/browser/src/index.ts', []]
   ]
   let found
   beforeAll(() => {

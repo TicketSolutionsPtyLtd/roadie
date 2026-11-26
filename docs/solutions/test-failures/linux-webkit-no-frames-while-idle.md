@@ -75,7 +75,7 @@ clear of the charts; the Funnel test calls it inside its poll.
 
 When the pointer has to stay put (on a menu trigger, or on or off a toast),
 use `keepFramesRunning(() => point)` from
-`packages/components/src/css/testUtils.ts`. It wiggles the pointer a pixel at
+`@oztix/roadie-browser-testing` (`testing/browser/src/index.ts`). It wiggles the pointer a pixel at
 that point about once a frame until stopped or the test finishes, so frames
 keep coming without changing what is hovered. A pixel is under every engine's
 drag threshold, so it is safe with a button held. Point it somewhere else to
@@ -84,8 +84,8 @@ hover something else, rather than mixing it with `userEvent.hover`.
 The components package has an equivalent `nudgeFrames()` in
 `packages/components/src/css/testUtils.ts`, which moves the pointer in the
 frame's top left corner. For a single wait that only frames can end, wrap it:
-`await withFrames(() => expect.poll(...))` runs `keepFramesRunning` from the
-corner until the wait settles.
+`await withFrames(() => expect.poll(...))` runs `keepFramesRunning` until the
+wait settles, from where the last pick clicked, else the corner.
 
 ## Waits that look safe but aren't
 
@@ -113,25 +113,28 @@ Playwright Linux image right after the click that opens a drawer: 1 frame by
   `pointer-events: none`". Menus do the same. It broke main's WebKit job four
   times in a day (#1072, #1080, #1083, #1086). Pick with
   `pickOption(user, { from, option })` or `pickMenuItem(user, { from, item })`
-  from `packages/components/src/css/testUtils.ts`: each clicks `from` (an
+  from `@oztix/roadie-browser-testing` (`testing/browser/src/index.ts`, shared by
+  components, the editor, blocks and charts; `pickMenuItem` takes a `role`
+  for a radio or checkbox item): each clicks `from` (an
   element, or `{ panel, name }` for a combobox or button inside a panel),
   finds the item in `withFrames`, clicks it, then waits for every listbox or
   menu to unmount (`waitPopupGone`). Leave out `from` when typing opened the
   popup, and pass `staysOpen: true` for a pick that leaves it open, such as a
   multiple select or a field that moves on to its values.
   `popupPick.browser.test.tsx` holds frames back 400ms, which fails two picks
-  in a row with the CI error until the helper waits. Don't use them for a
-  submenu opened by hovering: the corner wiggle moves the pointer off its
-  trigger and closes it. The `roadie/no-unwaited-popup-pick` lint rule flags
-  a click on an option or menu item found with `findByRole` outside
-  `withFrames` in components' browser tests.
+  in a row with the CI error until the helper waits. The wiggle stays on the
+  last element a pick clicked, not the corner, as a corner wiggle moves the
+  pointer off a hover-opened submenu's trigger and closes it. The
+  `roadie/no-unwaited-popup-pick` lint rule flags a click on an option or
+  menu item found with `findByRole` outside `withFrames` in components' and
+  the editor's browser tests.
 - **Focus into a list opened by a key.** Base UI focuses the first option of
   a Select opened with ArrowDown in a frame (`enqueueFocus`); later arrow
   keys move focus at once. A poll for that first option kept finding the
   trigger in CI (Select "still highlight the option a keyboard moves to",
   INNO-1043). Keep frames running for the poll from a point clear of the
   popup, such as the frame's bottom right corner: `withFrames` wiggles in
-  the top left, where a popup aligned to a trigger there can sit.
+  the top left, or where the last pick clicked.
 - **A programmatic scroll.** `element.scrollTop = n` updates layout at once,
   so a poll on geometry passes straight away, but the `scroll` event only
   fires in the next rendering update. A component that follows scrolling (the

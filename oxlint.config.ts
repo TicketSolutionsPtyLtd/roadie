@@ -323,14 +323,14 @@ export default defineConfig({
         'packages/**/testUtils.{ts,tsx}',
         'packages/**/*TestUtils.{ts,tsx}',
         'packages/**/browserTesting.tsx',
+        'testing/browser/src/index.ts',
         'packages/*/vitest.setup.ts',
         'packages/components/src/components/RecordTable/renderCounter.ts'
       ],
       { 'roadie/no-fixed-sleep': 'error' }
     ),
     ...(testing.overrides as OxlintOverride[]),
-    // The pick helpers live in components' css/testUtils.ts and, for the
-    // editor, which can't import them, in its Editor/testUtils.ts.
+    // The pick helpers live in testing/browser, shared by every package.
     roadieRules(
       [
         'packages/components/**/*.browser.test.tsx',

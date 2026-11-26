@@ -4,9 +4,10 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+
 import { DashboardPeriod, type DashboardPeriodValue } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { withFrames } from '../../css/testUtils'
 import type { DateRangePreset } from '../DateRangePicker/range'
 import { useStylesheet } from '../Pane/testUtils'
 

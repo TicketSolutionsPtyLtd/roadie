@@ -2,11 +2,12 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Dialog } from '@oztix/roadie-components/dialog'
 
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
-import { LINE_END, MOD, pickMenuItem } from './testUtils'
+import { LINE_END, MOD } from './testUtils'
 
 const LABEL = 'Newsletter'
 

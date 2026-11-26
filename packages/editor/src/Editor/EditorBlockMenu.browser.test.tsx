@@ -11,10 +11,12 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { LINE_END, MOD, pickMenuItem } from './testUtils'
+import { LINE_END, MOD } from './testUtils'
 
 const LABEL = 'Page'
 

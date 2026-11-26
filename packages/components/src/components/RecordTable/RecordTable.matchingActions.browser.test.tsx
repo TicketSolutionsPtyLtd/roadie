@@ -10,9 +10,10 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
+
 import { RecordTable, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { pickMenuItem } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, type RecordsAction, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'

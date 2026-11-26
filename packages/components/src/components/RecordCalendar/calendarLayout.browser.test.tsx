@@ -12,6 +12,7 @@ import {
   vi
 } from 'vitest'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
 import {
   type RecordView,
   type RecordsRequest,
@@ -20,7 +21,6 @@ import {
 
 import { calendarLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
