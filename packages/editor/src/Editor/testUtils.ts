@@ -64,14 +64,29 @@ export function enterEndingComposition(field: Element) {
 // Headless WebKit on Linux runs no frames while a page sits idle, so
 // requestAnimationFrame, ResizeObserver and CSS animations stall until the
 // pointer moves (docs/solutions/test-failures/
-// linux-webkit-no-frames-while-idle.md). Wiggles the pointer a pixel in the
-// corner about once a frame until stopped, or until the test finishes.
+// linux-webkit-no-frames-while-idle.md). Wiggles the pointer a pixel about
+// once a frame until stopped, or until the test finishes. It wiggles where the
+// last pick clicked, as a submenu opened by hover closes when the pointer
+// leaves it, and in the corner otherwise.
+let pointerAt = { x: 0, y: 0 }
+
+function pointTo(element: Element) {
+  const { left, top, width, height } = element.getBoundingClientRect()
+  pointerAt = {
+    x: Math.round(left + width / 2),
+    y: Math.round(top + height / 2)
+  }
+  onTestFinished(() => {
+    pointerAt = { x: 0, y: 0 }
+  })
+}
+
 function keepFramesRunning() {
   let running = true
   const wiggling = (async () => {
     for (let step = 0; running; step++) {
       await commands.pointer([
-        { type: 'move', x: step % 2, y: 0 },
+        { type: 'move', x: pointerAt.x + (step % 2), y: pointerAt.y },
         // Paces the wiggle to a frame: frames can't, as they're what it wakes.
         // eslint-disable-next-line roadie/no-fixed-sleep
         { type: 'wait', ms: 16 }
@@ -129,10 +144,17 @@ async function pick(
   role: 'option' | 'menuitem' | 'menuitemradio' | 'menuitemcheckbox',
   name: Name
 ) {
-  if (from) await user.click(from)
+  if (from) {
+    await user.click(from)
+    pointTo(from)
+  }
   const found = await withFrames(() => screen.findByRole(role, { name }))
   await user.click(found)
-  if (!staysOpen) await waitPopupGone(role === 'option' ? 'listbox' : 'menu')
+  if (staysOpen) pointTo(found)
+  else {
+    await waitPopupGone(role === 'option' ? 'listbox' : 'menu')
+    pointerAt = { x: 0, y: 0 }
+  }
 }
 
 /** Picks a Select or Combobox option, then, unless it `staysOpen`, waits for every listbox to go. */
