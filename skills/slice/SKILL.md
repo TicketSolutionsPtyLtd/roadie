@@ -64,15 +64,15 @@ workflow win over anything here.
 Check each slice against the host rules, and write what applies into its
 ticket. With no host rule, use Roadie's.
 
-| Carries                         | When                                              | Roadie rule                                        |
-| ------------------------------- | ------------------------------------------------- | -------------------------------------------------- |
-| A changeset per package         | a released package's shipped output changes       | PR workflow section 2                              |
-| A docs page and index tile      | it adds a component                               | section 4, which the component docs check enforces |
-| An example on the existing page | it adds a prop or behaviour                       | the page's template                                |
-| Browser tests                   | CSS or the browser decides the behaviour          | `/roadie:test` boundary table                      |
-| Wiring                          | a new export, subpath, or utility                 | `AGENTS.md` "Wiring something new"                 |
-| A demo                          | anyone can see the change                         | section 5                                          |
-| A door                          | always, naming the item or why a revert undoes it | section 7                                          |
+| Carries                         | When                                              | Roadie rule                                              |
+| ------------------------------- | ------------------------------------------------- | -------------------------------------------------------- |
+| A changeset per package         | a released package's shipped output changes       | PR workflow section 2                                    |
+| A docs page and index tile      | it adds a component                               | section 4, which the manifest and catalogue test enforce |
+| An example on the existing page | it adds a prop or behaviour                       | the page's template                                      |
+| Browser tests                   | CSS or the browser decides the behaviour          | `/roadie:test` boundary table                            |
+| Wiring                          | a new export, subpath, or utility                 | `AGENTS.md` "Wiring something new"                       |
+| A demo                          | anyone can see the change                         | section 5                                                |
+| A door                          | always, naming the item or why a revert undoes it | section 7                                                |
 
 ## 4. Ticket
 

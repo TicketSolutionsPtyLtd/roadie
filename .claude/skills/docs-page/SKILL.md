@@ -54,8 +54,9 @@ that slip most, each detailed in `DOCS_PAGES.md` or a template:
 Check `uptime` and wait while the 1-minute load is over the host's limit. Then
 run each step and record pass, fail with the line, or not applicable.
 
-1. **Component docs.** `node scripts/check-component-docs.mjs` fails when an
-   exported component has no page or no catalogue tile.
+1. **Component docs.** `pnpm turbo build --filter=<package>` writes the
+   manifest, which fails when an exported component has no page, or its page
+   no status. Step 3 catches a missing catalogue tile.
 2. **Lint.** `pnpm --filter docs exec eslint src/app/<route>/page.mdx`. It
    runs `roadie/no-mdx-layout-class` on the MDX and the package rules on live
    fences. `pnpm --filter docs lint` runs every page.
