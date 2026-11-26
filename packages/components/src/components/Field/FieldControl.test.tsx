@@ -117,4 +117,28 @@ describe.each(CONTROLS)('%s in a Field', (...control) => {
       description
     )
   })
+  it.skipIf(control[0] === 'QueryField')(
+    'keeps the id the app passes outside a Field',
+    () => {
+      const [, role, renderControl] = control
+      render(
+        <>
+          <p id='app-hint'>{HINT}</p>
+          {renderControl({ 'aria-describedby': 'app-hint' })}
+        </>
+      )
+      expect(screen.getByRole(role)).toHaveAccessibleDescription(HINT)
+    }
+  )
+})
+
+it('leaves the error text out for a control set valid in an invalid Field', () => {
+  render(
+    <Field invalid>
+      <NumberField invalid={false} aria-label='Tickets' />
+      <Field.HelperText>{HELP}</Field.HelperText>
+      <Field.ErrorText>{ERROR}</Field.ErrorText>
+    </Field>
+  )
+  expect(screen.getByRole('textbox')).toHaveAccessibleDescription(HELP)
 })
