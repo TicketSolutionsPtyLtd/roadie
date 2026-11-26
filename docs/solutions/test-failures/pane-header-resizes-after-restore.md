@@ -25,10 +25,11 @@ the restore never re-pinned the row.
 
 ## Fix
 
-`useRowWindow` (`Records/rowWindow.ts`) observes the header of the pane it
-sits in and re-measures the inset inside the ResizeObserver callback
-(roadie#581). The pane's own observer is created first, so the new height is
-already published when the table's callback runs. A first attempt measured
+`useRowWindow` (`Records/rowWindow.ts`) re-measures the inset inside a
+ResizeObserver callback (roadie#581). Since INNO-1713 it's the pane header's
+own: `PaneHeader` calls `stuckMoved` from the sticky stack module
+(`utils/stickyStack.ts`) right after it publishes the new height, and the
+row window, subscribed with `watchStuck`, measures then. A first attempt measured
 a frame later; on the loaded runner that frame came 535ms late, after the
 restore's one-second hold had let go, and it failed one run in two.
 
