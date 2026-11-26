@@ -9,6 +9,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import type { RoadieIntent } from '../../variants'
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { SelectContext } from './SelectContext'
 import { selectTriggerVariants } from './variants'
 
@@ -39,11 +40,15 @@ export function SelectTrigger({
   intent,
   emphasis,
   size,
+  'aria-describedby': describedBy,
   ...props
 }: SelectTriggerProps) {
-  const fieldContext = useFieldContext()
+  const inField = !!useFieldContext().fieldId
   const { invalid } = use(SelectContext)
-  const inField = !!fieldContext.fieldId
+  const fieldProps = useFieldControlProps(
+    { invalid, 'aria-describedby': describedBy },
+    { labelled: true }
+  )
 
   return (
     <SelectPrimitive.Trigger
@@ -57,14 +62,12 @@ export function SelectTrigger({
         })
       )}
       {...(inField && {
-        'aria-labelledby': fieldContext.labelId || undefined,
-        'aria-describedby': fieldContext.invalid
-          ? fieldContext.errorTextId || undefined
-          : fieldContext.helperTextId || undefined,
-        'aria-invalid': invalid || undefined,
-        'aria-required': fieldContext.required || undefined
+        'aria-labelledby': fieldProps['aria-labelledby'],
+        'aria-invalid': fieldProps['aria-invalid'],
+        'aria-required': fieldProps['aria-required']
       })}
       {...props}
+      aria-describedby={fieldProps['aria-describedby']}
     />
   )
 }
