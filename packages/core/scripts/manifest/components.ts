@@ -313,8 +313,8 @@ function declaredProps(program: ts.Program, files: string[], typeName: string) {
       .filter(
         (prop) =>
           !SKIPPED_PROPS.has(prop.name) &&
-          // The parser skips `children` without docs.
-          (prop.name !== 'children' ||
+          // Undocumented `children` and `className` never reach the manifest.
+          (!['children', 'className'].includes(prop.name) ||
             prop.getDocumentationComment(checker).length > 0) &&
           !!prop.declarations?.some((d) => isOurs(d.getSourceFile().fileName))
       )

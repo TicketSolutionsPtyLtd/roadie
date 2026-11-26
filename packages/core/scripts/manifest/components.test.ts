@@ -118,6 +118,12 @@ describe('readFileComponents', () => {
     const dependency = path.join(dir, 'node_modules/@base-ui/react')
     mkdirSync(dependency, { recursive: true })
     mkdirSync(path.join(dir, 'components'))
+    const react = path.join(dir, 'node_modules/@types/react')
+    mkdirSync(react, { recursive: true })
+    writeFileSync(
+      path.join(react, 'index.d.ts'),
+      'export interface HTMLAttributes { className?: string | undefined }'
+    )
     writeFileSync(
       path.join(dependency, 'index.d.ts'),
       [
@@ -204,6 +210,17 @@ describe('readFileComponents', () => {
     expect(dot?.props).toEqual([
       { name: 'aria-label', type: 'string', description: 'Names the dot.' }
     ])
+  })
+
+  it('leaves out a forwarded className it redeclares without docs', () => {
+    const [dot] = readDots([
+      "import type { HTMLAttributes } from 'react'",
+      'export type DotProps = HTMLAttributes & { className?: string }',
+      'export function Dot(props: DotProps) {',
+      '  return props.className',
+      '}'
+    ])
+    expect(dot?.props).toEqual([])
   })
 
   it("takes a prop two dependency types declare from the first one's docs", () => {
