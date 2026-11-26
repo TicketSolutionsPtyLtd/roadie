@@ -304,7 +304,11 @@ await user.click(await screen.findByRole('option'))
     ],
     [`${components}/Select/Select.test.tsx`, []],
     [`${components}/Select/index.tsx`, []],
-    ['packages/editor/src/Editor/Editor.browser.test.tsx', []]
+    [
+      'packages/editor/src/Editor/Editor.browser.test.tsx',
+      ['no-unwaited-popup-pick']
+    ],
+    ['packages/editor/src/Editor/testUtils.ts', []]
   ]
   let found
   beforeAll(() => {

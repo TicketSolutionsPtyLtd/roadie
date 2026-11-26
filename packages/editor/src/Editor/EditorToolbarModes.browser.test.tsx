@@ -18,7 +18,12 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Editor, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, Preset } from '../schema'
-import { LINE_END, clickIntoEditor, selectParagraph } from './testUtils'
+import {
+  LINE_END,
+  clickIntoEditor,
+  pickMenuItem,
+  selectParagraph
+} from './testUtils'
 import type { EditorToolbarMode } from './variants'
 
 const LABEL = 'Event description'
@@ -531,9 +536,7 @@ describe('Floating toolbar keys', () => {
     )
 
     await userEvent.keyboard('{Enter}')
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: 'Heading 2' })
-    )
+    await pickMenuItem(userEvent, { item: 'Heading 2', role: 'menuitemradio' })
 
     await waitFor(() =>
       expect(

@@ -24,7 +24,7 @@ import {
   reactNodeView
 } from '../extensions'
 import type { EditorValue } from '../schema'
-import { LINE_END, MOD, clickIntoEditor } from './testUtils'
+import { LINE_END, MOD, clickIntoEditor, pickMenuItem } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -459,12 +459,10 @@ describe('Editor block settings', () => {
     )
 
     const handles = within(drawer).getAllByRole('button', { name: /^Reorder/ })
-    await userEvent.click(handles[0]!)
-    await userEvent.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Velvet Kookaburra down'
-      })
-    )
+    await pickMenuItem(userEvent, {
+      from: handles[0]!,
+      item: 'Move Velvet Kookaburra down'
+    })
 
     await waitFor(() =>
       expect(

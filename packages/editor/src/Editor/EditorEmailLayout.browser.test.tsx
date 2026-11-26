@@ -5,6 +5,7 @@ import { userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { JSONContent } from '../schema'
+import { pickMenuItem } from './testUtils'
 
 const LABEL = 'Newsletter'
 
@@ -87,12 +88,11 @@ describe('Editor email layout', () => {
     ])
     await userEvent.click(await screen.findByText('Lineup'))
 
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Columns: 2 columns' })
-    )
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: '3 columns' })
-    )
+    await pickMenuItem(userEvent, {
+      from: await screen.findByRole('button', { name: 'Columns: 2 columns' }),
+      item: '3 columns',
+      role: 'menuitemradio'
+    })
 
     await expect
       .poll(() => textbox.querySelectorAll('[data-type="column"]').length)
