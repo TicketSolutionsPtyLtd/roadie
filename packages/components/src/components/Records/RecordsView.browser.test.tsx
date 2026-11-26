@@ -2,16 +2,15 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import { type RecordView, recordFields } from '@oztix/roadie-core/records'
 
 import { Records, useRecords } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 import { gridLayout } from '../RecordGrid'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 const TIMEOUT = { timeout: 20_000 }
 
 let removeStylesheets = () => {}

@@ -3,6 +3,10 @@ import axe from 'axe-core'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type { DashboardCard } from '@oztix/roadie-core/dashboard'
@@ -12,7 +16,6 @@ import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { Chart } from '../Chart'
 import { createShowDashboard } from '../examples'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {

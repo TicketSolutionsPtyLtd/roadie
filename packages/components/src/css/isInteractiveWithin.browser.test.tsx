@@ -4,10 +4,11 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Card } from '../components/Card'
 import { DataTable, type DataTableColumn } from '../components/DataTable'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { RecordTable, tableColumns } from '../components/RecordTable'
 import {
   type TestShow,
@@ -16,7 +17,6 @@ import {
 } from '../components/Records/testUtils'
 
 // The states are the settled ones, so no test waits on a transition to land.
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {
