@@ -34,6 +34,7 @@ describe('viewModel', () => {
     ['a scrolling run', { scrolling: true }, { currentRun: { start: '2026-12-01', count: 10 }, visibleStart: '2026-12-01', lastVisibleDay: '2027-09-30' }],
     ['a scrolling run in bounds', { ...bounded, scrolling: true }, { currentRun: { start: '2027-02-01', count: 4 } }],
     ['a run that holds the month', { scrolling: true, run: { start: '2027-01-01', count: 3 } }, { currentRun: { start: '2027-01-01', count: 3 } }],
+    ['a run that starts on the month', { scrolling: true, run: { start: '2027-03-01', count: 2 } }, { currentRun: { start: '2027-03-01', count: 2 } }],
     ['a run that has lost the month', { scrolling: true, run: { start: '2027-05-01', count: 3 } }, { currentRun: { start: '2026-12-01', count: 10 } }],
     ['a week, from the month alone', week, { shownWeek: '2027-03-01', visibleStart: '2027-03-01', lastVisibleDay: '2027-03-07' }],
     ['a week, from today', { ...week, today: '2027-03-18' }, { shownWeek: '2027-03-15' }],
@@ -90,6 +91,7 @@ describe('viewModel', () => {
     ['a day in the month after', {}, '2027-04-02', { month: '2027-04-01' }],
     ['a day past two months', { numberOfMonths: 2 }, '2027-05-03', { month: '2027-04-01' }],
     ['a day past the end', bounded, '2027-08-03', { month: '2027-05-01' }],
+    ['a day before the start', { ...bounded, shownMonth: '2027-02-01' }, '2027-01-20', { month: '2027-02-01' }],
     ['a day in the week shown', week, '2027-03-05', {}],
     ['a day in the next week', week, '2027-03-09', { week: '2027-03-08', month: '2027-03-01' }],
     ['a day in a week of the next month', { ...week, navigatedWeek: '2027-03-29' }, '2027-04-06', { week: '2027-04-05', month: '2027-04-01' }],
@@ -105,7 +107,8 @@ describe('viewModel', () => {
     ['most of the week', {}, '2027-04-01'],
     ['a choice', { chosen: ['2027-03-31'] }, '2027-03-01'],
     ['any of several choices', { chosen: ['2027-01-02', '2027-04-03'] }, '2027-04-01'],
-    ['the focused day', { focusedDate: '2027-03-30' }, '2027-03-01']
+    ['the focused day', { focusedDate: '2027-03-30' }, '2027-03-01'],
+    ['a choice over the focused day', { chosen: ['2027-04-02'], focusedDate: '2027-03-30' }, '2027-04-01']
   ])('opens a week of two months on the month of %s', (_, options, month) => {
     expect(view(options).monthOfWeek('2027-03-29')).toBe(month)
   })
