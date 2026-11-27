@@ -7,8 +7,13 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { type RecordView, recordFields } from '@oztix/roadie-core/records'
 
 import { RecordTable, tableColumns, tableLayout } from '.'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { Records } from '../Records'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 
 const column = tableColumns<TestShow>(showFields)
 const showColumns = [
@@ -546,11 +551,10 @@ describe('Records.Options', { timeout: 15_000 }, () => {
     const table = tableLayout(showColumns)
     const Settings = Object.assign(() => null, { preload })
     function Preloading() {
-      const records = useRecords({ data: testShows(5), fields: showFields })
       return (
-        <Records records={records} layouts={[{ ...table, Settings }]}>
+        <ShowRecords data={testShows(5)} layouts={[{ ...table, Settings }]}>
           <Records.Header />
-        </Records>
+        </ShowRecords>
       )
     }
     const { rerender } = render(<Preloading />)
@@ -653,15 +657,14 @@ describe('Records.Options', { timeout: 15_000 }, () => {
 
   it('takes a label, and composes in a custom toolbar', async () => {
     function Custom() {
-      const records = useRecords({ data: testShows(5), fields: showFields })
       const [layouts] = useState(() => [tableLayout(showColumns)])
       return (
-        <Records records={records} layouts={layouts}>
+        <ShowRecords data={testShows(5)} layouts={layouts}>
           <Records.Header>
             <Records.Options label='Table options' />
           </Records.Header>
           <Records.Content />
-        </Records>
+        </ShowRecords>
       )
     }
     render(<Custom />)

@@ -5,7 +5,7 @@ import type { RefAttributes } from 'react'
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete'
 import { XIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type AutocompleteClearProps = AutocompletePrimitive.Clear.Props &
   RefAttributes<HTMLButtonElement>
@@ -18,7 +18,7 @@ export function AutocompleteClear({
   return (
     <AutocompletePrimitive.Clear
       data-slot='autocomplete-clear'
-      className={cn(
+      className={mergeClassName(
         'inline-grid size-5 shrink-0 place-items-center rounded-full emphasis-subtler text-subtle is-interactive',
         className
       )}

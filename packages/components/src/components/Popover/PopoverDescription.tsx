@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type PopoverDescriptionProps = PopoverPrimitive.Description.Props &
   RefAttributes<HTMLParagraphElement>
@@ -16,7 +16,7 @@ export function PopoverDescription({
   return (
     <PopoverPrimitive.Description
       data-slot='popover-description'
-      className={cn('text-sm text-subtle', className)}
+      className={mergeClassName('text-sm text-subtle', className)}
       {...props}
     />
   )

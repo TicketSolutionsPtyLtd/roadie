@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type DialogDescriptionProps = DialogPrimitive.Description.Props &
   RefAttributes<HTMLParagraphElement>
@@ -16,7 +16,7 @@ export function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot='dialog-description'
-      className={cn('text-subtle', className)}
+      className={mergeClassName('text-subtle', className)}
       {...props}
     />
   )

@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { listEmptyClass } from '../../variants'
 
 export type AutocompleteEmptyProps = AutocompletePrimitive.Empty.Props &
@@ -18,7 +17,7 @@ export function AutocompleteEmpty({
   return (
     <AutocompletePrimitive.Empty
       data-slot='autocomplete-empty'
-      className={cn(listEmptyClass, className)}
+      className={mergeClassName(listEmptyClass, className)}
       {...props}
     />
   )

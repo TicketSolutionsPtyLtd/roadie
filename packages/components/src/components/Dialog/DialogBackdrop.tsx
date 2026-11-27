@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { overlayBackdropVariants } from '../../variants'
 import { useDialogEmphasis, useDialogRole } from './DialogContext'
 
@@ -18,10 +17,12 @@ export function DialogBackdrop({ className, ...props }: DialogBackdropProps) {
   return (
     <DialogPrimitive.Backdrop
       data-slot='dialog-backdrop'
-      className={cn(
-        'fixed inset-0 transition-opacity duration-moderate data-[ending-style]:opacity-0 data-[starting-style]:opacity-0',
-        overlayBackdropVariants[emphasis],
-        role === 'alertdialog' ? 'z-alert' : 'z-overlay',
+      className={mergeClassName(
+        [
+          'fixed inset-0 transition-opacity duration-moderate data-[ending-style]:opacity-0 data-[starting-style]:opacity-0',
+          overlayBackdropVariants[emphasis],
+          role === 'alertdialog' ? 'z-alert' : 'z-overlay'
+        ],
         className
       )}
       {...props}

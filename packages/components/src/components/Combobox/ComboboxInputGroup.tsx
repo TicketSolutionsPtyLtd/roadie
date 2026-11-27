@@ -5,8 +5,7 @@ import type { RefAttributes } from 'react'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { type VariantProps } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { comboboxInputGroupVariants } from './variants'
 
@@ -27,8 +26,9 @@ export function ComboboxInputGroup({
   return (
     <ComboboxPrimitive.InputGroup
       data-slot='combobox-input-group'
-      className={cn(
-        comboboxInputGroupVariants({ intent, emphasis, size, className })
+      className={mergeClassName(
+        comboboxInputGroupVariants({ intent, emphasis, size }),
+        className
       )}
       aria-invalid={(inField && fieldContext.invalid) || undefined}
       {...props}
