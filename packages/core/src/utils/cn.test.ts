@@ -9,7 +9,10 @@ import { cn } from './cn'
 async function declarations(className: string) {
   const css = (await compile('@tailwind utilities;')).build([className])
   const [rules = ''] = css.replace(/\/\*[\s\S]*?\*\//g, '').split('@property')
-  return [...rules.matchAll(/[\w-]+:\s*[^;{}]+;/g)].map(([d]) => d)
+  // Leave out Tailwind's own `--tw-*` defaults, which any outline class adds.
+  return [...rules.matchAll(/[\w-]+:\s*[^;{}]+;/g)]
+    .map(([d]) => d)
+    .filter((d) => !d.startsWith('--tw-'))
 }
 
 describe('cn', () => {
