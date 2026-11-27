@@ -43,16 +43,17 @@ import {
 import { applyQuery, isFiltered, toView } from './query'
 import { MAX_RANGE_ROWS } from './ranges'
 import { sameData } from './sameData'
+import { heldSearch, searchDraft, startSearchDraft } from './searchDraft'
 import {
   EMPTY_SELECTION,
+  type TakenSelection,
   selectedCount as countSelected,
   isSelected,
   matchKey,
-  sameSelection,
+  reconcileSelection,
   selectPage as selectPageIds,
   toggle,
-  toggleRange,
-  withinMatching
+  toggleRange
 } from './selection'
 import {
   type RecordsResolvedTotals,
@@ -746,36 +747,24 @@ export function useRecordsState<Row extends object>({
     search: view.query.search,
     filters: scopedQuery.filters
   })
-  // A search's matches exist only once it renders, so pruning waits for it.
-  const searchApplied = search === view.query.search
-  const [taken, setTaken] = useState({
+  const [taken, setTaken] = useState<TakenSelection>({
     held: heldSelection,
     key: queryKey,
     selection: heldSelection
   })
-  let selection = heldSelection
-  // A selection set with its query, like one restored from the URL, keeps it.
-  if (!sameSelection(taken.held, heldSelection)) {
-    const own =
-      picked !== null && sameSelection(picked.selection, heldSelection)
-    // Read once: a later outside change that happens to equal it is not ours.
-    if (picked !== null) setPicked(null)
-    setTaken({
-      held: heldSelection,
-      key: own ? picked.key : queryKey,
-      selection
-    })
-  } else if (searchApplied && taken.key !== queryKey) {
-    // Derived in render, so no paint pairs the old selection with the new query.
-    const empty = 'ids' in heldSelection && heldSelection.ids.length === 0
-    // Only the server knows what a new search matches.
-    selection = empty
-      ? heldSelection
-      : server || 'allMatching' in heldSelection
-        ? EMPTY_SELECTION
-        : withinMatching(heldSelection, matchingIds)
-    setTaken({ held: heldSelection, key: queryKey, selection })
-  } else if (taken.selection !== taken.held) selection = taken.selection
+  // Derived in render, so no paint pairs the old selection with the new query.
+  const reconciled = reconcileSelection(taken, {
+    held: heldSelection,
+    picked,
+    key: queryKey,
+    // A search's matches exist only once it renders, so pruning waits for it.
+    applied: search === view.query.search,
+    server,
+    matching: matchingIds
+  })
+  const { selection } = reconciled
+  if (reconciled.pickRead) setPicked(null)
+  if (reconciled.taken !== taken) setTaken(reconciled.taken)
   // Compared by identity: each derivation makes a new record, while the
   // selections inside it can be the same shared EMPTY_SELECTION.
   const notified = useRef<typeof taken | null>(null)
@@ -802,36 +791,24 @@ export function useRecordsState<Row extends object>({
 
   // A server's search waits for typing to pause, so the field shows a draft.
   const committed = view.query.search
-  const [draft, setDraft] = useState(committed)
-  const [seen, setSeen] = useState(committed)
-  // Searches sent and not yet seen back, oldest first, so a slow parent's
-  // late echo of an earlier one isn't read as a change from outside.
-  const [sent, setSent] = useState<readonly string[]>([])
-  // Bumped by each search set from outside, which voids a pending draft.
-  const [outside, setOutside] = useState(0)
-  if (server && committed !== seen) {
-    setSeen(committed)
-    const echo = sent.indexOf(committed)
-    if (echo !== -1) setSent(sent.slice(echo + 1))
-    else {
-      // A search set from outside, like a reset or the URL, replaces the draft.
-      setDraft(committed)
-      setSent([])
-      setOutside(outside + 1)
-    }
-  } else if (server && sent.length > 0 && committed === sent.at(-1))
-    // The parent holds the last search sent, so earlier ones it skipped
-    // can't echo back and mask a later change from outside.
-    setSent([])
+  const [searchState, setSearchState] = useState(() =>
+    startSearchDraft(committed)
+  )
+  if (server) {
+    const shown = searchDraft(searchState, {
+      type: 'shown',
+      search: committed
+    })
+    if (shown !== searchState) setSearchState(shown)
+  }
+  const { draft, outside } = searchState
   const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(searchTimer.current), [])
-  // What the parent will hold once every search sent has echoed.
-  const expected = server ? (sent.at(-1) ?? committed) : committed
+  const expected = server ? heldSearch(searchState) : committed
   const replaceDraft = (next: string) => {
     clearTimeout(searchTimer.current)
     if (!server) return
-    setDraft(next)
-    if (next !== expected) setSent((held) => [...held, next].slice(-20))
+    setSearchState((held) => searchDraft(held, { type: 'sent', search: next }))
   }
 
   // Writes build on each other until the view shown changes, as a parent's
@@ -893,7 +870,7 @@ export function useRecordsState<Row extends object>({
   const setSearch = (next: string) => {
     if (!latest.current.server || next === '')
       return latest.current.commitSearch(next)
-    setDraft(next)
+    setSearchState((held) => searchDraft(held, { type: 'typed', search: next }))
     clearTimeout(searchTimer.current)
     const base = latest.current.outside
     searchTimer.current = setTimeout(() => {

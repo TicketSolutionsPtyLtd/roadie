@@ -311,11 +311,13 @@ describe('PhoneField', () => {
       expect(picker()).not.toBeRequired()
     })
 
-    it('marks only the number invalid, with the error as its description', () => {
+    it('marks only the number invalid, with the error added to its description', () => {
       renderInField({}, { invalid: true })
 
       expect(number()).toBeInvalid()
-      expect(number()).toHaveAccessibleDescription('Enter a mobile number.')
+      expect(number()).toHaveAccessibleDescription(
+        "We'll text you a code. Enter a mobile number."
+      )
       expect(picker()).not.toBeInvalid()
     })
 
