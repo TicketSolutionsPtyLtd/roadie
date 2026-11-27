@@ -384,6 +384,24 @@ describe('MapClusters', () => {
     expect(bandNames()).toHaveLength(4)
   })
 
+  it('opens a map with defaultFit on every place in the data', async () => {
+    const fake = fakeEngine(undefined, { zoomScales: true })
+    await renderMap(
+      fake.engine,
+      <MapClusters data={sales} label='Ticket sales' />,
+      { defaultFit: true }
+    )
+
+    expect(fake.instance.fitBounds).toHaveBeenCalledTimes(1)
+    expect(fake.instance.fitBounds).toHaveBeenCalledWith(
+      {
+        southWest: { lat: -27.614, lng: 152.76 },
+        northEast: { lat: -27.457, lng: 153.051 }
+      },
+      expect.objectContaining({ animate: false })
+    )
+  })
+
   it('takes Show all to every place in the data', async () => {
     const { fake } = await renderClusters({}, { fit: true })
     await userEvent.click(screen.getByRole('button', { name: 'Show all' }))

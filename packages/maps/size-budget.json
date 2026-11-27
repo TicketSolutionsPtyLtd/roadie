@@ -1,6 +1,6 @@
 {
-  ".": { "own": 23422, "full": 354211, "initial": 103335 },
-  "./map": { "own": 15083, "full": 344501, "initial": 91841 },
+  ".": { "own": 24152, "full": 354991, "initial": 104197 },
+  "./map": { "own": 15940, "full": 344975, "initial": 92635 },
   "./map-areas": { "own": 5036, "full": 13184, "initial": 13184 },
   "./map-clusters": { "own": 4783, "full": 48810, "initial": 48810 },
   "./map-google": { "own": 1804, "full": 1804, "initial": 1804 }
