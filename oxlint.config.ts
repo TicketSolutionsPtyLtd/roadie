@@ -321,14 +321,9 @@ export default defineConfig({
     roadieRules(
       ['packages/*/src/**/*.tsx'],
       { 'roadie/no-dropped-class-name-callback': 'error' },
-      [
-        'NumberField',
-        'OTPField',
-        'ScrollArea',
-        'Toast',
-        'Toolbar',
-        'Tooltip'
-      ].map((folder) => `packages/components/src/components/${folder}/**`)
+      ['NumberField', 'OTPField', 'ScrollArea', 'Toast', 'Toolbar'].map(
+        (folder) => `packages/components/src/components/${folder}/**`
+      )
     ),
     // The testing preset covers the tests; these are the helpers they wait in.
     roadieRules(
