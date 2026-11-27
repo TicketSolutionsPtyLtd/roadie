@@ -10,6 +10,7 @@ import {
   InvalidColorError,
   ThemeProvider,
   getAccentStyleSync,
+  getAccentStyleTag,
   getAccentStyleTagSync,
   isValidHexColor,
   useTheme
@@ -38,11 +39,6 @@ const matchMediaMock = vi.fn().mockReturnValue({
   removeEventListener: vi.fn()
 })
 Object.defineProperty(window, 'matchMedia', { value: matchMediaMock })
-
-// Mock CSS.supports for oklch detection
-Object.defineProperty(window, 'CSS', {
-  value: { supports: vi.fn().mockReturnValue(true) }
-})
 
 beforeEach(() => {
   localStorageMock.clear()
@@ -260,7 +256,7 @@ describe('ThemeProvider - accent scope', () => {
       .querySelector<HTMLElement>('[data-accent-scope]')
       ?.style.getPropertyValue('--accent-hue')
 
-  // Settles an accent effect that awaits the async hue before it writes.
+  // Flushes the accent effects and any updates they queue.
   const settle = () => act(async () => void (await getOklchHue(ROUTE)))
 
   beforeEach(() => accentStyle()?.remove())
@@ -422,6 +418,19 @@ describe('ThemeProvider - accent scope', () => {
 
     await waitFor(() => expect(documentHue()).toBe('293'))
   })
+
+  it('drops the hex scales an older server tag wrote when the accent changes', async () => {
+    const style = document.createElement('style')
+    style.id = 'roadie-accent-theme'
+    style.textContent = `${getAccentStyleSync(ROOT)} :root { --color-accent-9: #0191eb; }`
+    document.head.append(style)
+
+    render(<ThemeProvider accentColor={ROUTE}>Page</ThemeProvider>)
+    await settle()
+
+    await waitFor(() => expect(documentHue()).toBe('293'))
+    expect(style.textContent).not.toContain('--color-accent-')
+  })
 })
 
 describe('getAccentStyleSync', () => {
@@ -435,6 +444,20 @@ describe('getAccentStyleSync', () => {
 
   it('throws InvalidColorError on invalid input', () => {
     expect(() => getAccentStyleSync('garbage')).toThrow(InvalidColorError)
+  })
+})
+
+describe('getAccentStyleTag', () => {
+  it('resolves to the same tag as getAccentStyleTagSync, with no hex scale', async () => {
+    await expect(getAccentStyleTag('#e5484d', 'brand')).resolves.toBe(
+      getAccentStyleTagSync('#e5484d', 'brand')
+    )
+  })
+
+  it('rejects with InvalidColorError on invalid input', async () => {
+    await expect(getAccentStyleTag('not-a-hex')).rejects.toThrow(
+      InvalidColorError
+    )
   })
 })
 

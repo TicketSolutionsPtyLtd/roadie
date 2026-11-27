@@ -17,13 +17,13 @@ import { cn } from '@oztix/roadie-core/utils'
 import { Button } from '../Button'
 import { Menu } from '../Menu'
 import { Tooltip } from '../Tooltip'
-import { reportActionError } from './RecordsConfirm'
+import { attempt } from './RecordsConfirm'
 import {
   RecordsViewDelete,
   RecordsViewName,
   type ViewDialog
 } from './RecordsViewDialogs'
-import { useRecordsContext } from './context'
+import { useRecordsData } from './context'
 
 /** Writes to the views the app keeps. Return a promise to hold the control busy, and reject to say it failed. */
 export type RecordsViewHandler = (view: RecordView) => void | Promise<unknown>
@@ -53,7 +53,7 @@ export function RecordsViewActions({
   onDelete,
   className
 }: RecordsViewActionsProps) {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [dialog, setDialog] = useState<ViewDialog | null>(null)
   const [saving, setSaving] = useState(false)
@@ -71,13 +71,10 @@ export function RecordsViewActions({
   const runSave = async () => {
     if (!onSave || !baseline) return
     setSaving(true)
-    try {
-      await onSave({ ...view, id: baseline.id, name: baseline.name })
-    } catch (error) {
-      reportActionError(error)
-    } finally {
-      setSaving(false)
-    }
+    await attempt(
+      () => onSave({ ...view, id: baseline.id, name: baseline.name }),
+      { done: () => setSaving(false) }
+    )
   }
   const asNew = (name: string) => {
     const copy: RecordView = { ...view, name }

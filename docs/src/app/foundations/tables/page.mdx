@@ -98,9 +98,9 @@ copy.
   `font-mono` in the column's `cell`.
 - Give each column its place on a phone. Under 40rem the table lists its
   records. The title column takes `narrow: 'title'`, one line under it
-  `'description'`, and a status `'trailing'`. Any `'detail'` column turns rows
-  into cards; keep it to three or four details. The rest stay in the wide
-  table.
+  `'description'`, and a status `'trailing'`. The rest stay in the wide
+  table. `'detail'`, which turns rows into cards, is deprecated. For cards,
+  use [RecordGrid](/components/record-grid).
 - Let the extras go first. Give columns people can do without a `priority` so
   they hide as the table narrows, 3 first, before it turns into list rows.
 - Images lead. An image column, with `kind: 'image'`, shows a thumbnail, leads
@@ -238,15 +238,15 @@ A show or session at a venue. The record most panes start from.
 | Event (pinned) | text       | Strong text                                                      | title       |          |
 | Venue          | option     | Option label                                                     | description |          |
 | Status         | option     | Badge                                                            | trailing    |          |
-| Start date     | date       | Long date and time in the venue's zone (Fri 27 Nov 2026, 7:30pm) | detail      |          |
-| Sold           | number     | Number                                                           | detail      |          |
+| Start date     | date       | Long date and time in the venue's zone (Fri 27 Nov 2026, 7:30pm) |             |          |
+| Sold           | number     | Number                                                           |             |          |
 | Capacity       | number     | Number                                                           |             | 2        |
-| Gross          | money      | Compact currency                                                 | detail      |          |
+| Gross          | money      | Compact currency                                                 |             |          |
 
 | Context       | How it shows                                                                                                                          |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | In a Pane     | Search by event or venue. Sort by start date, soonest first. See the [Events pane](/components/record-table#in-a-pane) example.       |
-| On a phone    | Cards: the event, the venue under it, and the status on the end, with starts, sold, and gross as details.                             |
+| On a phone    | List rows: the event, the venue under it, and the status on the end.                                                                  |
 | Dashboard     | Top events: Event with the venue as secondary text, a sell-through meter, and Gross. Sort by gross, largest first. Five rows.         |
 | Detail page   | The event page leads with image, date, and venue, then stat tiles for sold, gross, and sell-through. Ticket types sit in a DataTable. |
 | PDF or report | An event report: the ticket type DataTable, plain, and charts drawn with `renderChartSvg`.                                            |

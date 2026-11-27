@@ -8,7 +8,8 @@
         "$TURBO_ROOT$/docs/src/app/**/page.mdx",
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.react.json",
-        "!src/**/{testUtils,*TestUtils}.{ts,tsx}"
+        "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
+        "!src/**/fixtures/**"
       ]
     },
     "build:quiet": {
@@ -19,7 +20,9 @@
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.react.json",
         "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
-        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*"
+        "!src/**/fixtures/**",
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*",
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/fixtures/**"
       ]
     }
   }

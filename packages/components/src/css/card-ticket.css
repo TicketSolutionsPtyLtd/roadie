@@ -1,9 +1,14 @@
 /* Card variant='ticket'. The body and footer each paint the fill and are cut
    at the join: with corner-shape: scoop where supported, and with a
-   half-notch mask on each part elsewhere. The edge and shadow are
-   drop-shadows on the root so they follow the notches. Nothing inside the
-   filtered root may be much taller than the card: Safari stops painting the
-   card, and sometimes the whole page, when it is.
+   half-notch mask on each part elsewhere. The shadow is a box-shadow on
+   the root or, on a split ticket, on a caster under each column. The edge
+   is drawn by the parts, inside their own boxes, so it stops at the
+   notches: inset shadows along their outer sides, with their
+   outer corners taking the card's radius, and a ring around each notch in
+   their background. A box-shadow edge on the root would run straight across
+   each notch's mouth. Never a filter: a filtered card is redrawn on every
+   frame it moves, so a carousel of them ran at 20fps
+   (docs/solutions/best-practices/filters-redraw-every-frame.md).
 
    The join follows the card's `direction` (see card-direction.css), so every
    value it depends on is a custom property the parts set: the defaults are
@@ -12,21 +17,24 @@
 @layer components {
   [data-slot='card'][data-variant='ticket'] {
     --card-notch: 0.75rem;
+    --card-edge-width: 0px;
     --card-shadow-color: oklch(0.3 0.05 var(--intent-hue) / 0.06);
     --card-edge: transparent;
-    --card-shadow-2: transparent;
-    --card-shadow-4: transparent;
-    --card-shadow-8: transparent;
+    --card-edge-solid: transparent;
+    --card-fill: var(--emphasis-fill-state, var(--emphasis-fill));
+
+    /* The shadow for this state, resolved here since the emphasis values
+       don't inherit, so the casters below can read it. */
+    --ticket-shadow: var(
+      --emphasis-shadow-state,
+      var(--emphasis-shadow, 0 0 #0000)
+    );
 
     overflow: clip;
     color: var(--intent-text-normal);
-    filter: drop-shadow(1px 0 0 var(--card-edge))
-      drop-shadow(-1px 0 0 var(--card-edge))
-      drop-shadow(0 1px 0 var(--card-edge))
-      drop-shadow(0 -1px 0 var(--card-edge))
-      drop-shadow(0 2px 2px var(--card-shadow-2))
-      drop-shadow(0 4px 4px var(--card-shadow-4))
-      drop-shadow(0 8px 8px var(--card-shadow-8));
+    box-shadow:
+      0 0 0 var(--ticket-root-edge) var(--card-edge),
+      var(--ticket-root-shadow);
     transition: background-color var(--duration-moderate) var(--ease-standard);
 
     :where(.dark) & {
@@ -40,19 +48,83 @@
     /* The parts read variables the card sets, not `&:has(footer) > *`: a
        selector after a :has() restyles its matches across the page whenever
        anything changes, and `*` matches everything. Reset first, so a nested
-       footer-less ticket doesn't inherit them. */
+       footer-less ticket doesn't inherit them, and so a nested ticket's parts
+       take no notch or corner shape from the part it sits in. */
     --card-part-fill: initial;
     --card-part-transition: initial;
+    --ticket-notch-a: initial;
+    --ticket-notch-b: initial;
+    --ticket-scoop-shape: initial;
+    --ticket-root-edge: var(--card-edge-width);
+    --ticket-part-edge: 0px;
+    --ticket-root-shadow: var(--ticket-shadow);
+    --ticket-caster: initial;
+    --card-part-overflow: initial;
+    --ticket-overlay-radius: initial;
 
     &:has(> [data-slot='card-footer']) {
+      --ticket-root-edge: 0px;
+      --ticket-part-edge: var(--card-edge-width);
       --card-part-fill: var(--card-fill);
       --card-part-transition: background-color var(--duration-moderate)
         var(--ease-standard);
+
+      /* A shadow on the root runs straight under the notches at the ends of
+         a side join, and the bottom one casts it down across the notch's
+         mouth. So a split ticket's shadow comes from the casters below, one
+         per column, and the root stops clipping so they show; each part
+         clips its own content instead. A stacked join's notches are on the
+         sides, where the shadow is a faint blur, so the root keeps it. */
+      &:is([data-direction='horizontal'], [data-direction='auto']) {
+        --ticket-root-shadow: 0 0 #0000;
+        --ticket-caster: block;
+        --card-part-overflow: clip;
+        --ticket-overlay-radius: var(--radius-4xl, 2rem);
+
+        position: relative;
+        isolation: isolate;
+        overflow: visible;
+      }
     }
 
     & > * {
       background-color: var(--card-part-fill, revert-layer);
       transition: var(--card-part-transition, revert-layer);
+      overflow: var(--card-part-overflow, revert-layer);
+    }
+
+    /* The shadow casters, behind the parts: one per column, each with the
+       card's radius on every corner, so the shadow thins out toward the join
+       and nothing casts under a notch's mouth. Stacked on auto, the second
+       column is empty: the first caster covers the card, as the root's
+       shadow would, and the second has no area to cast from. Not a container
+       query: Firefox can miss one on a pseudo-element of the container
+       itself until the card is resized. */
+    &::before,
+    &::after {
+      content: '';
+      display: var(--ticket-caster, none);
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      box-shadow: var(--ticket-shadow);
+      pointer-events: none;
+      transition: box-shadow var(--duration-moderate) var(--ease-standard);
+    }
+
+    /* With the root no longer clipping, a Card.Link's overlay would take
+       clicks in the square corners outside the card's curve. */
+    & [data-interactive-target]::after {
+      border-radius: var(--ticket-overlay-radius, revert-layer);
+    }
+
+    &::before {
+      grid-column: 1 / 2;
+    }
+
+    &::after {
+      grid-column: 2 / -1;
     }
 
     & > [data-slot='card-footer'] {
@@ -78,61 +150,134 @@
 
   /* A part is cut only where a direction below hands it a notch: with the
      --ticket-notch-* custom properties unset these declarations are invalid
-     and drop out, so an uncut part keeps its own radius and needs no mask.
-     A notch switched off is 0px rather than 0, which the calc() below would
-     reject as a unitless zero, taking the whole mask with it. */
+     and drop out, so an uncut part keeps its own radius, background and
+     mask. A notch switched off is 0px rather than 0, which the calc() below
+     would reject as a unitless zero, taking the whole mask with it.
+
+     The hole is the notch less the edge, and the part paints the edge in the
+     ring between them. The --ticket-edge-* sides a direction hands a part
+     are its outer sides; the rest stay 0px and draw nothing. */
+  [data-slot='card'][data-variant='ticket'] > * {
+    --ticket-edge-l: 0px;
+    --ticket-edge-r: 0px;
+    --ticket-edge-t: 0px;
+    --ticket-edge-b: 0px;
+
+    --ticket-notch-a-hole: max(
+      0px,
+      var(--ticket-notch-a-size) - var(--card-edge-width)
+    );
+    --ticket-notch-b-hole: max(
+      0px,
+      var(--ticket-notch-b-size) - var(--card-edge-width)
+    );
+    --ticket-notch-rim:
+      radial-gradient(
+        circle at var(--ticket-notch-a),
+        #0000 var(--ticket-notch-a-hole),
+        var(--card-edge-solid) var(--ticket-notch-a-hole),
+        var(--card-edge-solid) var(--ticket-notch-a-size),
+        #0000 calc(var(--ticket-notch-a-size) + 0.5px)
+      ),
+      radial-gradient(
+        circle at var(--ticket-notch-b),
+        #0000 var(--ticket-notch-b-hole),
+        var(--card-edge-solid) var(--ticket-notch-b-hole),
+        var(--card-edge-solid) var(--ticket-notch-b-size),
+        #0000 calc(var(--ticket-notch-b-size) + 0.5px)
+      );
+
+    background-image: var(--ticket-notch-rim, revert-layer);
+    box-shadow:
+      inset var(--ticket-edge-l) 0 var(--card-edge-solid),
+      inset calc(-1 * var(--ticket-edge-r)) 0 var(--card-edge-solid),
+      inset 0 var(--ticket-edge-t) var(--card-edge-solid),
+      inset 0 calc(-1 * var(--ticket-edge-b)) var(--card-edge-solid);
+  }
+
+  /* A notched corner is a scoop where corner-shape is supported, and a
+     square corner the mask cuts elsewhere. */
   @supports (corner-shape: scoop) {
     [data-slot='card'][data-variant='ticket'] > * {
-      border-radius: var(--ticket-scoop);
+      --ticket-cut-a: var(--ticket-notch-a-hole);
+      --ticket-cut-b: var(--ticket-notch-b-hole);
+
       corner-shape: var(--ticket-scoop-shape, round);
     }
   }
 
   @supports not (corner-shape: scoop) {
     [data-slot='card'][data-variant='ticket'] > * {
+      --ticket-cut-a: 0px;
+      --ticket-cut-b: 0px;
+
       mask:
         radial-gradient(
             circle at var(--ticket-notch-a),
-            #0000 var(--ticket-notch-a-size),
-            #000 calc(var(--ticket-notch-a-size) + 0.5px)
+            #0000 var(--ticket-notch-a-hole),
+            #000 calc(var(--ticket-notch-a-hole) + 0.5px)
           )
           var(--ticket-notch-a-layer) no-repeat,
         radial-gradient(
             circle at var(--ticket-notch-b),
-            #0000 var(--ticket-notch-b-size),
-            #000 calc(var(--ticket-notch-b-size) + 0.5px)
+            #0000 var(--ticket-notch-b-hole),
+            #000 calc(var(--ticket-notch-b-hole) + 0.5px)
           )
           var(--ticket-notch-b-layer) no-repeat;
     }
   }
 
   [data-slot='card'][data-variant='ticket']:not([data-direction='horizontal']) {
+    & > * {
+      --ticket-edge-l: var(--ticket-part-edge);
+      --ticket-edge-r: var(--ticket-part-edge);
+    }
+
+    & > :first-child {
+      --ticket-edge-t: var(--ticket-part-edge);
+
+      border-top-left-radius: inherit;
+      border-top-right-radius: inherit;
+    }
+
+    & > :last-child {
+      --ticket-edge-b: var(--ticket-part-edge);
+
+      border-bottom-left-radius: inherit;
+      border-bottom-right-radius: inherit;
+    }
+
     & > :has(+ [data-slot='card-footer']) {
-      --ticket-scoop-shape: scoop;
-      --ticket-scoop: 0 0 var(--card-notch) var(--card-notch);
+      --ticket-scoop-shape: round round scoop scoop;
       --ticket-notch-a: 0 100%;
       --ticket-notch-a-layer: left / 51% 100%;
       --ticket-notch-a-size: var(--card-notch);
       --ticket-notch-b: 100% 100%;
       --ticket-notch-b-layer: right / 51% 100%;
       --ticket-notch-b-size: var(--card-notch);
+
+      border-bottom-left-radius: var(--ticket-cut-a);
+      border-bottom-right-radius: var(--ticket-cut-b);
     }
 
     & > [data-slot='card-footer'] {
-      --ticket-scoop-shape: scoop;
-      --ticket-scoop: var(--card-notch) var(--card-notch) 0 0;
+      --ticket-scoop-shape: scoop scoop round round;
       --ticket-notch-a: 0 0;
       --ticket-notch-a-layer: left / 51% 100%;
       --ticket-notch-a-size: var(--card-notch);
       --ticket-notch-b: 100% 0;
       --ticket-notch-b-layer: right / 51% 100%;
       --ticket-notch-b-size: var(--card-notch);
+
+      border-top-left-radius: var(--ticket-cut-a);
+      border-top-right-radius: var(--ticket-cut-b);
     }
   }
 
   [data-slot='card'][data-variant='ticket'][data-direction='horizontal'] {
     & > :not([data-slot='card-footer']) {
-      --ticket-scoop: 0 var(--ticket-notch-a-size) var(--ticket-notch-b-size) 0;
+      --ticket-edge-l: var(--ticket-part-edge);
+      --ticket-edge-r: 0px;
       --ticket-notch-a: 100% 0;
       --ticket-notch-a-layer: top / 100% 51%;
       --ticket-notch-a-size: 0px;
@@ -144,18 +289,29 @@
     /* The join runs the whole height, so its notches belong to the ends of
        the column, not to whichever part happens to touch the footer. */
     & > :first-child {
-      --ticket-scoop-shape: scoop;
+      --ticket-scoop-shape: round scoop scoop round;
       --ticket-notch-a-size: var(--card-notch);
+      --ticket-edge-t: var(--ticket-part-edge);
+
+      border-top-left-radius: inherit;
+      border-top-right-radius: var(--ticket-cut-a);
     }
 
     & > :has(+ [data-slot='card-footer']) {
-      --ticket-scoop-shape: scoop;
+      --ticket-scoop-shape: round scoop scoop round;
       --ticket-notch-b-size: var(--card-notch);
+      --ticket-edge-b: var(--ticket-part-edge);
+
+      border-bottom-left-radius: inherit;
+      border-bottom-right-radius: var(--ticket-cut-b);
     }
 
     & > [data-slot='card-footer'] {
-      --ticket-scoop-shape: scoop;
-      --ticket-scoop: var(--card-notch) 0 0 var(--card-notch);
+      --ticket-scoop-shape: scoop round round scoop;
+      --ticket-edge-l: 0px;
+      --ticket-edge-r: var(--ticket-part-edge);
+      --ticket-edge-t: var(--ticket-part-edge);
+      --ticket-edge-b: var(--ticket-part-edge);
       --ticket-notch-a: 0 0;
       --ticket-notch-a-layer: top / 100% 51%;
       --ticket-notch-a-size: var(--card-notch);
@@ -167,6 +323,10 @@
       --ticket-perforation-line-block: 0 none;
       --ticket-perforation-line-inline: 2px dashed var(--intent-border-subtle);
 
+      border-top-left-radius: var(--ticket-cut-a);
+      border-top-right-radius: inherit;
+      border-bottom-right-radius: inherit;
+      border-bottom-left-radius: var(--ticket-cut-b);
       padding-inline-start: 1.5rem;
     }
   }
@@ -174,8 +334,8 @@
   @container card (width >= 30rem) {
     [data-slot='card'][data-variant='ticket'][data-direction='auto'] {
       & > :not([data-slot='card-footer']) {
-        --ticket-scoop: 0 var(--ticket-notch-a-size) var(--ticket-notch-b-size)
-          0;
+        --ticket-edge-l: var(--ticket-part-edge);
+        --ticket-edge-r: 0px;
         --ticket-notch-a: 100% 0;
         --ticket-notch-a-layer: top / 100% 51%;
         --ticket-notch-a-size: 0px;
@@ -185,18 +345,29 @@
       }
 
       & > :first-child {
-        --ticket-scoop-shape: scoop;
+        --ticket-scoop-shape: round scoop scoop round;
         --ticket-notch-a-size: var(--card-notch);
+        --ticket-edge-t: var(--ticket-part-edge);
+
+        border-top-left-radius: inherit;
+        border-top-right-radius: var(--ticket-cut-a);
       }
 
       & > :has(+ [data-slot='card-footer']) {
-        --ticket-scoop-shape: scoop;
+        --ticket-scoop-shape: round scoop scoop round;
         --ticket-notch-b-size: var(--card-notch);
+        --ticket-edge-b: var(--ticket-part-edge);
+
+        border-bottom-left-radius: inherit;
+        border-bottom-right-radius: var(--ticket-cut-b);
       }
 
       & > [data-slot='card-footer'] {
-        --ticket-scoop-shape: scoop;
-        --ticket-scoop: var(--card-notch) 0 0 var(--card-notch);
+        --ticket-scoop-shape: scoop round round scoop;
+        --ticket-edge-l: 0px;
+        --ticket-edge-r: var(--ticket-part-edge);
+        --ticket-edge-t: var(--ticket-part-edge);
+        --ticket-edge-b: var(--ticket-part-edge);
         --ticket-notch-a: 0 0;
         --ticket-notch-a-layer: top / 100% 51%;
         --ticket-notch-a-size: var(--card-notch);
@@ -208,117 +379,74 @@
         --ticket-perforation-line-block: 0 none;
         --ticket-perforation-line-inline: 2px dashed var(--intent-border-subtle);
 
+        border-top-left-radius: var(--ticket-cut-a);
+        border-top-right-radius: inherit;
+        border-bottom-right-radius: inherit;
+        border-bottom-left-radius: var(--ticket-cut-b);
         padding-inline-start: 1.5rem;
       }
     }
   }
 
+  /* Each emphasis declares its values, as the emphasis presets do, and the
+     shared state rule (is-interactive and is-interactive-within, in
+     interactions.css) picks one per state. CardRoot leaves the preset's class
+     off, since the parts paint the fill. Values only: no state selector here.
+     A state left out shows the rest look. The shadows are whole lists. */
   [data-slot='card'][data-variant='ticket'][data-emphasis='raised'] {
-    --card-fill: var(--intent-bg-raised);
-    --card-edge: oklch(0.3 0.05 var(--intent-hue) / 0.06);
-    --card-shadow-2: var(--card-shadow-color);
-    --card-shadow-4: var(--card-shadow-color);
+    --emphasis-fill: var(--intent-bg-raised);
+    --emphasis-shadow:
+      0 2px 2px var(--card-shadow-color), 0 4px 4px var(--card-shadow-color);
+    --emphasis-shadow-hover:
+      0 2px 2px var(--card-shadow-color), 0 4px 4px var(--card-shadow-color),
+      0 8px 8px var(--card-shadow-color);
+    --emphasis-shadow-active: 0 2px 2px var(--card-shadow-color);
+    --emphasis-lift-hover: translateY(-1px);
+    --card-edge-width: 1px;
+    /* The ring a ticket with no footer draws, as dark as the edge the parts
+       draw on one with a footer. */
+    --card-edge: oklch(0.3 0.05 var(--intent-hue) / 0.2);
+    /* The parts draw the edge over their own fill, so it's mixed in solid.
+       It's as dark as the rim the old drop-shadows drew around the notch,
+       where the edge and the shadows piled up; they drew the rest of the
+       outline lighter. */
+    --card-edge-solid: color-mix(
+      in srgb,
+      oklch(0.3 0.05 var(--intent-hue)) 20%,
+      var(--card-fill)
+    );
 
     :where(.dark) & {
-      --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.35);
-    }
-
-    &.is-interactive:hover,
-    &.is-interactive:focus-visible,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
-      ),
-    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-        :has(.is-interactive-within [data-interactive-target]:focus-visible)
-      ) {
-      --card-shadow-8: var(--card-shadow-color);
-      transform: translateY(-1px);
-    }
-    &.is-interactive:active,
-    &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active):not(
-        :has(.is-interactive-within [data-interactive-target]:active)
-      ) {
-      --card-shadow-4: transparent;
-      --card-shadow-8: transparent;
-      transform: translateY(0) scale(0.99);
+      --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.65);
+      --card-edge-solid: color-mix(
+        in srgb,
+        oklch(0.05 0.02 var(--intent-hue)) 65%,
+        var(--card-fill)
+      );
     }
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='normal'] {
-    --card-fill: var(--intent-bg-normal);
+    --emphasis-fill: var(--intent-bg-normal);
+    --emphasis-fill-hover: var(--intent-2);
+    --emphasis-fill-active: var(--intent-3);
+    --emphasis-shadow-hover: 0 2px 2px var(--card-shadow-color);
+    --emphasis-lift-hover: translateY(-1px);
+    --card-edge-width: 1px;
     --card-edge: var(--intent-border-normal);
-
-    &.is-interactive:hover,
-    &.is-interactive:focus-visible,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
-      ),
-    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-        :has(.is-interactive-within [data-interactive-target]:focus-visible)
-      ) {
-      --card-fill: var(--intent-2);
-      --card-shadow-2: var(--card-shadow-color);
-      transform: translateY(-1px);
-    }
-    &.is-interactive:active,
-    &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active):not(
-        :has(.is-interactive-within [data-interactive-target]:active)
-      ) {
-      --card-fill: var(--intent-3);
-      --card-shadow-2: transparent;
-      transform: translateY(0) scale(0.99);
-    }
+    --card-edge-solid: var(--card-edge);
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='subtle'] {
-    --card-fill: var(--intent-bg-subtle);
-
-    &.is-interactive:hover,
-    &.is-interactive:focus-visible,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
-      ),
-    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-        :has(.is-interactive-within [data-interactive-target]:focus-visible)
-      ) {
-      --card-fill: var(--intent-4a);
-    }
-    &.is-interactive:active,
-    &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active):not(
-        :has(.is-interactive-within [data-interactive-target]:active)
-      ) {
-      --card-fill: var(--intent-5a);
-    }
+    --emphasis-fill: var(--intent-bg-subtle);
+    --emphasis-fill-hover: var(--intent-4a);
+    --emphasis-fill-active: var(--intent-5a);
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='subtler'] {
-    --card-fill: var(--intent-bg-subtler);
-
-    &.is-interactive,
-    &.is-interactive-within:has([data-interactive-target]):not(
-        :has(.is-interactive-within [data-interactive-target])
-      ) {
-      --card-fill: transparent;
-    }
-    &.is-interactive:hover,
-    &.is-interactive:focus-visible,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
-      ),
-    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-        :has(.is-interactive-within [data-interactive-target]:focus-visible)
-      ) {
-      --card-fill: var(--intent-3a);
-    }
-    &.is-interactive:active,
-    &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active):not(
-        :has(.is-interactive-within [data-interactive-target]:active)
-      ) {
-      --card-fill: var(--intent-4a);
-    }
+    --emphasis-fill: var(--intent-bg-subtler);
+    --emphasis-fill-interactive: transparent;
+    --emphasis-fill-hover: var(--intent-3a);
+    --emphasis-fill-active: var(--intent-4a);
   }
 }

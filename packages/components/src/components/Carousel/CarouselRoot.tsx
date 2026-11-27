@@ -21,34 +21,13 @@ import useEmblaCarousel from 'embla-carousel-react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isDev } from '../../utils/isDev'
 import {
   type CarouselActions,
   CarouselContext,
   type CarouselContextValue,
   type CarouselDirection
 } from './CarouselContext'
-
-/**
- * Development-mode check that works across consumer bundlers.
- *
- * Uses `process.env.NODE_ENV` rather than `import.meta.env.DEV` because
- * the latter is Vite-specific: Next.js, Webpack, Rollup, and friends
- * don't populate it, so the dev-only warnings would never fire in those
- * consumer runtimes. Every mainstream bundler replaces
- * `process.env.NODE_ENV` with a string literal at build time; the
- * `typeof process` guard covers the case where a consumer bundler hasn't
- * shimmed `process` on the client. The minimal ambient `process`
- * declaration below keeps us from pulling `@types/node` into the
- * package-wide `types` array, which would otherwise leak Node-only
- * globals into DOM code.
- */
-declare const process: { env?: { NODE_ENV?: string } } | undefined
-
-function isDevEnvironment(): boolean {
-  return (
-    typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production'
-  )
-}
 
 /**
  * Embla v9's autoplay plugin can throw from its own methods if `init()`
@@ -63,7 +42,7 @@ function safePluginCall(fn: () => void): void {
   try {
     fn()
   } catch (error) {
-    if (isDevEnvironment()) {
+    if (isDev()) {
       console.warn('[Carousel] Autoplay plugin call failed:', error)
     }
   }
@@ -86,6 +65,10 @@ function usePrefersReducedMotion(): boolean {
     () => false
   )
 }
+
+const noSubscription = () => () => {}
+const inBrowser = () => true
+const onServer = () => false
 
 export type CarouselRootProps = Omit<ComponentProps<'div'>, 'onBlur'> & {
   /** Pass-through options for the Embla instance. */
@@ -122,7 +105,7 @@ export function CarouselRoot({
   // Dev warnings, moved to effects so React 19 strict-mode double-invoke
   // doesn't fire them twice during render.
   useEffect(() => {
-    if (!isDevEnvironment()) return
+    if (!isDev()) return
     if (autoPlay !== false && autoPlay < 2000) {
       console.warn(
         '[Carousel] autoPlay delay < 2000ms may fail WCAG 2.2.1 timing; prefer >= 4000ms.'
@@ -131,7 +114,7 @@ export function CarouselRoot({
   }, [autoPlay])
 
   useEffect(() => {
-    if (!isDevEnvironment()) return
+    if (!isDev()) return
     if (opts?.axis && opts.axis !== axis) {
       console.warn(
         `[Carousel] opts.axis="${opts.axis}" conflicts with direction="${direction}". direction wins.`
@@ -164,6 +147,7 @@ export function CarouselRoot({
 
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [slideCount, setSlideCount] = useState(0)
+  const hydrated = useSyncExternalStore(noSubscription, inBrowser, onServer)
   const [snapCount, setSnapCount] = useState(0)
   const [labelId, setLabelId] = useState<string | undefined>(undefined)
   const [slidesInView, setSlidesInView] = useState<number[]>([0])
@@ -292,9 +276,11 @@ export function CarouselRoot({
       ? Math.min(Math.max(0, selectedIndex), effectiveSnapCount - 1)
       : 0
   const canGoToPrev = effectiveSnapCount > 1 && (loop || clampedIndex > 0)
+  // Until hydrated, the controls render as if there's somewhere to scroll.
+  const canScroll = !hydrated || effectiveSnapCount > 1
   const canGoToNext =
-    effectiveSnapCount > 1 && (loop || clampedIndex < effectiveSnapCount - 1)
-  const canScroll = effectiveSnapCount > 1
+    !hydrated ||
+    (effectiveSnapCount > 1 && (loop || clampedIndex < effectiveSnapCount - 1))
 
   const actions = useMemo<CarouselActions>(
     () => ({

@@ -5,7 +5,8 @@ import type { RefAttributes } from 'react'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { CheckIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
+import { optionIndicatorClass } from '../../variants'
 
 export type ComboboxItemIndicatorProps = ComboboxPrimitive.ItemIndicator.Props &
   RefAttributes<HTMLSpanElement>
@@ -18,7 +19,7 @@ export function ComboboxItemIndicator({
   return (
     <ComboboxPrimitive.ItemIndicator
       data-slot='combobox-item-indicator'
-      className={cn('shrink-0 text-subtle', className)}
+      className={mergeClassName(optionIndicatorClass, className)}
       {...props}
     >
       {children ?? <CheckIcon weight='bold' className='size-4' />}

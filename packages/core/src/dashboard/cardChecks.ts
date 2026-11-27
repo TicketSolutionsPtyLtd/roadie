@@ -1,12 +1,11 @@
 import type { core } from 'zod'
 
 import { isWallTime, parseWallTime } from '../dataviz/wallTime'
-import { DONUT_PART_CAP } from './layout'
+import { BAR_INTERVAL_MS, DONUT_PART_CAP, SERIES_CAP } from './layout'
 import {
   type ChartPlot,
   type DonutPlot,
   type PlotRow,
-  SERIES_CAP,
   type SmallMultiplesPlot,
   type StackedAreaPlot
 } from './plots'
@@ -164,8 +163,6 @@ function seriesCount(plot: ChartPlot) {
   return new Set(plot.data.map((row) => row[field])).size
 }
 
-const INTERVAL_MS = { hour: 3_600_000, day: 86_400_000, week: 604_800_000 }
-
 type AnnotatedChart = SmallMultiplesPlot['chart'] | StackedAreaPlot
 
 // A spread into Math.min or Math.max overflows the call stack on large data.
@@ -195,8 +192,9 @@ const drawnRows = (chart: AnnotatedChart, data: readonly PlotRow[]) =>
       })
     : data
 
-// Mirrors how the charts place annotations: by wall time on a time axis, where
-// a bar covers its whole interval, and by exact value otherwise.
+// Places an annotation as the charts do: by wall time on a time axis, where a
+// bar covers its whole interval (BAR_INTERVAL_MS, which the charts import), and
+// by exact value otherwise.
 function annotationFits(
   at: string | number,
   chart: AnnotatedChart,
@@ -210,7 +208,8 @@ function annotationFits(
     const time = parseWallTime(at)
     const times = xs.map(parseWallTime).filter((v) => v !== null)
     const [first, last] = minMax(times)
-    const span = chart.kind === 'bar' ? INTERVAL_MS[chart.interval ?? 'day'] : 0
+    const span =
+      chart.kind === 'bar' ? BAR_INTERVAL_MS[chart.interval ?? 'day'] : 0
     return (
       time !== null &&
       time >= first &&

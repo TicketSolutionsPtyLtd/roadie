@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import roadieCss from '../../vitest.browser.css?inline'
+import roadieCss from '../../vitest.guards.css?inline'
 
 // Chromium folds every rule's selector after a `:has()` anchor into one
 // invalidation set. When anything a :has() argument could see changes (a
@@ -11,14 +11,20 @@ import roadieCss from '../../vitest.browser.css?inline'
 // restyles everything, a tag every such element, and `[data-slot=…]` every
 // Roadie element, since Chromium keeps the attribute name and not its value.
 
-// Limits: a string scan, not a selector parser. It reads core and component
-// CSS as the test stylesheet compiles it, which also scans test files, so a
-// class string only a test mentions can trip it; charts, maps, widgets, and
-// docs CSS aren't read, so the cart drawer's sheet goes unchecked. It knows nested
-// rules, :is(), :where(), :not() and :has() nesting and escapes, not
-// namespaces or `of S` in :nth-child(). See
-// docs/solutions/best-practices/has-invalidation-scales-with-page.md.
-const RARE_ATTRIBUTES = new Set(['data-column', 'data-level', 'data-stack'])
+// Limits: a string scan, not a selector parser. It reads the CSS and class
+// strings of core, components, blocks, charts, editor and widgets as
+// vitest.guards.css compiles them, test files left out; illustrations, maps
+// and docs aren't read. It runs with components' browser tests, so a change to
+// blocks, charts, editor or widgets alone is checked by the next full run,
+// not by that pull request. It knows nested rules, :is(), :where(), :not()
+// and :has() nesting and escapes, not namespaces or `of S` in :nth-child().
+// See docs/solutions/best-practices/has-invalidation-scales-with-page.md.
+const RARE_ATTRIBUTES = new Set([
+  'data-column',
+  'data-level',
+  'data-plot-band',
+  'data-stack'
+])
 
 // A nested rule's selector with its parent's in place of `&`, or before it
 // when it has none, as the browser matches it. An escaped `\&` is a class's.
@@ -284,6 +290,18 @@ describe('Roadie CSS and :has() invalidation', () => {
     sheet.replaceSync(roadieCss)
     expect(
       selectorsOf(sheet).filter((selector) => broadAfterHas(selector).length)
+    ).toEqual([])
+  })
+
+  // An app compiles Roadie's class strings with its own Tailwind, and 4.3.3
+  // and earlier end these two on `*`, where `in-[…:has()]` ends on the class.
+  it('ships no group-has-* or peer-has-* class', () => {
+    const sheet = new CSSStyleSheet()
+    sheet.replaceSync(roadieCss)
+    expect(
+      selectorsOf(sheet).filter((selector) =>
+        /(group|peer)-has-/.test(selector)
+      )
     ).toEqual([])
   })
 })

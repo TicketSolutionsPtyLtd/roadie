@@ -13,6 +13,8 @@ import {
 } from 'vitest'
 import { userEvent, page as viewport } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
@@ -459,12 +461,10 @@ describe('Editor block settings', () => {
     )
 
     const handles = within(drawer).getAllByRole('button', { name: /^Reorder/ })
-    await userEvent.click(handles[0]!)
-    await userEvent.click(
-      await screen.findByRole('menuitem', {
-        name: 'Move Velvet Kookaburra down'
-      })
-    )
+    await pickMenuItem(userEvent, {
+      from: handles[0]!,
+      item: 'Move Velvet Kookaburra down'
+    })
 
     await waitFor(() =>
       expect(

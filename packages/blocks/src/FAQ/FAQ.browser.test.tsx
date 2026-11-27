@@ -17,7 +17,7 @@ import {
   textAlignOf,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, expectReadable, setMode } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
@@ -268,17 +268,12 @@ describe('FAQ intent and emphasis', () => {
       )
       await userEvent.click(screen.getByText('Does it cost anything?'))
 
-      expect(
-        textContrast(screen.getByRole('heading', { level: 2 }))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      expectReadable(screen.getByRole('heading', { level: 2 }))
       for (const element of [
         ...screen.getAllByRole('heading', { level: 3 }),
         screen.getByText(/settlement is unchanged/)
       ])
-        expect(
-          textContrast(element),
-          element.textContent!
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+        expectReadable(element, element.textContent!)
       expect(await axeViolations(container)).toEqual([])
     }
   )

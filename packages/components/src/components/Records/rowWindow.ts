@@ -16,6 +16,7 @@ import {
   useWindowVirtualizer
 } from '@tanstack/react-virtual'
 
+import { stuckInset, watchStuck } from '../../utils/stickyStack'
 import type { WindowView } from './recordsWindow'
 import {
   type Watched,
@@ -24,7 +25,7 @@ import {
   useRowRestore
 } from './rowPosition'
 import { tableRowSize } from './rowSizing'
-import { findScrollParent, findStickyContainer } from './scrollParent'
+import { findScrollParent } from './scrollParent'
 import { RECORDS_SCROLLER } from './tableFocus'
 import type { RecordsRangeState } from './types'
 
@@ -68,24 +69,11 @@ export function correctsRowsAbove(
   )
 }
 
-const stuckBottom = (element: HTMLElement) =>
-  (parseFloat(getComputedStyle(element).top) || 0) + element.offsetHeight
-
-/** Px from the scroll element's top edge to the bottom of the stuck header, or of the toolbar over narrow rows. */
-function stuckInset(body: HTMLElement): number {
-  const head = body
-    .closest('[data-slot="record-table-content"]')
-    ?.querySelector<HTMLElement>('[data-slot="record-table-head"]')
-  if (head) return stuckBottom(head)
-  const toolbar = body
-    .closest('[data-slot="records"]')
-    ?.querySelector<HTMLElement>('[data-slot="records-header"]')
-  // From above the scroller, which is a sticky container itself; the toolbar covers the rows only when both stick in one box.
-  const scroller = body.closest<HTMLElement>(RECORDS_SCROLLER)
-  return toolbar &&
-    findStickyContainer(toolbar) === findStickyContainer(scroller)
-    ? stuckBottom(toolbar)
-    : 0
+/** The rem a custom property holds, or undefined unless it's a length in rem. */
+function rowRem(element: HTMLElement, name: string) {
+  const value = getComputedStyle(element).getPropertyValue(name).trim()
+  const rem = parseFloat(value)
+  return value.endsWith('rem') && rem > 0 ? rem : undefined
 }
 
 type Scroller = { element: HTMLElement | null; ready: boolean }
@@ -98,6 +86,10 @@ export type RowSizing = {
   measure?: boolean
   /** Rem between rows. */
   gapRem?: number
+  /** A custom property on the body holding the row height in rem, such as one a container query sets; it wins over `estimateRem`. */
+  heightVar?: string
+  /** Changes when the styles setting `heightVar` may have changed with no resize, so the window reads it again. */
+  heightKey?: unknown
 }
 
 export type RowWindowOptions = RowSizing & {
@@ -115,7 +107,9 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   measureInset,
   estimateRem = tableRowSize.estimateRem,
   measure: measureRows = false,
-  gapRem = 0
+  gapRem = 0,
+  heightVar,
+  heightKey
 }: RowWindowOptions) {
   const bodyRef = useRef<Body>(null)
   const [scroller, setScroller] = useState<Scroller>({
@@ -126,7 +120,8 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   const [inset, setInset] = useState(0)
   // Rows are sized in rem, so a larger root font makes them taller.
   const [rootFont, setRootFont] = useState(16)
-  const rowHeight = estimateRem * rootFont
+  const [styledRem, setStyledRem] = useState<number>()
+  const rowHeight = (styledRem ?? estimateRem) * rootFont
   const gap = gapRem * rootFont
 
   useLayoutEffect(() => {
@@ -142,6 +137,9 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
         getComputedStyle(document.documentElement).fontSize
       )
       if (root > 0) setRootFont(root)
+      // Read once per resize, never per row.
+      const styled = current && heightVar && rowRem(current, heightVar)
+      if (styled) setStyledRem(styled)
     }
     measure()
     const observer = new ResizeObserver(measure)
@@ -149,39 +147,29 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
     if (body.parentElement?.parentElement)
       observer.observe(body.parentElement.parentElement)
     return () => observer.disconnect()
-  }, [])
+  }, [heightVar])
+
+  // Again when the styles change without a resize, as when a column goes.
+  useLayoutEffect(() => {
+    const body = bodyRef.current
+    const styled = body && heightVar && rowRem(body, heightVar)
+    if (styled) setStyledRem(styled)
+  }, [heightVar, heightKey])
 
   const latestMeasureInset = useRef(measureInset)
   useLayoutEffect(() => {
     latestMeasureInset.current = measureInset
   })
-  // A pane header compacts as its pane scrolls, with no render here, and a stuck header sits under it.
+  // A pane header compacts as its pane scrolls, with no render here, and a
+  // stuck header sits under it. Told once the new height is published, while
+  // the restore still holds its row.
   useLayoutEffect(() => {
     const body = bodyRef.current
-    const pane = body?.closest<HTMLElement>('[data-slot="pane"]')
-    const header = pane
-      ? [
-          ...pane.querySelectorAll<HTMLElement>('[data-slot="pane-header"]')
-        ].find((element) => element.closest('[data-slot="pane"]') === pane)
-      : undefined
-    if (!body || !header) return
-    const remeasure = () => {
+    if (!body) return
+    return watchStuck(body, () => {
       const next = latestMeasureInset.current?.(body) ?? 0
       setInset((inset) => (Math.abs(next - inset) > 0.5 ? next : inset))
-    }
-    let frame = 0
-    const observer = new ResizeObserver(() => {
-      // Now, while the restore still holds its row: the pane's own observer, made first, has published the header's height.
-      remeasure()
-      cancelAnimationFrame(frame)
-      // Again a frame later, in case the pane's observer was made after this one.
-      frame = requestAnimationFrame(remeasure)
     })
-    observer.observe(header)
-    return () => {
-      observer.disconnect()
-      cancelAnimationFrame(frame)
-    }
   }, [])
 
   const usesWindow = scroller.ready && scroller.element === null

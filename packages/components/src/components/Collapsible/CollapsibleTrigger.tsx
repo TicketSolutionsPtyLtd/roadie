@@ -7,6 +7,7 @@ import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeClassName } from '../../utils/mergeClassName'
 import { disclosureCaretClass } from '../../variants'
 
 export type CollapsibleTriggerProps = CollapsiblePrimitive.Trigger.Props &
@@ -24,11 +25,13 @@ export function CollapsibleTrigger({
   return (
     <CollapsiblePrimitive.Trigger
       data-slot='collapsible-trigger'
-      className={cn(
-        'group/collapsible-trigger',
-        // A rendered element, such as Button, brings its own styles.
-        !props.render &&
-          'is-interactive -mx-1.5 inline-flex items-center gap-1.5 rounded-md emphasis-subtler border-0 text-inherit px-1.5 py-0.5 font-medium',
+      className={mergeClassName(
+        [
+          'group/collapsible-trigger',
+          // A rendered element, such as Button, brings its own styles.
+          !props.render &&
+            'is-interactive -mx-1.5 inline-flex items-center gap-1.5 rounded-md emphasis-subtler border-0 text-inherit px-1.5 py-0.5 font-medium'
+        ],
         className
       )}
       {...props}

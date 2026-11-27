@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useSliderContext } from './SliderContext'
 import { sliderControlVariants } from './variants'
 
@@ -17,7 +16,7 @@ export function SliderControl({ className, ...props }: SliderControlProps) {
   return (
     <SliderPrimitive.Control
       data-slot='slider-control'
-      className={cn(sliderControlVariants({ size }), className)}
+      className={mergeClassName(sliderControlVariants({ size }), className)}
       {...props}
     />
   )

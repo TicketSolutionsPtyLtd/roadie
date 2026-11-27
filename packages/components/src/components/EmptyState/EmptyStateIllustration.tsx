@@ -1,11 +1,8 @@
-'use client'
-
-import { type ComponentProps, use } from 'react'
+import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { EmptyStateContext } from './EmptyStateContext'
-import { emptyStateIllustrationVariants } from './variants'
+import { emptyStateIllustrationClass } from './variants'
 
 export type EmptyStateIllustrationProps = ComponentProps<'div'>
 
@@ -13,11 +10,10 @@ export function EmptyStateIllustration({
   className,
   ...props
 }: EmptyStateIllustrationProps) {
-  const size = use(EmptyStateContext)
   return (
     <div
       data-slot='empty-state-illustration'
-      className={cn(emptyStateIllustrationVariants({ size }), className)}
+      className={cn(emptyStateIllustrationClass, className)}
       {...props}
     />
   )

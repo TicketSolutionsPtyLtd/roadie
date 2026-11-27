@@ -12,6 +12,8 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import { Button } from '@oztix/roadie-components/button'
 import { Dialog } from '@oztix/roadie-components/dialog'
 import { Drawer } from '@oztix/roadie-components/drawer'
@@ -19,7 +21,6 @@ import { Field } from '@oztix/roadie-components/field'
 import { Popover } from '@oztix/roadie-components/popover'
 
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../testUtils'
 import { MapEngineContext } from './MapEngineContext'
 import type {
   MapAreaGeometry,
@@ -1026,7 +1027,7 @@ describe('Map full screen in the browser', () => {
       })
       expect(layer()).toContainElement(option)
       await waitFor(() => expect(option.contains(middle(option))).toBe(true))
-      await userEvent.click(option)
+      await pickOption(userEvent, { option: 'Kazoo Hollow Room' })
       expect(chosen).toEqual([kazoo])
       expect(layer()).toBeInTheDocument()
     }
@@ -1085,9 +1086,7 @@ describe('Map full screen in the browser', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Full screen' }))
       const search = screen.getByRole('combobox', { name: 'Search the map' })
       await userEvent.type(search, 'Tiv')
-      await userEvent.click(
-        await screen.findByRole('option', { name: 'Kazoo Hollow Room' })
-      )
+      await pickOption(userEvent, { option: 'Kazoo Hollow Room' })
       await waitFor(() => expect(search).toHaveValue('Kazoo Hollow Room'))
       expect(search).toHaveFocus()
       await waitFor(() =>

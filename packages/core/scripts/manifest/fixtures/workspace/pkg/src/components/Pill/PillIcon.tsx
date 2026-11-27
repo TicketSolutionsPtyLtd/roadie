@@ -13,6 +13,11 @@ export function PillIcon(props: PillIconProps) {
   return props.name
 }
 
+/** @deprecated Use `Pill.Icon`. */
+export function PillGlyph(props: PillIconProps) {
+  return props.name
+}
+
 export function PillInternal(props: { secret: string }) {
   return props.secret
 }

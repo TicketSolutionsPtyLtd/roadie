@@ -14,14 +14,16 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
-import { Sortable, type SortableMove } from '.'
-import roadieCss from '../../../vitest.browser.css?inline'
-import { keepFramesRunning, releaseDragPointer } from '../../css/testUtils'
-import { List } from '../List'
-import { useStylesheet } from '../Pane/testUtils'
-import { Popover } from '../Popover'
+import { keepFramesRunning } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
+import { Sortable, type SortableMove, type SortableProps } from '.'
+import roadieCss from '../../../vitest.browser.css?inline'
+import { releaseDragPointer } from '../../css/testUtils'
+import { List } from '../List'
+import { Popover } from '../Popover'
+import { Lanes, type Transfer, listed } from './lanesTestUtils'
+
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
 
 let removeStylesheets = () => {}
@@ -283,6 +285,243 @@ describe('Sortable drag and drop', () => {
   })
 })
 
+describe('Sortable connected lists', () => {
+  it('moves an item into another list at the edge it is dropped on', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(<Lanes onTransfer={onTransfer} />)
+    const row = () => handle('SKU').closest('[data-slot="list-item"]')!
+    const restingFill = getComputedStyle(row()).backgroundColor
+    await startDrag('Date')
+    await hover(item('Event'), 0.5)
+    await hover(item('SKU'), 0.2)
+    await waitFor(() =>
+      expect(item('SKU')).toHaveAttribute('data-drop-edge', 'top')
+    )
+    const zone = screen.getByTestId('done')
+    expect(zone).toHaveAttribute('data-drop-target')
+    expect(getComputedStyle(zone, '::after').borderTopWidth).toBe('2px')
+    // The ring's accent stays on the ring, not the items in the zone.
+    expect(getComputedStyle(row()).backgroundColor).toBe(restingFill)
+    await drop()
+    await waitFor(() =>
+      expect(onTransfer).toHaveBeenCalledWith({
+        value: 'Date',
+        from: 'todo',
+        to: 'done',
+        index: 0
+      })
+    )
+    expect(listed('todo')).toEqual(['Event'])
+    expect(listed('done')).toEqual(['Date', 'SKU'])
+    await waitFor(() =>
+      expect(screen.getAllByRole('status')[1]).toHaveTextContent(
+        'Date moved to position 1 of 2 done'
+      )
+    )
+  })
+
+  it('drops into an empty list through its drop zone', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(
+      <Lanes initial={{ todo: ['Date'], done: [] }} onTransfer={onTransfer} />
+    )
+    await startDrag('Date')
+    await hover(screen.getByTestId('done'), 0.5)
+    await waitFor(() =>
+      expect(screen.getByTestId('done')).toHaveAttribute('data-drop-target')
+    )
+    await drop()
+    await waitFor(() =>
+      expect(onTransfer).toHaveBeenCalledWith({
+        value: 'Date',
+        from: 'todo',
+        to: 'done',
+        index: 0
+      })
+    )
+    expect(listed('done')).toEqual(['Date'])
+    expect(screen.getByTestId('done')).not.toHaveAttribute('data-drop-target')
+  })
+
+  it('drops past the last item through the drop zone', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(<Lanes onTransfer={onTransfer} />)
+    await startDrag('Date')
+    await hover(screen.getByTestId('done'), 0.95)
+    await waitFor(() =>
+      expect(screen.getByTestId('done')).toHaveAttribute('data-drop-target')
+    )
+    expect(item('SKU')).not.toHaveAttribute('data-drop-edge')
+    await drop()
+    await waitFor(() =>
+      expect(onTransfer).toHaveBeenCalledWith({
+        value: 'Date',
+        from: 'todo',
+        to: 'done',
+        index: 1
+      })
+    )
+    expect(listed('done')).toEqual(['SKU', 'Date'])
+  })
+
+  it('leaves the drop zone to items from other lists', async () => {
+    render(<Lanes initial={{ todo: ['Date'], done: [] }} />)
+    const todo = screen.getByTestId('todo')
+    const done = screen.getByTestId('done')
+    await startDrag('Date')
+    await hover(done, 0.5)
+    await waitFor(() => expect(done).toHaveAttribute('data-drop-target'))
+    await hover(todo, 0.95)
+    await waitFor(() => expect(done).not.toHaveAttribute('data-drop-target'))
+    expect(todo).not.toHaveAttribute('data-drop-target')
+  })
+
+  it('refuses a drop the target list turns down', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    const canDrop = vi.fn<NonNullable<SortableProps['canDrop']>>(() => false)
+    render(<Lanes onTransfer={onTransfer} canDrop={canDrop} />)
+    await startDrag('Date')
+    await hover(item('Event'), 0.5)
+    await hover(item('SKU'), 0.2)
+    await waitFor(() =>
+      expect(canDrop).toHaveBeenCalledWith({ value: 'Date', from: 'todo' })
+    )
+    expect(item('SKU')).not.toHaveAttribute('data-drop-edge')
+    expect(screen.getByTestId('done')).not.toHaveAttribute('data-drop-target')
+    await drop()
+    await waitFor(() =>
+      expect(item('Date')).not.toHaveAttribute('data-dragging')
+    )
+    expect(onTransfer).not.toHaveBeenCalled()
+    expect(listed('todo')).toEqual(['Date', 'Event'])
+  })
+
+  it.each([
+    ['is disabled', { disabled: true }],
+    ['has no onTransfer', { onTransfer: undefined }]
+  ] as const)('takes nothing into a list that %s', async (_, done) => {
+    const onTransfer = vi.fn<Transfer>()
+    render(<Lanes onTransfer={onTransfer} done={done} />)
+    await startDrag('Date')
+    await hover(item('Event'), 0.5)
+    await hover(item('SKU'), 0.2)
+    await waitFor(() => expect(item('Date')).toHaveAttribute('data-dragging'))
+    expect(item('SKU')).not.toHaveAttribute('data-drop-edge')
+    expect(screen.getByTestId('done')).not.toHaveAttribute('data-drop-target')
+    await drop()
+    await waitFor(() =>
+      expect(item('Date')).not.toHaveAttribute('data-dragging')
+    )
+    expect(onTransfer).not.toHaveBeenCalled()
+    expect(listed('todo')).toEqual(['Date', 'Event'])
+  })
+
+  it('shows the edge on an item with the same value in the other list', async () => {
+    render(<Lanes initial={{ todo: ['Date'], done: ['Date', 'SKU'] }} />)
+    const [from, onto] = screen.getAllByRole('button', { name: 'Reorder Date' })
+    const box = from!.getBoundingClientRect()
+    await commands.pointer([
+      { type: 'move', x: box.left + 12, y: box.top + 12 },
+      { type: 'down' },
+      { type: 'move', x: box.left + 12, y: box.top + 30, steps: 4 }
+    ])
+    await hover(item('SKU'), 0.5)
+    const target = onto!.closest('[data-slot="sortable-item"]')!
+    await hover(target, 0.2)
+    await waitFor(() => expect(target).toHaveAttribute('data-drop-edge', 'top'))
+    await drop()
+  })
+
+  it('scrolls the list it is dragged into', async () => {
+    const many = Array.from({ length: 30 }, (_, index) => `Row ${index + 1}`)
+    const onTransfer = vi.fn<Transfer>()
+    render(
+      <Lanes
+        initial={{ todo: ['Date'], done: many }}
+        onTransfer={onTransfer}
+        doneZone='h-60 overflow-y-auto'
+      />
+    )
+    const scroller = screen.getByTestId('done')
+    await startDrag('Date')
+    const box = scroller.getBoundingClientRect()
+    const edge = { x: box.left + box.width / 2, y: box.bottom - 4 }
+    await commands.pointer([{ type: 'move', ...edge, steps: 8 }])
+    const stopFrames = keepFramesRunning(() => edge)
+    try {
+      await waitFor(() => expect(scroller.scrollTop).toBeGreaterThan(40), {
+        timeout: 5000
+      })
+    } finally {
+      await stopFrames()
+    }
+    await drop()
+    await waitFor(() => expect(onTransfer).toHaveBeenCalled())
+    expect(onTransfer.mock.calls[0]![0].index).toBeGreaterThan(3)
+  })
+
+  it('scrolls a container the lists share without registering it twice', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    onTestFinished(() => warn.mockRestore())
+    render(
+      <div className='h-60 overflow-y-auto'>
+        <Lanes />
+      </div>
+    )
+    await startDrag('Date')
+    await hover(item('SKU'), 0.2)
+    await waitFor(() =>
+      expect(item('SKU')).toHaveAttribute('data-drop-edge', 'top')
+    )
+    await drop()
+    expect(warn).not.toHaveBeenCalledWith(
+      expect.stringContaining('already registered'),
+      expect.anything()
+    )
+  })
+})
+
+describe('Sortable Move to another list', () => {
+  async function openMenu(name: string) {
+    handle(name).focus()
+    await userEvent.keyboard('{Enter}')
+    return screen.findByRole('menu')
+  }
+
+  it('moves an item to the end of another list by keyboard', async () => {
+    const onTransfer = vi.fn<Transfer>()
+    render(
+      <Lanes
+        initial={{ todo: ['Date', 'Event'], done: ['SKU'] }}
+        onTransfer={onTransfer}
+      />
+    )
+    await openMenu('Date')
+    await userEvent.keyboard('{End}')
+    await waitFor(() =>
+      expect(
+        screen.getByRole('menuitem', { name: 'Move Date to done' })
+      ).toHaveFocus()
+    )
+    await userEvent.keyboard('{Enter}')
+    expect(onTransfer).toHaveBeenCalledWith({
+      value: 'Date',
+      from: 'todo',
+      to: 'done',
+      index: 1
+    })
+    expect(listed('todo')).toEqual(['Event'])
+    expect(listed('done')).toEqual(['SKU', 'Date'])
+    await waitFor(() => expect(handle('Date')).toHaveFocus())
+    await waitFor(() =>
+      // Said in the list the menu was in, which stays in sight.
+      expect(screen.getAllByRole('status')[0]).toHaveTextContent(
+        'Date moved to position 2 of 2 done'
+      )
+    )
+  })
+})
+
 describe('Sortable List rows', () => {
   const background = (name: string) =>
     getComputedStyle(
@@ -343,6 +582,21 @@ describe('Sortable Move menu', () => {
     } finally {
       await stopFrames()
     }
+  })
+
+  it('returns focus to a handle a click opened the menu of, and still drags by it', async () => {
+    render(<Columns />)
+    await userEvent.click(handle('Price'))
+    await waitFor(() => expect(screen.getByRole('menu')).toHaveFocus())
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(handle('Price')).toHaveFocus())
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+    await userEvent.dragAndDrop(handle('Price'), item('Event'), {
+      targetPosition: { x: 40, y: 4 }
+    })
+    await waitFor(() =>
+      expect(order()).toEqual(['Date', 'Price', 'Event', 'SKU'])
+    )
   })
 
   it('moves by keyboard and keeps focus on the handle', async () => {
@@ -516,5 +770,81 @@ describe('Sortable handle alignment', () => {
     )
     const labelTop = screen.getByText('A').getBoundingClientRect().top
     expect(handle('A').getBoundingClientRect().top).toBeCloseTo(labelTop, 0)
+  })
+})
+
+describe('Sortable.Item dragFrom="item"', { timeout: 30_000 }, () => {
+  const thumbnail =
+    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"/%3E'
+  function Linked({ onReorder }: { onReorder: SortableProps['onReorder'] }) {
+    return (
+      <Sortable items={['a', 'b']} onReorder={onReorder} label='links'>
+        <ul>
+          {['a', 'b'].map((value) => (
+            <Sortable.Item
+              key={value}
+              value={value}
+              label={value}
+              dragFrom='item'
+              render={<li />}
+            >
+              <a href={`#${value}`} className='flex gap-2 p-2'>
+                <img src={thumbnail} alt={`Thumbnail ${value}`} />
+                {value}
+              </a>
+            </Sortable.Item>
+          ))}
+        </ul>
+      </Sortable>
+    )
+  }
+
+  it('drags from an image inside a link, and gives the link its drag back', async () => {
+    const onReorder = vi.fn<SortableProps['onReorder']>()
+    render(<Linked onReorder={onReorder} />)
+    const link = screen.getByRole('link', { name: 'Thumbnail a a' })
+    await userEvent.dragAndDrop(
+      screen.getByRole('img', { name: 'Thumbnail a' }),
+      screen.getByRole('link', { name: 'Thumbnail b b' }),
+      { targetPosition: { x: 20, y: 50 } }
+    )
+    await expect.poll(() => onReorder.mock.calls[0]?.[0]).toEqual(['b', 'a'])
+    cleanup()
+    expect(link.hasAttribute('draggable')).toBe(false)
+  })
+
+  it('leaves a drag that starts on a button to the button', async () => {
+    const onReorder = vi.fn<SortableProps['onReorder']>()
+    render(
+      <Sortable items={['a', 'b']} onReorder={onReorder} label='buttons'>
+        <ul>
+          {['a', 'b'].map((value) => (
+            <Sortable.Item
+              key={value}
+              value={value}
+              label={value}
+              dragFrom='item'
+              render={<li className='flex gap-2 p-2' />}
+            >
+              <span>{value}</span>
+              <button type='button'>Edit {value}</button>
+            </Sortable.Item>
+          ))}
+        </ul>
+      </Sortable>
+    )
+    const b = screen.getByText('b', { exact: true }).closest('li')!
+    // Past b's bottom edge, so a drop there moves a after it.
+    const below = { x: 4, y: b.getBoundingClientRect().height - 2 }
+    await userEvent.dragAndDrop(
+      screen.getByRole('button', { name: 'Edit a' }),
+      b,
+      { targetPosition: below }
+    )
+    expect(onReorder).not.toHaveBeenCalled()
+    await userEvent.dragAndDrop(screen.getByText('a', { exact: true }), b, {
+      targetPosition: below
+    })
+    await expect.poll(() => onReorder.mock.calls[0]?.[0]).toEqual(['b', 'a'])
   })
 })

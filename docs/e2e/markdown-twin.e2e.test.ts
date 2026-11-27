@@ -219,8 +219,12 @@ describe('Markdown twins', () => {
       .poll(() => alternate.getAttribute('href'))
       .toBe(`${BASE_PATH}/foundations/elevation.md`)
 
+    // At 720px tall the collapsed rail folds Tokens, its low-priority
+    // destination, into More.
+    await page.getByRole('button', { name: 'More', exact: true }).click()
     await page
       .getByRole('link', { name: 'Tokens', exact: true })
+      .filter({ visible: true })
       .first()
       .click()
     await page.waitForURL(/\/tokens\/?$/)

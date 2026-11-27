@@ -83,7 +83,8 @@ render(<GenreFilter />)
 
 Wrap a checkbox in [Field](/components/field) to get helper and error text.
 The checkbox picks up `invalid`, `required` and `disabled` from the Field, and
-screen readers hear the helper or error text with it.
+screen readers hear the helper text with it, then the error text while it's
+invalid.
 
 ```tsx-live-noinline
 function TermsOptIn() {

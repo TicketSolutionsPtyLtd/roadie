@@ -17,6 +17,8 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
@@ -221,12 +223,10 @@ describe('Editor image settings', () => {
       })
     )
 
-    await userEvent.click(
-      within(dialog).getByRole('combobox', { name: 'Links to' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'View in browser' })
-    )
+    await pickOption(userEvent, {
+      from: within(dialog).getByRole('combobox', { name: 'Links to' }),
+      option: 'View in browser'
+    })
     await waitFor(() =>
       expect(savedImage(onValueChange)).toMatchObject({ variable: 'view_url' })
     )

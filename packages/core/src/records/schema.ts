@@ -1,7 +1,13 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 import { dateRangeSchemas } from '../datetime/rangeSchema'
 import { RECORDS_REQUEST_VERSION, RECORD_VIEW_VERSION } from './versions'
+
+/** The most fields a view groups by. A board draws the first two. */
+export const MAX_GROUP_LEVELS = 3
+
+/** The levels a board draws: its columns, then its lanes. */
+export const BOARD_GROUP_LEVELS = 2
 
 function filterSchemas() {
   const field = z.string().min(1)
@@ -65,7 +71,11 @@ function buildSchema() {
     flag
   ])
 
-  const keys = z.array(z.string().min(1))
+  const key = z.string().min(1)
+  const keys = z.array(key)
+  const levels = z
+    .array(key)
+    .max(MAX_GROUP_LEVELS, `Group by at most ${MAX_GROUP_LEVELS} fields`)
 
   return z.strictObject({
     version: z
@@ -87,9 +97,25 @@ function buildSchema() {
         type: z.literal('table'),
         columns: z
           .strictObject({ order: keys.optional(), hidden: keys.optional() })
-          .optional()
+          .optional(),
+        groupBy: levels.optional()
       }),
-      z.strictObject({ type: z.literal('grid'), fields: keys.optional() })
+      z.strictObject({
+        type: z.literal('grid'),
+        fields: keys.optional(),
+        groupBy: levels.optional()
+      }),
+      z.strictObject({
+        type: z.literal('list'),
+        fields: keys.optional(),
+        groupBy: levels.optional()
+      }),
+      z.strictObject({
+        type: z.literal('board'),
+        groupBy: levels.min(1, 'Group by at least one field')
+      }),
+      z.strictObject({ type: z.literal('calendar'), dateField: key }),
+      z.strictObject({ type: z.literal('map') })
     ])
   })
 }

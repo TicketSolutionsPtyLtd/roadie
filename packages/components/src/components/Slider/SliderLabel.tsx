@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useSliderContext } from './SliderContext'
 
 export type SliderLabelProps = SliderPrimitive.Label.Props &
@@ -26,7 +25,7 @@ export function SliderLabel({
         // input carries the field id, so a range focuses too.
         if (fieldId) document.getElementById(fieldId)?.focus()
       }}
-      className={cn(
+      className={mergeClassName(
         'min-w-0 truncate text-sm font-medium text-normal',
         className
       )}

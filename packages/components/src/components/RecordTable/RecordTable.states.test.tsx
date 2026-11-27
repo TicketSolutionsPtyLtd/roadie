@@ -3,8 +3,13 @@ import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { tableColumns, tableLayout } from '.'
-import { Records, type UseRecordsOptions, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { Records, type UseRecordsOptions } from '../Records'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 
 const column = tableColumns<TestShow>(showFields)
 const layouts = [
@@ -19,20 +24,20 @@ const SHOWS = testShows(30)
 type Options = Partial<UseRecordsOptions<TestShow>> & { rows?: number }
 
 function Table({ rows = 30, ...options }: Options) {
-  const records = useRecords({
-    data: SHOWS.slice(0, rows),
-    fields: showFields,
-    getRowId: (row) => row.id,
-    recordName: { one: 'show', other: 'shows' },
-    ...options
-  })
   return (
-    <Records.Root records={records} layouts={layouts} caption='Shows'>
+    <ShowRecords
+      data={SHOWS.slice(0, rows)}
+      getRowId={(row) => row.id}
+      recordName={{ one: 'show', other: 'shows' }}
+      {...options}
+      layouts={layouts}
+      caption='Shows'
+    >
       <Records.Header />
       <Records.Content />
       <Records.Pagination />
       <Records.Status />
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
@@ -343,19 +348,17 @@ describe('RecordTable status column', () => {
     )
     const column = tableColumns<TestShow>(fields)
     function Listed() {
-      const records = useRecords({
-        data: [
-          { ...SHOWS[0]!, status: ['on_sale', 'sold_out'] as unknown as string }
-        ],
-        fields
-      })
       return (
-        <Records
-          records={records}
+        <ShowRecords
+          data={[
+            {
+              ...SHOWS[0]!,
+              status: ['on_sale', 'sold_out'] as unknown as string
+            }
+          ]}
+          fields={fields}
           layouts={[tableLayout([column.field('status')])]}
-        >
-          <Records.Content />
-        </Records>
+        />
       )
     }
     render(<Listed />)
@@ -386,17 +389,12 @@ describe('RecordTable status column', () => {
     )
     const column = tableColumns<TestShow>(fields)
     function Numbered() {
-      const records = useRecords({
-        data: [{ ...SHOWS[0]!, status: 1 as unknown as string }],
-        fields
-      })
       return (
-        <Records
-          records={records}
+        <ShowRecords
+          data={[{ ...SHOWS[0]!, status: 1 as unknown as string }]}
+          fields={fields}
           layouts={[tableLayout([column.field('status')])]}
-        >
-          <Records.Content />
-        </Records>
+        />
       )
     }
     render(<Numbered />)

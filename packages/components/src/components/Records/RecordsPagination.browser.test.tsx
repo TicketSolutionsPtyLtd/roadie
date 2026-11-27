@@ -2,9 +2,14 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Records, useRecords } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'
 
@@ -40,10 +45,7 @@ describe('Records.Pagination rows per page', () => {
   it('keeps its width as the page size changes', async () => {
     render(<Paged />)
     const before = width()
-    await userEvent.click(rowsPerPage())
-    await userEvent.click(
-      await screen.findByRole('option', { name: '10 per page' })
-    )
+    await pickOption(userEvent, { from: rowsPerPage(), option: '10 per page' })
     await expect
       .poll(
         () =>
@@ -59,10 +61,7 @@ describe('Records.Pagination rows per page', () => {
       rowsPerPage().querySelector('[data-slot="select-value"]')?.textContent
     await expect.poll(value).toBe('88 per page')
     const before = width()
-    await userEvent.click(rowsPerPage())
-    await userEvent.click(
-      await screen.findByRole('option', { name: '99 per page' })
-    )
+    await pickOption(userEvent, { from: rowsPerPage(), option: '99 per page' })
     await expect.poll(value).toBe('99 per page')
     expect(width()).toBe(before)
   })

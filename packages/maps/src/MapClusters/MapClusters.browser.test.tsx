@@ -4,12 +4,13 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Map, type MapActions } from '../Map'
 import { MapEngineContext } from '../Map/MapEngineContext'
 import blankStyle from '../Map/fixtures/blank-style.json?url'
 import { maplibreEngine } from '../Map/maplibreEngine'
-import { useStylesheet } from '../testUtils'
 import { MapClusters } from './MapClusters'
 
 const engine = maplibreEngine({
@@ -360,10 +361,29 @@ describe('MapClusters in the browser', () => {
         name: /^Ticket sales: 20\D?000, 100% of all$/
       })
 
+      // The bands move while the map eases, and a click lands where its
+      // band was when it was aimed, so each click waits for the ease to end.
+      const settled = async (moving: HTMLElement) => {
+        let last = ''
+        let since = 0
+        await waitFor(
+          () => {
+            const { x, y } = moving.getBoundingClientRect()
+            if (last !== `${x},${y}`) {
+              last = `${x},${y}`
+              since = performance.now()
+            }
+            expect(performance.now() - since).toBeGreaterThan(300)
+          },
+          { timeout: 5_000 }
+        )
+      }
+
       // Each click splits the group, and focus moves to its largest part.
       for (let clicks = 0; band.hasAttribute('aria-describedby'); clicks++) {
         expect(clicks).toBeLessThan(20)
         const group = band
+        await settled(group)
         await userEvent.click(group)
         await waitFor(
           () => {
@@ -380,20 +400,8 @@ describe('MapClusters in the browser', () => {
 
       // One spot is left: its four sales, and nothing to split.
       expect(band).toHaveAccessibleName('Ticket sales: 4, <1% of all')
-      // A preview closes while the map moves, so wait for the ease to end.
-      let last = ''
-      let since = 0
-      await waitFor(
-        () => {
-          const { x, y } = band.getBoundingClientRect()
-          if (last !== `${x},${y}`) {
-            last = `${x},${y}`
-            since = performance.now()
-          }
-          expect(performance.now() - since).toBeGreaterThan(300)
-        },
-        { timeout: 5_000 }
-      )
+      // A preview closes while the map moves, too.
+      await settled(band)
       await userEvent.click(band)
       expect(await screen.findByText('Ticket sales: 4')).toBeVisible()
     }

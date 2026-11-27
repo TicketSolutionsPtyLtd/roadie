@@ -13,7 +13,10 @@ import {
   DataTableCollapse,
   DataTableIndent,
   DataTableRow,
-  cellAttributes
+  type GroupedRow,
+  cellAttributes,
+  groupedCellClass,
+  groupedRowProps
 } from './DataTableRow'
 import {
   type DataTableExpanded,
@@ -75,20 +78,16 @@ export function DataTableGroups({
   )
   const labelIndex = tableLabelIndex(columns)
   const last = entries.findLastIndex(({ collapsed }) => !collapsed)
-  // Closed groups keep their rows, collapsed, so they open and close like an
-  // Accordion. Collapsed rows are hidden from screen readers and the keyboard.
-  const rowProps = (collapsed: boolean, index: number) => ({
-    'data-collapsed': collapsed || undefined,
-    'data-last': index === last || undefined,
-    'aria-hidden': collapsed || undefined,
-    inert: collapsed || undefined
-  })
+  const instant = entries.length > MOTION_ROWS
   return (
-    <Table.Body
-      data-grouped=''
-      data-instant={entries.length > MOTION_ROWS || undefined}
-    >
+    <Table.Body>
       {entries.map(({ node, collapsed }, entryIndex) => {
+        const grouped: GroupedRow = {
+          depth: node.depth,
+          collapsed,
+          last: entryIndex === last,
+          instant
+        }
         if (node.kind === 'row')
           return (
             <DataTableRow
@@ -97,22 +96,25 @@ export function DataTableGroups({
               row={node.row}
               titleKey={titleKey}
               plain={plain}
-              depth={node.depth}
-              rowProps={rowProps(collapsed, entryIndex)}
+              grouped={grouped}
             />
           )
         const open = isOpen(node.key)
         return (
           <Table.Row
             key={node.key}
-            {...rowProps(collapsed, entryIndex)}
+            {...groupedRowProps(grouped)}
             data-slot='data-table-group'
             data-group=''
             className='is-interactive-within font-semibold text-strong'
           >
             {columns.map((column, index) => (
-              <Table.Cell key={column.key} {...cellAttributes(column)}>
-                <DataTableCollapse>
+              <Table.Cell
+                key={column.key}
+                {...cellAttributes(column)}
+                className={groupedCellClass(grouped)}
+              >
+                <DataTableCollapse grouped={grouped}>
                   {index === labelIndex ? (
                     <DataTableIndent depth={node.depth}>
                       <button

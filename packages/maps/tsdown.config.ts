@@ -1,20 +1,18 @@
 import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'tsdown'
 
+import { devOnlyPreset } from '../../scripts/dev-only.mjs'
 import {
   cacheTransforms,
   skipUnchangedWrites
 } from '../../scripts/tsdown-watch.mjs'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { shippedSources } from '../core/scripts/package-exports.mjs'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 // Unbundle mode is load-bearing for RSC safety, and keeps 'use client' per file
 // so its warning is noise. See packages/components/tsdown.config.ts.
 export default defineConfig(({ watch }) => ({
-  entry: [
-    'src/**/*.{ts,tsx}',
-    '!**/*.test.{ts,tsx}',
-    '!**/{testUtils,*TestUtils}.{ts,tsx}'
-  ],
+  entry: shippedSources(),
   unbundle: true,
   suppressWarnings: 'module level directive "use client"',
   format: ['esm'],
@@ -38,10 +36,12 @@ export default defineConfig(({ watch }) => ({
   outExtensions: () => ({ js: '.js' }),
   plugins: watch
     ? [
-        cacheTransforms(babel({ presets: [reactCompilerPreset] })),
+        cacheTransforms(
+          babel({ presets: [devOnlyPreset, reactCompilerPreset] })
+        ),
         skipUnchangedWrites()
       ]
-    : [babel({ presets: [reactCompilerPreset] })],
+    : [babel({ presets: [devOnlyPreset, reactCompilerPreset] })],
   deps: {
     neverBundle: [
       'react',

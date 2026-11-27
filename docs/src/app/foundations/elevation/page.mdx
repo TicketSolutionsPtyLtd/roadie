@@ -24,14 +24,14 @@ class.
 
 <ShadowScale />
 
-| Class        | Use for                                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------------------------ |
-| `shadow-xs`  | Micro-separation, such as badges and tags                                                                    |
-| `shadow-sm`  | Buttons and minor cards. Strong and normal buttons lift to it on hover.                                      |
-| `shadow-md`  | Standard raised surfaces: cards, panels, and sticky headers                                                  |
-| `shadow-lg`  | Hover states and featured content: a raised card on hover, and the Select, Combobox, and Autocomplete popups |
-| `shadow-xl`  | Floating UI: popovers, menus, dialogs, and drawers, through `emphasis-floating`                              |
-| `shadow-2xl` | The rare surface that has to sit over floating UI. No Roadie component uses it.                              |
+| Class        | Use for                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------- |
+| `shadow-xs`  | Micro-separation, such as badges and tags                                                   |
+| `shadow-sm`  | Buttons and minor cards. Strong and normal buttons lift to it on hover.                     |
+| `shadow-md`  | Standard raised surfaces: cards, panels, and sticky headers                                 |
+| `shadow-lg`  | Hover states and featured content, such as a raised card on hover                           |
+| `shadow-xl`  | Floating UI: popovers, menus, selects, dialogs, and drawers, through `emphasis-floating`    |
+| `shadow-2xl` | The rare surface that has to sit over floating UI. No Roadie component uses it.             |
 
 ## Inset shadows
 
@@ -152,7 +152,6 @@ too. Hover a card to see its larger shadow take the hue.
 
 To keep a shadow neutral inside another intent, add `intent-neutral` to the
 surface or a wrapper. That resets its fill and text to neutral as well.
-Browsers without `oklch()` show the untinted fallback shadow.
 
 ```tsx-live
 <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>

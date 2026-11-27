@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type SelectPositionerProps = SelectPrimitive.Positioner.Props &
   RefAttributes<HTMLDivElement>
@@ -16,7 +16,7 @@ export function SelectPositioner({
   return (
     <SelectPrimitive.Positioner
       data-slot='select-positioner'
-      className={cn('z-popover', className)}
+      className={mergeClassName('z-popover', className)}
       alignItemWithTrigger={false}
       {...props}
     />

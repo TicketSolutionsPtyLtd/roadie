@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Toast as ToastPrimitive } from '@base-ui/react/toast'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type ToastDescriptionProps = ToastPrimitive.Description.Props &
   RefAttributes<HTMLParagraphElement>
@@ -17,7 +17,7 @@ export function ToastDescription({
   return (
     <ToastPrimitive.Description
       data-slot='toast-description'
-      className={cn('text-sm text-pretty text-subtle', className)}
+      className={mergeClassName('text-sm text-pretty text-subtle', className)}
       {...props}
     />
   )

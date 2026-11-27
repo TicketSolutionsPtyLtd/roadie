@@ -2,6 +2,11 @@ import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Funnel } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
@@ -12,7 +17,6 @@ import {
   nudgeFrames,
   renderInCard
 } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 import { checkoutExample } from './examples'
 
 let removeStylesheet = () => {}

@@ -1,0 +1,16 @@
+{
+  "./alternating-rows": { "own": 3955, "full": 23773, "initial": 23773 },
+  "./call-to-action": { "own": 4398, "full": 111223, "initial": 27213 },
+  "./cards": { "own": 5804, "full": 112467, "initial": 35980 },
+  "./faq": { "own": 3438, "full": 22289, "initial": 22289 },
+  "./gallery": { "own": 5386, "full": 40016, "initial": 40016 },
+  "./hero": { "own": 6532, "full": 117006, "initial": 33707 },
+  "./mosaic": { "own": 4332, "full": 24078, "initial": 24078 },
+  "./provider": { "own": 265, "full": 265, "initial": 265 },
+  "./rich-text": { "own": 3933, "full": 108386, "initial": 24266 },
+  "./side-by-side": { "own": 4797, "full": 111676, "initial": 27692 },
+  "./stats": { "own": 3867, "full": 107198, "initial": 23163 },
+  "./testimonial": { "own": 4925, "full": 37835, "initial": 37835 },
+  "./catalogue": { "own": 2958, "full": 2958, "initial": 2958 },
+  "./catalogue/sections": { "own": 5562, "full": 17369, "initial": 17369 }
+}

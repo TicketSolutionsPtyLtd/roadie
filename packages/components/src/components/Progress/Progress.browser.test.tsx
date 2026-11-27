@@ -1,9 +1,14 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { commands } from 'vitest/browser'
+
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 
 import { Progress } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -88,5 +93,29 @@ describe('Progress keeps the value inside the row', () => {
       </div>
     )
     expect(rect(container, 'progress-value').right).toBeCloseTo(before, 0)
+  })
+})
+
+describe('Progress in forced colours', () => {
+  // Forced colours erase the track's fill, so a 1px outline draws it.
+  it('outlines the track', async (context) => {
+    const { container } = render(<Progress value={40} label='Uploading' />)
+    const track = container.querySelector('[data-slot=progress-track]')!
+    expect(getComputedStyle(track).outlineStyle).toBe('none')
+
+    await commands.forcedColors(true)
+    try {
+      if (!matchMedia('(forced-colors: active)').matches) {
+        context.skip()
+        return
+      }
+      const { outlineStyle, outlineWidth } = getComputedStyle(track)
+      expect({ outlineStyle, outlineWidth }).toEqual({
+        outlineStyle: 'solid',
+        outlineWidth: '1px'
+      })
+    } finally {
+      await commands.forcedColors(false)
+    }
   })
 })
