@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useVirtualGroup } from '../../utils/virtualList'
 
 export type ComboboxGroupProps = ComboboxPrimitive.Group.Props &
@@ -19,7 +18,10 @@ export function ComboboxGroup({
   return (
     <ComboboxPrimitive.Group
       data-slot='combobox-group'
-      className={cn('[&+&]:mt-1 data-[virtual-group=rest]:mt-1', className)}
+      className={mergeClassName(
+        '[&+&]:mt-1 data-[virtual-group=rest]:mt-1',
+        className
+      )}
       {...props}
       {...useVirtualGroup(ref)}
     />

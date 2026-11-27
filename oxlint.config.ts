@@ -322,8 +322,6 @@ export default defineConfig({
       ['packages/*/src/**/*.tsx'],
       { 'roadie/no-dropped-class-name-callback': 'error' },
       [
-        'Autocomplete',
-        'Combobox',
         'Dialog',
         'Drawer',
         'Menu',

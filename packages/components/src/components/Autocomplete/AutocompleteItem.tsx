@@ -4,9 +4,8 @@ import { type RefAttributes, use } from 'react'
 
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { keepTouchTap } from '../../utils/keepTouchTap'
+import { mergeClassName } from '../../utils/mergeClassName'
 import {
   PointerHighlightContext,
   optionHighlightClass
@@ -33,7 +32,10 @@ export function AutocompleteItem({
   return (
     <AutocompletePrimitive.Item
       data-slot='autocomplete-item'
-      className={cn(optionRowClass, optionHighlightClass(byPointer), className)}
+      className={mergeClassName(
+        [optionRowClass, optionHighlightClass(byPointer)],
+        className
+      )}
       {...keepTouchTap({
         onPointerDownCapture,
         onPointerMove,
