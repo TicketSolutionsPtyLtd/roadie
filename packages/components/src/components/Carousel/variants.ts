@@ -99,11 +99,15 @@ export const carouselItemVariants = cva(
   }
 )
 
+// `hidden` alone loses to a display class such as an app's own `flex`.
+export const carouselHiddenClass = 'data-hidden:hidden'
+
 export const carouselDotsVariants = cva('flex items-center justify-center', {
   variants: {
     direction: {
-      horizontal: 'flex-row gap-1.5',
-      vertical: 'flex-col gap-1.5'
+      // Each holds the dot row's cross size until the dots are counted.
+      horizontal: 'min-h-2 flex-row gap-1.5',
+      vertical: 'min-w-5 flex-col gap-1.5'
     }
   },
   defaultVariants: { direction: 'horizontal' }

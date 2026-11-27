@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
 
+import { foldBelow } from './NavigatorFoldedContext'
 import type { PrimaryEntry } from './collectSlots'
 import type { PrimaryCapsule } from './primaryCapacity'
 import { navigatorCapsuleClass } from './variants'
@@ -39,10 +40,11 @@ export function primaryCapsules(entries: PrimaryEntry[]): PrimaryCapsule[] {
   }))
 }
 
-/** Folded items drop out; a capsule left empty disappears. */
+/** Folded items drop out; a capsule left empty disappears. `at` marks them for CSS to fold. */
 export function wrapCapsules(
   entries: PrimaryEntry[],
-  folded: ReadonlySet<string>
+  folded: ReadonlySet<string>,
+  at: ReadonlyMap<string, number> | null = null
 ): ReactNode[] {
   return groupEntries(entries).flatMap((capsule) => {
     if (capsule.kind === 'group') {
@@ -60,10 +62,19 @@ export function wrapCapsules(
           <ul
             key={capsule.key}
             data-slot='navigator-capsule'
+            data-fold-below={foldBelow(
+              at,
+              items.map((item) => item.slot.value)
+            )}
             className={navigatorCapsuleClass}
           >
             {items.map((item) => (
-              <li key={item.slot.value}>{item.element}</li>
+              <li
+                key={item.slot.value}
+                data-fold-below={foldBelow(at, [item.slot.value])}
+              >
+                {item.element}
+              </li>
             ))}
           </ul>
         ]

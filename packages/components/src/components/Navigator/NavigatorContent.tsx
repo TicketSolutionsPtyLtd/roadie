@@ -15,6 +15,8 @@ import {
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { isDev } from '../../utils/isDev'
 import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
@@ -26,8 +28,7 @@ import {
   type PaneRegistration,
   PaneStackContext,
   type PaneStackContextValue,
-  isOverflowKind,
-  isSecondaryKind
+  isOverflowKind
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
 import { PANE_DEEP, PANE_MAX_DEPTH } from '../Pane/paneDepth'
@@ -47,38 +48,26 @@ import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 import { createHeaderClearance } from './headerClearance'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
-  type DepthEntry,
+  type DrawnPanes,
   type PaneEntry,
-  derivePositions,
-  deriveRootIndex,
+  type PlacedPane,
+  type RenderClaims,
   deriveTopIndex,
   orderByDocumentPosition,
-  provisionalDepth,
-  provisionalPosition,
-  resolveDepths
+  paneModel,
+  placePane,
+  servedClaims
 } from './paneStack'
 import { textOf } from './splitSecondary'
+import { coverWhileLeaving, uncover } from './tapCover'
 import { useTopPaneChrome } from './useTopPaneChrome'
-import { navigatorContentClass, navigatorPanesClass } from './variants'
+import {
+  navigatorContentClass,
+  navigatorPanesClass,
+  navigatorPanesPullBackClass
+} from './variants'
 
-type PlacedPane = { id: string } & PaneRegistration
 type RegisteredPane = PlacedPane & { node: HTMLElement }
-/** Where a pane rendered while hydrating: `written` is drawn, `rank` is what registration should resolve. */
-type RenderClaim = {
-  pane: PlacedPane
-  written: number | null
-  rank: number | null
-}
-
-const SECONDARY_ROOT: DepthEntry = {
-  column: 'list',
-  kind: 'generated-secondary'
-}
-const OPEN_MORE: DepthEntry = {
-  column: 'list',
-  kind: 'generated-overflow',
-  reached: true
-}
 
 // Long enough for the style change to land; a transition, once started, outlives it.
 function flagForTwoFrames(
@@ -127,67 +116,6 @@ function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
     if (next.node !== pane.node) swapped = true
   }
   return swapped
-}
-
-type Drawn = {
-  /** The active secondary has a list, drawn or displaced by More. */
-  rootList: boolean
-  rootListDrawn: boolean
-  secondaryPane: boolean
-  overflow: boolean
-  moreOpen: boolean
-}
-
-// What this render draws, not the snapshot, which learns of a pane a commit late.
-function depthsOf(panes: readonly PlacedPane[], draws: Drawn) {
-  const drawn = panes.filter((pane) => {
-    if (pane.kind === 'generated-secondary') return draws.secondaryPane
-    if (pane.kind === 'secondary') return draws.rootListDrawn
-    if (pane.kind === 'generated-overflow') return draws.overflow
-    return true
-  })
-  const rootPending =
-    draws.rootList && !drawn.some((pane) => isSecondaryKind(pane.kind))
-  const morePending =
-    draws.moreOpen && !drawn.some((pane) => isOverflowKind(pane.kind))
-  const held = [
-    ...(rootPending ? [SECONDARY_ROOT] : []),
-    ...(morePending ? [OPEN_MORE] : [])
-  ]
-  const resolved = resolveDepths([...held, ...drawn])
-  const shift = held.length
-  return new Map(
-    drawn.map((pane, index) => [pane.id, resolved[index + shift] ?? null])
-  )
-}
-
-// True when this row's ranks sit one shallower than the written scale.
-function liftOf(
-  panes: readonly PlacedPane[],
-  depths: ReadonlyMap<string, number | null>
-): boolean {
-  const first = panes.find((pane) => (depths.get(pane.id) ?? null) !== null)
-  return (
-    first !== undefined &&
-    depths.get(first.id) === 0 &&
-    (provisionalDepth(first) ?? 0) > 0
-  )
-}
-
-// A declared depth wins; a row opening on a detail is written from 1 so More can take 0.
-function renderOrderDepth(
-  panes: readonly PlacedPane[],
-  draws: Drawn
-): Omit<RenderClaim, 'pane'> {
-  const pane = panes.at(-1)
-  if (pane?.depth !== undefined) {
-    const written = provisionalDepth(pane)
-    return { written, rank: written }
-  }
-  const depths = depthsOf(panes, draws)
-  const rank = pane ? (depths.get(pane.id) ?? null) : null
-  const lift = liftOf(panes, depths)
-  return { written: rank === null ? null : rank + (lift ? 1 : 0), rank }
 }
 
 /** Arranges panes and decides which is the top of the stack. */
@@ -246,20 +174,8 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
 
   // The Map serves effects, which run before the snapshot re-renders.
   const panes = useRef(new Map<string, RegisteredPane>())
-  // Fizz and hydration both walk the row in document order; keyed by `useId` so StrictMode claims once.
-  const claims = useRef(new Map<string, RenderClaim>())
-  const claimRenderedDepth = useCallback(
-    (id: string, entry: PaneRegistration, draws: Drawn) => {
-      const claimed = claims.current.get(id)
-      if (claimed) return claimed.written
-      const before = Array.from(claims.current.values(), ({ pane }) => pane)
-      const pane = { id, ...entry }
-      const claim = { pane, ...renderOrderDepth([...before, pane], draws) }
-      claims.current.set(id, claim)
-      return claim.written
-    },
-    []
-  )
+  // Keyed by `useId`, so StrictMode claims once.
+  const [claims] = useState<RenderClaims>(() => new Map())
   const [registered, setRegistered] = useState<readonly RegisteredPane[]>([])
 
   const register = useCallback(
@@ -309,7 +225,7 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
   const rootListDrawn = rootList && !moreOpen
   const showsSecondaryPane = rootListDrawn && !overridden
 
-  const draws = useMemo<Drawn>(
+  const draws = useMemo<DrawnPanes>(
     () => ({
       rootList,
       rootListDrawn,
@@ -319,7 +235,6 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     }),
     [rootList, rootListDrawn, showsSecondaryPane, generatesOverflow, moreOpen]
   )
-  const depths = useMemo(() => depthsOf(ordered, draws), [ordered, draws])
 
   const onDestinationRoute =
     activeSecondary !== null && isActiveValue(activeSecondary.value, value)
@@ -332,24 +247,12 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
         ? 'root'
         : 'child'
       : null
-  // Open More is the root and the top; closed, it is never reached.
   const revealRoot = revealing || moreOpen
-  const stack = useMemo(
-    () =>
-      ordered.map((pane) => ({
-        ...pane,
-        rank: isOverflowKind(pane.kind)
-          ? pane.reached
-            ? -1
-            : Infinity
-          : (depths.get(pane.id) ?? provisionalDepth(pane) ?? Infinity)
-      })),
-    [ordered, depths]
+  const model = useMemo(
+    () => paneModel(ordered, draws, revealRoot),
+    [ordered, draws, revealRoot]
   )
-  const positions = useMemo(
-    () => derivePositions(stack, revealRoot),
-    [stack, revealRoot]
-  )
+  const { stack, positions } = model
   useInsertionEffect(() => markPushing(), [markPushing, revealing])
 
   // After every markPushing, so it cancels this commit's push. moreOpen, not overflowOpen: a resize can toggle More.
@@ -377,10 +280,20 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     const row = rowRef.current
     if (!row) return
     const was = shape.current
+    const wasTop = topNode.current
     shape.current = shapeOf(row, level)
     topNode.current =
       shape.current[deriveTopIndex(shape.current, revealRoot)]?.node ?? null
     if (isSiblingSwap(was, shape.current)) cut()
+    if (wasTop !== topNode.current) {
+      uncover(topNode.current)
+      if (
+        wasTop instanceof HTMLElement &&
+        wasTop.isConnected &&
+        row.hasAttribute('data-pushing')
+      )
+        coverWhileLeaving(wasTop)
+    }
     // The only arrival signal where the engine lacks the Navigation API.
     if (!sameNodes(was, shape.current)) arrived.current = true
   })
@@ -395,7 +308,6 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
 
   const topIndex = positions.indexOf('top')
   const topId = topIndex === -1 ? null : (stack[topIndex]?.id ?? null)
-  const rootIndex = useMemo(() => deriveRootIndex(stack), [stack])
 
   const topChrome = useTopPaneChrome()
   const secondaryBack = useMemo(() => {
@@ -413,56 +325,18 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
   }, [listPaneShows, moreOpen, activeSecondary, topChrome])
 
   // Only the stable `register`/`unregister` change the stack, so these deps can't loop.
+  const placement = useMemo(
+    () => ({
+      ...model,
+      chrome: { top: topChrome, none: PANE_CHROME_NONE, back: secondaryBack },
+      claims
+    }),
+    [model, topChrome, secondaryBack, claims]
+  )
   const placeOf = useCallback(
-    (id: string, entry: PaneRegistration, hydrating = false) => {
-      const index = stack.findIndex((pane) => pane.id === id)
-      const position =
-        index === -1
-          ? provisionalPosition(entry, revealRoot)
-          : // The snapshot learns of a `reached` flip a commit late; the pane knows now.
-            stack[index]?.reached === entry.reached
-            ? (positions[index] ?? null)
-            : (derivePositions(
-                stack.map((pane, at) =>
-                  at === index ? { ...pane, reached: entry.reached } : pane
-                ),
-                revealRoot
-              )[index] ?? null)
-      const resolved = depths.get(id)
-      const registered = resolved !== undefined
-      const depth = registered
-        ? resolved
-        : hydrating
-          ? claimRenderedDepth(id, entry, draws)
-          : provisionalDepth(entry)
-      const top = position === 'top'
-      const chrome =
-        secondaryBack === null || position === 'ahead' || depth !== 1
-          ? top
-            ? topChrome
-            : PANE_CHROME_NONE
-          : top
-            ? secondaryBack.top
-            : secondaryBack.below
-      return {
-        position,
-        depth,
-        chrome,
-        isRoot: index !== -1 && index === rootIndex,
-        registered
-      }
-    },
-    [
-      stack,
-      positions,
-      revealRoot,
-      depths,
-      draws,
-      claimRenderedDepth,
-      topChrome,
-      secondaryBack,
-      rootIndex
-    ]
+    (id: string, entry: PaneRegistration, hydrating = false) =>
+      placePane(placement, id, entry, hydrating),
+    [placement]
   )
 
   const [inspectorHandle] = useState(() => DrawerPrimitive.createHandle())
@@ -526,23 +400,16 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
   useEffect(() => {
     if (!isDev()) return
     const live = orderByDocumentPosition(Array.from(panes.current.values()))
-    const resolved = depthsOf(live, draws)
-    const lift = liftOf(live, resolved)
-    for (const pane of live) {
-      const claim = claims.current.get(pane.id)
-      if (!claim || checked.current.has(pane.id)) continue
-      checked.current.add(pane.id)
-      const rank = resolved.get(pane.id) ?? null
-      if (rank === null || claim.written === null || claim.rank === rank) {
-        continue
-      }
-      const written = rank + (lift ? 1 : 0)
-      const message = `[Roadie] A Pane was server-rendered at depth ${claim.written} but sits at ${written}. Render panes in document order or declare depth={${written}}.`
+    for (const { id, served, sits } of servedClaims(live, draws, claims)) {
+      if (checked.current.has(id)) continue
+      checked.current.add(id)
+      if (sits === null) continue
+      const message = `[Roadie] A Pane was server-rendered at depth ${served} but sits at ${sits}. Render panes in document order or declare depth={${sits}}.`
       if (warned.current.has(message)) continue
       warned.current.add(message)
       console.warn(message)
     }
-  }, [registered, draws])
+  }, [registered, draws, claims])
 
   const topTabBar = stack.find((pane) => pane.id === topId)?.tabBar ?? 'auto'
   useEffect(() => {
@@ -585,7 +452,10 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
               data-level={level}
               data-reveal={revealRoot ? '' : undefined}
               data-overflow={moreOpen ? '' : undefined}
-              className={navigatorPanesClass}
+              className={cn(
+                navigatorPanesClass,
+                level === 0 && navigatorPanesPullBackClass
+              )}
             >
               {secondaryPane}
               {children}

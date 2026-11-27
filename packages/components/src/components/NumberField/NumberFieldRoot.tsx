@@ -4,8 +4,7 @@ import { type RefAttributes, useState } from 'react'
 
 import { NumberField as NumberFieldPrimitive } from '@base-ui/react/number-field'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { NumberFieldContext } from './NumberFieldContext'
 import { NumberFieldDecrement } from './NumberFieldDecrement'
@@ -109,7 +108,7 @@ export function NumberFieldRoot({
     >
       <NumberFieldPrimitive.Root
         data-slot='number-field'
-        className={cn('grid w-fit gap-1.5', className)}
+        className={mergeClassName('grid w-fit gap-1.5', className)}
         id={id ?? (fieldContext.fieldId || undefined)}
         required={required ?? fieldContext.required}
         disabled={disabled ?? fieldContext.disabled}

@@ -28,9 +28,9 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   pushed, unlock the worktree if no session is using it, then
   `git worktree remove <path>`; the branch stays.
 
-  Delete every helper branch you make (a rebase, review or screenshots
-  branch) once it has done its job: `git branch -D <branch>`. A pushed
-  screenshots branch stays on GitHub, where the PR's images point.
+  Delete every helper branch you make (a rebase or review branch) once it
+  has done its job: `git branch -D <branch>`. Screenshots need no local
+  branch (section 7).
 
   Every subagent brief says to remove its own scratch files and never leave
   a background server running. Delete only files you created, by exact path.
@@ -77,11 +77,36 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   selector resizing a nested icon), fix the scope, not the symptom.
 - **Wire new public subpaths everywhere they ship from:** an `exports`
   entry in `package.json`; for JavaScript, a `tsdown.config.ts` entry unless
-  a wildcard already covers it (components does) and a Size Limit budget
-  (`.size-limit.json`, or the `size-limit` field in `package.json` for core
-  and widgets). Set a new budget, or raise one, to about 10% above what you
-  measure, never just above it, or the next small change crosses it again.
-  New `@utility` classes also go in `src/css/safelist.html`.
+  a wildcard already covers it (components does) and a size budget.
+  Components, charts, and blocks write `exports` from their source folders
+  (`pnpm --filter <package> generate:exports`, which `build` runs, through
+  core's `scripts/generate-exports.mjs`), so a new folder gets its subpath
+  there; core, editor, widgets, and illustrations list `exports` by hand.
+  Each package keeps a generated table, `size-budget.json`, of each JS
+  subpath's brotli bytes: its own code (`own`), with its dependencies
+  (`full`), and without what only an `import()` reaches (`initial`). `size`
+  allows 3% or 300 B of growth, whichever is larger. For a new subpath, or
+  growth you meant, build, run `pnpm --filter <package> size:update`, and
+  commit the file. After taking `main`, build and run the update again;
+  never merge the table by hand. A row named like `"./spot { Heart }"`
+  measures that named import alone, so a barrel that stops tree shaking
+  fails; to add one, put the row in with `{}` and run `size:update`. The
+  update can't recreate a named row, so keep both sides' named rows when
+  `main` conflicts with the table.
+  A new `@utility` goes in `src/css/safelist.html`, or, when it joins a
+  `cn()` family, into the generated `safelist.families.html` through
+  `test -u`, as `AGENTS.md` says.
+  CSS has hand-set Size Limit budgets in the `size-limit` field of a
+  `package.json`: core's (`roadie.compiled.css`, brotli and raw, and what importing
+  `@oztix/roadie-core/css` costs an app before Tailwind scans a source file),
+  and the components, charts, and editor sheets: their own rules
+  (`scripts/css-rules.css`), and core's floor with those rules and the
+  utilities their `@source` finds in `dist` (`scripts/css-scanned.css`).
+  Set one, or raise one, to about 10% above what you measure, never just
+  above it, or the next small change crosses it again. After changing a
+  package's CSS, build it and run `pnpm --filter <package> size`, which reads
+  `dist`. The scanned budgets include core's floor, so after core's CSS grows,
+  run `size` in components, charts, and editor too.
 - **Changing Turbo config?** Read the installed turbo's `docs/README.md`
   first; the installed version may differ from what you know.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
@@ -173,8 +198,8 @@ Every PR is checked against these before review. Fix every real hit.
   a docs page, a docs component, or a package's exports or CSS. When a
   change touches a package's `exports`, `files`, or types, also run
   `pnpm turbo check:package --filter='./packages/*'` (attw, `check:dts`,
-  the Node ESM import check, and the tarball guard), which `build`
-  doesn't run.
+  the Server Component import check, the Node ESM import check, and the
+  tarball guard), which `build` doesn't run.
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
 - **Docs e2e tests** (`docs/e2e/`) drive the static export in `docs/out`
   with Playwright, so build the docs first, with the base path CI uses, and
@@ -263,14 +288,18 @@ the PR only when the review is clean.
   so names are fine there. Leave merged history alone.
 - **Evidence renders inline on GitHub**, because the maintainer reviews on a
   phone. Take viewport-only screenshots, with no browser chrome, address bar,
-  or local URL. Push them to an orphan branch named
-  `<prefix>/<topic>-screenshots` that holds only the images (the pre-push
-  hook skips a branch with no history in common with `main`), and embed them
-  in the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
-  Never link local files, gists, or artifacts. For baselines CI renders, link
-  the run and embed a few representative images.
+  or local URL. Once the PR exists, `pnpm screenshots <pr> <images…>`
+  uploads them to `pr-<pr>/` on the repo's `screenshots` branch through the
+  GitHub API and prints the markdown to paste under Evidence. It makes no
+  local commit, so no hook runs and `--no-verify` never comes up; a retake
+  under the same file name replaces the image in the PR. In a checkout with
+  several remotes and no `gh repo set-default`, add `--repo owner/name`.
+  Never link local files, gists, or artifacts, and never push your own
+  screenshots branch.
+  For baselines CI renders, link the run and embed a few representative
+  images.
 - **Open it as a draft** (`gh pr create --draft`). CI on a draft runs only
-  the `check` job: lint, typecheck, formatting, the component docs and PR
+  the `check` job: lint, typecheck, formatting, the docs content and PR
   size checks, and the affected unit tests. No build or browser tests.
 - **Mark it ready once local checks pass**: `pnpm test:gated` on the touched
   packages, lint, typecheck, and the docs build if docs changed, with the

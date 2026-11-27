@@ -130,9 +130,8 @@ describe('Checkbox', () => {
           <Field.ErrorText>Accept the terms to continue</Field.ErrorText>
         </Field>
       )
-      expect(getByRole('checkbox')).toHaveAttribute(
-        'aria-describedby',
-        getByText('Accept the terms to continue').id
+      expect(getByRole('checkbox')).toHaveAccessibleDescription(
+        getByText('Accept the terms to continue').textContent!
       )
     })
 
@@ -173,7 +172,7 @@ describe('Field text description', () => {
     expect(getByRole('checkbox')).toHaveAccessibleDescription('Helper')
   })
 
-  it('points at the error text when the Field is invalid', () => {
+  it('adds the error text to the helper text when the Field is invalid', () => {
     const { getByRole } = render(
       <Field invalid>
         <Field.Label>Accept terms</Field.Label>
@@ -182,7 +181,7 @@ describe('Field text description', () => {
         <Field.ErrorText>Error</Field.ErrorText>
       </Field>
     )
-    expect(getByRole('checkbox')).toHaveAccessibleDescription('Error')
+    expect(getByRole('checkbox')).toHaveAccessibleDescription('Helper Error')
   })
 
   it('leaves trailing out of its name', () => {

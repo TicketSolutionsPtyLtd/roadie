@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { ScrollArea as ScrollAreaPrimitive } from '@base-ui/react/scroll-area'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { type ScrollAreaFade, scrollAreaViewportVariants } from './variants'
 
 export type ScrollAreaViewportProps = ScrollAreaPrimitive.Viewport.Props &
@@ -23,7 +22,10 @@ export function ScrollAreaViewport({
   return (
     <ScrollAreaPrimitive.Viewport
       data-slot='scroll-area-viewport'
-      className={cn(scrollAreaViewportVariants({ fade, className }))}
+      className={mergeClassName(
+        scrollAreaViewportVariants({ fade }),
+        className
+      )}
       {...props}
     />
   )

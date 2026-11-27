@@ -2,10 +2,15 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import {
+  STILL,
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { ToggleGroup, type ToggleGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Toggle } from '../Toggle'
 
 let removeStylesheet = () => {}
@@ -496,9 +501,7 @@ function look(element: Element) {
 describe('a tap on a touch screen', () => {
   let removeStill = () => {}
   beforeAll(() => {
-    removeStill = useStylesheet(
-      '*, *::before, *::after { transition: none !important }'
-    )
+    removeStill = useStylesheet(STILL)
   })
   afterAll(() => removeStill())
 

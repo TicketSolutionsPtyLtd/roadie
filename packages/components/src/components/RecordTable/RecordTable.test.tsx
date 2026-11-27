@@ -4,8 +4,13 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { RecordTable, tableColumns, tableLayout } from '.'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { Records } from '../Records'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 
 const column = tableColumns<TestShow>(showFields)
 const showColumns = [
@@ -17,11 +22,12 @@ const showColumns = [
 const layouts = [tableLayout(showColumns)]
 
 function Table({ count = 12 }: { count?: number }) {
-  const records = useRecords({ data: testShows(count), fields: showFields })
   return (
-    <Records.Root records={records} layouts={layouts} caption='Upcoming shows'>
-      <Records.Content />
-    </Records.Root>
+    <ShowRecords
+      data={testShows(count)}
+      layouts={layouts}
+      caption='Upcoming shows'
+    />
   )
 }
 
@@ -60,13 +66,9 @@ describe('RecordTable content', () => {
 
   it('styles the title cell, so a custom cell inherits it and empty stays muted', () => {
     function Titled() {
-      const records = useRecords({
-        data: [{ ...testShows(1)[0]!, show: '' }, testShows(2)[1]!],
-        fields: showFields
-      })
       return (
-        <Records.Root
-          records={records}
+        <ShowRecords
+          data={[{ ...testShows(1)[0]!, show: '' }, testShows(2)[1]!]}
           layouts={[
             tableLayout([
               column.field('show', {
@@ -76,9 +78,7 @@ describe('RecordTable content', () => {
               column.field('city', { pin: true })
             ])
           ]}
-        >
-          <Records.Content />
-        </Records.Root>
+        />
       )
     }
     render(<Titled />)
@@ -89,14 +89,11 @@ describe('RecordTable content', () => {
 
   it('mutes an empty title', () => {
     function EmptyTitle() {
-      const records = useRecords({
-        data: [{ ...testShows(1)[0]!, show: '' }],
-        fields: showFields
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
+        <ShowRecords
+          data={[{ ...testShows(1)[0]!, show: '' }]}
+          layouts={layouts}
+        />
       )
     }
     render(<EmptyTitle />)
@@ -172,15 +169,13 @@ describe('RecordTable content', () => {
       field.key === 'city' ? { ...field, sortable: false } : field
     )
     function Unsorted() {
-      const records = useRecords({ data: testShows(3), fields })
       const columns = tableColumns<TestShow>(fields)
       return (
-        <Records.Root
-          records={records}
+        <ShowRecords
+          data={testShows(3)}
+          fields={fields}
           layouts={[tableLayout([columns.field('city')])]}
-        >
-          <Records.Content />
-        </Records.Root>
+        />
       )
     }
     render(<Unsorted />)
@@ -211,20 +206,17 @@ describe('RecordTable content', () => {
 
   it('shows and orders columns by the view', () => {
     function Viewed() {
-      const records = useRecords({
-        data: testShows(3),
-        fields: showFields,
-        defaultView: {
-          layout: {
-            type: 'table',
-            columns: { order: ['gross'], hidden: ['city'] }
-          }
-        }
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
+        <ShowRecords
+          data={testShows(3)}
+          defaultView={{
+            layout: {
+              type: 'table',
+              columns: { order: ['gross'], hidden: ['city'] }
+            }
+          }}
+          layouts={layouts}
+        />
       )
     }
     render(<Viewed />)
@@ -235,10 +227,9 @@ describe('RecordTable content', () => {
 
   it('renders a custom cell', () => {
     function Custom() {
-      const records = useRecords({ data: testShows(2), fields: showFields })
       return (
-        <Records.Root
-          records={records}
+        <ShowRecords
+          data={testShows(2)}
           layouts={[
             tableLayout([
               column.field('show', {
@@ -246,9 +237,7 @@ describe('RecordTable content', () => {
               })
             ])
           ]}
-        >
-          <Records.Content />
-        </Records.Root>
+        />
       )
     }
     render(<Custom />)
@@ -299,11 +288,10 @@ describe('RecordTable content', () => {
 
   it('names its own scroll box as the region in a box', () => {
     function Boxed() {
-      const records = useRecords({ data: testShows(3), fields: showFields })
       return (
-        <Records.Root records={records} layouts={layouts} caption='Shows'>
+        <ShowRecords data={testShows(3)} layouts={layouts} caption='Shows'>
           <Records.Content maxHeight='20rem' />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Boxed />)
@@ -440,12 +428,11 @@ describe('RecordTable preset', () => {
 describe('Records composition', () => {
   it('lets search live elsewhere', async () => {
     function Composed() {
-      const records = useRecords({ data: testShows(120), fields: showFields })
       return (
-        <Records.Root records={records} layouts={layouts}>
+        <ShowRecords data={testShows(120)} layouts={layouts}>
           <Records.Content />
           <Records.Search />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Composed />)
@@ -468,12 +455,12 @@ describe('Records composition', () => {
 
   it('shares the records across a layout without adding an element', () => {
     function Composed() {
-      const records = useRecords({ data: testShows(120), fields: showFields })
       return (
-        <Records.Provider
-          records={records}
+        <ShowRecords
+          data={testShows(120)}
           layouts={layouts}
           caption='Upcoming shows'
+          bare
         >
           <header data-testid='header'>
             <Records.Search />
@@ -484,7 +471,7 @@ describe('Records composition', () => {
           <footer data-testid='footer'>
             <Records.Pagination />
           </footer>
-        </Records.Provider>
+        </ShowRecords>
       )
     }
     const { container } = render(<Composed />)
@@ -499,11 +486,10 @@ describe('Records composition', () => {
 
   it('keeps rows per page quiet beside the subtler page buttons', () => {
     function Paged() {
-      const records = useRecords({ data: testShows(120), fields: showFields })
       return (
-        <Records.Provider records={records} layouts={layouts}>
+        <ShowRecords data={testShows(120)} layouts={layouts} bare>
           <Records.Pagination />
-        </Records.Provider>
+        </ShowRecords>
       )
     }
     render(<Paged />)
@@ -517,12 +503,7 @@ describe('Records composition', () => {
 
   it('shows nothing, and says why in development, with no layout', () => {
     function Bare() {
-      const records = useRecords({ data: testShows(3), fields: showFields })
-      return (
-        <Records.Root records={records} layouts={[]}>
-          <Records.Content />
-        </Records.Root>
-      )
+      return <ShowRecords data={testShows(3)} layouts={[]} />
     }
     const { container } = render(<Bare />)
     expect(container.querySelector('[role="table"]')).toBeNull()

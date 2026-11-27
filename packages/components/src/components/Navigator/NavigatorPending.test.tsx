@@ -9,6 +9,10 @@ import { Pane } from '../Pane'
 import { Skeleton } from '../Skeleton'
 import { StubLink, flushViewportMeasurement, testBrand } from './testUtils'
 import { PENDING_ARM, PENDING_FADE, PENDING_MINIMUM } from './useFramePending'
+import {
+  navigatorNestedRootClass,
+  navigatorPanesPullBackClass
+} from './variants'
 
 const glow = () => document.querySelector('[data-slot="navigator-pending"]')
 const frame = () => document.querySelector('[data-slot="navigator"]')!
@@ -181,6 +185,36 @@ describe('the frame while a navigation is pending', () => {
     await clickBeta()
     await tick(PENDING_ARM + 500)
     expect(glow()).toBeNull()
+  })
+
+  // The browser test proves what these classes do; this, which frame gets them.
+  it('rounds and pulls back the outermost frame alone', async () => {
+    await renderShell(
+      <Shell>
+        <Pane column='list' depth={0}>
+          List
+        </Pane>
+        <Pane depth={1}>
+          <Navigator value='/inner'>
+            <Pane column='list' depth={0}>
+              Inner
+            </Pane>
+          </Navigator>
+        </Pane>
+      </Shell>
+    )
+    const [outer, inner] = document.querySelectorAll<HTMLElement>(
+      '[data-slot="navigator"]'
+    )
+    const [outerPanes, innerPanes] = document.querySelectorAll<HTMLElement>(
+      '[data-slot="navigator-panes"]'
+    )
+    const has = (element: HTMLElement | undefined, classes: string) =>
+      classes.split(' ').every((name) => element?.classList.contains(name))
+    expect(has(outer, navigatorNestedRootClass)).toBe(false)
+    expect(has(inner, navigatorNestedRootClass)).toBe(true)
+    expect(has(outerPanes, navigatorPanesPullBackClass)).toBe(true)
+    expect(has(innerPanes, navigatorPanesPullBackClass)).toBe(false)
   })
 })
 

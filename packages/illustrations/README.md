@@ -34,6 +34,13 @@ For a picker or search, `@oztix/roadie-illustrations/spot/catalogue` exports
 `SPOT_ILLUSTRATIONS`: each illustration's component name, file name, label,
 and tags.
 
+When content names the illustration, such as a CMS field, load it by name with
+`@oztix/roadie-illustrations/spot/load`, so a browser fetches only that one.
+`isSpotIllustrationName` checks a saved name, `loadSpotIllustration(name)`
+resolves to its component, and `loadedSpotIllustration(name)` returns it once
+it has loaded. On a server (the `node`, `workerd`, and `edge-light` conditions), every
+illustration is already loaded, so a server render never waits.
+
 ### The format
 
 A spot illustration is a 48 by 48 drawing made of named layers. Each layer
@@ -92,9 +99,10 @@ check nothing moved. Last, it regenerates the components.
 Edited a source by hand? Run `pnpm --filter @oztix/roadie-illustrations
 spot:generate`. It checks every source against the format, and `tags.json`
 against the sources, and fails with what to fix, then writes
-`src/spot/illustrations/` and `src/spot/index.ts`. Don't edit those generated
-files; the tests fail if they drift from the sources. It also warns, without
-failing, about any source that strays from the style below.
+`src/spot/illustrations/`, `src/spot/index.ts`, and `src/spot/loaders.ts`.
+Don't edit those generated files; the tests fail if they drift from the
+sources. It also warns, without failing, about any source that strays from the
+style below.
 
 ### Drawing one in code
 

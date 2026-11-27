@@ -1,11 +1,13 @@
 import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'tsdown'
 
+import { devOnlyPreset } from '../../scripts/dev-only.mjs'
 import {
   cacheTransforms,
   skipUnchangedWrites
 } from '../../scripts/tsdown-watch.mjs'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { shippedSources } from '../core/scripts/package-exports.mjs'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 // Unbundle mode: every source file under `src/` emits as its own output
 // file, preserving the source directory structure 1:1. This is load-bearing
@@ -32,16 +34,7 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 // Verify after build with:
 //   head -c 13 dist/components/Fieldset/FieldsetRoot.js   # → "use client";
 export default defineConfig(({ watch }) => ({
-  // paneColumns is the model the browser tests measure the stylesheet against,
-  // and renderCounter replaces React's DevTools hook for the perf tests, so
-  // neither is shipped.
-  entry: [
-    'src/**/*.{ts,tsx}',
-    '!**/*.test.{ts,tsx}',
-    '!**/{testUtils,*TestUtils}.{ts,tsx}',
-    '!**/paneColumns.ts',
-    '!**/renderCounter.ts'
-  ],
+  entry: shippedSources(),
   unbundle: true,
   suppressWarnings: 'module level directive "use client"',
   format: ['esm'],
@@ -65,10 +58,12 @@ export default defineConfig(({ watch }) => ({
   outExtensions: () => ({ js: '.js' }),
   plugins: watch
     ? [
-        cacheTransforms(babel({ presets: [reactCompilerPreset] })),
+        cacheTransforms(
+          babel({ presets: [devOnlyPreset, reactCompilerPreset] })
+        ),
         skipUnchangedWrites()
       ]
-    : [babel({ presets: [reactCompilerPreset] })],
+    : [babel({ presets: [devOnlyPreset, reactCompilerPreset] })],
   // Pragmatic drag and drop ships folder subpaths and extensionless imports
   // with no `exports` map, which Node's ESM loader rejects, so it's bundled.
   // Its folders point at the ESM build through `module`, which the neutral

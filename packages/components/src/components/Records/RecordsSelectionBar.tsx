@@ -119,7 +119,9 @@ export function RecordsSelectionBar({
         // A portalled menu's keys bubble here through React; its Escape is its own.
         if (!event.currentTarget.contains(event.target as Node)) return
         event.preventDefault()
-        clearSelection()
+        // In Select mode, as a re-flowed table's bar is, Escape leaves it, as the floating bar's does.
+        if (records.selecting) records.setSelecting(false)
+        else clearSelection()
       }}
       className='relative flex h-full min-w-0 flex-1 items-center gap-2 pe-2 text-sm font-normal'
     >

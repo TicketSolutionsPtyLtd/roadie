@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback } from 'react'
+import { type ReactNode, type RefObject, memo, useCallback } from 'react'
 
 import {
   VIRTUALISE_AFTER,
@@ -11,9 +11,13 @@ import { useRangeWindow, useRowWindow } from '../Records/rowWindow'
 import type { RecordsRangeState, RecordsRow } from '../Records/types'
 import { RecordTableRangeError } from './RecordTableRangeError'
 import { RecordTableRow } from './RecordTableRow'
+import { RowIndexContext } from './RecordTableRowPlace'
 import { RecordTableSkeletonRow } from './RecordTableStates'
 import type { ColumnLayout } from './layout'
 import type { RecordTableColumn } from './types'
+
+// The row height the table sets in CSS, read once per resize.
+const ROW_HEIGHT_VAR = '--record-table-row-height'
 
 export type RowsShared = {
   columns: readonly RecordTableColumn[]
@@ -41,31 +45,41 @@ export type RecordTableRowsProps = RowsShared & {
   onRow?: (row: number) => void
 }
 
-function Row({
-  shared,
-  row,
-  rowIndex
-}: {
+type RowProps = {
   shared: RowsShared
   row: RecordsRow<object>
   rowIndex?: number
-}) {
-  return (
-    <RecordTableRow
-      id={row.id}
-      record={row.row}
-      columns={shared.columns}
-      layout={shared.layout}
-      title={shared.title}
-      timeZone={shared.timeZone}
-      selected={shared.isSelected?.(row.id)}
-      onToggle={shared.onToggle}
-      rowActions={shared.rowActions}
-      href={shared.getRowHref?.(row.row)}
-      rowIndex={rowIndex}
-    />
-  )
 }
+
+// `isSelected` is new with each selection, so it compares by this row's answer:
+// a tick renders the row it ticks, not every row.
+const sameRow = (prev: RowProps, next: RowProps) =>
+  prev.row === next.row &&
+  prev.rowIndex === next.rowIndex &&
+  prev.shared.isSelected?.(prev.row.id) ===
+    next.shared.isSelected?.(next.row.id) &&
+  (Object.keys(next.shared) as (keyof RowsShared)[]).every(
+    (key) => key === 'isSelected' || prev.shared[key] === next.shared[key]
+  )
+
+export const Row = memo(function Row({ shared, row, rowIndex }: RowProps) {
+  return (
+    <RowIndexContext value={rowIndex}>
+      <RecordTableRow
+        id={row.id}
+        record={row.row}
+        columns={shared.columns}
+        layout={shared.layout}
+        title={shared.title}
+        timeZone={shared.timeZone}
+        selected={shared.isSelected?.(row.id)}
+        onToggle={shared.onToggle}
+        rowActions={shared.rowActions}
+        href={shared.getRowHref?.(row.row)}
+      />
+    </RowIndexContext>
+  )
+}, sameRow)
 
 export function RecordTableRows({
   rows,
@@ -113,7 +127,9 @@ function VirtualRows({
   const getItemKey = useCallback((index: number) => rows[index]!.id, [rows])
   const { bodyRef, view } = useRowWindow({
     count: rows.length,
-    getItemKey
+    getItemKey,
+    heightVar: ROW_HEIGHT_VAR,
+    heightKey: shared.layout.twoLines
   })
   const { cells, padding } = recordsWindow(view, { rows })
   return (
@@ -146,7 +162,9 @@ function RangeRows({
   const { bodyRef, view } = useRangeWindow({
     range,
     row,
-    onRow
+    onRow,
+    heightVar: ROW_HEIGHT_VAR,
+    heightKey: shared.layout.twoLines
   })
   const { cells, padding } = recordsWindow(view, { range })
   return (

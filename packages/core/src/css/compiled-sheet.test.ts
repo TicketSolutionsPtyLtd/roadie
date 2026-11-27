@@ -1,0 +1,119 @@
+import { execSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { delimiter, join, resolve } from 'node:path'
+import { beforeAll, describe, expect, it } from 'vitest'
+
+const packageRoot = resolve(import.meta.dirname, '../..')
+const OUTPUT = 'dist/roadie.compiled.css'
+
+// Classes Roadie's own rules select on. They aren't utilities, so the
+// safelist doesn't name them.
+const OWN_SELECTORS = [
+  'dark',
+  'is-active',
+  'is-disclosure-animated',
+  'not-prose',
+  'prose',
+  'prose-bleed',
+  'prose-scroll'
+]
+
+// Runs the package's own `build:css`, so the test reads what ships, but
+// writes the sheet to a temp folder and leaves `dist` alone.
+const buildCompiledSheet = () => {
+  const { scripts } = JSON.parse(
+    readFileSync(join(packageRoot, 'package.json'), 'utf8')
+  ) as { scripts: Record<string, string> }
+  const script = scripts['build:css'] ?? ''
+  if (!script.includes(OUTPUT))
+    throw new Error(`build:css no longer writes ${OUTPUT}`)
+  const folder = mkdtempSync(join(tmpdir(), 'roadie-compiled-'))
+  const sheet = join(folder, 'sheet')
+  try {
+    execSync(script.replace(OUTPUT, `"${sheet}"`), {
+      cwd: packageRoot,
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        PATH: `${join(packageRoot, 'node_modules/.bin')}${delimiter}${process.env.PATH}`
+      }
+    })
+    return readFileSync(sheet, 'utf8')
+  } finally {
+    rmSync(folder, { recursive: true, force: true })
+  }
+}
+
+const classesIn = (css: string) => {
+  const classes = new Set<string>()
+  const selectors = css
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .matchAll(/(?:^|[{};])\s*([^{};@][^{};]*)\{/g)
+  for (const [, selector = ''] of selectors)
+    for (const [, name = ''] of selector.matchAll(/\.((?:\\.|[\w-])+)/g))
+      if (/^-?[_a-zA-Z\\]/.test(name)) classes.add(name.replace(/\\(.)/g, '$1'))
+  return [...classes]
+}
+
+describe('roadie.compiled.css', () => {
+  let sheet = ''
+  beforeAll(() => {
+    sheet = buildCompiledSheet()
+  }, 30_000)
+
+  it('holds Roadie utilities and no class the safelists leave out', () => {
+    const safelist = ['safelist.html', 'safelist.families.html']
+      .map((file) => readFileSync(join(import.meta.dirname, file), 'utf8'))
+      .join('\n')
+    const safelisted = new Set(
+      [...safelist.matchAll(/class="([^"]*)"/g)].flatMap(([, names = '']) =>
+        names.trim().split(/\s+/).filter(Boolean)
+      )
+    )
+    const classes = classesIn(sheet)
+    expect(classes).toContain('emphasis-strong')
+    expect(classes).toContain('z-popover')
+    expect(classes).toContain('ease-spring')
+    expect(
+      classes.filter(
+        (name) => !safelisted.has(name) && !OWN_SELECTORS.includes(name)
+      )
+    ).toEqual([])
+  })
+
+  // Every supported browser draws oklch(), so a hex copy of a colour step is
+  // bytes no browser uses.
+  it('declares the colour scales in oklch() alone', () => {
+    expect(sheet).toMatch(/--color-brand-light-9:oklch\(/)
+    expect(sheet.match(/--color-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
+  })
+
+  it('declares the chart colours without a hex copy', () => {
+    expect(sheet).toMatch(/--chart-1:oklch\(/)
+    expect(sheet.match(/--chart-[\w-]+:#[0-9a-f]+/g) ?? []).toEqual([])
+    // One per mode: a third is Tailwind's copy of a mix left outside its check.
+    expect(sheet.match(/--chart-band:/g)).toHaveLength(2)
+  })
+
+  it('declares shadows and the field edge without a copy for older browsers', () => {
+    const shadows = sheet.match(/(?<![\w-])--(?:inset-)?shadow-[\w-]+:[^;}]*/g)
+    expect(shadows?.length).toBeGreaterThan(0)
+    expect(shadows?.filter((d) => !d.includes('oklch('))).toEqual([])
+    expect(sheet.match(/--field-border-color:[^;}]*/g)).toEqual([
+      expect.stringContaining('color-mix('),
+      expect.stringContaining('color-mix(')
+    ])
+  })
+
+  it('needs no browser support for CSS nesting', () => {
+    expect(sheet.replace(/"[^"]*"|'[^']*'/g, '').includes('&')).toBe(false)
+  })
+
+  // A token that only names a variable tokens.css declares belongs in
+  // `@theme inline reference`. Plain `@theme inline` also writes it into
+  // every app's theme layer as itself, where unlayered :root overrides it.
+  it('declares no custom property as itself', () => {
+    expect(sheet.match(/(--[\w-]+):\s*var\(\1\)(?=[;}])/g) ?? []).toEqual([])
+  })
+})

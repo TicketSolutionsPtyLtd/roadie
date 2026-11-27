@@ -9,6 +9,7 @@ export type OTPFieldContextValue = {
   emphasis?: OTPFieldEmphasis
   invalid?: boolean
   label?: string
+  autoFocus?: boolean
 }
 
 export const OTPFieldContext = createContext<OTPFieldContextValue>({})

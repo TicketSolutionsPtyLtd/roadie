@@ -11,10 +11,11 @@ import {
 } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
+import { keepFramesRunning } from '@oztix/roadie-browser-testing'
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Toast, type ToastPosition, createToastManager } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { keepFramesRunning } from '../../css/testUtils'
-import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -125,6 +126,20 @@ describe('Toast.Progress', () => {
     expect(width()).toBeCloseTo(held, 0)
 
     await hover(false)
+    await expect.poll(width, { timeout: 1000 }).toBeLessThan(held - 1)
+  })
+
+  it('holds still while the window is in the background, then carries on', async () => {
+    await show(6000)
+    await landed()
+    act(() => {
+      window.dispatchEvent(new FocusEvent('blur'))
+    })
+    await expect.poll(() => bar().getAnimations()[0]!.playState).toBe('paused')
+    const held = await pausedWidth()
+    act(() => {
+      window.dispatchEvent(new FocusEvent('focus'))
+    })
     await expect.poll(width, { timeout: 1000 }).toBeLessThan(held - 1)
   })
 

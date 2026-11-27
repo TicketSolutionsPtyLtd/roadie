@@ -10,8 +10,8 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  type SpotIllustrationName,
-  spotIllustration
+  SpotIllustrationByName,
+  type SpotIllustrationName
 } from '../_shared/illustrations'
 import { isOwnKey } from '../_shared/ownKey'
 import { presetOf } from '../_shared/presets'
@@ -142,7 +142,6 @@ export function CallToAction(props: CallToActionProps) {
       : 'portrait'
   const { emphasis } = block
   const centred = block.align === 'center'
-  const Illustration = spotIllustration(illustration, 'HighFive')
 
   return (
     <BlockRoot {...block.root}>
@@ -176,7 +175,9 @@ export function CallToAction(props: CallToActionProps) {
                   className='absolute inset-0 size-full object-cover'
                 />
               </div>
-              <Illustration
+              <SpotIllustrationByName
+                name={illustration}
+                fallback='HighFive'
                 outline
                 className='absolute -end-12 -bottom-12 size-24 @7xl:-start-12 @7xl:end-auto'
               />

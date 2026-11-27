@@ -13,39 +13,47 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { Progress } from '../Progress'
 import { RecordCard } from '../Records/RecordCard'
+import {
+  type GroupLeaf,
+  RecordGroupSection,
+  groupedBodyClass,
+  useRecordGroups
+} from '../Records/RecordGroupSection'
 import {
   RecordPlaceholder,
   RecordRangeError
 } from '../Records/RecordPlaceholder'
-import { RecordsEmpty, RecordsError } from '../Records/RecordsStates'
-import { useRecordsContext } from '../Records/context'
+import { groupFields } from '../Records/groupBy'
+import { type RecordGroup, groupRecordsBy } from '../Records/groups'
 import type { RecordsContentProps } from '../Records/layouts'
-import {
-  VIRTUALISE_AFTER,
-  type WindowPadding,
-  recordsWindow
-} from '../Records/recordsWindow'
+import { type WindowPadding, recordsWindow } from '../Records/recordsWindow'
 import { gridGap, gridRowSize } from '../Records/rowSizing'
 import {
   useHeldHeight,
   useRangeWindow,
   useRowWindow
 } from '../Records/rowWindow'
-import { useLeaveSelectOnEscape } from '../Records/selectMode'
-import { useStickyTop } from '../Records/stickyTop'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import type {
   RecordCardParts,
   RecordsRangeState,
   RecordsRow
 } from '../Records/types'
-import { useSurvivor } from '../Records/useBulkActions'
+import {
+  RecordsLayoutFrame,
+  RecordsLayoutState,
+  useRecordsLayout
+} from '../Records/useRecordsLayout'
 import { useSelectModeLayout } from '../Records/useSelectModeLayout'
-import { ScrollArea } from '../ScrollArea'
 import { gridParts } from './parts'
 import type { GridLayoutConfig } from './types'
+import {
+  FIRST_CARDS,
+  GridFiller,
+  UNMEASURED_CLASS,
+  firstCards
+} from './unmeasured'
 
 const columnsClass = cn(
   'grid grid-cols-[repeat(auto-fill,minmax(min(16rem,100%),1fr))]',
@@ -65,7 +73,8 @@ type GridShared = {
   selecting: boolean
   /** Undefined when the records can't be selected. */
   isSelected?: (id: string) => boolean
-  onToggle: (id: string, range: boolean) => void
+  /** `order` is the on-screen order a range follows, when it isn't the rows'. */
+  onToggle: (id: string, range: boolean, order?: readonly string[]) => void
   rowActions?: (row: object) => ReactNode
   getRowHref?: (row: object) => string | undefined
 }
@@ -82,177 +91,91 @@ export function RecordGridContent({
   fill = false,
   config
 }: RecordGridContentProps) {
-  const { records, caption, toolbar, setContentFill } = useRecordsContext()
-  const leaveSelect = useLeaveSelectOnEscape()
-  const rowsSurvivor = useSurvivor('rows')
-  const frameRef = useRef<HTMLDivElement>(null)
-  const boxed = fill || Boolean(maxHeight)
-  const progressTop = useStickyTop(frameRef, toolbar, boxed)
+  const frame = useRecordsLayout({ fill, maxHeight })
+  const { records, caption, state, windowed, firstIndex, partial } = frame
   const { fields, view } = records
   const parts = useMemo(
     () => gridParts(config, fields, view.layout),
     [config, fields, view.layout]
   )
-  useLayoutEffect(() => {
-    setContentFill(fill)
-    return () => setContentFill(false)
-  }, [fill, setContentFill])
-
+  const grouping = useMemo(
+    () => groupFields(fields, view.layout),
+    [fields, view.layout]
+  )
+  // A range grid loads cards as they scroll into view, so it stays ungrouped
+  // until groups can come from the server.
+  const { rows, range } = records
+  const groups = useMemo(
+    () =>
+      grouping.length > 0 && !range
+        ? groupRecordsBy(rows, grouping)
+        : undefined,
+    [grouping, range, rows]
+  )
   // Cards have no checkboxes, so the grid selects only through Select mode.
   const selecting = useSelectModeLayout(true)
-  const latest = useRef(records)
-  useLayoutEffect(() => {
-    latest.current = records
-  })
-
-  // Stable, so a selection change or an inline rowActions leaves other cards alone.
-  const toggleRow = useCallback(
-    (id: string, range: boolean) => latest.current.toggleRow(id, { range }),
-    []
-  )
-  const rowActions = useCallback(
-    (row: object) => latest.current.rowActions?.(row),
-    []
-  )
   const shared: GridShared = {
     parts,
     timeZone: records.timeZone,
     selecting,
-    isSelected: records.selectable ? records.isSelected : undefined,
-    onToggle: toggleRow,
-    rowActions: records.rowActions ? rowActions : undefined,
+    isSelected: frame.isSelected,
+    onToggle: frame.toggleRow,
+    rowActions: frame.rowActions,
     getRowHref: records.getRowHref
   }
 
-  const { rows, range } = records
-  const busy = records.loading && !records.error
-  // Range mode keeps its cards bright: placeholders already show what loads.
-  const dimmed = busy && !range && rows.length > 0
-  const awaitingRows = busy && !range && rows.length === 0
-  const empty = range ? range.count === 0 : rows.length === 0
-  const shownPage = Math.min(records.position.page, records.pageCount - 1)
-  const partial = rows.length > VIRTUALISE_AFTER || records.pageCount > 1
-  const listProps = { caption, busy }
+  const listProps = { caption, busy: frame.busy }
 
-  // Keyed, so one state replacing another hands its button's focus on.
-  const body = records.error ? (
-    <GridState key='error'>
-      <RecordsError records={records} />
-    </GridState>
-  ) : awaitingRows ? (
-    <GridSkeleton parts={parts} size={records.position.pageSize} />
-  ) : empty ? (
-    <GridState key='empty'>
-      <RecordsEmpty records={records} />
-    </GridState>
-  ) : range ? (
-    <RangeGrid
-      range={range}
-      row={records.position.row}
-      onRow={records.setRow}
-      shared={shared}
-      {...listProps}
-    />
-  ) : rows.length > VIRTUALISE_AFTER ? (
-    <VirtualGrid
-      rows={rows}
-      firstIndex={shownPage * records.position.pageSize + 1}
-      setSize={records.pageCount > 1 ? records.resultCount : rows.length}
-      shared={shared}
-      {...listProps}
-    />
-  ) : (
-    <GridList {...listProps}>
-      {rows.map((record, index) => (
-        <GridCard
-          key={record.id}
-          shared={shared}
-          record={record}
-          posInSet={
-            partial
-              ? shownPage * records.position.pageSize + index + 1
-              : undefined
-          }
-          setSize={partial ? records.resultCount : undefined}
-        />
-      ))}
-    </GridList>
-  )
+  const body =
+    state === 'loading' ? (
+      <GridSkeleton parts={parts} size={records.position.pageSize} />
+    ) : state ? (
+      <RecordsLayoutState key={state} kind={state} records={records} />
+    ) : groups ? (
+      <GroupedGrid groups={groups} shared={shared} {...listProps} />
+    ) : range ? (
+      <RangeGrid
+        range={range}
+        row={records.position.row}
+        onRow={records.setRow}
+        shared={shared}
+        {...listProps}
+      />
+    ) : windowed === 'rows' ? (
+      <VirtualGrid
+        rows={rows}
+        firstIndex={firstIndex}
+        setSize={records.pageCount > 1 ? records.resultCount : rows.length}
+        shared={shared}
+        {...listProps}
+      />
+    ) : (
+      <GridList {...listProps}>
+        {rows.map((record, index) => (
+          <GridCard
+            key={record.id}
+            shared={shared}
+            record={record}
+            posInSet={partial ? firstIndex + index : undefined}
+            setSize={partial ? records.resultCount : undefined}
+          />
+        ))}
+      </GridList>
+    )
 
-  const content = (
-    <div
-      ref={frameRef}
-      data-slot='record-grid'
-      data-records-content=''
-      onKeyDown={leaveSelect}
-      // In a box, it fills the box, so a state can centre in what's left.
-      className={cn('w-full', boxed ? 'flex min-h-full flex-col' : className)}
-    >
-      {dimmed && (
-        // Zero height, so the cards don't move; sticks under the toolbar.
-        <div
-          aria-hidden
-          data-slot='record-grid-progress'
-          style={{ top: progressTop }}
-          className='pointer-events-none sticky z-docked h-0'
-        >
-          <div className='absolute inset-x-0 top-0'>
-            <Progress value={null}>
-              <Progress.Track className='h-0.5 rounded-none bg-transparent'>
-                <Progress.Indicator />
-              </Progress.Track>
-            </Progress>
-          </div>
-        </div>
-      )}
-      <div
-        data-slot='record-grid-scroller'
-        {...rowsSurvivor}
-        tabIndex={-1}
-        className={cn(
-          'isolate outline-none',
-          boxed && 'grid grow items-start',
-          dimmed && 'opacity-60'
-        )}
-      >
-        {body}
-      </div>
-    </div>
-  )
-  if (!boxed) return content
   return (
-    <ScrollArea
-      data-slot='record-grid-box'
-      data-pane-fill={fill || undefined}
-      // basis-0, not flex-1: a percentage basis in a column of unknown height falls back to content.
-      className={cn(fill && 'h-full min-h-0 grow basis-0', className)}
+    <RecordsLayoutFrame
+      frame={frame}
+      slot='record-grid'
+      fill={fill}
+      maxHeight={maxHeight}
+      className={className}
     >
-      <ScrollArea.Viewport
-        data-slot='record-grid-viewport'
-        role='region'
-        aria-label={`${caption ?? 'Records'}, scrolls`}
-        style={fill ? undefined : { maxHeight }}
-      >
-        {content}
-      </ScrollArea.Viewport>
-      <ScrollArea.Scrollbar keepMounted>
-        <ScrollArea.Thumb />
-      </ScrollArea.Scrollbar>
-    </ScrollArea>
+      {body}
+    </RecordsLayoutFrame>
   )
 }
 RecordGridContent.displayName = 'RecordGridContent'
-
-/** A state in place of the cards, keeping focus with the records when its button goes. */
-function GridState({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useKeepFocusInTable(ref)
-  return (
-    <div ref={ref} className='grid content-center self-stretch'>
-      {children}
-    </div>
-  )
-}
 
 function GridSkeleton({
   parts,
@@ -279,10 +202,19 @@ type ListProps = {
   busy?: boolean
   bodyRef?: Ref<HTMLUListElement>
   padding?: WindowPadding
+  /** Before the columns are measured, when the grid answers to its own width. */
+  unmeasured?: boolean
   children: ReactNode
 }
 
-function GridList({ caption, busy, bodyRef, padding, children }: ListProps) {
+function GridList({
+  caption,
+  busy,
+  bodyRef,
+  padding,
+  unmeasured,
+  children
+}: ListProps) {
   return (
     <ul
       ref={bodyRef}
@@ -291,10 +223,53 @@ function GridList({ caption, busy, bodyRef, padding, children }: ListProps) {
       aria-label={caption}
       aria-busy={busy || undefined}
       data-slot='record-grid-body'
-      className={cn(columnsClass, 'text-sm')}
+      className={cn(columnsClass, 'text-sm', unmeasured && UNMEASURED_CLASS)}
       style={padding}
     >
       {children}
+    </ul>
+  )
+}
+
+// Unwindowed, as a grouped list is: grouping applies to a page at most.
+function GroupedGrid({
+  groups,
+  shared,
+  caption,
+  busy
+}: {
+  groups: readonly RecordGroup[]
+  shared: GridShared
+  caption?: string
+  busy?: boolean
+}) {
+  const { shown, collapse, onToggle } = useRecordGroups(groups, shared.onToggle)
+  const grouped = { ...shared, onToggle }
+  const leaf: GroupLeaf = (group, titleId) => (
+    <ul role='list' aria-labelledby={titleId} className={columnsClass}>
+      {group.rows.map((record) => (
+        <GridCard key={record.id} shared={grouped} record={record} />
+      ))}
+    </ul>
+  )
+  return (
+    <ul
+      role='list'
+      aria-label={caption}
+      aria-busy={busy || undefined}
+      data-slot='record-grid-body'
+      className={cn(groupedBodyClass(true), 'text-sm')}
+    >
+      {shown.map((group) => (
+        <RecordGroupSection
+          key={group.key ?? ''}
+          group={group}
+          leaf={leaf}
+          collapse={collapse}
+          headings
+          outerRing
+        />
+      ))}
     </ul>
   )
 }
@@ -354,9 +329,13 @@ function GridCard({
   )
 }
 
-/** How many columns the grid lays out, read from its computed tracks so CSS alone decides them. */
+/**
+ * How many columns the grid lays out, read from its computed tracks so CSS
+ * alone decides them. Undefined until it has: never a guess, as a count too
+ * low sizes the whole window wrong.
+ */
 function useColumnCount(bodyRef: RefObject<HTMLElement | null>) {
-  const [columns, setColumns] = useState(1)
+  const [grid, setGrid] = useState<{ columns: number; rowRem?: number }>()
   useLayoutEffect(() => {
     const body = bodyRef.current
     if (!body) return
@@ -365,14 +344,28 @@ function useColumnCount(bodyRef: RefObject<HTMLElement | null>) {
         // Resolved px tracks only: a box not laid out reports the declared repeat().
         .gridTemplateColumns.split(' ')
         .filter((track) => track.endsWith('px')).length
-      setColumns(Math.max(1, tracks))
+      // A card as drawn is the best estimate of the rows not drawn yet.
+      const card = body.querySelector('[data-slot="record-grid-card"]')
+      const root = parseFloat(
+        getComputedStyle(document.documentElement).fontSize
+      )
+      const height = card?.getBoundingClientRect().height ?? 0
+      // Kept once read: later cards, scrolled to or resized, would only re-estimate.
+      setGrid((now) => {
+        const columns = Math.max(1, tracks)
+        const rowRem =
+          now?.rowRem ?? (height > 0 && root > 0 ? height / root : undefined)
+        return now?.columns === columns && now.rowRem === rowRem
+          ? now
+          : { columns, rowRem }
+      })
     }
     read()
     const observer = new ResizeObserver(read)
     observer.observe(body)
     return () => observer.disconnect()
   }, [bodyRef])
-  return columns
+  return grid
 }
 
 function VirtualGrid({
@@ -390,7 +383,9 @@ function VirtualGrid({
   busy?: boolean
 }) {
   const columnsRef = useRef<HTMLUListElement>(null)
-  const columns = useColumnCount(columnsRef)
+  const measured = useColumnCount(columnsRef)
+  const columns = measured?.columns ?? 1
+  const size = gridRowSize(shared.parts.image !== undefined)
   const getItemKey = useCallback(
     // With the count too, so heights measured at another width start over.
     (row: number) => `${columns}:${rows[row * columns]!.id}`,
@@ -399,11 +394,29 @@ function VirtualGrid({
   const { bodyRef, view, measureElement } = useRowWindow<HTMLUListElement>({
     count: Math.ceil(rows.length / columns),
     getItemKey,
-    ...gridRowSize(shared.parts.image !== undefined)
+    ...size,
+    estimateRem: measured?.rowRem ?? size.estimateRem
   })
   useHeldHeight(bodyRef, true)
   const setRefs = useBodyRef(bodyRef, columnsRef)
   const { cells, padding } = recordsWindow(view, { rows, columns })
+  // On the server and until the layout effect reads the tracks: the first cards,
+  // and the room for the rest at whatever width CSS lays out.
+  if (measured === undefined)
+    return (
+      <GridList {...listProps} bodyRef={setRefs} unmeasured>
+        {rows.slice(0, FIRST_CARDS).map((record, index) => (
+          <GridCard
+            key={record.id}
+            shared={shared}
+            record={record}
+            posInSet={firstIndex + index}
+            setSize={setSize}
+          />
+        ))}
+        <GridFiller records={rows.length} />
+      </GridList>
+    )
   return (
     <GridList {...listProps} bodyRef={setRefs} padding={padding}>
       {cells.map(({ key, index, row, leads, record }) => (
@@ -416,6 +429,8 @@ function VirtualGrid({
           measure={{ index: row, ref: leads ? measureElement : undefined }}
         />
       ))}
+      {/* The slot the filler held, so the cards stay mounted when it goes. */}
+      {null}
     </GridList>
   )
 }
@@ -439,7 +454,8 @@ function RangeGrid({
   busy?: boolean
 }) {
   const columnsRef = useRef<HTMLUListElement>(null)
-  const columns = useColumnCount(columnsRef)
+  const measured = useColumnCount(columnsRef)
+  const columns = measured?.columns ?? 1
   const byRow = useGridRange(range, columns)
   const reportRow = useCallback(
     (gridRow: number) => onRow?.(gridRow * columns),
@@ -454,19 +470,45 @@ function RangeGrid({
   useHeldHeight(bodyRef, true)
   const setRefs = useBodyRef(bodyRef, columnsRef)
   const size = range.total ?? -1
-  // Cells keyed by the column count too: a card leading a row at both counts
-  // would keep its measuring ref, and its new row would never be measured.
+  // Cells keyed by each new column count too: a card leading a row at both
+  // counts would keep its measuring ref, and its new row would never be
+  // measured. Not by the first count read, so the cards first painted stay.
+  const key = `${range.key}:${useLayoutGeneration(measured?.columns)}`
   const { cells, padding } = recordsWindow(view, {
-    range: { ...range, key: byRow.key },
+    range: { ...range, key },
     columns
   })
+  const busy = listProps.busy || range.loading
+  // On the server and until the layout effect reads the tracks, as VirtualGrid:
+  // the first cards, and the room for the rest at whatever width CSS lays out.
+  if (measured === undefined) {
+    const first = firstCards(range.count)
+    return (
+      <GridList {...listProps} busy={busy} bodyRef={setRefs} unmeasured>
+        {Array.from({ length: first }, (_, index) => {
+          const record = range.rowAt(index)
+          return record ? (
+            <GridCard
+              key={`${key}@${index}`}
+              shared={shared}
+              record={record}
+              posInSet={index + 1}
+              setSize={size}
+            />
+          ) : (
+            <RecordPlaceholder
+              key={`${key}@${index}`}
+              parts={shared.parts}
+              card
+            />
+          )
+        })}
+        {range.count > first && <GridFiller records={range.count} />}
+      </GridList>
+    )
+  }
   return (
-    <GridList
-      {...listProps}
-      busy={listProps.busy || range.loading}
-      bodyRef={setRefs}
-      padding={padding}
-    >
+    <GridList {...listProps} busy={busy} bodyRef={setRefs} padding={padding}>
       {cells.map(({ key, index, row: gridRow, leads, record, failed }) => {
         const measure = {
           index: gridRow,
@@ -504,6 +546,8 @@ function RangeGrid({
           />
         )
       })}
+      {/* The slot the filler held, so the cards stay mounted when it goes. */}
+      {null}
     </GridList>
   )
 }
@@ -549,6 +593,17 @@ function useGridRange(
     }),
     [range, columns, count, total, rowAt, show]
   )
+}
+
+/** Counts the column counts read after the first, which starts at 0. */
+function useLayoutGeneration(columns: number | undefined) {
+  const [seen, setSeen] = useState({ columns, generation: 0 })
+  if (columns !== undefined && columns !== seen.columns)
+    setSeen({
+      columns,
+      generation: seen.columns === undefined ? 0 : seen.generation + 1
+    })
+  return seen.generation
 }
 
 /** The window's body ref and the column count's, on one list. */

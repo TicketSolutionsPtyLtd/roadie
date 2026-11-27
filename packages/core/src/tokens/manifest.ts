@@ -44,7 +44,7 @@ export type TokenEntry = {
   group: string
   sheet: string
   source: 'roadie' | 'tailwind'
-  value?: ModeValue & { fallback?: string }
+  value?: ModeValue
   resolved?: ModeValue
   byIntent?: Partial<Record<Intent, ModeValue>>
   classes?: string[]
@@ -136,7 +136,6 @@ const UTILITY_RULES: Rule[] = [
   ],
   [/^is-(interactive|focusable(-overlay)?$)/, 'emphasis', 'Interaction states'],
   [/^surface-floating$/, 'emphasis', 'Internal surfaces'],
-  [/^(inset-)?shadow-/, 'elevation', 'Shadows'],
   [/^rim-light$/, 'elevation', 'Rim light'],
   [/^text-display-/, 'typography', 'Display styles'],
   [/^text-(ui|ui-meta|prose|code)$/, 'typography', 'Body styles'],
@@ -198,10 +197,11 @@ type Declaration = {
   value: string
   sheet: string
   dark: boolean
-  modern: boolean
   unsupported: boolean
   theme: boolean
   utility?: string
+  /** The outermost block it sits in, so values read their own block's scale. */
+  block: number
 }
 
 type Block = { prelude: string; start: number }
@@ -248,6 +248,7 @@ function walk(
   const clean = blankComments(css)
   const stack: Block[] = []
   let start = 0
+  let topBlock = 0
 
   const flush = (end: number) => {
     const text = clean.slice(start, end).trim()
@@ -264,9 +265,9 @@ function walk(
       name: match[1]!,
       value: squash(match[2]!),
       sheet,
-      modern: preludes.some((p) => p.startsWith('@supports (color: oklch')),
       unsupported: preludes.some((p) => p.startsWith('@supports not')),
       theme: preludes.some((p) => p.startsWith('@theme')),
+      block: topBlock,
       utility: preludes
         .find((p) => p.startsWith('@utility'))
         ?.slice(9)
@@ -279,6 +280,7 @@ function walk(
   for (let i = 0; i < clean.length; i++) {
     const char = clean[i]
     if (char === '{') {
+      if (stack.length === 0) topBlock++
       const prelude = squash(clean.slice(start, i))
       const offset =
         start +
@@ -334,6 +336,38 @@ export function parseTokenManifest(
     }
   }
 
+  // An intent writes its roles against its own scale (`--intent-0` to
+  // `--intent-13`) and internal alpha shares (`--_mix-*`), declared in the
+  // same block. Read each role as the step it resolves to there.
+  const sameBlock = (d: Declaration, name: string) => {
+    const found = declarations.filter(
+      (o) =>
+        o.name === name &&
+        o.sheet === d.sheet &&
+        o.block === d.block &&
+        !o.unsupported
+    )
+    return (
+      (d.dark ? found.findLast((o) => o.dark) : undefined) ??
+      found.findLast((o) => !o.dark)
+    )
+  }
+  const OWN_SCALE = /var\((--intent-\d+|--_mix-[\w-]+)\)/g
+  // A value that reads a step dark mode sets again changes in dark mode too.
+  for (const d of declarations.filter((o) => !o.dark && !o.unsupported)) {
+    const darkAgain = [...d.value.matchAll(OWN_SCALE)].some(
+      ([, name]) => sameBlock({ ...d, dark: true }, name!)?.dark
+    )
+    if (darkAgain && sameBlock({ ...d, dark: true }, d.name)?.dark !== true)
+      declarations.push({ ...d, dark: true })
+  }
+  const rawValues = new Map(declarations.map((d) => [d, d.value]))
+  for (const d of declarations)
+    d.value = d.value.replace(OWN_SCALE, (text, name: string) => {
+      const target = sameBlock(d, name)
+      return target ? (rawValues.get(target) ?? target.value) : text
+    })
+
   for (const [utility, applied] of applies) {
     const copied = declarations.filter(
       (d) => d.utility && applied.includes(d.utility)
@@ -352,8 +386,7 @@ export function parseTokenManifest(
     )
   ].sort()
 
-  const pick = (list: Declaration[]) =>
-    (list.findLast((d) => d.modern) ?? list.at(-1))?.value
+  const pick = (list: Declaration[]) => list.at(-1)?.value
 
   // Only browsers lacking a feature read a `@supports not` block, so any other declaration wins.
   const supported = (list: Declaration[]) => {
@@ -372,10 +405,6 @@ export function parseTokenManifest(
     const dark = real.filter((d) => d.dark)
     const lightValue = pick(light)
     const darkValue = pick(dark)
-    const legacy = light.some((d) => d.modern)
-      ? light.findLast((d) => !d.modern)?.value
-      : undefined
-    const fallback = legacy !== lightValue ? legacy : undefined
     valueOf.set(name, { light: lightValue, dark: darkValue })
 
     const byIntent: Partial<Record<Intent, ModeValue>> = {}
@@ -405,7 +434,7 @@ export function parseTokenManifest(
       group,
       sheet: own[0]!.sheet,
       source: 'roadie' as const,
-      value: compact({ light: lightValue, dark: darkValue, fallback }),
+      value: compact({ light: lightValue, dark: darkValue }),
       byIntent: Object.keys(byIntent).length > 0 ? byIntent : undefined,
       classes: own.some((d) => d.theme) ? classesFor(name) : undefined,
       description: descriptions.get(name)

@@ -23,7 +23,7 @@ const slashed = (path) => path.replaceAll('\\', '/')
 const IMPORTS = `import Link from 'next/link'
 import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { observeElementRect } from '@tanstack/virtual-core/utils'
-import { z } from 'zod'
+import * as z from 'zod'
 import { schema } from './schema'
 import router from 'next/dist/client/router'
 export const seed = [Link, draggable, observeElementRect, z, schema, router]
@@ -51,7 +51,8 @@ Object.defineProperty(el, 'offsetWidth', { value: 200 })
 const BOUNDARIES = {
   nextLink: 'Pass href and let RoadieProvider route it.',
   atlaskit: 'Import the drag library only in Sortable/dnd.',
-  tanstack: 'Import @tanstack/react-virtual only in Records/rowWindow.ts.',
+  tanstack:
+    'Import @tanstack/react-virtual only in Records/rowWindow.ts and utils/virtualRows.tsx.',
   chartsTanstack: 'Import TanStack only in plot/, static/,',
   skinNext: 'The React skin routes through onNavigate, not next/*.',
   zod: 'Keep this module zod-free.',
@@ -110,6 +111,12 @@ const dashboard = 'packages/core/src/dashboard'
 const MISTAKES =
   "export const Seed = () => <div className='dark:bg-normal z-[5]' />\n"
 
+it('catches a named zod import in package source', () => {
+  const path = 'packages/core/src/records/seed.ts'
+  const source = "import { z } from 'zod'\nexport { z }\n"
+  expect(lintSeeds([[path, source]]).get(path)).toEqual(['no-named-zod-import'])
+})
+
 it("applies Roadie's recommended rules to every package", () => {
   const seeds = ['charts', 'components', 'core', 'editor', 'widgets'].map(
     (pkg) => [`packages/${pkg}/src/seed.tsx`, MISTAKES]
@@ -128,6 +135,7 @@ describe('oxlint import boundaries', () => {
     [`${components}/Sortable/dnd/deep/seed.tsx`, ['nextLink', 'tanstack']],
     [`${components}/Records/seed.ts`, ['atlaskit', 'nextLink', 'tanstack']],
     [`${components}/Records/rowWindow.ts`, ['atlaskit', 'nextLink']],
+    ['packages/components/src/utils/virtualRows.tsx', ['atlaskit', 'nextLink']],
     [`${charts}/seed.ts`, ['chartsTanstack', 'nextLink']],
     [`${charts}/SeedChart/index.tsx`, ['chartsTanstack', 'nextLink']],
     [`${charts}/plot/seed.ts`, ['nextLink']],
@@ -234,6 +242,7 @@ describe('oxlint excludeFiles exceptions', () => {
     ],
     ...[
       'packages/core/src/utils/cn.test.ts',
+      'packages/core/src/utils/classFamilies.test.ts',
       'packages/core/src/dataviz/parity.test.ts',
       'packages/core/src/theme/parity.test.ts',
       'packages/core/src/dataviz/skill-parity.test.ts',
@@ -270,6 +279,7 @@ describe('where oxlint applies no-fixed-sleep', () => {
     ['packages/components/src/utils/touchTestUtils.ts', ['no-fixed-sleep']],
     [`${charts}/plot/browserTesting.tsx`, ['no-fixed-sleep']],
     ['packages/widgets/vitest.setup.ts', ['no-fixed-sleep']],
+    ['testing/browser/src/index.ts', ['no-fixed-sleep']],
     [`${components}/RecordTable/renderCounter.ts`, ['no-fixed-sleep']],
     [`${components}/RecordTable/index.tsx`, []]
   ]
@@ -280,6 +290,46 @@ describe('where oxlint applies no-fixed-sleep', () => {
 
   it.each(cases)('%s reports %j', (path, expected) => {
     expect(found.get(path)).toEqual(expected)
+  })
+})
+
+describe('where oxlint applies no-unwaited-popup-pick', () => {
+  const pick = `declare const user: { click(element: Element): Promise<void> }
+declare const screen: { findByRole(role: string): Promise<Element> }
+await user.click(await screen.findByRole('option'))
+`
+  const cases = [
+    [
+      `${components}/Select/Select.browser.test.tsx`,
+      ['no-unwaited-popup-pick']
+    ],
+    [`${components}/Select/Select.test.tsx`, []],
+    [`${components}/Select/index.tsx`, []],
+    [
+      'packages/editor/src/Editor/Editor.browser.test.tsx',
+      ['no-unwaited-popup-pick']
+    ],
+    ['testing/browser/src/index.ts', []]
+  ]
+  let found
+  beforeAll(() => {
+    found = lintSeeds(cases.map(([path]) => [path, pick]))
+  })
+
+  it.each(cases)('%s reports %j', (path, expected) => {
+    expect(found.get(path)).toEqual(expected)
+  })
+
+  // oxlint's scopes, not ESLint's, resolve the const.
+  it('follows a const that holds the item', () => {
+    const path = `${components}/Menu/Menu.browser.test.tsx`
+    const source = pick.replace(
+      "await user.click(await screen.findByRole('option'))",
+      "const item = await screen.findByRole('menuitem')\nawait user.click(item)"
+    )
+    expect(lintSeeds([[path, source]]).get(path)).toEqual([
+      'no-unwaited-popup-pick'
+    ])
   })
 })
 

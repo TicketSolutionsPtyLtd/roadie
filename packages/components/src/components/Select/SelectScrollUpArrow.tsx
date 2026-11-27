@@ -5,7 +5,7 @@ import type { RefAttributes } from 'react'
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { CaretUpIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type SelectScrollUpArrowProps = SelectPrimitive.ScrollUpArrow.Props &
   RefAttributes<HTMLDivElement>
@@ -17,7 +17,7 @@ export function SelectScrollUpArrow({
   return (
     <SelectPrimitive.ScrollUpArrow
       data-slot='select-scroll-up-arrow'
-      className={cn(
+      className={mergeClassName(
         'flex items-center justify-center py-1 text-subtle',
         className
       )}

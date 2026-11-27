@@ -3,14 +3,15 @@
 import { useEffect } from 'react'
 
 import { isDev } from '../../utils/isDev'
-import { activeLayout, useRecordsContext } from './context'
+import { activeLayout, useRecordsData, useRecordsLayoutValue } from './context'
 import type { RecordsContentProps } from './layouts'
 
 let warnedNoLayout = false
 
 /** Shows the records in the layout the view names, or the first one given. */
 export function RecordsContent(props: RecordsContentProps) {
-  const { records, layouts } = useRecordsContext()
+  const records = useRecordsData()
+  const { layouts } = useRecordsLayoutValue()
   const layout = activeLayout(layouts, records.view)
   useEffect(() => {
     if (layout || warnedNoLayout || !isDev()) return

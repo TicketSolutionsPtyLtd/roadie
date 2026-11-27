@@ -277,7 +277,7 @@ describe('Field text description', () => {
     expect(getByRole('group')).toHaveAccessibleDescription('Helper')
   })
 
-  it('points at the error text when the Field is invalid', () => {
+  it('adds the error text to the helper text when the Field is invalid', () => {
     const { getByRole } = render(
       <Field invalid>
         <Field.Label>Verification code</Field.Label>
@@ -286,6 +286,6 @@ describe('Field text description', () => {
         <Field.ErrorText>Error</Field.ErrorText>
       </Field>
     )
-    expect(getByRole('group')).toHaveAccessibleDescription('Error')
+    expect(getByRole('group')).toHaveAccessibleDescription('Helper Error')
   })
 })

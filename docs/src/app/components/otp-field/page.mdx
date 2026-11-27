@@ -117,6 +117,14 @@ Pass `OTPField.Input` and `OTPField.Separator` as children to lay the slots out 
 </Field>
 ```
 
+### Focus on arrival
+
+`autoFocus` focuses the first slot when the field mounts, for a screen whose one job is the code. With your own `OTPField.Input` children it still reaches the first one. The example here isn't live, since it would take focus from the page.
+
+```tsx
+<OTPField length={6} groupSize={3} aria-label='Login code' autoFocus />
+```
+
 ### Submit when complete
 
 `onValueComplete` fires once the last slot fills, whether the code was typed, pasted or autofilled. Use it to check the code straight away. `autoSubmit` submits the surrounding form instead.
@@ -154,6 +162,53 @@ function LoginCode() {
 render(<LoginCode />)
 ```
 
+### Send a new code
+
+Offer a new code once a short wait has passed. Build it from parts that exist: `Countdown` shows the wait, `useCountdownUrgency` reports `'expired'` when it ends, and a `Button` takes its place. Both read the page's one shared ticker, so the wait adds no timer of its own. The count ticks each second, and the rest of the example re-renders once, at zero. While the send is in flight, the button is `pending`.
+
+```tsx-live-noinline
+function VerifyEmail() {
+  const [until, setUntil] = useState(() => new Date(Date.now() + 10_000))
+  const [sending, setSending] = useState(false)
+  const [code, setCode] = useState(null)
+  const waiting = useCountdownUrgency(until) !== 'expired'
+
+  function resend() {
+    setSending(true)
+    // Your API call. Its "retry after" sets the next wait.
+    setTimeout(() => {
+      setSending(false)
+      setUntil(new Date(Date.now() + 10_000))
+      // The button is about to go, so focus moves to where the new code goes.
+      code?.querySelector('[data-slot=otp-field-input]')?.focus()
+    }, 1500)
+  }
+
+  return (
+    <div className='grid max-w-sm justify-items-start gap-3'>
+      <Field>
+        <Field.Label>Code</Field.Label>
+        <OTPField ref={setCode} length={6} groupSize={3} />
+        <Field.HelperText>We sent a code to sam@example.com.</Field.HelperText>
+      </Field>
+      {waiting ? (
+        <p className='text-sm text-subtle'>
+          Send a new code in <Countdown until={until} seconds='always' />
+        </p>
+      ) : (
+        <Button size='sm' emphasis='subtler' pending={sending} onClick={resend}>
+          Send a new code
+        </Button>
+      )}
+    </div>
+  )
+}
+
+render(<VerifyEmail />)
+```
+
+The wait here is 10 seconds so you can see it end; 30 to 60 seconds is usual. The server owns the cooldown and refuses an early send, and the count only reports it, so start it from the time the server gives, not from a timer of your own. Say what was sent with a [Toast](/components/toast) once the send succeeds.
+
 ## Guidelines
 
 <Guidelines>
@@ -164,6 +219,15 @@ render(<LoginCode />)
   </Guideline.Do>
   <Guideline.Dont code={`<OTPField length={6} autoComplete='off' />`}>
     Don't turn autofill off or make people press Continue after the last digit.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Show the wait before a new code'>
+  <Guideline.Do code={`Send a new code in 0:24`}>
+    Say what becomes possible at zero, with the count in seconds, then swap in the button.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Button disabled>Resend</Button>`}>
+    Don't show a disabled button with no reason, or a live one the server will refuse.
   </Guideline.Dont>
 </Guideline>
 
@@ -183,6 +247,7 @@ render(<LoginCode />)
 - The root is a `group`. `Field.Label` names the group and the first slot, and the other slots are named by position, such as "Character 2 of 6". Outside `Field`, `aria-label` on the root does the same job.
 - Only the active slot is in the tab order, so Tab moves in and out of the whole code. Arrow Left and Arrow Right move one slot at a time, up to the first empty slot, and Backspace clears and steps back.
 - Each slot is a real `<input>`, so screen readers, password managers and SMS autofill see it. A hidden input carries the whole value for forms.
+- `autoFocus` moves focus on arrival, so use it only where the code is the screen's one task, such as after sending a code. Elsewhere it skips the reader past the page.
 - `Field.HelperText` or `Field.ErrorText` describes the group, and `invalid` sets `aria-invalid` on every slot.
 
 <PropsDefinitions component='OTPField' />

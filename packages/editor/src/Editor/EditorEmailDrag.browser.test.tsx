@@ -16,6 +16,8 @@ import {
 } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 
+import { pickMenuItem, pickOption } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
@@ -156,8 +158,8 @@ async function openMenuOn(text: string) {
 }
 
 async function chooseMove(name: 'Move up' | 'Move down') {
-  await userEvent.click(await screen.findByRole('menuitem', { name }))
   // The menu stays open on the moved block, for another move.
+  await pickMenuItem(userEvent, { item: name, staysOpen: true })
   await userEvent.keyboard('{Escape}')
   await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
 }
@@ -626,10 +628,7 @@ describe('Editor email block handle', () => {
     const onValueChange = renderNewsletter()
     await hoverBlock('Alpha one')
 
-    await userEvent.click(await addButton())
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Divider' })
-    )
+    await pickOption(userEvent, { from: await addButton(), option: 'Divider' })
 
     await expectOutline(
       onValueChange,
@@ -656,13 +655,8 @@ describe('Editor email block handle', () => {
     await userEvent.hover(empty)
     await expectGripBeside(empty)
 
-    await userEvent.click(await grip())
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Insert below' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Divider' })
-    )
+    await pickMenuItem(userEvent, { from: await grip(), item: 'Insert below' })
+    await pickOption(userEvent, { option: 'Divider' })
 
     await expectOutline(onValueChange, {
       section: [
@@ -773,9 +767,7 @@ describe('Editor email block handle', () => {
     const onValueChange = renderNewsletter()
     await openMenuOn('Bravo one')
 
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Select section' })
-    )
+    await pickMenuItem(userEvent, { item: 'Select section', staysOpen: true })
     await chooseMove('Move up')
 
     await expectOutline(
@@ -801,16 +793,9 @@ describe('Editor email block handle', () => {
       )
     )
     await openMenuOn('Charlie one')
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Select section' })
-    )
-
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Move up' })
-    )
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Move up' })
-    )
+    await pickMenuItem(userEvent, { item: 'Select section', staysOpen: true })
+    await pickMenuItem(userEvent, { item: 'Move up', staysOpen: true })
+    await pickMenuItem(userEvent, { item: 'Move up', staysOpen: true })
 
     await expectOutline(
       onValueChange,

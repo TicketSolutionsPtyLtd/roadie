@@ -31,7 +31,8 @@ export function toastSide(position: ToastPosition): ToastSide {
 }
 
 export const toastViewportVariants = cva(
-  'fixed inset-x-4 z-toast outline-none sm:w-sm',
+  // A toast is about the screen now, not the page being printed.
+  'fixed inset-x-4 z-toast outline-none sm:w-sm print:hidden',
   {
     variants: {
       side: {

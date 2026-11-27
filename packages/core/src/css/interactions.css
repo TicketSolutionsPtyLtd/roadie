@@ -1,7 +1,11 @@
 /* ═══════════════════════════════════════════════════════════
    Interaction Utilities
    Base transitions, focus ring, and disabled state.
-   Hover/active bg changes are per-emphasis in emphasis.css.
+   is-interactive and is-interactive-within own every emphasis's
+   states, from the values each preset declares (emphasis.css).
+   Hover is gated, or a touch screen keeps the last tap hovered.
+   Each state branch counts its state once and keeps the rest in
+   :where(), since lowered nesting weighs a list by its heaviest.
    ═══════════════════════════════════════════════════════════ */
 
 /* A field clears its own raised rim on hover, focus, and invalid. It doesn't
@@ -101,22 +105,6 @@
     pointer-events: none;
     filter: grayscale(0.3);
   }
-
-  .dark & {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-accent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
-
-  .dark &[aria-invalid='true'] {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-danger-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
 }
 
 @utility is-interactive-field-group {
@@ -208,22 +196,6 @@
     pointer-events: none;
     filter: grayscale(0.3);
   }
-
-  .dark & {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-accent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
-
-  .dark &[aria-invalid='true'] {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-danger-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
 }
 
 /* ─── Disclosure animation ─── */
@@ -293,14 +265,6 @@
       );
     outline-offset: 0;
   }
-
-  .dark &:focus-visible {
-    outline-color: color-mix(
-      in oklch,
-      var(--intent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
 }
 
 /* is-focusable's ring drawn inset on the element's ::after overlay instead of
@@ -323,21 +287,41 @@
       );
     outline-offset: calc(var(--focus-ring-width) * -1);
   }
+}
 
-  .dark &:focus-visible::after {
-    outline-color: color-mix(
-      in oklch,
-      var(--intent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
+/* Set only by the shared state rules below, so nothing competes for them. A
+   preset reads one, falling back to its rest, and a nested preset can't see
+   its parent's. */
+@property --emphasis-fill-state {
+  syntax: '*';
+  inherits: false;
+}
+@property --emphasis-shadow-state {
+  syntax: '*';
+  inherits: false;
 }
 
 @utility is-interactive {
   cursor: pointer;
   @apply is-focusable;
+  --emphasis-fill-state: var(--emphasis-fill-interactive);
 
-  &:active {
+  &:focus-visible {
+    --emphasis-fill-state: var(--emphasis-fill-hover);
+    --emphasis-shadow-state: var(--emphasis-shadow-hover);
+    transform: var(--emphasis-lift-hover, revert-layer);
+  }
+  @media (hover: hover) {
+    &:hover {
+      --emphasis-fill-state: var(--emphasis-fill-hover);
+      --emphasis-shadow-state: var(--emphasis-shadow-hover);
+      transform: var(--emphasis-lift-hover, revert-layer);
+    }
+  }
+  &:active,
+  &.is-active {
+    --emphasis-fill-state: var(--emphasis-fill-active);
+    --emphasis-shadow-state: var(--emphasis-shadow-active);
     transform: scale(0.99);
   }
 
@@ -389,15 +373,22 @@
     z-index: var(--interactive-within-control-z, revert-layer);
   }
 
-  &:has([data-interactive-target]:active):not(
-      :has(.is-interactive-within [data-interactive-target]:active)
-    ) {
-    transform: scale(0.99);
+  /* No selector can find a target outside nested surfaces, so a surface with
+     its own target and nested ones keeps its rest fill. */
+  &:where(
+    :has([data-interactive-target]):not(
+      :has(.is-interactive-within [data-interactive-target])
+    )
+  ) {
+    --emphasis-fill-state: var(--emphasis-fill-interactive);
   }
 
-  &:has([data-interactive-target]:focus-visible):not(
-      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+  &:has(:where([data-interactive-target]):focus-visible):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
     ) {
+    --emphasis-fill-state: var(--emphasis-fill-hover);
+    --emphasis-shadow-state: var(--emphasis-shadow-hover);
+    transform: var(--emphasis-lift-hover, revert-layer);
     outline: var(--focus-ring-width) solid
       color-mix(
         in oklch,
@@ -407,14 +398,21 @@
     outline-offset: 0;
   }
 
-  .dark
-    &:has([data-interactive-target]:focus-visible):not(
-      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+  @media (hover: hover) {
+    &:has(:where([data-interactive-target]):hover):where(
+        :not(:has(.is-interactive-within [data-interactive-target]:hover))
+      ) {
+      --emphasis-fill-state: var(--emphasis-fill-hover);
+      --emphasis-shadow-state: var(--emphasis-shadow-hover);
+      transform: var(--emphasis-lift-hover, revert-layer);
+    }
+  }
+
+  &:has(:where([data-interactive-target]):active):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:active))
     ) {
-    outline-color: color-mix(
-      in oklch,
-      var(--intent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
+    --emphasis-fill-state: var(--emphasis-fill-active);
+    --emphasis-shadow-state: var(--emphasis-shadow-active);
+    transform: scale(0.99);
   }
 }

@@ -145,7 +145,9 @@ describe('DateRangePicker', () => {
     expect(trigger()).toHaveAccessibleName(
       'Choose dates, Yesterday 6 Oct 2026, Sales period'
     )
-    expect(trigger()).toHaveAccessibleDescription('Choose a period with sales')
+    expect(trigger()).toHaveAccessibleDescription(
+      'Helps Choose a period with sales'
+    )
     expect(trigger()).toHaveAttribute('aria-invalid', 'true')
   })
 

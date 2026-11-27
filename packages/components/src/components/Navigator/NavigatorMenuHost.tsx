@@ -11,8 +11,7 @@ import {
 
 import { Menu } from '@base-ui/react/menu'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import {
   NavigatorActionsContext,
   NavigatorDisclosureContext,
@@ -121,7 +120,10 @@ export function NavigatorMenuHost({
             {...(declaredLabel !== undefined && {
               'aria-labelledby': undefined
             })}
-            className={cn(navigatorMenuPopupClass, menu.props.className)}
+            className={mergeClassName(
+              navigatorMenuPopupClass,
+              menu.props.className
+            )}
           >
             {withCurrentHandlers(menu.props.children, (index) =>
               activateMenuItem(value, index)

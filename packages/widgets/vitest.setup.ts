@@ -3,6 +3,10 @@ import { createElement } from 'react'
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
+import { lockLayout } from '@oztix/roadie-browser-testing/jsdom'
+
+lockLayout()
+
 // @number-flow/react is a Web Component (custom element) that animates digit
 // rolls. Its update path calls into the registered custom element
 // (`this.el.willUpdate`), which jsdom doesn't upgrade — so it throws under test.

@@ -5,6 +5,7 @@ import { type ComponentProps, type FocusEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
 
 import { useFieldContext } from '../components/Field'
+import { useFieldControlProps } from '../components/Field/FieldContext'
 import { mergeRefs } from '../utils/mergeRefs'
 import { useIsomorphicLayoutEffect } from '../utils/useIsomorphicLayoutEffect'
 import type { TypedValue } from './useTypedValue'
@@ -46,10 +47,11 @@ export function useTypedInput<T>({
     inputRef.current?.setCustomValidity(typed.error ?? '')
   }, [typed.error])
   const isInvalid = !!typed.error || (invalid ?? field.invalid)
-  const describedBy =
-    [isInvalid ? field.errorTextId : field.helperTextId, ariaDescribedBy]
-      .filter(Boolean)
-      .join(' ') || undefined
+  const fieldProps = useFieldControlProps({
+    id,
+    invalid: isInvalid,
+    'aria-describedby': ariaDescribedBy
+  })
   const isRequired = required ?? field.required
   const isDisabled = disabled || field.disabled || undefined
 
@@ -57,14 +59,14 @@ export function useTypedInput<T>({
     type: 'text',
     autoComplete: 'off',
     spellCheck: false,
-    id: id ?? (field.fieldId || undefined),
+    id: fieldProps.id,
     form,
     disabled: isDisabled,
     readOnly,
     required: isRequired,
     'aria-required': isRequired || undefined,
     'aria-invalid': isInvalid || undefined,
-    'aria-describedby': describedBy,
+    'aria-describedby': fieldProps['aria-describedby'],
     'data-editing': typed.editing || undefined,
     ...props,
     onBlur: (event: FocusEvent<HTMLInputElement>) => {

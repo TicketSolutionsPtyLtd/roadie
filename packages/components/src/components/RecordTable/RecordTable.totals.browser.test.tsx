@@ -2,10 +2,14 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import type { RecordsBulkAction } from '../Records'
 import { showFields, testShows } from '../Records/testUtils'
 import { ALL, frame, rect, slot, wideColumns } from './testUtils'
@@ -204,33 +208,52 @@ describe('RecordTable totals', () => {
     ).toBe(true)
   })
 
-  it('shows one wrapping line above narrow rows', async () => {
-    const { container } = render(
-      <div style={{ width: 360 }}>
-        <RecordTable
-          caption='Shows'
-          data={testShows(40)}
-          fields={showFields}
-          columns={wideColumns}
-          recordName={{ one: 'show', other: 'shows' }}
-          totals
-        />
-      </div>
-    )
-    await expect
-      .poll(() =>
-        slot(container, 'record-table-frame').hasAttribute('data-narrow')
+  for (const selectable of [false, true])
+    it(`re-flows into one wrapping line above the rows at 360px${selectable ? ', selectable' : ''}`, async () => {
+      const { container } = render(
+        <div style={{ width: 360 }}>
+          <RecordTable
+            caption='Shows'
+            data={testShows(40)}
+            fields={showFields}
+            columns={wideColumns}
+            recordName={{ one: 'show', other: 'shows' }}
+            selectable={selectable}
+            totals
+          />
+        </div>
       )
-      .toBe(true)
-    const totals = slot(container, 'record-table-totals')
-    expect(totals.querySelector('[role="row"], [role="cell"]')).toBeNull()
-    expect(totals.textContent).toMatch(
-      /^Totals for 40 showsSold [\d,]+Gross \$/
-    )
-    expect(totals.scrollWidth).toBeLessThanOrEqual(totals.clientWidth)
-    const firstRow = container.querySelector(
-      '[data-slot="record-table-scroller"]'
-    )!
-    expect(rect(totals).bottom).toBeLessThanOrEqual(rect(firstRow).top + 1)
-  })
+      await frame()
+      expect(
+        slot(container, 'record-table-frame').hasAttribute('data-narrow')
+      ).toBe(false)
+      const totals = slot(container, 'record-table-totals')
+      expect(totals.getAttribute('role')).toBe('row')
+      expect(
+        screen.getByRole('rowheader', { name: 'Totals for 40 shows' })
+      ).toBeVisible()
+      // In reading order on screen: the label, then each total by its heading.
+      const shown = [...totals.children]
+        .filter((cell) => getComputedStyle(cell).display !== 'none')
+        .map((cell) => ({
+          box: rect(cell),
+          text: (cell as HTMLElement).innerText
+        }))
+        .sort((a, b) => a.box.top - b.box.top || a.box.left - b.box.left)
+        .map(({ text }) => text.replace(/\s+/g, ' ').trim())
+      expect(shown).toEqual([
+        'Totals for 40 shows',
+        expect.stringMatching(/^Sold [\d,]+$/),
+        expect.stringMatching(/^Gross \$\S+$/)
+      ])
+      // Sold's header hides with its column, so the total reads its own heading.
+      expect(screen.getByRole('cell', { name: /^Sold [\d,]+$/ })).toBeVisible()
+      expect(totals.scrollWidth).toBeLessThanOrEqual(totals.clientWidth)
+      expect(rect(totals).right).toBeLessThanOrEqual(
+        rect(slot(container, 'record-table-frame')).right + 1
+      )
+      expect(rect(totals).bottom).toBeLessThanOrEqual(
+        rect(slot(container, 'record-table-row')).top + 1
+      )
+    })
 })

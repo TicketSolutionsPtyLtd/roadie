@@ -164,11 +164,20 @@ export function Countdown({
   const bucket = useSyncExternalStore(
     subscribeToTicker,
     () => snapshot(target, seconds, urgentBelowMs, Date.now(), display),
-    // The server has no clock worth trusting; render the first client value.
+    // The server has no clock worth trusting, and none may be read there.
     () => null
   )
 
-  if (bucket === null) return null
+  if (bucket === null)
+    return (
+      <Placeholder
+        seconds={seconds}
+        display={display}
+        durationStyle={durationStyle}
+        className={className}
+        {...props}
+      />
+    )
 
   // Fail safe, the way countdownUrgency does: an unparseable target reads as
   // gone, never as plenty of time.
@@ -203,6 +212,43 @@ export function Countdown({
       ) : (
         <Coarse ms={bucket} durationStyle={durationStyle} />
       )}
+    </time>
+  )
+}
+
+/**
+ * What the server paints, and the browser keeps until it has read the clock.
+ *
+ * It holds the room the first reading takes, so what follows doesn't move.
+ * Invisible and hidden from assistive tech: it is a guess, not a time. Every
+ * digit is one wide in `tabular-nums` (where the font has it), so one digit stands for any count
+ * under ten; a longer count grows from there.
+ */
+function Placeholder({
+  seconds,
+  display,
+  durationStyle,
+  className,
+  ...props
+}: Pick<CountdownProps, 'seconds' | 'display' | 'durationStyle'> &
+  ComponentProps<'time'>) {
+  const shape =
+    display === 'segments' || display === 'clock'
+      ? display
+      : seconds === 'always'
+        ? 'clock'
+        : 'coarse'
+  return (
+    <time
+      {...props}
+      aria-hidden='true'
+      className={cn('invisible tabular-nums', className)}
+    >
+      {shape === 'segments'
+        ? '0m 00s'
+        : shape === 'clock'
+          ? '0:00'
+          : formatDuration(8 * 60_000, durationStyle)}
     </time>
   )
 }
