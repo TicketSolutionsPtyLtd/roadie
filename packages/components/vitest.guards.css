@@ -1,0 +1,17 @@
+/* The CSS and class strings of core, components, blocks, charts, editor and
+   widgets in one sheet, for the static guards in src/css (hasInvalidation and
+   paintCost). Blocks and widgets ship no rules of their own, only class
+   strings. Tests are left out, so a class only a test or a guard's own list
+   names doesn't count as shipped, and so is dist, which may be stale. */
+@import './vitest.browser.css';
+@import '../charts/src/css/charts.css';
+@import '../editor/src/css/editor.css';
+@source '../blocks/src';
+@source '../charts/src';
+@source '../editor/src';
+@source '../widgets/src';
+@source not '../*/src/**/*.test.{ts,tsx}';
+@source not '../*/src/**/{fixtures,testUtils,*TestUtils}.{ts,tsx}';
+@source not './dist';
+@source not '../charts/dist';
+@source not '../editor/dist';

@@ -2,6 +2,8 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { JSONContent } from '../schema'
@@ -87,12 +89,11 @@ describe('Editor email layout', () => {
     ])
     await userEvent.click(await screen.findByText('Lineup'))
 
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Columns: 2 columns' })
-    )
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: '3 columns' })
-    )
+    await pickMenuItem(userEvent, {
+      from: await screen.findByRole('button', { name: 'Columns: 2 columns' }),
+      item: '3 columns',
+      role: 'menuitemradio'
+    })
 
     await expect
       .poll(() => textbox.querySelectorAll('[data-type="column"]').length)
@@ -317,6 +318,29 @@ describe('Editor gap cursor after an image', () => {
 
     expect(top).toBeGreaterThanOrEqual(image.bottom)
     expect(top + 2).toBeLessThanOrEqual(section.top)
+  })
+})
+
+describe('Editor gap cursor after a spacer', () => {
+  it('centres its line in the 8px gap a spacer leaves', async () => {
+    const textbox = await renderEmail([
+      { type: 'spacer', attrs: { height: 32 } },
+      { type: 'section', content: [p('Gates 11am')] }
+    ])
+    await userEvent.click(await screen.findByText('Gates 11am'))
+    await userEvent.keyboard('{Home}{ArrowUp}')
+
+    const gap = await waitFor(() => {
+      const found = textbox.querySelector('.ProseMirror-gapcursor')
+      expect(found).not.toBe(null)
+      return found!
+    })
+    const spacer = boxOf(textbox.querySelector('[data-type="spacer"]')!)
+    const section = boxOf(textbox.querySelector('[data-type="section"]')!)
+    const top =
+      boxOf(gap).top + parseFloat(getComputedStyle(gap, '::after').top)
+
+    expect(top + 1).toBeCloseTo((spacer.bottom + section.top) / 2, 0)
   })
 })
 

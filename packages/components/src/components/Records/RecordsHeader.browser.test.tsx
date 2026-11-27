@@ -4,16 +4,20 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import {
+  STILL,
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
 import { Pane } from '../Pane'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from './testUtils'
 import type { RecordViewDefaults } from './types'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 const TIMEOUT = { timeout: 20_000 }
 
 let removeStylesheets = () => {}
@@ -277,5 +281,27 @@ describe('Records.Header outside a pane', () => {
     render(<Shows />)
     await expect.poll(() => slot('query-field')).not.toBeNull()
     expect(box(searchField()).top).toBe(box(slot('records-header')).top)
+  })
+
+  it('holds its search in a box sized by its content', TIMEOUT, async () => {
+    function Shows() {
+      const records = useRecords({
+        data: testShows(10),
+        fields: showFields,
+        getRowId: (row) => row.id
+      })
+      return (
+        <div style={{ width: 'fit-content' }}>
+          <Records records={records} layouts={layouts} caption='Shows'>
+            <Records.Header />
+          </Records>
+        </div>
+      )
+    }
+    render(<Shows />)
+    await expect.poll(() => slot('query-field')).not.toBeNull()
+    const header = box(slot('records-header'))
+    expect(box(searchField()).width).toBeGreaterThan(0)
+    expect(box(searchField()).right).toBeLessThanOrEqual(header.right)
   })
 })

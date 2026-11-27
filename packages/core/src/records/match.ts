@@ -155,6 +155,19 @@ function rowSpan(
   return from && to ? [from, to] : null
 }
 
+/**
+ * The first and last calendar dates a record's date field covers, as a
+ * `within` filter compares them: the venue's dates for an event, the
+ * viewer's for a timestamp. Null when it holds no date.
+ */
+export function recordDates(
+  row: Row,
+  field: RecordField,
+  timeZone: string
+): [string, string] | null {
+  return rowSpan(row, field, 'dates', timeZone) as [string, string] | null
+}
+
 function overlaps(span: Span, range: ResolvedRecordRange): boolean {
   const [from, to] = span
   return (

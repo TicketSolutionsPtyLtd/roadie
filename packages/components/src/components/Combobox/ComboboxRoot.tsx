@@ -5,6 +5,7 @@ import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { useHeldOpen } from '../../utils/keepTouchTap'
 import {
   PointerHighlightContext,
+  isTyping,
   usePointerHighlight,
   useTypedQuery
 } from '../../utils/optionHighlight'
@@ -13,6 +14,7 @@ import {
   useHeldWhileClosed,
   useRankedItems
 } from '../../utils/rankMatches'
+import { VirtualListContext, useVirtualListRoot } from '../../utils/virtualList'
 import { ComboboxReadOnlyContext } from './readOnly'
 
 export type ComboboxRootProps<
@@ -52,8 +54,13 @@ export function ComboboxRoot<
   items,
   ...props
 }: ComboboxRootProps<Value, Multiple, Item>) {
-  const [byPointer, handleItemHighlighted] =
-    usePointerHighlight(onItemHighlighted)
+  const [virtualScroll, virtualList] = useVirtualListRoot(props.virtualized)
+  const [byPointer, handleItemHighlighted] = usePointerHighlight<
+    Parameters<NonNullable<typeof onItemHighlighted>>
+  >((value, details) => {
+    virtualList.handleHighlight(details)
+    onItemHighlighted?.(value, details)
+  })
   const { typed, query, handleQueryChange, resetTyped } = useTypedQuery(
     props.open
   )
@@ -92,6 +99,12 @@ export function ComboboxRoot<
           items={rankedItems}
           onInputValueChange={(next, details) => {
             onInputValueChange?.(next, details)
+            if (
+              details.reason === 'input-change' &&
+              !details.isCanceled &&
+              isTyping(details.event)
+            )
+              virtualList.handleTyped()
             handleQueryChange(next, details)
           }}
           onValueChange={(next, details) => {
@@ -106,6 +119,11 @@ export function ComboboxRoot<
             resetTyped(details)
           }}
           {...props}
+          children={
+            <VirtualListContext value={virtualScroll}>
+              {props.children}
+            </VirtualListContext>
+          }
           filter={ownsFilter ? collatorContains(props.locale) : props.filter}
           // After the rest, so an explicit open={undefined} can't undo it.
           open={open}

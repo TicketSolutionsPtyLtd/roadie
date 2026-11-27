@@ -249,10 +249,16 @@ Never make the countdown responsible for the thing that happens. It is a
 display, it stops while the tab is hidden, and whatever occurs at zero must
 occur on its own, with the count reporting rather than driving.
 
+A wait before someone can act again, such as sending a new login code, is a
+system wait too, except that at zero a button appears rather than something
+happening by itself. The OTP field page builds it with `useCountdownUrgency`:
+[Send a new code](/components/otp-field#send-a-new-code).
+
 ## Without React
 
-`Countdown` needs a timer and a render loop, so there is no server-rendered
-equivalent. A template can only print the moment the count runs out, which is
+`Countdown` needs a timer and a render loop, so the server paints only an
+invisible placeholder that holds its room, and the count arrives on hydration.
+A template can only print the moment the count runs out, which is
 [`DateTime`](/components/date-time) rather than a countdown.
 
 `Countdown` itself words its coarse register with `formatDuration`, the same

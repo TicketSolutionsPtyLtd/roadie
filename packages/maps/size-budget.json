@@ -1,0 +1,7 @@
+{
+  ".": { "own": 23075, "full": 354111, "initial": 103026 },
+  "./map": { "own": 14886, "full": 344345, "initial": 91676 },
+  "./map-areas": { "own": 4939, "full": 13048, "initial": 13048 },
+  "./map-clusters": { "own": 4783, "full": 48810, "initial": 48810 },
+  "./map-google": { "own": 1794, "full": 1794, "initial": 1794 }
+}

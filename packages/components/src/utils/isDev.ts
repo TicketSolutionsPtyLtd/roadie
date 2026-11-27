@@ -7,6 +7,10 @@
 // Do NOT replace with `import.meta.env.DEV`: that's Vite-only and will
 // silently never fire in Next.js or Webpack consumers, including the
 // Roadie docs site itself.
+//
+// The build writes each imported `isDev()` call as the check itself
+// (scripts/dev-only.mjs), since no bundler inlines the function, so an
+// app's production bundle drops the branch. Import it rather than copy it.
 
 declare const process: { env?: { NODE_ENV?: string } } | undefined
 

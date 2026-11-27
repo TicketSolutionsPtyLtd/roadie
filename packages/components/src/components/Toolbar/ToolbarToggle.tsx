@@ -8,6 +8,7 @@ import { Toolbar as ToolbarPrimitive } from '@base-ui/react/toolbar'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isIconOnly } from '../../utils/isIconOnly'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { type ToggleProps, toggleVariants } from '../Toggle'
 import { ToolbarContext, ToolbarToggleGroupContext } from './ToolbarContext'
 
@@ -42,7 +43,7 @@ export function ToolbarToggle({
           {...props}
           nativeButton={nativeButton ?? !props.render}
           data-icon-only={isIconOnly(props.children) ? '' : undefined}
-          className={cn(
+          className={mergeClassName(
             group.sliding
               ? [toggleVariants({ intent, emphasis: null, size }), SLIDING]
               : toggleVariants({ intent, emphasis, size }),

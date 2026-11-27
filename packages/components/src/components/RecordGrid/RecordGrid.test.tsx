@@ -3,8 +3,12 @@ import { userEvent } from '@testing-library/user-event'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { RecordGrid, gridLayout } from '.'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 
 const cards = () => [
   ...document.querySelectorAll<HTMLElement>('[data-slot="record-grid-card"]')
@@ -155,6 +159,20 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
       expect(screen.queryByText('No records yet')).toBeNull()
     })
 
+    it('keeps its cards and placeholders at normal emphasis, unlike a board', () => {
+      const { rerender } = render(
+        <RecordGrid data={testShows(2)} fields={showFields} card={grid} />
+      )
+      for (const card of document.querySelectorAll('[data-slot="record-card"]'))
+        expect(card).toHaveClass('emphasis-normal')
+      rerender(<RecordGrid data={[]} fields={showFields} loading card={grid} />)
+      const placeholder = document.querySelector(
+        '[data-slot="record-table-placeholder-row"] > div'
+      )!
+      expect(placeholder).toHaveClass('border')
+      expect(placeholder).not.toHaveClass('emphasis-raised')
+    })
+
     it('dims the cards while more load', () => {
       render(
         <RecordGrid
@@ -203,11 +221,11 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
 
   it('composes as a layout of Records', () => {
     function Composed() {
-      const records = useRecords({ data: testShows(2), fields: showFields })
       return (
-        <Records records={records} layouts={[gridLayout<TestShow>(grid)]}>
-          <Records.Content />
-        </Records>
+        <ShowRecords
+          data={testShows(2)}
+          layouts={[gridLayout<TestShow>(grid)]}
+        />
       )
     }
     render(<Composed />)

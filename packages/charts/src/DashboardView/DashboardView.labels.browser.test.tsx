@@ -2,12 +2,15 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import { DataCard } from '@oztix/roadie-components/data-card'
 import type { ChartCard, DashboardCard } from '@oztix/roadie-core/dashboard'
 
 import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {

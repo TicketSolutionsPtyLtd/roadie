@@ -17,7 +17,8 @@
         "$TURBO_ROOT$/packages/core/scripts/manifest/**",
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.react.json",
-        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*"
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*",
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/fixtures/**"
       ]
     }
   }

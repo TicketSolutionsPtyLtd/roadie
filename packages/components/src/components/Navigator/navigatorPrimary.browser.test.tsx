@@ -10,12 +10,12 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { CommandPalette } from '../CommandPalette'
 import { Pane } from '../Pane'
-import { useStylesheet } from '../Pane/testUtils'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -129,6 +129,181 @@ describe('vertical navigation', () => {
     expect(
       getComputedStyle(within(tile('Orders')).getByText('Orders')).opacity
     ).toBe('0')
+  })
+})
+
+function SearchRail({ expanded }: { expanded?: boolean }) {
+  return (
+    <>
+      <Navigator value='/shows' expanded={expanded}>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand>Oztix</Navigator.Brand>
+          <Navigator.Item value='/shows' href='/shows' icon={<Icon />}>
+            Shows
+          </Navigator.Item>
+          <Navigator.Item value='/orders' href='/orders' icon={<Icon />}>
+            Orders
+          </Navigator.Item>
+          <Navigator.Item
+            value='/account'
+            href='/account'
+            icon={<Icon />}
+            placement='pinned'
+          >
+            Account
+          </Navigator.Item>
+          <Navigator.Search icon={<Icon />} />
+        </Navigator.Primary>
+      </Navigator>
+      <CommandPalette items={['Events', 'Orders']}>
+        <CommandPalette.Input />
+        <CommandPalette.List>
+          {(label: string) => (
+            <CommandPalette.Item key={label} value={label}>
+              {label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+      </CommandPalette>
+    </>
+  )
+}
+
+describe('Navigator.Search on a large screen', () => {
+  let removeStill = () => {}
+  beforeAll(async () => {
+    removeStill = useStylesheet(STILL)
+    await page.viewport(1280, 800)
+  })
+  afterAll(async () => {
+    removeStill()
+    await page.viewport(1920, 1080)
+  })
+
+  const searchTile = () =>
+    within(vertical()).getByRole('button', { name: 'Search' })
+
+  it('sits under the brand and above the destinations, with Account still at the bottom', async () => {
+    render(<SearchRail />)
+    await settle()
+    const search = searchTile().getBoundingClientRect()
+    const shows = tile('Shows').getBoundingClientRect()
+    const account = tile('Account').getBoundingClientRect()
+    expect(search.top).toBeGreaterThanOrEqual(
+      brand().getBoundingClientRect().bottom
+    )
+    expect(search.bottom).toBeLessThan(shows.top)
+    expect(account.top).toBeGreaterThan(
+      tile('Orders').getBoundingClientRect().bottom
+    )
+    expect(
+      vertical().getBoundingClientRect().bottom - account.bottom
+    ).toBeLessThan(40)
+  })
+
+  it("shows the palette's shortcut at the end of the tile only while expanded", async () => {
+    const { rerender } = render(<SearchRail expanded />)
+    await settle()
+    const kbd = () =>
+      searchTile().querySelector<HTMLElement>(
+        '[data-slot="navigator-search-shortcut"]'
+      )!
+    expect(getComputedStyle(kbd()).opacity).toBe('1')
+    expect(kbd().textContent).toMatch(/K/)
+    // The keys sit together, as ⌘K, with no gap between them.
+    expect(getComputedStyle(kbd()).columnGap).toBe('0px')
+    const tileBox = searchTile().getBoundingClientRect()
+    expect(tileBox.right - kbd().getBoundingClientRect().right).toBeLessThan(24)
+    // Whole, and spaced from the label like other trailing content.
+    expect(kbd().clientWidth).toBeGreaterThan(0)
+    expect(kbd().scrollWidth).toBe(kbd().clientWidth)
+    const label = within(searchTile()).getByText('Search')
+    expect(
+      kbd().getBoundingClientRect().left - label.getBoundingClientRect().right
+    ).toBe(12)
+    rerender(<SearchRail expanded={false} />)
+    await settle()
+    expect(getComputedStyle(kbd()).opacity).toBe('0')
+    // Hidden, it takes no width, so the collapsed tile keeps its round shape.
+    expect(kbd().getBoundingClientRect().width).toBe(0)
+    // Its icon lines up with the other collapsed tiles' icons.
+    const iconLeft = (el: HTMLElement) =>
+      el
+        .querySelector('[data-slot="navigator-item-icon"]')!
+        .getBoundingClientRect().left
+    const shows = within(vertical()).getByRole('link', { name: 'Shows' })
+    expect(iconLeft(searchTile())).toBeCloseTo(iconLeft(shows), 0)
+    expect(searchTile().getBoundingClientRect().width).toBeCloseTo(
+      shows.getBoundingClientRect().width,
+      0
+    )
+  })
+
+  it('opens the palette and puts focus in its input', async () => {
+    render(<SearchRail />)
+    await settle()
+    // From the keyboard: Safari doesn't focus a button it clicks.
+    searchTile().focus()
+    await userEvent.keyboard('{Enter}')
+    await expect.element(page.getByRole('dialog')).toBeInViewport()
+    await expect.element(page.getByRole('combobox')).toHaveFocus()
+  })
+})
+
+describe('Navigator.Search while the rail moves', () => {
+  beforeAll(() => page.viewport(1280, 800))
+  afterAll(() => page.viewport(1920, 1080))
+
+  const searchTile = () =>
+    within(vertical()).getByRole('button', { name: 'Search' })
+  const kbd = () =>
+    searchTile().querySelector<HTMLElement>(
+      '[data-slot="navigator-search-shortcut"]'
+    )!
+
+  // Holds every transition at each 20ms step and reads that frame.
+  function scrub(read: () => void) {
+    const animations = document.getAnimations()
+    expect(animations.length).toBeGreaterThan(0)
+    const end = Math.max(
+      ...animations.map((a) => Number(a.effect!.getComputedTiming().endTime))
+    )
+    for (const a of animations) a.pause()
+    for (let time = 0; time <= end; time += 20) {
+      for (const a of animations) a.currentTime = time
+      read()
+    }
+  }
+
+  it.each([
+    ['expands', false, true],
+    ['collapses', true, false]
+  ])('keeps the Search tile inside the rail as it %s', async (_, from, to) => {
+    const { rerender } = render(<SearchRail expanded={from} />)
+    await settle()
+    rerender(<SearchRail expanded={to} />)
+    const shows = within(vertical()).getByRole('link', { name: 'Shows' })
+    scrub(() => {
+      expect(searchTile().getBoundingClientRect().width).toBeCloseTo(
+        shows.getBoundingClientRect().width,
+        0
+      )
+    })
+  })
+
+  it('fades the shortcut out with the label as the rail collapses', async () => {
+    const { rerender } = render(<SearchRail expanded />)
+    await settle()
+    rerender(<SearchRail expanded={false} />)
+    const fading: number[] = []
+    scrub(() => {
+      const opacity = Number(getComputedStyle(kbd()).opacity)
+      if (opacity > 0.1 && opacity < 0.9) {
+        fading.push(kbd().getBoundingClientRect().width)
+      }
+    })
+    expect(fading.length).toBeGreaterThan(0)
+    for (const width of fading) expect(width).toBeGreaterThan(0)
   })
 })
 

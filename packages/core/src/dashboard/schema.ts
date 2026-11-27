@@ -1,4 +1,5 @@
-import { type core, z } from 'zod'
+import type { core } from 'zod'
+import * as z from 'zod'
 
 import { dateRangeSchemas } from '../datetime/rangeSchema'
 import { STATUS_INTENTS } from './cells'

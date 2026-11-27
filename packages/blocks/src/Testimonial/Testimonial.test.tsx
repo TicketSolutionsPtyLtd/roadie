@@ -246,7 +246,8 @@ describe('Testimonial carousel', () => {
     )
     expect(
       screen
-        .getAllByRole('group', { hidden: true })
+        // The dots' group stays in the DOM, hidden, so slides are named apart.
+        .getAllByRole('group', { hidden: true, name: / of / })
         .map((slide) => slide.getAttribute('aria-label'))
     ).toEqual(['1 of 3', '2 of 3', '3 of 3'])
   })

@@ -251,6 +251,13 @@ Tailwind's `animate-spin` is only for a small status icon that stands in for a
 pending action, as Toast's loading icon does. Anything larger, or any bar or
 surface that waits, uses Progress or a loading utility above.
 
+### Time left
+
+`animate-time-left` shrinks a bar to nothing once, over the time in
+`--time-left`, towards its `transform-origin`, as Toast's time-left bar does.
+Set `--time-left` to a time, such as `4000ms`, and pause it with
+`[animation-play-state:paused]`.
+
 ### Enter and exit transitions
 
 These transitions run on Base UI's starting and ending styles, so the exit
@@ -464,7 +471,8 @@ recipe.
 <Guideline title='Grow from where they are' description='An element that expands should expand from its anchor.'>
   <Guideline.Do code={`<div className='origin-[var(--transform-origin)] motion-scale'>…</div>`}>
     Scale a popup from its trigger. Base UI sets `--transform-origin`, and
-    Menu, Popover, Tooltip, Select, and Combobox already scale from it.
+    Menu, Popover, Tooltip, Select, Combobox, and Autocomplete already
+    scale from it.
   </Guideline.Do>
   <Guideline.Dont code={`<div className='origin-center motion-scale'>…</div>`}>
     Don't scale a popup from its centre when its trigger is in a corner. It
@@ -508,7 +516,8 @@ global reset sets these on every element and its `::before` and `::after`:
 Two loading utilities hold a still state instead. `animate-shimmer` drops its
 gradient and keeps the tint, and `animate-indeterminate` holds a full-width
 bar at a soft tint. `animate-pulse-subtle` plays one short pass and stays at
-full opacity.
+full opacity. Pair `animate-time-left` with `motion-reduce:hidden`, so its bar
+hides rather than snap empty.
 
 The reset only reaches CSS animations and transitions on elements. Animation
 run from JavaScript, such as the Web Animations API or a smooth `scrollTo()`,

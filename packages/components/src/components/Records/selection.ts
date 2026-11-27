@@ -1,4 +1,8 @@
-import type { RecordQuery, RecordSelection } from '@oztix/roadie-core/records'
+import {
+  type RecordQuery,
+  type RecordSelection,
+  recordFilterKey
+} from '@oztix/roadie-core/records'
 
 export const EMPTY_SELECTION: RecordSelection = { ids: [] }
 
@@ -91,6 +95,64 @@ export function withinMatching(
   return ids.length === selection.ids.length ? selection : { ids }
 }
 
+/** A selection and the query it belongs to, as `reconcileSelection` holds them between renders. */
+export type TakenSelection = {
+  /** The selection held when it was taken, by the parent or the records' own state. */
+  held: RecordSelection
+  /** The `matchKey` of the query it belongs to. */
+  key: string
+  /** What it narrowed to, or `held` itself. */
+  selection: RecordSelection
+}
+
+export type SelectionInputs = {
+  held: RecordSelection
+  /** The last pick made on screen, keyed to the query applied then. */
+  picked: { selection: RecordSelection; key: string } | null
+  /** The `matchKey` of the query as set, which may run ahead of the rows. */
+  key: string
+  /** The query as set has applied, so its matches exist. */
+  applied: boolean
+  /** Only the server knows what a new search matches. */
+  server: boolean
+  matching: readonly string[]
+}
+
+/**
+ * The selection to show, holding that a pick belongs to the query it was made
+ * against. `taken` comes back as the same object while nothing changed;
+ * `pickRead` says `picked` was used, so a later outside selection that equals
+ * it isn't read as ours.
+ */
+export function reconcileSelection(
+  taken: TakenSelection,
+  { held, picked, key, applied, server, matching }: SelectionInputs
+): { selection: RecordSelection; taken: TakenSelection; pickRead: boolean } {
+  // A selection set with its query, like one restored from the URL, keeps it.
+  if (!sameSelection(taken.held, held)) {
+    const own = picked !== null && sameSelection(picked.selection, held)
+    return {
+      selection: held,
+      taken: { held, key: own ? picked.key : key, selection: held },
+      pickRead: picked !== null
+    }
+  }
+  if (applied && taken.key !== key) {
+    const empty = 'ids' in held && held.ids.length === 0
+    const selection = empty
+      ? held
+      : server || isAll(held)
+        ? EMPTY_SELECTION
+        : withinMatching(held, matching)
+    return { selection, taken: { held, key, selection }, pickRead: false }
+  }
+  return {
+    selection: taken.selection === taken.held ? held : taken.selection,
+    taken,
+    pickRead: false
+  }
+}
+
 export const selectPage = (
   selection: RecordSelection,
   pageIds: readonly string[],
@@ -114,15 +176,4 @@ export const matchKey = ({
   search,
   filters
 }: Pick<RecordQuery, 'search' | 'filters'>) =>
-  JSON.stringify([
-    search.trim(),
-    filters
-      .map((filter) =>
-        JSON.stringify(
-          'values' in filter
-            ? { ...filter, values: [...filter.values].sort() }
-            : filter
-        )
-      )
-      .sort()
-  ])
+  JSON.stringify([search.trim(), filters.map(recordFilterKey).sort()])

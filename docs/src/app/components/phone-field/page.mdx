@@ -1,0 +1,178 @@
+export const metadata = {
+  title: 'Phone field',
+  description: 'A phone number field with a country code picker',
+  status: 'beta',
+  category: 'Fields',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A phone number field with a country code picker.
+
+## Import
+
+```tsx
+import { PhoneField } from '@oztix/roadie-components/phone-field'
+```
+
+## Examples
+
+### Default
+
+Pick a country and type the number as you'd dial it at home. The value is always [E.164](/foundations/forms#phone-numbers): a plus, the dial code, and the number without the prefix used to dial it inside the country. A number that starts with a plus or `00` names its own country, so the picker follows it, and a pasted one leaves only the national part in the box.
+
+```tsx-live
+<Field>
+  <Field.Label>Mobile number</Field.Label>
+  <PhoneField />
+</Field>
+```
+
+### Countries
+
+`defaultCountry` sets the country the field starts on, and `countries` narrows the picker to the codes you give, in that order. Leave `countries` off to list every country by name. The picker has a search, which finds a country by its name, its dial code, or its two-letter code, and a list past 15 countries draws only the rows in view. `countries` narrows what can be picked, not what can be shown: a number from another country still shows that country.
+
+```tsx-live
+<Field>
+  <Field.Label>Mobile number</Field.Label>
+  <PhoneField
+    defaultCountry='NZ'
+    countries={['AU', 'NZ', 'GB', 'US', 'IE', 'SG']}
+  />
+</Field>
+```
+
+### Reading the value
+
+`onValueChange` reports the E.164 number on every edit, with the country, the national digits, and whether the number is `possible`. A possible number has the right length for its country. It isn't a check that the number exists.
+
+```tsx-live-noinline
+function Mobile() {
+  const [value, setValue] = useState('')
+  const [possible, setPossible] = useState(false)
+
+  return (
+    <Field>
+      <Field.Label>Mobile number</Field.Label>
+      <PhoneField
+        value={value}
+        onValueChange={(next, details) => {
+          setValue(next)
+          setPossible(details.possible)
+        }}
+      />
+      <Field.HelperText>
+        {value ? `${value}, ${possible ? 'possible' : 'not possible yet'}` : 'No number yet'}
+      </Field.HelperText>
+    </Field>
+  )
+}
+
+render(<Mobile />)
+```
+
+### Sizes
+
+Heights match `Input`: `sm` is 32px, `md` 40px, and `lg` 48px.
+
+```tsx-live layout=stack
+<PhoneField aria-label='Small' size='sm' />
+<PhoneField aria-label='Medium' size='md' />
+<PhoneField aria-label='Large' size='lg' />
+```
+
+### States
+
+The two controls share one outline through `is-interactive-field-group`: neutral at rest, accent while either has focus, and danger when the `Field` is invalid.
+
+```tsx-live layout=stack
+{/* Default */}
+<PhoneField aria-label='Default' />
+{/* Filled */}
+<PhoneField aria-label='Filled' defaultValue='+61412345678' />
+{/* Invalid */}
+<Field invalid>
+  <PhoneField aria-label='Invalid' defaultValue='+61412' />
+</Field>
+{/* Disabled */}
+<PhoneField aria-label='Disabled' defaultValue='+61412345678' disabled />
+```
+
+### Composition
+
+#### With Field and error
+
+`PhoneField` reports and the form decides. Set `invalid` on the `Field` when the number isn't possible, and say what to fix.
+
+```tsx-live-noinline
+function Mobile() {
+  const [touched, setTouched] = useState(false)
+  const [possible, setPossible] = useState(false)
+
+  return (
+    <Field invalid={touched && !possible} required>
+      <Field.Label showIndicator>Mobile number</Field.Label>
+      <PhoneField
+        name='mobile'
+        onValueChange={(_, details) => setPossible(details.possible)}
+        onBlur={() => setTouched(true)}
+      />
+      <Field.HelperText>We'll text you a code to log in.</Field.HelperText>
+      <Field.ErrorText>
+        Check the number. It looks too short or too long.
+      </Field.ErrorText>
+    </Field>
+  )
+}
+
+render(<Mobile />)
+```
+
+#### Checking the number is real
+
+The field only checks length, because a full numbering plan for every country is about 45 kB. Check the number on the server before you text it. To check it in the browser too, load a phone library when the form submits, so it stays out of the page's first load.
+
+```tsx
+async function isValidMobile(e164: string) {
+  const { isValidPhoneNumber } = await import('libphonenumber-js/min')
+  return isValidPhoneNumber(e164)
+}
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Store E.164, show it formatted'>
+  <Guideline.Do code={`formatPhone('+61412345678', 'national')\n// 0412 345 678`}>
+    Save and send the value as it comes from `onValueChange`. Format it with `formatPhone` wherever someone reads it back.
+  </Guideline.Do>
+  <Guideline.Dont code={`save(details.national)`}>
+    Don't store the national digits alone. Without the dial code, nobody can tell which country the number is in.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Start on the country most people are in'>
+  <Guideline.Do code={`<PhoneField defaultCountry='AU' />`}>
+    Set `defaultCountry` from what you know, such as the event's country, so most people never open the picker.
+  </Guideline.Do>
+  <Guideline.Dont code={`<PhoneField countries={['AU']} />`}>
+    Don't narrow the picker to one country to force a format. Use a plain `Field.Input` with `type='tel'` if only one country is allowed.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- The field is a `group`, named by `Field.Label`. Inside it the number is a `tel` input with the same name, and the picker is named by `countryLabel` and the chosen country, such as "Country code: Australia +61".
+- `Field.Label` focuses the number. Tab reaches the picker first, then the number.
+- `Field.HelperText`, `Field.ErrorText`, and `required` apply to the number only, so a screen reader hears the error once. `invalid` marks the number, and the group so its outline turns danger.
+- The picker opens with `Enter`, `Space`, or the arrow keys, and focus moves to its search. Type a name or a dial code, move through the matches with the arrow keys, and pick one with `Enter`. `Escape` closes it and returns focus to the picker.
+- The picker's popup is a dialog named by `countryLabel`. `searchLabel` names the search and `emptyMessage` is what it says when nothing matches. Set them, with `countryLabel` and `locale`, to translate the picker.
+- Flags are decoration and hidden from screen readers. The dial code is always shown as text, since some systems draw flags as two letters.
+- Outside a `Field`, give the field an `aria-label`. It names the group and the number.
+- The number autofills as `tel`, so a saved number with its dial code picks its own country.
+
+<PropsDefinitions component='PhoneField' />

@@ -43,11 +43,15 @@ const IMPORT_BOUNDARIES: Restriction[] = [
   },
   {
     files: ['packages/components/src/**/*.{ts,tsx}'],
-    except: ['packages/components/src/components/Records/rowWindow.ts'],
+    except: [
+      'packages/components/src/components/Records/rowWindow.ts',
+      'packages/components/src/utils/virtualRows.tsx'
+    ],
     patterns: [
       {
         group: ['@tanstack/**'],
-        message: 'Import @tanstack/react-virtual only in Records/rowWindow.ts.'
+        message:
+          'Import @tanstack/react-virtual only in Records/rowWindow.ts and utils/virtualRows.tsx.'
       }
     ]
   },
@@ -307,21 +311,38 @@ export default defineConfig({
     }),
     roadieRules(
       ['packages/*/src/**/*.{ts,tsx}'],
-      { 'roadie/no-import-meta-env': 'error' },
+      {
+        'roadie/no-import-meta-env': 'error',
+        'roadie/no-named-zod-import': 'error'
+      },
       ['**/*.test.{ts,tsx}']
     ),
+    roadieRules(['packages/*/src/**/*.tsx'], {
+      'roadie/no-dropped-class-name-callback': 'error'
+    }),
     // The testing preset covers the tests; these are the helpers they wait in.
     roadieRules(
       [
         'packages/**/testUtils.{ts,tsx}',
         'packages/**/*TestUtils.{ts,tsx}',
         'packages/**/browserTesting.tsx',
+        'testing/browser/src/index.ts',
         'packages/*/vitest.setup.ts',
         'packages/components/src/components/RecordTable/renderCounter.ts'
       ],
       { 'roadie/no-fixed-sleep': 'error' }
     ),
     ...(testing.overrides as OxlintOverride[]),
+    // The pick helpers live in testing/browser, shared by every package.
+    roadieRules(
+      [
+        'packages/components/**/*.browser.test.tsx',
+        'packages/editor/**/*.browser.test.tsx'
+      ],
+      {
+        'roadie/no-unwaited-popup-pick': 'error'
+      }
+    ),
     roadieRules(
       [
         // Has its own setup (INNO-1238).
@@ -334,6 +355,7 @@ export default defineConfig({
         // Parity tests: each checks a generated file or a mirrored constant
         // against the CSS it comes from, not rendered behaviour.
         'packages/core/src/utils/cn.test.ts',
+        'packages/core/src/utils/classFamilies.test.ts',
         // palette.ts mirrors tokens.css.
         'packages/core/src/dataviz/parity.test.ts',
         // DEFAULT_ACCENT_COLOR mirrors the accent step 9 in tokens.css.

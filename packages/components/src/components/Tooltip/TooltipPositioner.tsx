@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type TooltipPositionerProps = TooltipPrimitive.Positioner.Props &
   RefAttributes<HTMLDivElement>
@@ -17,7 +17,7 @@ export function TooltipPositioner({
   return (
     <TooltipPrimitive.Positioner
       data-slot='tooltip-positioner'
-      className={cn('z-tooltip', className)}
+      className={mergeClassName('z-tooltip', className)}
       sideOffset={sideOffset}
       {...props}
     />

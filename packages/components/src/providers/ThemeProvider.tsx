@@ -2,14 +2,10 @@
 
 import * as React from 'react'
 
-import {
-  generateAccentScale,
-  generateNeutralScale,
-  getAccentChromaSync,
-  getOklchHueSync
-} from '@oztix/roadie-core/colors'
+import { getAccentChromaSync, getOklchHueSync } from '@oztix/roadie-core/colors'
 import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
+import { isDev } from '../utils/isDev'
 import { AccentScopeContext } from './AccentScopeContext'
 
 export {
@@ -46,11 +42,6 @@ export class InvalidColorError extends Error {
     this.name = 'InvalidColorError'
   }
 }
-
-const supportsOklch =
-  typeof CSS !== 'undefined' &&
-  typeof CSS.supports === 'function' &&
-  CSS.supports('color', 'oklch(0 0 0)')
 
 // ---------------------------------------------------------------------------
 // Theme context (accent color + dark mode)
@@ -106,61 +97,25 @@ function accentParams(accentHex: string) {
   }
 }
 
-/** The accent CSS with the full hex scales, for browsers without OKLCH. */
-async function getAccentStyleWithFallbacks(accentHex: string) {
-  const [accent, neutral] = await Promise.all([
-    generateAccentScale(accentHex),
-    generateNeutralScale(accentHex)
-  ])
-  const { hue, chroma } = accentParams(accentHex)
-  const vars = (scale: string, hexes: string[]) =>
-    hexes.map((hex, i) => `--color-${scale}-${i}: ${hex};`).join('\n    ')
-
-  return `
-  :root {
-    --accent-hue: ${hue};
-    --accent-chroma: ${chroma};
-    ${vars('neutral', neutral.light)}
-    ${vars('accent', accent.light)}
-  }
-  .dark {
-    ${vars('neutral', neutral.dark)}
-    ${vars('accent', accent.dark)}
-  }
-`
-}
-
 /** Whether a written accent style already holds this accent. */
 function holdsAccent(css: string, accentHex: string) {
   const { hue, chroma } = accentParams(accentHex)
   const written = (name: string) =>
     Number(css.match(new RegExp(`--accent-${name}:\\s*(-?[\\d.]+)`))?.[1])
-  return (
-    written('hue') === hue &&
-    written('chroma') === chroma &&
-    (supportsOklch || css.includes('--color-accent-'))
-  )
+  return written('hue') === hue && written('chroma') === chroma
 }
 
 /**
- * Generate a <style> tag string for server-side rendering.
- * Sets --accent-hue and --accent-chroma for CSS-native theming,
- * plus hex fallbacks for older browsers.
+ * Generate a <style> tag string for server-side rendering, setting
+ * `--accent-hue` and `--accent-chroma`.
  *
- * Async because it pulls in `colorjs.io` to compute the full 14-step
- * hex scale for non-OKLCH browsers. For pre-hydration bootstrap on
- * modern browsers, prefer `getAccentStyleTagSync`.
+ * @deprecated Use `getAccentStyleTagSync`, which returns the same tag.
  */
 export async function getAccentStyleTag(
   accentHex: string,
   id = ACCENT_STYLE_ID
 ): Promise<string> {
-  if (!isValidHexColor(accentHex)) {
-    throw new InvalidColorError(accentHex)
-  }
-  const css = await getAccentStyleWithFallbacks(accentHex)
-  const safeId = id.replace(/[<>"&]/g, '')
-  return `<style id="${safeId}">${css}</style>`
+  return getAccentStyleTagSync(accentHex, id)
 }
 
 /**
@@ -190,13 +145,11 @@ export function getAccentStyleSync(accentHex: string): string {
 }
 
 /**
- * Synchronous variant of `getAccentStyleTag` for pre-hydration bootstrap.
+ * A `<style>` tag for the accent, for server rendering and pre-hydration
+ * bootstrap.
  *
  * Writes only `--accent-hue` and `--accent-chroma`, the two CSS custom
- * properties Roadie's OKLCH curves read. Modern browsers (Chrome 111+,
- * Safari 15.4+, Firefox 113+) support `oklch()` and get zero-flash
- * theming via this path. Non-OKLCH browsers continue to resolve the
- * full hex scale after hydration through `getAccentStyleTag`.
+ * properties Roadie's OKLCH curves read.
  *
  * Because this function is synchronous it can be called during SSR,
  * inside `getBootstrapScript`, or in a static-export layout that
@@ -257,21 +210,6 @@ function storeTheme(dark: boolean) {
   } catch {
     // localStorage unavailable
   }
-}
-
-/**
- * Dev-mode check that works across consumer bundlers (Next.js, Vite,
- * Webpack, Rollup). See `CarouselRoot.tsx` for the full rationale:
- * `process.env.NODE_ENV` is replaced at build time by every mainstream
- * bundler, and the `typeof process` guard covers runtimes that haven't
- * shimmed `process` on the client.
- */
-declare const process: { env?: { NODE_ENV?: string } } | undefined
-
-function isDev(): boolean {
-  return (
-    typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production'
-  )
 }
 
 // ---------------------------------------------------------------------------
@@ -386,30 +324,14 @@ export function ThemeProvider({
 
   React.useEffect(() => {
     if (nested) return
-    const existing = document.getElementById(ACCENT_STYLE_ID)
-    if (existing && holdsAccent(existing.textContent ?? '', accentColor)) return
-
-    const write = (css: string) => {
-      let style = document.getElementById(ACCENT_STYLE_ID)
-      if (!style) {
-        style = document.createElement('style')
-        style.id = ACCENT_STYLE_ID
-        document.head.appendChild(style)
-      }
-      style.textContent = css
+    let style = document.getElementById(ACCENT_STYLE_ID)
+    if (style && holdsAccent(style.textContent ?? '', accentColor)) return
+    if (!style) {
+      style = document.createElement('style')
+      style.id = ACCENT_STYLE_ID
+      document.head.appendChild(style)
     }
-
-    if (supportsOklch) {
-      write(getAccentStyleSync(accentColor))
-      return
-    }
-    let cancelled = false
-    getAccentStyleWithFallbacks(accentColor).then((css) => {
-      if (!cancelled) write(css)
-    })
-    return () => {
-      cancelled = true
-    }
+    style.textContent = getAccentStyleSync(accentColor)
   }, [nested, accentColor])
 
   const value = React.useMemo(

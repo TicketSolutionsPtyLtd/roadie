@@ -5,8 +5,7 @@ import type { RefAttributes } from 'react'
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover'
 import type { VariantProps } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { triggerPrimaryActionOnEnter } from '../../utils/primaryAction'
 import { popoverPopupVariants } from './variants'
 
@@ -23,7 +22,7 @@ export function PopoverPopup({
   return (
     <PopoverPrimitive.Popup
       data-slot='popover-popup'
-      className={cn(popoverPopupVariants({ intent, className }))}
+      className={mergeClassName(popoverPopupVariants({ intent }), className)}
       onKeyDown={(event) => {
         onKeyDown?.(event)
         triggerPrimaryActionOnEnter(event)

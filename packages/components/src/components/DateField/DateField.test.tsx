@@ -413,7 +413,7 @@ describe('DateField', () => {
         'Enter a date, like 14 Mar or next Fri'
       )
       expect(input).toHaveAccessibleDescription(
-        'Enter a date, like 14 Mar or next Fri'
+        'Type a date or a day Enter a date, like 14 Mar or next Fri'
       )
       await userEvent.clear(input)
       await userEvent.type(input, '14 mar{Enter}')

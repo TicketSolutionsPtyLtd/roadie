@@ -2,10 +2,11 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Tabs, type TabsRootEmphasis } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Button } from '../Button'
-import { useStylesheet } from '../Pane/testUtils'
 import { hoverFill, settledStylesheet } from '../Toggle/testUtils'
 
 let removeStylesheet = () => {}

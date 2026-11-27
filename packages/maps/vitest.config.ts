@@ -6,8 +6,9 @@ import { globSync, readFileSync, realpathSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
-import type { BrowserCommand } from 'vitest/node'
+import { BaseSequencer, type BrowserCommand } from 'vitest/node'
 
+import { pointer } from '@oztix/roadie-browser-testing/config'
 import {
   frameCommands,
   perfInstances,
@@ -18,9 +19,14 @@ import {
   browserInstances,
   browserRetry,
   browserRunOptions,
+  sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import {
+  type ExportEntry,
+  readExports
+} from '../core/scripts/package-exports.mjs'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const PERF_TESTS = 'src/**/*.perf.browser.test.{ts,tsx}'
@@ -92,6 +98,7 @@ const BUILT_IMPORT = /\b(?:import|from)\s*['"]([^'"]+)['"]/g
 function importedPackages() {
   const packages = new Set<string>()
   const visited = new Set<string>()
+  const exportsByDir = new Map<string, ExportEntry[]>()
 
   function add(specifier: string, packageDir: string, chain: string[]) {
     if (/^node:|^vitest\b/.test(specifier)) return
@@ -101,10 +108,11 @@ function importedPackages() {
     }
     const name = specifier.split('/').slice(0, 2).join('/')
     const dir = realpathSync(join(packageDir, 'node_modules', name))
-    const { exports } = JSON.parse(
-      readFileSync(join(dir, 'package.json'), 'utf8')
-    )
-    const entry = exports[`.${specifier.slice(name.length)}`]?.import
+    const subpath = `.${specifier.slice(name.length)}`
+    if (!exportsByDir.has(dir)) exportsByDir.set(dir, readExports(dir))
+    const entry = exportsByDir
+      .get(dir)
+      ?.find((e) => e.subpath === subpath && e.kind === 'js')?.target
     if (entry) visitBuilt(join(dir, entry), dir, [...chain, name])
   }
 
@@ -129,7 +137,7 @@ function importedPackages() {
   return [...packages]
 }
 
-const commands = { reduceMotion, tap, swipe }
+const commands = { pointer, reduceMotion, tap, swipe }
 
 const optimizeDeps = {
   include: [
@@ -154,6 +162,7 @@ export default defineConfig({
   },
   test: {
     ...browserRunOptions,
+    sequence: { sequencer: sizeBalanced(BaseSequencer) },
     projects: [
       {
         extends: true,

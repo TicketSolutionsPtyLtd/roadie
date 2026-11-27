@@ -1,8 +1,9 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition-duration: 0s !important }'
 
@@ -77,7 +78,7 @@ async function pressOn(target: Element) {
 describe('is-focusable', () => {
   it.each([
     ['light', false, '--focus-ring-opacity'],
-    ['dark', true, '--focus-ring-opacity-dark']
+    ['dark', true, '--focus-ring-opacity']
   ])(
     'shows the focus-ring tokens’ ring on keyboard focus in %s mode',
     async (_mode, dark, opacity) => {
