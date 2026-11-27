@@ -784,26 +784,29 @@ describe('Records server mode while a page loads without a count', () => {
       })
       const [loaded, setLoaded] = React.useState(true)
       const page = position.page ?? 0
-      const records = useRecords({
-        data: loaded ? SHOWS.slice(page * 10, page * 10 + 10) : [],
-        fields: showFields,
-        getRowId: (row) => row.id,
-        rowCount: loaded ? 120 : undefined,
-        loading: !loaded,
-        selectable: true,
-        position,
-        onPositionChange: (next) => {
-          setPosition(next)
-          setLoaded(false)
-        }
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-          <Records.Pagination />
-          <Records.BulkActions actions={[]} />
-          <output data-testid='state'>{`${records.mode} ${records.selectedCount}`}</output>
-        </Records.Root>
+        <ShowRecords
+          data={loaded ? SHOWS.slice(page * 10, page * 10 + 10) : []}
+          getRowId={(row) => row.id}
+          rowCount={loaded ? 120 : undefined}
+          loading={!loaded}
+          selectable
+          position={position}
+          onPositionChange={(next) => {
+            setPosition(next)
+            setLoaded(false)
+          }}
+          layouts={layouts}
+        >
+          {(records) => (
+            <>
+              <Records.Content />
+              <Records.Pagination />
+              <Records.BulkActions actions={[]} />
+              <output data-testid='state'>{`${records.mode} ${records.selectedCount}`}</output>
+            </>
+          )}
+        </ShowRecords>
       )
     }
     render(<Paging />)
@@ -828,30 +831,36 @@ describe('Records server bulk actions that settle after a query change', () => {
     )
     function Slow() {
       const [view, setView] = React.useState(EMPTY_VIEW)
-      const records = useRecords({
-        data: SHOWS.slice(0, 10),
-        fields: showFields,
-        defaultPosition: { pageSize: 10 },
-        getRowId: (row) => row.id,
-        rowCount: view.query.search ? 80 : 120,
-        selectable: true,
-        view,
-        onViewChange: setView
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <button
-            type='button'
-            onClick={() =>
-              setView({ ...view, query: { ...view.query, search: 'Perth' } })
-            }
-          >
-            Perth only
-          </button>
-          <Records.Content />
-          <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
-          <output data-testid='count'>{records.selectedCount}</output>
-        </Records.Root>
+        <ShowRecords
+          data={SHOWS.slice(0, 10)}
+          defaultPosition={{ pageSize: 10 }}
+          getRowId={(row) => row.id}
+          rowCount={view.query.search ? 80 : 120}
+          selectable
+          view={view}
+          onViewChange={setView}
+          layouts={layouts}
+        >
+          {(records) => (
+            <>
+              <button
+                type='button'
+                onClick={() =>
+                  setView({
+                    ...view,
+                    query: { ...view.query, search: 'Perth' }
+                  })
+                }
+              >
+                Perth only
+              </button>
+              <Records.Content />
+              <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
+              <output data-testid='count'>{records.selectedCount}</output>
+            </>
+          )}
+        </ShowRecords>
       )
     }
     render(<Slow />)
@@ -879,20 +888,23 @@ describe('Records server bulk actions that settle after a query change', () => {
         })
     )
     function Except() {
-      const records = useRecords({
-        data: SHOWS.slice(0, 10),
-        fields: showFields,
-        defaultPosition: { pageSize: 10 },
-        getRowId: (row) => row.id,
-        rowCount: 120,
-        selectable: true
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-          <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
-          <output data-testid='count'>{records.selectedCount}</output>
-        </Records.Root>
+        <ShowRecords
+          data={SHOWS.slice(0, 10)}
+          defaultPosition={{ pageSize: 10 }}
+          getRowId={(row) => row.id}
+          rowCount={120}
+          selectable
+          layouts={layouts}
+        >
+          {(records) => (
+            <>
+              <Records.Content />
+              <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
+              <output data-testid='count'>{records.selectedCount}</output>
+            </>
+          )}
+        </ShowRecords>
       )
     }
     render(<Except />)
@@ -925,30 +937,33 @@ describe('Records server bulk actions that settle after a query change', () => {
     )
     function Return() {
       const [view, setView] = React.useState(EMPTY_VIEW)
-      const records = useRecords({
-        data: SHOWS.slice(0, 10),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        rowCount: 120,
-        selectable: true,
-        view,
-        onViewChange: setView,
-        defaultPosition: { pageSize: 10 }
-      })
       const search = (text: string) =>
         setView({ ...view, query: { ...view.query, search: text } })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <button type='button' onClick={() => search('Perth')}>
-            Perth only
-          </button>
-          <button type='button' onClick={() => search('')}>
-            Everything
-          </button>
-          <Records.Content />
-          <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
-          <output data-testid='count'>{records.selectedCount}</output>
-        </Records.Root>
+        <ShowRecords
+          data={SHOWS.slice(0, 10)}
+          getRowId={(row) => row.id}
+          rowCount={120}
+          selectable
+          view={view}
+          onViewChange={setView}
+          defaultPosition={{ pageSize: 10 }}
+          layouts={layouts}
+        >
+          {(records) => (
+            <>
+              <button type='button' onClick={() => search('Perth')}>
+                Perth only
+              </button>
+              <button type='button' onClick={() => search('')}>
+                Everything
+              </button>
+              <Records.Content />
+              <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
+              <output data-testid='count'>{records.selectedCount}</output>
+            </>
+          )}
+        </ShowRecords>
       )
     }
     render(<Return />)
@@ -979,27 +994,32 @@ describe('Records server bulk actions that settle after a query change', () => {
         pageSize: 10
       })
       const page = position.page ?? 0
-      const records = useRecords({
-        data: SHOWS.slice(page * 10, page * 10 + 10),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        rowCount: 120,
-        selectable: true,
-        position,
-        onPositionChange: setPosition
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <button
-            type='button'
-            onClick={() => records.setSelection({ ids: ['show-1', 'show-99'] })}
-          >
-            Pick two
-          </button>
-          <Records.Content />
-          <Records.Pagination />
-          <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
-        </Records.Root>
+        <ShowRecords
+          data={SHOWS.slice(page * 10, page * 10 + 10)}
+          getRowId={(row) => row.id}
+          rowCount={120}
+          selectable
+          position={position}
+          onPositionChange={setPosition}
+          layouts={layouts}
+        >
+          {(records) => (
+            <>
+              <button
+                type='button'
+                onClick={() =>
+                  records.setSelection({ ids: ['show-1', 'show-99'] })
+                }
+              >
+                Pick two
+              </button>
+              <Records.Content />
+              <Records.Pagination />
+              <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
+            </>
+          )}
+        </ShowRecords>
       )
     }
     render(<Swap />)
@@ -1017,17 +1037,16 @@ describe('Records bulk actions: hidden ids after an action', () => {
     const user = userEvent.setup()
     function Controlled() {
       const [view, setView] = React.useState(EMPTY_VIEW)
-      const records = useRecords({
-        data: SHOWS.slice(0, 12),
-        fields: showFields,
-        defaultPosition: { pageSize: 10 },
-        getRowId: (row) => row.id,
-        selectable: true,
-        view,
-        onViewChange: setView
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
+        <ShowRecords
+          data={SHOWS.slice(0, 12)}
+          defaultPosition={{ pageSize: 10 }}
+          getRowId={(row) => row.id}
+          selectable
+          view={view}
+          onViewChange={setView}
+          layouts={layouts}
+        >
           <button
             type='button'
             onClick={() =>
@@ -1040,7 +1059,7 @@ describe('Records bulk actions: hidden ids after an action', () => {
           <Records.BulkActions
             actions={[{ label: 'Export', onAction: vi.fn() }]}
           />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Controlled />)
@@ -1067,31 +1086,34 @@ describe('Records selection and filters the fields cannot apply', () => {
       vi.spyOn(console, 'warn').mockImplementation(() => {})
       const user = userEvent.setup()
       function Stray() {
-        const records = useRecords({
-          data: server ? SHOWS.slice(0, 10) : SHOWS,
-          fields: showFields,
-          getRowId: (row) => row.id,
-          rowCount: server ? 120 : undefined,
-          selectable: true,
-          defaultPosition: { pageSize: 10 }
-        })
         return (
-          <Records.Root records={records} layouts={layouts}>
-            <button
-              type='button'
-              onClick={() =>
-                records.addFilter({
-                  field: 'venue',
-                  operator: 'is',
-                  values: ['Kazoo Hollow Room']
-                })
-              }
-            >
-              Stray filter
-            </button>
-            <Records.Content />
-            <Records.BulkActions actions={[]} />
-          </Records.Root>
+          <ShowRecords
+            data={server ? SHOWS.slice(0, 10) : SHOWS}
+            getRowId={(row) => row.id}
+            rowCount={server ? 120 : undefined}
+            selectable
+            defaultPosition={{ pageSize: 10 }}
+            layouts={layouts}
+          >
+            {(records) => (
+              <>
+                <button
+                  type='button'
+                  onClick={() =>
+                    records.addFilter({
+                      field: 'venue',
+                      operator: 'is',
+                      values: ['Kazoo Hollow Room']
+                    })
+                  }
+                >
+                  Stray filter
+                </button>
+                <Records.Content />
+                <Records.BulkActions actions={[]} />
+              </>
+            )}
+          </ShowRecords>
         )
       }
       render(<Stray />)
@@ -1116,18 +1138,17 @@ describe('Records server bulk bar focus when a query change clears it', () => {
     )
     function Narrowed() {
       const [view, setView] = React.useState(EMPTY_VIEW)
-      const records = useRecords({
-        data: SHOWS.slice(0, 10),
-        fields: showFields,
-        defaultPosition: { pageSize: 10 },
-        getRowId: (row) => row.id,
-        rowCount: 120,
-        selectable: true,
-        view,
-        onViewChange: setView
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
+        <ShowRecords
+          data={SHOWS.slice(0, 10)}
+          defaultPosition={{ pageSize: 10 }}
+          getRowId={(row) => row.id}
+          rowCount={120}
+          selectable
+          view={view}
+          onViewChange={setView}
+          layouts={layouts}
+        >
           <button
             type='button'
             hidden
@@ -1140,7 +1161,7 @@ describe('Records server bulk bar focus when a query change clears it', () => {
           </button>
           <Records.Content />
           <Records.BulkActions actions={[{ label: 'Tag', onAction }]} />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Narrowed />)
