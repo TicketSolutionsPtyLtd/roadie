@@ -4,8 +4,7 @@ import { Fragment, type RefAttributes } from 'react'
 
 import { OTPField as OTPFieldPrimitive } from '@base-ui/react/otp-field'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { useFieldControlProps } from '../Field/FieldContext'
 import { OTPFieldContext } from './OTPFieldContext'
@@ -84,7 +83,7 @@ export function OTPFieldRoot({
     >
       <OTPFieldPrimitive.Root
         data-slot='otp-field'
-        className={cn('flex items-center gap-2', className)}
+        className={mergeClassName('flex items-center gap-2', className)}
         length={length}
         id={fieldProps.id}
         required={required ?? field.required}

@@ -1,6 +1,6 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, useEffect, useRef } from 'react'
 
-import { render } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Autocomplete } from './components/Autocomplete'
@@ -11,21 +11,45 @@ import { Combobox } from './components/Combobox'
 import { Dialog } from './components/Dialog'
 import { Drawer } from './components/Drawer'
 import { Menu } from './components/Menu'
+import { NumberField } from './components/NumberField'
+import { OTPField } from './components/OTPField'
 import { Popover } from './components/Popover'
 import { Progress } from './components/Progress'
 import { RadioGroup } from './components/RadioGroup'
+import { ScrollArea } from './components/ScrollArea'
 import { Select } from './components/Select'
 import { Slider } from './components/Slider'
 import { Switch } from './components/Switch'
 import { Tabs } from './components/Tabs'
+import { Toast, useToastManager } from './components/Toast'
 import { Toggle } from './components/Toggle'
 import { ToggleGroup } from './components/ToggleGroup'
+import { Toolbar } from './components/Toolbar'
 import { Tooltip } from './components/Tooltip'
 
 const PROBE = 'callback-probe'
 
 type Callback = () => string
 type Family = [name: string, ui: (c: Callback) => ReactElement, slots: string[]]
+
+// Toast parts render only for a toast in the manager.
+function Toasts({ c }: { c: Callback }) {
+  const manager = useToastManager()
+  const added = useRef(false)
+  useEffect(() => {
+    if (added.current) return
+    added.current = true
+    manager.add({ title: 'Saved', description: 'Doors at 7' })
+  }, [manager])
+  return manager.toasts.map((toast) => (
+    <Toast.Root key={toast.id} toast={toast} className={c}>
+      <Toast.Content className={c}>
+        <Toast.Title className={c} />
+        <Toast.Description className={c} />
+      </Toast.Content>
+    </Toast.Root>
+  ))
+}
 
 // Each family passes the callback to every part whose className lands on a Base UI part.
 const families: Family[] = [
@@ -421,20 +445,108 @@ const families: Family[] = [
       </Tooltip.Root>
     ),
     ['tooltip-positioner', 'tooltip-popup', 'tooltip-arrow']
+  ],
+  [
+    'NumberField',
+    (c) => (
+      <NumberField.Root defaultValue={2} className={c}>
+        <NumberField.ScrubArea className={c}>
+          <NumberField.ScrubAreaCursor className={c} />
+        </NumberField.ScrubArea>
+        <NumberField.Group className={c}>
+          <NumberField.Decrement className={c} />
+          <NumberField.Input aria-label='Tickets' className={c} />
+          <NumberField.Increment className={c} />
+        </NumberField.Group>
+      </NumberField.Root>
+    ),
+    [
+      'number-field',
+      'number-field-scrub-area',
+      'number-field-group',
+      'number-field-decrement',
+      'number-field-input',
+      'number-field-increment'
+    ]
+  ],
+  [
+    'OTPField',
+    (c) => (
+      <OTPField.Root length={2} aria-label='Code' className={c}>
+        <OTPField.Input className={c} />
+        <OTPField.Separator className={c} />
+        <OTPField.Input className={c} />
+      </OTPField.Root>
+    ),
+    ['otp-field', 'otp-field-separator', 'otp-field-input']
+  ],
+  [
+    'ScrollArea',
+    (c) => (
+      <ScrollArea.Root className={c}>
+        <ScrollArea.Viewport className={c}>
+          <ScrollArea.Content className={c}>Lineup</ScrollArea.Content>
+        </ScrollArea.Viewport>
+        <ScrollArea.Scrollbar keepMounted className={c}>
+          <ScrollArea.Thumb className={c} />
+        </ScrollArea.Scrollbar>
+      </ScrollArea.Root>
+    ),
+    [
+      'scroll-area',
+      'scroll-area-viewport',
+      'scroll-area-content',
+      'scroll-area-scrollbar',
+      'scroll-area-thumb'
+    ]
+  ],
+  [
+    'Toast',
+    (c) => (
+      <Toast.Provider>
+        <Toast.Viewport className={c}>
+          <Toasts c={c} />
+        </Toast.Viewport>
+      </Toast.Provider>
+    ),
+    [
+      'toast-viewport',
+      'toast',
+      'toast-content',
+      'toast-title',
+      'toast-description'
+    ]
+  ],
+  [
+    'Toolbar',
+    (c) => (
+      <Toolbar.Root aria-label='Format'>
+        <Toolbar.Group className={c}>
+          <Toolbar.ToggleGroup aria-label='Style' className={c}>
+            <Toolbar.Toggle value='bold' aria-label='Bold' className={c} />
+          </Toolbar.ToggleGroup>
+        </Toolbar.Group>
+      </Toolbar.Root>
+    ),
+    ['toolbar-group', 'toolbar-toggle-group', 'toolbar-toggle']
   ]
 ]
 
 describe('a className callback on a Base UI wrapper', () => {
-  it.each(families)('adds its classes to every %s part', (_, ui, slots) => {
-    const className = vi.fn(() => PROBE)
-    render(ui(className))
-    const missing = slots.filter(
-      (slot) =>
-        !document
-          .querySelector(`[data-slot="${slot}"]`)
-          ?.classList.contains(PROBE)
-    )
-    expect(missing).toEqual([])
-    expect(className).toHaveBeenCalledWith(expect.any(Object))
-  })
+  it.each(families)(
+    'adds its classes to every %s part',
+    async (_, ui, slots) => {
+      const className = vi.fn(() => PROBE)
+      render(ui(className))
+      const missing = () =>
+        slots.filter(
+          (slot) =>
+            !document
+              .querySelector(`[data-slot="${slot}"]`)
+              ?.classList.contains(PROBE)
+        )
+      await waitFor(() => expect(missing()).toEqual([]))
+      expect(className).toHaveBeenCalledWith(expect.any(Object))
+    }
+  )
 })

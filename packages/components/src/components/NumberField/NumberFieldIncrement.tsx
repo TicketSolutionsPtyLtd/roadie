@@ -5,8 +5,7 @@ import { type RefAttributes, use } from 'react'
 import { NumberField as NumberFieldPrimitive } from '@base-ui/react/number-field'
 import { PlusIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { NumberFieldContext } from './NumberFieldContext'
 import { numberFieldStepperClasses, stepperIconClass } from './variants'
 
@@ -42,7 +41,7 @@ export function NumberFieldIncrement({
   return (
     <NumberFieldPrimitive.Increment
       data-slot='number-field-increment'
-      className={cn(
+      className={mergeClassName(
         numberFieldStepperClasses({
           fieldEmphasis: context.emphasis,
           size: context.size,
