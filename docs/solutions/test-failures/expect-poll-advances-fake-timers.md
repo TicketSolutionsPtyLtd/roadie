@@ -29,9 +29,9 @@ first test of a file is broken, or like the component's observer is late.
 
 ## Cause
 
-`expect.poll` and `vi.waitFor` advance fake timers by their interval (50ms by
-default) after every failed check: Vitest calls
-`vi.advanceTimersByTime(interval)` whenever `vi.isFakeTimers()` is true. An
+Under fake timers, Vitest calls `vi.advanceTimersByTime(interval)` (50ms by
+default) inside its waits: `expect.poll` after each failed check, and
+`vi.waitFor` before every check, the first included. An
 `IntersectionObserver` reports in a later rendering update, never before the
 first check, so the first check always fails, and the interval the observer
 starts has run 50ms by the time the poll passes. Measured on the Hero in

@@ -31,6 +31,7 @@ const untilFrame = (done: () => boolean) =>
 
 // Only the cycle's interval is fake, so the observer and frames stay real.
 const cycling = () => untilFrame(() => vi.getTimerCount() > 0)
+const stopped = () => untilFrame(() => vi.getTimerCount() === 0)
 
 const intersectionCheck = (element: Element) =>
   new Promise((done) => {
@@ -40,6 +41,17 @@ const intersectionCheck = (element: Element) =>
     })
     observer.observe(element)
   })
+
+// Two checks, because the hero's own observer can be told a frame after a new
+// one; act flushes what its report rendered.
+const heardByObserver = (element: Element) =>
+  withFrames(async () => {
+    await act(() => intersectionCheck(element))
+    await act(() => intersectionCheck(element))
+  })
+
+const primaryPanel = (container: HTMLElement) =>
+  container.querySelector('[data-slot=hero-primary]')!
 
 let play: ReturnType<typeof vi.spyOn>
 let pause: ReturnType<typeof vi.spyOn>
@@ -82,12 +94,7 @@ describe('Hero photo cycling', () => {
         <Hero {...bento(photo)} />
       </>
     )
-    const primary = container.querySelector('[data-slot=hero-primary]')!
-    // Two checks, because the hero's own observer can be told a frame after a new one.
-    await withFrames(async () => {
-      await intersectionCheck(primary)
-      await intersectionCheck(primary)
-    })
+    await heardByObserver(primaryPanel(container))
 
     expect(vi.getTimerCount()).toBe(0)
     act(() => vi.advanceTimersByTime(10000))
@@ -98,6 +105,7 @@ describe('Hero photo cycling', () => {
   it('holds the first photos, and leaves the video paused, for viewers who reduce motion', async () => {
     await commands.reducedMotion(true)
     const { container } = render(<Hero {...bento(photo)} />)
+    await heardByObserver(primaryPanel(container))
 
     act(() => vi.advanceTimersByTime(10000))
 
@@ -117,21 +125,25 @@ describe('Hero photo cycling', () => {
     expect(shown(SECOND)).not.toBeNull()
 
     await commands.reducedMotion(true)
-    await untilFrame(() => pause.mock.calls.length > 0)
-    act(() => vi.advanceTimersByTime(8000))
+    await stopped()
+    act(() => vi.advanceTimersByTime(4000))
 
     expect(shown(SECOND)).not.toBeNull()
+    expect(pause).toHaveBeenCalled()
   })
 
   it('pauses and plays the video and the photos with one toggle', async () => {
     render(<Hero {...bento(photo)} />)
     await cycling()
+    expect(toggle(/pause/i)).not.toHaveAttribute('aria-pressed')
 
     await userEvent.click(toggle(/pause/i))
-    act(() => vi.advanceTimersByTime(8000))
+    await stopped()
+    act(() => vi.advanceTimersByTime(4000))
 
     expect(pause).toHaveBeenCalled()
     expect(shown(FIRST)).not.toBeNull()
+    expect(toggle(/play/i)).not.toHaveAttribute('aria-pressed')
 
     play.mockClear()
     await userEvent.click(toggle(/play/i))
