@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Toolbar } from '../Toolbar'
 import type { MapActions } from './MapRoot'
+import type { MapAreaGeometry } from './engine'
 import { Map } from './index'
 import { fakeEngine, renderMap, venue } from './mapTestUtils'
 
@@ -73,6 +74,40 @@ describe('Map view', () => {
     expect(fake.instance.setView).toHaveBeenLastCalledWith(
       { center: north, zoom: 16 },
       { animate: true }
+    )
+  })
+
+  it('fits every pin and area on the map from actionsRef', async () => {
+    const fake = fakeEngine()
+    const actionsRef = createRef<MapActions>()
+    const site: MapAreaGeometry = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [153.0, -27.5],
+          [153.01, -27.5],
+          [153.01, -27.49],
+          [153.0, -27.5]
+        ]
+      ]
+    }
+    await renderMap(
+      fake.engine,
+      <>
+        <Map.Marker position={east} label='Kazoo Hollow Room' />
+        <Map.Marker position={north} label='Foxglove Tin Pavilion' />
+        <Map.Area area={site} label='Barnacle Bowl grounds' />
+      </>,
+      { actionsRef }
+    )
+
+    act(() => actionsRef.current!.fitTo())
+    expect(fake.instance.fitBounds).toHaveBeenLastCalledWith(
+      {
+        southWest: { lat: -27.5, lng: 153.0 },
+        northEast: { lat: north.lat, lng: east.lng }
+      },
+      expect.objectContaining({ animate: true, padding: 48, maxZoom: 16 })
     )
   })
 

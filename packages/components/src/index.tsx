@@ -208,6 +208,7 @@ export {
   maplibreEngine,
   type MapProps,
   type MapActions,
+  type MapAreaProps,
   type MapMarkerProps,
   type MapToolbarProps,
   type MapPinLook,
