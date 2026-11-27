@@ -19,6 +19,7 @@ export type DrawerMountProps = {
   locale: string
   currency: string
   initialState?: 'open' | 'closed'
+  onHeightChange?: (px: number) => void
 }
 
 const inTenMinutes = () => new Date(Date.now() + 10 * 60 * 1000).toISOString()
@@ -159,11 +160,13 @@ export function describeDrawerGeometry(
   })
 
   describe(`${skin} CartDrawer geometry`, () => {
-    it('docks at its header and footer height, and publishes it to the page', async () => {
-      await show()
+    it('docks at its header and footer height, and publishes it to the page and onHeightChange', async () => {
+      const reported: number[] = []
+      await show({ onHeightChange: (px) => reported.push(px) })
       await expect.poll(dockedHeight).toBeGreaterThan(100)
       await settlesAt(dockedHeight)
       await settlesAt(publishedHeight)
+      expect(reported.at(-1)).toBe(publishedHeight())
       expect(pageScrolls()).toBe(true)
     })
 

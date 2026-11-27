@@ -269,19 +269,6 @@ describe('CartDrawer (Vue)', () => {
     expect(drawer.getAttribute('role')).toBe('region')
   })
 
-  it('reports the closed drawer height via onHeightChange and the CSS var', async () => {
-    const cart = mockCart()
-    const onHeightChange = vi.fn()
-    render(CartDrawer, {
-      props: { ...baseProps, cart, onNavigate: vi.fn(), onHeightChange }
-    })
-    await flushPromises()
-    expect(onHeightChange).toHaveBeenCalled()
-    expect(
-      document.documentElement.style.getPropertyValue('--cart-drawer-height')
-    ).toMatch(/px$/)
-  })
-
   it('reads count + total from details, not the disagreeing summary', async () => {
     // summary lags details (the stale-summary bug): the fresh /cart payload
     // sums to 2 tickets / 50, while /cart/summary still reports 1 / 25.
