@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { useFieldControlProps } from '../Field/FieldContext'
 
@@ -27,7 +26,7 @@ export function AutocompleteInput({
   return (
     <AutocompletePrimitive.Input
       data-slot='autocomplete-input'
-      className={cn(
+      className={mergeClassName(
         'min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle',
         className
       )}

@@ -4,8 +4,7 @@ import { type RefAttributes, use } from 'react'
 
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { TabsContext } from './TabsContext'
 import { tabsIndicatorVariants } from './variants'
 
@@ -27,7 +26,7 @@ export function TabsIndicator({
     <TabsPrimitive.Indicator
       data-slot='tabs-indicator'
       renderBeforeHydration={renderBeforeHydration}
-      className={cn(tabsIndicatorVariants({ emphasis }), className)}
+      className={mergeClassName(tabsIndicatorVariants({ emphasis }), className)}
       {...props}
     />
   )

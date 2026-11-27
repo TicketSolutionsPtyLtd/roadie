@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { listEmptyClass } from '../../variants'
 
 export type ComboboxEmptyProps = ComboboxPrimitive.Empty.Props &
@@ -15,7 +14,7 @@ export function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps) {
   return (
     <ComboboxPrimitive.Empty
       data-slot='combobox-empty'
-      className={cn(listEmptyClass, className)}
+      className={mergeClassName(listEmptyClass, className)}
       {...props}
     />
   )

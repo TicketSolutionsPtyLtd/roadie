@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useSliderContext } from './SliderContext'
 import { sliderTrackVariants } from './variants'
 
@@ -17,7 +16,7 @@ export function SliderTrack({ className, ...props }: SliderTrackProps) {
   return (
     <SliderPrimitive.Track
       data-slot='slider-track'
-      className={cn(sliderTrackVariants({ size }), className)}
+      className={mergeClassName(sliderTrackVariants({ size }), className)}
       {...props}
     />
   )

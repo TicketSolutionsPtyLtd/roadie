@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import {
   floatingPopupClass,
   listPopupWidthClass,
@@ -19,10 +18,8 @@ export function ComboboxPopup({ className, ...props }: ComboboxPopupProps) {
   return (
     <ComboboxPrimitive.Popup
       data-slot='combobox-popup'
-      className={cn(
-        floatingPopupClass,
-        listPopupWidthClass,
-        scrollingPopupRimClass,
+      className={mergeClassName(
+        [floatingPopupClass, listPopupWidthClass, scrollingPopupRimClass],
         className
       )}
       {...props}

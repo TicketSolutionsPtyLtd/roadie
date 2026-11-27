@@ -322,9 +322,6 @@ export default defineConfig({
       ['packages/*/src/**/*.tsx'],
       { 'roadie/no-dropped-class-name-callback': 'error' },
       [
-        'Autocomplete',
-        'Collapsible',
-        'Combobox',
         'Dialog',
         'Drawer',
         'Menu',
@@ -333,11 +330,7 @@ export default defineConfig({
         'OTPField',
         'Popover',
         'ScrollArea',
-        'Select',
-        'Slider',
-        'Tabs',
         'Toast',
-        'ToggleGroup',
         'Toolbar',
         'Tooltip'
       ].map((folder) => `packages/components/src/components/${folder}/**`)
