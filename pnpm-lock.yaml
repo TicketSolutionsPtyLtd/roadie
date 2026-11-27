@@ -1002,6 +1002,9 @@ importers:
       '@number-flow/vue':
         specifier: 0.5.2
         version: 0.5.2(vue@3.5.45(@typescript/typescript6@6.0.2))
+      '@oztix/roadie-browser-testing':
+        specifier: workspace:*
+        version: link:../../testing/browser
       '@oztix/roadie-components':
         specifier: workspace:*
         version: link:../components
