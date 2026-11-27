@@ -134,7 +134,9 @@ const cases = {
       "import { Button } from '@base-ui/react/button'\nconst classes = cn(variants({ size, className }));\n<Button className={classes} />",
       "import { Button } from '@base-ui/react/button'\n<Button className={`${base} ${className}`} />",
       "import { Button } from '@base-ui/react/button'\n<Button className={open ? cn(base, className) : base} />",
-      "import { Button } from '@base-ui/react/button'\n<Button className={className && cn(base, className)} />"
+      "import { Button } from '@base-ui/react/button'\n<Button className={className && cn(base, className)} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={cn(base, className) || base} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={(state) => cn(base, className)} />"
     ]
   },
   'no-import-meta-env': {

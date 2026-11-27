@@ -143,8 +143,8 @@ classes and the consumer's with `mergeClassName(base, className)` from
 the callback the prop types promise. `base` takes what `cn()` takes, so a list
 is `mergeClassName([a, b], className)`. The `roadie/no-dropped-class-name-callback`
 lint rule catches a `className` joined inline, in a branch, or in a `const`, on
-a Base UI part; it can't see one put on a plain element, such as a row's
-`<label>`.
+a Base UI part. It can't see one put on a plain element, such as a row's
+`<label>`, one renamed as it's destructured, or a `let` assigned later.
 
 ## 5. Styling via data attributes
 

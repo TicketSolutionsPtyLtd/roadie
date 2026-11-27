@@ -115,22 +115,25 @@ const foundPopupItemIn = (identifier, sourceCode) => {
 const jsxRoot = (name) =>
   name.type === 'JSXMemberExpression' ? jsxRoot(name.object) : name
 
-// `className`, or `props.className`, anywhere inside the node.
-const readsClassName = (node) => {
-  if (!node || typeof node.type !== 'string') return false
-  if (node.type === 'Identifier') return node.name === 'className'
-  if (node.type === 'Property') return readsClassName(node.value)
-  if (node.type === 'MemberExpression' && node.property.name === 'className') {
-    return true
-  }
-  return Object.entries(node).some(
-    ([key, child]) =>
-      key !== 'parent' &&
-      (Array.isArray(child)
-        ? child.some(readsClassName)
-        : readsClassName(child))
+// Whether `match` holds for the node or anything inside it.
+const anyNode = (node, match) =>
+  !!node &&
+  typeof node.type === 'string' &&
+  (match(node) ??
+    Object.entries(node).some(
+      ([key, child]) =>
+        key !== 'parent' && [child].flat().some((part) => anyNode(part, match))
+    ))
+
+// `className`, or `props.className`, read anywhere inside the node.
+const readsClassName = (node) =>
+  anyNode(node, (part) =>
+    part.type === 'Identifier'
+      ? part.name === 'className'
+      : part.type === 'Property'
+        ? readsClassName(part.value)
+        : part.property?.name === 'className' || undefined
   )
-}
 
 // What a className can come from: each branch, or what a variable starts as.
 const joinsIn = (expression, sourceCode) => {
@@ -140,7 +143,9 @@ const joinsIn = (expression, sourceCode) => {
     )
   }
   if (expression.type === 'LogicalExpression') {
-    return joinsIn(expression.right, sourceCode)
+    return [expression.left, expression.right].flatMap((side) =>
+      joinsIn(side, sourceCode)
+    )
   }
   if (expression.type !== 'Identifier') return [expression]
   for (
@@ -157,9 +162,13 @@ const joinsIn = (expression, sourceCode) => {
   return []
 }
 
+const callsClassName = (node) =>
+  anyNode(node, (part) => part.callee?.name === 'className' || undefined)
+
 // Passed through, resolved by hand, or joined with the joiner.
 const keepsCallback = (node) =>
-  /Function|MemberExpression/.test(node.type) ||
+  node.type === 'MemberExpression' ||
+  (/Function/.test(node.type) && callsClassName(node.body)) ||
   node.callee?.name === 'mergeClassName'
 
 const rules = {
