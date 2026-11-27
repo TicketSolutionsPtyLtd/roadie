@@ -1,5 +1,5 @@
 {
-  ".": { "own": 250176, "full": 688766, "initial": 435249 },
+  ".": { "own": 251330, "full": 690009, "initial": 436249 },
   "./accordion": { "own": 1760, "full": 10687, "initial": 10687 },
   "./autocomplete": { "own": 7408, "full": 66301, "initial": 54040 },
   "./avatar": { "own": 2092, "full": 14681, "initial": 14681 },
@@ -46,6 +46,7 @@
   "./list": { "own": 2759, "full": 11706, "initial": 11706 },
   "./logo": { "own": 3085, "full": 11346, "initial": 11346 },
   "./map": { "own": 27651, "full": 344770, "initial": 91416 },
+  "./map-google": { "own": 1794, "full": 1794, "initial": 1794 },
   "./mark": { "own": 760, "full": 9121, "initial": 9121 },
   "./marquee": { "own": 1496, "full": 9686, "initial": 9686 },
   "./menu": { "own": 6054, "full": 56209, "initial": 56209 },
