@@ -10,10 +10,14 @@ import {
   vi
 } from 'vitest'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RecordGrid } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { pickOption } from '../../css/testUtils'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import {
   type TestShow,
   groupedShowFields,

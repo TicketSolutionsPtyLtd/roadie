@@ -11,11 +11,15 @@ import {
 } from 'vitest'
 import { userEvent as browserUser } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import { recordFields } from '@oztix/roadie-core/records'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { pickMenuItem, releaseDragPointer } from '../../css/testUtils'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
+import { releaseDragPointer } from '../../css/testUtils'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { type Move, Shows, column, titles } from './boardTestUtils'
 

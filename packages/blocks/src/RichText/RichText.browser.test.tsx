@@ -15,7 +15,7 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, expectReadable, setMode } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 import { longForm, statement } from './fixtures'
 
@@ -229,18 +229,9 @@ describe.each(
           </main>
         )
 
-        expect(
-          textContrast(container.querySelector('.prose p')!),
-          intent
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
-        expect(
-          textContrast(container.querySelector('h2')!),
-          intent
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-        expect(
-          textContrast(container.querySelector('mark')!),
-          intent
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+        expectReadable(container.querySelector('.prose p')!, intent)
+        expectReadable(container.querySelector('h2')!, intent)
+        expectReadable(container.querySelector('mark')!, intent)
         unmount()
       }
       setMode('light')

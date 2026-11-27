@@ -2,6 +2,7 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import type {
   DataTableColumn,
   DataTableRow
@@ -9,7 +10,6 @@ import type {
 
 import { Chart } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

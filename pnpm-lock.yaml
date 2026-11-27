@@ -413,6 +413,9 @@ importers:
       '@arethetypeswrong/cli':
         specifier: 0.18.5
         version: 0.18.5
+      '@oztix/roadie-browser-testing':
+        specifier: workspace:*
+        version: link:../../testing/browser
       '@oztix/roadie-components':
         specifier: workspace:*
         version: link:../components
@@ -489,6 +492,9 @@ importers:
       '@arethetypeswrong/cli':
         specifier: 0.18.5
         version: 0.18.5
+      '@oztix/roadie-browser-testing':
+        specifier: workspace:*
+        version: link:../../testing/browser
       '@oztix/roadie-components':
         specifier: workspace:*
         version: link:../components
@@ -604,6 +610,9 @@ importers:
       '@base-ui/react':
         specifier: 1.9.0
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@oztix/roadie-browser-testing':
+        specifier: workspace:*
+        version: link:../../testing/browser
       '@oztix/roadie-frames':
         specifier: workspace:*
         version: link:../../testing/frames
@@ -819,6 +828,9 @@ importers:
       '@arethetypeswrong/cli':
         specifier: 0.18.5
         version: 0.18.5
+      '@oztix/roadie-browser-testing':
+        specifier: workspace:*
+        version: link:../../testing/browser
       '@oztix/roadie-components':
         specifier: workspace:*
         version: link:../components
@@ -999,6 +1011,9 @@ importers:
       '@phosphor-icons/vue':
         specifier: 2.2.1
         version: 2.2.1(vue@3.5.45(@typescript/typescript6@6.0.2))
+      '@tailwindcss/vite':
+        specifier: 4.3.5
+        version: 4.3.5(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.0))
       '@tanstack/react-query':
         specifier: 5.106.1
         version: 5.106.1(@types/react@19.3.0)(react@19.3.1)
@@ -1026,6 +1041,9 @@ importers:
       '@vitejs/plugin-vue':
         specifier: 6.0.11
         version: 6.0.11(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.0))(vue@3.5.45(@typescript/typescript6@6.0.2))
+      '@vitest/browser-playwright':
+        specifier: 5.1.0
+        version: 5.1.0(msw@2.12.14(@types/node@24.19.2)(@typescript/typescript6@6.0.2))(playwright@1.65.0)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.0))(vitest@5.1.0)
       '@vitest/coverage-v8':
         specifier: 5.1.0
         version: 5.1.0(@vitest/browser@5.1.0)(vitest@5.1.0)
@@ -1038,6 +1056,9 @@ importers:
       motion:
         specifier: 14.9.1
         version: 14.9.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      playwright:
+        specifier: 1.65.0
+        version: 1.65.0
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -1067,6 +1088,39 @@ importers:
         version: 3.3.14(@typescript/typescript6@6.0.2)
 
   skills: {}
+
+  testing/browser:
+    devDependencies:
+      '@testing-library/dom':
+        specifier: 10.4.2
+        version: 10.4.2
+      '@testing-library/react':
+        specifier: 16.3.3
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/node':
+        specifier: 24.19.2
+        version: 24.19.2
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitest/browser-playwright':
+        specifier: 5.1.0
+        version: 5.1.0(msw@2.12.14(@types/node@24.19.2)(@typescript/typescript6@6.0.2))(playwright@1.65.0)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.1))(vitest@5.1.0)
+      playwright:
+        specifier: 1.65.0
+        version: 1.65.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+      vitest:
+        specifier: 5.1.0
+        version: 5.1.0(@types/node@24.19.2)(@vitest/browser-playwright@5.1.0)(@vitest/coverage-v8@5.1.0)(@vitest/ui@5.1.0)(jsdom@31.0.0)(msw@2.12.14(@types/node@24.19.2)(@typescript/typescript6@6.0.2))(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.1))
 
   testing/frames:
     devDependencies:

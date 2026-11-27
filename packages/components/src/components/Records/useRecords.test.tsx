@@ -1,4 +1,6 @@
-import { act, renderHook } from '@testing-library/react'
+import { Suspense, use, useLayoutEffect } from 'react'
+
+import { act, render, renderHook } from '@testing-library/react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import type {
@@ -743,5 +745,71 @@ describe('useRecords selection set with its query', () => {
     )
     expect(result.current.selection).toEqual({ allMatching: true, except: [] })
     expect(changes).toEqual([])
+  })
+
+  it('drops a record picked while a search waits to apply, once it applies and hides it', async () => {
+    // A deferred render that suspends commits nothing, so the search lags
+    // here as it does while a long list filters.
+    let release = () => {}
+    const loading = new Promise<void>((resolve) => (release = resolve))
+    let loaded = false
+    void loading.then(() => (loaded = true))
+    const latest: { current?: RecordsInstance<TestShow> } = {}
+    function Rows({ search }: { search: string }) {
+      if (search !== '' && !loaded) use(loading)
+      return null
+    }
+    function List({ search }: { search: string }) {
+      const records = useRecords<TestShow>({
+        data: shows,
+        fields: showFields,
+        getRowId: (row) => row.id,
+        view: view({ search }),
+        defaultSelection: { ids: ['show-1'] }
+      })
+      useLayoutEffect(() => {
+        latest.current = records
+      })
+      return (
+        <Suspense>
+          <Rows search={records.appliedView.query.search} />
+        </Suspense>
+      )
+    }
+    const { rerender } = render(<List search='' />)
+    await act(async () => rerender(<List search='Ocean' />))
+    expect(latest.current!.appliedView.query.search).toBe('')
+    await act(async () => latest.current!.toggleRow('show-0'))
+    expect(latest.current!.selection).toEqual({ ids: ['show-1', 'show-0'] })
+    await act(async () => release())
+    expect(latest.current!.appliedView.query.search).toBe('Ocean')
+    expect(latest.current!.selection).toEqual({ ids: ['show-0'] })
+  })
+
+  it('reads an outside selection as outside, even when it equals an old pick', async () => {
+    const { result, rerender } = renderHook(
+      ({ view, selection }: { view: RecordView; selection: RecordSelection }) =>
+        useRecordsState({
+          data: shows,
+          fields: showFields,
+          getRowId: (row) => row.id,
+          view,
+          selection
+        }),
+      {
+        initialProps: {
+          view: view(),
+          selection: { ids: [] } as RecordSelection
+        }
+      }
+    )
+    const all = { allMatching: true, except: [] } as const
+    await act(() => result.current.selectAllMatching())
+    rerender({ view: view(), selection: all })
+    rerender({ view: view(), selection: { ids: [] } })
+    await act(async () =>
+      rerender({ view: view({ search: 'Ocean' }), selection: all })
+    )
+    expect(result.current.selection).toEqual(all)
   })
 })

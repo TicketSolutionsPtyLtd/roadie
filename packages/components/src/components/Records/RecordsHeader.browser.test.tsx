@@ -4,16 +4,20 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import {
+  STILL,
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
 import { Pane } from '../Pane'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from './testUtils'
 import type { RecordViewDefaults } from './types'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 const TIMEOUT = { timeout: 20_000 }
 
 let removeStylesheets = () => {}

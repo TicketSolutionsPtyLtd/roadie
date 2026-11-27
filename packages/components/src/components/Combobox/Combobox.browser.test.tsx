@@ -2,15 +2,16 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Combobox, type ComboboxInputGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable, withFrames } from '../../css/testUtils'
+import { setHoverCapable } from '../../css/testUtils'
 import { pointAt } from '../../utils/pointerTestUtils'
 import { Field } from '../Field'
-import { useStylesheet } from '../Pane/testUtils'
 
 const TRANSPARENT = /rgba\(0, 0, 0, 0\)|transparent/
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {

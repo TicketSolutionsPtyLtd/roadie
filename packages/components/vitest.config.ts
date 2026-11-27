@@ -12,6 +12,7 @@ import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { BaseSequencer, type BrowserCommand } from 'vitest/node'
 
+import { pointer } from '@oztix/roadie-browser-testing/config'
 import {
   frameCommands,
   perfInstances,
@@ -25,7 +26,7 @@ import {
   sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const TOUCH_TESTS = 'src/**/*.touch.browser.test.{ts,tsx}'
@@ -138,34 +139,6 @@ const parkPointer: BrowserCommand<[]> = ({ page }) => page.mouse.move(0, 0)
 const focusPage: BrowserCommand<[]> = async ({ page, frame }) => {
   await page.bringToFront()
   await (await (await frame()).frameElement()).focus()
-}
-
-type PointerStep =
-  | { type: 'move'; x: number; y: number; steps?: number }
-  | { type: 'down' }
-  | { type: 'up' }
-  | { type: 'wait'; ms: number }
-
-// A real mouse, so the browser runs its own native drag and drop. Points are
-// in the test frame's CSS pixels; the frame may sit offset and scaled.
-const pointer: BrowserCommand<[steps: PointerStep[]]> = async (
-  { page, frame },
-  steps
-) => {
-  const testFrame = await frame()
-  const box = await (await testFrame.frameElement()).boundingBox()
-  if (!box) throw new Error('The test frame has no box')
-  const width = await testFrame.evaluate(() => window.innerWidth)
-  const scale = box.width / width
-  for (const step of steps) {
-    if (step.type === 'move')
-      await page.mouse.move(box.x + step.x * scale, box.y + step.y * scale, {
-        steps: step.steps ?? 1
-      })
-    else if (step.type === 'down') await page.mouse.down()
-    else if (step.type === 'up') await page.mouse.up()
-    else await page.waitForTimeout(step.ms)
-  }
 }
 
 // A real touch tap, which the engine turns into pointer, touch and mouse

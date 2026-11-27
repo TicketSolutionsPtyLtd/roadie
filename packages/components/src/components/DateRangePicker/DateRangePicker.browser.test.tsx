@@ -12,15 +12,15 @@ import {
 } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 
 import { DateRangePicker } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { nudgeFrames, setHoverCapable, withFrames } from '../../css/testUtils'
+import { nudgeFrames, setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
-import { useStylesheet } from '../Pane/testUtils'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 // Wed 7 Oct 2026.
 const TODAY = '2026-10-07'
 const TIMEOUT = { timeout: 15_000 }

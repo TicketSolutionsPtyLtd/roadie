@@ -1,0 +1,9 @@
+{
+  "name": "@fixture/plain",
+  "version": "0.0.1",
+  "homepage": "https://example.com/docs/",
+  "exports": {
+    "./board": "./dist/components/Board/index.js",
+    "./stand": "./dist/components/Stand/index.js"
+  }
+}

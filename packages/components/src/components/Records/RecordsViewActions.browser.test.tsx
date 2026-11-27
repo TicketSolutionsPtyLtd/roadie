@@ -4,11 +4,14 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem, withFrames } from '@oztix/roadie-browser-testing'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import type { RecordView } from '@oztix/roadie-core/records'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { pickMenuItem, withFrames } from '../../css/testUtils'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { RecordTable, tableColumns } from '../RecordTable'
 import { showFields, testShows } from './testUtils'
 

@@ -4,11 +4,12 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
 import { forgetPaneScroll } from '../Pane/paneScroll'
-import { useStylesheet } from '../Pane/testUtils'
 import { Prose } from '../Prose'
 import { withStubLink } from './testUtils'
 

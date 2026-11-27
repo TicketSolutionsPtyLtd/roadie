@@ -16,7 +16,13 @@ import {
   textAlignOf,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import {
+  MODES,
+  expectReadable,
+  setMode,
+  textContrast,
+  textFloor
+} from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
@@ -555,9 +561,7 @@ describe('Cards overlap cards', () => {
       if (mode === 'light') expect(lightness(panel)).toBeLessThan(0.4)
       else expect(lightness(panel)).toBeGreaterThan(0.6)
       for (const text of within(panel).getAllByText(/Festivals|millions/))
-        expect(textContrast(text), text.textContent!).toBeGreaterThanOrEqual(
-          MINIMUM_LC.body
-        )
+        expectReadable(text, text.textContent!)
     }
   )
 })
@@ -751,12 +755,8 @@ describe('Cards contrast', () => {
         .map((node) => node.textContent?.trim())
         .join('')
       if (!text) return []
-      const style = getComputedStyle(element)
       const lc = textContrast(element)
-      const size = parseFloat(style.fontSize)
-      const large =
-        size >= 24 || (size >= 18.6 && Number(style.fontWeight) >= 700)
-      return lc >= (large ? MINIMUM_LC.large : MINIMUM_LC.body)
+      return lc >= textFloor(element)
         ? []
         : [`${text.slice(0, 30)}: Lc ${Math.round(lc)}`]
     })

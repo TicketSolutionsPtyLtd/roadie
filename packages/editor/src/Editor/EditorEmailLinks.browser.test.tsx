@@ -8,9 +8,11 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { MOD, pickOption, selectParagraph } from './testUtils'
+import { MOD, selectParagraph } from './testUtils'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'

@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { BaseSequencer, type BrowserCommand } from 'vitest/node'
 
+import { pointer } from '@oztix/roadie-browser-testing/config'
+
 import {
   browserInstances,
   browserRetry,
@@ -15,7 +17,11 @@ import {
   sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import {
+  type ExportEntry,
+  readExports
+} from '../core/scripts/package-exports.mjs'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 
@@ -38,32 +44,6 @@ const focusPage: BrowserCommand<[]> = async ({ page, frame }) => {
   await (await (await frame()).frameElement()).focus()
 }
 
-type PointerStep =
-  | { type: 'move'; x: number; y: number; steps?: number }
-  | { type: 'down' }
-  | { type: 'up' }
-
-// A real mouse, so the brush sees the browser's own events. Points are in the
-// test frame's CSS pixels; the frame may sit offset and scaled.
-const pointer: BrowserCommand<[steps: PointerStep[]]> = async (
-  { page, frame },
-  steps
-) => {
-  const testFrame = await frame()
-  const box = await (await testFrame.frameElement()).boundingBox()
-  if (!box) throw new Error('The test frame has no box')
-  const width = await testFrame.evaluate(() => window.innerWidth)
-  const scale = box.width / width
-  for (const step of steps) {
-    if (step.type === 'move')
-      await page.mouse.move(box.x + step.x * scale, box.y + step.y * scale, {
-        steps: step.steps ?? 1
-      })
-    else if (step.type === 'down') await page.mouse.down()
-    else await page.mouse.up()
-  }
-}
-
 const ROOT = fileURLToPath(new URL('./', import.meta.url))
 const JSDOM_ONLY = /(?<!\.browser)\.test\.tsx?$/
 const SOURCE_IMPORT = /^import(?!\s+type\s)[^'"]*['"]([^'"]+)['"]/gm
@@ -77,6 +57,7 @@ const BUILT_IMPORT = /\b(?:import|from)\s*['"]([^'"]+)['"]/g
 function importedPackages() {
   const packages = new Set<string>()
   const visited = new Set<string>()
+  const exportsByDir = new Map<string, ExportEntry[]>()
 
   function add(specifier: string, packageDir: string, chain: string[]) {
     if (/^node:|^vitest\b/.test(specifier)) return
@@ -86,10 +67,11 @@ function importedPackages() {
     }
     const name = specifier.split('/').slice(0, 2).join('/')
     const dir = realpathSync(join(packageDir, 'node_modules', name))
-    const { exports } = JSON.parse(
-      readFileSync(join(dir, 'package.json'), 'utf8')
-    )
-    const entry = exports[`.${specifier.slice(name.length)}`]?.import
+    const subpath = `.${specifier.slice(name.length)}`
+    if (!exportsByDir.has(dir)) exportsByDir.set(dir, readExports(dir))
+    const entry = exportsByDir
+      .get(dir)
+      ?.find((e) => e.subpath === subpath && e.kind === 'js')?.target
     if (entry) visitBuilt(join(dir, entry), dir, [...chain, name])
   }
 

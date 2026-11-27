@@ -53,8 +53,11 @@ import { CheckboxGroup } from '@oztix/roadie-components/checkbox-group'
 import { Collapsible } from '@oztix/roadie-components/collapsible'
 import { Combobox } from '@oztix/roadie-components/combobox'
 import { CommandPalette } from '@oztix/roadie-components/command-palette'
+import { Dashboard } from '@oztix/roadie-components/dashboard'
+import { DataCard } from '@oztix/roadie-components/data-card'
 import { Dialog } from '@oztix/roadie-components/dialog'
 import { Drawer } from '@oztix/roadie-components/drawer'
+import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { FileUpload } from '@oztix/roadie-components/file-upload'
@@ -78,6 +81,7 @@ import { Select } from '@oztix/roadie-components/select'
 import { Slider } from '@oztix/roadie-components/slider'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Switch } from '@oztix/roadie-components/switch'
+import { Table } from '@oztix/roadie-components/table'
 import { Tabs } from '@oztix/roadie-components/tabs'
 import { Toast } from '@oztix/roadie-components/toast'
 import { Toggle } from '@oztix/roadie-components/toggle'
@@ -1247,10 +1251,36 @@ export default function RscSmokePage() {
         {renderEditorValue(SAVED_DESCRIPTION, { size: 'sm' })}
       </section>
 
-      {/*
-        Phase 3 follow-up: as each compound migrates, add a section here
-        rendering its bare <Compound /> via the subpath + barrel imports.
-      */}
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Dashboard, DataCard, EmptyState, and Table
+        </h2>
+        <Dashboard>
+          <Dashboard.Section title='At a glance'>
+            <DataCard label='Tickets sold' value={1240} />
+          </Dashboard.Section>
+        </Dashboard>
+        <EmptyState>
+          <EmptyState.Title>No events yet</EmptyState.Title>
+          <EmptyState.Description>
+            Events you create show up here.
+          </EmptyState.Description>
+        </EmptyState>
+        <Table>
+          <Table.Head>
+            <Table.Row>
+              <Table.HeaderCell>Event</Table.HeaderCell>
+              <Table.HeaderCell>Sold</Table.HeaderCell>
+            </Table.Row>
+          </Table.Head>
+          <Table.Body>
+            <Table.Row>
+              <Table.Cell>Summer Sounds</Table.Cell>
+              <Table.Cell>1,240</Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table>
+      </section>
     </main>
   )
 }

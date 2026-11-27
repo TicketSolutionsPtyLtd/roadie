@@ -12,10 +12,11 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Navigator } from '../Navigator'
-import { useStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

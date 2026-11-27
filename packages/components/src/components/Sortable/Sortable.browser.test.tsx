@@ -14,15 +14,16 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { keepFramesRunning } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Sortable, type SortableMove, type SortableProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { keepFramesRunning, releaseDragPointer } from '../../css/testUtils'
+import { releaseDragPointer } from '../../css/testUtils'
 import { List } from '../List'
-import { useStylesheet } from '../Pane/testUtils'
 import { Popover } from '../Popover'
 import { Lanes, type Transfer, listed } from './lanesTestUtils'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 const COLUMNS = ['Date', 'Event', 'SKU', 'Price']
 
 let removeStylesheets = () => {}
