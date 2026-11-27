@@ -46,8 +46,8 @@ export const sliderThumbVariants = cva(
     'relative rounded-full bg-[var(--color-neutral-light-0)] shadow-[var(--rim-light-strong),var(--shadow-md)] select-none',
     'before:absolute before:top-1/2 before:left-1/2 before:size-11 before:-translate-1/2 before:rounded-full',
     'transition-[outline-width,outline-color] duration-moderate',
-    'outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] has-focus-visible:outline-[length:var(--focus-ring-width)]',
-    'group-data-invalid/slider:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)]',
+    'outline-0 outline-offset-0 outline-focus has-focus-visible:outline-[length:var(--focus-ring-width)]',
+    'group-data-invalid/slider:outline-focus-danger',
     'data-disabled:cursor-not-allowed data-dragging:cursor-grabbing',
     'forced-colors:border forced-colors:border-[CanvasText]'
   ],

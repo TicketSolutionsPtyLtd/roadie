@@ -37,6 +37,11 @@ export const CLASS_FAMILY_RULES: readonly ClassFamilyRule[] = [
     theme: ['--border-color-', 'border-'],
     conflicts: 'border-color'
   },
+  {
+    group: 'semantic-outline-color',
+    theme: ['--outline-color-', 'outline-'],
+    conflicts: 'outline-color'
+  },
   { group: 'intent', utilities: /^intent-/ },
   { group: 'emphasis', utilities: /^emphasis-/ },
   { group: 'selection', utilities: /^is-(un)?selected/ },

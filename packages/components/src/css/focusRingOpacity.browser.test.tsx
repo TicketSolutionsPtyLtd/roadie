@@ -11,6 +11,7 @@ import { Field } from '../components/Field'
 import { NumberField } from '../components/NumberField'
 import { RadioGroup } from '../components/RadioGroup'
 import { Slider } from '../components/Slider'
+import { Steps } from '../components/Steps'
 import { Switch } from '../components/Switch'
 import { focusAfterKey } from './testUtils'
 
@@ -97,6 +98,63 @@ const CONTROLS: [string, string, ReactElement, () => HTMLElement][] = [
     'accent',
     <Slider key='slider' aria-label='Price' defaultValue={40} />,
     () => slot('slider-thumb')
+  ],
+  [
+    'invalid checkbox',
+    'danger',
+    <Checkbox key='checkbox' invalid label='Presale alerts' />,
+    () => screen.getByRole('checkbox')
+  ],
+  [
+    'invalid radio',
+    'danger',
+    <RadioGroup key='radio' invalid defaultValue='floor'>
+      <RadioGroup.Item value='floor' label='Floor' />
+    </RadioGroup>,
+    () => screen.getByRole('radio')
+  ],
+  [
+    'invalid switch',
+    'danger',
+    <Switch key='switch' invalid aria-label='Presale alerts' />,
+    () => screen.getByRole('switch')
+  ],
+  [
+    'invalid slider',
+    'danger',
+    <Slider key='slider' invalid aria-label='Price' defaultValue={40} />,
+    () => slot('slider-thumb')
+  ],
+  [
+    'step indicator',
+    'accent',
+    <Steps key='steps' count={1}>
+      <Steps.List>
+        <Steps.Item index={0}>
+          <Steps.Trigger>
+            <Steps.Indicator>1</Steps.Indicator>
+            Tickets
+          </Steps.Trigger>
+        </Steps.Item>
+      </Steps.List>
+    </Steps>,
+    () => slot('steps-indicator')
+  ]
+]
+
+// A card row rings the whole row while its control has keyboard focus.
+const CARDS: [string, ReactElement, string][] = [
+  [
+    'checkbox',
+    <Checkbox key='checkbox' emphasis='normal' label='Presale alerts' />,
+    'checkbox'
+  ],
+  [
+    'radio',
+    <RadioGroup key='radio' emphasis='normal' defaultValue='floor'>
+      <RadioGroup.Item value='floor' label='Floor' />
+    </RadioGroup>,
+    'radio'
   ]
 ]
 
@@ -111,6 +169,19 @@ describe.each([
       render(control)
 
       expect(getComputedStyle(target()).outlineColor).toBe(step9At30(scale))
+    }
+  )
+
+  it.each(CARDS)(
+    'rings a focused %s card at 30% of accent step 9',
+    async (_name, card, role) => {
+      document.documentElement.classList.toggle('dark', dark)
+      render(card)
+
+      const control = await focusAfterKey(screen.getByRole(role))
+      const row = control.closest('label')!
+
+      expect(getComputedStyle(row).outlineColor).toBe(step9At30('accent'))
     }
   )
 

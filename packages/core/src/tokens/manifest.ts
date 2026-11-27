@@ -106,7 +106,7 @@ const VARIABLE_RULES: Rule[] = [
   [/^--chart-(context|band|median|other|missing)$/, 'dataviz', 'Data greys'],
   [/^--chart-(grid|axis|label|value|gap)$/, 'dataviz', 'Chart ink'],
   [/^--color-chart-/, 'dataviz', 'Tailwind utilities'],
-  [/^--focus-ring-/, 'emphasis', 'Focus ring'],
+  [/^--(focus-ring-|outline-color-focus)/, 'emphasis', 'Focus ring'],
   [/^--(inset-)?shadow-/, 'elevation', 'Shadows'],
   [/^--rim-light/, 'elevation', 'Rim light'],
   [/^--sheen-/, 'elevation', 'Sheen'],
@@ -167,6 +167,7 @@ const NAMESPACE_CLASSES: [RegExp, (key: string) => string[]][] = [
   [/^--background-color-(.+)$/, (k) => [`bg-${k}`]],
   [/^--text-color-(.+)$/, (k) => [`text-${k}`]],
   [/^--border-color-(.+)$/, (k) => [`border-${k}`, `divide-${k}`]],
+  [/^--outline-color-(.+)$/, (k) => [`outline-${k}`]],
   [
     /^--color-(.+)$/,
     (k) => ['bg', 'text', 'border', 'fill', 'stroke'].map((p) => `${p}-${k}`)

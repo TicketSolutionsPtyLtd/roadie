@@ -38,6 +38,19 @@
   --border-color-normal: var(--intent-border-normal);
   --border-color-strong: var(--intent-border-strong);
   --border-color-inverted: var(--intent-border-inverted);
+
+  /* Focus rings: outline-focus, and outline-focus-danger when invalid. A
+     control sets the width itself, as it widens on its own focus state. */
+  --outline-color-focus: color-mix(
+    in oklch,
+    var(--color-accent-9) var(--focus-ring-opacity),
+    transparent
+  );
+  --outline-color-focus-danger: color-mix(
+    in oklch,
+    var(--color-danger-9) var(--focus-ring-opacity),
+    transparent
+  );
 }
 
 /* --- Extended radius scale ---

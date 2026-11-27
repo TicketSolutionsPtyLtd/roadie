@@ -4,9 +4,9 @@ export const switchVariants = cva(
   [
     'group/track relative inline-flex shrink-0 cursor-pointer items-center rounded-full border border-subtle bg-[var(--intent-8)] p-px inset-shadow-sm',
     'transition-[background-color,border-color,outline-width,outline-color] duration-moderate',
-    'outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] focus-visible:outline-[length:var(--focus-ring-width)]',
+    'outline-0 outline-offset-0 outline-focus focus-visible:outline-[length:var(--focus-ring-width)]',
     'data-checked:border-transparent data-checked:bg-[var(--color-accent-9)]',
-    'aria-invalid:border-[var(--color-danger-9)] aria-invalid:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] aria-invalid:data-checked:border-[var(--color-danger-9)]',
+    'aria-invalid:border-[var(--color-danger-9)] aria-invalid:outline-focus-danger aria-invalid:data-checked:border-[var(--color-danger-9)]',
     'data-disabled:cursor-not-allowed data-disabled:opacity-50',
     'data-readonly:cursor-default'
   ],
