@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type DrawerDescriptionProps = DrawerPrimitive.Description.Props &
   RefAttributes<HTMLParagraphElement>
@@ -16,7 +16,7 @@ export function DrawerDescription({
   return (
     <DrawerPrimitive.Description
       data-slot='drawer-description'
-      className={cn('text-subtle', className)}
+      className={mergeClassName('text-subtle', className)}
       {...props}
     />
   )

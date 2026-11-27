@@ -8,6 +8,10 @@ import { Button } from './components/Button'
 import { CheckboxGroup } from './components/CheckboxGroup'
 import { Collapsible } from './components/Collapsible'
 import { Combobox } from './components/Combobox'
+import { Dialog } from './components/Dialog'
+import { Drawer } from './components/Drawer'
+import { Menu } from './components/Menu'
+import { Popover } from './components/Popover'
 import { Progress } from './components/Progress'
 import { RadioGroup } from './components/RadioGroup'
 import { Select } from './components/Select'
@@ -16,6 +20,7 @@ import { Switch } from './components/Switch'
 import { Tabs } from './components/Tabs'
 import { Toggle } from './components/Toggle'
 import { ToggleGroup } from './components/ToggleGroup'
+import { Tooltip } from './components/Tooltip'
 
 const PROBE = 'callback-probe'
 
@@ -289,6 +294,133 @@ const families: Family[] = [
       'combobox-item',
       'combobox-item-indicator'
     ]
+  ],
+  [
+    'Dialog',
+    (c) => (
+      <Dialog.Root defaultOpen>
+        <Dialog.Portal>
+          <Dialog.Backdrop className={c} />
+          <Dialog.Viewport className={c}>
+            <Dialog.Popup className={c}>
+              <Dialog.Title className={c}>Transfer tickets</Dialog.Title>
+              <Dialog.Description className={c}>To a friend</Dialog.Description>
+            </Dialog.Popup>
+          </Dialog.Viewport>
+        </Dialog.Portal>
+      </Dialog.Root>
+    ),
+    [
+      'dialog-backdrop',
+      'dialog-viewport',
+      'dialog-popup',
+      'dialog-title',
+      'dialog-description'
+    ]
+  ],
+  [
+    'Drawer',
+    (c) => (
+      <Drawer.Root defaultOpen>
+        <Drawer.SwipeArea className={c} />
+        <Drawer.Portal>
+          <Drawer.Backdrop className={c} />
+          <Drawer.Viewport className={c}>
+            <Drawer.Popup className={c}>
+              <Drawer.Title className={c}>Your order</Drawer.Title>
+              <Drawer.Description className={c}>2 tickets</Drawer.Description>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer.Root>
+    ),
+    [
+      'drawer-swipe-area',
+      'drawer-backdrop',
+      'drawer-viewport',
+      'drawer-popup',
+      'drawer-title',
+      'drawer-description'
+    ]
+  ],
+  [
+    'Menu',
+    (c) => (
+      <Menu.Root defaultOpen>
+        <Menu.Trigger>Sort</Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner className={c}>
+            <Menu.Popup className={c}>
+              <Menu.Group className={c}>
+                <Menu.GroupLabel className={c}>View</Menu.GroupLabel>
+                <Menu.CheckboxItem className={c}>Sold out</Menu.CheckboxItem>
+              </Menu.Group>
+              <Menu.Separator className={c} />
+              <Menu.RadioGroup defaultValue='date' className={c}>
+                <Menu.RadioItem value='date' className={c}>
+                  Date
+                </Menu.RadioItem>
+              </Menu.RadioGroup>
+              <Menu.SubmenuRoot>
+                <Menu.SubmenuTrigger className={c}>More</Menu.SubmenuTrigger>
+              </Menu.SubmenuRoot>
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
+    ),
+    [
+      'menu-positioner',
+      'menu-popup',
+      'menu-group',
+      'menu-group-label',
+      'menu-checkbox-item',
+      'menu-separator',
+      'menu-radio-group',
+      'menu-radio-item',
+      'menu-submenu-trigger'
+    ]
+  ],
+  [
+    'Popover',
+    (c) => (
+      <Popover.Root defaultOpen>
+        <Popover.Trigger>Details</Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Positioner className={c}>
+            <Popover.Popup className={c}>
+              <Popover.Arrow className={c} />
+              <Popover.Title className={c}>Doors</Popover.Title>
+              <Popover.Description className={c}>At 7</Popover.Description>
+            </Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+    ),
+    [
+      'popover-positioner',
+      'popover-popup',
+      'popover-arrow',
+      'popover-title',
+      'popover-description'
+    ]
+  ],
+  [
+    'Tooltip',
+    (c) => (
+      <Tooltip.Root defaultOpen>
+        <Tooltip.Trigger>Help</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Positioner className={c}>
+            <Tooltip.Popup className={c}>
+              <Tooltip.Arrow className={c} />
+              Doors at 7
+            </Tooltip.Popup>
+          </Tooltip.Positioner>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    ),
+    ['tooltip-positioner', 'tooltip-popup', 'tooltip-arrow']
   ]
 ]
 

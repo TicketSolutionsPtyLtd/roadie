@@ -322,13 +322,8 @@ export default defineConfig({
       ['packages/*/src/**/*.tsx'],
       { 'roadie/no-dropped-class-name-callback': 'error' },
       [
-        'Dialog',
-        'Drawer',
-        'Menu',
-        'Navigator',
         'NumberField',
         'OTPField',
-        'Popover',
         'ScrollArea',
         'Toast',
         'Toolbar',

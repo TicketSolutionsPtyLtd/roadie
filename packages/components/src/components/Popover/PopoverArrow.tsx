@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type PopoverArrowProps = PopoverPrimitive.Arrow.Props &
   RefAttributes<HTMLDivElement>
@@ -24,12 +24,14 @@ export function PopoverArrow({ className, ...props }: PopoverArrowProps) {
       // drift. On top/bottom the depth is `--arrow-h`, so a 1px-overlap sits
       // at `1px - h`. On left/right the box is rotated 90°, so the outward
       // reach is half its width plus half its depth → `1px - (w + h) / 2`.
-      className={cn(
-        'z-10 flex [--arrow-h:0.5rem] [--arrow-w:1rem]',
-        'data-[side=bottom]:top-[calc(1px-var(--arrow-h))] data-[side=bottom]:rotate-0',
-        'data-[side=top]:bottom-[calc(1px-var(--arrow-h))] data-[side=top]:rotate-180',
-        'data-[side=left]:right-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=left]:rotate-90',
-        'data-[side=right]:left-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=right]:-rotate-90',
+      className={mergeClassName(
+        [
+          'z-10 flex [--arrow-h:0.5rem] [--arrow-w:1rem]',
+          'data-[side=bottom]:top-[calc(1px-var(--arrow-h))] data-[side=bottom]:rotate-0',
+          'data-[side=top]:bottom-[calc(1px-var(--arrow-h))] data-[side=top]:rotate-180',
+          'data-[side=left]:right-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=left]:rotate-90',
+          'data-[side=right]:left-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=right]:-rotate-90'
+        ],
         className
       )}
       {...props}

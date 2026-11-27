@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useDrawerSide } from './DrawerContext'
 import { drawerViewportVariants } from './variants'
 
@@ -17,7 +16,7 @@ export function DrawerViewport({ className, ...props }: DrawerViewportProps) {
   return (
     <DrawerPrimitive.Viewport
       data-slot='drawer-viewport'
-      className={cn(drawerViewportVariants({ side, className }))}
+      className={mergeClassName(drawerViewportVariants({ side }), className)}
       {...props}
     />
   )
