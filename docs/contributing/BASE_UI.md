@@ -142,7 +142,9 @@ classes and the consumer's with `mergeClassName(base, className)` from
 `utils/mergeClassName`, never `cn()`: clsx skips a function, so `cn()` drops
 the callback the prop types promise. `base` takes what `cn()` takes, so a list
 is `mergeClassName([a, b], className)`. The `roadie/no-dropped-class-name-callback`
-lint rule checks it.
+lint rule catches a `className` joined inline, in a branch, or in a `const`, on
+a Base UI part; it can't see one put on a plain element, such as a row's
+`<label>`.
 
 ## 5. Styling via data attributes
 

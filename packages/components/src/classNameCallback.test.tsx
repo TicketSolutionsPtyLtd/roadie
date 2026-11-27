@@ -16,7 +16,7 @@ const PROBE = 'callback-probe'
 type Callback = () => string
 type Family = [name: string, ui: (c: Callback) => ReactElement, slots: string[]]
 
-// Each family passes the callback to every Base UI part it wraps.
+// Each family passes the callback to every part whose className lands on a Base UI part.
 const families: Family[] = [
   ['Button', (c) => <Button className={c}>Save</Button>, ['button']],
   [

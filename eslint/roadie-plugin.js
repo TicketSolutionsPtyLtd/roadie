@@ -132,23 +132,35 @@ const readsClassName = (node) => {
   )
 }
 
-// The call a className comes from: inline, or the one a const holds.
-const joinedIn = (expression, sourceCode) => {
-  if (expression.type === 'CallExpression') return expression
-  if (expression.type !== 'Identifier') return undefined
+// What a className can come from: each branch, or what a variable starts as.
+const joinsIn = (expression, sourceCode) => {
+  if (expression.type === 'ConditionalExpression') {
+    return [expression.consequent, expression.alternate].flatMap((branch) =>
+      joinsIn(branch, sourceCode)
+    )
+  }
+  if (expression.type === 'LogicalExpression') {
+    return joinsIn(expression.right, sourceCode)
+  }
+  if (expression.type !== 'Identifier') return [expression]
   for (
     let scope = sourceCode.getScope(expression);
     scope;
     scope = scope.upper
   ) {
-    const variable = scope.set.get(expression.name)
-    if (!variable) continue
-    const [def] = variable.defs
-    const init = def?.type === 'Variable' ? def.node.init : undefined
-    return init?.type === 'CallExpression' ? init : undefined
+    const def = scope.set.get(expression.name)?.defs[0]
+    if (!def) continue
+    return def.type === 'Variable' && def.node.init
+      ? joinsIn(def.node.init, sourceCode)
+      : []
   }
-  return undefined
+  return []
 }
+
+// Passed through, resolved by hand, or joined with the joiner.
+const keepsCallback = (node) =>
+  /Function|MemberExpression/.test(node.type) ||
+  node.callee?.name === 'mergeClassName'
 
 const rules = {
   ...published.rules,
@@ -178,9 +190,10 @@ const rules = {
         "JSXAttribute[name.name='className'] > JSXExpressionContainer"(node) {
           const element = node.parent.parent
           if (!primitives.has(jsxRoot(element.name).name)) return
-          const joined = joinedIn(node.expression, context.sourceCode)
-          if (joined?.callee.name === 'mergeClassName') return
-          if (!joined?.arguments.some(readsClassName)) return
+          const drops = joinsIn(node.expression, context.sourceCode).some(
+            (join) => !keepsCallback(join) && readsClassName(join)
+          )
+          if (!drops) return
           context.report({
             node: node.expression,
             message:

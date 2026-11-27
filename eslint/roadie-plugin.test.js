@@ -121,7 +121,9 @@ const cases = {
       "import { Select } from './Select'\n<Select.Popup className={cn(base, className)} />",
       "import type { Select } from '@base-ui/react/select'\n<Select.Popup className={cn(base, className)} />",
       "import { Button } from '@base-ui/react/button'\nconst classes = mergeClassName(variants({ size }), className);\n<Button className={classes} />",
-      "import { Button } from '@base-ui/react/button'\n<Button className={variants({ className: 'h-8' })} />"
+      "import { Button } from '@base-ui/react/button'\n<Button className={variants({ className: 'h-8' })} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={props.className} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={(state) => cn(base, typeof className === 'function' ? className(state) : className)} />"
     ],
     invalid: [
       "import { Select as SelectPrimitive } from '@base-ui/react/select'\n<SelectPrimitive.Popup className={cn(base, className)} />",
@@ -129,7 +131,10 @@ const cases = {
       "import { Menu } from '@base-ui/react/menu'\n<Menu.Item className={cn(base, props.className)} />",
       "import { Tabs } from '@base-ui/react'\n<Tabs.Tab className={cn([base, className])} />",
       "import { Button } from '@base-ui/react/button'\n<Button className={variants({ size, className })} />",
-      "import { Button } from '@base-ui/react/button'\nconst classes = cn(variants({ size, className }));\n<Button className={classes} />"
+      "import { Button } from '@base-ui/react/button'\nconst classes = cn(variants({ size, className }));\n<Button className={classes} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={`${base} ${className}`} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={open ? cn(base, className) : base} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={className && cn(base, className)} />"
     ]
   },
   'no-import-meta-env': {
