@@ -173,27 +173,37 @@ function report(deltas: number[], longWork: ReturnType<typeof watchLongWork>) {
 
 /**
  * Runs `step` at the start of each of `frames` frames, as input would, and
- * reports the frame times. Scroll, drag, or animate in `step`.
+ * reports the frame times. Scroll, drag, or animate in `step`. `warmup` runs
+ * that many uncounted frames of `step` first, so code the browser compiles
+ * the first time the step runs isn't counted.
  */
 export async function measureFrames(
   step: (index: number) => void,
-  { frames = 120 } = {}
+  { frames = 120, warmup = 0 } = {}
 ): Promise<FrameReport> {
-  const stopWatching = watchLongWork()
+  // Started on the first counted frame, so warm-up work isn't counted.
+  let stopWatching: ReturnType<typeof watchLongWork> | undefined
   const deltas: number[] = []
   await new Promise<void>((resolve) => {
+    let warmed = 0
     let last: number | undefined
     const tick = (now: number) => {
-      if (last !== undefined) deltas.push(now - last)
+      if (warmed < warmup) {
+        step(warmed++)
+        requestAnimationFrame(tick)
+        return
+      }
+      if (last === undefined) stopWatching = watchLongWork()
+      else deltas.push(now - last)
       last = now
       if (deltas.length < frames) {
-        step(deltas.length)
+        step(warmup + deltas.length)
         requestAnimationFrame(tick)
       } else resolve()
     }
     requestAnimationFrame(tick)
   })
-  return report(deltas, stopWatching)
+  return report(deltas, stopWatching!)
 }
 
 /**
