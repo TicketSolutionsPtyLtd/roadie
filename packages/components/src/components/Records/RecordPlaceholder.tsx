@@ -22,7 +22,8 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
   card,
   index,
   measureElement,
-  blank = false
+  blank = false,
+  raised = false
 }: {
   parts: RecordCardParts
   card: boolean
@@ -30,6 +31,8 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
   measureElement?: MeasureElement
   /** No bars: a record of a failed range, which isn't loading. */
   blank?: boolean
+  /** A raised card's placeholder, as on a board. */
+  raised?: boolean
 }) {
   if (card) {
     const description = parts.description !== undefined
@@ -45,7 +48,10 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
       >
         <div
           className={cn(
-            'grid content-start overflow-hidden rounded-xl border border-subtle',
+            'grid content-start overflow-hidden rounded-xl',
+            raised
+              ? 'emphasis-raised border border-transparent'
+              : 'border border-subtle',
             !banner && bodyClass
           )}
         >

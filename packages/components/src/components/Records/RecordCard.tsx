@@ -43,6 +43,8 @@ export type RecordCardProps = {
   handle?: ReactNode
   /** The banner image's `sizes`, for a card narrower than the screen, such as in a grid. */
   imageSizes?: string
+  /** Lifts the card off a tinted track, such as a board's column, while it isn't selected. */
+  raised?: boolean
   className?: string
 }
 
@@ -63,6 +65,7 @@ export const RecordCard = memo(function RecordCard({
   rowActions,
   handle,
   imageSizes,
+  raised = false,
   className
 }: RecordCardProps) {
   const href = selecting ? undefined : linkHref
@@ -76,13 +79,16 @@ export const RecordCard = memo(function RecordCard({
   const title = parts.title ? value(parts.title) : id
   // With no details below, the title row is the card's only part, so it's the content.
   const TitleRow = hasDetails ? CardHeader : CardContent
+  const lifted = raised && !selected
   return (
     <CardRoot
       data-slot='record-card'
       intent={selected ? 'accent' : undefined}
-      emphasis={selected ? 'subtle' : 'normal'}
+      emphasis={selected ? 'subtle' : lifted ? 'raised' : 'normal'}
       className={cn(
         'grid-cols-1 tabular-nums',
+        // Raised sets no border, so this keeps the selected card's size.
+        lifted && 'border border-transparent',
         banner && 'overflow-hidden',
         className
       )}

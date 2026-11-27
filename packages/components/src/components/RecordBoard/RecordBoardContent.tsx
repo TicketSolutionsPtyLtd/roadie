@@ -176,6 +176,7 @@ export function RecordBoardContent({
           onToggle={onToggle}
           rowActions={frame.rowActions}
           handle={movable && <Sortable.Handle size='xs' />}
+          raised
         />
       )}
     </BoardCards>
@@ -335,7 +336,7 @@ function BoardSkeleton({ parts }: { parts: RecordCardParts }) {
       {[2, 1, 1].map((count, index) => (
         <ul key={index} className={cn(columnClass, 'text-sm')}>
           {Array.from({ length: count }, (_, card) => (
-            <RecordPlaceholder key={card} parts={parts} card />
+            <RecordPlaceholder key={card} parts={parts} card raised />
           ))}
         </ul>
       ))}
