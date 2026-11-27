@@ -185,10 +185,16 @@ export function MapRoot({
   const [status, setStatus] = useState<MapStatus>('loading')
   const [creditsCollapsed, setCreditsCollapsed] = useState(false)
   const [instance, setInstance] = useState<MapEngineInstance | null>(null)
-  const [areas, setAreas] = useState<Record<string, MapAreaLayer>>({})
-  const setArea = useCallback((id: string, area: MapAreaLayer | null) => {
-    setAreas((known) => withEntry(known, id, area))
-  }, [])
+  const [areaSets, setAreaSets] = useState<
+    Record<string, MapAreaLayer | readonly MapAreaLayer[]>
+  >({})
+  const setArea = useCallback(
+    (id: string, area: MapAreaLayer | readonly MapAreaLayer[] | null) => {
+      setAreaSets((known) => withEntry(known, id, area))
+    },
+    []
+  )
+  const areas = useMemo(() => Object.values(areaSets).flat(), [areaSets])
   const [places, setPlaces] = useState<Record<string, LatLng>>({})
   const setPlace = useCallback((id: string, place: LatLng | null) => {
     setPlaces((known) => withEntry(known, id, place))
@@ -196,7 +202,7 @@ export function MapRoot({
   const content = useMemo(
     () => [
       ...Object.values(places),
-      ...Object.values(areas).flatMap(({ geometry }) => areaPlaces(geometry))
+      ...areas.flatMap(({ geometry }) => areaCorners(geometry))
     ],
     [places, areas]
   )
@@ -388,7 +394,7 @@ export function MapRoot({
   }, [instance, className, tone])
 
   useEffect(() => {
-    instance?.setAreas(Object.values(areas))
+    instance?.setAreas(areas)
   }, [instance, areas])
 
   useEffect(() => {
@@ -523,18 +529,34 @@ function withEntry<T>(record: Record<string, T>, id: string, value: T | null) {
   return value ? { ...others, [id]: value } : others
 }
 
-/** Every corner of an area, as places. */
-function areaPlaces(geometry: MapAreaLayer['geometry']): LatLng[] {
+// An area's corners, kept per geometry, as a map of postcodes would
+// otherwise walk every point each time one changes.
+const cornersOf = new WeakMap<MapAreaLayer['geometry'], LatLng[]>()
+
+/** The south-west and north-east corners of an area's bounds, as places. */
+function areaCorners(geometry: MapAreaLayer['geometry']): LatLng[] {
+  const known = cornersOf.get(geometry)
+  if (known) return known
   const polygons =
     geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
-  return polygons.flat(2).map(([lng, lat]) => ({ lat, lng }))
+  const places = boundsOf(polygons.flat(2).map(([lng, lat]) => ({ lat, lng })))
+  const corners = places ? [places.southWest, places.northEast] : []
+  cornersOf.set(geometry, corners)
+  return corners
 }
 
 /** The smallest bounds holding every place, or `undefined` for none. */
 function boundsOf(places: readonly LatLng[]): MapBounds | undefined {
   if (places.length === 0) return undefined
-  const lats = places.map(({ lat }) => lat)
   const lngs = places.map(({ lng }) => lng).sort((a, b) => a - b)
+  // Not spread into `Math.min`, which has a limit on its arguments that a
+  // detailed boundary's points pass.
+  let south = Infinity
+  let north = -Infinity
+  for (const { lat } of places) {
+    south = Math.min(south, lat)
+    north = Math.max(north, lat)
+  }
   // The bounds leave out the widest gap between places, which is across the
   // date line unless that's where the places are.
   let west = lngs[0]!
@@ -547,8 +569,8 @@ function boundsOf(places: readonly LatLng[]): MapBounds | undefined {
     east = lngs[i - 1]! + 360
   }
   return {
-    southWest: { lat: Math.min(...lats), lng: west },
-    northEast: { lat: Math.max(...lats), lng: east }
+    southWest: { lat: south, lng: west },
+    northEast: { lat: north, lng: east }
   }
 }
 
