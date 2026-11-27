@@ -2,24 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach, beforeAll } from 'vitest'
 
-class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-// Carousel's Embla needs one; it reports nothing, so no block view fires in jsdom.
-class IntersectionObserverMock {
-  readonly root = null
-  readonly rootMargin = ''
-  readonly thresholds: readonly number[] = []
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-  takeRecords(): IntersectionObserverEntry[] {
-    return []
-  }
-}
+import { lockLayout } from '@oztix/roadie-browser-testing/jsdom'
 
 // jsdom has no media queries; nothing matches, as on a narrow screen.
 function matchNothing(query: string) {
@@ -35,15 +18,11 @@ function matchNothing(query: string) {
   } as unknown as MediaQueryList
 }
 
+// Carousel's Embla needs an IntersectionObserver; this one reports nothing,
+// so no block view fires in jsdom.
+lockLayout()
+
 beforeAll(() => {
-  if (typeof globalThis.ResizeObserver === 'undefined') {
-    globalThis.ResizeObserver =
-      ResizeObserverMock as unknown as typeof ResizeObserver
-  }
-  if (typeof globalThis.IntersectionObserver === 'undefined') {
-    globalThis.IntersectionObserver =
-      IntersectionObserverMock as unknown as typeof IntersectionObserver
-  }
   if (typeof window.matchMedia === 'undefined') window.matchMedia = matchNothing
 })
 

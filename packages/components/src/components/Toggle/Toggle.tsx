@@ -5,9 +5,8 @@ import { type RefAttributes } from 'react'
 import { Toggle as TogglePrimitive } from '@base-ui/react/toggle'
 import { cva } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { isIconOnly } from '../../utils/isIconOnly'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { type RoadieIntent, intentVariants } from '../../variants'
 
 export type ToggleEmphasis = 'normal' | 'subtle' | 'subtler'
@@ -69,7 +68,10 @@ export function Toggle({
       nativeButton={nativeButton ?? !props.render}
       data-slot='toggle'
       data-icon-only={isIconOnly(props.children) ? '' : undefined}
-      className={cn(toggleVariants({ intent, emphasis, size }), className)}
+      className={mergeClassName(
+        toggleVariants({ intent, emphasis, size }),
+        className
+      )}
       {...props}
     />
   )
