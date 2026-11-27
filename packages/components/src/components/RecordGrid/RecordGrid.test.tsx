@@ -155,6 +155,20 @@ describe('RecordGrid', { timeout: 15_000 }, () => {
       expect(screen.queryByText('No records yet')).toBeNull()
     })
 
+    it('keeps its cards and placeholders at normal emphasis, unlike a board', () => {
+      const { rerender } = render(
+        <RecordGrid data={testShows(2)} fields={showFields} card={grid} />
+      )
+      for (const card of document.querySelectorAll('[data-slot="record-card"]'))
+        expect(card).toHaveClass('emphasis-normal')
+      rerender(<RecordGrid data={[]} fields={showFields} loading card={grid} />)
+      const placeholder = document.querySelector(
+        '[data-slot="record-table-placeholder-row"] > div'
+      )!
+      expect(placeholder).toHaveClass('border')
+      expect(placeholder).not.toHaveClass('emphasis-raised')
+    })
+
     it('dims the cards while more load', () => {
       render(
         <RecordGrid
