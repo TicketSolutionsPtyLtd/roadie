@@ -32,6 +32,8 @@ export {
 declare module 'vitest/browser' {
   interface BrowserCommands {
     throttleCpu: (rate?: number) => Promise<number>
+    calibrationProbe: () => Promise<Record<string, unknown>>
+    taskMetrics: () => Promise<Record<string, number>>
     renderMetrics: () => Promise<{ styleMs: number; layoutMs: number }>
     recordFrames: (record: FrameRecord) => Promise<void>
     printFrameNotices: (lines: string[]) => Promise<void>
