@@ -137,6 +137,13 @@ that pattern shows up in emitted declarations. Use the named `X.Part.Props` inst
 
 See commit d4f9539 for the incident that motivated these rules.
 
+**A part's `className` can be a function of its state.** Join Roadie's
+classes and the consumer's with `mergeClassName(base, className)` from
+`utils/mergeClassName`, never `cn()`: clsx skips a function, so `cn()` drops
+the callback the prop types promise. `base` takes what `cn()` takes, so a list
+is `mergeClassName([a, b], className)`. The `roadie/no-dropped-class-name-callback`
+lint rule checks it.
+
 ## 5. Styling via data attributes
 
 Base UI exposes state as `data-*` attributes. Target them in Tailwind with
@@ -343,8 +350,7 @@ import { type RefAttributes } from 'react'
 import { NewThing as NewThingPrimitive } from '@base-ui/react/new-thing'
 import { type VariantProps } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { newThingRootVariants } from './variants'
 
 export type NewThingRootProps = NewThingPrimitive.Root.Props &
@@ -361,8 +367,9 @@ export function NewThingRoot({
   return (
     <NewThingPrimitive.Root
       data-slot='new-thing'
-      className={cn(
-        newThingRootVariants({ intent, emphasis, size, className })
+      className={mergeClassName(
+        newThingRootVariants({ intent, emphasis, size }),
+        className
       )}
       {...props}
     />
@@ -381,7 +388,7 @@ import { type RefAttributes } from 'react'
 
 import { NewThing as NewThingPrimitive } from '@base-ui/react/new-thing'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type NewThingItemProps = NewThingPrimitive.Item.Props &
   RefAttributes<HTMLDivElement>
@@ -390,7 +397,7 @@ export function NewThingItem({ className, ...props }: NewThingItemProps) {
   return (
     <NewThingPrimitive.Item
       data-slot='new-thing-item'
-      className={cn('data-[highlighted]:bg-subtle', className)}
+      className={mergeClassName('data-[highlighted]:bg-subtle', className)}
       {...props}
     />
   )

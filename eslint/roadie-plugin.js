@@ -112,8 +112,84 @@ const foundPopupItemIn = (identifier, sourceCode) => {
   return false
 }
 
+const jsxRoot = (name) =>
+  name.type === 'JSXMemberExpression' ? jsxRoot(name.object) : name
+
+// `className`, or `props.className`, anywhere inside the node.
+const readsClassName = (node) => {
+  if (!node || typeof node.type !== 'string') return false
+  if (node.type === 'Identifier') return node.name === 'className'
+  if (node.type === 'Property') return readsClassName(node.value)
+  if (node.type === 'MemberExpression' && node.property.name === 'className') {
+    return true
+  }
+  return Object.entries(node).some(
+    ([key, child]) =>
+      key !== 'parent' &&
+      (Array.isArray(child)
+        ? child.some(readsClassName)
+        : readsClassName(child))
+  )
+}
+
+// The call a className comes from: inline, or the one a const holds.
+const joinedIn = (expression, sourceCode) => {
+  if (expression.type === 'CallExpression') return expression
+  if (expression.type !== 'Identifier') return undefined
+  for (
+    let scope = sourceCode.getScope(expression);
+    scope;
+    scope = scope.upper
+  ) {
+    const variable = scope.set.get(expression.name)
+    if (!variable) continue
+    const [def] = variable.defs
+    const init = def?.type === 'Variable' ? def.node.init : undefined
+    return init?.type === 'CallExpression' ? init : undefined
+  }
+  return undefined
+}
+
 const rules = {
   ...published.rules,
+  // clsx skips a function, so cn() drops the state callback Base UI's prop
+  // types accept (INNO-1712).
+  'no-dropped-class-name-callback': {
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          "A Base UI part joins a consumer's className with mergeClassName."
+      },
+      schema: []
+    },
+    create(context) {
+      const primitives = new Set()
+      return {
+        "ImportDeclaration[source.value=/^@base-ui\\x2Freact/][importKind!='type']"(
+          node
+        ) {
+          for (const specifier of node.specifiers) {
+            if (specifier.importKind !== 'type') {
+              primitives.add(specifier.local.name)
+            }
+          }
+        },
+        "JSXAttribute[name.name='className'] > JSXExpressionContainer"(node) {
+          const element = node.parent.parent
+          if (!primitives.has(jsxRoot(element.name).name)) return
+          const joined = joinedIn(node.expression, context.sourceCode)
+          if (joined?.callee.name === 'mergeClassName') return
+          if (!joined?.arguments.some(readsClassName)) return
+          context.report({
+            node: node.expression,
+            message:
+              "Join a consumer's className with mergeClassName from utils/mergeClassName, which keeps a callback; cn() and cva drop it."
+          })
+        }
+      }
+    }
+  },
   // Base UI opens a popup in a frame and keeps a closed one mounted, inert,
   // until its exit ends, and Linux WebKit runs no frames while idle, so a
   // found item can belong to the popup that's closing (#1072, #1080, #1083, #1086).

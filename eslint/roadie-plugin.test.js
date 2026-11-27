@@ -110,6 +110,28 @@ const cases = {
       "const item = await screen.findByRole('menuitemcheckbox')\nawait user.click(item)"
     ]
   },
+  'no-dropped-class-name-callback': {
+    valid: [
+      "import { Select } from '@base-ui/react/select'\n<Select.Popup className={mergeClassName(base, className)} />",
+      "import { Select } from '@base-ui/react/select'\n<Select.Popup className={className} />",
+      // Only Roadie's own classes, so no consumer callback to keep.
+      "import { Select } from '@base-ui/react/select'\n<Select.Popup className={cn(base, open && 'grid')} />",
+      // A plain element can't take a callback.
+      '<div className={cn(base, className)} />',
+      "import { Select } from './Select'\n<Select.Popup className={cn(base, className)} />",
+      "import type { Select } from '@base-ui/react/select'\n<Select.Popup className={cn(base, className)} />",
+      "import { Button } from '@base-ui/react/button'\nconst classes = mergeClassName(variants({ size }), className);\n<Button className={classes} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={variants({ className: 'h-8' })} />"
+    ],
+    invalid: [
+      "import { Select as SelectPrimitive } from '@base-ui/react/select'\n<SelectPrimitive.Popup className={cn(base, className)} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={cn(base, size && 'h-8', className)} />",
+      "import { Menu } from '@base-ui/react/menu'\n<Menu.Item className={cn(base, props.className)} />",
+      "import { Tabs } from '@base-ui/react'\n<Tabs.Tab className={cn([base, className])} />",
+      "import { Button } from '@base-ui/react/button'\n<Button className={variants({ size, className })} />",
+      "import { Button } from '@base-ui/react/button'\nconst classes = cn(variants({ size, className }));\n<Button className={classes} />"
+    ]
+  },
   'no-import-meta-env': {
     valid: ["const dev = process.env.NODE_ENV !== 'production'"],
     invalid: ['const dev = import.meta.env.DEV']
