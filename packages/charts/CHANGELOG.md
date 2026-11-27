@@ -1,5 +1,41 @@
 # @oztix/roadie-charts
 
+## 0.5.0
+
+### Minor Changes
+
+- 080bc8b: Update the charts stylesheet's rules to sit in the components layer, so a class that sets the same property on the same element now wins over them, as it does over Roadie's other classes. The rule that shows a chart's server drawing without scripts stays unlayered.
+
+### Patch Changes
+
+- 9915cdb: A chart's table view passes `fill` to its `DataTable` instead of the charts stylesheet reaching into the table's parts, and a static plot picks its narrow, default or wide image with classes on each band. Nothing looks different.
+- 3eab0bc: An app's production build now drops Roadie's dev-only warnings and component `displayName`s, as it already does Base UI's. Each is behind a `process.env.NODE_ENV !== 'production'` check written in place, which every mainstream bundler removes. In production, React DevTools shows the components' function names rather than names such as `Card.Root`.
+- a851e28: Fix props in `roadie.manifest.json` that came from another component. Props a component redeclares over a DOM or Base UI prop are now listed: `aria-label` on `Carousel` and `Toast.Close`, `rel` on `Tabs.Tab`, `Carousel.Next`, `Carousel.Previous`, `Carousel.PlayPause`, `CommandPalette.Trigger`, `ImageCrop.Reset`, `ImageCrop.Rotate`, and `Pane.InspectorTrigger`, `children` on `CommandPalette.Status`, and `autoFocus` on `OTPField`. `rel` is gone from the `DataCard`, `FileUpload`, and `Toolbar` parts that never took Button's link props, and `nativeButton` gives each part's own default. `Slider`'s `locale` now says it defaults to `'en-AU'`, not the runtime locale, and `Toolbar`'s `orientation` default is written `'horizontal'`, like other defaults.
+- Updated dependencies [dbaf0ab]
+- Updated dependencies [8439a22]
+- Updated dependencies [11fc6aa]
+- Updated dependencies [3fadb5a]
+- Updated dependencies [31eb39d]
+- Updated dependencies [811255b]
+- Updated dependencies [4439322]
+- Updated dependencies [5f33a58]
+- Updated dependencies [f92641f]
+- Updated dependencies [5343e23]
+- Updated dependencies [fb98580]
+- Updated dependencies [c925d33]
+- Updated dependencies [260ae3c]
+- Updated dependencies [04dc330]
+- Updated dependencies [4e8b502]
+- Updated dependencies [40a22c0]
+- Updated dependencies [32c666b]
+- Updated dependencies [9b1ef0e]
+- Updated dependencies [44501ab]
+- Updated dependencies [a71f81b]
+- Updated dependencies [523432d]
+- Updated dependencies [91b0f63]
+- Updated dependencies [37d1715]
+  - @oztix/roadie-core@2.14.0
+
 ## 0.4.1
 
 ### Patch Changes

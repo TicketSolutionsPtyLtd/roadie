@@ -1,5 +1,18 @@
 # @oztix/roadie-editor
 
+## 0.4.0
+
+### Minor Changes
+
+- af58270: Update the `Editor`'s stylesheet rules for its own parts to sit in the components layer, so a utility class that reaches one, such as an arbitrary variant in the editor's `className`, now wins over them as it does over Roadie's other classes. That covers the placeholder and hint text, a selected block's ring, an embed and its cover, a selected table cell, the gap cursor's place, a section's name and hover ring, and the toolbar's hiding while previewing. An invalid editor's edge and fill and the gap cursor's line stay outside a layer.
+- 0746a6d: Update the email canvas's stylesheet rules to sit in the components layer where they don't have to beat a class, so a utility class that reaches them now wins: the email's colours, its links, rules and selection, the handle gutter, a section look's colours, heading sizes, and a section's Settings. The block spacing, the email's padding, the emphasis and merge tag colours, and the phone layout of the grip and add button stay outside a layer, since they beat Prose's flow, the text's padding, and the `emphasis-*`, `intent-*`, and `btn` classes.
+
+### Patch Changes
+
+- 3eab0bc: An app's production build now drops Roadie's dev-only warnings and component `displayName`s, as it already does Base UI's. Each is behind a `process.env.NODE_ENV !== 'production'` check written in place, which every mainstream bundler removes. In production, React DevTools shows the components' function names rather than names such as `Card.Root`.
+- a5e3b84: The editor's settings popovers and its docked toolbar do less work on each render. The React Compiler skipped the two hooks behind them, over a `??=` and a `&&=` it can't compile, and now memoises both.
+- 0dbdf58: Fix an invalid boxless email editor moving to the frame's start in a frame wider than the email; it stays centred, with its danger edge just outside the email. A block-selected section also keeps its selection ring under the pointer, rather than the quieter hover ring.
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,38 @@
 # @oztix/roadie-blocks
 
+## 0.3.1
+
+### Patch Changes
+
+- 1c51bfd: Load a block's spot illustration on its own, by name, instead of every block carrying the whole set. Hero, Cards, Side by side, Call to action, Rich text, and Stats each ship about 80 kB less in a browser. A server render still draws the illustration straight away, and hydration keeps it. A block first rendered in the browser holds the illustration's box at its final size while it loads, then draws it there, so nothing moves.
+- 43fc024: `Cards` no longer slows an app built with Tailwind 4.3.3 or earlier. Its linked `overlap` and `photo` tiles grew their photo on keyboard focus with a `group-has-*` class, which those releases compile to a selector ending in `*`, so the browser restyled the whole page whenever anything changed under a `:has()` anchor. The tiles now use `in-[…:has()]`, which ends on the class in every release. They look and behave as before, and each carries `data-slot='cards-tile'`.
+- Updated dependencies [dbaf0ab]
+- Updated dependencies [8439a22]
+- Updated dependencies [11fc6aa]
+- Updated dependencies [3fadb5a]
+- Updated dependencies [31eb39d]
+- Updated dependencies [811255b]
+- Updated dependencies [4439322]
+- Updated dependencies [5f33a58]
+- Updated dependencies [f92641f]
+- Updated dependencies [5343e23]
+- Updated dependencies [fb98580]
+- Updated dependencies [c925d33]
+- Updated dependencies [260ae3c]
+- Updated dependencies [04dc330]
+- Updated dependencies [4e8b502]
+- Updated dependencies [40a22c0]
+- Updated dependencies [32c666b]
+- Updated dependencies [9b1ef0e]
+- Updated dependencies [44501ab]
+- Updated dependencies [a71f81b]
+- Updated dependencies [523432d]
+- Updated dependencies [91b0f63]
+- Updated dependencies [1c51bfd]
+- Updated dependencies [37d1715]
+  - @oztix/roadie-core@2.14.0
+  - @oztix/roadie-illustrations@0.2.0
+
 ## 0.3.0
 
 ### Minor Changes

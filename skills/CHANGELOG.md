@@ -1,5 +1,17 @@
 # roadie-skills
 
+## 0.7.1
+
+### Patch Changes
+
+- 63665d5: Update `/roadie:implement` to say "size budgets" where it said "Size Limit budgets", since Roadie's packages now check a generated `size-budget.json`.
+- fb98580: The implement skill's wiring step names the class-family rules that generate `cn()`'s groups, in place of the hand-written groups.
+- f20a63b: Update `/roadie:migrate` to cover `narrow: 'detail'` on a `RecordTable` column, which the manifest can't list, and to move cards to list rows or `RecordGrid`.
+- 8439a22: Update `/roadie:motion` to name `animate-time-left` for a bar whose time is running out.
+- 7f0fc63: The build skill names `PhoneField` among the controls `Field` wraps.
+- bb807e5: Update `/roadie:demo` and `/roadie:pr` to post a Roadie PR's screenshots with `pnpm screenshots <pr> <images…>`, which needs no local orphan branch.
+- 5fc9ba6: Update `/roadie:slice` to say the manifest and the catalogue test check a new component's docs page and index tile, since Roadie's separate component docs check is gone.
+
 ## 0.7.0
 
 ### Minor Changes
