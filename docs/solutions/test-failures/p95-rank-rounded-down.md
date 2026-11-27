@@ -49,7 +49,7 @@ RecordGrid's scrolls drop 4 to 16% of frames on some runners, with no long
 task. It happened only at calibrated rates of 2.2x and over: 14 of 191
 runs, against 0 of 490 below. It wasn't the calibration: the first scroll
 in the browser was compiling code inside the measured frames
-([INNO-1760](first-scroll-compiles-in-measured-frames.md)).
+([the first scroll compiled in the measured frames](first-scroll-compiles-in-measured-frames.md)).
 
 ## Fix
 

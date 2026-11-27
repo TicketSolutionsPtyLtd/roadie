@@ -181,16 +181,20 @@ export async function measureFrames(
   step: (index: number) => void,
   { frames = 120, warmup = 0 } = {}
 ): Promise<FrameReport> {
-  for (let index = 0; index < warmup; index++) {
-    step(index)
-    await frame()
-  }
-  const stopWatching = watchLongWork()
+  // Started on the first counted frame, so warm-up work isn't counted.
+  let stopWatching: ReturnType<typeof watchLongWork> | undefined
   const deltas: number[] = []
   await new Promise<void>((resolve) => {
+    let warmed = 0
     let last: number | undefined
     const tick = (now: number) => {
-      if (last !== undefined) deltas.push(now - last)
+      if (warmed < warmup) {
+        step(warmed++)
+        requestAnimationFrame(tick)
+        return
+      }
+      if (last === undefined) stopWatching = watchLongWork()
+      else deltas.push(now - last)
       last = now
       if (deltas.length < frames) {
         step(warmup + deltas.length)
@@ -199,7 +203,7 @@ export async function measureFrames(
     }
     requestAnimationFrame(tick)
   })
-  return report(deltas, stopWatching)
+  return report(deltas, stopWatching!)
 }
 
 /**

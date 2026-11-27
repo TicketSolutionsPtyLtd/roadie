@@ -19,10 +19,9 @@ frame reports from 19 to 27 Nov it happened only on runners calibrated at
 The first scroll in the browser pays one-time costs, such as compiling the
 virtualiser's and the cards' code, and those landed in the measured frames:
 main-thread time per frame ran 10 to 15ms on the first scroll, against 8 to
-11ms on later ones at the same rate. The slowed
-CPU multiplies it, so the full suite, where earlier files had already
-warmed part of that code, tipped over the budget only on the most throttled
-runners.
+11ms on later ones at the same rate. The slowed CPU multiplies that cost.
+In the full suite, earlier files had already warmed part of the code, so
+what was left tipped over the budget only on the most throttled runners.
 
 The calibration was the first suspect: its workload is plain JS, so a runner
 that runs JS fast might be throttled too hard for Blink's style and layout
@@ -34,7 +33,7 @@ work. Probing 16 runners ruled it out:
   rendering speed relates to its JS speed.
 - Each runner scrolled RecordGrid ten times at its usual rate. The first
   scroll dropped 9 to 20% of frames on all 16, from 1.8x to 2.7x. The other
-  nine dropped none, on any runner, but one at 2.5%.
+  nine dropped none on 15 runners, and 2.5% once on the other.
 
 Then eight runners scrolled RecordGrid alone, as the first file in the
 browser, and eight more did the same after 60 uncounted frames:
