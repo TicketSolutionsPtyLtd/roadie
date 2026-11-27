@@ -51,8 +51,9 @@ browser, and eight more did the same after 60 uncounted frames:
 - The warm-up is per test, not the default. Most scenarios don't pay a cold
   cost that shows, and a warm-up hides the first run of the step, so a test
   opts in when its first run is measurably slower than its later ones.
-- A slowed card still fails: see the PR for INNO-1760 for eight runners
-  with a busy loop in RecordGrid's card render.
+- A slowed card still fails. With a busy loop of 0.08ms in each card render,
+  both scrolls failed on all eight runners, at p95 33 to 50ms and 14 to 43%
+  of frames dropped.
 
 ## Before blaming the calibration
 
