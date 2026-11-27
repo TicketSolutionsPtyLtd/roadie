@@ -1,13 +1,21 @@
 /* Card `direction`. Horizontal stacks every part in one column and gives
    Card.Footer a column of its own beside it; auto does the same once the card
-   is wide enough. A card cannot query its own width, so auto switches its
-   columns with auto-fit and lets the parts follow with a container query. */
+   is wide enough. A card cannot query its own width, so auto keeps
+   horizontal's grid and moves the footer with a container query. */
 
 @layer components {
-  [data-slot='card'][data-direction='horizontal'] {
+  /* Auto shares this grid: everything sits in column 1, the
+     second column is empty and therefore zero wide, and the query below moves
+     the footer across once the card has the room. That way a split auto card
+     and a horizontal one lay out identically. */
+  [data-slot='card']:is(
+    [data-direction='horizontal'],
+    [data-direction='auto']
+  ) {
     grid-template-columns: minmax(0, 1fr) auto;
     /* The footer spans to line -1, which counts explicit rows only. Spare
-       rows cost nothing: an empty one is zero high. */
+       rows cost nothing: an empty one is zero high. The rows sit here, not in
+       the query below: a card cannot be styled by its own container query. */
     grid-template-rows: repeat(12, auto);
 
     & > * {
@@ -15,9 +23,8 @@
     }
 
     /* One row per part, the last one taking the slack, so the body fills the
-       card when the footer is the taller column. The footer spans to line -1,
-       which counts explicit rows only, and a card with more parts than this
-       falls back to the spare rows above. */
+       card when the footer is the taller column. A card with more parts than
+       this falls back to the spare rows above. */
     &:has(> :nth-child(2):last-child) {
       grid-template-rows: 1fr;
     }
@@ -37,71 +44,37 @@
     &:has(> :nth-child(6):last-child) {
       grid-template-rows: auto auto auto auto 1fr;
     }
+  }
 
-    /* The footer's own items run across the card when it is stacked, so they
-       run down it when the footer is the side column. */
-    & > [data-slot='card-footer'] {
+  /* Named so a consumer's `@min-[30rem]/card:` resolves against the card
+     rather than whichever container sits above it. */
+  [data-slot='card'][data-direction='auto'] {
+    container: card / inline-size;
+  }
+
+  /* The footer's own items run across the card when it is stacked, so they
+     run down it when the footer is the side column. A list sets
+     --card-footer-size once so every side column, and the perforation along
+     it, lines up whatever each footer holds. */
+  [data-slot='card'][data-direction='horizontal'] > [data-slot='card-footer'] {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    padding-top: 1.5rem;
+    flex-direction: column;
+    grid-auto-flow: row;
+    justify-content: center;
+    min-inline-size: var(--card-footer-size, auto);
+  }
+
+  @container card (width >= 30rem) {
+    [data-slot='card'][data-direction='auto'] > [data-slot='card-footer'] {
       grid-column: 2;
       grid-row: 1 / -1;
       padding-top: 1.5rem;
       flex-direction: column;
       grid-auto-flow: row;
       justify-content: center;
-      /* A list sets --card-footer-size once so every side column, and the
-         perforation along it, lines up whatever each footer holds. */
       min-inline-size: var(--card-footer-size, auto);
-    }
-  }
-
-  /* Auto is the horizontal grid all along: everything sits in column 1, the
-     second column is empty and therefore zero wide, and the query below moves
-     the footer across once the card has the room. That way a split auto card
-     and a horizontal one lay out identically. */
-  /* Named so a consumer's `@min-[30rem]/card:` resolves against the card
-     rather than whichever container sits above it. */
-  [data-slot='card'][data-direction='auto'] {
-    container: card / inline-size;
-    grid-template-columns: minmax(0, 1fr) auto;
-    /* The rows sit here, not in the query below: a card cannot be styled by
-       its own container query, and the footer needs them to span the card. */
-    grid-template-rows: repeat(12, auto);
-
-    & > * {
-      grid-column: 1;
-    }
-
-    &:has(> :nth-child(2):last-child) {
-      grid-template-rows: 1fr;
-    }
-
-    &:has(> :nth-child(3):last-child) {
-      grid-template-rows: auto 1fr;
-    }
-
-    &:has(> :nth-child(4):last-child) {
-      grid-template-rows: auto auto 1fr;
-    }
-
-    &:has(> :nth-child(5):last-child) {
-      grid-template-rows: auto auto auto 1fr;
-    }
-
-    &:has(> :nth-child(6):last-child) {
-      grid-template-rows: auto auto auto auto 1fr;
-    }
-  }
-
-  @container card (width >= 30rem) {
-    [data-slot='card'][data-direction='auto'] {
-      & > [data-slot='card-footer'] {
-        grid-column: 2;
-        grid-row: 1 / -1;
-        padding-top: 1.5rem;
-        flex-direction: column;
-        grid-auto-flow: row;
-        justify-content: center;
-        min-inline-size: var(--card-footer-size, auto);
-      }
     }
   }
 }

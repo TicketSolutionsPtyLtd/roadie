@@ -12,8 +12,13 @@ import {
 
 import { gridLayout } from '.'
 import { tableColumns, tableLayout } from '../RecordTable'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { Records } from '../Records'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 
 const column = tableColumns<TestShow>(showFields)
 const layouts = [
@@ -51,22 +56,22 @@ function Harness({
   selectable?: boolean
 }) {
   const [view, setView] = useState(initialView ?? baseline)
-  const records = useRecords({
-    data: shows,
-    fields: showFields,
-    selectable,
-    ...(view && {
-      view,
-      onViewChange: (next: RecordView) => {
-        setView(next)
-        onViewChange?.(next)
-      }
-    }),
-    ...(!view && { onViewChange }),
-    baseline
-  })
   return (
-    <Records records={records} layouts={shownLayouts} caption='Shows'>
+    <ShowRecords
+      data={shows}
+      selectable={selectable}
+      {...(view && {
+        view,
+        onViewChange: (next: RecordView) => {
+          setView(next)
+          onViewChange?.(next)
+        }
+      })}
+      {...(!view && { onViewChange })}
+      baseline={baseline}
+      layouts={shownLayouts}
+      caption='Shows'
+    >
       <Records.Header
         viewActions={baseline ? { onSaveAs: () => {} } : undefined}
       />
@@ -76,7 +81,7 @@ function Harness({
           actions={[{ label: 'Archive', onAction: () => {} }]}
         />
       )}
-    </Records>
+    </ShowRecords>
   )
 }
 
@@ -233,15 +238,15 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
     function Opening() {
       const [open, setOpen] = useState(onGrid)
       const [view, setView] = useState(onGrid)
-      const records = useRecords({
-        data: shows,
-        fields: showFields,
-        view,
-        onViewChange: setView,
-        baseline: open
-      })
       return (
-        <Records records={records} layouts={layouts} caption='Shows'>
+        <ShowRecords
+          data={shows}
+          view={view}
+          onViewChange={setView}
+          baseline={open}
+          layouts={layouts}
+          caption='Shows'
+        >
           <button
             onClick={() => {
               setOpen(onTable)
@@ -252,7 +257,7 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
           </button>
           <Records.Header />
           <Records.Content />
-        </Records>
+        </ShowRecords>
       )
     }
     render(<Opening />)
@@ -269,21 +274,21 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
     function Saving() {
       const [open, setOpen] = useState(onGrid)
       const [view, setView] = useState(onGrid)
-      const records = useRecords({
-        data: shows,
-        fields: showFields,
-        view,
-        onViewChange: setView,
-        baseline: open
-      })
       return (
-        <Records records={records} layouts={layouts} caption='Shows'>
+        <ShowRecords
+          data={shows}
+          view={view}
+          onViewChange={setView}
+          baseline={open}
+          layouts={layouts}
+          caption='Shows'
+        >
           <button onClick={() => setOpen({ ...view, name: 'Cards, renamed' })}>
             Save it
           </button>
           <Records.Header />
           <Records.Content />
-        </Records>
+        </ShowRecords>
       )
     }
     render(<Saving />)
@@ -341,7 +346,7 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
       screen.getByRole('group', { name: 'Bulk actions' })
     ).toHaveTextContent('1 selected')
     await switchTo('Table', user)
-    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull()
+    // The table's Select controls stay, for CSS to hide above 40rem (RecordTable.select.browser.test.tsx).
     expect(
       screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
     ).toBeChecked()

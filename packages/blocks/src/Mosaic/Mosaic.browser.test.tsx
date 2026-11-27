@@ -16,7 +16,7 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, expectReadable, setMode } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 import { partnerTiles } from './fixtures'
 
@@ -374,17 +374,10 @@ describe('Mosaic contrast', () => {
         </div>
       )
 
-      expect(
-        textContrast(screen.getByRole('heading', { level: 2 }))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-      expect(
-        textContrast(screen.getByText(partnerTiles.description))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expectReadable(screen.getByRole('heading', { level: 2 }))
+      expectReadable(screen.getByText(partnerTiles.description))
       for (const tile of partnerTiles.tiles)
-        expect(
-          textContrast(screen.getByText(tile.description)),
-          tile.description
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+        expectReadable(screen.getByText(tile.description), tile.description)
     }
   )
 
@@ -413,15 +406,9 @@ describe('Mosaic contrast', () => {
         />
       )
 
-      expect(
-        textContrast(screen.getByRole('heading', { level: 2 }))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-      expect(
-        textContrast(screen.getByText('Partners across the country.'))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
-      expect(
-        textContrast(screen.getByRole('link', { name: 'Become a partner' }))
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expectReadable(screen.getByRole('heading', { level: 2 }))
+      expectReadable(screen.getByText('Partners across the country.'))
+      expectReadable(screen.getByRole('link', { name: 'Become a partner' }))
     }
   )
 

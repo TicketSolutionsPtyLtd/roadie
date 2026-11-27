@@ -4,8 +4,7 @@ import { type RefAttributes, useMemo } from 'react'
 
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { intentVariants } from '../../variants'
 import { TabsContext, type TabsContextValue } from './TabsContext'
 import {
@@ -68,7 +67,7 @@ export function TabsRoot({
       <TabsPrimitive.Root
         data-slot='tabs'
         orientation={direction}
-        className={cn(intent && intentVariants[intent], className)}
+        className={mergeClassName(intent && intentVariants[intent], className)}
         {...props}
       />
     </TabsContext>

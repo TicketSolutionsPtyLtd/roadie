@@ -6,6 +6,7 @@ import { ToggleGroup as ToggleGroupPrimitive } from '@base-ui/react/toggle-group
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeClassName } from '../../utils/mergeClassName'
 import { followPressedItem } from '../ToggleGroup/followPressedItem'
 import { ToolbarContext, ToolbarToggleGroupContext } from './ToolbarContext'
 
@@ -49,10 +50,12 @@ export function ToolbarToggleGroup({
         data-slot='toolbar-toggle-group'
         // Inside a toolbar, Base UI leaves it horizontal whatever the toolbar's orientation.
         orientation={toolbar.orientation}
-        className={cn(
-          'group/toolbar-toggle-group relative flex flex-wrap items-center gap-1',
-          // Toggles only: the indicator takes the pressed toggle's width.
-          'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:not-data-[slot=toolbar-toggle-group-indicator]:w-auto',
+        className={mergeClassName(
+          [
+            'group/toolbar-toggle-group relative flex flex-wrap items-center gap-1',
+            // Toggles only: the indicator takes the pressed toggle's width.
+            'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:not-data-[slot=toolbar-toggle-group-indicator]:w-auto'
+          ],
           className
         )}
         disabled={disabled}

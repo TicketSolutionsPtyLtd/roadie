@@ -267,6 +267,28 @@ describe('tableColumnsLayout', () => {
     })
   })
 
+  it("keeps the view's grouping, its own setting, through a column change", () => {
+    const current: RecordLayout = { type: 'table', groupBy: ['venue'] }
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['city', 'sold', 'gross'], hidden: ['gross'] },
+        current
+      )
+    ).toEqual({
+      type: 'table',
+      columns: { hidden: ['gross'] },
+      groupBy: ['venue']
+    })
+    expect(
+      tableColumnsLayout(
+        columns,
+        { order: ['city', 'sold', 'gross'], hidden: [] },
+        current
+      )
+    ).toEqual({ type: 'table', groupBy: ['venue'] })
+  })
+
   it('leaves out an order moved back to the definition', () => {
     expect(
       tableColumnsLayout(

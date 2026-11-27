@@ -4,8 +4,7 @@ import { type RefAttributes, use } from 'react'
 
 import { NumberField as NumberFieldPrimitive } from '@base-ui/react/number-field'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { NumberFieldContext } from './NumberFieldContext'
 import { numberFieldGroupVariants } from './variants'
 
@@ -34,7 +33,7 @@ export function NumberFieldGroup({
     <NumberFieldContext value={context}>
       <NumberFieldPrimitive.Group
         data-slot='number-field-group'
-        className={cn(
+        className={mergeClassName(
           numberFieldGroupVariants({
             size: context.size,
             emphasis: context.emphasis

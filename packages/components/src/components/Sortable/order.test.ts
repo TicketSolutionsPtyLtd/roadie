@@ -39,7 +39,11 @@ describe('dropIndex', () => {
     [0, 2, 'left', 'horizontal', 'ltr', 1],
     [0, 2, 'right', 'horizontal', 'ltr', 2],
     [0, 2, 'right', 'horizontal', 'rtl', 1],
-    [0, 2, 'left', 'horizontal', 'rtl', 2]
+    [0, 2, 'left', 'horizontal', 'rtl', 2],
+    // -1 is an item from another list, which frees no index.
+    [-1, 0, 'top', 'vertical', 'ltr', 0],
+    [-1, 1, 'bottom', 'vertical', 'ltr', 2],
+    [-1, 0, 'left', 'horizontal', 'rtl', 1]
   ] as const)(
     'drops %i on %i at its %s edge (%s, %s) at %i',
     (from, target, edge, axis, dir, to) => {

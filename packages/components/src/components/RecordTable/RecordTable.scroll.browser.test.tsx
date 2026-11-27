@@ -4,15 +4,18 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import type { RecordView } from '@oztix/roadie-core/records'
 
 import { RecordTable, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Navigator } from '../Navigator'
 import { Pane } from '../Pane'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
-import { Records, useRecords } from '../Records'
-import { showFields, testShows } from '../Records/testUtils'
+import { Records } from '../Records'
+import { ShowRecords, showFields, testShows } from '../Records/testUtils'
 import {
   ALL,
   WIDE_BOX,
@@ -426,13 +429,14 @@ describe('RecordTable fill', () => {
   const layouts = [tableLayout(wideColumns)]
 
   function ProviderFill() {
-    const records = useRecords({
-      data: testShows(100),
-      fields: showFields,
-      defaultPosition: ALL
-    })
     return (
-      <Records.Provider records={records} layouts={layouts} caption='Shows'>
+      <ShowRecords
+        data={testShows(100)}
+        defaultPosition={ALL}
+        layouts={layouts}
+        caption='Shows'
+        bare
+      >
         <Pane>
           <Pane.Header>
             <Pane.Title>Shows</Pane.Title>
@@ -442,27 +446,27 @@ describe('RecordTable fill', () => {
             <Records.Status />
           </Pane.Body>
         </Pane>
-      </Records.Provider>
+      </ShowRecords>
     )
   }
 
   function RootFill() {
-    const records = useRecords({
-      data: testShows(100),
-      fields: showFields,
-      defaultPosition: ALL
-    })
     return (
       <Pane>
         <Pane.Header>
           <Pane.Title>Shows</Pane.Title>
         </Pane.Header>
         <Pane.Body>
-          <Records.Root records={records} layouts={layouts} caption='Shows'>
+          <ShowRecords
+            data={testShows(100)}
+            defaultPosition={ALL}
+            layouts={layouts}
+            caption='Shows'
+          >
             <Records.Header />
             <Records.Content fill />
             <Records.Pagination />
-          </Records.Root>
+          </ShowRecords>
         </Pane.Body>
       </Pane>
     )
@@ -500,13 +504,14 @@ describe('Records spread across a pane by a Provider', () => {
     first?: boolean
     second?: 'hidden' | 'shown'
   }) {
-    const records = useRecords({
-      data: testShows(100),
-      fields: showFields,
-      defaultPosition: ALL
-    })
     return (
-      <Records.Provider records={records} layouts={layouts} caption='Shows'>
+      <ShowRecords
+        data={testShows(100)}
+        defaultPosition={ALL}
+        layouts={layouts}
+        caption='Shows'
+        bare
+      >
         <Pane>
           <Pane.Header>
             <Pane.Title>Shows</Pane.Title>
@@ -525,7 +530,7 @@ describe('Records spread across a pane by a Provider', () => {
             <Records.Pagination />
           </Pane.Footer>
         </Pane>
-      </Records.Provider>
+      </ShowRecords>
     )
   }
 

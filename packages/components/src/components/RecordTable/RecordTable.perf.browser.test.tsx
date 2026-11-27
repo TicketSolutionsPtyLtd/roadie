@@ -130,7 +130,7 @@ describe('RecordTable performance', () => {
     const button = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Configure table"]'
     )!
-    // As a page a moment after it loads, once Options has preloaded the columns.
+    // As a page a moment after it loads, once Configure has preloaded the columns.
     await RecordTableSettingsLazy.preload()
     await frame()
     let renders: Record<string, number> = {}
@@ -149,8 +149,8 @@ describe('RecordTable performance', () => {
     expect(latency).toBeLessThanOrEqual(300)
     expect(opening).toBeLessThanOrEqual(150)
     expect(closing).toBeLessThanOrEqual(150)
-    // Options rendering proves the counter is wired, so zero rows means zero.
-    expect(renders['Records.Options']).toBeGreaterThan(0)
+    // Configure rendering proves the counter is wired, so zero rows means zero.
+    expect(renders['Records.Configure']).toBeGreaterThan(0)
     expect(renders.RecordTableRow ?? 0).toBe(0)
   })
 })
@@ -174,6 +174,31 @@ describe('RecordTable scrolling, CPU 4x', () => {
     await expectFrameBudget(
       'RecordTable, 10,000 rows, scroll',
       await measureFrames(scrollBy(box)),
+      { longestTask: 50 }
+    )
+  })
+
+  // Grouped, a page renders every row, unwindowed, so its size is the cost.
+  it('scrolls a page of 500 rows grouped by status at 60fps', async () => {
+    const container = await mount(
+      <div style={SCROLL_BOX} data-testid='scroller'>
+        <RecordTable
+          data={testShows(500)}
+          fields={showFields}
+          columns={showColumns}
+          defaultPosition={{ pageSize: 500 }}
+          defaultView={{
+            layout: { type: 'table', groupBy: ['status'] }
+          }}
+        />
+      </div>
+    )
+    expect(
+      container.querySelectorAll('[data-slot="record-table-group"]').length
+    ).toBe(3)
+    await expectFrameBudget(
+      'RecordTable, 500 grouped rows, scroll',
+      await measureFrames(scrollBy(scroller(container))),
       { longestTask: 50 }
     )
   })
@@ -234,7 +259,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
   const scroller = (container: HTMLElement) =>
     container.querySelector<HTMLElement>('[data-testid="scroller"]')!
 
-  it('scrolls 10,000 records as list rows at 60fps', async () => {
+  it('scrolls 10,000 re-flowed rows at 60fps', async () => {
     const container = await mount(
       <div style={NARROW_BOX} data-testid='scroller'>
         <RecordTable
@@ -248,11 +273,11 @@ describe('RecordTable narrow rows, CPU 4x', () => {
       </div>
     )
     expect(
-      container.querySelector('[data-slot="record-table-list-row"]')
+      container.querySelector('[data-slot="record-table-row"]')
     ).not.toBeNull()
     const box = scroller(container)
     await expectFrameBudget(
-      'RecordTable, 10,000 list rows, scroll',
+      'RecordTable, 10,000 re-flowed narrow rows, scroll',
       await measureFrames(scrollBy(box)),
       { longestTask: 50 }
     )
@@ -312,7 +337,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     pressSelect(container)
     await settle()
     const checkbox = container.querySelector<HTMLElement>(
-      '[data-slot="record-table-list-row"] [role="checkbox"]'
+      '[data-slot="record-table-row"] [role="checkbox"]'
     )!
     // The first tick brings in Select mode's bulk bar.
     await expectFrameBudget(
@@ -325,7 +350,8 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     expect(checkbox.getAttribute('aria-checked')).toBe('true')
   })
 
-  it('scrolls list rows under the translucent bulk bar at 60fps', async () => {
+  // A re-flowed table's bar takes its sticky header row.
+  it('scrolls re-flowed rows under the bulk bar at 60fps', async () => {
     const container = await mount(
       <div style={NARROW_BOX} data-testid='scroller'>
         <RecordTable
@@ -344,19 +370,19 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     await frame()
     container
       .querySelector<HTMLElement>(
-        '[data-slot="record-table-list-row"] [role="checkbox"]'
+        '[data-slot="record-table-row"] [role="checkbox"]'
       )!
       .click()
     await frame()
     await frame()
-    const bar = container.querySelector<HTMLElement>(
-      '[data-slot="records-bulk-actions"]'
-    )
-    expect(bar).not.toBeNull()
-    expect(getComputedStyle(bar!).backdropFilter).not.toBe('none')
+    expect(
+      container.querySelector(
+        '[data-slot="record-table-head"] [data-slot="records-bulk-actions"]'
+      )
+    ).not.toBeNull()
     const box = scroller(container)
     await expectFrameBudget(
-      'RecordTable, list rows under the bulk bar, scroll',
+      'RecordTable, re-flowed rows under the bulk bar, scroll',
       await measureFrames(scrollBy(box)),
       { longestTask: 50, knownMiss: 'INNO-1528' }
     )
@@ -379,7 +405,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     await frame()
     await frame()
     const checkbox = container.querySelector<HTMLElement>(
-      '[data-slot="record-table-list-row"] [role="checkbox"]'
+      '[data-slot="record-table-row"] [role="checkbox"]'
     )!
     const cost = await styleCost(() => checkbox.click())
     expect(checkbox.getAttribute('aria-checked')).toBe('true')
@@ -401,7 +427,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     )
     const rows = [
       ...container.querySelectorAll<HTMLElement>(
-        '[data-slot="record-table-list-row"]'
+        '[data-slot="record-table-row"]'
       )
     ].slice(0, 8)
     await userEvent.hover(rows[0]!)

@@ -5,7 +5,7 @@ import { useId } from 'react'
 import type { RecordLayout } from '@oztix/roadie-core/records'
 
 import { ToggleGroup } from '../ToggleGroup'
-import { useRecordsContext } from './context'
+import { useRecordsLayoutValue } from './context'
 import type { AnyRecordLayout } from './layouts'
 
 /** The layout switcher in `Records.Options`, for records given more than one layout. */
@@ -16,7 +16,7 @@ export function RecordsLayoutSettings({
   shown: AnyRecordLayout
   onChange: (type: RecordLayout['type']) => void
 }) {
-  const { layouts } = useRecordsContext()
+  const { layouts } = useRecordsLayoutValue()
   const headingId = useId()
   return (
     <section aria-labelledby={headingId} className='grid gap-2'>

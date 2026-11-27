@@ -250,8 +250,9 @@ Read [Forms](https://ticketsolutionsptyltd.github.io/roadie/foundations/forms.md
 ```
 
 - `Field` wraps every control: `Input`, `Textarea`, `Select`, `RadioGroup`,
-  `Combobox`, `Autocomplete`, `DatePicker`, `NumberField`, and `Editor`. Set
-  `invalid`, `required`, and `disabled` on `Field`, never on the control.
+  `Combobox`, `Autocomplete`, `DatePicker`, `NumberField`, `PhoneField`, and
+  `Editor`. Set `invalid`, `required`, and `disabled` on `Field`, never on the
+  control.
 - `Field.Label showIndicator` marks required or optional for you.
 - Always render `Field.ErrorText`; it shows only when `invalid`. Don't wrap
   it in a condition.

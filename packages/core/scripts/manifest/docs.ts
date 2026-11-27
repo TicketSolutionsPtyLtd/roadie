@@ -96,3 +96,27 @@ export function pageForComponent(
   if (listing[0]) return { page: listing[0], own: false }
   return named[0] && { page: named[0], own: true }
 }
+
+const COMPONENT_FOLDER = /^\.\/dist\/(?:components\/)?([A-Z]\w+)\//
+
+/**
+ * The page a component folder's subpath is documented on, `null` when it has
+ * none, or `undefined` for a target in no component folder. For a subpath
+ * that exports no component, such as RecordBoard's layout.
+ */
+export function folderPage(
+  pages: DocsPage[],
+  target: string
+): PageMatch | null | undefined {
+  const folder = COMPONENT_FOLDER.exec(target)?.[1]
+  return folder === undefined
+    ? undefined
+    : (pageForComponent(pages, folder) ?? null)
+}
+
+/** The route of a component's or chart's own page when it sets no status; foundations and guides needn't. */
+export function missingStatus(match: PageMatch | undefined) {
+  const page = match?.own ? match.page : undefined
+  if (page && !page.status && /^\/(components|charts)\//.test(page.route))
+    return page.route
+}

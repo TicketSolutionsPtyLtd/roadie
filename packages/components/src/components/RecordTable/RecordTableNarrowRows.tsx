@@ -4,12 +4,20 @@ import { type ReactNode, type RefObject, useCallback, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { listSectionClass } from '../List/variants'
+import { useSurface } from '../../utils/surface'
+import { listGroupSectionClass, listSectionClass } from '../List/variants'
 import { RecordCard } from '../Records/RecordCard'
+import {
+  type GroupLeaf,
+  RecordGroupSection,
+  groupedBodyClass,
+  useRecordGroups
+} from '../Records/RecordGroupSection'
 import {
   RecordPlaceholder,
   RecordRangeError
 } from '../Records/RecordPlaceholder'
+import type { RecordGroup } from '../Records/groups'
 import {
   VIRTUALISE_AFTER,
   type WindowPadding,
@@ -33,6 +41,7 @@ import type {
   RecordsRow
 } from '../Records/types'
 import { RecordTableListRow } from './RecordTableListRow'
+import { ListPlaceContext } from './RecordTableRowPlace'
 import type { RecordTableNarrowLayout } from './narrow'
 
 type MeasureElement = (node: HTMLLIElement | null) => void
@@ -44,7 +53,8 @@ type NarrowShared = {
   selecting: boolean
   /** Undefined when the records can't be selected. */
   isSelected?: (id: string) => boolean
-  onToggle: (id: string, range: boolean) => void
+  /** `order` is the on-screen order a range follows, when it isn't the rows'. */
+  onToggle: (id: string, range: boolean, order?: readonly string[]) => void
   rowActions?: (row: object) => ReactNode
   getRowHref?: (row: object) => string | undefined
   /** List rows reach into the space beside the list; not in a box of their own. */
@@ -62,6 +72,12 @@ type RecordTableNarrowRowsProps = NarrowShared & {
   range?: RecordsRangeState
   row?: number
   onRow?: (row: number) => void
+  /** Rows under a title and count per group, in place of `rows`. Groups with no rows are left out. */
+  groups?: readonly RecordGroup[]
+  /** Group titles as tiers of heading by level, largest outermost, with a rule between outer groups. Otherwise every title is the quiet group title. */
+  groupHeadings?: boolean
+  /** Group titles stick at this `top` as their rows scroll by. */
+  stickyTop?: string
 }
 
 const sizing = ({ layout, parts }: NarrowShared): RowSize =>
@@ -76,9 +92,22 @@ export function RecordTableNarrowRows({
   range,
   row,
   onRow,
+  groups,
+  groupHeadings = false,
+  stickyTop,
   ...shared
 }: RecordTableNarrowRowsProps) {
   const listProps = { caption, busy, cards: shared.layout === 'cards' }
+  if (groups)
+    return (
+      <GroupedList
+        groups={groups}
+        headings={groupHeadings}
+        stickyTop={stickyTop}
+        shared={shared}
+        {...listProps}
+      />
+    )
   if (range)
     return (
       <RangeList
@@ -142,13 +171,9 @@ function NarrowRow({
   }
   if (shared.layout === 'list')
     return (
-      <RecordTableListRow
-        {...props}
-        row={record.row}
-        bleed={shared.bleed}
-        posInSet={posInSet}
-        setSize={setSize}
-      />
+      <ListPlaceContext value={{ posInSet, setSize }}>
+        <RecordTableListRow {...props} row={record.row} bleed={shared.bleed} />
+      </ListPlaceContext>
     )
   return (
     <CardItem
@@ -216,12 +241,69 @@ const joinSelected = [
   '[&>li:has(+li[data-selected])]:[--list-divider:transparent]'
 ].join(' ')
 
+const noList = { current: null }
+
+// Unwindowed: grouping applies to the rows loaded, a page at most.
+function GroupedList({
+  groups,
+  headings,
+  stickyTop,
+  shared,
+  ...listProps
+}: {
+  groups: readonly RecordGroup[]
+  headings: boolean
+  stickyTop?: string
+  shared: NarrowShared
+  caption?: string
+  busy?: boolean
+  cards: boolean
+}) {
+  const { shown, collapse, onToggle } = useRecordGroups(groups, shared.onToggle)
+  const grouped = { ...shared, onToggle }
+  const listRef = useRef<HTMLUListElement>(null)
+  useSurface(stickyTop === undefined ? noList : listRef)
+  const leaf: GroupLeaf = (group, titleId) => (
+    <ul
+      role='list'
+      aria-labelledby={titleId}
+      data-slot='list-section'
+      className={cn(listSectionClass, listGroupSectionClass, joinSelected)}
+    >
+      {group.rows.map((record) => (
+        <NarrowRow key={record.id} shared={grouped} record={record} />
+      ))}
+    </ul>
+  )
+  return (
+    <NarrowList
+      {...listProps}
+      bodyRef={listRef}
+      grouped={headings ? 'headings' : true}
+    >
+      {shown.map((group) => (
+        <RecordGroupSection
+          key={group.key ?? ''}
+          group={group}
+          leaf={leaf}
+          collapse={collapse}
+          headings={headings}
+          bleed={shared.bleed}
+          stickyTop={stickyTop}
+        />
+      ))}
+    </NarrowList>
+  )
+}
+
 type ListProps = {
   caption?: string
   busy?: boolean
   cards: boolean
   bodyRef?: RefObject<HTMLUListElement | null>
   padding?: WindowPadding
+  /** Holds groups, each with its own section of rows. */
+  grouped?: boolean | 'headings'
   children: ReactNode
 }
 
@@ -231,6 +313,7 @@ function NarrowList({
   cards,
   bodyRef,
   padding,
+  grouped = false,
   children
 }: ListProps) {
   return (
@@ -242,7 +325,11 @@ function NarrowList({
       aria-busy={busy || undefined}
       data-slot='record-table-body'
       className={cn(
-        cards ? ['grid', cardGap.gapClass] : [listSectionClass, joinSelected],
+        grouped
+          ? groupedBodyClass(grouped === 'headings')
+          : cards
+            ? ['grid', cardGap.gapClass]
+            : [listSectionClass, joinSelected],
         'text-sm'
       )}
       style={padding}

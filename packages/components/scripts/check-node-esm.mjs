@@ -5,6 +5,9 @@
 // `exports` map.
 import { readFileSync } from 'node:fs'
 import { isBuiltin, registerHooks } from 'node:module'
+import { fileURLToPath } from 'node:url'
+
+import { readExports } from '../../core/scripts/package-exports.mjs'
 
 const pkg = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8')
@@ -36,9 +39,9 @@ registerHooks({
   }
 })
 
-const specifiers = Object.entries(pkg.exports)
-  .filter(([, target]) => typeof target === 'object' && target.import)
-  .map(([subpath]) => pkg.name + subpath.slice(1))
+const specifiers = readExports(fileURLToPath(new URL('..', import.meta.url)))
+  .filter((entry) => entry.kind === 'js')
+  .map(({ subpath }) => pkg.name + subpath.slice(1))
 
 for (const specifier of specifiers) {
   try {

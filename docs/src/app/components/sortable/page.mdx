@@ -164,6 +164,67 @@ function Cities() {
 render(<Cities />)
 ```
 
+### Connected lists
+
+Give two or more `Sortable`s the same `group` and each its own `value`, and
+their items drag between them. The list an item lands in calls `onTransfer`
+with the item's `value`, the `from` and `to` lists and its `index` there; a
+list without `onTransfer` takes nothing from the others. The list the item
+leaves gets no call, so keep the lists' items in one state, as here. Wrap each list in
+`Sortable.DropZone`, so an item can land past the last row or in an empty
+list; a drop outside every row lands at the end. Return false from `canDrop` to turn an item down: here, Encore can't
+go on before the doors open.
+
+```tsx-live-noinline
+function RunningOrder() {
+  const [lists, setLists] = useState({
+    early: ['Doors', 'Support'],
+    late: ['Headliner', 'Encore']
+  })
+  const names = { early: 'early set', late: 'late set' }
+  function transfer({ value, from, to, index }) {
+    setLists((all) => {
+      const target = all[to].filter((item) => item !== value)
+      target.splice(index, 0, value)
+      return { ...all, [from]: all[from].filter((item) => item !== value), [to]: target }
+    })
+  }
+  return (
+    <div className='grid gap-4 sm:grid-cols-2'>
+      {Object.entries(lists).map(([list, items]) => (
+        <div key={list} className='grid content-start gap-2'>
+          <p className='text-sm text-subtle'>{names[list]}</p>
+          <Sortable
+            group='running-order'
+            value={list}
+            label={names[list]}
+            items={items}
+            onReorder={(next) => setLists((all) => ({ ...all, [list]: next }))}
+            onTransfer={transfer}
+            canDrop={({ value }) => !(list === 'early' && value === 'Encore')}
+          >
+            <Sortable.DropZone className='min-h-28'>
+              <List emphasis='subtle'>
+                {items.map((value) => (
+                  <List.Item key={value} value={value} title={value} />
+                ))}
+              </List>
+            </Sortable.DropZone>
+          </Sortable>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+render(<RunningOrder />)
+```
+
+When lists sit in sets, such as a board's lanes, give each list a `section`
+naming its set. The Move menu then offers the lists in the item's own section,
+and each other section as a submenu of its lists, as in "Move Doors to late set
+in Saturday".
+
 ### With a popover
 
 Drag and drop works inside a modal `Popover`. A long list scrolls by itself
@@ -234,9 +295,19 @@ render(<ColumnSettings />)
   a menu button. Enter or Space opens the Move menu, and moves past the ends
   are disabled. After a move, focus returns to the moved item's handle.
 - **Announcements**: every move, by menu or by drag, is announced in a polite
-  live region: "SKU moved to position 3 of 7 columns".
+  live region: "SKU moved to position 3 of 7 columns". A drag into a
+  connected list is announced by the list it joins, and a move from the menu
+  by the list the menu was in, which stays in sight. A list with a `section`
+  adds it, as in "done in Next week".
+- **Connected lists**: the Move menu also offers each other list in the
+  `group` that would take the item, named by its `label` (or its `value`
+  without one), as in "Move Date to done". Lists in another `section` sit in
+  a submenu named for it, opened with the Right arrow.
+  The item lands at the end of that list, and focus follows it.
 - **Pointer**: a press on the handle that turns into a drag never opens the
-  menu. A click without a drag does.
+  menu. A click without a drag does. With `dragFrom='item'`, as on a board's
+  cards, a pointer picks the item up from anywhere but its buttons and fields,
+  and a click still reaches its links and buttons. Its text can't be selected.
 - **Motion**: the dragged item fades without a transition when reduced motion
   is on. In forced colours the drop line uses the system highlight colour.
 

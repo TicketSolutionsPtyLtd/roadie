@@ -5,8 +5,7 @@ import { type RefAttributes, use } from 'react'
 import { NumberField as NumberFieldPrimitive } from '@base-ui/react/number-field'
 import { MinusIcon, TrashIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { NumberFieldContext } from './NumberFieldContext'
 import { numberFieldStepperClasses, stepperIconClass } from './variants'
 
@@ -50,7 +49,7 @@ export function NumberFieldDecrement({
   return (
     <NumberFieldPrimitive.Decrement
       data-slot='number-field-decrement'
-      className={cn(
+      className={mergeClassName(
         numberFieldStepperClasses({
           fieldEmphasis: context.emphasis,
           size: context.size,

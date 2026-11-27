@@ -2,8 +2,8 @@ import { fireEvent, render } from '@testing-library/vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 
+import { lockBodyScroll } from '../../cart/documentEffects'
 import CartExpiryDialogs from './CartExpiryDialogs.vue'
-import { lockBodyScroll } from './documentEffects'
 
 afterEach(() => {
   document.body.style.overflow = ''

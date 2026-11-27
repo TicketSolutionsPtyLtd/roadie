@@ -1,13 +1,20 @@
 'use client'
 
-import { type MouseEvent, type RefAttributes, useEffect, useRef } from 'react'
+import {
+  Children,
+  type MouseEvent,
+  type ReactNode,
+  type RefAttributes,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
 
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { type VariantProps, cva } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { isDev } from '../../utils/isDev'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { intentVariants } from '../../variants'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 
@@ -65,7 +72,15 @@ export type ButtonHrefProps = {
 export type ButtonProps = ButtonPrimitive.Props &
   RefAttributes<HTMLElement> &
   VariantProps<typeof buttonVariants> &
-  ButtonHrefProps
+  ButtonHrefProps & {
+    /**
+     * The button's action is under way. It stops responding, keeps focus and
+     * its place in the tab order, and after 200ms shows a spinner in place of
+     * its label at the same size. Sets `aria-busy` and `aria-disabled`.
+     * `disabled` wins.
+     */
+    pending?: boolean
+  }
 
 export function Button({
   className,
@@ -78,6 +93,7 @@ export function Button({
   rel,
   download,
   nativeButton,
+  pending,
   ...props
 }: ButtonProps) {
   // `render` wins over `href`; the ref warns once per mount, even under StrictMode.
@@ -93,7 +109,21 @@ export function Button({
     }
   }, [props.render, href])
 
-  const classes = cn(buttonVariants({ intent, emphasis, size, className }))
+  const classes = mergeClassName(
+    buttonVariants({ intent, emphasis, size }),
+    className
+  )
+  // Disabled but focusable, so focus stays put through a keyboard submit.
+  const busy = pending && !props.disabled
+  // CSS can't scale a bare text node, so a label is wrapped once the button
+  // first goes pending, and stays wrapped so it can spring back. A button that
+  // never pends keeps its text as is.
+  const [labelled, setLabelled] = useState(false)
+  if (busy && !labelled) setLabelled(true)
+  const children = labelled ? wrapLabel(props.children) : props.children
+  const busyProps = busy
+    ? { disabled: true, focusableWhenDisabled: true, 'aria-busy': true }
+    : undefined
 
   if (!props.render && href !== undefined) {
     const {
@@ -104,12 +134,14 @@ export function Button({
       onClick,
       ref,
       ...rest
-    } = props
+    } = { ...props, ...busyProps, children }
 
     return (
       <RoadieRoutedLink
         data-slot='button'
-        className={classes}
+        className={
+          typeof classes === 'function' ? classes({ disabled }) : classes
+        }
         href={href}
         external={external}
         target={target}
@@ -139,7 +171,20 @@ export function Button({
       data-slot='button'
       className={classes}
       {...props}
-    />
+      {...busyProps}
+    >
+      {children}
+    </ButtonPrimitive>
+  )
+}
+
+function wrapLabel(children: ReactNode) {
+  return Children.map(children, (child) =>
+    typeof child === 'string' || typeof child === 'number' ? (
+      <span data-slot='button-label'>{child}</span>
+    ) : (
+      child
+    )
   )
 }
 

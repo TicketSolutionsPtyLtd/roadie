@@ -1,4 +1,7 @@
+import type { ReactElement } from 'react'
+
 import { act, cleanup, render, screen } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { _tickerState } from '../../utils/ticker'
@@ -319,6 +322,37 @@ describe('Countdown layout stability', () => {
       expect(container.querySelectorAll('.tabular-nums')).toHaveLength(1)
     }
   )
+})
+
+describe('Countdown on the server', () => {
+  const serve = (ui: ReactElement) => {
+    const host = document.createElement('div')
+    host.innerHTML = renderToString(ui)
+    return host
+  }
+
+  it.each([
+    ['coarse words', {}, '8 minutes'],
+    ['short words', { durationStyle: 'short' as const }, '8m'],
+    ['a clock', { display: 'clock' as const }, '0:00']
+  ])(
+    'holds the room of %s, hidden from sight and screen readers',
+    (_, props, text) => {
+      const time = serve(
+        <Countdown until={new Date(0)} {...props} />
+      ).querySelector('time')!
+      expect(time).toHaveAttribute('aria-hidden', 'true')
+      expect(time).toHaveClass('invisible')
+      expect(time).toHaveTextContent(text)
+      expect(time.querySelector('[aria-live]')).toBeNull()
+      expect(time).not.toHaveAttribute('datetime')
+    }
+  )
+
+  it('keeps the className, so the room has the same type', () => {
+    const time = serve(<Countdown until={new Date(0)} className='text-lg' />)
+    expect(time.querySelector('time')).toHaveClass('text-lg', 'tabular-nums')
+  })
 })
 
 describe('countdownUrgency', () => {

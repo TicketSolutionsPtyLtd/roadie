@@ -39,8 +39,12 @@ export type RecordCardProps = {
   selecting?: boolean
   onToggle?: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
+  /** Leads the title row, before the leading value, such as a board's drag handle. */
+  handle?: ReactNode
   /** The banner image's `sizes`, for a card narrower than the screen, such as in a grid. */
   imageSizes?: string
+  /** Lifts the card off a tinted track, such as a board's column, while it isn't selected. */
+  raised?: boolean
   className?: string
 }
 
@@ -59,7 +63,9 @@ export const RecordCard = memo(function RecordCard({
   selecting = false,
   onToggle,
   rowActions,
+  handle,
   imageSizes,
+  raised = false,
   className
 }: RecordCardProps) {
   const href = selecting ? undefined : linkHref
@@ -73,13 +79,16 @@ export const RecordCard = memo(function RecordCard({
   const title = parts.title ? value(parts.title) : id
   // With no details below, the title row is the card's only part, so it's the content.
   const TitleRow = hasDetails ? CardHeader : CardContent
+  const lifted = raised && !selected
   return (
     <CardRoot
       data-slot='record-card'
       intent={selected ? 'accent' : undefined}
-      emphasis={selected ? 'subtle' : 'normal'}
+      emphasis={selected ? 'subtle' : lifted ? 'raised' : 'normal'}
       className={cn(
         'grid-cols-1 tabular-nums',
+        // Raised sets no border, so this keeps the selected card's size.
+        lifted && 'border border-transparent',
         banner && 'overflow-hidden',
         className
       )}
@@ -117,7 +126,10 @@ export const RecordCard = memo(function RecordCard({
             thumbnail={parts.leading?.kind === 'image'}
           />
         ) : (
-          leading && <div className='shrink-0'>{leading}</div>
+          <>
+            {handle && <div className='-ms-1 shrink-0'>{handle}</div>}
+            {leading && <div className='shrink-0'>{leading}</div>}
+          </>
         )}
         <div className='grid min-w-0 flex-1 grid-cols-1 gap-0.5'>
           {/* A p, not CardTitle's h3: a layout can't know the page's outline. */}

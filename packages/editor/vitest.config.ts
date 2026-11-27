@@ -4,15 +4,18 @@ import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
-import type { BrowserCommand } from 'vitest/node'
+import { BaseSequencer, type BrowserCommand } from 'vitest/node'
+
+import { pointer } from '@oztix/roadie-browser-testing/config'
 
 import {
   browserInstances,
   browserRetry,
   browserRunOptions,
+  sizeBalanced,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 const reducedMotion: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ reducedMotion: active ? 'reduce' : 'no-preference' })
@@ -32,6 +35,7 @@ export default defineConfig({
   },
   test: {
     ...browserRunOptions,
+    sequence: { sequencer: sizeBalanced(BaseSequencer) },
     globals: true,
     projects: [
       {
@@ -96,7 +100,7 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             viewport: { width: 1280, height: 800 },
-            commands: { reducedMotion },
+            commands: { pointer, reducedMotion },
             instances: browserInstances
           }
         }

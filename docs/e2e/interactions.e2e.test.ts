@@ -51,11 +51,7 @@ const TRANSITIONED = [
   'outline-color',
   'transform'
 ]
-const FOCUS_RING = [
-  '--focus-ring-width',
-  '--focus-ring-opacity',
-  '--focus-ring-opacity-dark'
-]
+const FOCUS_RING = ['--focus-ring-width', '--focus-ring-opacity']
 
 /** A live example's element, once its fence has rendered. */
 async function example(page: Page, heading: string, element: Locator) {
@@ -172,10 +168,7 @@ describe('Interactions foundation', () => {
           }))
         )
         .toEqual({ focusVisible: true, width: values['--focus-ring-width'] })
-      const opacity =
-        parseFloat(
-          values[dark ? '--focus-ring-opacity-dark' : '--focus-ring-opacity']!
-        ) / 100
+      const opacity = parseFloat(values['--focus-ring-opacity']!) / 100
       await expect
         .poll(() =>
           button.evaluate((element) => getComputedStyle(element).outlineColor)
