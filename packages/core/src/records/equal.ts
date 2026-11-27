@@ -1,23 +1,13 @@
-import { encodeFilter } from './encoding'
-import type { RecordFilter, RecordLayout, RecordView } from './types'
+import { recordFilterKey } from './filterKey'
+import type { RecordLayout, RecordView } from './types'
 
 function normaliseSearch(search: string): string {
   return search.trim().replace(/\s+/g, ' ')
 }
 
-function filterKey(filter: RecordFilter): string {
-  if ('values' in filter) {
-    return encodeFilter({
-      ...filter,
-      values: [...new Set(filter.values)].sort()
-    })
-  }
-  return encodeFilter(filter)
-}
-
 // A repeated chip filters nothing more, so chips compare as a set.
 function chipKeys(view: RecordView): string[] {
-  return [...new Set(view.query.filters.map(filterKey))].sort()
+  return [...new Set(view.query.filters.map(recordFilterKey))].sort()
 }
 
 function sameList(a: readonly string[], b: readonly string[]): boolean {
@@ -29,19 +19,31 @@ function sorted(items: readonly string[] | undefined): string[] {
 }
 
 function sameLayout(a: RecordLayout, b: RecordLayout): boolean {
-  if (a.type === 'grid' || b.type === 'grid') {
-    return (
-      a.type === b.type &&
-      sameList(
-        (a.type === 'grid' && a.fields) || [],
-        (b.type === 'grid' && b.fields) || []
+  switch (a.type) {
+    case 'table':
+      return (
+        b.type === 'table' &&
+        sameList(a.columns?.order ?? [], b.columns?.order ?? []) &&
+        sameList(sorted(a.columns?.hidden), sorted(b.columns?.hidden)) &&
+        sameList(a.groupBy ?? [], b.groupBy ?? [])
       )
-    )
+    case 'grid':
+    case 'list':
+      return (
+        (b.type === 'grid' || b.type === 'list') &&
+        b.type === a.type &&
+        sameList(a.fields ?? [], b.fields ?? []) &&
+        sameList(a.groupBy ?? [], b.groupBy ?? [])
+      )
+    case 'board':
+      return b.type === 'board' && sameList(a.groupBy, b.groupBy)
+    case 'calendar':
+      return b.type === 'calendar' && a.dateField === b.dateField
+    case 'map':
+      return b.type === 'map'
+    default:
+      return false
   }
-  return (
-    sameList(a.columns?.order ?? [], b.columns?.order ?? []) &&
-    sameList(sorted(a.columns?.hidden), sorted(b.columns?.hidden))
-  )
 }
 
 /**

@@ -13,9 +13,10 @@ import {
 } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Carousel, type CarouselProps, useCarouselUnsafeEmbla } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 import type { CarouselContentOverflow } from './variants'
 
 let removeStylesheet = () => {}
@@ -214,10 +215,12 @@ describe('Carousel navigation', () => {
   it('goes to the slide whose dot is pressed', async () => {
     render(<Navigable />)
     await measured()
-    const start = offset('Show 1', 'left')
     await userEvent.click(button('Go to slide 3'))
     await showing(3)
-    await settlesAt('Show 3', 'left', start)
+    // A jump of two slides can rest over a pixel short, so this reads which
+    // slides Embla has in view rather than an offset.
+    await expect.poll(() => slide('3 of 3').inert).toBe(false)
+    await expect.poll(() => slide('1 of 3').inert).toBe(true)
   })
 
   it('moves with the arrow, Home, and End keys', async () => {
@@ -282,6 +285,42 @@ describe('Carousel navigation', () => {
     expect(
       screen.queryByRole('group', { name: 'Choose slide to display' })
     ).toBeNull()
+  })
+
+  it('hides Previous, Next, and dots by attribute, out of the tab order, once every slide fits', async () => {
+    render(
+      <>
+        <button type='button'>Before</button>
+        <Carousel aria-label='Shows'>
+          <Carousel.Header>
+            <Carousel.Title>Shows</Carousel.Title>
+            <Carousel.Dots className='flex' />
+            <Carousel.Controls className='flex'>
+              <Carousel.Previous className='flex' />
+              <Carousel.Next className='flex' />
+            </Carousel.Controls>
+          </Carousel.Header>
+          <Carousel.Content>
+            <Carousel.Item>Show 1</Carousel.Item>
+          </Carousel.Content>
+          <Ready />
+        </Carousel>
+        <button type='button'>After</button>
+      </>
+    )
+    await expect.element(page.getByText('Ready')).toBeInTheDocument()
+    for (const slot of ['dots', 'controls', 'previous', 'next']) {
+      const part = document.querySelector(`[data-slot="carousel-${slot}"]`)
+      expect(part).toHaveAttribute('data-hidden')
+      expect(part).not.toBeVisible()
+    }
+    button('Before').focus()
+    await userEvent.tab()
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-slot="carousel-content"]')
+    )
+    await userEvent.tab()
+    expect(document.activeElement).toBe(button('After'))
   })
 })
 
@@ -638,3 +677,207 @@ describe.each<CarouselContentOverflow>(['subtle', 'hidden', 'visible'])(
     )
   }
 )
+
+describe('Carousel dots', () => {
+  function Holding({
+    count = 20,
+    max,
+    className,
+    label,
+    getDotLabel
+  }: {
+    count?: number
+    max?: number
+    className?: string
+    label?: string
+    getDotLabel?: (index: number, count: number) => string
+  }) {
+    return (
+      <div className={className} style={{ width: 400, padding: 32 }}>
+        <Carousel aria-label='Tickets' opts={{ slidesToScroll: 1 }}>
+          <Carousel.Header>
+            <Carousel.Title>Tickets</Carousel.Title>
+            <Carousel.Dots
+              max={max}
+              aria-label={label}
+              getDotLabel={getDotLabel}
+            />
+          </Carousel.Header>
+          <Carousel.Content overflow='hidden'>
+            {Array.from({ length: count }, (_, index) => (
+              <Carousel.Item key={index}>Ticket {index + 1}</Carousel.Item>
+            ))}
+          </Carousel.Content>
+        </Carousel>
+      </div>
+    )
+  }
+
+  const dots = () =>
+    screen
+      .getAllByRole('button', { name: /^Go to slide/ })
+      .map((dot) => Number(dot.getAttribute('aria-label')!.split(' ').at(-1)))
+  const dot = (slide: number) =>
+    screen.getByRole('button', { name: `Go to slide ${slide}` })
+  const showing = (slide: number) =>
+    expect
+      .element(page.getByRole('button', { name: `Go to slide ${slide}` }))
+      .toHaveAttribute('aria-current', 'true')
+  const width = (slide: number) => dot(slide).getBoundingClientRect().width
+
+  const names = () =>
+    screen
+      .getAllByRole('button', { name: /^(Go to slide|Ticket)/ })
+      .map((dot) => dot.getAttribute('aria-label'))
+
+  it('names each dot after its slide by default', async () => {
+    render(<Holding count={3} />)
+    await expect
+      .poll(names)
+      .toEqual(['Go to slide 1', 'Go to slide 2', 'Go to slide 3'])
+  })
+
+  it('names each dot with getDotLabel, given its slide and the slide count', async () => {
+    render(
+      <Holding
+        count={3}
+        getDotLabel={(index, count) => `Ticket ${index} ${count}`}
+      />
+    )
+    await expect.poll(names).toEqual(['Ticket 0 3', 'Ticket 1 3', 'Ticket 2 3'])
+  })
+
+  it('names the strip of dots with aria-label', async () => {
+    render(<Holding count={3} label='Choose a ticket' />)
+    await expect
+      .element(page.getByRole('group', { name: 'Choose a ticket' }))
+      .toBeVisible()
+    expect(
+      screen.queryByRole('group', { name: 'Choose slide to display' })
+    ).toBeNull()
+  })
+
+  it('names the slides a windowed strip shows, not their place in the window', async () => {
+    render(
+      <Holding
+        max={7}
+        getDotLabel={(index, count) => `Ticket ${index + 1} of ${count}`}
+      />
+    )
+    await expect.poll(() => names().length).toBe(7)
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Ticket 7 of 20' })
+    )
+    await expect
+      .element(page.getByRole('button', { name: 'Ticket 7 of 20' }))
+      .toHaveAttribute('aria-current', 'true')
+    expect(names()).toEqual([
+      'Ticket 4 of 20',
+      'Ticket 5 of 20',
+      'Ticket 6 of 20',
+      'Ticket 7 of 20',
+      'Ticket 8 of 20',
+      'Ticket 9 of 20',
+      'Ticket 10 of 20'
+    ])
+  })
+
+  it('draws a dot for every slide without max', async () => {
+    render(<Holding />)
+    await expect.poll(() => dots().length).toBe(20)
+  })
+
+  it('draws at most max dots, the window sliding to keep the current one in the middle', async () => {
+    render(<Holding max={7} />)
+    await expect.poll(dots).toEqual([1, 2, 3, 4, 5, 6, 7])
+
+    await userEvent.click(dot(7))
+    await showing(7)
+    expect(dots()).toEqual([4, 5, 6, 7, 8, 9, 10])
+
+    await userEvent.click(dot(10))
+    await showing(10)
+    expect(dots()).toEqual([7, 8, 9, 10, 11, 12, 13])
+
+    await userEvent.click(content())
+    await userEvent.keyboard('{End}')
+    await showing(20)
+    expect(dots()).toEqual([14, 15, 16, 17, 18, 19, 20])
+  })
+
+  it('draws the dot at an end of the window smaller while slides lie past it', async () => {
+    render(<Holding max={7} />)
+    await showing(1)
+    await expect.poll(() => width(7)).toBeLessThan(width(6))
+
+    await userEvent.click(dot(4))
+    await showing(4)
+    await expect.poll(() => width(1)).toBe(width(2))
+
+    await userEvent.click(dot(7))
+    await showing(7)
+    await expect.poll(() => width(4)).toBeLessThan(width(5))
+    await expect.poll(() => width(10)).toBeLessThan(width(9))
+  })
+
+  it('never shrinks the current dot, even with a window of two', async () => {
+    render(<Holding max={2} />)
+    await showing(1)
+    const current = width(1)
+
+    await userEvent.click(dot(2))
+    await showing(2)
+    await expect.poll(() => width(2)).toBe(current)
+  })
+
+  it('draws every dot when there are no more slides than max', async () => {
+    render(<Holding count={5} max={7} />)
+    await expect.poll(dots).toEqual([1, 2, 3, 4, 5])
+    await expect.poll(() => width(5)).toBe(width(4))
+  })
+
+  it('lifts the other dots on hover, but not the current one', async () => {
+    render(<Holding max={7} />)
+    await showing(1)
+    const transform = (slide: number) => getComputedStyle(dot(slide)).transform
+
+    await userEvent.hover(dot(2))
+    await expect.poll(() => transform(2)).not.toBe('none')
+
+    // Once dot 2 has settled, a lift on the current dot would have finished.
+    await userEvent.hover(dot(1))
+    await expect.poll(() => transform(2)).toBe('none')
+    expect(transform(1)).toBe('none')
+  })
+
+  it('fills the current dot with the accent on a neutral surface', async () => {
+    render(
+      <>
+        <Holding max={7} />
+        <span data-testid='accent' className='emphasis-strong intent-accent' />
+      </>
+    )
+    await showing(1)
+    const accent = getComputedStyle(
+      screen.getByTestId('accent')
+    ).backgroundColor
+    await expect
+      .poll(() => getComputedStyle(dot(1)).backgroundColor)
+      .toBe(accent)
+  })
+
+  it.each(['accent', 'brand', 'warning'] as const)(
+    'fills the current dot with the foreground of a strong %s surface',
+    async (intent) => {
+      render(<Holding max={7} className={`intent-${intent} emphasis-strong`} />)
+      await showing(1)
+      const surface = dot(1).closest('.emphasis-strong:not([data-slot])')!
+      const { color, backgroundColor } = getComputedStyle(surface)
+      await expect
+        .poll(() => getComputedStyle(dot(1)).backgroundColor)
+        .toBe(color)
+      expect(color).not.toBe(backgroundColor)
+    }
+  )
+})

@@ -344,6 +344,26 @@ describe('Editor sections', () => {
     expect(getComputedStyle(section).outlineStyle).toBe('solid')
   })
 
+  it('keeps a selected section’s ring under the pointer', async () => {
+    renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const section = within(textbox).getByRole('group', { name: 'Promo' })
+    await clickInto('Doors 7pm')
+    await userEvent.keyboard('{Escape}{Shift>}{ArrowDown}{/Shift}')
+    await waitFor(() =>
+      expect(section.closest('[data-selected-block]')).not.toBe(null)
+    )
+    const selected = getComputedStyle(section).outlineWidth
+
+    await userEvent.hover(section)
+
+    await waitFor(() =>
+      expect(within(section).getByText('Promo')).toBeVisible()
+    )
+    expect(getComputedStyle(section).outlineWidth).toBe(selected)
+    expect(selected).not.toBe('1px')
+  })
+
   it('names a section above its box, on an opaque fill, covering none of it', async () => {
     renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
     const textbox = await screen.findByRole('textbox', { name: LABEL })

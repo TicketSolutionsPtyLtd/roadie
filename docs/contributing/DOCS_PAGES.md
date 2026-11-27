@@ -52,8 +52,9 @@ with its skeleton and the rules on top of these.
 ## Status
 
 `status` says how settled the API a page documents is. Every component,
-chart, and widget page sets one: `scripts/check-component-docs.mjs` fails a
-component or chart page without it, and the docs build fails a widget page.
+chart, and widget page sets one: each package's manifest, which its build
+writes, fails a component or chart page with a props table and no status,
+and the docs build fails a widget page.
 A foundation page that documents a code API, such as Records or Linking,
 may set one. Any value other than these four fails the docs build.
 
@@ -105,7 +106,7 @@ component the status of the page that documents it.
 - A plain `tsx` fence is for code that doesn't run, such as imports and setup.
 - Fences get every component without imports. Top-level JSX, such as a
   `Guideline` example, imports what it uses from a per-component subpath.
-- Fence options (`id=`, `eager`, `bleed`, `-noinline`, `-expand`, and the layout
+- Fence options (`id=`, `eager`, `bleed`, `framed`, `-noinline`, `-expand`, and the layout
   options `layout=`, `gap=`, and `width=`) are in
   [`COMPONENT_DOC_TEMPLATE.md`](COMPONENT_DOC_TEMPLATE.md#live-examples).
 

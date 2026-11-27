@@ -9,8 +9,22 @@ export const navigatorRootClass = [
   'relative isolate grid h-[100dvh] w-full overflow-clip bg-sunken',
   '[container-type:inline-size]',
   'grid-rows-1 md:grid-cols-[auto_1fr]',
-  'pt-[env(safe-area-inset-top)]'
+  'pt-[env(safe-area-inset-top)]',
+  // Waiting for a navigation (data-pending), the glow is the frame's fill: Pane
+  // masks a flush pane's shadow with this variable, and a nested frame inherits
+  // it and reveals its own identical fill, so it needs no reset. A phone pane is
+  // the whole screen, so it rounds to show the glow around it.
+  'data-pending:[--pane-gutter-fill:transparent]',
+  'max-md:data-pending:[--pane-radius-phone:var(--radius-2xl)]'
 ].join(' ')
+
+// A nested frame holds still, and rounding its panes would show its own fill in the corners.
+export const navigatorNestedRootClass = 'max-md:[--pane-radius-phone:0px]'
+
+// The frame's motion and its way around stay off paper, which prints the top pane.
+export const navigatorPendingClass = 'print:hidden'
+
+export const navigatorPageGhostClass = 'pointer-events-none grid print:hidden'
 
 // A container can't query itself, so column padding lives on the row inside.
 export const navigatorContentClass = [
@@ -31,9 +45,17 @@ export const navigatorPanesClass = [
   '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]'
 ].join(' ')
 
+// The outermost frame's panes pull back on a phone while it waits, to show the
+// glow. Moderate, like the glow's fade: the radius goes with data-pending, so a
+// slower scale would square the corners mid-return.
+export const navigatorPanesPullBackClass = [
+  'max-md:origin-center max-md:transition-[scale] max-md:duration-moderate max-md:ease-standard',
+  'max-md:motion-safe:group-data-[pending=visible]/navigator:scale-96'
+].join(' ')
+
 // The box is the grid track and never animates; the frame inside does.
 export const navigatorPrimaryVerticalClass = [
-  'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex',
+  'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex print:hidden',
   '[--navigator-primary-collapsed:5rem] [--navigator-primary-expanded:15rem]',
   'w-(--navigator-primary-collapsed) navigator-expanded:w-(--navigator-primary-expanded)',
   'data-[motion=expand]:w-(--navigator-primary-collapsed)',
@@ -95,7 +117,7 @@ export const navigatorCapsuleClass =
 export const navigatorPrimaryHorizontalVariants = cva(
   [
     'max-md:absolute max-md:inset-x-2 max-md:bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:z-sticky md:hidden',
-    'grid',
+    'grid print:hidden',
     // The track and circles restore input; the gutters beside them stay inert.
     'pointer-events-none',
     '[--navigator-primary-col:calc((100cqw-1rem)/var(--navigator-primary-slots))]',
@@ -315,6 +337,11 @@ export const navigatorItemVariants = cva(
 // Always laid out, so it fades both ways; the delay hides the ellipsis while its column opens.
 export const navigatorItemLabelClass =
   'col-start-2 row-start-1 ms-3 truncate opacity-0 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
+
+// Fades with the label, a step quieter, so the expanded Search hints at its shortcut.
+// Clipped, and its margin opens with the rail, so the round tile never outgrows the rail.
+export const navigatorSearchShortcutClass =
+  'ms-0 gap-0 overflow-hidden font-normal text-subtler opacity-0 navigator-expanded:ms-3 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast),margin-inline-start_var(--navigator-primary-motion)]'
 
 // Without an icon the label takes the icon column, unless a capsule sibling's
 // icon needs it for alignment: the capsule sets a variable rather than a

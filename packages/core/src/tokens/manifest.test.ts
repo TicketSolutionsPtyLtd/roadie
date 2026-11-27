@@ -22,6 +22,20 @@ const find = (name: string, kind: TokenEntry['kind'] = 'variable') => {
 }
 
 const INTERNAL = [
+  '--_mix-2a',
+  '--_mix-3a',
+  '--_mix-4a',
+  '--_mix-5a',
+  '--emphasis-fill',
+  '--emphasis-fill-active',
+  '--emphasis-fill-hover',
+  '--emphasis-fill-interactive',
+  '--emphasis-fill-state',
+  '--emphasis-lift-hover',
+  '--emphasis-shadow',
+  '--emphasis-shadow-active',
+  '--emphasis-shadow-hover',
+  '--emphasis-shadow-state',
   '--field-border-color',
   '--field-focus-bg',
   '--field-hover-bg',
@@ -45,8 +59,7 @@ const INTERNAL = [
   '--toast-scale',
   '--translucent-backdrop',
   '--translucent-fill',
-  '--tw-inset-shadow',
-  '--tw-shadow'
+  '--tw-sort'
 ]
 
 describe('coverage', () => {
@@ -88,9 +101,10 @@ describe('coverage', () => {
     )
   })
 
-  it('names every utility in the safelist, or the compiled sheet drops it', () => {
+  it('names every utility in a safelist, or the compiled sheet drops it', () => {
     const safelisted = new Set(
-      read('safelist.html')
+      [read('safelist.html'), read('safelist.families.html')]
+        .join('\n')
         .match(/class="[^"]*"/g)!
         .flatMap((attr) => attr.slice(7, -1).split(/\s+/))
     )
@@ -127,7 +141,7 @@ describe('values', () => {
     }
   })
 
-  it('keeps the color-mix fill over the @supports not fallback in both modes', () => {
+  it('reads each intent’s mixed fill against its own scale', () => {
     for (const intent of ['brand-secondary', 'success'] as const) {
       expect(find('--intent-bg-strong').byIntent?.[intent]).toEqual({
         light: `color-mix(in oklab, var(--color-${intent}-9) 90%, var(--color-neutral-light-0))`
@@ -137,6 +151,36 @@ describe('values', () => {
       light:
         'color-mix(in oklab, var(--color-warning-9) 85%, var(--color-neutral-light-0))'
     })
+    expect(find('--intent-2a').byIntent?.danger).toEqual({
+      light: 'color-mix(in oklch, var(--color-danger-9) 6%, transparent)',
+      dark: 'color-mix(in oklch, var(--color-danger-9) 7%, transparent)'
+    })
+    expect(find('--intent-2a').byIntent?.neutral).toBeUndefined()
+  })
+
+  it('scopes own-scale substitution to each top-level block without order dependence', () => {
+    const { tokens } = parseTokenManifest([
+      [
+        'test.css',
+        `
+        :root {
+          --intent-1: var(--color-neutral-1);
+          --intent-bg-normal: var(--intent-1);
+        }
+        :root {
+          --intent-1: var(--color-brand-1);
+          --intent-text-normal: var(--intent-1);
+        }
+        `
+      ]
+    ])
+    const get = (name: string) => tokens.find((t) => t.name === name)?.value
+    expect(get('--intent-bg-normal')).toEqual({
+      light: 'var(--color-neutral-1)'
+    })
+    expect(get('--intent-text-normal')).toEqual({
+      light: 'var(--color-brand-1)'
+    })
   })
 
   it('keeps a token declared only in an @supports not block', () => {
@@ -145,6 +189,18 @@ describe('values', () => {
     ])
     expect(tokens.find((t) => t.name === '--only-fallback')?.value).toEqual({
       light: 'red'
+    })
+  })
+
+  it('gives a token only the value a supported browser draws', () => {
+    const { tokens } = parseTokenManifest([
+      [
+        'test.css',
+        ':root { --old-copy: #0086da; } @supports (color: oklch(0 0 0)) { :root { --old-copy: oklch(0.6 0.18 250); } }'
+      ]
+    ])
+    expect(tokens.find((t) => t.name === '--old-copy')?.value).toEqual({
+      light: 'oklch(0.6 0.18 250)'
     })
   })
 
@@ -161,23 +217,20 @@ describe('values', () => {
     })
     expect(find('--chart-highlight').value).toEqual({
       light: 'oklch(var(--chart-highlight-lc) var(--accent-hue))',
-      dark: 'oklch(var(--chart-highlight-lc) var(--accent-hue))',
-      fallback: '#0086da'
+      dark: 'oklch(var(--chart-highlight-lc) var(--accent-hue))'
     })
   })
 
-  it('prefers the oklch value and keeps the hex fallback', () => {
+  it('gives a colour step its oklch value in each mode', () => {
     expect(find('--color-danger-10').value).toEqual({
       light: 'oklch(0.673 0.184 28.364)',
-      dark: 'oklch(0.673 0.184 28.364)',
-      fallback: '#f25f51'
+      dark: 'oklch(0.673 0.184 28.364)'
     })
   })
 
   it('pins the light step 9 that dark mode leaves alone', () => {
     expect(find('--color-danger-light-9').value).toEqual({
-      light: 'oklch(0.709 0.184 28.37)',
-      fallback: '#ff6b5c'
+      light: 'oklch(0.709 0.184 28.37)'
     })
     expect(find('--color-danger-light-9').group).toBe('Pinned light steps')
   })

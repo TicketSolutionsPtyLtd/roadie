@@ -1,6 +1,7 @@
 import { humaniseStatus } from '../dashboard/cells'
 import type {
   RecordField,
+  RecordFilter,
   RecordFilterOperator,
   RecordMoment,
   RecordOption
@@ -129,4 +130,20 @@ export function fieldIndex(
   fields: readonly RecordField[]
 ): Map<string, RecordField> {
   return new Map(fields.map((field) => [field.key, field]))
+}
+
+/**
+ * Whether these fields can apply a filter: its field exists, filters, and
+ * takes its operator. `validateRecordView` checks the value too, and says why.
+ */
+export function recordFilterFits(
+  filter: RecordFilter,
+  fields: readonly RecordField[]
+): boolean {
+  const field = fieldIndex(fields).get(filter.field)
+  return (
+    field !== undefined &&
+    isFilterable(field) &&
+    recordFilterOperators(field).includes(filter.operator)
+  )
 }

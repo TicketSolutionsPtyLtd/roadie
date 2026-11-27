@@ -1,6 +1,8 @@
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 
+import { readExports } from '../../core/scripts/package-exports.mjs'
+
 // The package's tsconfig has no Node types, so files go through ts.sys.
 const PACKAGE_DIR = expect.getState().testPath!.replace(/\/src\/[^/]+$/, '')
 
@@ -11,23 +13,11 @@ const SUBPATH_ONLY: Record<string, string[] | 'all'> = {
   './countdown': ['_snapshot']
 }
 
-type Target = string | Record<string, string>
-
-function sourceOf(target: string) {
-  const stem = `${PACKAGE_DIR}/${target.replace(/^\.\/dist\//, 'src/').replace(/\.js$/, '')}`
-  const source = [`${stem}.tsx`, `${stem}.ts`].find(ts.sys.fileExists)
-  if (!source) throw new Error(`No source for ${target}`)
-  return source
-}
-
 function subpathEntries() {
-  const { exports } = JSON.parse(
-    ts.sys.readFile(`${PACKAGE_DIR}/package.json`)!
-  ) as { exports: Record<string, Target> }
-  return Object.entries(exports).flatMap(([subpath, target]) => {
-    const js = typeof target === 'string' ? target : target.import
-    if (subpath === '.' || !js?.endsWith('.js')) return []
-    return [{ subpath, source: sourceOf(js) }]
+  return readExports(PACKAGE_DIR).flatMap(({ subpath, kind, source }) => {
+    if (subpath === '.' || kind !== 'js') return []
+    if (!source) throw new Error(`No source for ${subpath}`)
+    return [{ subpath, source }]
   })
 }
 

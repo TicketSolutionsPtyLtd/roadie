@@ -9,6 +9,7 @@ import {
   vi
 } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import {
   CARD_SIZES,
   CARD_SPANS,
@@ -19,7 +20,6 @@ import {
 import { Dashboard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { DataCard } from '../DataCard'
-import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -86,5 +86,25 @@ describe('Dashboard grid', () => {
       (el) => el.getBoundingClientRect().height
     )
     expect(a).toBe(b)
+  })
+})
+
+describe('Dashboard grid and a card className', () => {
+  it("lets a card's own col-span class win over its size's span", () => {
+    const { getByRole } = render(
+      <div style={{ width: WIDTH_PX.desktop }}>
+        <Dashboard>
+          <Dashboard.Section title='Sizes'>
+            <DataCard
+              label='Wide stat'
+              size='stat'
+              value={1}
+              className='col-span-full'
+            />
+          </Dashboard.Section>
+        </Dashboard>
+      </div>
+    )
+    expect(getComputedStyle(getByRole('article')).gridColumnEnd).toBe('-1')
   })
 })

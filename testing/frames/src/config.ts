@@ -107,6 +107,11 @@ const recordFrames: BrowserCommand<[record: FrameRecord]> = (_, record) => {
   if (file) appendFileSync(file, `${JSON.stringify(record)}\n`)
 }
 
+// From the server, since Vitest drops what a passing test logs in the page.
+const printFrameNotices: BrowserCommand<[lines: string[]]> = (_, lines) => {
+  if (lines.length) console.log(lines.join('\n'))
+}
+
 type ProfileNode = {
   id: number
   callFrame: { functionName: string; url: string; lineNumber: number }
@@ -147,6 +152,7 @@ export const frameCommands = {
   throttleCpu,
   renderMetrics,
   recordFrames,
+  printFrameNotices,
   profileCpu
 }
 

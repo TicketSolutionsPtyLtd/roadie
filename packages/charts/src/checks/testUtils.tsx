@@ -5,6 +5,17 @@ import axe from 'axe-core'
 import { afterAll, beforeAll, expect } from 'vitest'
 import { page } from 'vitest/browser'
 
+import {
+  apcaLc,
+  flatten,
+  isPainted,
+  minimumLc
+} from '@oztix/roadie-browser-testing/contrast'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { BarChart } from '../BarChart'
 import { scanRateExample } from '../BarChart/examples'
@@ -16,7 +27,6 @@ import { channelExample } from '../RankedBars/examples'
 import { StackedBars } from '../StackedBars'
 import { ticketMixExample } from '../StackedBars/examples'
 import { afterResize } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 
 // The same checks as packages/components/src/checks, which this package can't
 // import: its tsconfig's rootDir is src. Chart text is all under 14px, so
@@ -136,52 +146,7 @@ export async function expectNoSeriousViolations() {
   expect(found).toEqual([])
 }
 
-type Rgb = [number, number, number]
-
-let context: CanvasRenderingContext2D | null = null
-
-// Paints each colour over the last and reads back the sRGB result, so oklch,
-// color-mix, and alpha resolve as the page stacks them.
-function flatten(...layers: string[]): Rgb {
-  context ??= Object.assign(document.createElement('canvas'), {
-    width: 1,
-    height: 1
-  }).getContext('2d', { willReadFrequently: true })!
-  context.clearRect(0, 0, 1, 1)
-  for (const colour of layers) {
-    context.fillStyle = '#000'
-    context.fillStyle = colour
-    context.fillRect(0, 0, 1, 1)
-  }
-  const [r = 0, g = 0, b = 0] = context.getImageData(0, 0, 1, 1).data
-  return [r, g, b]
-}
-
-// APCA-W3 0.0.98G, as in packages/components/src/css/contrastTestUtils.ts.
-function apcaLc(text: Rgb, background: Rgb) {
-  const screenY = ([r, g, b]: Rgb) => {
-    const y =
-      0.2126729 * (r / 255) ** 2.4 +
-      0.7151522 * (g / 255) ** 2.4 +
-      0.072175 * (b / 255) ** 2.4
-    return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
-  }
-  const textY = screenY(text)
-  const backgroundY = screenY(background)
-  if (Math.abs(backgroundY - textY) < 0.0005) return 0
-  if (backgroundY > textY) {
-    const sapc = (backgroundY ** 0.56 - textY ** 0.57) * 1.14
-    return sapc < 0.1 ? 0 : (sapc - 0.027) * 100
-  }
-  const sapc = (backgroundY ** 0.65 - textY ** 0.62) * 1.14
-  return sapc > -0.1 ? 0 : (sapc + 0.027) * 100
-}
-
-const BODY_TEXT = 75
-
-const isPainted = (colour: string) =>
-  flatten('#000', colour).join() !== '0,0,0' ||
-  flatten('#fff', colour).join() !== '255,255,255'
+const BODY_TEXT = minimumLc['body text']
 
 // The fill under the text, or null when something opaque covers it, such as
 // the tooltip. SVG marks have no background, so a label is measured against

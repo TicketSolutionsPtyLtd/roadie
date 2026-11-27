@@ -16,6 +16,8 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickOption } from '@oztix/roadie-browser-testing'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
@@ -414,12 +416,10 @@ describe('Editor merge tag editing', () => {
   }
 
   async function changeTag(dialog: HTMLElement) {
-    await userEvent.click(
-      within(dialog).getByRole('combobox', { name: 'Shows' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Last name' })
-    )
+    await pickOption(userEvent, {
+      from: within(dialog).getByRole('combobox', { name: 'Shows' }),
+      option: 'Last name'
+    })
     await userEvent.type(
       within(dialog).getByRole('textbox', { name: 'Fallback' }),
       'friend'
@@ -597,12 +597,10 @@ describe('Editor merge tag editing', () => {
     )
     const dialog = await screen.findByRole('dialog', { name: 'Merge tag' })
 
-    await userEvent.click(
-      within(dialog).getByRole('combobox', { name: 'Shows' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'ticket_count' })
-    )
+    await pickOption(userEvent, {
+      from: within(dialog).getByRole('combobox', { name: 'Shows' }),
+      option: 'ticket_count'
+    })
     await userEvent.type(
       within(dialog).getByRole('textbox', { name: 'Fallback' }),
       'some{Enter}'

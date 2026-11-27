@@ -17,7 +17,7 @@ export const errorMessage = (records: RecordsState) =>
     : `Couldn't load ${records.recordName.other}`
 
 /** A range that failed after others loaded, shown in place of its rows. */
-export const rangeErrorMessage = (records: RecordsState) =>
+export const rangeErrorMessage = (records: Pick<RecordsState, 'recordName'>) =>
   `Couldn't load more ${records.recordName.other}`
 
 // A component can't know the page's heading outline, so state titles are text.

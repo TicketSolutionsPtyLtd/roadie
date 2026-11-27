@@ -3,24 +3,33 @@ import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { tableColumns, tableLayout } from '.'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { Records } from '../Records'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import { showColumns } from './testUtils'
 
 const layouts = [tableLayout(showColumns)]
 
 function Selectable({ count = 12 }: { count?: number }) {
-  const records = useRecords({
-    data: testShows(count),
-    fields: showFields,
-    getRowId: (row) => row.id,
-    selectable: true
-  })
   return (
-    <Records.Root records={records} layouts={layouts} caption='Shows'>
-      <Records.Content />
-      <p data-testid='count'>{records.selectedCount}</p>
-    </Records.Root>
+    <ShowRecords
+      data={testShows(count)}
+      getRowId={(row) => row.id}
+      selectable
+      layouts={layouts}
+      caption='Shows'
+    >
+      {(records) => (
+        <>
+          <Records.Content />
+          <p data-testid='count'>{records.selectedCount}</p>
+        </>
+      )}
+    </ShowRecords>
   )
 }
 
@@ -39,12 +48,7 @@ describe('RecordTable checkbox column', () => {
 
   it('adds no checkboxes to records that are not selectable', () => {
     function Plain() {
-      const records = useRecords({ data: testShows(3), fields: showFields })
-      return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
-      )
+      return <ShowRecords data={testShows(3)} layouts={layouts} />
     }
     render(<Plain />)
     expect(screen.queryByRole('checkbox')).toBeNull()
@@ -97,16 +101,13 @@ describe('RecordTable checkbox column', () => {
     const column = tableColumns<TestShow>(showFields)
     const numbers = [tableLayout([column.field('sold')])]
     function Numbers() {
-      const records = useRecords({
-        data: testShows(3),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        selectable: true
-      })
       return (
-        <Records.Root records={records} layouts={numbers}>
-          <Records.Content />
-        </Records.Root>
+        <ShowRecords
+          data={testShows(3)}
+          getRowId={(row) => row.id}
+          selectable
+          layouts={numbers}
+        />
       )
     }
     render(<Numbers />)
@@ -152,16 +153,7 @@ describe('RecordTable checkbox column', () => {
 
   it('disables the page checkbox with no rows', () => {
     function Empty() {
-      const records = useRecords({
-        data: [],
-        fields: showFields,
-        selectable: true
-      })
-      return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
-      )
+      return <ShowRecords data={[]} selectable layouts={layouts} />
     }
     render(<Empty />)
     expect(
@@ -171,17 +163,14 @@ describe('RecordTable checkbox column', () => {
 
   it('gives skeleton rows the checkbox and actions tracks too', () => {
     function Loading() {
-      const records = useRecords({
-        data: [],
-        fields: showFields,
-        selectable: true,
-        loading: true,
-        rowActions: () => null
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
+        <ShowRecords
+          data={[]}
+          selectable
+          loading
+          rowActions={() => null}
+          layouts={layouts}
+        />
       )
     }
     const { container } = render(<Loading />)
@@ -193,15 +182,10 @@ describe('RecordTable checkbox column', () => {
 
   it('puts Content className on its outermost element', () => {
     function Placed() {
-      const records = useRecords({
-        data: testShows(3),
-        fields: showFields,
-        selectable: true
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
+        <ShowRecords data={testShows(3)} selectable layouts={layouts}>
           <Records.Content className='placed' />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     const { container } = render(<Placed />)

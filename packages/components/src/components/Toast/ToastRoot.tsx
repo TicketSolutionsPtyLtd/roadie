@@ -5,8 +5,7 @@ import { type RefAttributes, use } from 'react'
 import { useDirection } from '@base-ui/react/direction-provider'
 import { Toast as ToastPrimitive } from '@base-ui/react/toast'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { ToastObjectContext, ToastPositionContext } from './ToastContext'
 import {
   type ToastPosition,
@@ -51,7 +50,7 @@ export function ToastRoot({
         swipeDirection={
           swipeDirection ?? swipeDirectionsFor(position, direction)
         }
-        className={cn(
+        className={mergeClassName(
           toastRootVariants({ side, intent: toastIntent(toast.type) }),
           className
         )}

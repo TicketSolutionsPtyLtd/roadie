@@ -2,13 +2,22 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
 import { Pane } from '../Pane'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { Records } from '../Records'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import { rect, slot } from './testUtils'
 
 let removeStylesheet = () => {}
@@ -53,19 +62,20 @@ function ShowsPane({
   actions = false,
   nested = false
 }: Options & { layouts: typeof wide }) {
-  const records = useRecords({
-    data: testShows(80),
-    fields: showFields,
-    getRowId: (row) => row.id,
-    selectable
-  })
   const toolbar = (
     <Records.Header
       actions={actions ? [{ label: 'Export', onAction: () => {} }] : undefined}
     />
   )
   return (
-    <Records.Provider records={records} layouts={layouts} caption='Shows'>
+    <ShowRecords
+      data={testShows(80)}
+      getRowId={(row) => row.id}
+      selectable={selectable}
+      layouts={layouts}
+      caption='Shows'
+      bare
+    >
       <Pane className='h-full'>
         <Pane.Header>
           <Pane.Title>Shows</Pane.Title>
@@ -80,7 +90,7 @@ function ShowsPane({
           )}
         </Pane.Body>
       </Pane>
-    </Records.Provider>
+    </ShowRecords>
   )
 }
 
@@ -201,17 +211,14 @@ describe('A toolbar in a pane', () => {
   })
 
   it('folds its actions into the menu under 40rem of room inside it', async () => {
-    const container = await renderAt(660, wide, {
-      slot: 'record-table-list-row',
-      actions: true
-    })
+    const container = await renderAt(660, wide, { actions: true })
     const toolbar = slot(container, 'records-header')
     await expect
       .poll(() => toolbar.querySelector('[aria-label="More actions"]'))
       .not.toBeNull()
     expect(
       [...toolbar.querySelectorAll('button')].some(
-        (button) => button.textContent === 'Export'
+        (button) => button.textContent === 'Export' && button.checkVisibility()
       )
     ).toBe(false)
   })
@@ -240,7 +247,11 @@ describe('A table in a pane measures the room its columns get', () => {
   })
 
   it('turns narrow under 40rem of room, not of the pane', async () => {
-    await renderAt(668, wide, { slot: 'record-table-list-row' })
+    const container = await renderAt(668, wide)
+    // Re-flowed rows hide the header row from sight.
+    expect(
+      getComputedStyle(slot(container, 'record-table-head-row')).position
+    ).toBe('absolute')
   })
 
   it('ends the last header with its cells while bulk actions wait', async () => {
@@ -301,9 +312,7 @@ describe.each([390, 360, 1280])(
   'A stuck toolbar in a pane at %ipx',
   (width) => {
     it('paints the pane’s margins beside it and down to the rows', async () => {
-      const container = await renderAt(width, wide, {
-        slot: width < 640 ? 'record-table-list-row' : 'record-table-row'
-      })
+      const container = await renderAt(width, wide)
       slot(container, 'pane-viewport').scrollTop = 1500
       await nudgeFrames()
       const toolbar = slot(container, 'records-header')
@@ -331,9 +340,7 @@ describe.each([390, 360, 1280])(
 
 describe.each([390, 360])('Narrow rows in a pane at %ipx', (width) => {
   it('keep the pane’s inset', async () => {
-    const container = await renderAt(width, wide, {
-      slot: 'record-table-list-row'
-    })
+    const container = await renderAt(width, wide)
     expect(rect(slot(container, 'record-table-frame')).left).toBeCloseTo(
       searchLeft(container),
       0
@@ -349,18 +356,16 @@ describe.each([390, 360])('Narrow rows in a pane at %ipx', (width) => {
 describe('RecordTable in a card in a pane', () => {
   it('stays inside the card', async () => {
     function CardPane() {
-      const records = useRecords({
-        data: testShows(20),
-        fields: showFields,
-        getRowId: (row) => row.id
-      })
       return (
         <Pane className='h-full'>
           <Pane.Body>
             <div data-testid='card' className='p-4'>
-              <Records records={records} layouts={wide} caption='Shows'>
-                <Records.Content />
-              </Records>
+              <ShowRecords
+                data={testShows(20)}
+                getRowId={(row) => row.id}
+                layouts={wide}
+                caption='Shows'
+              />
             </div>
           </Pane.Body>
         </Pane>

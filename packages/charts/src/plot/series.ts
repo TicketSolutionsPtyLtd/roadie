@@ -1,6 +1,7 @@
+import { SERIES_CAP } from '@oztix/roadie-core/dashboard-layout'
+
 import type { ChartPaint, Row } from './types'
 
-export const SERIES_CAP = 6
 export const OTHER = 'Other'
 const OTHER_SLOT = 0
 

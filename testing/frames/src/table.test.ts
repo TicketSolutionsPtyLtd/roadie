@@ -132,3 +132,37 @@ describe('frameTable short runs', () => {
     expect(table).toContain('| Missed in throttled |')
   })
 })
+
+describe('frameTable notes', () => {
+  it('adds a Note column only when a run carries a note', () => {
+    const table = frameTable([
+      {
+        label: 'Throttled',
+        records: [
+          record('Pane, push', { note: 'style 165ms | layout 1ms' }),
+          record('Menu, open')
+        ]
+      },
+      {
+        label: 'Unthrottled',
+        records: [record('Pane, push', { cpu: 1, note: 'style 39ms' })]
+      }
+    ])
+    expect(table.split('\n')).toEqual([
+      '| Scenario | Throttled (4x) | Unthrottled (1x) | Budget | Note |',
+      '| --- | --- | --- | --- | --- |',
+      '| Pane, push | 16.7 · 18 · 0% · 0 | 16.7 · 18 · 0% · 0 | Met | Throttled: style 165ms \\| layout 1ms; Unthrottled: style 39ms |',
+      '| Menu, open | 16.7 · 18 · 0% · 0 | – | Met |  |'
+    ])
+  })
+
+  it('leaves the label off the note of a single run', () => {
+    const table = frameTable([
+      {
+        label: 'Chromium',
+        records: [record('Pane, push', { note: 'style 165ms' })]
+      }
+    ])
+    expect(table).toContain('| Met | style 165ms |')
+  })
+})

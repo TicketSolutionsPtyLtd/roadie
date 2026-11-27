@@ -2,7 +2,8 @@ import {
   CalendarBlankIcon,
   CheckIcon,
   DotsSixVerticalIcon,
-  MapPinIcon
+  MapPinIcon,
+  UploadSimpleIcon
 } from '@phosphor-icons/react/ssr'
 
 import { Avatar } from '@oztix/roadie-components/avatar'
@@ -98,6 +99,13 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <div className='absolute -bottom-7 left-16 size-20 rotate-45 rounded-md bg-strong/15' />
         </div>
       )
+    case 'image-crop':
+      return (
+        <div className='relative grid h-24 w-40 place-items-center overflow-hidden rounded-xl bg-(--color-neutral-light-13)'>
+          <div className='absolute -bottom-6 left-4 size-16 rotate-45 rounded-md bg-(--color-neutral-light-5)/40' />
+          <div className='relative h-14 w-28 rounded-sm shadow-[0_0_0_1.5px_var(--color-neutral-light-0)]' />
+        </div>
+      )
     case 'avatar':
       return (
         <Avatar.Group aria-hidden>
@@ -153,6 +161,16 @@ export function ComponentSkeleton({ name }: { name: string }) {
       return (
         <div className='w-40 rounded-lg border border-subtle bg-normal px-3 py-2'>
           <Skel className='h-2 w-16 opacity-50' />
+        </div>
+      )
+    case 'file-upload':
+      return (
+        <div className='flex h-9 w-44 items-center gap-2 rounded-lg border border-subtle bg-normal pr-1 pl-3'>
+          <Skel className='h-2 flex-1 opacity-50' />
+          <div className='flex h-7 emphasis-normal items-center gap-1.5 rounded-full px-2.5'>
+            <UploadSimpleIcon weight='bold' className='size-3 text-subtle' />
+            <Skel className='h-2 w-8' />
+          </div>
         </div>
       )
     case 'number-field':
@@ -331,6 +349,15 @@ export function ComponentSkeleton({ name }: { name: string }) {
               className='size-5 rounded-md border border-subtle bg-normal'
             />
           ))}
+        </div>
+      )
+    case 'phone-field':
+      return (
+        <div className='flex w-40 items-center gap-2 rounded-lg border border-subtle bg-normal px-2 py-2'>
+          <Skel className='h-2.5 w-3.5' />
+          <Skel className='h-2 w-5' />
+          <Skel className='size-2' />
+          <Skel className='h-2 w-14' />
         </div>
       )
     case 'select':
@@ -532,6 +559,23 @@ export function ComponentSkeleton({ name }: { name: string }) {
         <div className='flex w-40 items-center justify-between rounded-lg border border-subtle bg-normal px-3 py-2'>
           <Skel className='h-2 w-20 opacity-50' />
           <Skel className='size-2' />
+        </div>
+      )
+    case 'command-palette':
+      return (
+        <div className='grid w-44 gap-1.5 rounded-xl border border-subtle bg-normal p-2 shadow-lg'>
+          <div className='flex items-center gap-2 border-b border-subtler px-1 pb-1.5'>
+            <Skel className='size-2.5 rounded-full' />
+            <Skel className='h-2 w-20 opacity-50' />
+          </div>
+          <div className='flex items-center gap-2 rounded-md bg-subtle px-1 py-1'>
+            <Skel className='size-2.5' />
+            <Skel className='h-2 w-16' />
+          </div>
+          <div className='flex items-center gap-2 px-1 py-1'>
+            <Skel className='size-2.5' />
+            <Skel className='h-2 w-24 opacity-50' />
+          </div>
         </div>
       )
     case 'link-button':
@@ -808,6 +852,49 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'record-board':
+      return (
+        <div className='grid w-44 grid-cols-3 gap-1.5 rounded-xl bg-normal p-2'>
+          {[2, 1, 0].map((cards, column) => (
+            <div
+              key={column}
+              className='grid content-start gap-1 rounded-lg bg-subtle p-1'
+            >
+              <Skel className='h-1 w-6' />
+              {Array.from({ length: cards }, (_, card) => (
+                <div
+                  key={card}
+                  className='grid emphasis-normal gap-1 rounded-md p-1'
+                >
+                  <div className='h-1.5 w-8 rounded-sm bg-strong/40' />
+                  <Skel className='h-1 w-5' />
+                </div>
+              ))}
+              {cards === 0 && (
+                <div className='h-6 rounded-md border border-dashed border-subtle' />
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    case 'record-calendar':
+      return (
+        <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>
+          <Skel className='h-1.5 w-12' />
+          <div className='grid grid-cols-7 gap-px'>
+            {Array.from({ length: 21 }, (_, day) => (
+              <div
+                key={day}
+                className='grid h-5 content-start gap-0.5 rounded-sm border border-subtler p-0.5'
+              >
+                {[2, 8, 9, 15].includes(day) && (
+                  <div className='h-1 rounded-sm emphasis-subtle intent-accent' />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
     case 'record-grid':
       return (
         <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>
@@ -826,6 +913,26 @@ export function ComponentSkeleton({ name }: { name: string }) {
                   <div className={`h-1.5 rounded-sm bg-strong/40 ${width}`} />
                   <Skel className='h-1 w-8' />
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    case 'record-list':
+      return (
+        <div className='grid w-40 gap-1.5 rounded-xl bg-normal p-2'>
+          <div className='flex h-5 items-center gap-1.5 rounded-lg emphasis-field px-1.5'>
+            <Skel className='size-2 shrink-0 rounded-full' />
+            <Skel className='h-1.5 w-10 opacity-50' />
+          </div>
+          <div className='grid divide-y divide-subtler'>
+            {['w-16', 'w-12', 'w-14'].map((width) => (
+              <div key={width} className='flex items-center gap-2 py-1.5'>
+                <div className='grid flex-1 gap-1'>
+                  <div className={`h-1.5 rounded-sm bg-strong/40 ${width}`} />
+                  <Skel className='h-1 w-12' />
+                </div>
+                <div className='h-2.5 w-6 emphasis-normal rounded-full intent-success' />
               </div>
             ))}
           </div>

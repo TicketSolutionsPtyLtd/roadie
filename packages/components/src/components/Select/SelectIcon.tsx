@@ -5,7 +5,7 @@ import type { RefAttributes } from 'react'
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type SelectIconProps = SelectPrimitive.Icon.Props &
   RefAttributes<HTMLSpanElement>
@@ -14,7 +14,7 @@ export function SelectIcon({ className, children, ...props }: SelectIconProps) {
   return (
     <SelectPrimitive.Icon
       data-slot='select-icon'
-      className={cn(
+      className={mergeClassName(
         'ml-2 shrink-0 text-subtle transition-transform duration-moderate data-[popup-open]:rotate-180',
         className
       )}

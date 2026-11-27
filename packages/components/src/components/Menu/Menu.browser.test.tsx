@@ -10,12 +10,12 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Menu } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
-import { useStylesheet } from '../Pane/testUtils'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {
@@ -48,9 +48,9 @@ async function tapCheckboxRow() {
     </Menu>
   )
   await userEvent.click(screen.getByRole('button', { name: 'Columns' }))
-  const tapped = await screen.findByRole('menuitemcheckbox', {
-    name: 'Tickets sold'
-  })
+  const tapped = await withFrames(() =>
+    screen.findByRole('menuitemcheckbox', { name: 'Tickets sold' })
+  )
   const resting = screen.getByRole('menuitemcheckbox', { name: 'Venue' })
   await userEvent.click(tapped)
   await expect.poll(() => tapped.getAttribute('aria-checked')).toBe('true')

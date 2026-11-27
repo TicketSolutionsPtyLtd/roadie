@@ -11,6 +11,7 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Pane } from '@oztix/roadie-components/pane'
 
 import { Editor } from '.'
@@ -402,8 +403,11 @@ describe('Editor toolbar on a larger screen', () => {
     const textbox = await focusedTextbox()
 
     for (const name of ['Heading 2', 'Paragraph']) {
-      await userEvent.click(screen.getByRole('button', { name: /^Block type/ }))
-      await userEvent.click(await screen.findByRole('menuitemradio', { name }))
+      await pickMenuItem(userEvent, {
+        from: screen.getByRole('button', { name: /^Block type/ }),
+        item: name,
+        role: 'menuitemradio'
+      })
       await waitFor(() => expect(textbox).toHaveFocus())
     }
 
@@ -463,9 +467,11 @@ describe('Editor placeholder', () => {
 describe('Block type trigger', () => {
   const blockType = () => screen.getByRole('button', { name: /^Block type/ })
   const choose = async (name: string) => {
-    await userEvent.click(blockType())
-    await userEvent.click(await screen.findByRole('menuitemradio', { name }))
-    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    await pickMenuItem(userEvent, {
+      from: blockType(),
+      item: name,
+      role: 'menuitemradio'
+    })
   }
   const gapToCaret = () => {
     const text = [...blockType().childNodes].find(

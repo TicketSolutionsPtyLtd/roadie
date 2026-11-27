@@ -107,7 +107,39 @@ describe('buildManifest', () => {
       ],
       parts: [
         {
+          name: 'Pill.Dot',
+          props: [
+            {
+              name: 'max',
+              type: 'number',
+              description: 'The most dots to draw at once.'
+            }
+          ]
+        },
+        {
           name: 'Pill.Icon',
+          props: [
+            {
+              name: 'name',
+              type: 'string',
+              required: true,
+              description: 'Phosphor icon name.'
+            },
+            {
+              name: 'theme',
+              type: '"dark" | "light"',
+              description: 'Swatch the icon is drawn for.'
+            },
+            {
+              name: 'frame',
+              type: 'PillIconFrame',
+              description: 'Space around the icon.'
+            }
+          ]
+        },
+        {
+          name: 'Pill.Glyph',
+          deprecated: 'Use `Pill.Icon`.',
           props: [
             {
               name: 'name',
@@ -173,12 +205,33 @@ describe('buildManifest', () => {
     ])
   })
 
+  it('documents a part from its own component when its file also exports a helper', () => {
+    const pill = manifest.components.find((c) => c.name === 'Pill')
+    expect(pill?.parts?.find((part) => part.name === 'Pill.Dot')).toEqual({
+      name: 'Pill.Dot',
+      props: [
+        {
+          name: 'max',
+          type: 'number',
+          description: 'The most dots to draw at once.'
+        }
+      ]
+    })
+  })
+
   it('lists only exported components', () => {
     const names = manifest.components.flatMap((c) => [
       c.name,
       ...(c.parts ?? []).map((part) => part.name)
     ])
-    expect(names).toEqual(['Pill', 'Pill.Icon', 'Tag', 'Provider'])
+    expect(names).toEqual([
+      'Pill',
+      'Pill.Dot',
+      'Pill.Icon',
+      'Pill.Glyph',
+      'Tag',
+      'Provider'
+    ])
   })
 
   it('describes components exported only from the package root', () => {
@@ -196,9 +249,14 @@ describe('buildManifest', () => {
     })
   })
 
-  it('collects deprecated exports and props once per import path', () => {
+  it('collects deprecated exports, compound parts, and props once per import path', () => {
     expect(manifest.deprecations).toEqual([
       { import: '@fixture/ui/pill', export: 'Tag', reason: 'Use `Pill`.' },
+      {
+        import: '@fixture/ui/pill',
+        export: 'Pill.Glyph',
+        reason: 'Use `Pill.Icon`.'
+      },
       {
         import: '@fixture/ui/pill',
         export: 'Pill',
@@ -361,6 +419,7 @@ describe('buildManifest', () => {
         name: 'Chip',
         import: '@fixture/skins/chip/react',
         docs: 'https://example.com/docs/components/chip/',
+        status: 'beta',
         summary: 'A removable filter chip',
         description: 'A removable filter chip.',
         props: [
@@ -385,6 +444,22 @@ describe('buildManifest', () => {
         reason: 'Renamed to `Chip`.'
       }
     ])
+  })
+
+  it('fails when a component folder that exports no component has no page', () => {
+    expect(() =>
+      buildManifest({ ...options, packageDir: `${workspaceRoot}plain` })
+    ).toThrow('No docs page for @fixture/plain/stand')
+  })
+
+  it('fails when a component page sets no status', () => {
+    expect(() =>
+      buildManifest({
+        ...options,
+        packageDir: `${workspaceRoot}plain`,
+        documentedSubpaths: { '@fixture/plain/stand': '/components/pill/' }
+      })
+    ).toThrow('No status on /components/board/')
   })
 
   it('fails when a compound part has no docs', () => {

@@ -126,7 +126,8 @@ export function useKeyboardDock(
         else if (!active || active === document.body) {
           // A sheet's control that re-renders as it's tapped drops focus to
           // the page, with the sheet still open.
-          inside &&= document.querySelector(`[${EDITOR_POPUP}]`) !== null
+          inside =
+            inside && document.querySelector(`[${EDITOR_POPUP}]`) !== null
         }
         // A dialog around the editor is the page, not a popup of its bar.
         else if (!popup || popup.contains(frame)) inside = false

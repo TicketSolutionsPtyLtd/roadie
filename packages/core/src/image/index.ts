@@ -8,3 +8,14 @@ export {
   type OztixImageFormat,
   type OztixImageOptions
 } from './image'
+export {
+  clampCrop,
+  coverZoom,
+  cropValueAt,
+  rubberBand,
+  type ClampCropOptions,
+  type CropRect,
+  type CropSize,
+  type ImageCropValue
+} from './crop'
+export { cropImage, type CropImageOptions } from './cropImage'

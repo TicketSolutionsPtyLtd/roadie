@@ -5,8 +5,8 @@ import { useRef } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RangeErrorMessage } from '../Records/RecordPlaceholder'
-import { tableRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
+import { rowHeightClass } from './RecordTableRow'
 
 export function RecordTableRangeError({
   rowIndex,
@@ -25,7 +25,7 @@ export function RecordTableRangeError({
       data-slot='record-table-range-error'
       className={cn(
         'flex min-w-(--record-table-min-width) border-b border-subtler',
-        tableRowSize.heightClass
+        rowHeightClass
       )}
     >
       {/* Sticky, so it stays in view when the table scrolls sideways. */}

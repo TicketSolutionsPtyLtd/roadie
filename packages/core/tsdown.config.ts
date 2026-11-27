@@ -11,6 +11,7 @@ export default defineConfig(({ watch }) => ({
     'image/index': './src/image/index.ts',
     'datetime/index': './src/datetime/index.ts',
     'number/index': './src/number/index.ts',
+    'phone/index': './src/phone/index.ts',
     'dataviz/index': './src/dataviz/index.ts',
     'navigator/index': './src/navigator/index.ts',
     'dashboard/index': './src/dashboard/index.ts',

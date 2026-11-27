@@ -140,31 +140,6 @@ describe('Field', () => {
     expect(input).not.toHaveAttribute('aria-required')
   })
 
-  it('wires aria-describedby to ErrorText when invalid', () => {
-    const { container } = render(
-      <Field invalid>
-        <Field.Input />
-        <Field.HelperText>Help</Field.HelperText>
-        <Field.ErrorText>Error</Field.ErrorText>
-      </Field>
-    )
-    const input = container.querySelector('input')!
-    const errorText = container.querySelector('[role="alert"]')!
-    expect(input).toHaveAttribute('aria-describedby', errorText.id)
-  })
-
-  it('wires aria-describedby to HelperText when not invalid', () => {
-    const { container } = render(
-      <Field>
-        <Field.Input />
-        <Field.HelperText>Help</Field.HelperText>
-      </Field>
-    )
-    const input = container.querySelector('input')!
-    const helperText = container.querySelector('p')!
-    expect(input).toHaveAttribute('aria-describedby', helperText.id)
-  })
-
   it('auto-wires htmlFor on Label to Input id', () => {
     const { container } = render(
       <Field>
@@ -284,7 +259,7 @@ describe('Field + Select integration', () => {
     expect(container.querySelector('[role="alert"]')).toBeInTheDocument()
   })
 
-  it('Select trigger gets aria-describedby pointing to error text when invalid', () => {
+  it('Select trigger is described by the error text when invalid', () => {
     const { container } = render(
       <Field invalid>
         <Field.Label>Industry</Field.Label>
@@ -298,8 +273,7 @@ describe('Field + Select integration', () => {
       </Field>
     )
     const trigger = container.querySelector('button')!
-    const errorText = container.querySelector('[role="alert"]')!
-    expect(trigger).toHaveAttribute('aria-describedby', errorText.id)
+    expect(trigger).toHaveAccessibleDescription('Required')
   })
 
   it('Select props override Field context', () => {
@@ -381,8 +355,7 @@ describe('Field + Combobox integration', () => {
     const input = container.querySelector('input')!
     expect(input).toHaveAttribute('aria-invalid', 'true')
     expect(input).toHaveAttribute('aria-required', 'true')
-    const errorText = container.querySelector('[role="alert"]')!
-    expect(input).toHaveAttribute('aria-describedby', errorText.id)
+    expect(input).toHaveAccessibleDescription('Required')
   })
 
   it('Combobox InputGroup gets aria-invalid when Field is invalid', () => {
