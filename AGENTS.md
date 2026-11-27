@@ -97,6 +97,8 @@ pnpm --filter docs dev
   page through its dnd module. The editor's document blocks are the
   exception: they move with the editor's own block handle, as ProseMirror
   transactions.
+- Maps go through `Map`. Never import a map engine directly; engines plug
+  in behind `MapEngine` ([0017](docs/decisions/0017-map-engines-plug-in.md)).
 
 ## Styling
 

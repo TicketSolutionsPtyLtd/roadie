@@ -1,0 +1,117 @@
+/* Map. Roadie draws its own credits and controls, so this holds only what the
+   engine's markup needs: the canvas's focus ring and touch handling, and the
+   hint MapLibre shows when the page scrolls across a map. The engine gives the
+   hint Roadie's overlay emphasis and text style; this places and fades it.
+   It also holds the insets that keep the toolbar, search and credits clear
+   of a notch and the home indicator while the map fills the window, and the
+   pulse around the reader's location. */
+
+@layer components {
+  [data-slot='map-viewport'] {
+    --map-inset-top: --spacing(2);
+    --map-inset-right: --spacing(2);
+    --map-inset-left: --spacing(2);
+    /* Map.Search stops short of the toolbar in the top right corner. */
+    --map-search-right: calc(var(--map-inset-right) + --spacing(12));
+    --map-credits-right: 0px;
+    --map-credits-bottom: 0px;
+
+    /* Safe areas are non-zero only where the app sets viewport-fit=cover. */
+    &[data-expanded] {
+      --map-inset-top: max(--spacing(2), env(safe-area-inset-top));
+      --map-inset-right: max(--spacing(2), env(safe-area-inset-right));
+      --map-inset-left: max(--spacing(2), env(safe-area-inset-left));
+      --map-credits-right: env(safe-area-inset-right, 0px);
+      --map-credits-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  }
+
+  [data-slot='map-surface'] .maplibregl-canvas {
+    /* The frame clips anything outside the canvas, so ring it inside. */
+    &:focus-visible {
+      outline-offset: calc(var(--focus-ring-width) * -1);
+    }
+  }
+
+  /* Inline, Map uses cooperative gestures: one finger scrolls the page, and
+     two fingers pinch and pan the map, not the page. Filling the window,
+     every gesture is the map's. */
+  [data-slot='map-surface'] .maplibregl-canvas-container,
+  [data-slot='map-surface'] .maplibregl-canvas {
+    touch-action: pan-x pan-y;
+  }
+
+  [data-slot='map-viewport'][data-expanded]
+    :is(.maplibregl-canvas-container, .maplibregl-canvas) {
+    touch-action: none;
+  }
+
+  [data-slot='map-surface']
+    .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: grab;
+    user-select: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  /* Over an area with a preview, the pointer shows it can be clicked. */
+  [data-slot='map-viewport'][data-area-hover]
+    .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: pointer;
+  }
+
+  /* A ring grows out of the reader's location and fades, a loop at a time.
+     Reduced motion runs it once, at once, which leaves it hidden. */
+  [data-slot='map-user-location-pulse'] {
+    opacity: 0;
+    animation: map-location-pulse var(--duration-ambient) var(--ease-exit)
+      infinite;
+  }
+
+  [data-slot='map-surface'] .maplibregl-cooperative-gesture-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-content: center;
+    padding: --spacing(4);
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-exit)
+      var(--duration-slower);
+
+    &.maplibregl-show {
+      opacity: 1;
+      transition: opacity var(--duration-fast) var(--ease-enter);
+    }
+
+    .maplibregl-mobile-message {
+      display: none;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      .maplibregl-desktop-message {
+        display: none;
+      }
+
+      .maplibregl-mobile-message {
+        display: block;
+      }
+    }
+  }
+}
+
+@keyframes map-location-pulse {
+  from {
+    opacity: 0.5;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 3;
+  }
+}

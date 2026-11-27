@@ -301,6 +301,7 @@ const scope = {
   useState,
   useEffect,
   useId,
+  useRef,
   PreviewCell
 }
 

@@ -65,3 +65,4 @@ the rule and keep only the why here.
 | [0014](0014-global-shortcuts.md)                    | Global shortcuts bind on document, one owner per page    |
 | [0015](0015-components-animate-with-css.md)         | Components animate with CSS and Web Animations           |
 | [0016](0016-records-group-by.md)                    | Records group by one ordered list in every layout        |
+| [0017](0017-map-engines-plug-in.md)                 | Map engines plug in behind one contract                  |

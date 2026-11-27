@@ -65,6 +65,7 @@ import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { ImageCrop } from '@oztix/roadie-components/image-crop'
 import { List } from '@oztix/roadie-components/list'
 import { Logo } from '@oztix/roadie-components/logo'
+import { Map } from '@oztix/roadie-components/map'
 import { Menu } from '@oztix/roadie-components/menu'
 import { Navigator } from '@oztix/roadie-components/navigator'
 import { NumberField } from '@oztix/roadie-components/number-field'
@@ -887,6 +888,18 @@ export default function RscSmokePage() {
         <ToolbarViaBarrel.Root aria-label='Formatting'>
           <ToolbarViaBarrel.Button>Bold</ToolbarViaBarrel.Button>
         </ToolbarViaBarrel.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Map as bare root (canonical)
+        </h2>
+        <Map
+          defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+          aria-label='Where Kazoo Hollow Room is'
+        >
+          <Map.Toolbar />
+        </Map>
       </section>
 
       <section className='grid gap-2'>
