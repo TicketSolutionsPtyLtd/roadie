@@ -2,6 +2,11 @@ import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { DonutChart } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
@@ -14,7 +19,6 @@ import {
   expectTableKeepsHeight,
   renderInCard
 } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 import { ticketTypeExample } from './examples'
 import type { DonutChartProps } from './types'
 

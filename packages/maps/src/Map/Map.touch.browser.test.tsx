@@ -10,8 +10,9 @@ import {
 } from 'vitest'
 import { commands, server } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../testUtils'
 import { MapEngineContext } from './MapEngineContext'
 import type { MapEngine, MapEngineInstance } from './engine'
 import blankStyle from './fixtures/blank-style.json?url'

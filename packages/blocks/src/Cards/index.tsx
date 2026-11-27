@@ -22,8 +22,8 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  type SpotIllustrationName,
-  spotIllustration
+  SpotIllustrationByName,
+  type SpotIllustrationName
 } from '../_shared/illustrations'
 import {
   cycledMarkIntent,
@@ -159,13 +159,13 @@ function Illustration({
   name: SpotIllustrationName | undefined
   className: string
 }) {
-  const Drawing = spotIllustration(name)
-  return Drawing ? <Drawing outline className={className} /> : null
+  return <SpotIllustrationByName name={name} outline className={className} />
 }
 
 // A tile that draws its own photo has no surface to tint, so a linked one grows its photo instead.
+// `in-*`, not `group-has-*`: older Tailwind ends that on a universal, which restyles the page on every DOM change.
 const GROWS_ON_HOVER =
-  'transition-transform duration-moderate ease-standard motion-safe:group-hover/tile:scale-105 motion-safe:group-has-[[data-interactive-target]:focus-visible]/tile:scale-105'
+  'transition-transform duration-moderate ease-standard motion-safe:group-hover/tile:scale-105 motion-safe:in-[[data-slot=cards-tile]:has([data-interactive-target]:focus-visible)]:scale-105'
 
 // The frame sets the shape, so a sized photo is cropped to it rather than keeping its own ratio.
 function CardImage({
@@ -361,7 +361,10 @@ function ServiceCard(props: CardProps) {
 function IndustryCard(props: CardProps) {
   const { item } = props
   return (
-    <li className='group/tile is-interactive-within grid min-w-0 grid-rows-[auto_1fr] rounded-2xl'>
+    <li
+      data-slot='cards-tile'
+      className='group/tile is-interactive-within grid min-w-0 grid-rows-[auto_1fr] rounded-2xl'
+    >
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw'
@@ -391,7 +394,10 @@ function IndustryCard(props: CardProps) {
 function PhotoCard(props: CardProps) {
   const { item } = props
   return (
-    <li className='group/tile dark is-interactive-within relative grid aspect-square min-w-0 overflow-hidden rounded-2xl'>
+    <li
+      data-slot='cards-tile'
+      className='group/tile dark is-interactive-within relative grid aspect-square min-w-0 overflow-hidden rounded-2xl'
+    >
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw'

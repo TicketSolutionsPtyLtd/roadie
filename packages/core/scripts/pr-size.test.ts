@@ -23,20 +23,23 @@ describe('countChangedLines', () => {
     })
   })
 
-  it('leaves out lock files, snapshots, generated CSS, changesets, and changelogs', () => {
+  it('leaves out lock files, snapshots, generated CSS and size budgets, changesets, and changelogs', () => {
     const numstat = [
       '900\t800\tpnpm-lock.yaml',
       '10\t0\tskills-lock.json',
       '120\t0\tpackages/charts/src/BarChart/__snapshots__/scan-rate-dark.svg',
       '40\t40\tpackages/components/src/Foo/Foo.test.tsx.snap',
       '300\t300\tpackages/core/src/css/dataviz.css',
+      '20\t20\tpackages/core/src/css/safelist.families.html',
+      '100\t50\tpackages/core/src/utils/classGroups.generated.ts',
+      '60\t30\tpackages/components/size-budget.json',
       '5\t0\t.changeset/new-thing.md',
       '12\t0\tpackages/charts/CHANGELOG.md',
       '7\t2\tpackages/core/src/dataviz/palette.ts'
     ].join('\n')
     expect(countChangedLines(numstat)).toEqual({
       total: 9,
-      excludedLines: 2527,
+      excludedLines: 2807,
       files: 1
     })
   })
@@ -44,15 +47,32 @@ describe('countChangedLines', () => {
   it('keeps hand-written files that sit beside generated ones', () => {
     const numstat = [
       '4\t0\tpackages/core/src/css/dataviz-textures.css',
-      '2\t0\t.changeset/config.json'
+      '2\t0\t.changeset/config.json',
+      '3\t0\tpackages/core/src/css/safelist.html',
+      '5\t0\tpackages/core/src/utils/classFamilies.ts'
     ].join('\n')
-    expect(countChangedLines(numstat).total).toBe(6)
+    expect(countChangedLines(numstat).total).toBe(14)
   })
 
   it('counts binary files as zero lines', () => {
     expect(countChangedLines('-\t-\tdocs/public/hero.png')).toEqual({
       total: 0,
       excludedLines: 0,
+      files: 1
+    })
+  })
+
+  it('leaves out a deleted file, so a PR that only removes config passes', () => {
+    const numstat = [
+      '0\t930\tpackages/core/.size-limit.json',
+      '0\t4\tAGENTS.md',
+      '',
+      ' delete mode 100644 packages/core/.size-limit.json',
+      ' rename packages/core/{a.ts => b.ts} (100%)'
+    ].join('\n')
+    expect(countChangedLines(numstat)).toEqual({
+      total: 4,
+      excludedLines: 930,
       files: 1
     })
   })

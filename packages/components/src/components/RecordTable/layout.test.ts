@@ -2,7 +2,14 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { RecordField } from '@oztix/roadie-core/records'
 
-import { columnLayout, columnWidths } from './layout'
+import { groupTextStart } from './RecordTableGroups'
+import {
+  PRIORITY_HIDES_BELOW,
+  SELECT_WIDTH,
+  TIER_CLASSES,
+  columnLayout,
+  columnWidths
+} from './layout'
 import type { RecordColumnWidth, RecordTableColumn } from './types'
 
 const text = (key: string, label = key): RecordField => ({
@@ -259,5 +266,106 @@ describe('columnWidths for custom cells', () => {
       UTC
     )
     expect(custom!.grow).toBeLessThan(plain!.grow!)
+  })
+})
+
+describe('TIER_CLASSES', () => {
+  it.each(Object.entries(PRIORITY_HIDES_BELOW))(
+    'switches tier %s below %srem of the frame',
+    (tier, rem) => {
+      const at = `@max-[${rem}rem]/record-table-frame:`
+      expect(TIER_CLASSES[Number(tier) as keyof typeof TIER_CLASSES]).toEqual({
+        hide: `${at}hidden`,
+        hideAboveNarrow: `@min-[40rem]/record-table-frame:${at}hidden`,
+        start: `${at}ps-(--content-inset)`,
+        end: `${at}pe-(--content-inset)`,
+        template: `${at}[--record-table-columns:var(--record-table-columns-${tier})] ${at}[--record-table-min-width:var(--record-table-min-width-${tier})]`
+      })
+    }
+  )
+})
+
+describe('a group title', () => {
+  const show = { key: 'show', field: text('show') }
+  const image = {
+    key: 'image',
+    field: text('image'),
+    kind: 'image' as const,
+    width: { min: 3.75 },
+    narrow: 'leading' as const
+  }
+  const city = { key: 'city', field: text('city') }
+  const start = (columns: RecordTableColumn[], select = false) => {
+    const layout = columnLayout(columns, columnWidths(columns, [], 'UTC'), {
+      select,
+      reflow: true
+    })
+    const title = columns.find((column) => column.key === 'show')
+    return groupTextStart({ columns, layout, title }, select)
+  }
+  const wide = (columns: RecordTableColumn[], select = false) =>
+    (start(columns, select).style as Record<string, string>)[
+      '--group-text-start-wide'
+    ]
+
+  it.each([
+    ['the first column', [show, city], false, 'var(--content-inset)'],
+    [
+      'past the checkbox track, SELECT_WIDTH wide',
+      [show, city],
+      true,
+      `calc(${SELECT_WIDTH}rem + var(--content-inset) + var(--spacing) * 2.5)`
+    ],
+    [
+      'past a leading thumbnail',
+      [image, show],
+      false,
+      'calc(3.75rem + var(--content-inset) + var(--spacing) * 2.5)'
+    ],
+    [
+      'past the checkbox and a thumbnail',
+      [image, show],
+      true,
+      `calc(${SELECT_WIDTH + 3.75}rem + var(--content-inset) + var(--spacing) * 2.5)`
+    ],
+    [
+      'at the first column, past a column that grows',
+      [city, show],
+      false,
+      'var(--content-inset)'
+    ],
+    [
+      'past a thumbnail that grows by 0',
+      [{ ...image, width: { min: 3.75, grow: 0 } }, show],
+      false,
+      'calc(3.75rem + var(--content-inset) + var(--spacing) * 2.5)'
+    ],
+    [
+      'at the first column, past a thumbnail with its own cell',
+      [{ ...image, cell: () => null }, show],
+      false,
+      'var(--content-inset)'
+    ],
+    [
+      'at the first column, past a thumbnail that hides',
+      [{ ...image, priority: 1 as const }, show],
+      false,
+      'var(--content-inset)'
+    ]
+  ] satisfies [string, RecordTableColumn[], boolean, string][])(
+    'starts wide at %s',
+    (_, columns, select, expected) => {
+      expect(wide(columns, select)).toBe(expected)
+    }
+  )
+
+  it('starts narrow past a leading thumbnail, not another leading value', () => {
+    expect(start([image, show]).className).toContain('+2.5rem+')
+    expect(
+      start([{ ...city, narrow: 'leading' }, show]).className
+    ).not.toContain('+2.5rem+')
+    expect(
+      start([{ ...image, cell: () => null }, show]).className
+    ).not.toContain('+2.5rem+')
   })
 })

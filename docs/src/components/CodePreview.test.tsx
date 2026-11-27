@@ -180,6 +180,33 @@ describe('CodePreview', () => {
     expect(runner.props?.frameDevice).toBe('desktop')
   })
 
+  it("frames a framed example at the screen's own device, and at the one picked", async () => {
+    renderWithToasts(
+      <CodePreview language='tsx-live' eager framed>
+        {'<CommandPalette items={[]} />'}
+      </CodePreview>
+    )
+    await screen.findByText('Example rendered')
+
+    expect(runner.props?.frameDevice).toBe('desktop')
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Phone' })))
+
+    expect(runner.props?.frameDevice).toBe('phone')
+  })
+
+  it('holds a framed example until it knows the screen, so it never runs in the page', () => {
+    screenDevice.current = undefined
+    renderWithToasts(
+      <CodePreview language='tsx-live' eager framed>
+        {'<CommandPalette items={[]} />'}
+      </CodePreview>
+    )
+
+    expect(screen.queryByText('Example rendered')).toBeNull()
+    expect(runner.props).toBeUndefined()
+  })
+
   it('presses no width until it knows the screen, so hydration has nothing to flip', async () => {
     screenDevice.current = undefined
     renderWithToasts(

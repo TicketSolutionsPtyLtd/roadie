@@ -16,6 +16,9 @@ import { DotsThreeIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useDevWarning } from '../../utils/useDevWarning'
+import { useRegisteredPalette } from '../CommandPalette/registry'
+import { ariaKeyShortcuts } from '../CommandPalette/shortcut'
+import { useKeyPlatform } from '../Kbd/platform'
 import { ScrollArea } from '../ScrollArea'
 import { Tooltip } from '../Tooltip'
 import {
@@ -28,7 +31,11 @@ import {
   isDestinationActive
 } from './NavigatorContext'
 import { NavigatorDestination } from './NavigatorDestination'
-import { NavigatorFoldedContext } from './NavigatorFoldedContext'
+import {
+  NavigatorFoldAtContext,
+  NavigatorFoldedContext,
+  foldStyle
+} from './NavigatorFoldedContext'
 import { NavigatorIndicator } from './NavigatorIndicator'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
@@ -40,11 +47,12 @@ import {
   deriveMobileSlots,
   phoneBarCapacity
 } from './mobileSlots'
-import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
+import { opensPalette, usePaletteMissing, withoutSearch } from './searchSlot'
 import { textOf } from './splitSecondary'
+import { useActivation } from './useActivation'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
   navigatorCapsuleClass,
@@ -77,13 +85,9 @@ export function NavigatorPrimary({
   className
 }: NavigatorPrimaryProps) {
   const {
-    setValue,
     primaryDerived,
-    setNavCollapsed,
-    setPinExpanded,
     scrollActivePaneToTop,
     setOverflowOpen,
-    closeOverflowOnRoute,
     overflowPaneId,
     setOverflowItems,
     overflowOpenerRef,
@@ -96,7 +100,7 @@ export function NavigatorPrimary({
   const {
     value: activeValue,
     activeSecondary,
-    collected,
+    collected: declared,
     showList
   } = use(NavigatorSelectionContext)
   const { overflowOpen, openMenu } = use(NavigatorDisclosureContext)
@@ -107,6 +111,21 @@ export function NavigatorPrimary({
   const clusterTrackRef = useRef<HTMLDivElement>(null)
   const pinnedRef = useRef<HTMLDivElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
+
+  const palette = useRegisteredPalette()
+  const activate = useActivation(palette)
+  const platform = useKeyPlatform()
+  const missing = usePaletteMissing(
+    declared.ordered.some(opensPalette),
+    palette
+  )
+  const collected = useMemo(
+    () => (missing ? withoutSearch(declared) : declared),
+    [declared, missing]
+  )
+  const searchShortcut = palette
+    ? ariaKeyShortcuts(palette.shortcut, platform)
+    : undefined
 
   // Root's walk: a Primary that isn't its direct child finds nothing, and warns.
   const items = collected.ordered
@@ -185,7 +204,11 @@ export function NavigatorPrimary({
     () => primaryCapsules(collected.cluster),
     [collected.cluster]
   )
-  const { folded: verticalFolded, shown: verticalShown } = usePrimaryCapacity(
+  const {
+    folded: verticalFolded,
+    shown: verticalShown,
+    unmeasured
+  } = usePrimaryCapacity(
     clusterRef,
     brandRef,
     clusterCapsules,
@@ -260,71 +283,25 @@ export function NavigatorPrimary({
     const selectDestination = (
       event: MouseEvent,
       tab: NavigatorSlotMeta,
-      active: boolean,
-      href: string | undefined
-    ) => {
-      activateItem(tab.value)
-      if (opensElsewhere(event)) return
-      setOpenMenu(null)
-      // A tap that stays on this route closes More now; one that navigates leaves it to the route.
-      const stay = () => {
-        event.preventDefault()
-        setOverflowOpen(false)
-      }
-      const go = () => {
-        if (href === undefined) setOverflowOpen(false)
-        else closeOverflowOnRoute()
-      }
-      if (!active) {
-        go()
-        setValue(tab.value)
-        return
-      }
-      const expandBar = () => {
-        setPinExpanded(true)
-        setNavCollapsed(false)
-      }
-      const ownsSecondary = activeSecondary?.value === tab.value
-      const onDestinationRoute = isActiveValue(tab.value, activeValue)
-      const hasOverview = ownsSecondary && activeSecondary?.overview === true
-      if (ownsSecondary && onDestinationRoute) {
-        stay()
-        if (collapsed) expandBar()
-        scrollActivePaneToTop()
-        return
-      }
-      if (collapsed) {
-        stay()
-        expandBar()
-        return
-      }
-      if (
-        ownsSecondary &&
-        !hasOverview &&
-        onShowListChange &&
-        !onDestinationRoute
-      ) {
-        stay()
-        onShowListChange(!showList)
-        return
-      }
-      if (hasOverview) {
-        go()
-        setValue(tab.value)
-        return
-      }
-      if (isActiveValue(tab.topValue, activeValue)) {
-        stay()
-        scrollActivePaneToTop()
-        return
-      }
-      if (tab.href === undefined) {
-        stay()
-        setValue(tab.topValue)
-        return
-      }
-      go()
-    }
+      active: boolean
+    ) =>
+      activate(
+        event,
+        'tab',
+        {
+          value: tab.value,
+          href: tab.href,
+          topValue: tab.topValue,
+          active,
+          palette: opensPalette(tab)
+        },
+        {
+          route: activeValue,
+          collapsed,
+          secondary: activeSecondary,
+          showList: onShowListChange ? showList : undefined
+        }
+      )
 
     const renderTab = (tab: NavigatorSlotMeta, tabProps: NavigatorTabProps) =>
       tab.menu ? (
@@ -348,7 +325,11 @@ export function NavigatorPrimary({
           }
         />
       ) : (
-        <NavigatorTab key={tab.value} {...tabProps} />
+        <NavigatorTab
+          key={tab.value}
+          {...tabProps}
+          aria-keyshortcuts={opensPalette(tab) ? searchShortcut : undefined}
+        />
       )
 
     const tabs = slots.tabs.map((tab, tabIndex) => {
@@ -369,7 +350,7 @@ export function NavigatorPrimary({
         collapsed,
         circleSide: isStartCircle ? 'start' : undefined,
         index: tabIndex,
-        onClick: (event) => selectDestination(event, tab, active, href)
+        onClick: (event) => selectDestination(event, tab, active)
       })
     })
     const pinnedHref = pinnedTab?.href
@@ -386,11 +367,13 @@ export function NavigatorPrimary({
           collapsed,
           index: 0,
           onClick: (event) =>
-            selectDestination(event, pinnedTab, pinnedIsActive, pinnedHref)
+            selectDestination(event, pinnedTab, pinnedIsActive)
         })
       : null
     return { tabs, pinned }
   }, [
+    activate,
+    searchShortcut,
     slots.tabs,
     pinnedTab,
     pinnedIsActive,
@@ -404,13 +387,7 @@ export function NavigatorPrimary({
     showList,
     onShowListChange,
     activateItem,
-    setOverflowOpen,
-    closeOverflowOnRoute,
-    setOpenMenu,
-    setValue,
-    setPinExpanded,
-    setNavCollapsed,
-    scrollActivePaneToTop
+    setOverflowOpen
   ])
 
   return (
@@ -439,6 +416,14 @@ export function NavigatorPrimary({
                 {collected.toggles}
               </div>
             ) : null}
+            {collected.search.length > 0 ? (
+              <div
+                data-slot='navigator-primary-search'
+                className={navigatorPrimaryPinnedClass}
+              >
+                {wrapCapsules(collected.search, new Set())}
+              </div>
+            ) : null}
             <ScrollArea
               data-slot='navigator-primary-cluster'
               className={navigatorPrimaryClusterClass}
@@ -446,7 +431,11 @@ export function NavigatorPrimary({
               <ScrollArea.Viewport
                 ref={clusterRef}
                 data-slot='navigator-primary-cluster-viewport'
-                className={navigatorPrimaryClusterViewportClass}
+                className={cn(
+                  navigatorPrimaryClusterViewportClass,
+                  // Folds by height in CSS until the client has measured.
+                  unmeasured && '[container:navigator-cluster/size]'
+                )}
               >
                 <ScrollArea.Content
                   fitWidth={false}
@@ -458,11 +447,19 @@ export function NavigatorPrimary({
                     className={navigatorPrimaryClusterTrackClass}
                   >
                     <NavigatorFoldedContext value={verticalFolded}>
-                      {wrapCapsules(collected.cluster, verticalFolded)}
+                      <NavigatorFoldAtContext value={unmeasured?.slots ?? null}>
+                        {wrapCapsules(
+                          collected.cluster,
+                          verticalFolded,
+                          unmeasured?.slots
+                        )}
+                      </NavigatorFoldAtContext>
                     </NavigatorFoldedContext>
-                    {verticalFoldedSlots.length > 0 ? (
+                    {unmeasured ? <style>{foldStyle(unmeasured)}</style> : null}
+                    {verticalFoldedSlots.length > 0 || unmeasured ? (
                       <ul
                         data-slot='navigator-capsule'
+                        data-unfold-at={unmeasured?.all}
                         className={navigatorCapsuleClass}
                       >
                         <li>

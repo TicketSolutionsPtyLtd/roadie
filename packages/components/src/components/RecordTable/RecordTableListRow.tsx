@@ -1,5 +1,6 @@
-import { type ReactNode, memo, useRef } from 'react'
+import { Fragment, type ReactNode, memo, useRef } from 'react'
 
+import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
@@ -12,6 +13,7 @@ import { RecordsSelectModeCheckbox } from '../Records/RecordsRowCheckbox'
 import { listRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import type { RecordCardParts, RecordPart } from '../Records/types'
+import { ListRowElement } from './RecordTableRowPlace'
 
 // List rows size to their text; a window needs whole, fixed heights, so the content centres in them instead.
 const fixedHeightClass =
@@ -23,10 +25,6 @@ export type RecordTableListRowProps = {
   parts: RecordCardParts
   /** The viewer's zone, for dates. */
   timeZone?: string
-  /** One-based place in the whole list, when the list holds only some of its rows. */
-  posInSet?: number
-  /** The whole list's length, or -1 while unknown. */
-  setSize?: number
   /** Undefined when the records can't be selected. */
   selected?: boolean
   /** Select mode: a checkbox takes the leading slot and covers the row. */
@@ -38,14 +36,18 @@ export type RecordTableListRowProps = {
   bleed: boolean
 }
 
+// A blank detail would leave a stray separator; a custom cell decides for itself.
+// The time zone can't make a value blank.
+const hasValue = (part: RecordPart, row: object) =>
+  part.cell !== undefined ||
+  formatRecordValue(row, part.field, { timeZone: 'UTC' }) !== null
+
 /** A record as one line of a list: leading, title and description, trailing. */
 export const RecordTableListRow = memo(function RecordTableListRow({
   id,
   row,
   parts,
   timeZone,
-  posInSet,
-  setSize,
   selected,
   selecting = false,
   onToggle,
@@ -68,16 +70,18 @@ export const RecordTableListRow = memo(function RecordTableListRow({
       />
     )
   const title = parts.title ? value(parts.title) : id
+  const subline = [
+    parts.description,
+    ...parts.details.filter((part) => hasValue(part, row))
+  ].flatMap((part) => (part ? [part] : []))
   const leading = value(parts.leading)
   return (
-    <li
+    <ListRowElement
       ref={itemRef}
       data-slot='record-table-list-row'
       className='[--record-table-row-end-radius:var(--radius-xl)]'
       data-row-id={id}
       data-selected={selected || undefined}
-      aria-posinset={posInSet}
-      aria-setsize={setSize}
     >
       <div
         className={cn(
@@ -108,7 +112,16 @@ export const RecordTableListRow = memo(function RecordTableListRow({
               </RoadieRoutedLink>
             )
           }
-          description={value(parts.description)}
+          description={
+            subline.length === 0
+              ? undefined
+              : subline.map((part, index) => (
+                  <Fragment key={part.key}>
+                    {index > 0 && ' · '}
+                    {value(part)}
+                  </Fragment>
+                ))
+          }
           leading={
             selecting ? (
               // Takes the leading slot's place, at its size, so titles don't shift.
@@ -135,7 +148,7 @@ export const RecordTableListRow = memo(function RecordTableListRow({
           </div>
         )}
       </div>
-    </li>
+    </ListRowElement>
   )
 })
 RecordTableListRow.displayName = 'RecordTableListRow'

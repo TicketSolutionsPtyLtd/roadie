@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type ComboboxPositionerProps = ComboboxPrimitive.Positioner.Props &
   RefAttributes<HTMLDivElement>
@@ -16,7 +16,7 @@ export function ComboboxPositioner({
   return (
     <ComboboxPrimitive.Positioner
       data-slot='combobox-positioner'
-      className={cn('z-popover', className)}
+      className={mergeClassName('z-popover', className)}
       sideOffset={4}
       {...props}
     />

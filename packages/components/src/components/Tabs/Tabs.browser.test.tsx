@@ -10,10 +10,15 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import {
+  apcaLc,
+  minimumLc,
+  shownFill
+} from '@oztix/roadie-browser-testing/contrast'
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Tabs } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { apcaLc, minimumLc, shownFill } from '../../css/contrastTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
 import type { TabsRootEmphasis, TabsRootSize } from './variants'
 
 let removeStylesheet = () => {}

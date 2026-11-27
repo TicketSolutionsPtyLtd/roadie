@@ -10,6 +10,8 @@ import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
+import { BAR_INTERVAL_MS } from '@oztix/roadie-core/dashboard-layout'
+
 import { annotationMarks, annotationsOnBars } from '../plot/annotations'
 import { plotSpan, textRoom } from '../plot/endLabels'
 import { fieldLabel } from '../plot/table'
@@ -47,9 +49,7 @@ import { barChartTable } from './table'
 import type { BarChartProps } from './types'
 
 const EMPTY = 'Nothing to show for this period yet'
-const HOUR = 3_600_000
-const DAY = 86_400_000
-const INTERVAL_MS = { hour: HOUR, day: DAY, week: 7 * DAY }
+const DAY = BAR_INTERVAL_MS.day
 const TICK_TARGET: Record<WidthBand, number> = {
   narrow: 3,
   default: 6,
@@ -189,7 +189,7 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
           props.annotations,
           bars,
           isTimeField(props.data, props.x)
-            ? INTERVAL_MS[props.interval ?? 'day']
+            ? BAR_INTERVAL_MS[props.interval ?? 'day']
             : null,
           yDomain[1]
         ),

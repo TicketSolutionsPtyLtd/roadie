@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type DrawerSwipeAreaProps = DrawerPrimitive.SwipeArea.Props &
   RefAttributes<HTMLDivElement>
@@ -14,7 +14,7 @@ export function DrawerSwipeArea({ className, ...props }: DrawerSwipeAreaProps) {
   return (
     <DrawerPrimitive.SwipeArea
       data-slot='drawer-swipe-area'
-      className={cn('touch-none', className)}
+      className={mergeClassName('touch-none', className)}
       {...props}
     />
   )

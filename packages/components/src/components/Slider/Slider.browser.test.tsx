@@ -2,11 +2,12 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Slider } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Field } from '../Field'
 import { NumberField } from '../NumberField'
-import { useStylesheet } from '../Pane/testUtils'
 import { Select } from '../Select'
 
 let removeStylesheet = () => {}

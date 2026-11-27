@@ -5,8 +5,7 @@ import type { RefAttributes } from 'react'
 import { Menu as MenuPrimitive } from '@base-ui/react/menu'
 import { CheckIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { type MenuItemDecorations, itemContent } from './itemContent'
 import { menuItemVariants } from './variants'
 
@@ -24,7 +23,7 @@ export function MenuRadioItem({
   return (
     <MenuPrimitive.RadioItem
       data-slot='menu-radio-item'
-      className={cn(menuItemVariants(), className)}
+      className={mergeClassName(menuItemVariants(), className)}
       {...props}
     >
       {itemContent({

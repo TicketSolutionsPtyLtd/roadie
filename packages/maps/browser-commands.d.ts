@@ -1,5 +1,9 @@
+import type { PointerStep } from '@oztix/roadie-browser-testing/config'
+
 declare module 'vitest/browser' {
   interface BrowserCommands {
+    /** Drives a real mouse, in the test frame's CSS pixels. */
+    pointer: (steps: PointerStep[]) => Promise<void>
     reduceMotion: (reduce: boolean) => Promise<void>
     /** A real touch tap, in the test frame's CSS pixels. Touch projects only. */
     tap: (x: number, y: number) => Promise<void>

@@ -8,7 +8,9 @@ import { CheckIcon } from '@phosphor-icons/react/ssr'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isEmptyNode } from '../../utils/isEmptyNode'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { SwitchThumb } from './SwitchThumb'
 import { switchTickVariants, switchVariants } from './variants'
 
@@ -18,7 +20,7 @@ export type SwitchRootProps = SwitchPrimitive.Root.Props &
   RefAttributes<HTMLElement> & {
     /** @default 'md' */
     size?: SwitchSize
-    /** Renders a label beside the switch. With `label` or `description`, `className` goes on the row. */
+    /** Renders a label beside the switch. With `label` or `description`, a string `className` goes on the row. */
     label?: ReactNode
     /** Secondary text under the label, announced as the description. */
     description?: ReactNode
@@ -37,6 +39,7 @@ export function SwitchRoot({
   id,
   children,
   render,
+  'aria-describedby': ariaDescribedBy,
   ...props
 }: SwitchRootProps) {
   const field = useFieldContext()
@@ -52,12 +55,17 @@ export function SwitchRoot({
 
   const resolvedInvalid = invalid ?? field.invalid
   const resolvedRequired = required ?? field.required
-  const fieldTextId = field.invalid ? field.errorTextId : field.helperTextId
+  const fieldProps = useFieldControlProps({
+    invalid: resolvedInvalid,
+    'aria-describedby': ariaDescribedBy
+  })
   const describedBy =
-    [descriptionId, inField && fieldTextId].filter(Boolean).join(' ') ||
+    [descriptionId, fieldProps['aria-describedby']].filter(Boolean).join(' ') ||
     undefined
 
   const hasRow = hasLabel || hasDescription
+  // With a row, a string styles the row; a function needs the switch's state, so it styles the switch.
+  const onRow = hasRow && typeof className !== 'function'
 
   const control = (
     <SwitchPrimitive.Root
@@ -73,7 +81,10 @@ export function SwitchRoot({
       aria-required={resolvedRequired || undefined}
       aria-labelledby={labelId}
       aria-describedby={describedBy}
-      className={cn(switchVariants({ size }), !hasRow && className)}
+      className={mergeClassName(
+        switchVariants({ size }),
+        onRow ? undefined : className
+      )}
       {...props}
     >
       <span
@@ -92,7 +103,10 @@ export function SwitchRoot({
   return (
     <div
       data-slot='switch-row'
-      className={cn('flex items-center justify-between gap-4', className)}
+      className={cn(
+        'flex items-center justify-between gap-4',
+        typeof className === 'function' ? undefined : className
+      )}
     >
       {/* `in-*`, not `group-has-*`: a universal after :has() restyles the page on every DOM change. */}
       <div className='grid gap-0.5 in-[[data-slot=switch-row]:has([data-disabled])]:opacity-50'>

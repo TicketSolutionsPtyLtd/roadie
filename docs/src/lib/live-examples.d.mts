@@ -18,6 +18,8 @@ export type LiveExample = {
   eager: boolean
   /** Runs to the screen's edges on its own page on a phone, as an app's editor would. */
   bleed: boolean
+  /** Runs in its own frame, so a shortcut it binds stays out of the docs page. */
+  framed: boolean
   /** Classes the preview lays the example out with, from `layout=`, `gap=`, and `width=`. */
   previewLayout: string | undefined
   node: CodeNode
@@ -27,6 +29,7 @@ export declare function parseExampleMeta(meta: string | null | undefined): {
   id: string | undefined
   eager: boolean
   bleed: boolean
+  framed: boolean
   previewLayout: string | undefined
 }
 

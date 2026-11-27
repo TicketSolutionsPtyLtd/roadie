@@ -6,7 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { IconButton } from '../Button'
 import { Select } from '../Select'
-import { useRecordsContext } from './context'
+import { useRecordsData } from './context'
 import { formatCount } from './count'
 
 export type RecordsPaginationProps = {
@@ -19,7 +19,9 @@ export function RecordsPagination({
   pageSizes = [25, 50, 100],
   className
 }: RecordsPaginationProps) {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
+  // A calendar loads every record in the days it shows.
+  if (records.dateWindow) return null
   if (records.range) return <RangeCount className={className} />
   const { page, pageSize } = records.position
   // A page past the end, such as a deep link waiting for its count, reads and
@@ -100,7 +102,7 @@ RecordsPagination.displayName = 'Records.Pagination'
 
 /** A range list scrolls instead of paging, so its footer is the count. */
 function RangeCount({ className }: { className?: string }) {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   const known = records.range?.total
   const shown = known ?? records.resultCount
   const { one, other } = records.recordName

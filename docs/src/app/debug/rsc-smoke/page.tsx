@@ -52,11 +52,17 @@ import { Checkbox } from '@oztix/roadie-components/checkbox'
 import { CheckboxGroup } from '@oztix/roadie-components/checkbox-group'
 import { Collapsible } from '@oztix/roadie-components/collapsible'
 import { Combobox } from '@oztix/roadie-components/combobox'
+import { CommandPalette } from '@oztix/roadie-components/command-palette'
+import { Dashboard } from '@oztix/roadie-components/dashboard'
+import { DataCard } from '@oztix/roadie-components/data-card'
 import { Dialog } from '@oztix/roadie-components/dialog'
 import { Drawer } from '@oztix/roadie-components/drawer'
+import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
+import { FileUpload } from '@oztix/roadie-components/file-upload'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
+import { ImageCrop } from '@oztix/roadie-components/image-crop'
 import { List } from '@oztix/roadie-components/list'
 import { Logo } from '@oztix/roadie-components/logo'
 import { Menu } from '@oztix/roadie-components/menu'
@@ -75,6 +81,7 @@ import { Select } from '@oztix/roadie-components/select'
 import { Slider } from '@oztix/roadie-components/slider'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Switch } from '@oztix/roadie-components/switch'
+import { Table } from '@oztix/roadie-components/table'
 import { Tabs } from '@oztix/roadie-components/tabs'
 import { Toast } from '@oztix/roadie-components/toast'
 import { Toggle } from '@oztix/roadie-components/toggle'
@@ -84,6 +91,7 @@ import { Tooltip } from '@oztix/roadie-components/tooltip'
 import { Editor } from '@oztix/roadie-editor/editor'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
 import type { EditorValue } from '@oztix/roadie-editor/schema'
+import { Map } from '@oztix/roadie-maps/map'
 
 import { NavigatorCanary } from './NavigatorCanary'
 
@@ -442,6 +450,23 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>CommandPalette</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; CommandPalette &#125; from
+            &apos;@oztix/roadie-components/command-palette&apos;
+          </code>
+        </p>
+        <CommandPalette items={['Events', 'Orders']} shortcut={false}>
+          <CommandPalette.Input placeholder='Search pages and actions' />
+          <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+        </CommandPalette>
+        <CommandPalette.Root items={[]} shortcut={false}>
+          <CommandPalette.Input />
+        </CommandPalette.Root>
+      </section>
+
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Carousel</h2>
         <p className='text-sm text-subtle'>
           <code>
@@ -606,6 +631,34 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          FileUpload as bare root (canonical)
+        </h2>
+        <FileUpload name='guests' accept='.csv' />
+        <FileUpload name='payments' accept='.csv'>
+          <FileUpload.Control>
+            <FileUpload.Value />
+            <FileUpload.Clear />
+            <FileUpload.Trigger />
+          </FileUpload.Control>
+        </FileUpload>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          ImageCrop as bare root (canonical)
+        </h2>
+        <ImageCrop src='/brand/photography/08.webp' aspectRatio={2} />
+        <ImageCrop
+          src='/brand/photography/08.webp'
+          aspectRatio={1}
+          shape='circle'
+        >
+          <ImageCrop.Stage className='aspect-video' />
+        </ImageCrop>
       </section>
 
       <section className='grid gap-2'>
@@ -835,6 +888,18 @@ export default function RscSmokePage() {
         <ToolbarViaBarrel.Root aria-label='Formatting'>
           <ToolbarViaBarrel.Button>Bold</ToolbarViaBarrel.Button>
         </ToolbarViaBarrel.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Map as bare root (canonical)
+        </h2>
+        <Map
+          defaultCenter={{ lat: -27.4587, lng: 153.0338 }}
+          aria-label='Where Kazoo Hollow Room is'
+        >
+          <Map.Toolbar />
+        </Map>
       </section>
 
       <section className='grid gap-2'>
@@ -1199,10 +1264,36 @@ export default function RscSmokePage() {
         {renderEditorValue(SAVED_DESCRIPTION, { size: 'sm' })}
       </section>
 
-      {/*
-        Phase 3 follow-up: as each compound migrates, add a section here
-        rendering its bare <Compound /> via the subpath + barrel imports.
-      */}
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Dashboard, DataCard, EmptyState, and Table
+        </h2>
+        <Dashboard>
+          <Dashboard.Section title='At a glance'>
+            <DataCard label='Tickets sold' value={1240} />
+          </Dashboard.Section>
+        </Dashboard>
+        <EmptyState>
+          <EmptyState.Title>No events yet</EmptyState.Title>
+          <EmptyState.Description>
+            Events you create show up here.
+          </EmptyState.Description>
+        </EmptyState>
+        <Table>
+          <Table.Head>
+            <Table.Row>
+              <Table.HeaderCell>Event</Table.HeaderCell>
+              <Table.HeaderCell>Sold</Table.HeaderCell>
+            </Table.Row>
+          </Table.Head>
+          <Table.Body>
+            <Table.Row>
+              <Table.Cell>Summer Sounds</Table.Cell>
+              <Table.Cell>1,240</Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table>
+      </section>
     </main>
   )
 }

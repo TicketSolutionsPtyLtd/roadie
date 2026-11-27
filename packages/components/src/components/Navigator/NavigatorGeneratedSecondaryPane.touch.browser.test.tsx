@@ -1,10 +1,11 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
-import { useStylesheet } from '../Pane/testUtils'
 import { FakeIcon, withStubLink } from './testUtils'
 
 let removeStylesheet = () => {}

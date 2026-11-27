@@ -8,6 +8,7 @@ import { NavigatorMenu } from './NavigatorMenu'
 import { NavigatorMenuItem } from './NavigatorMenuItem'
 import { NavigatorPrimary } from './NavigatorPrimary'
 import { NavigatorRoot } from './NavigatorRoot'
+import { NavigatorSearch } from './NavigatorSearch'
 import { NavigatorSecondary } from './NavigatorSecondary'
 import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
 import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
@@ -23,6 +24,7 @@ const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   MenuItem: typeof NavigatorMenuItem
   Brand: typeof NavigatorBrand
   ExpandToggle: typeof NavigatorExpandToggle
+  Search: typeof NavigatorSearch
   SecondaryPane: typeof NavigatorSecondaryPane
   SecondaryItems: typeof NavigatorSecondaryItems
 }
@@ -37,11 +39,17 @@ Navigator.Menu = NavigatorMenu
 Navigator.MenuItem = NavigatorMenuItem
 Navigator.Brand = NavigatorBrand
 Navigator.ExpandToggle = NavigatorExpandToggle
+Navigator.Search = NavigatorSearch
 Navigator.SecondaryPane = NavigatorSecondaryPane
 Navigator.SecondaryItems = NavigatorSecondaryItems
 
 export { Navigator }
 export { useNavigatorSecondary } from './useNavigatorSecondary'
+export { useNavigatorCommands } from './useNavigatorCommands'
+export type {
+  NavigatorCommand,
+  NavigatorCommandGroup
+} from './useNavigatorCommands'
 export type {
   NavigatorSecondaryData,
   NavigatorSecondaryGroup,
@@ -61,5 +69,6 @@ export type { NavigatorMenuProps } from './NavigatorMenu'
 export type { NavigatorMenuItemProps } from './NavigatorMenuItem'
 export type { NavigatorBrandProps } from './NavigatorBrand'
 export type { NavigatorExpandToggleProps } from './NavigatorExpandToggle'
+export type { NavigatorSearchProps } from './NavigatorSearch'
 export type { NavigatorSecondaryPaneProps } from './NavigatorSecondaryPane'
 export type { NavigatorSecondaryItemsProps } from './NavigatorSecondaryItems'

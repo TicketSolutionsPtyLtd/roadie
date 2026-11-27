@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Toast as ToastPrimitive } from '@base-ui/react/toast'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type ToastContentProps = ToastPrimitive.Content.Props &
   RefAttributes<HTMLDivElement>
@@ -14,9 +14,11 @@ export function ToastContent({ className, ...props }: ToastContentProps) {
   return (
     <ToastPrimitive.Content
       data-slot='toast-content'
-      className={cn(
-        'relative flex h-full items-center gap-3 overflow-hidden rounded-[inherit] py-3 ps-4 pe-3',
-        'transition-opacity duration-moderate data-[behind]:opacity-0 data-[expanded]:opacity-100',
+      className={mergeClassName(
+        [
+          'relative flex h-full items-center gap-3 overflow-hidden rounded-[inherit] py-3 ps-4 pe-3',
+          'transition-opacity duration-moderate data-[behind]:opacity-0 data-[expanded]:opacity-100'
+        ],
         className
       )}
       {...props}

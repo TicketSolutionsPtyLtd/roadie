@@ -11,11 +11,12 @@ import {
 } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
 import { forgetPaneScroll } from '../Pane/paneScroll'
-import { useStylesheet } from '../Pane/testUtils'
 import { withStubLink } from './testUtils'
 
 let removeStylesheet = () => {}

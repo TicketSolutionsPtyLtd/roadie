@@ -27,6 +27,7 @@ import {
   CaretUpIcon,
   CheckCircleIcon,
   CheckIcon,
+  CropIcon,
   CopyIcon,
   CubeIcon,
   DotsThreeIcon,
@@ -108,6 +109,7 @@ import {
   resolveComparison,
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
+import { cropImage } from '@oztix/roadie-core/image'
 import {
   compileRecordQuery,
   recordFields,
@@ -153,6 +155,7 @@ const PhosphorIcons = {
   BellRingingIcon,
   CheckCircleIcon,
   CheckIcon,
+  CropIcon,
   LinkSimpleIcon,
   XIcon,
   XCircleIcon,
@@ -277,6 +280,7 @@ const scope = {
   Gallery,
   LegendKey,
   lineChartTable,
+  cropImage,
   addDays,
   plainDateOf,
   resolveComparison,
@@ -459,7 +463,7 @@ export type LiveRunnerProps = {
   isolated?: boolean
   /** Classes the preview lays the example out with, from the fence's `layout=`, `gap=`, and `width=`. */
   previewLayout?: string
-  /** A device other than the reader's own screen, picked in the header; the example runs in a frame at its width. */
+  /** A device picked in the header, or the reader's own for a `framed` example; the example runs in a frame at its width. */
   frameDevice?: Device
   /** Whether the full-width dialog is open, from the header's Full width button. */
   fullWidth?: boolean

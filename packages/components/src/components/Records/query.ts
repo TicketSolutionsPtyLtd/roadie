@@ -5,7 +5,7 @@ import {
   type RecordQueryOptions,
   type RecordView,
   type ResolvedRecordQuery,
-  recordFilterOperators,
+  recordFilterFits,
   resolveRecordQuery
 } from '@oztix/roadie-core/records'
 
@@ -46,18 +46,11 @@ export function applyQuery(
   const sortable = new Set(
     fields.filter((field) => field.sortable !== false).map((field) => field.key)
   )
-  const byKey = new Map(fields.map((field) => [field.key, field]))
+  const keys = new Set(fields.map((field) => field.key))
   const filters = query.filters.flatMap((filter, index) => {
-    const field = byKey.get(filter.field)
-    const unfit = !field
-      ? undefined
-      : field.filterable === false
-        ? 'its field does not filter'
-        : recordFilterOperators(field).includes(filter.operator)
-          ? undefined
-          : 'its field does not take this operator'
-    if (unfit) {
-      skipped.push(`${describe(filter)}: ${unfit}`)
+    // An unknown field falls through to resolveRecordQuery's error.
+    if (keys.has(filter.field) && !recordFilterFits(filter, fields)) {
+      skipped.push(`${describe(filter)}: its field can’t filter this way`)
       skippedFilters.push(index)
       return []
     }

@@ -7,7 +7,7 @@ type StateClassName<State> =
 
 /** `cn` for Base UI's `className`, keeping a state callback a callback. */
 export function mergeClassName<State>(
-  base: string,
+  base: Parameters<typeof cn>[number],
   className: StateClassName<State>
 ): StateClassName<State> {
   if (typeof className === 'function') {

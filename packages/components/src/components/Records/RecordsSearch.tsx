@@ -13,7 +13,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
 import { RecordsDateCalendarLazy } from './RecordsDateCalendarLazy'
-import { useRecordsContext } from './context'
+import { useRecordsData } from './context'
 import { fieldIcon } from './fieldIcon'
 import { whenIdle } from './idle'
 import { applyQuery } from './query'
@@ -121,7 +121,9 @@ function heldValues(data: readonly object[], key: string): string[] | null {
 }
 
 // An option field with no `options` lists the values the records hold.
-function useListedFields(records: RecordsState): readonly RecordsField[] {
+function useListedFields(
+  records: Pick<RecordsState, 'data' | 'fields' | 'mode'>
+): readonly RecordsField[] {
   const { data, fields, mode } = records
   return useMemo(() => {
     if (mode !== 'browser') return fields
@@ -166,7 +168,7 @@ export function RecordsSearch({
   focusShortcut = '/',
   className
 }: RecordsSearchProps) {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   const fields = useListedFields(records)
   const filters = records.view.query.filters
   const [pending, setPending] = useState<string | null>(null)

@@ -207,4 +207,22 @@ describe('CartEventGroup', () => {
     await fireEvent.click(trash)
     expect(trash.getAttribute('aria-expanded')).toBe('false')
   })
+
+  // jsdom can't evaluate the media query; the classes are what Tailwind compiles.
+  it('drops the removing veil to a solid fill for someone who reduces transparency', () => {
+    const { getByRole } = render(CartEventGroup, {
+      props: {
+        event: makeEvent(),
+        locale: 'en-AU',
+        currency: 'AUD',
+        removing: true
+      }
+    })
+    expect(getByRole('status')).toHaveClass(
+      'bg-raised/60',
+      'backdrop-blur-sm',
+      '[@media(prefers-reduced-transparency:reduce)]:bg-raised',
+      '[@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none'
+    )
+  })
 })

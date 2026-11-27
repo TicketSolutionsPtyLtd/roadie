@@ -34,6 +34,8 @@ type CodePreviewProps = {
   exampleHref?: string
   /** Renders the live example on load instead of when it nears the viewport. An `eager` fence meta does the same. */
   eager?: boolean
+  /** Runs the live example in a frame even at the screen's own device, so a shortcut it binds, such as ⌘K, stays out of the docs page. A `framed` fence meta does the same. */
+  framed?: boolean
   /** Classes the preview lays the example out with, from the fence's `layout=`, `gap=`, and `width=`. */
   previewLayout?: string
 }
@@ -96,6 +98,7 @@ function LiveExample({
   expandable,
   exampleHref,
   eager,
+  framed,
   typesets,
   previewLayout
 }: {
@@ -104,6 +107,7 @@ function LiveExample({
   expandable: boolean
   exampleHref?: string
   eager: boolean
+  framed: boolean
   typesets: boolean
   previewLayout?: string
 }) {
@@ -164,7 +168,8 @@ function LiveExample({
           )
         }
       />
-      {near ? (
+      {/* A framed example waits for the screen's device, so it never runs in the page. */}
+      {near && !(framed && device === undefined) ? (
         <LazyLiveRunner
           {...shared}
           loading={placeholder}
@@ -177,7 +182,7 @@ function LiveExample({
           editorOpened={editorOpened}
           onMounted={onRendered}
           previewLayout={previewLayout}
-          frameDevice={device === viewportDevice ? undefined : device}
+          frameDevice={framed || device !== viewportDevice ? device : undefined}
           fullWidth={fullWidth}
           onFullWidthChange={setFullWidth}
         />
@@ -196,6 +201,7 @@ export function CodePreview({
   expandable = false,
   exampleHref,
   eager = false,
+  framed = false,
   previewLayout
 }: CodePreviewProps) {
   const theme = useCodeTheme()
@@ -215,6 +221,7 @@ export function CodePreview({
         expandable={expandable || /-expand\b/.test(language)}
         exampleHref={exampleHref}
         eager={eager}
+        framed={framed}
         typesets={/-prose\b/.test(language)}
         previewLayout={previewLayout}
       />

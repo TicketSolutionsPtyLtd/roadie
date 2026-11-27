@@ -160,4 +160,23 @@ describe('CartEventGroup', () => {
       screen.getByRole('button', { name: 'Remove Night Show' })
     ).toBeDisabled()
   })
+
+  // jsdom can't evaluate the media query; the classes are what Tailwind compiles.
+  it('drops the removing veil to a solid fill for someone who reduces transparency', () => {
+    render(
+      <CartEventGroup
+        event={event}
+        locale='en-AU'
+        currency='AUD'
+        onRemoveEvent={vi.fn()}
+        removing
+      />
+    )
+    expect(screen.getByRole('status')).toHaveClass(
+      'bg-raised/60',
+      'backdrop-blur-sm',
+      '[@media(prefers-reduced-transparency:reduce)]:bg-raised',
+      '[@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none'
+    )
+  })
 })

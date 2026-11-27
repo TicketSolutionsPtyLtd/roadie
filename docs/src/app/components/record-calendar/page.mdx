@@ -1,0 +1,125 @@
+export const metadata = {
+  title: 'RecordCalendar',
+  description: 'A month calendar of records, each on its day, to search and filter',
+  status: 'alpha',
+  category: 'Collections'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A month calendar of records, each on its day, to search and filter.
+
+## Import
+
+```tsx
+import { RecordCalendar, calendarLayout } from '@oztix/roadie-components/record-calendar'
+import { Records, useRecords } from '@oztix/roadie-components/records'
+import { recordFields } from '@oztix/roadie-core/records'
+```
+
+Fields can hold functions, as can `getRowId` and the `useRecords` instance, so render the calendar in a client component, a file that starts with `'use client'`.
+
+## Examples
+
+### Default
+
+Name in `calendar` the date field that places each record and the field each chip shows. A record sits on the day its date falls on: the venue's day for an event, the viewer's for a timestamp. A date range sits on each day it covers. A day shows up to three chips, and "+N more" opens the rest. Previous and next move a month, and Today comes back to this month.
+
+```tsx-live-noinline-expand
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco']
+const days = ['11-03', '11-06', '11-06', '11-11', '11-14', '11-14', '11-14', '11-14', '11-14', '11-19', '11-22', '11-27', '11-28', '12-04', '12-12']
+const events = days.map((day, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${index + 1}`,
+  startsAt: `2026-${day}`,
+  endsAt: index === 0 ? '2026-11-05' : undefined
+}))
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.date('startsAt', { label: 'Start date', moment: 'date', end: 'endsAt' }),
+  field.date('endsAt', { label: 'End date', moment: 'date' })
+]
+
+render(
+  <RecordCalendar
+    caption='Events'
+    data={events}
+    fields={fields}
+    getRowId={(row) => row.id}
+    getRowHref={(row) => `#${row.id}`}
+    recordName={{ one: 'event', other: 'events' }}
+    calendar={{ dateField: 'startsAt', title: 'name', defaultMonth: '2026-11-01' }}
+  />
+)
+```
+
+### Layouts
+
+`RecordCalendar` is `Records` with only the calendar. Give `Records` a `calendarLayout` beside the table instead, and people switch between them from Configure. A saved view holds `{ type: 'calendar', dateField }`, so a view can place its records by another date field. Switching to the calendar uses the layout's own `dateField` until a view picks one.
+
+```tsx
+const layouts = [
+  tableLayout(columns),
+  calendarLayout({ dateField: 'startsAt', title: 'name' })
+]
+```
+
+### Phones
+
+Under 40rem of room, as on a phone, the month grid gives way to an agenda: the month's records as list rows under each day they cover, with each day's heading sticking as its rows scroll by. Days with nothing on are left out, and a month with nothing on says so. Previous, next and Today work the same way.
+
+### Server mode
+
+The calendar sends the days it shows to the server. With `rowCount`, the `request` that `onRequestChange` hears carries an `overlaps` filter on the date field, with a `dates` range from the first to the last day of the visible weeks, and no `page` or `pageSize`. A request without paging means every record that matches, so return every record in those days. Previous, next and Today send the new month's request, and the first one goes out once the page hydrates, already holding its month. In the browser the same filter applies, so `Records.Status` counts the month's records.
+
+Because the calendar loads every record in its days, it has no pages: `Records.Pagination` shows nothing under it, and comes back when a view switches to another layout.
+
+```tsx
+const records = useRecords({
+  data: page?.rows ?? [],
+  rowCount: page?.rowCount ?? 0,
+  fields,
+  onRequestChange: setRequest
+})
+```
+
+### Today and the first day of the week
+
+Today comes from the browser's clock, so a server render marks no day and, without `defaultMonth`, shows no month until the page hydrates. Pass `now` to `useRecords` to fix it. `weekStart` picks the first day of the week, Monday by default, and `locale` names the months and days.
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Offer a calendar where the day matters'>
+  <Guideline.Do
+    code={`
+      layouts={[
+        tableLayout(columns),
+        calendarLayout({ dateField: 'startsAt', title: 'name' })
+      ]}
+    `}
+  >
+    Offer the calendar beside the table for events and on-sales, where people
+    plan around the day.
+  </Guideline.Do>
+  <Guideline.Dont code={`calendarLayout({ dateField: 'createdAt', title: 'orderNumber' })`}>
+    Don't place records by a date nobody plans around, such as when an order
+    was placed. A table sorted by that date reads better.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- The calendar is a table named by its month, with a column header for each day of the week. Each day's cell reads its date first, then its chips, and today's reads "Today" and is marked `aria-current="date"`.
+- Each chip is a link to its record through `getRowHref`, and Tab moves through them in reading order. The arrow keys move focus from day to day, a week at a time with Up and Down.
+- "+N more" is a button named by the count and the day, such as "+3 more on Friday, 27 November 2026". It opens a popover holding every record on the day, and Escape closes it and returns focus to the button.
+- The month name is announced as it changes. Previous and next are buttons named "Previous month" and "Next month".
+- On a phone, each agenda day is a level 2 heading with its date and count, labelling the list of its records. Today's heading starts with "Today".
+
+<PropsDefinitions component='RecordCalendar' />

@@ -4,10 +4,10 @@ import type { ReactNode, RefAttributes } from 'react'
 
 import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { isEmptyNode } from '../../utils/isEmptyNode'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { SliderContext, type SliderSize } from './SliderContext'
 import { SliderControl } from './SliderControl'
 import { SliderIndicator } from './SliderIndicator'
@@ -21,8 +21,13 @@ type SliderValueType = number | readonly number[]
 export type SliderDirection = 'horizontal' | 'vertical'
 
 export type SliderRootProps<Value extends SliderValueType = SliderValueType> =
-  Omit<SliderPrimitive.Root.Props<Value>, 'orientation'> &
+  Omit<SliderPrimitive.Root.Props<Value>, 'orientation' | 'locale'> &
     RefAttributes<HTMLDivElement> & {
+      /**
+       * The locale `Intl.NumberFormat` formats the value in.
+       * @default 'en-AU'
+       */
+      locale?: Intl.LocalesArgument | undefined
       /**
        * Which way the track runs. `vertical` runs up the page.
        * @default 'horizontal'
@@ -56,8 +61,7 @@ export function SliderRoot<Value extends SliderValueType>({
   const inField = !!field.fieldId
   const hasLabel = !isEmptyNode(label)
   const resolvedInvalid = invalid ?? field.invalid
-  // Field.ErrorText renders from the field's own invalid, not the slider's.
-  const fieldTextId = field.invalid ? field.errorTextId : field.helperTextId
+  const fieldProps = useFieldControlProps({ invalid: resolvedInvalid })
   const thumbCount = countThumbs(props.value ?? props.defaultValue)
 
   return (
@@ -65,7 +69,7 @@ export function SliderRoot<Value extends SliderValueType>({
       value={{
         size,
         invalid: resolvedInvalid,
-        describedBy: (inField && fieldTextId) || undefined,
+        describedBy: fieldProps['aria-describedby'],
         fieldId: field.fieldId || undefined
       }}
     >
@@ -78,9 +82,11 @@ export function SliderRoot<Value extends SliderValueType>({
         disabled={disabled ?? field.disabled}
         orientation={direction}
         locale={locale}
-        className={cn(
-          'group/slider grid w-full grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5',
-          'data-[orientation=vertical]:w-auto',
+        className={mergeClassName(
+          [
+            'group/slider grid w-full grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5',
+            'data-[orientation=vertical]:w-auto'
+          ],
           className
         )}
         {...props}

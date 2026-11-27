@@ -333,6 +333,105 @@ describe('validateRecordView', () => {
     expect(grid.problems[0]!.path).toBe('layout.fields[0]')
   })
 
+  it.each([
+    { type: 'list' },
+    { type: 'table', groupBy: ['venue'] },
+    { type: 'grid', groupBy: ['status', 'venue'] },
+    { type: 'list', fields: ['name'], groupBy: ['venue'] },
+    { type: 'list', groupBy: ['city'] },
+    { type: 'list', groupBy: ['status', 'venue', 'city'] },
+    { type: 'board', groupBy: ['status'] },
+    { type: 'board', groupBy: ['status', 'venue'] },
+    { type: 'calendar', dateField: 'starts' },
+    { type: 'calendar', dateField: 'birthday' },
+    { type: 'map' }
+  ])('accepts the layout %o', (layout) => {
+    expect(validateRecordView(view([], { layout }), eventFields)).toMatchObject(
+      { ok: true, problems: [] }
+    )
+  })
+
+  it.each([
+    [{ type: 'board' }, 'layout.groupBy', ''],
+    [{ type: 'board', groupBy: [] }, 'layout.groupBy', 'at least one field'],
+    [{ type: 'list', groupBy: 'status' }, 'layout.groupBy', 'array'],
+    [
+      { type: 'board', groupBy: ['nope'] },
+      'layout.groupBy[0]',
+      'Unknown field "nope"'
+    ],
+    [
+      { type: 'board', groupBy: ['status', 'name'] },
+      'layout.groupBy[1]',
+      '"Name" has no options to group by'
+    ],
+    [
+      { type: 'list', groupBy: ['genres'] },
+      'layout.groupBy[0]',
+      '"Genres" holds a list, so a record would sit in more than one group'
+    ],
+    [
+      { type: 'table', groupBy: ['venue', 'venue'] },
+      'layout.groupBy[1]',
+      '"Venue" is already a level'
+    ],
+    [
+      { type: 'list', groupBy: ['status', 'venue', 'city', 'featured'] },
+      'layout.groupBy',
+      'at most 3'
+    ],
+    [
+      { type: 'calendar', dateField: 'starts', groupBy: ['status'] },
+      'layout',
+      'Unrecognized key'
+    ],
+    [{ type: 'calendar' }, 'layout.dateField', ''],
+    [
+      { type: 'calendar', dateField: 'capacity' },
+      'layout.dateField',
+      '"Capacity" is not a date field'
+    ],
+    [{ type: 'map', centre: [0, 0] }, 'layout', 'Unrecognized key'],
+    [{ type: 'timeline' }, 'layout.type', '']
+  ])('rejects the layout %o', (layout, path, message) => {
+    expect(errors(view([], { layout }))[0]).toMatchObject({
+      path,
+      message: expect.stringContaining(message)
+    })
+  })
+
+  it('keeps a third level on a board, with a warning that it is not drawn', () => {
+    const layout = { type: 'board', groupBy: ['status', 'venue', 'city'] }
+    const result = validateRecordView(view([], { layout }), eventFields)
+    expect(result.ok && result.view.layout).toEqual(layout)
+    expect(result.problems).toEqual([
+      {
+        path: 'layout.groupBy[2]',
+        message:
+          'A board draws at most two levels, so "City" shows only in other layouts',
+        severity: 'warning'
+      }
+    ])
+  })
+
+  it('rejects a calendar on a list of dates', () => {
+    const fields = [
+      ...eventFields,
+      { key: 'shows', label: 'Shows', type: 'date', multiple: true } as const
+    ]
+    const layout = { type: 'calendar', dateField: 'shows' }
+    expect(validateRecordView(view([], { layout }), fields)).toMatchObject({
+      ok: false,
+      problems: [
+        {
+          path: 'layout.dateField',
+          message:
+            '"Shows" holds a list of dates, which a calendar cannot place yet'
+        }
+      ]
+    })
+  })
+
   it('rejects unknown keys on the view, such as the retired group', () => {
     expect(errors(view([], { page: 2 } as never))[0]!.message).toMatch(
       /Unrecognized key/

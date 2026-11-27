@@ -12,6 +12,15 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import {
+  apcaLc,
+  flatten,
+  minimumLc,
+  over,
+  shownFill
+} from '@oztix/roadie-browser-testing/contrast'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Button } from '../components/Button'
 import { IconButton } from '../components/Button/IconButton'
@@ -19,25 +28,16 @@ import { Card } from '../components/Card'
 import { Link } from '../components/Link'
 import { List } from '../components/List'
 import { Menu } from '../components/Menu'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { Tabs } from '../components/Tabs'
 import { Toggle } from '../components/Toggle'
 import { ToggleGroup } from '../components/ToggleGroup'
 import { pointAt } from '../utils/pointerTestUtils'
 import { type RoadieIntent, intentVariants } from '../variants'
-import {
-  apcaLc,
-  flatten,
-  minimumLc,
-  over,
-  shownFill
-} from './contrastTestUtils'
 import { focusAfterKey, focusRing } from './testUtils'
 
 // One matrix over these components and their emphases, since hover, focus
 // and contrast all come from the same utilities and presets.
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 const MODES = ['light', 'dark'] as const
 const INTENTS = Object.keys(intentVariants) as RoadieIntent[]
 

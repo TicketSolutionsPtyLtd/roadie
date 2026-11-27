@@ -1,7 +1,9 @@
 /* Waiting for a navigation: a conic gradient on a square that spins behind
    everything the frame holds, so the colour shows in the gutters around the
    panes and the nav's capsules. Only `rotate` animates, and the gradient is
-   painted once, so the spin stays on the compositor. */
+   painted once, so the spin stays on the compositor. What the frame and its
+   panes do while it waits (the gutter fill, the phone pull-back) is on their
+   classes, in Navigator/variants.ts. */
 
 @layer components {
   [data-slot='navigator-pending'] {
@@ -27,13 +29,6 @@
   [data-slot='navigator'][data-pending='leaving']
     > [data-slot='navigator-pending'] {
     opacity: 0;
-  }
-
-  /* The band beside a vertical nav masks a flush pane's shadow with the frame's
-     own fill; while the frame glows, the glow is that fill. A nested frame
-     inherits this and reveals its own identical fill, so it needs no reset. */
-  [data-slot='navigator'][data-pending] {
-    --pane-gutter-fill: transparent;
   }
 
   [data-slot='navigator-pending']::before {
@@ -63,41 +58,12 @@
     will-change: rotate;
   }
 
-  /* Reduced motion keeps the colour and drops the movement: the spin here, and
-     the phone pull-back below, which the global reset would otherwise snap
-     rather than animate. The tap still has its answer. */
+  /* Reduced motion keeps the colour and drops the spin. The tap still has its
+     answer. */
   @media (prefers-reduced-motion: reduce) {
     [data-slot='navigator-pending']::before {
       rotate: 0.125turn;
       animation: none;
-    }
-  }
-
-  /* A phone pane is the whole screen, so it pulls back to show the frame. */
-  @media (width < 48rem) {
-    [data-slot='navigator'][data-pending] {
-      --pane-radius-phone: var(--radius-2xl);
-    }
-
-    /* Only the frame that pulls back rounds its panes. A nested Navigator holds
-       still, and rounding its panes would show its own fill in the corners.
-       Same specificity as the rule above, so it has to stay after it. */
-    [data-slot='navigator'] [data-slot='navigator'] {
-      --pane-radius-phone: 0px;
-    }
-
-    /* --duration-moderate, matching the fade: the radius above goes with
-       `data-pending`, so a slower scale would square the corners mid-return. */
-    [data-slot='navigator-panes'][data-level='0'] {
-      transform-origin: center;
-      transition: scale var(--duration-moderate) var(--ease-standard);
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      [data-slot='navigator'][data-pending='visible']
-        [data-slot='navigator-panes'][data-level='0'] {
-        scale: 0.96;
-      }
     }
   }
 }
