@@ -32,14 +32,6 @@
     outline-offset: 0;
   }
 
-  .dark :focus-visible {
-    outline-color: color-mix(
-      in oklch,
-      var(--intent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
-
   ::selection {
     background-color: var(--color-info-3);
   }

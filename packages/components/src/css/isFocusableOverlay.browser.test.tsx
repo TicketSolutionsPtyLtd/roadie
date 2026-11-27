@@ -60,7 +60,7 @@ const token = (name: string) =>
 describe('is-focusable-overlay', () => {
   it.each([
     ['light', false, '--focus-ring-opacity'],
-    ['dark', true, '--focus-ring-opacity-dark']
+    ['dark', true, '--focus-ring-opacity']
   ])(
     'rings the overlay inset with the focus-ring tokens in %s mode',
     (_mode, dark, opacity) => {
