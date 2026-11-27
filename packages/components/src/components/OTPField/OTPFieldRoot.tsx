@@ -7,6 +7,7 @@ import { OTPField as OTPFieldPrimitive } from '@base-ui/react/otp-field'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { OTPFieldContext } from './OTPFieldContext'
 import { OTPFieldInput } from './OTPFieldInput'
 import { OTPFieldSeparator } from './OTPFieldSeparator'
@@ -60,11 +61,16 @@ export function OTPFieldRoot({
   required,
   disabled,
   'aria-label': ariaLabel,
+  'aria-describedby': describedBy,
   ...props
 }: OTPFieldRootProps) {
   const field = useFieldContext()
   const resolvedInvalid = invalid ?? field.invalid
-  const describedBy = field.invalid ? field.errorTextId : field.helperTextId
+  const fieldProps = useFieldControlProps({
+    id,
+    invalid: resolvedInvalid,
+    'aria-describedby': describedBy
+  })
 
   return (
     <OTPFieldContext
@@ -80,11 +86,11 @@ export function OTPFieldRoot({
         data-slot='otp-field'
         className={cn('flex items-center gap-2', className)}
         length={length}
-        id={id ?? (field.fieldId || undefined)}
+        id={fieldProps.id}
         required={required ?? field.required}
         disabled={disabled ?? field.disabled}
         aria-label={ariaLabel}
-        aria-describedby={describedBy || undefined}
+        aria-describedby={fieldProps['aria-describedby']}
         {...props}
       >
         {children ?? renderSlots(length, groupSize)}

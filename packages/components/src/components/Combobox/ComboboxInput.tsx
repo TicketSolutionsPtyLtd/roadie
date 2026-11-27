@@ -8,6 +8,7 @@ import { useDirection } from '@base-ui/react/direction-provider'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 
 export type ComboboxInputProps = ComboboxPrimitive.Input.Props &
   RefAttributes<HTMLInputElement>
@@ -28,10 +29,15 @@ function isModified(event: KeyboardEvent) {
 export function ComboboxInput({
   className,
   onKeyDown,
+  'aria-describedby': describedBy,
   ...props
 }: ComboboxInputProps) {
-  const fieldContext = useFieldContext()
-  const inField = !!fieldContext.fieldId
+  const inField = !!useFieldContext().fieldId
+  const fieldProps = useFieldControlProps(
+    { 'aria-label': props['aria-label'], 'aria-describedby': describedBy },
+    // Opening the list aria-hides Field.Label; aria-labelledby still reads it.
+    { labelled: true }
+  )
   const previousChipKey = useDirection() === 'rtl' ? 'ArrowRight' : 'ArrowLeft'
 
   return (
@@ -41,18 +47,7 @@ export function ComboboxInput({
         'min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle',
         className
       )}
-      {...(inField && {
-        id: fieldContext.fieldId,
-        // Opening the list aria-hides Field.Label; aria-labelledby still reads it.
-        'aria-labelledby': props['aria-label']
-          ? undefined
-          : fieldContext.labelId,
-        'aria-invalid': fieldContext.invalid || undefined,
-        'aria-required': fieldContext.required || undefined,
-        'aria-describedby': fieldContext.invalid
-          ? fieldContext.errorTextId || undefined
-          : fieldContext.helperTextId || undefined
-      })}
+      {...(inField && fieldProps)}
       onKeyDown={(event) => {
         onKeyDown?.(event)
         const input = event.currentTarget
@@ -71,6 +66,7 @@ export function ComboboxInput({
         chip.focus()
       }}
       {...props}
+      aria-describedby={fieldProps['aria-describedby']}
     />
   )
 }

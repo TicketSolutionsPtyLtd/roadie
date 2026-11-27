@@ -14,7 +14,8 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Combobox } from '../Combobox'
-import { useFieldContext, useFieldInputProps } from '../Field'
+import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 
 export const phoneFieldVariants = cva(
   'flex w-full items-center rounded-lg font-sans text-base emphasis-field is-interactive-field-group',
@@ -196,10 +197,11 @@ export function PhoneField({
   className,
   style,
   onChange,
+  'aria-describedby': describedBy,
   ...props
 }: PhoneFieldProps) {
   const field = useFieldContext()
-  const fieldProps = useFieldInputProps()
+  const fieldProps = useFieldControlProps({ 'aria-describedby': describedBy })
   const disabled = disabledProp ?? field.disabled ?? false
   const locale = readableLocale(localeProp)
   const given = knownCountry(countryProp)
@@ -342,15 +344,12 @@ export function PhoneField({
               aria-label={countryLabel}
               className='grid max-h-[min(var(--available-height),--spacing(80))] w-72 grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0'
             >
-              <Combobox.Input
+              {/* Base UI's input, as the search isn't the field's control. */}
+              <ComboboxPrimitive.Input
                 data-slot='phone-field-search'
-                id={undefined}
                 aria-label={searchLabel}
-                aria-invalid={undefined}
-                aria-required={undefined}
-                aria-describedby={undefined}
                 placeholder={searchLabel}
-                className='h-10 flex-none border-b border-subtle px-3 text-base'
+                className='h-10 min-w-0 flex-none border-b border-subtle bg-transparent px-3 text-base outline-none placeholder:text-subtle'
               />
               <div className='overflow-y-auto p-1'>
                 <Combobox.List>

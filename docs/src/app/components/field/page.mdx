@@ -119,7 +119,7 @@ Write labels, helper text, and error text with
 - **Auto-wired IDs**: Field auto-generates matching IDs for the label, input, helper text, and error text. You don't need to set `htmlFor` or `id` manually.
 - **Context-driven aria**: The `invalid`, `required`, and `disabled` props on Field automatically set `aria-invalid`, `aria-required`, and `disabled` on child inputs via context.
 - **Error announcements**: `Field.ErrorText` renders with `role="alert"` and only appears when `invalid` is true or a control reports its own error, so screen readers announce errors immediately.
-- **Description linking**: `aria-describedby` is automatically wired to the helper text (or error text when invalid).
+- **Description linking**: `aria-describedby` is automatically wired to the helper text, then the error text while invalid, then any `aria-describedby` you pass to a text control.
 
 ## Hooks
 
@@ -174,7 +174,7 @@ element. Reach for it when building a control `Field.Input` doesn't cover.
 | `disabled` | `boolean \| undefined` | The field's `disabled` state. |
 | `aria-invalid` | `boolean \| undefined` | The field's `invalid` state. |
 | `aria-required` | `boolean \| undefined` | The field's `required` state. |
-| `aria-describedby` | `string \| undefined` | The error text's id when invalid, otherwise the helper text's id. |
+| `aria-describedby` | `string \| undefined` | The helper text's id, then the error text's id while invalid. |
 
 ### useFieldControlError
 
