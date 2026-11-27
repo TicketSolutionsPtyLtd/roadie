@@ -3,17 +3,16 @@ import type { ReactElement } from 'react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Checkbox } from '../components/Checkbox'
 import { Field } from '../components/Field'
 import { NumberField } from '../components/NumberField'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { RadioGroup } from '../components/RadioGroup'
 import { Slider } from '../components/Slider'
 import { Switch } from '../components/Switch'
 import { focusAfterKey } from './testUtils'
-
-const STILL = '*, *::before, *::after { transition-duration: 0s !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {
