@@ -74,6 +74,21 @@ The shortfall is 0.5 to 1.3 Lc, and strong text is usually heavier or larger
 as well, which carries the difference. Closing success's gap would take a
 pure white step 13, which drops its tint.
 
+Cards' item description (`text-subtle`) on a `subtler` card inside a `subtle`
+section is excepted for good (INNO-1756). Two tints stack under secondary text,
+which measures Lc 70.0 to 73.1 in light mode and 73.9 to 74.9 in dark, across
+every intent. The same text passes on a single tint or on the page, and no
+visual change was made. The blocks check allow-lists the pair at floor 69, just
+under the lowest measure, so a worse pair still fails. Other blocks' stacked
+tints hold to Lc 75.
+
+Body copy on a strong fill follows the label floor of Lc 60, not body text's
+Lc 75 (INNO-1756). White on an intent's strong fill measures Lc 61 to 68, and
+the shared `textRole` treats all text on `.emphasis-strong` as a label. The
+maintainer kept that floor and chose not to move the palette. Keep such copy
+short, a line or two and not paragraphs, because Lc 60 is a label floor and
+long reading needs more.
+
 ## Links
 
 - INNO-1182, white on the accent strong fill
@@ -84,3 +99,4 @@ pure white step 13, which drops its tint.
 - INNO-1225, `getContrastColor` switched to APCA
 - INNO-1224, dark delta text
 - INNO-1226, the dark strong and normal text gap on success and warning
+- INNO-1756, Cards description on stacked tints, and body copy on strong fills

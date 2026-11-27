@@ -62,6 +62,23 @@ describe('gridParts', () => {
     expect(keys(layout)).toEqual(expected)
   })
 
+  it.each<[string, RecordLayout, string[]]>([
+    [
+      'its own fields',
+      { type: 'list', fields: ['gross', 'city'] },
+      ['gross', 'city']
+    ],
+    [
+      "the definition for a grid view's fields",
+      { type: 'grid', fields: ['gross'] },
+      ['city', 'sold']
+    ]
+  ])('shows a list %s', (_, layout, expected) => {
+    expect(
+      gridParts(config, fields, layout, 'list').details.map((part) => part.key)
+    ).toEqual(expected)
+  })
+
   it('keeps a defined part’s cell when the view lists it', () => {
     const cell = () => 'cell'
     const parts = gridParts(
@@ -150,6 +167,18 @@ describe('gridDetailsLayout', () => {
       { type: 'grid', fields: ['city', 'fees', 'sold'] }
     ],
     [
+      "keeps the view's grouping, its own setting",
+      ['sold'],
+      { type: 'grid', groupBy: ['status', 'venue'] },
+      { type: 'grid', fields: ['sold'], groupBy: ['status', 'venue'] }
+    ],
+    [
+      "keeps the view's grouping back at the definition",
+      ['city', 'sold'],
+      { type: 'grid', fields: ['sold'], groupBy: ['status'] },
+      { type: 'grid', groupBy: ['status'] }
+    ],
+    [
       'drops placed, unknown-to-the-row and repeated keys from the change',
       ['name', 'sold', 'sold', 'nope'],
       { type: 'grid' },
@@ -157,6 +186,31 @@ describe('gridDetailsLayout', () => {
     ]
   ])('%s', (_, shown, current, expected) => {
     expect(gridDetailsLayout(config, fields, shown, current)).toEqual(expected)
+  })
+
+  it.each<[string, string[], RecordLayout, RecordLayout]>([
+    [
+      'writes a list from the default table view',
+      ['sold'],
+      { type: 'table' },
+      { type: 'list', fields: ['sold'] }
+    ],
+    [
+      "drops a grid view's fields, unknown ones too",
+      ['sold'],
+      { type: 'grid', fields: ['fees', 'city'] },
+      { type: 'list', fields: ['sold'] }
+    ],
+    [
+      'leaves out a list view’s fields back to the definition',
+      ['city', 'sold'],
+      { type: 'list', fields: ['sold'] },
+      { type: 'list' }
+    ]
+  ])('for a list, %s', (_, shown, current, expected) => {
+    expect(gridDetailsLayout(config, fields, shown, current, 'list')).toEqual(
+      expected
+    )
   })
 
   it('round-trips through gridParts', () => {

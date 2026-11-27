@@ -40,17 +40,51 @@ export function useFieldContext() {
   return use(FieldContext)
 }
 
-export function useFieldInputProps() {
-  const { invalid, required, disabled, fieldId, helperTextId, errorTextId } =
-    use(FieldContext)
-  const describedBy = invalid ? errorTextId : helperTextId
+/** What a control says for itself, which wins over or joins its Field's. */
+export type FieldControlOwnProps = {
+  id?: string
+  invalid?: boolean
+  required?: boolean
+  'aria-label'?: string
+  'aria-labelledby'?: string
+  'aria-describedby'?: string
+}
+
+/**
+ * A control's id and ARIA props from its Field. Helper text, then error
+ * text while invalid, then the control's own `aria-describedby` describe it.
+ * `labelled` adds `aria-labelledby` for a control a `<label>` can't name.
+ */
+export function useFieldControlProps(
+  own: FieldControlOwnProps = {},
+  { labelled = false } = {}
+) {
+  const field = use(FieldContext)
+  const invalid = own.invalid ?? field.invalid
+  const required = own.required ?? field.required
+  const describedBy = [
+    field.helperTextId,
+    invalid && field.errorTextId,
+    own['aria-describedby']
+  ]
+    .filter(Boolean)
+    .join(' ')
   return {
-    id: fieldId || undefined,
-    disabled: disabled || undefined,
+    id: own.id ?? (field.fieldId || undefined),
     'aria-invalid': invalid || undefined,
     'aria-required': required || undefined,
-    'aria-describedby': describedBy || undefined
+    'aria-describedby': describedBy || undefined,
+    ...(labelled && {
+      'aria-labelledby':
+        own['aria-labelledby'] ??
+        (own['aria-label'] ? undefined : field.labelId || undefined)
+    })
   }
+}
+
+export function useFieldInputProps() {
+  const { disabled } = use(FieldContext)
+  return { ...useFieldControlProps(), disabled: disabled || undefined }
 }
 
 /** Shows a control's own error in `Field.ErrorText` while the control is mounted. */

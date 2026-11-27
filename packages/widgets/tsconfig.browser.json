@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "node"]
+  },
+  "include": [
+    "raw.d.ts",
+    "browser-commands.d.ts",
+    "src/**/*.browser.test.*",
+    "src/cart-drawer/drawerTestUtils.ts"
+  ],
+  "exclude": ["dist", "node_modules"]
+}

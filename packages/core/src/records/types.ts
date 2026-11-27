@@ -36,9 +36,26 @@ export type RecordQuery = {
   sort: RecordSort[]
 }
 
+/**
+ * Fields to group records by, outermost first, each a single-valued field with
+ * options: up to three levels. A board makes its columns from the first and
+ * draws at most two.
+ */
+export type RecordGroupBy = readonly string[]
+
 export type RecordLayout =
-  | { type: 'table'; columns?: { order?: string[]; hidden?: string[] } }
-  | { type: 'grid'; fields?: string[] }
+  | {
+      type: 'table'
+      columns?: { order?: string[]; hidden?: string[] }
+      groupBy?: RecordGroupBy
+    }
+  | { type: 'grid'; fields?: string[]; groupBy?: RecordGroupBy }
+  | { type: 'list'; fields?: string[]; groupBy?: RecordGroupBy }
+  /** A column per option of `groupBy[0]`, and a lane per option of `groupBy[1]`. */
+  | { type: 'board'; groupBy: RecordGroupBy }
+  | { type: 'calendar'; dateField: string }
+  /** Holds no centre or zoom: the map fits its records. */
+  | { type: 'map' }
 
 export type RecordView = {
   /** `validateRecordView` reads a view without one as `RECORD_VIEW_VERSION`. */

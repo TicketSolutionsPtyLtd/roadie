@@ -1,8 +1,10 @@
 import type { ComponentType } from 'react'
 
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
+
+import { loadSpotIllustration } from '@oztix/roadie-illustrations/spot/load'
 
 import { Cards, type CardsItem, type CardsPreset, type CardsProps } from '.'
 import { BlocksProvider } from '../Provider'
@@ -14,10 +16,19 @@ import {
   textAlignOf,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import {
+  MODES,
+  expectReadable,
+  setMode,
+  textContrast,
+  textFloor
+} from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
+
+// These tests measure a block as soon as it renders, so its illustration loads first.
+beforeAll(() => loadSpotIllustration('Ticket'))
 
 describeBlockFrame('cards', 'plain', Cards as ComponentType<never>, {
   cards: [{ title: 'Fast payouts' }]
@@ -550,9 +561,7 @@ describe('Cards overlap cards', () => {
       if (mode === 'light') expect(lightness(panel)).toBeLessThan(0.4)
       else expect(lightness(panel)).toBeGreaterThan(0.6)
       for (const text of within(panel).getAllByText(/Festivals|millions/))
-        expect(textContrast(text), text.textContent!).toBeGreaterThanOrEqual(
-          MINIMUM_LC.body
-        )
+        expectReadable(text, text.textContent!)
     }
   )
 })
@@ -619,7 +628,7 @@ describe('Cards card links', () => {
 })
 
 describe('Cards linked tiles', () => {
-  const scaleOnHover = async (preset: CardsPreset, href?: string) => {
+  const tileImage = (preset: CardsPreset, href?: string) => {
     render(
       <div style={{ width: 1280 }}>
         <Cards
@@ -629,8 +638,12 @@ describe('Cards linked tiles', () => {
         />
       </div>
     )
-    await userEvent.hover(cards()[0]!)
     return screen.getByRole('img')
+  }
+  const scaleOnHover = async (preset: CardsPreset, href?: string) => {
+    const image = tileImage(preset, href)
+    await userEvent.hover(cards()[0]!)
+    return image
   }
 
   it.each<CardsPreset>(['overlap', 'photo'])(
@@ -651,6 +664,26 @@ describe('Cards linked tiles', () => {
 
       await new Promise(requestAnimationFrame)
       expect(getComputedStyle(image).scale).toMatch(/^(none|1)$/)
+    }
+  )
+
+  it.each<CardsPreset>(['overlap', 'photo'])(
+    'grows a linked %s photo to 1.05 when its link takes keyboard focus',
+    async (preset) => {
+      const image = tileImage(preset, '#live-music')
+      await commands.parkPointer()
+      expect(getComputedStyle(image).scale).toMatch(/^(none|1)$/)
+
+      await commands.focusPage()
+      await expect.poll(() => document.hasFocus()).toBe(true)
+      // Tab skips links in WebKit and in macOS Firefox by default.
+      await userEvent.keyboard('{Shift}')
+      screen.getByRole('link').focus({ focusVisible: true })
+
+      expect(screen.getByRole('link').matches(':focus-visible')).toBe(true)
+      await expect
+        .poll(() => getComputedStyle(image).scale, { timeout: 2000 })
+        .toBe('1.05')
     }
   )
 
@@ -722,12 +755,8 @@ describe('Cards contrast', () => {
         .map((node) => node.textContent?.trim())
         .join('')
       if (!text) return []
-      const style = getComputedStyle(element)
       const lc = textContrast(element)
-      const size = parseFloat(style.fontSize)
-      const large =
-        size >= 24 || (size >= 18.6 && Number(style.fontWeight) >= 700)
-      return lc >= (large ? MINIMUM_LC.large : MINIMUM_LC.body)
+      return lc >= textFloor(element)
         ? []
         : [`${text.slice(0, 30)}: Lc ${Math.round(lc)}`]
     })

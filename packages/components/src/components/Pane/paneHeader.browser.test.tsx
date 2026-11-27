@@ -1,12 +1,29 @@
+import { type ReactElement, type ReactNode, act } from 'react'
+
+import { ShareIcon } from '@phosphor-icons/react'
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { page } from 'vitest/browser'
+
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { IconButton } from '../Button/IconButton'
+import { Navigator } from '../Navigator'
+import { Skeleton } from '../Skeleton'
 import { COLLAPSE_AT, EXPAND_AT } from './PaneRoot'
 import { forgetPaneScroll } from './paneScroll'
-import { useStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -204,4 +221,202 @@ describe('pane chrome', () => {
       expect(footer).toBe(radius)
     }
   )
+})
+
+describe('a pane header in a phone stack', () => {
+  const stack = (reached: boolean, search = false) => (
+    <div style={{ height: '100vh', display: 'grid' }}>
+      <Navigator value='/shows'>
+        <Pane column='list' aria-label='Shows'>
+          <Pane.Header>
+            <Pane.Title>Shows</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane reached={reached} aria-label='Show'>
+          <Pane.Header onBack={() => {}}>
+            <Pane.Title>The Rolling Kazoos</Pane.Title>
+            {search ? <Pane.Search value='' onValueChange={() => {}} /> : null}
+          </Pane.Header>
+          <p data-row>Doors 7pm</p>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+  const heightOf = (element: Element) =>
+    parseFloat(
+      getComputedStyle(element).getPropertyValue('--pane-header-height')
+    )
+  // Where CSS can pick a value by another, the height follows Back in the
+  // same frame; elsewhere the observer catches up a frame later.
+  const sameFrame = CSS.supports('width', 'if(style(--x: 1): 1px; else: 2px)')
+
+  it.each([
+    ['a title', false],
+    ['a title and a search', true]
+  ])(
+    'gives its content the height it lands at once pushed, with %s',
+    async (_, search) => {
+      await page.viewport(390, 844)
+      const { rerender } = render(stack(false, search))
+      await settle()
+      const header = document.querySelector(
+        '[data-slot="pane"][aria-label="Show"] [data-slot="pane-header"]'
+      )!
+      const row = document.querySelector('[data-row]')!
+      const before = header.getBoundingClientRect().height
+      expect(heightOf(row)).toBeCloseTo(before, 0)
+
+      act(() => rerender(stack(true, search)))
+      const after = header.getBoundingClientRect().height
+      // Back takes a row of its own above the title.
+      expect(after).toBeGreaterThan(before)
+      if (sameFrame) expect(heightOf(row)).toBeCloseTo(after, 0)
+
+      await settle()
+      expect(heightOf(row)).toBeCloseTo(after, 0)
+      // The sum held, so the observer wrote nothing over it.
+      if (sameFrame)
+        expect(
+          header
+            .closest<HTMLElement>('[data-slot="pane"]')!
+            .style.getPropertyValue('--pane-header-measured')
+        ).toBe('')
+      act(() => rerender(stack(false, search)))
+      await settle()
+      expect(heightOf(row)).toBeCloseTo(before, 0)
+    }
+  )
+
+  it('follows Close hiding where its actions hold the header still', async () => {
+    await page.viewport(1280, 800)
+    const wide = (deeper: boolean) => (
+      <div style={{ height: '100vh', display: 'grid' }}>
+        <Navigator value='/shows'>
+          <Pane column='list' aria-label='Shows'>
+            <Pane.Header>
+              <Pane.Title>Shows</Pane.Title>
+            </Pane.Header>
+          </Pane>
+          <Pane reached aria-label='Show'>
+            <Pane.Header onBack={() => {}}>
+              <Pane.Title>The Rolling Kazoos</Pane.Title>
+              <Pane.Actions>
+                <IconButton aria-label='Share'>
+                  <ShareIcon weight='bold' className='size-5' />
+                </IconButton>
+              </Pane.Actions>
+            </Pane.Header>
+            <p data-row>Doors 7pm</p>
+          </Pane>
+          <Pane reached={deeper} aria-label='Tickets'>
+            <Pane.Header onBack={() => {}}>
+              <Pane.Title>Tickets</Pane.Title>
+            </Pane.Header>
+          </Pane>
+        </Navigator>
+      </div>
+    )
+    const { rerender } = render(wide(false))
+    await settle()
+    const header = document.querySelector(
+      '[data-slot="pane"][aria-label="Show"] [data-slot="pane-header"]'
+    )!
+    const row = document.querySelector('[data-row]')!
+    const close = () =>
+      getComputedStyle(header.querySelector('[data-slot="pane-close"]')!)
+        .display
+    expect(close()).not.toBe('none')
+    expect(heightOf(row)).toBeCloseTo(header.getBoundingClientRect().height, 0)
+
+    act(() => rerender(wide(true)))
+    await settle()
+    expect(close()).toBe('none')
+    expect(heightOf(row)).toBeCloseTo(header.getBoundingClientRect().height, 0)
+  })
+})
+
+describe('a pane header from the server', () => {
+  // Server markup first, read, then hydrated and read again: nothing may move.
+  async function serveThenHydrate(ui: ReactElement) {
+    const host = document.createElement('div')
+    host.innerHTML = renderToString(ui)
+    document.body.append(host)
+    const read = () => {
+      const pane = host.querySelector<HTMLElement>('[data-slot="pane"]')!
+      const first = host.querySelector<HTMLElement>('[data-probe]')!
+      const header = host.querySelector<HTMLElement>(
+        '[data-slot="pane-header"]'
+      )
+      return {
+        top:
+          first.getBoundingClientRect().top - pane.getBoundingClientRect().top,
+        header: header?.getBoundingClientRect().height ?? 0
+      }
+    }
+    await frames()
+    const served = read()
+    const onRecoverableError = vi.fn()
+    const root = await act(async () =>
+      hydrateRoot(host, ui, { onRecoverableError })
+    )
+    await frames()
+    const hydrated = read()
+    act(() => root.unmount())
+    host.remove()
+    return { served, hydrated, onRecoverableError }
+  }
+
+  const frame = (children: ReactNode) => (
+    <div style={{ width: 600, height: 500, display: 'grid' }}>
+      <Pane>{children}</Pane>
+    </div>
+  )
+
+  it('holds an empty header above a body title at the height it hydrates to', async () => {
+    const { served, hydrated, onRecoverableError } = await serveThenHydrate(
+      frame(
+        <>
+          <Pane.Header />
+          <Pane.BodyTitle data-probe>Midnight Frequency</Pane.BodyTitle>
+          <div style={{ height: 2000 }} />
+        </>
+      )
+    )
+
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(served.header).toBeCloseTo(CONTROL_HEADER, 0)
+    expect(hydrated).toEqual(served)
+  })
+
+  it('gives a skeleton pane with no title the same top', async () => {
+    const { served, hydrated } = await serveThenHydrate(
+      frame(
+        <>
+          <Pane.Header />
+          <Skeleton data-probe shape='block' className='h-40' />
+        </>
+      )
+    )
+
+    expect(served.header).toBeCloseTo(CONTROL_HEADER, 0)
+    expect(served.top).toBeCloseTo(CONTROL_HEADER, 0)
+    expect(hydrated).toEqual(served)
+  })
+
+  it('holds a header of actions above a body title where it hydrates', async () => {
+    const { served, hydrated } = await serveThenHydrate(
+      frame(
+        <>
+          <Pane.Header>
+            <Pane.Actions>
+              <button type='button'>Share</button>
+            </Pane.Actions>
+          </Pane.Header>
+          <Pane.BodyTitle data-probe>Midnight Frequency</Pane.BodyTitle>
+        </>
+      )
+    )
+
+    expect(hydrated).toEqual(served)
+  })
 })

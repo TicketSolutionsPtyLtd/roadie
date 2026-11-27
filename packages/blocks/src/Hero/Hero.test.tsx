@@ -2,9 +2,10 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import * as spot from '@oztix/roadie-illustrations/spot'
+
 import { Hero } from '.'
 import { BlocksProvider } from '../Provider'
-import { SPOT_ILLUSTRATIONS } from '../_shared/illustrations'
 import { bento, imageHero, partnerHero, pathPhoto, titleOnly } from './fixtures'
 
 beforeEach(() => {
@@ -171,7 +172,7 @@ describe('Hero', () => {
   ] as const)(
     'ends the bento title with the %s illustration as %s',
     (illustration, expected) => {
-      const Expected = SPOT_ILLUSTRATIONS[expected]
+      const Expected = spot[expected]
       const { container: reference } = render(<Expected outline />)
       render(<Hero {...bento()} illustration={illustration} />)
 

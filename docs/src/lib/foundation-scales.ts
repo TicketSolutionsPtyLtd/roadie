@@ -169,13 +169,14 @@ export const rhythmTable = (tokens: TokenEntry[]): TwinTable => ({
 
 const FOCUS_RING_LABELS: Record<string, string> = {
   '--focus-ring-width': 'Width',
-  '--focus-ring-opacity': 'Opacity in light mode',
-  '--focus-ring-opacity-dark': 'Opacity in dark mode'
+  '--focus-ring-opacity': 'Opacity in light and dark mode'
 }
 
-/** The focus ring tokens, each with what it sets and its value. */
+/** The focus ring tokens, each with what it sets and its value, less deprecated ones. */
 export function focusRing(tokens: TokenEntry[]) {
-  const ring = inGroup(tokens, 'emphasis', 'Focus ring')
+  const ring = inGroup(tokens, 'emphasis', 'Focus ring').filter(
+    (token) => !token.description?.startsWith('@deprecated')
+  )
   const missing = Object.keys(FOCUS_RING_LABELS).filter(
     (name) => !ring.some((token) => token.name === name)
   )

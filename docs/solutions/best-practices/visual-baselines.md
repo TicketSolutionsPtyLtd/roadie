@@ -60,7 +60,7 @@ never on a Mac, whose fonts and antialiasing differ. `.gitignore` drops
 `pnpm --filter @oztix/roadie-components test:visual:update` does the same
 locally in Docker, if Docker is running.
 
-When the Chromium browser job fails, it uploads `.vitest/attachments/` as the
-`screenshot-diffs` artifact, with each `-actual` and `-diff` image. A missing
+When a Chromium browser shard fails, it uploads `.vitest/attachments/` as a
+`screenshot-diffs-<n>` artifact, with each `-actual` and `-diff` image. A missing
 baseline also fails CI, because Vitest doesn't write references when `CI` is
 set, so a new scenario lands with its baseline.

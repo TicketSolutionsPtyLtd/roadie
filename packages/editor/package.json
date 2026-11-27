@@ -71,9 +71,23 @@
     "lint": "oxlint src",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "size": "size-limit",
-    "size:check": "size-limit --limit"
+    "build:css:size": "tailwindcss -i scripts/css-rules.css -o node_modules/.cache/roadie/editor.rules.css --minify && tailwindcss -i scripts/css-scanned.css -o node_modules/.cache/roadie/editor.scanned.css --minify",
+    "size": "pnpm build:css:size && size-limit && node ../../scripts/size-budget.mjs --check",
+    "size:check": "pnpm size",
+    "size:update": "node ../../scripts/size-budget.mjs --update"
   },
+  "size-limit": [
+    {
+      "name": "css/editor rules",
+      "path": "node_modules/.cache/roadie/editor.rules.css",
+      "limit": "2.15 KB"
+    },
+    {
+      "name": "css/editor with dist scanned, and the floor",
+      "path": "node_modules/.cache/roadie/editor.scanned.css",
+      "limit": "18.6 KB"
+    }
+  ],
   "dependencies": {
     "@floating-ui/dom": "1.8.0",
     "@tiptap/core": "3.33.0",
@@ -100,11 +114,13 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
+    "@oztix/roadie-browser-testing": "workspace:*",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@rolldown/plugin-babel": "0.3.1",
-    "@size-limit/preset-small-lib": "14.3.0",
+    "@size-limit/file": "14.3.0",
+    "@tailwindcss/cli": "4.3.5",
     "@tailwindcss/vite": "4.3.5",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",

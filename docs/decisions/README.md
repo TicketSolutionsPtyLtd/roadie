@@ -24,11 +24,15 @@ Who needs to find it decides where it lives.
 
 - **A code comment** for a quirk that only makes sense next to the code.
 - **The PR description** for a call about this change only.
-- **Here** for a call that outlasts its PR, only matters to people and agents
-  working in Roadie, is easy to reverse, and would move with the code.
-- **The Decision log** if it spans more than one repo, someone outside Roadie
-  needs it, it is a one-way door, it is a compromise with a date to come back
-  to, or it sets a principle for other teams.
+- **Here** for a call that outlasts its PR and is Roadie's to make, including
+  a one-way door in Roadie's own API, which waits for the maintainer's review
+  rather than a proposal. Apps hear about it from the changeset and the docs.
+- **A Decision log note** when people outside Roadie need to find the call and
+  its reasons, not just the API, or it is a compromise with a date to come
+  back to, or it sets a principle for other teams.
+- **A Decision log proposal** only when the call affects other people or
+  codebases outside Roadie, such as another team's work, another repo, or a
+  client commitment.
 
 Never keep one decision in both places. When a Decision log entry shapes
 Roadie, link to it from the rule it shapes. When an entry here turns out to
@@ -58,3 +62,6 @@ the rule and keep only the why here.
 | [0011](0011-fence-layout-options.md)                | Live examples take preview layout from fence options     |
 | [0012](0012-base-ui-focus-guards.md)                | Base UI focus guards stay nameless buttons in WebKit     |
 | [0013](0013-one-dropdown-for-search-and-filters.md) | One dropdown for search and filters                      |
+| [0014](0014-global-shortcuts.md)                    | Global shortcuts bind on document, one owner per page    |
+| [0015](0015-components-animate-with-css.md)         | Components animate with CSS and Web Animations           |
+| [0016](0016-records-group-by.md)                    | Records group by one ordered list in every layout        |

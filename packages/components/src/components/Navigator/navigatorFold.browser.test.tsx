@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import {
   afterAll,
   afterEach,
@@ -12,9 +13,11 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
+import { hydrationShift } from '../../utils/hydrationTestUtils'
 import { FakeIcon, withStubLink } from './testUtils'
 
 const WIDE = 1280
@@ -540,5 +543,69 @@ describe('the More tile’s label', () => {
     await frames()
 
     expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
+  })
+})
+
+describe('a server-rendered vertical navigation', () => {
+  const rail = (
+    height: string,
+    { brand = false, fromDocument = false } = {}
+  ) => (
+    <div className={`${height} overflow-hidden`}>
+      <Navigator
+        value='Discover'
+        className='h-full'
+        expandedFromDocument={fromDocument}
+      >
+        <Navigator.Primary aria-label='Main'>
+          {brand && <Navigator.Brand />}
+          {brand && <Navigator.ExpandToggle />}
+          {['Discover', 'My tickets', 'Saved', 'Wallet', 'Venues'].map(
+            (item) => (
+              <Navigator.Item key={item} value={item} icon={<FakeIcon />}>
+                {item}
+              </Navigator.Item>
+            )
+          )}
+          <Navigator.Group visibilityPriority='low'>
+            <Navigator.GroupTitle>Help</Navigator.GroupTitle>
+            {['Guides', 'Contact', 'Status'].map((item) => (
+              <Navigator.Item key={item} value={item} icon={<FakeIcon />}>
+                {item}
+              </Navigator.Item>
+            ))}
+          </Navigator.Group>
+          <Navigator.Item
+            value='Offers'
+            icon={<FakeIcon />}
+            visibilityPriority='high'
+          >
+            Offers
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    </div>
+  )
+
+  it.each([
+    ['h-60', {}],
+    ['h-100', {}],
+    ['h-110', {}],
+    ['h-120', {}],
+    ['h-140', {}],
+    ['h-100', { brand: true }],
+    ['h-140', { brand: true }]
+  ])(
+    'folds into More before hydration, as the client does, in %s %j',
+    async (height, options) => {
+      const ui = rail(height, options)
+      expect(await hydrationShift(renderToString(ui), ui)).toEqual([])
+    }
+  )
+
+  it('folds nothing before hydration when the head script expanded it', async () => {
+    document.documentElement.setAttribute('data-navigator-expanded', '')
+    const ui = rail('h-60', { fromDocument: true })
+    expect(await hydrationShift(renderToString(ui), ui)).toEqual([])
   })
 })

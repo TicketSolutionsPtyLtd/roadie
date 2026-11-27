@@ -4,8 +4,7 @@ import { type ReactNode, useId } from 'react'
 
 import { Menu } from '@base-ui/react/menu'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { IconTile } from '../IconTile'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { navigatorMenuItemClass } from './variants'
@@ -63,7 +62,7 @@ export function NavigatorMenuItem({
       </span>
     </>
   )
-  const finalClassName = cn(navigatorMenuItemClass, className)
+  const finalClassName = mergeClassName(navigatorMenuItemClass, className)
 
   if (href !== undefined) {
     return (

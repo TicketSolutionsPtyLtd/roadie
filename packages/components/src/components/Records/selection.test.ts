@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
+import type { RecordSelection } from '@oztix/roadie-core/records'
+
 import {
   EMPTY_SELECTION,
   deselect,
   isSelected,
   pageState,
+  reconcileSelection,
   sameSelection,
   selectPage,
   selectedCount,
@@ -73,6 +76,113 @@ describe('selection', () => {
     expect(deselect({ ids: ['a', 'b', 'c'] }, ['a', 'c'])).toEqual({
       ids: ['b']
     })
+  })
+})
+
+describe('reconcileSelection', () => {
+  const picked = { ids: ['a', 'x'] }
+  const all = { allMatching: true, except: [] } as const
+  const inputs = {
+    held: picked,
+    picked: null,
+    key: 'Ocean',
+    applied: true,
+    server: false,
+    matching: order
+  }
+  const taken = (key: string, held: RecordSelection = picked) => ({
+    held,
+    key,
+    selection: held
+  })
+
+  it.each([
+    {
+      name: 'keeps a selection taken against the query shown',
+      taken: taken('Ocean', { ids: ['a', 'x'] }),
+      inputs: {},
+      selection: picked
+    },
+    {
+      name: 'keeps every pick while a new search waits to apply',
+      taken: taken(''),
+      inputs: { applied: false },
+      selection: picked
+    },
+    {
+      name: 'drops picked ids a new search hides once it applies',
+      taken: taken(''),
+      inputs: {},
+      selection: { ids: ['a'] }
+    },
+    {
+      name: 'drops all matching once a new search applies',
+      taken: taken('', all),
+      inputs: { held: all },
+      selection: EMPTY_SELECTION
+    },
+    {
+      name: 'drops picked ids on a server, which alone knows the matches',
+      taken: taken(''),
+      inputs: { server: true },
+      selection: EMPTY_SELECTION
+    }
+  ])('$name', ({ taken, inputs: changed, selection }) => {
+    expect(
+      reconcileSelection(taken, { ...inputs, ...changed }).selection
+    ).toEqual(selection)
+  })
+
+  it('shows the selection held now, not an equal one taken earlier', () => {
+    const { selection } = reconcileSelection(
+      taken('Ocean', { ids: ['a', 'x'] }),
+      inputs
+    )
+    expect(selection).toBe(picked)
+  })
+
+  it('keeps holding what it took while nothing changes', () => {
+    const held = reconcileSelection(taken(''), inputs).taken
+    const again = reconcileSelection(held, inputs)
+    expect(again.taken).toBe(held)
+    expect(again.selection).toEqual({ ids: ['a'] })
+    expect(again.pickRead).toBe(false)
+  })
+
+  it('leaves an empty selection as it is, so a server search tells the parent nothing', () => {
+    const none = { ids: [] }
+    const { selection } = reconcileSelection(taken('', none), {
+      ...inputs,
+      held: none,
+      server: true
+    })
+    expect(selection).toBe(none)
+  })
+
+  it.each([
+    {
+      name: 'a pick made here belongs to the query it was made against, even while a search lags',
+      picked: { selection: { ids: ['a', 'x'] }, key: '' },
+      key: '',
+      pickRead: true
+    },
+    {
+      name: 'an outside selection belongs to the query as set',
+      picked: null,
+      key: 'Ocean',
+      pickRead: false
+    },
+    {
+      name: 'an outside selection that differs from the last pick is outside',
+      picked: { selection: { ids: ['b'] }, key: '' },
+      key: 'Ocean',
+      pickRead: true
+    }
+  ])('$name', ({ picked: pick, key, pickRead }) => {
+    const before = taken('', { ids: ['c'] })
+    expect(
+      reconcileSelection(before, { ...inputs, picked: pick, applied: false })
+    ).toEqual({ selection: picked, taken: taken(key), pickRead })
   })
 })
 

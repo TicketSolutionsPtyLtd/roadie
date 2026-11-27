@@ -1,0 +1,5 @@
+/* The rules `@oztix/roadie-editor/css` writes itself, for Size Limit. Core is
+   referenced, which emits no utilities, so its own budget covers the floor
+   and css-scanned.css covers the utilities the sheet's @source adds. */
+@reference '@oztix/roadie-core/css';
+@import '../src/css/editor.css';

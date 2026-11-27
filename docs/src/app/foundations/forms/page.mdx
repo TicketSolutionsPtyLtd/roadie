@@ -75,6 +75,9 @@ Field wraps any form control, not just Input and Textarea. Use it with Select,
 RadioGroup, Combobox, and Autocomplete for consistent layout, labels, and error
 handling. Field provides `grid gap-1.5` spacing, label wiring, and
 `invalid`/`required`/`disabled` context that child controls inherit automatically.
+For an image that has to fit a slot, such as a 2:1 event image, use the
+[image field recipe](/components/file-upload#image-field): FileUpload, then
+ImageCrop in a Dialog, then the cropped file back in the field.
 
 ### Select in Field
 
@@ -240,6 +243,48 @@ Field.ErrorText auto-hides when invalid is falsy.
   </Field>
 </Fieldset>
 ```
+
+## Phone numbers
+
+Store and send a phone number as E.164: a plus, the country's dial code, and
+the number without the prefix used to dial it inside the country. `@oztix/roadie-core/phone` reads what someone
+typed into that form, and formats it back for reading.
+[PhoneField](/components/phone-field) is the control built on it.
+
+```ts
+import {
+  formatPhone,
+  isPossiblePhone,
+  parsePhone
+} from '@oztix/roadie-core/phone'
+
+parsePhone('0412 345 678', 'AU')
+// → { country: 'AU', national: '412345678', e164: '+61412345678', possible: true }
+
+parsePhone('+64 21 123 4567', 'AU').country
+// → 'NZ'
+
+formatPhone('+61412345678')
+// → '+61 412 345 678'
+
+formatPhone('+61412345678', 'national')
+// → '0412 345 678'
+
+isPossiblePhone('+61412')
+// → false
+```
+
+| Export | What it does |
+| --- | --- |
+| `parsePhone(input, defaultCountry)` | Ignores spaces, brackets, and hyphens. A leading `+` or `00` names the country; anything else belongs to `defaultCountry`. |
+| `formatPhone(e164, style)` | Groups the Australian and New Zealand numbers it has a pattern for. Everything else reads as the dial code and the digits. |
+| `isPossiblePhone(e164)` | Checks the number's length against its country. |
+| `phoneCountries` | Every country's code and dial code. Name them with `Intl.DisplayNames`. |
+
+`possible` means the length fits the country, which catches a number that is
+far too short or too long. Countries allow several lengths, so one missing
+digit can still fit. It doesn't mean the number exists or can take a text.
+Check that on the server, and treat the browser's answer as a hint.
 
 ## Guidelines
 

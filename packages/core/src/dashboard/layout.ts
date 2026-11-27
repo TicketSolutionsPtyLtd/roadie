@@ -1,6 +1,19 @@
 /** A donut's most slices; past it, the smallest parts roll into Other. */
 export const DONUT_PART_CAP = 5
 
+/** The most series a chart draws; past it, the smallest roll into Other. */
+export const SERIES_CAP = 6
+
+/** The longest annotation or series label, in characters. */
+export const ANNOTATION_LABEL_LIMIT = 20
+
+/** How long one bar covers on a time axis, by its `interval`. */
+export const BAR_INTERVAL_MS = {
+  hour: 3_600_000,
+  day: 86_400_000,
+  week: 604_800_000
+}
+
 export const CARD_SIZES = ['stat', 'sm', 'md', 'lg', 'full'] as const
 export const CARD_KINDS = ['stat', 'table', 'chart', 'note'] as const
 export const CARD_STATES = [

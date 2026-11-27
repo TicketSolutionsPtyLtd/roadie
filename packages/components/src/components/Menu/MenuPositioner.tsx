@@ -4,8 +4,7 @@ import { type RefAttributes, use } from 'react'
 
 import { Menu as MenuPrimitive } from '@base-ui/react/menu'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { MenuSubmenuContext } from './MenuSubmenuContext'
 
 export type MenuPositionerProps = MenuPrimitive.Positioner.Props &
@@ -23,7 +22,7 @@ export function MenuPositioner({
   return (
     <MenuPrimitive.Positioner
       data-slot='menu-positioner'
-      className={cn('z-popover outline-none', className)}
+      className={mergeClassName('z-popover outline-none', className)}
       align={align}
       sideOffset={sideOffset ?? (isSubmenu ? 4 : 8)}
       alignOffset={alignOffset ?? (isSubmenu ? -4 : 0)}

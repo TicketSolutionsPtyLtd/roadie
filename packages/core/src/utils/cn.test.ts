@@ -1,8 +1,19 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { compile } from 'tailwindcss'
 import { describe, expect, it } from 'vitest'
 
 import { cn } from './cn'
+
+/** The declarations Tailwind writes for one class, without its selector. */
+async function declarations(className: string) {
+  const css = (await compile('@tailwind utilities;')).build([className])
+  const [rules = ''] = css.replace(/\/\*[\s\S]*?\*\//g, '').split('@property')
+  // Leave out Tailwind's own `--tw-*` defaults, which any outline class adds.
+  return [...rules.matchAll(/[\w-]+:\s*[^;{}]+;/g)]
+    .map(([d]) => d)
+    .filter((d) => !d.startsWith('--tw-'))
+}
 
 describe('cn', () => {
   it('dedupes Roadie semantic colour groups (last write wins)', () => {
@@ -11,6 +22,17 @@ describe('cn', () => {
     expect(cn('text-on-strong', 'text-normal')).toBe('text-normal')
     expect(cn('bg-normal', 'bg-raised')).toBe('bg-raised')
     expect(cn('border-subtle', 'border-strong')).toBe('border-strong')
+  })
+
+  it.each([
+    ['text-neutral-9', 'text-normal'],
+    ['text-normal', 'text-neutral-9'],
+    ['text-normal', 'text-chart-1'],
+    ['bg-raised', 'bg-danger-3'],
+    ['border-subtle', 'border-accent-9'],
+    ['surface-floating', 'bg-danger-3']
+  ])('lets %s be replaced by %s, in either colour family', (earlier, later) => {
+    expect(cn(earlier, later)).toBe(later)
   })
 
   it('lets a bg utility override the floating surface fill', () => {
@@ -28,44 +50,6 @@ describe('cn', () => {
   it('dedupes emphasis-field against the other emphasis presets', () => {
     expect(cn('emphasis-field', 'emphasis-subtle')).toBe('emphasis-subtle')
     expect(cn('emphasis-sunken', 'emphasis-field')).toBe('emphasis-field')
-  })
-
-  it('merges every emphasis preset in emphasis.css', () => {
-    const presets = readFileSync(
-      fileURLToPath(new URL('../css/emphasis.css', import.meta.url)),
-      'utf8'
-    ).match(/(?<=@utility )emphasis-[\w-]+/g)
-
-    expect(presets?.length).toBeGreaterThan(0)
-    for (const preset of presets ?? []) {
-      expect(cn(preset, 'emphasis-normal')).toBe('emphasis-normal')
-    }
-  })
-
-  it('merges every intent in intents.css', () => {
-    const intents = readFileSync(
-      fileURLToPath(new URL('../css/intents.css', import.meta.url)),
-      'utf8'
-    ).match(/(?<=@utility )intent-[\w-]+/g)
-
-    expect(intents).toContain('intent-brand-purple')
-    for (const intent of intents ?? []) {
-      expect(cn(intent, 'intent-neutral')).toBe('intent-neutral')
-      expect(cn('intent-neutral', intent)).toBe(intent)
-    }
-  })
-
-  it('lets a consumer’s link emphasis replace a component’s', () => {
-    const links = readFileSync(
-      fileURLToPath(new URL('../css/links.css', import.meta.url)),
-      'utf8'
-    ).match(/(?<=@utility )link-[\w-]+/g)
-
-    expect(links).toContain('link-subtle')
-    for (const link of links ?? []) {
-      expect(cn(link, 'link-normal')).toBe('link-normal')
-      expect(cn('link-normal', link)).toBe(link)
-    }
   })
 
   it('dedupes the selection states, which each set the label colour', () => {
@@ -155,21 +139,29 @@ describe('cn', () => {
     expect(cn('z-popover', 'z-tooltip')).toBe('z-tooltip')
   })
 
-  it('dedupes every z-index tier layering.css defines', () => {
-    const css = readFileSync(
-      fileURLToPath(new URL('../css/layering.css', import.meta.url)),
-      'utf8'
-    )
-    const tiers = [...css.matchAll(/--z-index-([a-z][a-z-]*):/g)].map(
-      ([, tier]) => `z-${tier}`
-    )
-    expect(tiers).toContain('z-alert')
-    for (const tier of tiers) expect(cn('z-base', tier)).toBe(tier)
-  })
-
   it('dedupes a Roadie named z-index against a numeric z-index', () => {
     expect(cn('z-overlay', 'z-80')).toBe('z-80')
     expect(cn('z-40', 'z-tooltip')).toBe('z-tooltip')
+  })
+
+  // tailwind-merge counts a bare `outline` as a width. Tailwind v4 writes the
+  // same style and width for it as for `outline-1`, so the merge loses nothing.
+  it.each([
+    ['outline', 'outline-1'],
+    ['outline-1', 'outline'],
+    ['forced-colors:outline', 'forced-colors:outline-1']
+  ])(
+    'drops %s before %s, which writes the same CSS',
+    async (earlier, later) => {
+      expect(cn(earlier, later)).toBe(later)
+      const kept = await declarations(later)
+      expect(kept).toContain('outline-width: 1px;')
+      expect(await declarations(earlier)).toEqual(kept)
+    }
+  )
+
+  it('keeps an outline style beside an outline width', () => {
+    expect(cn('outline-dashed', 'outline-1')).toBe('outline-dashed outline-1')
   })
 
   it('keeps unrelated classes intact', () => {

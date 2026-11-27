@@ -9,11 +9,12 @@ import {
   onTestFinished
 } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RadioGroup, type RadioGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Checkbox } from '../Checkbox'
 import { Field } from '../Field'
-import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

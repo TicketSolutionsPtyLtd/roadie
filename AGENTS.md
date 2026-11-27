@@ -53,12 +53,25 @@ pnpm --filter docs dev
 - Each package's public API is the `exports` block in its `package.json`.
   Docs and consumers import per-component subpaths, never the root barrel.
 - A JS subpath needs a `tsdown.config.ts` entry unless a wildcard covers it.
-- A CSS `@utility` must be named in its package's `src/css/safelist.html` (core
-  and charts), or Tailwind purges it and the compiled sheet comes out empty.
-- A utility in a family where one class replaces another (intent, emphasis,
-  semantic colour, z-index, duration, easing, and text style) also goes in its
-  group in `packages/core/src/utils/cn.ts`, or `cn()` keeps both classes and a
-  consumer's class can't override the component's.
+- A JS subpath needs its row in its package's generated `size-budget.json`,
+  or `size` fails. Build, then run `pnpm --filter <package> size:update`.
+- Charts' `src/css/safelist.html` names every `@utility` in `charts.css`, or
+  Tailwind purges it. Core ships every `cn()` family member through the
+  generated `safelist.families.html`, and its hand-written `safelist.html`
+  holds each other class the docs name or a package uses. `safelist.test.ts`
+  holds it to that, so a docs example that names a core `@utility` or colour
+  utility (`bg-chart-1`, `border-accent-9`) adds it there.
+- A new family where one class replaces another (like intent, emphasis, or
+  z-index) gets a rule in `packages/core/src/utils/classFamilies.ts`, or
+  `cn()` keeps both classes and a consumer's class can't override the
+  component's. A new member of an existing family needs no edit to `cn()` or
+  a safelist: add its CSS and run `pnpm --filter @oztix/roadie-core test -u`,
+  which regenerates `cn()`'s groups and the family safelist from core's CSS.
+  A new `animate-*`, `duration-*`, or `ease-*` also goes in
+  `skills/motion/SKILL.md`, which `motion-skill-parity.test.ts` checks.
+- A component folder with client state gets a `Component.ssr.tsx` hydration
+  fixture (`src/hydration.browser.test.tsx` runs it), or an `EXEMPT` entry
+  with a reason in `src/hydrationFixtures.test.ts`, which fails otherwise.
 - `packages/core/src/css/roadie.css` imports every sheet in order, and each
   sheet's header says what it owns.
 - Every package but the lint plugin builds `dist/roadie.manifest.json`
@@ -80,8 +93,9 @@ pnpm --filter docs dev
   compound. The `new-component` skill covers both.
 - Never set a default intent in `defaultVariants`; intent flows through the
   cascade.
-- Drag and drop goes through `Sortable`. The editor's document blocks are
-  the exception: they move with the editor's own block handle, as ProseMirror
+- Drag and drop goes through `Sortable`, and files dropped from outside the
+  page through its dnd module. The editor's document blocks are the
+  exception: they move with the editor's own block handle, as ProseMirror
   transactions.
 
 ## Styling
@@ -119,10 +133,16 @@ Each rule has a foundations page with the detail.
   classes (`size-4` by default), and `/ssr` imports in server components. `fill`
   is only for selected states and `duotone` only in a tile or graphic above 48px
   (an `IconTile` above `lg`, or an `EmptyState` tile at its default size);
-  Navigator applies duotone to its destinations itself.
+  Navigator applies duotone to its primary destinations (the rail, the bar and
+  More) itself; secondary rows keep the weight given, bold by default.
 - **Text.** Raw `<p>` and `<h1>` to `<h6>` with `text-display-ui-*` or
   `text-display-prose-*`. There are no Text or Heading components; `Prose`
   renders CMS or markdown content. SpotIllustration colours are fixed.
+- **Sheets.** Style a part with classes in the component that renders it. A
+  sheet in `packages/components/src/css/` is for what classes can't say, and
+  styles only its own component's `data-slot`s, so a part's CSS is found from
+  its slot prefix. `slotOwnership.test.ts` is the detail: it holds the
+  exceptions, each with a reason.
 - **Selectors.** End any selector that runs past a `:has()` on a class, a
   variable the anchor sets, or a rare attribute named first, and never write an
   unkeyed `:has(~ …)`, or Chromium restyles the whole page
@@ -176,6 +196,10 @@ These rules aren't on those pages.
 - Dev-only warnings check `process.env.NODE_ENV` behind a
   `typeof process !== 'undefined'` guard
   ([why](docs/solutions/build-errors/cross-bundler-dev-env-check.md)).
+- The React Compiler skips a component or hook it can't compile, such as one
+  that holds a `??=` or a `try`/`finally`, and says nothing.
+  `node --test scripts/compiler-skips.test.mjs` fails on a skip that isn't on
+  its list: rewrite what it names rather than add to the list.
 
 ## Docs pages
 

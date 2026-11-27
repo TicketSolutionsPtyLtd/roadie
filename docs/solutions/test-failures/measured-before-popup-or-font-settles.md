@@ -60,7 +60,7 @@ Wait for the real condition, not a time:
   ```
 
 - In a file that measures text, load the brand font in `beforeAll` with
-  `loadBrandFont()` from `Pane/testUtils.ts`.
+  `loadBrandFont()` from `@oztix/roadie-browser-testing/stylesheet`.
 
 ## Check
 

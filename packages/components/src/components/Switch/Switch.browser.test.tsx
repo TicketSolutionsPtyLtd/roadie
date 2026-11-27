@@ -1,11 +1,10 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Switch } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {

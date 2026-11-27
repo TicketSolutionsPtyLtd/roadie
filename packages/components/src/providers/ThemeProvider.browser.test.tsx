@@ -14,13 +14,13 @@ import {
   vi
 } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import { getOklchHue } from '@oztix/roadie-core/colors'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { Dialog } from '../components/Dialog'
 import { Drawer } from '../components/Drawer'
 import { Menu } from '../components/Menu'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { Popover } from '../components/Popover'
 import { Tooltip } from '../components/Tooltip'
 import { ThemeProvider, getAccentStyleSync } from './ThemeProvider'

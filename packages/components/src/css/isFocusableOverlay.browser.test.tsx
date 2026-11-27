@@ -1,8 +1,9 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition-duration: 0s !important }'
 const OVERLAY =
@@ -59,7 +60,7 @@ const token = (name: string) =>
 describe('is-focusable-overlay', () => {
   it.each([
     ['light', false, '--focus-ring-opacity'],
-    ['dark', true, '--focus-ring-opacity-dark']
+    ['dark', true, '--focus-ring-opacity']
   ])(
     'rings the overlay inset with the focus-ring tokens in %s mode',
     (_mode, dark, opacity) => {

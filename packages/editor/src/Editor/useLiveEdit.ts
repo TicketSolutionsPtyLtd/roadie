@@ -167,7 +167,8 @@ export function useLiveEdit(
   // Out of the history while it's open, so undo can't land halfway.
   const apply = (edit: (chain: ChainedCommands) => ChainedCommands) => {
     if (!editor) return
-    applied.current.selection ??= editor.state.selection.getBookmark()
+    applied.current.selection =
+      applied.current.selection ?? editor.state.selection.getBookmark()
     edit(editor.chain().setMeta('addToHistory', false).setMeta(OWN, applied))
       .command(({ tr }) => {
         tr.docs.forEach((before, index) => {

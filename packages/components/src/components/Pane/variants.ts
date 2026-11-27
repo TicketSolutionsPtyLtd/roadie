@@ -52,18 +52,20 @@ export const paneViewportVariants = cva(
   }
 )
 
-// Translucent against --pane-surface; Content overrides the fallback to sunken.
+// The is-translucent recipe over --pane-surface, solid where it can't blur or
+// transparency is reduced. --raised-fill doesn't inherit, so nothing inside
+// takes it. Content overrides the fallback to sunken.
 const PANE_CHROME_SURFACE =
-  'bg-[color-mix(in_oklab,var(--pane-surface,var(--intent-bg-normal))_80%,transparent)] backdrop-blur-md'
+  'is-translucent bg-(--pane-surface,var(--intent-bg-normal)) [--raised-fill:var(--pane-surface,var(--intent-bg-normal))]'
 
 // The shadow is a pseudo's opacity, so it fades on the compositor.
 export const paneHeaderVariants = cva(
   [
-    'sticky top-0 z-sticky grid-cols-[auto_minmax(0,1fr)_auto]',
+    // Drawn even when empty: the body title it echoes registers only in the browser.
+    'sticky top-0 z-sticky grid grid-cols-[auto_minmax(0,1fr)_auto]',
     '[--pane-header-gap:--spacing(2)]',
     // Row gaps are margins, not row-gap: a closed row can't reclaim a shared gap.
     'gap-x-(--pane-header-gap)',
-    PANE_CHROME_SURFACE,
     '[--pane-header-pad-b:--spacing(2)]',
     '-mx-(--content-inset) px-(--content-inset) pt-4 pb-(--pane-header-pad-b)',
     'rounded-t-(--pane-radius)',
@@ -79,28 +81,25 @@ export const paneHeaderVariants = cva(
   ],
   {
     variants: {
-      // The leading cell's occupant decides whether an otherwise-empty header draws.
-      edgeOnly: {
-        none: 'grid',
-        back: '[display:var(--pane-back)]',
-        close: '[display:var(--pane-close)]',
-        both: '[display:var(--pane-edge)]'
-      },
-      collapsed: { true: 'after:opacity-100', false: 'after:opacity-0' }
+      collapsed: { true: 'after:opacity-100', false: 'after:opacity-0' },
+      // In the inspector's drawer: Close sits as far below the handle's band as from the side, and the shadow follows the drawer's scroll.
+      // Opaque, since the handle's band above it is: frosted glass would show a seam where the two meet.
+      inDrawer: {
+        true: [
+          'pt-1 bg-(--pane-surface)',
+          '[[data-slot=drawer-popup][data-body-overflow-y-start]_&]:after:opacity-100'
+        ],
+        false: PANE_CHROME_SURFACE
+      }
     },
-    defaultVariants: { edgeOnly: 'none', collapsed: false }
+    defaultVariants: { collapsed: false, inDrawer: false }
   }
 )
 
 // Back and Close share the leading cell; the stylesheet draws at most one.
-export const paneHeaderEdgeClass = 'col-start-1 row-start-1 justify-self-start'
-
-// In the inspector's drawer: Close sits as far below the handle's band as from the side, and the shadow follows the drawer's scroll.
-// Opaque, since the handle's band above it is: frosted glass would show a seam where the two meet.
-export const paneHeaderInDrawerClass = [
-  'pt-1 bg-(--pane-surface) backdrop-blur-none',
-  '[[data-slot=drawer-popup][data-body-overflow-y-start]_&]:after:opacity-100'
-]
+// Like the header's other controls, they're for moving around, so paper leaves them out.
+export const paneHeaderEdgeClass =
+  'col-start-1 row-start-1 justify-self-start print:hidden'
 
 // grid rows 1fr→0fr close the row; transforms wouldn't release layout.
 export const paneTitleVariants = cva(
@@ -135,7 +134,9 @@ export const paneTitleCompactVariants = cva(
     'inline-flex items-center justify-center gap-1',
     'min-w-0 truncate cursor-pointer text-sm font-semibold text-strong',
     'motion-safe:transition-[scale,opacity] motion-safe:duration-slow',
-    'motion-safe:ease-enter motion-reduce:transition-none'
+    'motion-safe:ease-enter motion-reduce:transition-none',
+    // A printed title is always open, so its echo has nothing to stand in for.
+    'print:hidden'
   ],
   {
     variants: {
@@ -151,11 +152,11 @@ export const paneTitleCompactVariants = cva(
 
 export const paneActionsClass = [
   'col-start-3 row-start-1 flex flex-wrap items-center justify-end gap-1',
-  'justify-self-end'
+  'justify-self-end print:hidden'
 ].join(' ')
 
 // Flex: the field takes what Cancel leaves as it opens.
-export const paneSearchClass = 'group/search flex items-center'
+export const paneSearchClass = 'group/search flex items-center print:hidden'
 
 export const paneSearchBoxClass = 'relative grid min-w-0 flex-1'
 
@@ -183,5 +184,7 @@ export const paneFooterClass = [
   'rounded-b-(--pane-radius)',
   '-mx-(--content-inset) px-(--content-inset) pt-3 pb-4',
   // Flipped, so the downward shadow token casts up over the content.
-  "after:pointer-events-none after:absolute after:inset-0 after:-scale-y-100 after:shadow-md after:content-['']"
+  "after:pointer-events-none after:absolute after:inset-0 after:-scale-y-100 after:shadow-md after:content-['']",
+  // Its actions do nothing on paper.
+  'print:hidden'
 ].join(' ')

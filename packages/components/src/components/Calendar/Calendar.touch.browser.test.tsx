@@ -11,11 +11,12 @@ import {
 } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Calendar, type CalendarSingleProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { durationToken } from '../../utils/motionTokens'
 import { tapOn } from '../../utils/touchTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
 import { expectOneContinuousMotion, recordFrames } from './testUtils'
 
 const TIMEOUT = { timeout: 20_000 }

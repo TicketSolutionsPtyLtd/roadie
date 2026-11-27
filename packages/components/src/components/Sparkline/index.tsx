@@ -68,9 +68,10 @@ export function Sparkline({
           vectorEffect='non-scaling-stroke'
         />
       </svg>
+      {/* A background draws the end, which forced colours erase. */}
       <span
         data-slot='sparkline-end'
-        className='absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-chart-highlight ring-[1.5px] ring-[color:var(--data-card-surface,var(--intent-bg-normal))]'
+        className='absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-chart-highlight ring-[1.5px] ring-[color:var(--data-card-surface,var(--intent-bg-normal))] forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none'
         style={{ left: `${geometry.end.x}%`, top: `${geometry.end.y}%` }}
       />
     </div>

@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
 
 // Components moved from Tailwind's numeric timing to Roadie's tokens; each
 // swap must compute to exactly what it replaced, or the move changed motion.

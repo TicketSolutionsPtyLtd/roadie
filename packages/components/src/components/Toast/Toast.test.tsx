@@ -346,12 +346,12 @@ describe('Toast.Progress', () => {
   it('shows a hidden bar that runs for the provider timeout', async () => {
     await showWith({ title: 'Link copied' }, 4000)
     expect(bar()).toHaveAttribute('aria-hidden', 'true')
-    expect(bar()?.getAttribute('style')).toContain('--toast-timeout: 4000ms')
+    expect(bar()?.getAttribute('style')).toContain('--time-left: 4000ms')
   })
 
   it('runs for the toast’s own timeout', async () => {
     await showWith({ title: 'Event saved', timeout: 8000 })
-    expect(bar()?.getAttribute('style')).toContain('--toast-timeout: 8000ms')
+    expect(bar()?.getAttribute('style')).toContain('--time-left: 8000ms')
   })
 
   it('shows on a timed toast with an action', async () => {
@@ -421,7 +421,7 @@ describe('Toast.Progress', () => {
     rerender(app(9000))
 
     expect(bar()).toBe(first)
-    expect(bar()?.getAttribute('style')).toContain('--toast-timeout: 4000ms')
+    expect(bar()?.getAttribute('style')).toContain('--time-left: 4000ms')
   })
 
   it('ignores the window while there are no toasts, like Base UI', async () => {

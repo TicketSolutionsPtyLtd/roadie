@@ -1,7 +1,14 @@
 // @vitest-environment jsdom
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { ChartLineIcon, PaintBrushIcon } from '@phosphor-icons/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within
+} from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { PageWidth } from '@/lib/page-manifest'
@@ -309,4 +316,85 @@ describe('DocsNavigator status', () => {
     renderAt('/charts/meter')
     expect(field('status')).toBeUndefined()
   })
+})
+
+describe('DocsNavigator search', () => {
+  const pressModK = () =>
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
+
+  it('opens the docs palette with ⌘K', async () => {
+    renderAt('/charts/meter')
+    expect(pressModK()).toBe(false)
+    expect(
+      await screen.findByRole('dialog', { name: 'Search the docs' })
+    ).toBeTruthy()
+  })
+
+  it('opens the docs palette from Search in the navigation', async () => {
+    renderAt('/charts/meter')
+    const search = screen
+      .getAllByRole('button', { name: /Search/, hidden: true })
+      .find((button) => button.hasAttribute('aria-keyshortcuts'))!
+    fireEvent.click(search)
+    expect(
+      await screen.findByRole('dialog', { name: 'Search the docs' })
+    ).toBeTruthy()
+  })
+
+  it('narrows the docs palette to a section from its tab', async () => {
+    renderAt('/charts/meter')
+    pressModK()
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Search the docs'
+    })
+    const tab = (name: string) =>
+      within(dialog).getByRole('button', { name, hidden: true })
+    const meter = () =>
+      within(dialog).queryByRole('option', { name: 'Meter', hidden: true })
+    fireEvent.click(tab('Charts'))
+    expect(meter()).not.toBeNull()
+    fireEvent.click(tab('Blocks'))
+    expect(meter()).toBeNull()
+  })
+
+  it("gives each result its section's icon, and Appearance its own", async () => {
+    renderAt('/charts/meter')
+    pressModK()
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Search the docs'
+    })
+    const iconOf = (name: string) =>
+      within(dialog)
+        .getByRole('option', { name, hidden: true })
+        .querySelector('svg')?.innerHTML
+    const bold = (icon: ReactElement) =>
+      render(icon).container.querySelector('svg')?.innerHTML
+    expect(iconOf('Meter')).toBe(bold(<ChartLineIcon weight='bold' />))
+    expect(iconOf('Appearance')).toBe(bold(<PaintBrushIcon weight='bold' />))
+  })
+
+  // A live example that owns ⌘K runs in its own frame (INNO-1640).
+  it.each(['/components/navigator/', '/components/command-palette/'])(
+    'opens the docs palette with ⌘K and Search on %s',
+    async (route) => {
+      renderAt(route)
+      expect(pressModK()).toBe(false)
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Search the docs'
+      })
+      fireEvent.keyDown(dialog, { key: 'Escape' })
+      await vi.waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: 'Search the docs' })
+        ).toBeNull()
+      )
+      const search = screen
+        .getAllByRole('button', { name: /Search/, hidden: true })
+        .find((button) => button.hasAttribute('aria-keyshortcuts'))!
+      fireEvent.click(search)
+      expect(
+        await screen.findByRole('dialog', { name: 'Search the docs' })
+      ).toBeTruthy()
+    }
+  )
 })

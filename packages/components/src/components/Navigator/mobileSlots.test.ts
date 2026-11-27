@@ -43,6 +43,12 @@ const meta = (
   placement,
   priority
 })
+const search = (
+  placement: 'automatic' | 'pinned' = 'pinned'
+): NavigatorSlotMeta => ({
+  ...meta('search', 'automatic', placement),
+  search: true
+})
 const many = (n: number) =>
   Array.from({ length: n }, (_, i) => meta(`/${String.fromCharCode(97 + i)}`))
 
@@ -86,5 +92,24 @@ describe('deriveMobileSlots', () => {
     ])
     expect(values(slots.tabs)).toEqual(['/a', '/b', '/c'])
     expect(values(slots.overflow)).toEqual(['/d', '/e', 'two'])
+  })
+
+  it('gives the circle to Search ahead of another pinned item, which folds into More', () => {
+    const slots = deriveMobileSlots(many(3), [
+      meta('account', 'automatic', 'pinned'),
+      search()
+    ])
+    expect(slots.pinned?.value).toBe('search')
+    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c'])
+    expect(values(slots.overflow)).toEqual(['account'])
+  })
+
+  it('ranks an automatic Search as a tab like any other item', () => {
+    const items = many(5)
+    items.splice(2, 0, search('automatic'))
+    const slots = deriveMobileSlots(items, [])
+    expect(values(slots.tabs)).toEqual(['/a', '/b', 'search', '/c'])
+    expect(values(slots.overflow)).toEqual(['/d', '/e'])
+    expect(slots.pinned).toBeUndefined()
   })
 })

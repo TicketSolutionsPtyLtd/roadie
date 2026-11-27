@@ -7,7 +7,8 @@ import NumberFlow, { type Format } from '@number-flow/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { useFieldContext } from '../Field'
+import { mergeClassName } from '../../utils/mergeClassName'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { NumberFieldContext } from './NumberFieldContext'
 
 export type NumberFieldInputProps = NumberFieldPrimitive.Input.Props &
@@ -28,6 +29,7 @@ export function NumberFieldInput({
   onCompositionStart,
   onKeyDown,
   onBlur,
+  'aria-describedby': describedBy,
   ...props
 }: NumberFieldInputProps) {
   const {
@@ -45,12 +47,15 @@ export function NumberFieldInput({
     pointerFocus,
     setPointerFocus
   } = use(NumberFieldContext)
-  const field = useFieldContext()
   const chip = emphasis === 'subtler' && editable
   const flowFormat = animatableFormat(format)
   const animates = value != null && flowFormat !== null
   const editing = editable && editingSince === stepCount
   const showsText = !animates || editing
+  const fieldProps = useFieldControlProps({
+    invalid,
+    'aria-describedby': describedBy
+  })
 
   return (
     <span
@@ -71,29 +76,29 @@ export function NumberFieldInput({
     >
       <NumberFieldPrimitive.Input
         data-slot='number-field-input'
-        className={cn(
-          // Zero width with a full min-width lets the value cell, not the
-          // input's default size, decide the width.
-          'col-start-1 row-start-1 h-full w-0 min-w-full text-center text-normal tabular-nums placeholder:text-subtle',
-          // With no field box, an editable value gets a chip that behaves like
-          // a subtle Input: hover, accent focus, danger when invalid. The
-          // transition list adds text colour to the field's own.
-          chip
-            ? 'is-interactive-field rounded-md border border-transparent bg-subtle transition-[color,background-color,border-color,box-shadow,outline-width,outline-color] duration-normal'
-            : 'bg-transparent transition-colors duration-normal outline-none',
-          !editable &&
-            'cursor-default caret-transparent select-none selection:bg-transparent',
-          // Only the text hides, so a background on the input still shows.
-          !showsText && 'text-transparent',
+        className={mergeClassName(
+          [
+            // Zero width with a full min-width lets the value cell, not the
+            // input's default size, decide the width.
+            'col-start-1 row-start-1 h-full w-0 min-w-full text-center text-normal tabular-nums placeholder:text-subtle',
+            // With no field box, an editable value gets a chip that behaves like
+            // a subtle Input: hover, accent focus, danger when invalid. The
+            // transition list adds text colour to the field's own.
+            chip
+              ? 'is-interactive-field rounded-md border border-transparent bg-subtle transition-[color,background-color,border-color,box-shadow,outline-width,outline-color] duration-normal'
+              : 'bg-transparent transition-colors duration-normal outline-none',
+            !editable &&
+              'cursor-default caret-transparent select-none selection:bg-transparent',
+            // Only the text hides, so a background on the input still shows.
+            !showsText && 'text-transparent'
+          ],
           className
         )}
         data-editing={editing || undefined}
         data-pointer-focus={pointerFocus || undefined}
         readOnly={!editable || undefined}
         aria-invalid={invalid || undefined}
-        aria-describedby={
-          (field.invalid ? field.errorTextId : field.helperTextId) || undefined
-        }
+        aria-describedby={fieldProps['aria-describedby']}
         onPointerDown={(event) => {
           setPointerFocus?.(false)
           setEditingSince?.(stepCount)

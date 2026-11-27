@@ -4,27 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Hero } from '.'
 import { bento } from './fixtures'
 
-const observers = new Set<IntersectionObserverCallback>()
-
-// Every observer sees the block arrive, as one viewport would show it.
-function intersect(isIntersecting: boolean) {
-  for (const callback of observers)
-    callback(
-      [{ isIntersecting } as IntersectionObserverEntry],
-      {} as IntersectionObserver
-    )
-}
-
-class OnScreenObserver {
-  constructor(private callback: IntersectionObserverCallback) {}
-  observe() {
-    observers.add(this.callback)
-  }
-  disconnect() {
-    observers.delete(this.callback)
-  }
-}
-
 const motionListeners = new Set<() => void>()
 let reduced = false
 
@@ -48,87 +27,25 @@ function stubMatchMedia() {
   )
 }
 
-const shown = (name: string) => screen.queryByRole('img', { name })
-
 let play: ReturnType<typeof vi.spyOn>
-let pause: ReturnType<typeof vi.spyOn>
 
 const toggle = (name: RegExp) => screen.getByRole('button', { name })
 
-describe('Hero photo cycling', () => {
+// Photo cycling needs a real IntersectionObserver: cycling.browser.test.tsx.
+describe('Hero motion', () => {
   beforeEach(() => {
-    vi.useFakeTimers()
-    vi.stubGlobal('IntersectionObserver', OnScreenObserver)
     stubMatchMedia()
     play = vi
       .spyOn(HTMLMediaElement.prototype, 'play')
       .mockResolvedValue(undefined)
-    pause = vi
-      .spyOn(HTMLMediaElement.prototype, 'pause')
-      .mockImplementation(() => {})
+    // jsdom has no media playback; pause would throw "not implemented".
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    vi.useRealTimers()
-    vi.unstubAllGlobals()
     vi.restoreAllMocks()
-    observers.clear()
     motionListeners.clear()
     reduced = false
-  })
-
-  it('moves to the next primary photo every four seconds while on screen', () => {
-    reduceMotion(false)
-    render(<Hero {...bento()} />)
-    act(() => intersect(true))
-
-    act(() => vi.advanceTimersByTime(3999))
-    expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
-
-    act(() => vi.advanceTimersByTime(1))
-    expect(shown('The Oztix team at Antler Kettle Hall')).toBeNull()
-    expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
-
-    act(() => vi.advanceTimersByTime(4000))
-    expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
-  })
-
-  it('holds still off screen', () => {
-    reduceMotion(false)
-    render(<Hero {...bento()} />)
-
-    act(() => vi.advanceTimersByTime(10000))
-
-    expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
-    expect(shown('A band on stage at Kazoo Hollow Room')).not.toBeNull()
-  })
-
-  it('holds the first photos, and leaves the video paused, for viewers who reduce motion', () => {
-    reduceMotion(true)
-    const { container } = render(<Hero {...bento()} />)
-    act(() => intersect(true))
-
-    act(() => vi.advanceTimersByTime(10000))
-
-    expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
-    expect(shown('A band on stage at Kazoo Hollow Room')).not.toBeNull()
-    expect(
-      container.querySelectorAll('[data-slot=hero-primary] img')
-    ).toHaveLength(1)
-    expect(play).not.toHaveBeenCalled()
-  })
-
-  it('holds the photo it’s on, never a blank, when the viewer turns on reduced motion mid-cycle', () => {
-    render(<Hero {...bento()} />)
-    act(() => intersect(true))
-    act(() => vi.advanceTimersByTime(4000))
-    expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
-
-    act(() => reduceMotion(true))
-    act(() => vi.advanceTimersByTime(8000))
-
-    expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
-    expect(pause).toHaveBeenCalled()
   })
 
   it('plays the video when the viewer turns reduced motion back off', () => {
@@ -146,26 +63,6 @@ describe('Hero photo cycling', () => {
 
     expect(container.querySelector('video')).not.toHaveAttribute('autoplay')
     expect(play).toHaveBeenCalledOnce()
-  })
-
-  it('pauses and plays the video and the photos with one toggle', () => {
-    render(<Hero {...bento()} />)
-    act(() => intersect(true))
-    expect(toggle(/pause/i)).not.toHaveAttribute('aria-pressed')
-
-    act(() => fireEvent.click(toggle(/pause/i)))
-    act(() => vi.advanceTimersByTime(8000))
-
-    expect(pause).toHaveBeenCalled()
-    expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
-    expect(toggle(/play/i)).not.toHaveAttribute('aria-pressed')
-
-    play.mockClear()
-    act(() => fireEvent.click(toggle(/play/i)))
-    act(() => vi.advanceTimersByTime(4000))
-
-    expect(play).toHaveBeenCalledOnce()
-    expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
   })
 
   it('starts paused for viewers who reduce motion, and plays when asked', () => {

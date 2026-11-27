@@ -23,6 +23,27 @@ export {
   type AccordionProps
 } from './components/Accordion'
 export {
+  CommandPalette,
+  type CommandPaletteProps,
+  type CommandPaletteOpenChangeDetails,
+  type CommandPaletteCommand,
+  type CommandPaletteTriggerProps,
+  type CommandPaletteInputProps,
+  type CommandPaletteListProps,
+  type CommandPaletteGroupProps,
+  type CommandPaletteGroupLabelProps,
+  type CommandPaletteCollectionProps,
+  type CommandPaletteItemProps,
+  type CommandPaletteEmptyProps,
+  type CommandPaletteStatusProps,
+  type CommandPaletteErrorProps,
+  type CommandPaletteScopesProps,
+  type CommandPaletteScopeProps,
+  type CommandPaletteFooterProps,
+  type CommandPaletteHintProps,
+  type CommandPalettePageProps
+} from './components/CommandPalette'
+export {
   Collapsible,
   type CollapsiblePanelProps,
   type CollapsibleProps,
@@ -100,6 +121,18 @@ export {
 } from './components/IconTile'
 
 export { Image, type ImageProps, type ImageSource } from './components/Image'
+export {
+  ImageCrop,
+  type ImageCropProps,
+  type ImageCropStageProps,
+  type ImageCropControlsProps,
+  type ImageCropZoomProps,
+  type ImageCropRotateProps,
+  type ImageCropStraightenProps,
+  type ImageCropResetProps,
+  type ImageCropShape,
+  type ImageCropValue
+} from './components/ImageCrop'
 
 export {
   Logo,
@@ -212,6 +245,9 @@ export {
 export {
   Navigator,
   useNavigatorSecondary,
+  useNavigatorCommands,
+  type NavigatorCommand,
+  type NavigatorCommandGroup,
   type NavigatorProps,
   type NavigatorPrimaryProps,
   type NavigatorSecondaryProps,
@@ -219,6 +255,7 @@ export {
   type NavigatorSecondaryGroup,
   type NavigatorSecondaryItem,
   type NavigatorItemProps,
+  type NavigatorSearchProps,
   type NavigatorGroupProps,
   type NavigatorGroupTitleProps,
   type NavigatorMenuProps,
@@ -279,10 +316,13 @@ export {
   sortableItemVariants,
   sortableDropIndicatorVariants,
   sortableHandleVariants,
+  sortableDropZoneVariants,
   type SortableProps,
   type SortableMove,
+  type SortableTransfer,
   type SortableItemProps,
-  type SortableHandleProps
+  type SortableHandleProps,
+  type SortableDropZoneProps
 } from './components/Sortable'
 
 export {
@@ -431,6 +471,27 @@ export {
   useFieldControlError
 } from './components/Field'
 export {
+  FileUpload,
+  type FileUploadProps,
+  type FileUploadControlProps,
+  type FileUploadDropzoneProps,
+  type FileUploadValueProps,
+  type FileUploadClearProps,
+  type FileUploadTriggerProps,
+  type FileUploadListProps,
+  type FileUploadItemProps,
+  type FileUploadItemNameProps,
+  type FileUploadItemSizeProps,
+  type FileUploadItemStatusProps,
+  type FileUploadItemRemoveProps,
+  type FileUploadItemRetryProps,
+  type FileUploadItemPreviewProps,
+  type FileUploadItem,
+  type FileUploadStatus,
+  type FileUploadRejection,
+  type FileUploadRejectionCode
+} from './components/FileUpload'
+export {
   Select,
   selectTriggerVariants,
   type SelectProps,
@@ -512,6 +573,12 @@ export {
   type OTPFieldSize
 } from './components/OTPField'
 export {
+  PhoneField,
+  phoneFieldVariants,
+  type PhoneFieldProps,
+  type PhoneFieldValueDetails
+} from './components/PhoneField'
+export {
   QueryField,
   type QueryFieldProps,
   type QueryFieldAccepted,
@@ -529,6 +596,7 @@ export {
   downloadCsv,
   useRecords,
   type AnyRecordLayout,
+  type RecordGroupHeading,
   type RecordName,
   type RecordValueProps,
   type RecordViewDefaults,
@@ -550,6 +618,7 @@ export {
   type RecordsField,
   type RecordsGivenTotals,
   type RecordsOptionsProps,
+  type RecordsViewProps,
   type RecordsRange,
   type RecordsRangeResult,
   type RecordsResolvedTotals,
@@ -560,6 +629,19 @@ export {
   type RecordsViewHandler
 } from './components/Records'
 export {
+  boardLayout,
+  type BoardLayoutConfig,
+  type BoardLayoutDefinition,
+  type RecordGroupChanges
+} from './components/RecordBoard'
+export {
+  RecordCalendar,
+  calendarLayout,
+  type CalendarLayoutConfig,
+  type CalendarLayoutDefinition,
+  type RecordCalendarProps
+} from './components/RecordCalendar'
+export {
   RecordGrid,
   gridLayout,
   type GridLayoutConfig,
@@ -567,6 +649,13 @@ export {
   type GridPartOption,
   type RecordGridProps
 } from './components/RecordGrid'
+export {
+  RecordList,
+  listLayout,
+  type ListLayoutConfig,
+  type ListLayoutDefinition,
+  type RecordListProps
+} from './components/RecordList'
 export {
   RecordTable,
   shownColumns,
