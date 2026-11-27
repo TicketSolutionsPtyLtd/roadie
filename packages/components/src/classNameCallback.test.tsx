@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Autocomplete } from './components/Autocomplete'
 import { Button } from './components/Button'
+import { Checkbox } from './components/Checkbox'
 import { CheckboxGroup } from './components/CheckboxGroup'
 import { Collapsible } from './components/Collapsible'
 import { Combobox } from './components/Combobox'
@@ -30,6 +31,7 @@ import { Tooltip } from './components/Tooltip'
 const PROBE = 'callback-probe'
 
 type Callback = () => string
+// A slot is a data-slot name, or a selector for a part without one.
 type Family = [name: string, ui: (c: Callback) => ReactElement, slots: string[]]
 
 // Toast parts render only for a toast in the manager.
@@ -63,14 +65,20 @@ const families: Family[] = [
     ),
     ['button']
   ],
+  // A row control puts a string on its row, and a function on the control.
+  [
+    'Checkbox',
+    (c) => <Checkbox label='Sold out' className={c} />,
+    ['[role=checkbox]']
+  ],
   [
     'CheckboxGroup',
     (c) => (
       <CheckboxGroup aria-label='Genres' className={c}>
-        <CheckboxGroup.Item value='rock' label='Rock' />
+        <CheckboxGroup.Item value='rock' label='Rock' className={c} />
       </CheckboxGroup>
     ),
-    ['checkbox-group']
+    ['checkbox-group', '[role=checkbox]']
   ],
   [
     'Progress',
@@ -95,15 +103,28 @@ const families: Family[] = [
     'RadioGroup',
     (c) => (
       <RadioGroup aria-label='Seating' className={c}>
-        <RadioGroup.Item value='floor' label='Floor' />
+        <RadioGroup.Item value='floor' label='Floor' className={c} />
       </RadioGroup>
     ),
-    ['radio-group']
+    ['radio-group', '[role=radio]']
   ],
   [
     'Switch',
     (c) => (
       <Switch.Root aria-label='Alerts' className={c}>
+        <Switch.Thumb className={c} />
+      </Switch.Root>
+    ),
+    ['switch', 'switch-thumb']
+  ],
+  [
+    'Switch with a label',
+    (c) => (
+      <Switch.Root
+        label='Alerts'
+        description='Doors and set times'
+        className={c}
+      >
         <Switch.Thumb className={c} />
       </Switch.Root>
     ),
@@ -542,7 +563,9 @@ describe('a className callback on a Base UI wrapper', () => {
         slots.filter(
           (slot) =>
             !document
-              .querySelector(`[data-slot="${slot}"]`)
+              .querySelector(
+                slot.startsWith('[') ? slot : `[data-slot="${slot}"]`
+              )
               ?.classList.contains(PROBE)
         )
       await waitFor(() => expect(missing()).toEqual([]))

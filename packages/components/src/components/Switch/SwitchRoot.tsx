@@ -20,7 +20,7 @@ export type SwitchRootProps = SwitchPrimitive.Root.Props &
   RefAttributes<HTMLElement> & {
     /** @default 'md' */
     size?: SwitchSize
-    /** Renders a label beside the switch. With `label` or `description`, `className` goes on the row. */
+    /** Renders a label beside the switch. With `label` or `description`, a string `className` goes on the row. */
     label?: ReactNode
     /** Secondary text under the label, announced as the description. */
     description?: ReactNode
@@ -64,6 +64,8 @@ export function SwitchRoot({
     undefined
 
   const hasRow = hasLabel || hasDescription
+  // With a row, a string styles the row; a function needs the switch's state, so it styles the switch.
+  const onRow = hasRow && typeof className !== 'function'
 
   const control = (
     <SwitchPrimitive.Root
@@ -81,7 +83,7 @@ export function SwitchRoot({
       aria-describedby={describedBy}
       className={mergeClassName(
         switchVariants({ size }),
-        hasRow ? undefined : className
+        onRow ? undefined : className
       )}
       {...props}
     >
@@ -101,7 +103,10 @@ export function SwitchRoot({
   return (
     <div
       data-slot='switch-row'
-      className={cn('flex items-center justify-between gap-4', className)}
+      className={cn(
+        'flex items-center justify-between gap-4',
+        typeof className === 'function' ? undefined : className
+      )}
     >
       {/* `in-*`, not `group-has-*`: a universal after :has() restyles the page on every DOM change. */}
       <div className='grid gap-0.5 in-[[data-slot=switch-row]:has([data-disabled])]:opacity-50'>
