@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import { describeRecordFilter } from './describe'
-import { type RecordSuggestion, parseRecordQuery } from './parse'
+import {
+  type RecordSuggestion,
+  parseRecordQuery,
+  parseRecordValue
+} from './parse'
 import { eventFields } from './testFields'
+import type { RecordFilter } from './types'
 
 const options = {
   fields: eventFields,
@@ -524,6 +529,12 @@ describe('parseRecordQuery', () => {
         })
       }
     )
+
+    it('suggests one id for the values in either order', () => {
+      const [a] = parse('city melb or syd')
+      const [b] = parse('city syd or melb')
+      expect(a?.id).toBe(b?.id)
+    })
 
     it('labels the chip as it reads', () => {
       expect(first('city melb or syd')?.label).toBe(
@@ -1604,5 +1615,63 @@ describe('parseRecordQuery', () => {
     expect(scores).toHaveLength(30)
     expect(scores.every((score) => score > 0 && score <= 1)).toBe(true)
     expect(scores).toEqual([...scores].sort((a, b) => b - a))
+  })
+})
+
+describe('parseRecordValue', () => {
+  const field = (key: string) => eventFields.find((f) => f.key === key)!
+  const readValue = (key: string, text: string) =>
+    parseRecordValue(text, { ...options, field: field(key) })
+
+  const readings: [string, string, Partial<RecordFilter> | null][] = [
+    ['capacity', '100', { operator: 'eq', value: 100 }],
+    ['gross', '$1,500', { operator: 'eq', value: 1500 }],
+    ['capacity', 'over 100', { operator: 'gt', value: 100 }],
+    ['capacity', '50-20', { operator: 'between', value: [20, 50] }],
+    ['capacity', '20 and 50', { operator: 'between', value: [20, 50] }],
+    ['capacity', '-5 to -10', { operator: 'between', value: [-10, -5] }],
+    ['capacity', '1,2', null],
+    ['capacity', 'fifty', null],
+    ['capacity', '20 and', null],
+    ['city', 'melb', { operator: 'is', values: ['melbourne'] }],
+    ['city', '!melb', { operator: 'is-not', values: ['melbourne'] }],
+    ['city', '-melb', { operator: 'is-not', values: ['melbourne'] }],
+    ['city', 'empty', { operator: 'is-not-set' }],
+    [
+      'city',
+      'melb or syd',
+      { operator: 'is', values: ['melbourne', 'sydney'] }
+    ],
+    [
+      'city',
+      '!melb or syd',
+      { operator: 'is-not', values: ['melbourne', 'sydney'] }
+    ],
+    ['name', 'disco', { operator: 'contains', value: 'disco' }],
+    ['orderNumber', 'OZ-12345', { operator: 'is', values: ['OZ-12345'] }],
+    ['featured', 'yes', { operator: 'is-true' }],
+    ['starts', 'this weekend', { operator: 'within' }],
+    ['starts', 'after today', { operator: 'after' }],
+    ['capacity', '', null],
+    ['notes', 'disco', null]
+  ]
+
+  it.each(readings)('reads %s as "%s"', (key, text, expected) => {
+    const [first, ...rest] = readValue(key, text)
+    if (expected === null) {
+      expect(first).toBeUndefined()
+      return
+    }
+    expect(first).toMatchObject({ field: key, ...expected })
+    expect(rest).not.toContainEqual(first)
+  })
+
+  it.each(readings)('reads %s "%s" as field:value does', (key, text) => {
+    const suggested = parseRecordQuery(`${key}:${text}`, {
+      ...options,
+      fields: [field(key)],
+      limit: 50
+    }).flatMap((s) => (s.kind === 'filter' ? [s.value] : []))
+    expect(readValue(key, text)).toEqual(suggested)
   })
 })

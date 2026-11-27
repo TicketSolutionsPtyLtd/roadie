@@ -320,6 +320,18 @@ with an `href` takes `is-interactive`.
 </Card>
 ```
 
+A fill, border, or shadow class you add wins in every state. The emphasis
+changes only what you haven't set, so the class holds through hover, focus,
+and press, while the element still moves as its emphasis does. Hover the
+second button to compare.
+
+```tsx-live layout=row
+<Button emphasis='normal'>Buy tickets</Button>
+<Button emphasis='normal' className='bg-sunken'>Buy tickets</Button>
+```
+
+To change the fill on hover too, add a `hover:` class.
+
 `is-interactive-field` provides its own hover, focus, and invalid logic. It
 doesn't use emphasis hover states. This is why form inputs use
 `emphasis-field`, which has no interactive states, paired with
@@ -530,7 +542,7 @@ when building custom interactive UI.
   <Guideline.Do>
     For slow or high-stakes operations, show a loader. Commit to it for at
     least 300ms. Delay its appearance by 200ms to avoid flash on fast
-    responses.
+    responses. For an action in a button, use [Button's `pending`](/components/button#pending), which waits the 200ms for you.
   </Guideline.Do>
   <Guideline.Dont>
     Show a spinner for 50ms then immediately remove it. Flicker creates

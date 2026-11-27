@@ -1,5 +1,6 @@
 import type { PlacesOptions } from '../../../../core/src/places'
-import { PillIcon } from './PillIcon'
+import { PillDot } from './PillDot'
+import { PillGlyph, PillIcon } from './PillIcon'
 
 export type { PillIconFrame } from './PillIcon'
 
@@ -44,6 +45,8 @@ export function Pill(props: PillProps) {
 
 Pill.Root = Pill
 Pill.Icon = PillIcon
+Pill.Glyph = PillGlyph
+Pill.Dot = PillDot
 
 /** @deprecated Use `Pill`. */
 export function Tag(props: PillProps) {

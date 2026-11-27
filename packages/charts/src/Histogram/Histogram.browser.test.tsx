@@ -2,6 +2,11 @@ import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Histogram } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
@@ -14,7 +19,6 @@ import {
   renderInCard,
   visitEveryStop
 } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 import { binValues, histogramValues } from './bin'
 import { leadTimeExample } from './examples'
 

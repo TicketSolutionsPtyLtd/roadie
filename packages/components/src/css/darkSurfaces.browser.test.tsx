@@ -2,9 +2,10 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Pane } from '../components/Pane'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { Popover } from '../components/Popover'
 
 // Core's surfaces live in its sheets, but only this package runs browser tests.

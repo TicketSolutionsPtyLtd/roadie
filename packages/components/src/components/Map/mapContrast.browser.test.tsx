@@ -1,13 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import roadieCss from '../../../vitest.browser.css?inline'
 import {
   apcaLc,
   flatten,
   minimumLc,
   oklchLightness
-} from '../../css/contrastTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
+} from '@oztix/roadie-browser-testing/contrast'
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
+import roadieCss from '../../../vitest.browser.css?inline'
 import { type MapTone, readPalette } from './palette'
 
 // Every basemap colour comes from a Roadie scale, so its labels are checked

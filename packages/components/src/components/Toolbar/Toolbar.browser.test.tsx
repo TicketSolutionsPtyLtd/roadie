@@ -12,11 +12,12 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Toolbar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { focusRing } from '../../css/testUtils'
 import { Button } from '../Button'
-import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'
 
 let removeStylesheet = () => {}

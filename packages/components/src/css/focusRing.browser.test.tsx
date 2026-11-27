@@ -1,7 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { focusAfterKey, focusRing, plainLinkRing } from './testUtils'
 
 const STILL = '*, *::before, *::after { transition-duration: 0s !important }'
@@ -45,7 +46,7 @@ function step9At(scale: string, alpha: number) {
 describe('base focus ring', () => {
   it.each([
     ['light', false, '--focus-ring-opacity'],
-    ['dark', true, '--focus-ring-opacity-dark']
+    ['dark', true, '--focus-ring-opacity']
   ])(
     'shows a plain link a 4px neutral ring with no gap in %s mode',
     async (_mode, dark, opacity) => {

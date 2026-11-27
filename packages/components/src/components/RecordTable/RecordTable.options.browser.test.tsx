@@ -10,15 +10,19 @@ import {
 } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import {
+  STILL,
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { releaseDragPointer } from '../../css/testUtils'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { showFields, testShows } from '../Records/testUtils'
 import { tableColumns } from './columns'
 import { frame, rect } from './testUtils'
 
-const STILL = '*, *::before, *::after { transition: none !important }'
 const TIMEOUT = { timeout: 20_000 }
 
 let removeStylesheets = () => {}

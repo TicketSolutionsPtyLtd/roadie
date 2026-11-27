@@ -12,6 +12,7 @@ import { RecordsProvider, RecordsRoot } from './RecordsRoot'
 import { RecordsSearch } from './RecordsSearch'
 import { RecordsSelect } from './RecordsSelect'
 import { RecordsStatus } from './RecordsStatus'
+import { RecordsView } from './RecordsView'
 import { RecordsViewActions } from './RecordsViewActions'
 
 const Records = RecordsRoot as typeof RecordsRoot & {
@@ -24,7 +25,9 @@ const Records = RecordsRoot as typeof RecordsRoot & {
   Pagination: typeof RecordsPagination
   Status: typeof RecordsStatus
   Actions: typeof RecordsActions
+  /** @deprecated Use `Records.View`. */
   Options: typeof RecordsOptions
+  View: typeof RecordsView
   BulkActions: typeof RecordsBulkActions
   ViewActions: typeof RecordsViewActions
 }
@@ -39,6 +42,7 @@ Records.Pagination = RecordsPagination
 Records.Status = RecordsStatus
 Records.Actions = RecordsActions
 Records.Options = RecordsOptions
+Records.View = RecordsView
 Records.BulkActions = RecordsBulkActions
 Records.ViewActions = RecordsViewActions
 
@@ -51,6 +55,7 @@ export type {
   UseRecordsOptions
 } from './useRecords'
 export type {
+  RecordGroupHeading,
   RecordName,
   RecordViewDefaults,
   RecordsAction,
@@ -70,6 +75,7 @@ export type {
 } from './totals'
 export type { RecordsActionsProps } from './RecordsActions'
 export type { RecordsOptionsProps } from './RecordsOptions'
+export type { RecordsViewProps } from './RecordsView'
 export type { RecordsBulkActionsProps } from './RecordsBulkActions'
 export type { RecordValueProps } from './RecordValue'
 export type { RecordsPaginationProps } from './RecordsPagination'

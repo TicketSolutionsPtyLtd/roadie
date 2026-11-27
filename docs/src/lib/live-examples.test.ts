@@ -69,6 +69,52 @@ describe('collectLiveExamples', () => {
     ])
   })
 
+  it('takes the framed flag from the fence meta', () => {
+    const source = [
+      '```tsx-live framed\n<A />\n```',
+      '```tsx-live\n<B />\n```'
+    ].join('\n\n')
+
+    expect(collectLiveExamples(parse(source))).toMatchObject([
+      { framed: true },
+      { framed: false }
+    ])
+  })
+
+  it.each([
+    [
+      'binds no shortcut',
+      '<CommandPalette shortcut={false} items={[]}>\n  <CommandPalette.Input />\n</CommandPalette>'
+    ],
+    [
+      'spreads its props over lines',
+      '<CommandPalette\n  open={open}\n  onOpenChange={(next) => setOpen(next)}\n  shortcut={false}\n  items={[]}\n>\n  <CommandPalette.List />\n</CommandPalette>'
+    ],
+    [
+      "uses the palette's parts only",
+      '<CommandPalette.Item>Open</CommandPalette.Item>'
+    ]
+  ])('accepts a palette that %s', (_, code) => {
+    expect(() => ids(`\`\`\`tsx-live\n${code}\n\`\`\``)).not.toThrow()
+  })
+
+  it.each([
+    [
+      'CommandPalette',
+      '<CommandPalette items={[]}>\n  <CommandPalette.Input />\n</CommandPalette>'
+    ],
+    [
+      'CommandPalette.Root',
+      '<CommandPalette.Root\n  items={[]}\n>\n  <CommandPalette.Input />\n</CommandPalette.Root>'
+    ],
+    ['self-closing CommandPalette', '<CommandPalette/>']
+  ])('rejects an unframed %s that binds the shortcut', (_, code) => {
+    expect(() => ids(`## Search\n\n\`\`\`tsx-live\n${code}\n\`\`\``)).toThrow(
+      /fence on line 3 .*shortcut=\{false\}.*framed/s
+    )
+    expect(() => ids(`\`\`\`tsx-live framed\n${code}\n\`\`\``)).not.toThrow()
+  })
+
   it('rejects a duplicate or malformed explicit id', () => {
     const twice = '```tsx-live id=a\n<A />\n```\n\n```tsx-live id=a\n<B />\n```'
     expect(() => ids(twice)).toThrow(/used twice/)
@@ -89,7 +135,7 @@ describe('collectLiveExamples', () => {
 
   it('rejects an unknown option, so a typo fails the build', () => {
     expect(() => ids('```tsx-live widht=md\n<A />\n```')).toThrow(
-      /Unknown live example option "widht=md". Options are id=, layout=, gap=, width=, eager, and bleed/
+      /Unknown live example option "widht=md". Options are id=, layout=, gap=, width=, eager, bleed, and framed/
     )
   })
 
@@ -156,13 +202,14 @@ describe('remarkLiveExamples', () => {
     const file = {
       path: '/repo/docs/src/app/components/badge/page.mdx',
       value:
-        '## Default\n\n```tsx-live eager\n<Badge />\n```\n\n```tsx-live layout=row\n<Badge />\n```'
+        '## Default\n\n```tsx-live eager framed\n<Badge />\n```\n\n```tsx-live layout=row\n<Badge />\n```'
     }
     const compiled = String(await processor.process(file))
 
     expect(compiled).toContain('"data-example-id": "default"')
     expect(compiled).toContain('"data-example-page": "components/badge"')
     expect(compiled).toContain('"data-example-eager": ""')
+    expect(compiled).toContain('"data-example-framed": ""')
     expect(compiled).toMatch(/"data-preview-layout": "[^"]+"/)
   })
 })

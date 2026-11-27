@@ -1,0 +1,35 @@
+{
+  "name": "@oztix/roadie-browser-testing",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Browser-test helpers every Roadie package shares: the real-mouse command, the frame-waiting popup picks, the APCA contrast kit, and the stylesheet helpers. Tests only; never published.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config.ts",
+    "./contrast": "./src/contrast.ts",
+    "./jsdom": "./src/jsdom.ts",
+    "./stylesheet": "./src/stylesheet.ts"
+  },
+  "scripts": {
+    "lint": "oxlint src",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "vitest": "^5.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitest/browser-playwright": "5.1.0",
+    "playwright": "1.65.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "vitest": "5.1.0"
+  }
+}

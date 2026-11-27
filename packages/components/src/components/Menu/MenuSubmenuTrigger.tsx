@@ -5,8 +5,7 @@ import type { RefAttributes } from 'react'
 import { Menu as MenuPrimitive } from '@base-ui/react/menu'
 import { CaretRightIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { type MenuItemDecorations, itemContent } from './itemContent'
 import { menuItemVariants } from './variants'
 
@@ -23,9 +22,8 @@ export function MenuSubmenuTrigger({
   return (
     <MenuPrimitive.SubmenuTrigger
       data-slot='menu-submenu-trigger'
-      className={cn(
-        menuItemVariants(),
-        'data-[popup-open]:bg-subtle',
+      className={mergeClassName(
+        [menuItemVariants(), 'data-[popup-open]:bg-subtle'],
         className
       )}
       {...props}

@@ -29,9 +29,11 @@ const tenths = (ms: number) => Math.round(ms * 10) / 10
 
 export function summariseFrames(deltas: readonly number[]): FrameStats {
   const sorted = [...deltas].sort((a, b) => a - b)
+  // Nearest rank, so the p95 frame is slow only when more than 5% of frames
+  // are. Rounding the rank down read 3 slow frames in 60 as a miss. p50 is
+  // now the lower median of an even count; no budget reads it.
   const at = (quantile: number) =>
-    sorted[Math.min(sorted.length - 1, Math.floor(quantile * sorted.length))] ??
-    0
+    sorted[Math.max(0, Math.ceil(quantile * sorted.length) - 1)] ?? 0
   const missed = (delta: number) =>
     Math.max(0, Math.round(delta / FRAME_MS) - 1)
   const share = (drops: number, frames: number) =>
@@ -92,6 +94,11 @@ export type MissMarks = {
   exception?: string
 }
 
+export type RunNote = {
+  /** A short remark kept with the run, such as its style time. */
+  note?: string
+}
+
 /** Why a missed budget doesn't fail the test, if anything excuses it. */
 export function missExcuse(
   frames: number,
@@ -99,6 +106,29 @@ export function missExcuse(
 ) {
   // A run too short to judge is a broken test, whatever excuse it gives.
   return frames >= MIN_FRAMES ? exception || knownMiss || undefined : undefined
+}
+
+/**
+ * The line a local run prints for a run that was excused or carries a note,
+ * since neither fails the test and so neither would show otherwise. Its
+ * dropped share is the one the budget reads.
+ */
+export function frameNotice(
+  scenario: string,
+  stats: Pick<FrameStats, 'frames' | 'p95' | 'steadyDroppedShare'>,
+  misses: readonly string[],
+  marks: MissMarks & RunNote
+) {
+  const excuse = missExcuse(stats.frames, marks)
+  if (!excuse && !marks.note) return undefined
+  const verdict = misses.length ? `Missed (${misses.join(', ')})` : 'Met'
+  const excused = !excuse
+    ? ''
+    : excuse === marks.exception
+      ? `, accepted: ${excuse}`
+      : `, filed as ${excuse}`
+  const note = marks.note ? `. Note: ${marks.note}` : ''
+  return `FRAMES ${scenario}: p95 ${stats.p95}ms, ${percent(stats.steadyDroppedShare)} dropped. ${verdict}${excused}${note}`
 }
 
 const percent = (share: number) => `${Math.round(share * 1000) / 10}%`

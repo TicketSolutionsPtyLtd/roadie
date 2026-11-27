@@ -10,16 +10,17 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
-import roadieCss from '../../vitest.browser.css?inline'
-import { useStylesheet } from '../components/Pane/testUtils'
-import type { RoadieIntent } from '../variants'
 import {
   apcaLc,
   minimumLc,
   oklchLightness,
   over,
   shownFill
-} from './contrastTestUtils'
+} from '@oztix/roadie-browser-testing/contrast'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
+import roadieCss from '../../vitest.browser.css?inline'
+import type { RoadieIntent } from '../variants'
 import { setHoverCapable } from './testUtils'
 
 // The selected state of a quiet control, checked on the utilities rather than
@@ -35,8 +36,6 @@ const CHOSEN_LABEL = minimumLc['body text']
 const STRONGER_BY = 15
 const RESTING_LABEL = minimumLc['non-text UI']
 const FILL_STEP = 0.075
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {

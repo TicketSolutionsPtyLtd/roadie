@@ -426,13 +426,6 @@ export function QueryField<Value = unknown>({
     list.slice(0, index).reduce((sum, group) => sum + group.items.length, 0)
   )
 
-  const fieldDescription = field.invalid
-    ? field.errorTextId
-    : field.helperTextId
-  const describedBy = pendingChip
-    ? [field.fieldId && fieldDescription, pendingId].filter(Boolean).join(' ')
-    : undefined
-
   function accept(suggestion: QueryFieldAccepted<Value>) {
     const left =
       suggestion.kind === 'search' ? '' : (suggestion.remainder ?? '')
@@ -620,7 +613,8 @@ export function QueryField<Value = unknown>({
         operatorOnTab(1) && 'Tab',
         operatorOnTab(-1) && 'Shift+Tab'
       ])}
-      {...(describedBy && { 'aria-describedby': describedBy })}
+      // Combobox.Input adds the Field's helper and error text before it.
+      aria-describedby={pendingChip ? pendingId : undefined}
       placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
       // In the step's chip, as wide as the text beside it, so the chip hugs
       // it. Otherwise a chip leaves it a few characters and the gap beside it,

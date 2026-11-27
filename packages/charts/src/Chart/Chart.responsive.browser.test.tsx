@@ -1,6 +1,10 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import { CHART_LABEL_LIMITS } from '@oztix/roadie-core/dashboard-layout'
 
 import { Chart } from '.'
@@ -9,7 +13,6 @@ import { ChartLegend } from '../ChartLegend'
 import { LineChart } from '../LineChart'
 import { paceExample } from '../LineChart/examples'
 import { afterResize } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {

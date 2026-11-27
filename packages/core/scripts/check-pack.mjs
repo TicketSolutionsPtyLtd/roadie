@@ -1,22 +1,18 @@
 #!/usr/bin/env node
-// Fails if the tarball `pnpm pack` would publish ships a test, a fixture, or a
-// source map whose sources it neither ships nor embeds, or leaves out a file
-// its `exports` point at. Run from a package root.
+// Fails if the tarball `pnpm pack` would publish ships a test, a test helper, a
+// fixture, a test library, or a source map whose sources it neither ships nor
+// embeds, or leaves out a file its `exports` point at. Run from a package root.
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-const TEST_FOLDER =
-  /(^|\/)(__tests__|__mocks__|__screenshots__|__snapshots__|__fixtures__|fixtures?|tests?|test-?utils)\//
-const TEST_FILE =
-  /\.(test|spec)(-d)?\.(d\.)?[cm]?[jt]sx?$|(^|\/)([Tt]est-?[Uu]tils|\w+TestUtils)\b[^/]*$/
+import { isShipped, readExports } from './package-exports.mjs'
 
-function exportTargets(exports) {
-  if (typeof exports === 'string') return [exports]
-  return Object.values(exports ?? {}).flatMap(exportTargets)
-}
+const TEST_LIBRARY =
+  /(?:^|\/)node_modules\/((?:@testing-library|@vitest)\/[^/]+|aria-query|axe-core|vitest)\//
+const testLibrary = (file) => TEST_LIBRARY.exec(file)?.[1]
 
 function shipsTarget(target, files, shipped) {
   const file = target.replace(/^\.\//, '')
@@ -27,21 +23,30 @@ function shipsTarget(target, files, shipped) {
   )
 }
 
-// `withheld` is what package.json `files` leaves out by name, such as an export
-// only this repo uses.
-export function packProblems(files, readFile, exports, withheld = []) {
+// `entries` come from readExports. `withheld` is what package.json `files`
+// leaves out by name, such as an export only this repo uses.
+export function packProblems(files, readFile, entries = [], withheld = []) {
   const shipped = new Set(files)
-  const problems = exportTargets(exports)
+  const problems = entries
+    .flatMap((entry) => entry.files)
     .filter((target) => !withheld.includes(target.replace(/^\.\//, '')))
     .filter((target) => !shipsTarget(target, files, shipped))
     .map(
       (target) => `exports points at ${target}, which the tarball doesn't ship`
     )
+  const fromLibrary = new Map()
   for (const file of files) {
-    if (TEST_FOLDER.test(file) || TEST_FILE.test(file))
-      problems.push(`${file} is a test file`)
-    if (!file.endsWith('.map')) continue
+    if (!isShipped(file)) problems.push(`${file} is a test file`)
+    const library = testLibrary(file)
+    if (library)
+      fromLibrary.set(library, [...(fromLibrary.get(library) ?? []), file])
+    if (library || !file.endsWith('.map')) continue
     const map = JSON.parse(readFile(file))
+    const bundled = new Set(map.sources.map(testLibrary).filter(Boolean))
+    if (bundled.size > 0)
+      problems.push(
+        `${file} bundles test libraries: ${[...bundled].join(', ')}`
+      )
     const missing = map.sources.filter(
       (source, index) =>
         map.sourcesContent?.[index] == null &&
@@ -51,6 +56,11 @@ export function packProblems(files, readFile, exports, withheld = []) {
       problems.push(
         `${file} points at ${missing.join(', ')}, which the tarball doesn't ship`
       )
+  }
+  for (const [library, [first, ...rest]] of fromLibrary) {
+    const which =
+      rest.length > 0 ? `${first} and ${rest.length} more are` : `${first} is`
+    problems.push(`${which} from ${library}, a test library`)
   }
   return problems
 }
@@ -69,7 +79,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const problems = packProblems(
     files,
     (file) => readFileSync(file, 'utf8'),
-    pkg.exports,
+    readExports('.'),
     pkg.files
       .filter((entry) => entry.startsWith('!'))
       .map((entry) => entry.slice(1))
@@ -77,10 +87,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (problems.length > 0) {
     console.error(`ERROR: the tarball ships files it shouldn't:`)
     for (const problem of problems) console.error(`  ${problem}`)
-    console.error(`Exclude them in package.json "files".`)
+    console.error(
+      `Exclude them in package.json "files", or in the build's entry if the build wrote them.`
+    )
     process.exit(1)
   }
   console.log(
-    `The tarball's ${files.length} files have no tests or broken maps, and include every export.`
+    `The tarball's ${files.length} files have no tests, test libraries, or broken maps, and include every export.`
   )
 }

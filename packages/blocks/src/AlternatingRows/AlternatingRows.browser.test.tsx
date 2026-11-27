@@ -12,7 +12,7 @@ import {
   photo,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, expectReadable, setMode } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
@@ -180,13 +180,9 @@ describe('AlternatingRows contrast on every surface', () => {
           })
           const at = `${intent ?? 'default'} intent`
           for (const element of container.querySelectorAll('h2, h3'))
-            expect(textContrast(element), at).toBeGreaterThanOrEqual(
-              MINIMUM_LC.large
-            )
+            expectReadable(element, at)
           for (const element of container.querySelectorAll('li p'))
-            expect(textContrast(element), at).toBeGreaterThanOrEqual(
-              MINIMUM_LC.body
-            )
+            expectReadable(element, at)
           unmount()
         }
       } finally {

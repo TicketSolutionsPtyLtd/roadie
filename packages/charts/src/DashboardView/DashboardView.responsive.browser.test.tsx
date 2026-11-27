@@ -1,6 +1,11 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { ticketTypeExample } from '../DonutChart/examples'
@@ -14,7 +19,6 @@ import {
   expectLabelsInsideSvg,
   expectNoOverlap
 } from '../plot/browserTesting'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {

@@ -12,6 +12,7 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Field } from '@oztix/roadie-components/field'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
@@ -706,13 +707,15 @@ describe('Editor in a Field', () => {
     ).toBeInTheDocument()
   })
 
-  it('reports invalid and is described by the error text while the Field is invalid', async () => {
+  it('reports invalid and adds the error text to its description while the Field is invalid', async () => {
     const { rerender } = render(<DescriptionField />)
     const textbox = await screen.findByRole('textbox', { name: LABEL })
 
     rerender(<DescriptionField invalid />)
 
-    await waitFor(() => expect(textbox).toHaveAccessibleDescription(ERROR))
+    await waitFor(() =>
+      expect(textbox).toHaveAccessibleDescription(`${HELP} ${ERROR}`)
+    )
     expect(textbox).toHaveAttribute('aria-invalid', 'true')
     expect(frameOf(textbox)).toHaveAttribute('aria-invalid', 'true')
   })
@@ -1142,9 +1145,11 @@ describe('Editor rich preset', () => {
     const textbox = await focusedTextbox()
     const blockType = () => screen.getByRole('button', { name: /^Block type/ })
     const choose = async (name: string) => {
-      await userEvent.click(blockType())
-      await userEvent.click(await screen.findByRole('menuitemradio', { name }))
-      await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+      await pickMenuItem(userEvent, {
+        from: blockType(),
+        item: name,
+        role: 'menuitemradio'
+      })
     }
 
     await choose('Heading 3')

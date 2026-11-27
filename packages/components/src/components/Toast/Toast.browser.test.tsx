@@ -12,10 +12,11 @@ import {
 } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Toast, type ToastPosition, createToastManager } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { focusAfterKey, focusRing, plainLinkRing } from '../../css/testUtils'
-import { useStylesheet } from '../Pane/testUtils'
 
 // The stack transitions for up to --duration-slower; freezing it lets the
 // geometry be read straight away, which WebKit on CI is too slow to wait for.

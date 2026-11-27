@@ -34,7 +34,7 @@ describe('sortableDropFrom', () => {
       source,
       group
     )
-    expect(drop).toMatchObject({ value: 'Date', target: 'SKU' })
+    expect(drop).toMatchObject({ source: { value: 'Date' }, target: 'SKU' })
   })
 
   it('skips an inner Sortable for the one the drag belongs to', () => {
@@ -48,6 +48,40 @@ describe('sortableDropFrom', () => {
       group
     )
     expect(drop).toMatchObject({ target: 'Price' })
+  })
+
+  it('takes a drop from another list in a shared group', () => {
+    const todo = createSortableGroup('lanes', 'todo')
+    const done = createSortableGroup('lanes', 'done')
+    const drop = sortableDropFrom(
+      [target(sortableItemData(done, 'SKU'))],
+      { data: sortableItemData(todo, 'Date', 'Date') },
+      done
+    )
+    expect(drop).toMatchObject({
+      source: { value: 'Date', list: 'todo', sameList: false },
+      target: 'SKU'
+    })
+    // The list it came from leaves the drop to the list it landed in.
+    expect(
+      sortableDropFrom(
+        [target(sortableItemData(done, 'SKU'))],
+        { data: sortableItemData(todo, 'Date') },
+        todo
+      )
+    ).toBe(null)
+  })
+
+  it('marks an item its list has locked', () => {
+    const locked = new Set(['Date'])
+    const todo = createSortableGroup('lanes', 'todo', { locked })
+    const done = createSortableGroup('lanes', 'done')
+    const drop = sortableDropFrom(
+      [target(sortableItemData(done, 'SKU'))],
+      { data: sortableItemData(todo, 'Date') },
+      done
+    )
+    expect(drop?.source.locked).toBe(true)
   })
 
   it('finds nothing when no target is in the group', () => {

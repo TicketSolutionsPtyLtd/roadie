@@ -21,8 +21,8 @@ import {
 } from '../_test/browser'
 import {
   MINIMUM_FILL_LC,
-  MINIMUM_LC,
   MODES,
+  expectReadable,
   fillContrast,
   setMode,
   textContrast
@@ -694,13 +694,8 @@ describe.each(MODES)('Hero contrast in %s mode', (mode) => {
       onTestFinished(() => setMode('light'))
       await showAt(DESKTOP.width, <Hero {...props} />)
 
-      expect(
-        textContrast(document.querySelector('h1')!)
-      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-      if (props.description)
-        expect(
-          textContrast(screen.getByText(props.description))
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expectReadable(document.querySelector('h1')!)
+      if (props.description) expectReadable(screen.getByText(props.description))
     }
   )
 })

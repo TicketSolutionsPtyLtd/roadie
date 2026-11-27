@@ -394,9 +394,10 @@ export function PaneRoot({
       >
         {/* fitWidth={false} keeps wide children clipped. */}
         {/* A Pane.Body fills what the header leaves, so a column at least the pane's height. */}
+        {/* In that column a measured child would shrink to its content, so it takes the full width. */}
         <ScrollArea.Content
           fitWidth={false}
-          className='px-(--content-inset) has-[>[data-slot=pane-body]]:flex has-[>[data-slot=pane-body]]:min-h-full has-[>[data-slot=pane-body]]:flex-col'
+          className='px-(--content-inset) has-[>[data-slot=pane-body]]:flex has-[>[data-slot=pane-body]]:min-h-full has-[>[data-slot=pane-body]]:flex-col has-[>[data-slot=pane-body]]:[--pane-measure-fill:100%]'
         >
           <div
             aria-hidden
@@ -429,7 +430,7 @@ export function PaneRoot({
       {/* keepMounted so the margin binds before overflow is measured. */}
       <ScrollArea.Scrollbar
         keepMounted
-        className='mt-[calc(var(--pane-header-height,0px)_+_--spacing(1))]'
+        className='mt-[calc(var(--pane-header-height,0px)_+_--spacing(1))] print:hidden'
       >
         <ScrollArea.Thumb />
       </ScrollArea.Scrollbar>

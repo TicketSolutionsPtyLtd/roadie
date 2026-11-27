@@ -4,10 +4,11 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Card } from '../components/Card'
 import { DataTable, type DataTableColumn } from '../components/DataTable'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { RecordTable, tableColumns } from '../components/RecordTable'
 import {
   type TestShow,
@@ -15,12 +16,10 @@ import {
   testShows
 } from '../components/Records/testUtils'
 
-// The states are the settled ones, so no test waits on a transition to land.
-const STILL = '*, *::before, *::after { transition: none !important }'
-
 let removeStylesheets = () => {}
 beforeAll(() => {
   const removeRoadie = useStylesheet(roadieCss)
+  // The states are the settled ones, so no test waits on a transition to land.
   const removeStill = useStylesheet(STILL)
   removeStylesheets = () => {
     removeRoadie()
@@ -106,8 +105,7 @@ function look(element: HTMLElement) {
     background: style.backgroundColor,
     shadow: style.boxShadow,
     outline: style.outlineWidth,
-    fill: style.getPropertyValue('--card-fill'),
-    edgeShadow: style.getPropertyValue('--card-shadow-2')
+    fill: style.getPropertyValue('--card-fill')
   }
 }
 
@@ -248,7 +246,7 @@ describe('is-interactive-within around another is-interactive-within', () => {
     })
   })
 
-  describe('a card around RecordTable list rows', () => {
+  describe('a card around re-flowed RecordTable rows', () => {
     function renderList() {
       render(
         <Surface emphasis='normal'>
@@ -272,9 +270,7 @@ describe('is-interactive-within around another is-interactive-within', () => {
       return document.querySelector<HTMLElement>('[data-row-link]')!
     }
     const listRow = () =>
-      document.querySelector<HTMLElement>(
-        '[data-slot=record-table-list-row] > .is-interactive-within'
-      )!
+      document.querySelector<HTMLElement>('[data-slot=record-table-row]')!
 
     it('stays still while a row is pressed, and the row takes it', async () => {
       renderList()

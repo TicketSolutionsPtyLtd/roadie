@@ -2,13 +2,17 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { keepFramesRunning, withFrames } from '@oztix/roadie-browser-testing'
+import {
+  STILL,
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Select } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { keepFramesRunning, setHoverCapable } from '../../css/testUtils'
+import { setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {
@@ -40,7 +44,9 @@ async function tapJazz() {
     </Select>
   )
   await userEvent.click(screen.getByRole('combobox', { name: 'Genres' }))
-  const tapped = await screen.findByRole('option', { name: 'Jazz' })
+  const tapped = await withFrames(() =>
+    screen.findByRole('option', { name: 'Jazz' })
+  )
   const resting = screen.getByRole('option', { name: 'Rock' })
   await userEvent.click(tapped)
   await expect.poll(() => tapped.getAttribute('aria-selected')).toBe('true')

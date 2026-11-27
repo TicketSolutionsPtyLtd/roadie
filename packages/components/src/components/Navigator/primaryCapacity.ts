@@ -36,6 +36,49 @@ function clusterHeight(tileCounts: number[]) {
   )
 }
 
+function heightKeeping(
+  capsules: PrimaryCapsule[],
+  kept: ReadonlySet<string>,
+  folds: boolean
+) {
+  const counts = capsules.map(
+    (capsule) => capsule.slots.filter((slot) => kept.has(slot.value)).length
+  )
+  return clusterHeight(folds ? [...counts, 1] : counts)
+}
+
+/**
+ * The height, in rem, each item needs to stay out of More, and the height at
+ * which More goes: what `fitPrimaryCluster` decides, as thresholds CSS can
+ * apply before anything is measured.
+ */
+export function foldThresholds(capsules: PrimaryCapsule[]): {
+  slots: Map<string, number>
+  all: number
+} {
+  const ranked = rankSlots(capsules.flatMap((capsule) => capsule.slots))
+  const heights = ranked.map((_, keep) =>
+    heightKeeping(
+      capsules,
+      new Set(ranked.slice(0, keep).map((slot) => slot.value)),
+      true
+    )
+  )
+  const all = heightKeeping(
+    capsules,
+    new Set(ranked.map((slot) => slot.value)),
+    false
+  )
+  // An item stays once any count that keeps it fits, so the least of those.
+  const slots = new Map<string, number>()
+  let least = all
+  for (let keep = ranked.length; keep >= 1; keep -= 1) {
+    if (keep < ranked.length) least = Math.min(least, heights[keep]!)
+    slots.set(ranked[keep - 1]!.value, least)
+  }
+  return { slots, all }
+}
+
 export function fitPrimaryCluster(
   capsules: PrimaryCapsule[],
   available: number

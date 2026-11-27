@@ -2,7 +2,6 @@ import { type ReactNode, memo, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { tableRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import { Skeleton } from '../Skeleton'
 import {
@@ -10,9 +9,17 @@ import {
   cellClass,
   pinStyle,
   rowClass,
+  rowHeightClass,
   selectCellClass
 } from './RecordTableRow'
-import { type ColumnLayout, priorityProps } from './layout'
+import {
+  type ColumnLayout,
+  NARROW_ACTIONS_CLASS,
+  NARROW_SELECT_CLASS,
+  narrowRowClass,
+  priorityClass,
+  priorityProps
+} from './layout'
 import type { RecordTableColumn } from './types'
 
 const SKELETON_ROWS = 8
@@ -70,23 +77,37 @@ export const RecordTableSkeletonRow = memo(function RecordTableSkeletonRow({
       data-slot='record-table-placeholder-row'
       className={cn(
         rowClass,
-        tableRowSize.heightClass,
+        rowHeightClass,
+        narrowRowClass(layout),
         'border-b border-subtler'
       )}
     >
-      {select && <div role='cell' className={selectCellClass} />}
+      {select && (
+        <div
+          role='cell'
+          className={cn(selectCellClass, layout.narrow && NARROW_SELECT_CLASS)}
+        />
+      )}
       {columns.map((column, index) => (
         <div
           key={column.key}
           role='cell'
-          className={cellClass(column)}
-          {...priorityProps(column, layout, index)}
+          className={cn(cellClass(column), priorityClass(layout, index))}
+          {...priorityProps(layout, index)}
           style={pinStyle(layout.pinnedStart[index])}
         >
           {!blank && <Skeleton shape='text' className='animate-none' />}
         </div>
       ))}
-      {actions && <div role='cell' className={actionsCellClass} />}
+      {actions && (
+        <div
+          role='cell'
+          className={cn(
+            actionsCellClass,
+            layout.narrow && NARROW_ACTIONS_CLASS
+          )}
+        />
+      )}
     </div>
   )
 })

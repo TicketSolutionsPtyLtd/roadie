@@ -4,8 +4,7 @@ import { type RefAttributes, use, useCallback, useMemo } from 'react'
 
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { TabsContext } from './TabsContext'
 import { tabsListVariants } from './variants'
@@ -67,7 +66,7 @@ export function TabsList({ className, ref, ...props }: TabsListProps) {
     <TabsPrimitive.List
       data-slot='tabs-list'
       ref={mergedRef}
-      className={cn(tabsListVariants({ emphasis }), className)}
+      className={mergeClassName(tabsListVariants({ emphasis }), className)}
       {...props}
     />
   )
