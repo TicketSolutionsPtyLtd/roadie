@@ -1,11 +1,17 @@
 'use client'
 
-import { type ComponentProps, Fragment, type ReactNode } from 'react'
+import {
+  type ComponentProps,
+  Fragment,
+  type ReactElement,
+  type ReactNode
+} from 'react'
 
 import { cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { BeforePaint } from '../../utils/beforePaint'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { type KeyFace, keyFace } from './keys'
 import { type KeyPlatform, useKeyPlatform } from './platform'
@@ -13,6 +19,12 @@ import { type KeyPlatform, useKeyPlatform } from './platform'
 // A touch screen has no keyboard to hint at, unless a container opts in.
 const HIDE_WITHOUT_HOVER =
   '[@media_not_(hover:hover)]:not-in-data-[keyboard-hints=always]:hidden'
+
+// Until hydration, `BeforePaint` picks the face; unmarked, the other face
+// holds its room unseen.
+const APPLE_ONLY = 'not-in-data-[keyboard=apple]:hidden'
+const OTHER_ONLY =
+  'in-data-[keyboard=apple]:hidden not-in-data-keyboard:invisible'
 
 const kbdVariants = cva(
   'inline-flex items-center justify-center gap-1 font-sans text-xs whitespace-nowrap [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-3',
@@ -83,16 +95,13 @@ type KeyCapProps = {
 }
 
 function KeyCapContent({ face, announce }: KeyCapProps) {
-  const { glyph: Glyph, label, name, pending } = face
+  const { glyph: Glyph, label, name } = face
   const visible = (
     <>
-      {Glyph ? (
-        <Glyph weight='bold' aria-hidden='true' className='size-3' />
-      ) : null}
+      {Glyph ? <Glyph aria-hidden='true' className='size-3' /> : null}
       {label ? <span>{label}</span> : null}
     </>
   )
-  if (pending) return <span className='invisible inline-flex'>{visible}</span>
   if (!announce) return visible
   return (
     <>
@@ -110,17 +119,27 @@ function capContent(
   announce: boolean
 ) {
   if (typeof children !== 'string') return children
-  return (
-    <KeyCapContent face={keyFace(children, platform)} announce={announce} />
-  )
+  const face = keyFace(children, platform)
+  if (face) return <KeyCapContent face={face} announce={announce} />
+  return (['apple', 'other'] as const).map((each) => (
+    <span
+      key={each}
+      className={cn('contents', each === 'apple' ? APPLE_ONLY : OTHER_ONLY)}
+    >
+      <KeyCapContent face={keyFace(children, each)!} announce={announce} />
+    </span>
+  ))
 }
+
+const waitsForPlatform = (key: ReactNode) =>
+  typeof key === 'string' && keyFace(key, null) === null
 
 type KeyListProps = {
   keys: readonly string[]
   platform: KeyPlatform | null
   announce: boolean
   separator: ReactNode
-  /** The platform default, hidden until the platform is known. */
+  /** The platform default, shown off Apple once the platform is known. */
   pending: boolean
   slot: 'kbd' | 'kbd-key'
   className: string
@@ -150,7 +169,7 @@ function KeyList({
         <span
           data-slot='kbd-separator'
           aria-hidden={spoken ? undefined : 'true'}
-          className={cn('text-xs', pending ? 'invisible' : undefined)}
+          className={cn('text-xs', pending && OTHER_ONLY)}
         >
           {spoken ? ` ${separator} ` : separator}
         </span>
@@ -189,12 +208,25 @@ export function Kbd({
     separator: given ? separator : plus ? '+' : null,
     pending: !given && platform === null
   }
+  const waits =
+    platform === null &&
+    ((between.pending &&
+      between.separator !== null &&
+      (keys?.length ?? 0) > 1) ||
+      (keys ?? [children]).some(waitsForPlatform))
+  const marked = (root: ReactElement) => (
+    <>
+      {root}
+      {waits && <BeforePaint fix={{ kind: 'keyboard' }} />}
+    </>
+  )
 
   if (keys && combined && !plain) {
-    return (
+    return marked(
       <kbd
         data-slot='kbd'
         aria-hidden={hidden}
+        suppressHydrationWarning
         className={cn(
           kbdVariants({ emphasis, size }),
           'gap-0.5',
@@ -216,10 +248,11 @@ export function Kbd({
   }
 
   if (keys) {
-    return (
+    return marked(
       <kbd
         data-slot='kbd-group'
         aria-hidden={hidden}
+        suppressHydrationWarning
         className={cn(
           'inline-flex items-center',
           plain ? 'gap-0.5' : 'gap-1',
@@ -240,10 +273,11 @@ export function Kbd({
     )
   }
 
-  return (
+  return marked(
     <kbd
       data-slot='kbd'
       aria-hidden={hidden}
+      suppressHydrationWarning
       className={cn(
         kbdVariants({ emphasis, size }),
         hideWithoutHover,

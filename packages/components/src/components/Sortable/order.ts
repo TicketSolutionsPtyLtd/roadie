@@ -27,7 +27,7 @@ export function moveItem<T>(items: readonly T[], from: number, to: number) {
   return next
 }
 
-/** The index the dragged item lands on once it leaves `from`. */
+/** The index the dragged item lands on once it leaves `from` (-1 for another list). */
 export function dropIndex({
   from,
   target,
@@ -44,7 +44,7 @@ export function dropIndex({
   const startEdge =
     axis === 'vertical' ? 'top' : dir === 'rtl' ? 'right' : 'left'
   const insertAt = edge === startEdge ? target : target + 1
-  return from < insertAt ? insertAt - 1 : insertAt
+  return from !== -1 && from < insertAt ? insertAt - 1 : insertAt
 }
 
 export function menuMoves({
@@ -83,6 +83,10 @@ const ENDS: MoveDirection[] = ['top', 'bottom', 'start', 'end']
 export function reorderLabel(direction: MoveDirection, name?: string) {
   const where = ENDS.includes(direction) ? `to ${direction}` : direction
   return name ? `Move ${name} ${where}` : `Move ${where}`
+}
+
+export function transferLabel(list: string, name?: string) {
+  return name ? `Move ${name} to ${list}` : `Move to ${list}`
 }
 
 export function handleLabel(name?: string) {

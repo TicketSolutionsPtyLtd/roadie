@@ -13,11 +13,13 @@ import {
 } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { CommandPalette } from '../CommandPalette'
 import { Pane } from '../Pane'
 import { forgetPaneScroll } from '../Pane/paneScroll'
-import { useStylesheet } from '../Pane/testUtils'
 import { withStubLink } from './testUtils'
 import { NAV_COLLAPSE_THRESHOLD } from './useTopPaneChrome'
 
@@ -57,6 +59,7 @@ function renderBar({
   value = 'b',
   onValueChange,
   menu,
+  search = false,
   panes = <Pane column='list'>{tall}</Pane>
 }: {
   dir?: 'ltr' | 'rtl'
@@ -65,6 +68,7 @@ function renderBar({
   value?: string
   onValueChange?: (value: string) => void
   menu?: string
+  search?: boolean
   panes?: ReactNode
 } = {}) {
   const { container } = render(
@@ -86,9 +90,22 @@ function renderBar({
               Account
             </Navigator.Item>
           ) : null}
+          {search ? <Navigator.Search /> : null}
         </Navigator.Primary>
         {panes}
       </Navigator>
+      {search ? (
+        <CommandPalette items={['Events']}>
+          <CommandPalette.Input />
+          <CommandPalette.List>
+            {(label: string) => (
+              <CommandPalette.Item key={label} value={label}>
+                {label}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+        </CommandPalette>
+      ) : null}
     </div>
   )
   const bar = container.querySelector<HTMLElement>(
@@ -224,6 +241,28 @@ describe('phone bar with a pinned item', () => {
       .querySelector('[data-circle-side="start"]')!
       .getBoundingClientRect()
     expect(active.left - edge).toBeCloseTo(16, 0)
+  })
+})
+
+describe('phone bar with Navigator.Search', () => {
+  it('gives Search the trailing circle and folds the pinned Account into More, in five slots', async () => {
+    const { bar } = renderBar({ search: true })
+    await settle()
+    const circle = bar.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary-circle"]'
+    )!
+    const track = bar.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary-track"]'
+    )!
+
+    expect(within(circle).getByRole('button')).toHaveAccessibleName('Search')
+    expect(within(track).getAllByRole('button')).toHaveLength(4)
+    for (const name of ['A', 'B', 'C', 'More'])
+      expect(within(track).getByRole('button', { name })).toBeVisible()
+    expect(within(bar).queryByRole('button', { name: 'Account' })).toBeNull()
+    expect(circle.getBoundingClientRect().left).toBeGreaterThan(
+      track.getBoundingClientRect().right - 1
+    )
   })
 })
 

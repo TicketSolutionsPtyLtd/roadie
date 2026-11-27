@@ -295,7 +295,7 @@ describe('Field text description', () => {
     expect(getByRole('radiogroup')).toHaveAccessibleDescription('Helper')
   })
 
-  it('points at the error text when the Field is invalid', () => {
+  it('adds the error text to the helper text when the Field is invalid', () => {
     const { getByRole } = render(
       <Field invalid>
         <Field.Label>Contact method</Field.Label>
@@ -306,7 +306,7 @@ describe('Field text description', () => {
         <Field.ErrorText>Error</Field.ErrorText>
       </Field>
     )
-    expect(getByRole('radiogroup')).toHaveAccessibleDescription('Error')
+    expect(getByRole('radiogroup')).toHaveAccessibleDescription('Helper Error')
   })
 
   it("leaves an item's trailing out of its name", () => {

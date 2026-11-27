@@ -15,8 +15,8 @@ import { CaretLeftIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { isEmptyNode } from '../../utils/isEmptyNode'
 import { mergeRefs } from '../../utils/mergeRefs'
+import { stuckMoved } from '../../utils/stickyStack'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { IconButton } from '../Button/IconButton'
 import { Drawer } from '../Drawer'
@@ -27,11 +27,7 @@ import { PaneStackContext } from './PaneStackContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
 import { traverseToBackHref } from './paneBack'
-import {
-  paneHeaderEdgeClass,
-  paneHeaderInDrawerClass,
-  paneHeaderVariants
-} from './variants'
+import { paneHeaderEdgeClass, paneHeaderVariants } from './variants'
 
 export type PaneHeaderProps = ComponentProps<'header'> & {
   /** Back's parent route; a plain click traverses to a matching previous entry when it can. Wins over `onBack`. */
@@ -44,10 +40,71 @@ export type PaneHeaderProps = ComponentProps<'header'> & {
   onClose?: () => void
 }
 
+const HEADER_PARTS = [
+  '--pane-header-height',
+  '--pane-header-measured',
+  '--pane-header-rest',
+  '--pane-header-row',
+  '--pane-header-back',
+  '--pane-header-close',
+  '--pane-header-floor'
+]
+const ROW_ONE = new Set(['pane-title-compact', 'pane-actions'])
+
+/** The parts of the header's height Back and Close don't change, which CSS sums as they show (INNO-1678); the measured height wins where the sum misses. */
+function publishHeaderParts(header: HTMLElement, paneEl: HTMLElement) {
+  // A stretched first row hides its own height while an edge control shows.
+  let row = 0
+  const set = (name: string, px: number) => {
+    const value = `${px}px`
+    if (paneEl.style.getPropertyValue(name) !== value)
+      paneEl.style.setProperty(name, value)
+  }
+  return () => {
+    const style = getComputedStyle(header)
+    const height = parseFloat(style.height) || 0
+    if (height === 0) {
+      set('--pane-header-measured', 0)
+      return
+    }
+    const pad = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+    const floor = parseFloat(style.minHeight)
+    // The floor is one control tall: Back or Close.
+    const control = floor - pad
+    let back = 0
+    let close = 0
+    let edge = 0
+    let others = 0
+    for (const child of header.children) {
+      const slot = (child as HTMLElement).dataset.slot ?? ''
+      // The used height: a scale on the compact title would shrink a box.
+      const box = parseFloat(getComputedStyle(child).height) || 0
+      if (slot === 'pane-back') back = control
+      if (slot === 'pane-close') close = control
+      if (slot === 'pane-back' || slot === 'pane-close')
+        edge = Math.max(edge, box)
+      else if (ROW_ONE.has(slot)) others = Math.max(others, box)
+    }
+    if (edge === 0 || others > control) row = others
+    const first = Math.max(row, edge)
+    set('--pane-header-rest', height > floor ? height - first : pad)
+    set('--pane-header-row', row)
+    set('--pane-header-back', back)
+    set('--pane-header-close', close)
+    set('--pane-header-floor', floor)
+    const fit = parseFloat(
+      getComputedStyle(paneEl).getPropertyValue('--pane-header-fit')
+    )
+    if (fit === header.offsetHeight)
+      paneEl.style.removeProperty('--pane-header-measured')
+    else set('--pane-header-measured', header.offsetHeight)
+  }
+}
+
 const backIcon = <CaretLeftIcon weight='bold' className='size-5' />
 const closeIcon = <XIcon weight='bold' className='size-5' />
 
-/** Sticky chrome at the top of a pane: Back, a compact title, and actions. */
+/** Sticky chrome at the top of a pane: Back, a compact title, and actions. At least one control tall, even empty, so the server's first paint is where the pane settles. */
 export function PaneHeader({
   backHref,
   backLabel,
@@ -108,19 +165,7 @@ export function PaneHeader({
       '[Roadie] Pane.Header has a Pane.Title and the pane a Pane.BodyTitle; the Pane.Title wins.'
   )
 
-  const hasOtherContent = !isEmptyNode(children) || bodyTitle !== null
-  const visible = showBack || showClose || hasOtherContent
-  const edgeOnly = hasOtherContent
-    ? 'none'
-    : showBack && showClose
-      ? 'both'
-      : showBack
-        ? 'back'
-        : showClose
-          ? 'close'
-          : 'none'
-
-  // DOM walk: the pane's ref attaches after this effect. Keyed on `visible`, as headers come and go.
+  // DOM walk: the pane's ref attaches after this effect.
   useLayoutEffect(() => {
     const header = headerRef.current
     // In the inspector's drawer there's no pane, so the drawer carries it.
@@ -129,37 +174,56 @@ export function PaneHeader({
     )
     if (!header || !paneEl) return
 
-    const publish = () =>
-      paneEl.style.setProperty(
-        '--pane-header-height',
-        `${header.offsetHeight}px`
-      )
+    const publishParts = inDrawer
+      ? () =>
+          paneEl.style.setProperty(
+            '--pane-header-height',
+            `${header.offsetHeight}px`
+          )
+      : publishHeaderParts(header, paneEl)
+    const publish = () => {
+      publishParts()
+      stuckMoved(header)
+    }
+    if (!inDrawer) paneEl.setAttribute('data-header', '')
 
-    publish()
+    // The observer's first delivery tells the sticky stack: telling it here
+    // reads styles just written, a restyle on every push.
+    publishParts()
 
     const observer =
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
-    observer?.observe(header)
+    // Back or Close showing may leave the header's size alone, as beside a
+    // row of actions, and the sum still has to be checked.
+    const observeChildren = () => {
+      observer?.observe(header)
+      for (const child of header.children) observer?.observe(child)
+    }
+    observeChildren()
+    const children =
+      typeof MutationObserver === 'undefined'
+        ? null
+        : new MutationObserver(() => {
+            observeChildren()
+            publish()
+          })
+    children?.observe(header, { childList: true })
     const untrack = inDrawer ? undefined : trackHeader?.(header)
     return () => {
       observer?.disconnect()
+      children?.disconnect()
       untrack?.()
-      paneEl.style.removeProperty('--pane-header-height')
+      paneEl.removeAttribute('data-header')
+      for (const name of HEADER_PARTS) paneEl.style.removeProperty(name)
     }
-  }, [visible, inDrawer, trackHeader])
-
-  if (!visible) return null
+  }, [inDrawer, trackHeader])
 
   return (
     <header
       ref={setHeaderRef}
       data-slot='pane-header'
       data-collapsed={String(collapsed)}
-      className={cn(
-        paneHeaderVariants({ edgeOnly, collapsed }),
-        inDrawer && paneHeaderInDrawerClass,
-        className
-      )}
+      className={cn(paneHeaderVariants({ collapsed, inDrawer }), className)}
       {...props}
     >
       {showBack ? (

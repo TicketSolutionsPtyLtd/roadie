@@ -16,6 +16,7 @@ import {
   formatSeatRange,
   isSafeImageUrl
 } from '../../cart'
+import { cartRemovingVeilClass } from '../veil'
 
 const props = defineProps<{
   event: CartEvent
@@ -164,11 +165,7 @@ onBeforeUnmount(() => {
     class="relative grid gap-3 transition-opacity"
     :class="{ 'opacity-50': busy && !removing }"
   >
-    <div
-      v-if="removing"
-      role="status"
-      class="absolute -inset-4 z-docked grid place-content-center bg-raised/60 backdrop-blur-sm @xl:rounded-xl"
-    >
+    <div v-if="removing" role="status" :class="cartRemovingVeilClass">
       <span
         class="flex items-center gap-2 text-ui-meta font-bold text-subtle intent-danger"
       >

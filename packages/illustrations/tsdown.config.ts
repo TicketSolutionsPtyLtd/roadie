@@ -1,10 +1,11 @@
 import { defineConfig } from 'tsdown'
 
 import { skipUnchangedWrites } from '../../scripts/tsdown-watch.mjs'
+import { shippedSources } from '../core/scripts/package-exports.mjs'
 
 // One output file per illustration, so a bundler keeps only the ones imported.
 export default defineConfig(({ watch }) => ({
-  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
+  entry: shippedSources(),
   unbundle: true,
   // Keeps `spot/` in the output, so each kind of illustration gets its own subpath.
   root: 'src',

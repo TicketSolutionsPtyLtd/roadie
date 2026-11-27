@@ -10,11 +10,15 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Records, useRecords } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
-import { RecordTable, tableLayout } from '../RecordTable'
-import { frame, rect, showColumns, slot } from '../RecordTable/testUtils'
+import { RecordList, listLayout } from '../RecordList'
+import { frame, rect, slot } from '../RecordTable/testUtils'
 import { showFields, testShows } from './testUtils'
 import type { RecordsBulkAction } from './types'
 
@@ -25,6 +29,9 @@ beforeAll(async () => {
 })
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
+
+// A list's bar floats; a re-flowed table keeps its bar in the header row.
+const row = { title: 'show', description: 'city' } as const
 
 // The bar's inset from the records' edges, each side.
 const INSET = 16
@@ -38,11 +45,11 @@ function Shows({
 }) {
   return (
     <div data-testid='width' style={{ width }}>
-      <RecordTable
+      <RecordList
         caption='Shows'
         data={testShows(8)}
         fields={showFields}
-        columns={showColumns}
+        row={row}
         getRowId={(row) => row.id}
         defaultSelection={{ ids: ['show-0'] }}
         bulkActions={actions}
@@ -70,7 +77,7 @@ function Composed({
     <div data-testid='width' style={{ width }}>
       <Records.Root
         records={records}
-        layouts={[tableLayout(showColumns)]}
+        layouts={[listLayout(row)]}
         caption='Shows'
       >
         <Records.Content />
@@ -150,5 +157,94 @@ describe('Records floating bulk actions in a browser', () => {
     await expect.poll(more).not.toBeNull()
     await fitTo(Math.ceil(natural + 2 * INSET) + 1)
     await expect.poll(more).toBeNull()
+  })
+})
+
+function Scrolling({
+  footer = 0,
+  width = 360,
+  actions = ['Export orders']
+}: {
+  /** A pane's sticky footer height, as the pane publishes it. */
+  footer?: number
+  width?: number
+  actions?: string[]
+}) {
+  const records = useRecords({
+    data: testShows(40),
+    fields: showFields,
+    getRowId: (row) => row.id,
+    selectable: true,
+    defaultSelection: { ids: ['show-0'] }
+  })
+  return (
+    <div
+      data-testid='scroller'
+      style={{
+        width,
+        height: 400,
+        overflow: 'auto',
+        ['--pane-sticky-bottom' as string]: `${footer}px`
+      }}
+    >
+      <Records.Root
+        records={records}
+        layouts={[listLayout(row)]}
+        caption='Shows'
+      >
+        <Records.Content />
+        <Records.BulkActions actions={bulkActions(actions)} />
+      </Records.Root>
+      <p style={{ height: 600 }}>After the shows</p>
+    </div>
+  )
+}
+
+describe('Records bulk actions in a scroll box', () => {
+  it('rides the foot of the box while the records run past it, then rests at their end', async () => {
+    render(<Scrolling />)
+    await settle()
+    const box = screen.getByTestId('scroller')
+    const records = slot(box, 'records')
+    expect(rect(records).bottom).toBeGreaterThan(rect(box).bottom)
+    expect(rect(box).bottom - rect(floating()).bottom).toBeCloseTo(INSET, 0)
+
+    box.scrollTop = rect(records).height
+    await settle()
+    expect(rect(records).bottom).toBeLessThan(rect(box).bottom)
+    expect(rect(floating()).bottom).toBeLessThanOrEqual(rect(records).bottom)
+    expect(rect(records).bottom - rect(floating()).bottom).toBeLessThan(INSET)
+  })
+
+  it("clears a pane's sticky footer", async () => {
+    render(<Scrolling footer={40} />)
+    await settle()
+    const box = screen.getByTestId('scroller')
+    expect(rect(box).bottom - rect(floating()).bottom).toBeCloseTo(
+      40 + INSET,
+      0
+    )
+  })
+
+  it('lets a tap beside the bar reach the records under it', async () => {
+    render(<Scrolling />)
+    await settle()
+    const box = screen.getByTestId('scroller')
+    const bar = rect(floating())
+    const beside = document.elementFromPoint(
+      rect(box).left + 4,
+      bar.top + bar.height / 2
+    )
+    expect(slot(box, 'records').contains(beside)).toBe(true)
+    expect(beside?.closest('[data-slot="records-bulk-dock"]')).toBeNull()
+  })
+
+  it('keeps its inset beside a bar too wide for the records', async () => {
+    render(<Scrolling width={220} actions={['Email every ticket holder']} />)
+    await settle()
+    const records = rect(slot(screen.getByTestId('scroller'), 'records'))
+    const bar = rect(floating())
+    expect(bar.left - records.left).toBeGreaterThanOrEqual(INSET - 0.5)
+    expect(records.right - bar.right).toBeGreaterThanOrEqual(INSET - 0.5)
   })
 })

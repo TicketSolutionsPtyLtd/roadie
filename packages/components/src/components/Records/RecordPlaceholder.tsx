@@ -9,8 +9,8 @@ import { cn } from '@oztix/roadie-core/utils'
 import { Button } from '../Button'
 import { listItemContentClass, listItemLeadingClass } from '../List/variants'
 import { rangeErrorMessage } from './RecordsStates'
-import { useRecordsContext } from './context'
-import { cardSize, listRowSize } from './rowSizing'
+import { useRecordsData } from './context'
+import { cardSize, hasSubline, listRowSize } from './rowSizing'
 import { tableFocusTarget, useKeepFocusInTable } from './tableFocus'
 import type { RecordCardParts } from './types'
 
@@ -22,7 +22,8 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
   card,
   index,
   measureElement,
-  blank = false
+  blank = false,
+  raised = false
 }: {
   parts: RecordCardParts
   card: boolean
@@ -30,9 +31,11 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
   measureElement?: MeasureElement
   /** No bars: a record of a failed range, which isn't loading. */
   blank?: boolean
+  /** A raised card's placeholder, as on a board. */
+  raised?: boolean
 }) {
-  const description = parts.description !== undefined
   if (card) {
+    const description = parts.description !== undefined
     const banner = parts.image !== undefined
     const bodyClass = cardSize(banner).heightClass
     return (
@@ -45,7 +48,10 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
       >
         <div
           className={cn(
-            'grid content-start overflow-hidden rounded-xl border border-subtle',
+            'grid content-start overflow-hidden rounded-xl',
+            raised
+              ? 'emphasis-raised border border-transparent'
+              : 'border border-subtle',
             !banner && bodyClass
           )}
         >
@@ -81,7 +87,7 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
           className={cn(listItemContentClass, 'grid content-center gap-2 py-0')}
         >
           {!blank && <span className='h-3 w-3/5 rounded-sm bg-subtle' />}
-          {!blank && description && (
+          {!blank && hasSubline(parts) && (
             <span className='h-2.5 w-2/5 rounded-sm bg-subtle' />
           )}
         </span>
@@ -92,7 +98,7 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
 
 /** What a failed range shows: the error and Retry. */
 export function RangeErrorMessage() {
-  const { records } = useRecordsContext()
+  const records = useRecordsData()
   return (
     <>
       <WarningIcon

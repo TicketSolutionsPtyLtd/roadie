@@ -12,6 +12,7 @@
 
 /* The tokens reference draws each utility by name from the manifest. */
 @source '../../../packages/core/src/css/safelist.html';
+@source '../../../packages/core/src/css/safelist.families.html';
 
 /* A `wideExamples` page keeps prose at reading width but runs each live example
    to the docs pane's width, centred on the column, so a block shows at page scale. */

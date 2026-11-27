@@ -81,18 +81,18 @@ export function Signup() {
 
 ## Components
 
-| Category      | Components                                                                                                                                          |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Actions       | Button, IconButton, Toggle, ToggleGroup                                                                                                             |
-| Forms         | Field, Fieldset, Label, Input, Textarea, Select, Combobox, Autocomplete, Checkbox, CheckboxGroup, RadioGroup, Switch, Slider, NumberField, OTPField |
-| Collections   | Accordion, Card, Carousel, Collapsible, List, Marquee, Table                                                                                        |
-| Layout        | Pane, ScrollArea, Separator                                                                                                                         |
-| Navigation    | Breadcrumb, Navigator, Steps, Tabs                                                                                                                  |
-| Overlays      | Dialog, Drawer, Menu, Popover, Toast, Tooltip                                                                                                       |
-| Status        | Badge, Callout, Countdown, EmptyState, Progress, Skeleton                                                                                           |
-| Text          | CalendarTile, Code, DateTime, Duration, Highlight, Mark, Prose                                                                                      |
-| Media & brand | Avatar, IconTile, Image, Logo, QRCode, SpotIllustration                                                                                             |
-| Data          | Dashboard, DataCard, DataTable, Delta, Meter, Sparkline, StatTile                                                                                   |
+| Category      | Components                                                                                                                                                      |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actions       | Button, IconButton, Toggle, ToggleGroup                                                                                                                         |
+| Forms         | Field, Fieldset, Label, Input, Textarea, Select, Combobox, Autocomplete, Checkbox, CheckboxGroup, RadioGroup, Switch, Slider, NumberField, OTPField, PhoneField |
+| Collections   | Accordion, Card, Carousel, Collapsible, List, Marquee, Table                                                                                                    |
+| Layout        | Pane, ScrollArea, Separator                                                                                                                                     |
+| Navigation    | Breadcrumb, Navigator, Steps, Tabs                                                                                                                              |
+| Overlays      | Dialog, Drawer, Menu, Popover, Toast, Tooltip                                                                                                                   |
+| Status        | Badge, Callout, Countdown, EmptyState, Progress, Skeleton                                                                                                       |
+| Text          | CalendarTile, Code, DateTime, Duration, Highlight, Mark, Prose                                                                                                  |
+| Media & brand | Avatar, IconTile, Image, Logo, QRCode, SpotIllustration                                                                                                         |
+| Data          | Dashboard, DataCard, DataTable, Delta, Meter, Sparkline, StatTile                                                                                               |
 
 For chart types and chart cards, add
 [`@oztix/roadie-charts`](https://www.npmjs.com/package/@oztix/roadie-charts).

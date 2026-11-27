@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Dialog } from '@oztix/roadie-components/dialog'
 
 import { Editor } from '.'
@@ -66,10 +67,11 @@ async function insertButton() {
 }
 
 async function choose(trigger: string | RegExp, option: string) {
-  await userEvent.click(await screen.findByRole('button', { name: trigger }))
-  await userEvent.click(
-    await screen.findByRole('menuitemradio', { name: option })
-  )
+  await pickMenuItem(userEvent, {
+    from: await screen.findByRole('button', { name: trigger }),
+    item: option,
+    role: 'menuitemradio'
+  })
 }
 
 // The menus portal to the body, so React unmounts them before the body empties.
@@ -292,6 +294,9 @@ describe('Editor email blocks', () => {
       )
     )
 
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    )
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
     await saved(onValueChange, value)
   })

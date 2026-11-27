@@ -15,7 +15,7 @@ import {
   textAlignOf,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, expectReadable, setMode } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
@@ -314,16 +314,12 @@ describe('Stats contrast on every band', () => {
             screen.getByRole('heading', { level: 2 }),
             screen.getByText('33,000,000+')
           ])
-            expect(textContrast(element), at).toBeGreaterThanOrEqual(
-              MINIMUM_LC.large
-            )
+            expectReadable(element, at)
           for (const element of [
             screen.getByText('The impact of genuine partnerships'),
             screen.getByText('tickets sold')
           ])
-            expect(textContrast(element), at).toBeGreaterThanOrEqual(
-              MINIMUM_LC.body
-            )
+            expectReadable(element, at)
           unmount()
         }
       } finally {

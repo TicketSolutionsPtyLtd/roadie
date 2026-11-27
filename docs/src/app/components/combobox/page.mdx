@@ -266,6 +266,46 @@ function ComboboxRichItems() {
 }
 ```
 
+#### Long lists
+
+Add `virtualized` to the root for a list of hundreds or thousands of items. The
+list then draws only the rows near the scroll position, so typing and opening
+stay smooth.
+
+```tsx-live
+function ComboboxLongList() {
+  const names = ['Iguana Teapot Hall', 'Kazoo Hollow Room', 'Wobbly Teacup Room']
+  const venues = Array.from(
+    { length: 2000 },
+    (_, index) => `${names[index % names.length]} ${index + 1}`
+  )
+
+  return (
+    <Combobox items={venues} virtualized>
+      <Combobox.InputGroup>
+        <Combobox.Input placeholder='Search 2,000 venues...' />
+        <Combobox.Trigger />
+      </Combobox.InputGroup>
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup className='max-h-80'>
+            <Combobox.List>
+              {(venue) => (
+                <Combobox.Item key={venue} value={venue}>
+                  {venue}
+                  <Combobox.ItemIndicator />
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+            <Combobox.Empty>No venues found</Combobox.Empty>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox>
+  )
+}
+```
+
 ### Multiple selection
 
 Set `multiple` to pick more than one value. `Combobox.Value` hands the current
@@ -429,6 +469,16 @@ For server-side search, update the `items` prop as results arrive, and pass
 </Combobox>
 ```
 
+### Long lists
+
+With `virtualized` on the root, `Combobox.List` draws only the rows near the
+scroll position, plus a few either side. Use it for long lists, from a few
+hundred items up; short lists don't need it. It takes a render function
+child, over a flat `items` array or groups. With groups, the label of the group
+in view sticks to the top of the list. Rows can differ in height, since each is
+measured as it appears. The popup scrolls
+within the space it has, and a `max-h-*` class keeps it shorter.
+
 ### Chips
 
 <Guidelines>
@@ -461,6 +511,11 @@ For server-side search, update the `items` prop as results arrive, and pass
 
 ## Accessibility
 
+- In a `virtualized` list, each row carries `aria-setsize` and `aria-posinset`,
+  so screen readers still announce its place in the whole list, or in its
+  group. A group's label stays mounted while any of its rows is drawn, so the
+  group keeps its name. The arrow keys
+  reach every item, and the list scrolls to the highlighted one.
 - **Arrow keys** move through the list; **Enter** picks the highlighted item
   and **Escape** closes the popup. Typing filters the list as you go.
 - Typing puts the closest matches first and highlights the first one,

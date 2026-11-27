@@ -13,6 +13,10 @@ import {
 } from 'vitest'
 
 import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+import {
   type RecordPosition,
   type RecordView,
   recordFields
@@ -21,9 +25,12 @@ import {
 import { RecordTable, tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Menu } from '../Menu'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import type { RecordTableNarrowLayout } from './narrow'
 import { frame } from './testUtils'
 
@@ -406,18 +413,13 @@ function Composed({
   narrow?: RecordTableNarrowLayout
   hidden?: string[]
 }) {
-  const records = useRecords({
-    ...six,
-    defaultView: hidden && { layout: { type: 'table', columns: { hidden } } }
-  })
   return (
-    <Records.Root
-      records={records}
+    <ShowRecords
+      {...six}
+      defaultView={hidden && { layout: { type: 'table', columns: { hidden } } }}
       layouts={[tableLayout(columns, { narrow })]}
       caption='Shows'
-    >
-      <Records.Content />
-    </Records.Root>
+    />
   )
 }
 

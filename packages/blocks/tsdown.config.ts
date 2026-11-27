@@ -5,17 +5,13 @@ import {
   cacheTransforms,
   skipUnchangedWrites
 } from '../../scripts/tsdown-watch.mjs'
-import { reactCompilerPreset } from './react-compiler.config.ts'
+import { shippedSources } from '../core/scripts/package-exports.mjs'
+import { reactCompilerPreset } from '../core/scripts/react-compiler.config.ts'
 
 // Unbundle mode is load-bearing for RSC safety, and keeps 'use client' per file
 // so its warning is noise — see packages/components/tsdown.config.ts.
 export default defineConfig(({ watch }) => ({
-  entry: [
-    'src/**/*.{ts,tsx}',
-    '!**/*.test.{ts,tsx}',
-    '!**/fixtures.{ts,tsx}',
-    '!src/_test/**'
-  ],
+  entry: shippedSources(),
   unbundle: true,
   suppressWarnings: 'module level directive "use client"',
   format: ['esm'],

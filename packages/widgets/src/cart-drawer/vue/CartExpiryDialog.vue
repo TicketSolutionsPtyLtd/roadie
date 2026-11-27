@@ -2,7 +2,7 @@
 import { PhX } from '@phosphor-icons/vue'
 import { onBeforeUnmount, onMounted, ref, useSlots } from 'vue'
 
-import { lockBodyScroll } from './documentEffects'
+import { lockBodyScroll } from '../../cart/documentEffects'
 
 // Vue has no roadie-components Dialog, so this mirrors the React Dialog compound
 // (Header → Body → Footer, centred, gap-8) with Roadie utilities.

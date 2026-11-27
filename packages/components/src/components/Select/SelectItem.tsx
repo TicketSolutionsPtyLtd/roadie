@@ -4,9 +4,9 @@ import { type RefAttributes, use } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
+import { focusedRowHighlightClass, optionRowClass } from '../../variants'
 import { SelectContext } from './SelectContext'
 import { SelectItemIndicator } from './SelectItemIndicator'
 import { SelectItemText } from './SelectItemText'
@@ -36,10 +36,8 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
   return (
     <SelectPrimitive.Item
       data-slot='select-item'
-      className={cn(
-        'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
-        // A tapped option keeps focus, so on touch only the keyboard shows the highlight.
-        'data-[highlighted]:focus-visible:bg-subtle [@media(hover:hover)]:data-[highlighted]:bg-subtle',
+      className={mergeClassName(
+        [optionRowClass, focusedRowHighlightClass],
         className
       )}
       {...props}

@@ -4,8 +4,7 @@ import { type RefAttributes, useEffect, useState } from 'react'
 
 import { Toast as ToastPrimitive } from '@base-ui/react/toast'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { ToastAction } from './ToastAction'
 import { ToastClose } from './ToastClose'
 import { ToastContent } from './ToastContent'
@@ -90,7 +89,7 @@ export function ToastViewport({
           data-slot='toast-viewport'
           data-position={position}
           data-window-blurred={windowBlurred ? '' : undefined}
-          className={cn(
+          className={mergeClassName(
             toastViewportVariants({
               side: toastSide(position),
               align: position.endsWith('center') ? 'center' : 'end'

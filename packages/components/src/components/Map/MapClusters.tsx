@@ -146,7 +146,7 @@ export function MapClusters({
     () => {
       if (!instance || !frame.current) return ''
       if (!locked) lockedAt.current = null
-      else lockedAt.current ??= gridLevel(instance)
+      else if (lockedAt.current === null) lockedAt.current = gridLevel(instance)
       return JSON.stringify(
         layoutOf(instance, frame.current, index, lockedAt.current)
       )

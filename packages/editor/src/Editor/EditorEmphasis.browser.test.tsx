@@ -101,6 +101,24 @@ describe('Editor emphasis', () => {
     }
   )
 
+  it('marks an invalid boxed editor with the field’s danger edge and fill', async () => {
+    render(
+      <Field invalid>
+        <Field.Label>{LABEL}</Field.Label>
+        <Editor defaultValue={description} />
+      </Field>
+    )
+    const frame = getComputedStyle(frameOf(await loadedTextbox()))
+    const danger = document.createElement('div')
+    danger.style.color = 'var(--color-danger-9)'
+    danger.style.backgroundColor = 'var(--color-danger-2)'
+    document.body.append(danger)
+    onTestFinished(() => danger.remove())
+
+    expect(frame.borderTopColor).toBe(getComputedStyle(danger).color)
+    expect(frame.backgroundColor).toBe(getComputedStyle(danger).backgroundColor)
+  })
+
   it('shows focus on the caret’s block, and only while the editor has it', async () => {
     render(
       <>

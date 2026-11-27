@@ -17,6 +17,8 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { pickMenuItem, pickOption } from '@oztix/roadie-browser-testing'
+
 import { Editor, type EditorPreviewRecipient, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
@@ -297,10 +299,11 @@ describe('Editor preview', () => {
       await openPreview()
       expect(screen.queryByRole('combobox', { name: 'Preview as' })).toBeNull()
 
-      await userEvent.click(screen.getByRole('button', { name: 'Preview as' }))
-      await userEvent.click(
-        await screen.findByRole('menuitemradio', { name: 'No name' })
-      )
+      await pickMenuItem(userEvent, {
+        from: screen.getByRole('button', { name: 'Preview as' }),
+        item: 'No name',
+        role: 'menuitemradio'
+      })
 
       await waitFor(() =>
         expect(onRenderPreview).toHaveBeenLastCalledWith(expect.anything(), {
@@ -317,10 +320,10 @@ describe('Editor preview', () => {
       expect(frame).toHaveAttribute('srcdoc', '<p>Hi Alex</p>')
     )
 
-    await userEvent.click(screen.getByRole('combobox', { name: 'Preview as' }))
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'No name' })
-    )
+    await pickOption(userEvent, {
+      from: screen.getByRole('combobox', { name: 'Preview as' }),
+      option: 'No name'
+    })
 
     await waitFor(() =>
       expect(frame).toHaveAttribute('srcdoc', '<p>Hi there</p>')
@@ -410,10 +413,10 @@ describe('Editor preview', () => {
       />
     )
     const frame = await openPreview()
-    await userEvent.click(screen.getByRole('combobox', { name: 'Preview as' }))
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'No name' })
-    )
+    await pickOption(userEvent, {
+      from: screen.getByRole('combobox', { name: 'Preview as' }),
+      option: 'No name'
+    })
     await waitFor(() =>
       expect(frame).toHaveAttribute('srcdoc', '<p>Hi there</p>')
     )
@@ -442,13 +445,10 @@ describe('Editor preview', () => {
     const floating = await screen.findByRole('toolbar', {
       name: 'Selection formatting'
     })
-    await userEvent.click(
-      within(floating).getByRole('button', { name: 'More' })
-    )
-
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Preview' })
-    )
+    await pickMenuItem(userEvent, {
+      from: within(floating).getByRole('button', { name: 'More' }),
+      item: 'Preview'
+    })
 
     expect(await screen.findByTitle('Email preview')).toBeVisible()
   })

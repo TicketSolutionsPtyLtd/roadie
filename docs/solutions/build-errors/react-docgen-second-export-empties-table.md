@@ -87,6 +87,16 @@ export { deriveMobileSlots }
 The public import surface is unchanged: consumers importing from the
 component's barrel see the same names. Only the file boundary moved.
 
+## Since then
+
+The manifest now names each export from its own `X.displayName = '…'`
+statement or its export name (`exportDisplayName` in
+`packages/core/scripts/manifest/components.ts`), so a helper beside a
+component no longer takes the component's name. `checkPartProps` fails the
+build when a part leaves out a prop its `<Part>Props` type declares. A
+second export in a component file is no longer a silent failure, though a
+helper in its own module is still the tidier file.
+
 ## Prevention
 
 - **A component file should export exactly one component-shaped thing.** A

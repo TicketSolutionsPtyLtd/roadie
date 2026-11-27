@@ -4,6 +4,7 @@ import type {
   DashboardPeriodSpec,
   LinePlot
 } from '@oztix/roadie-core/dashboard'
+import { ANNOTATION_LABEL_LIMIT } from '@oztix/roadie-core/dashboard-layout'
 import {
   type Comparison,
   type DescribeComparisonOptions,
@@ -44,15 +45,12 @@ function comparisonLine(
   }
 }
 
-// ANNOTATION_LABEL_LIMIT, which can't be imported without the spec's schemas.
-const SERIES_LABEL_LIMIT = 20
-
 /** "vs previous period" names a series as "Previous period". */
 function seriesName(line: string) {
   const name = line
     .replace(/^vs /, '')
     .replace(/^\p{Ll}/u, (first) => first.toUpperCase())
-  return name.length > SERIES_LABEL_LIMIT ? 'Custom dates' : name
+  return name.length > ANNOTATION_LABEL_LIMIT ? 'Custom dates' : name
 }
 
 type Compared = Omit<LinePlot, 'data'> | Omit<BarPlot, 'data'>

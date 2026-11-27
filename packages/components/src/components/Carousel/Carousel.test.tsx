@@ -4,6 +4,7 @@ import { waitFor } from '@testing-library/dom'
 import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { EmblaCarouselType } from 'embla-carousel'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -55,6 +56,68 @@ describe('Carousel', () => {
     const region = getByRole('region')
     expect(region).toHaveAttribute('aria-roledescription', 'carousel')
     expect(region).toHaveAttribute('aria-label', 'Test carousel')
+  })
+
+  it('leaves hidden controls and dots out of the accessibility tree without a stylesheet', () => {
+    const { queryAllByRole } = render(
+      <Carousel aria-label='Shows'>
+        <Carousel.Content>
+          <Carousel.Item>Show 1</Carousel.Item>
+        </Carousel.Content>
+        <Carousel.Dots />
+        <Carousel.Controls>
+          <Carousel.Previous />
+          <Carousel.Next />
+        </Carousel.Controls>
+      </Carousel>
+    )
+    expect(queryAllByRole('button')).toEqual([])
+    expect(
+      queryAllByRole('group').map((group) => group.getAttribute('aria-label'))
+    ).toEqual(['1 of 1'])
+  })
+
+  it('renders the controls and dots on the server, as Embla has not measured yet', () => {
+    const html = renderToString(
+      <Carousel aria-label='Shows'>
+        <Carousel.Header>
+          <Carousel.Dots />
+          <Carousel.Controls>
+            <Carousel.Previous />
+            <Carousel.Next />
+          </Carousel.Controls>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>Show 1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const server = document.createElement('div')
+    server.innerHTML = html
+    const part = (slot: string) => server.querySelector(`[data-slot="${slot}"]`)
+    for (const slot of ['dots', 'controls', 'previous', 'next']) {
+      expect(part(`carousel-${slot}`)).toBeInstanceOf(HTMLElement)
+      expect(part(`carousel-${slot}`)).not.toHaveAttribute('data-hidden')
+    }
+    expect(part('carousel-next')).not.toHaveAttribute('aria-disabled')
+    expect(part('carousel-previous')).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('hides the controls and dots once mounted with no Carousel.Content to count', () => {
+    const { container } = render(
+      <Carousel aria-label='Shows'>
+        <Carousel.Dots />
+        <Carousel.Controls>
+          <Carousel.Previous />
+          <Carousel.Next />
+        </Carousel.Controls>
+      </Carousel>
+    )
+    for (const slot of ['dots', 'controls', 'previous', 'next']) {
+      expect(
+        container.querySelector(`[data-slot="carousel-${slot}"]`)
+      ).toHaveAttribute('data-hidden')
+    }
   })
 
   it('renders one slide per Carousel.Item with "N of M" label', () => {

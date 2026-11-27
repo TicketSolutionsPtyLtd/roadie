@@ -4,8 +4,9 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 import { MapEngineContext } from './MapEngineContext'
 import blankStyle from './fixtures/blank-style.json?url'
 import { Map, type MapActions } from './index'

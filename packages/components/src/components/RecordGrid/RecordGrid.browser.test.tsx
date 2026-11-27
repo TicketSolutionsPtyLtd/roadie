@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { type ReactElement, useMemo, useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import { renderToString } from 'react-dom/server'
 import {
   afterAll,
   afterEach,
@@ -12,15 +13,20 @@ import {
   vi
 } from 'vitest'
 
+import { withFrames } from '@oztix/roadie-browser-testing'
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import type { RecordPosition } from '@oztix/roadie-core/records'
 
 import { RecordGrid, gridLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { nudgeFrames, withFrames } from '../../css/testUtils'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
+import { nudgeFrames } from '../../css/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
-import { Records, useRecords } from '../Records'
+import { Records, type RecordsRangeResult } from '../Records'
 import {
+  ShowRecords,
   type TestShow,
   boxStates,
   showFields,
@@ -313,7 +319,6 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
     const user = userEvent.setup()
     const column = tableColumns<TestShow>(showFields)
     function Switching() {
-      const records = useRecords({ data: testShows(6), fields: showFields })
       const [layouts] = useState(() => [
         tableLayout([
           column.field('show', { pin: true }),
@@ -324,10 +329,10 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
       ])
       return (
         <div style={{ width: 900 }}>
-          <Records records={records} layouts={layouts} caption='Shows'>
+          <ShowRecords data={testShows(6)} layouts={layouts} caption='Shows'>
             <Records.Header />
             <Records.Content />
-          </Records>
+          </ShowRecords>
         </div>
       )
     }
@@ -416,4 +421,79 @@ describe('RecordGrid in a fill box', () => {
         0
       )
     })
+})
+
+// The server's paint, before any effect measures the columns: only CSS decides.
+describe('RecordGrid before its columns are measured', () => {
+  const rem = () =>
+    parseFloat(getComputedStyle(document.documentElement).fontSize)
+  // n columns start at n cards of 16rem and n - 1 gaps of 1rem.
+  const fits = (columns: number) => (17 * columns - 1) * rem()
+  const tracks = (list: string) =>
+    list.split(' ').filter((track) => track.endsWith('px')).length
+
+  /** The columns and rows the server's HTML lays out at a width. */
+  function serverGrid(width: number, ui: ReactElement) {
+    const host = document.createElement('div')
+    document.body.append(host)
+    try {
+      host.style.width = `${width}px`
+      host.innerHTML = renderToString(ui)
+      const body = host.querySelector('[data-slot="record-grid-body"]')!
+      const style = getComputedStyle(body)
+      return {
+        width,
+        columns: tracks(style.gridTemplateColumns),
+        rows: tracks(style.gridTemplateRows)
+      }
+    } finally {
+      host.remove()
+    }
+  }
+
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])(
+    'lays out the rows of %i columns, from the narrowest width to the widest',
+    (columns) => {
+      const records = 300
+      for (const width of [fits(columns), fits(columns + 1) - 1])
+        expect(
+          serverGrid(
+            width,
+            <RecordGrid
+              data={testShows(records)}
+              fields={showFields}
+              defaultPosition={{ pageSize: records }}
+              card={grid}
+            />
+          )
+        ).toEqual({ width, columns, rows: Math.ceil(records / columns) })
+    }
+  )
+
+  it.each([
+    // [records the first range is sized for, columns]
+    [50, 4],
+    [12, 3],
+    [12, 4],
+    [16, 8]
+  ])(
+    'lays out the rows of %i loading records at %i columns in range mode',
+    (records, columns) => {
+      const width = fits(columns)
+      expect(
+        serverGrid(
+          width,
+          <RecordGrid
+            fields={showFields}
+            getRowId={(row: TestShow) => row.id}
+            defaultPosition={{ pageSize: records }}
+            loadRange={() =>
+              new Promise<RecordsRangeResult<TestShow>>(() => {})
+            }
+            card={grid}
+          />
+        )
+      ).toEqual({ width, columns, rows: Math.ceil(records / columns) })
+    }
+  )
 })
