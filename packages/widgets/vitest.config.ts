@@ -4,7 +4,9 @@ import vue from '@vitejs/plugin-vue'
 import { playwright } from '@vitest/browser-playwright'
 import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { BaseSequencer, type BrowserCommand } from 'vitest/node'
+import { BaseSequencer } from 'vitest/node'
+
+import { pointer } from '@oztix/roadie-browser-testing/config'
 
 import {
   browserInstances,
@@ -13,29 +15,6 @@ import {
   quarantineInclude,
   sizeBalanced
 } from '../../vitest.browsers.config.ts'
-
-type PointerStep =
-  | { type: 'move'; x: number; y: number }
-  | { type: 'down' | 'up' }
-
-// A real mouse, so the drawer sees the browser's own events, click included.
-// Points are in the test frame's CSS pixels; the frame may sit offset and scaled.
-const pointer: BrowserCommand<[steps: PointerStep[]]> = async (
-  { page, frame },
-  steps
-) => {
-  const testFrame = await frame()
-  const box = await (await testFrame.frameElement()).boundingBox()
-  if (!box) throw new Error('The test frame has no box')
-  const width = await testFrame.evaluate(() => window.innerWidth)
-  const scale = box.width / width
-  for (const step of steps) {
-    if (step.type === 'move')
-      await page.mouse.move(box.x + step.x * scale, box.y + step.y * scale)
-    else if (step.type === 'down') await page.mouse.down()
-    else await page.mouse.up()
-  }
-}
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const ROOT = fileURLToPath(new URL('./', import.meta.url))

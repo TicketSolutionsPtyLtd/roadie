@@ -137,6 +137,7 @@
     "@arethetypeswrong/cli": "0.18.5",
     "@number-flow/react": "0.6.2",
     "@number-flow/vue": "0.5.2",
+    "@oztix/roadie-browser-testing": "workspace:*",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
     "@phosphor-icons/react": "2.1.10",

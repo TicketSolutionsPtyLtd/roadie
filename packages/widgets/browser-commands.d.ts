@@ -1,8 +1,9 @@
+import type { PointerStep } from '@oztix/roadie-browser-testing/config'
+
 declare module 'vitest/browser' {
   interface BrowserCommands {
-    pointer: (
-      steps: ({ type: 'move'; x: number; y: number } | { type: 'down' | 'up' })[]
-    ) => Promise<void>
+    /** Drives a real mouse, in the test frame's CSS pixels. */
+    pointer: (steps: PointerStep[]) => Promise<void>
   }
 }
 
