@@ -170,8 +170,8 @@ export const rhythmTable = (tokens: TokenEntry[]): TwinTable => ({
 const FOCUS_RING_LABELS: Record<string, string> = {
   '--focus-ring-width': 'Width',
   '--focus-ring-opacity': 'Opacity in light and dark mode',
-  '--outline-color-focus': 'Colour, as outline-focus',
-  '--outline-color-focus-danger': 'Colour when invalid, as outline-focus-danger'
+  '--outline-color-focus': 'Colour',
+  '--outline-color-focus-danger': 'Colour when invalid'
 }
 
 /** The focus ring tokens, each with what it sets and its value, less deprecated ones. */
@@ -189,10 +189,11 @@ export function focusRing(tokens: TokenEntry[]) {
   const rank = (name: string) => order.indexOf(name) >>> 0
   return [...ring]
     .sort((a, b) => rank(a.name) - rank(b.name))
-    .map(({ name, value }) => ({
+    .map(({ name, value, classes }) => ({
       name,
       label: FOCUS_RING_LABELS[name] ?? name,
-      value: value!.light!
+      // A colour's color-mix() is too long to read; its class says it.
+      value: classes?.[0] ?? value!.light!
     }))
 }
 
