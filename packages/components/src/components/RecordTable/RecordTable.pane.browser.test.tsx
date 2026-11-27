@@ -2,11 +2,15 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
 import { Pane } from '../Pane'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { rect, slot } from './testUtils'

@@ -13,9 +13,10 @@ import {
 } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Carousel, type CarouselProps, useCarouselUnsafeEmbla } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 import type { CarouselContentOverflow } from './variants'
 
 let removeStylesheet = () => {}

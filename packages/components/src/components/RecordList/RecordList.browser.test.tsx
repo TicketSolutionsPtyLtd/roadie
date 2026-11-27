@@ -10,9 +10,13 @@ import {
   vi
 } from 'vitest'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RecordList } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { showFields, testShows } from '../Records/testUtils'
 
 let removeStylesheet = () => {}

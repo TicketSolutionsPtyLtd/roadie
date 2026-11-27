@@ -5,12 +5,12 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
 import { withFrames } from '@oztix/roadie-browser-testing'
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import roadieCss from '../../../vitest.browser.css?inline'
 import { List } from '../List'
 import { Pane } from '../Pane'
 import { forgetPaneScroll } from '../Pane/paneScroll'
-import { useStylesheet } from '../Pane/testUtils'
 import { Navigator } from './index'
 
 // A slower slide, so a slow runner still taps mid-slide (Linux WebKit ran 300ms out before the poll saw it).

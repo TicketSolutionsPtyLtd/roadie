@@ -1,4 +1,10 @@
-import { type DocsPage, pageForComponent, parseDocsPage } from './docs'
+import {
+  type DocsPage,
+  folderPage,
+  missingStatus,
+  pageForComponent,
+  parseDocsPage
+} from './docs'
 
 const page = (route: string, components: string[]): DocsPage => ({
   route,
@@ -103,6 +109,39 @@ describe('parseDocsPage status', () => {
   })
 })
 
+describe('missingStatus', () => {
+  const withStatus = (route: string, status?: string): DocsPage => ({
+    route,
+    components: [],
+    status
+  })
+
+  it.each([
+    ['a component page, props table or not', '/components/record-board/'],
+    ['a chart page', '/charts/bar-chart/']
+  ])('names %s that is its own page and sets no status', (_, route) => {
+    expect(missingStatus({ page: withStatus(route), own: true })).toBe(route)
+  })
+
+  it.each([
+    [
+      'sets a status',
+      { page: withStatus('/components/a/', 'beta'), own: true }
+    ],
+    [
+      'is a foundation',
+      { page: withStatus('/foundations/theming/'), own: true }
+    ],
+    [
+      'only lists the component',
+      { page: withStatus('/charts/dashboards/'), own: false }
+    ],
+    ['is missing', undefined]
+  ])('passes a page that %s', (_, match) => {
+    expect(missingStatus(match)).toBeUndefined()
+  })
+})
+
 describe('pageForComponent', () => {
   const pages = [
     page('/components/button/', ['Button', 'IconButton']),
@@ -137,4 +176,29 @@ describe('pageForComponent', () => {
         : { page: expect.objectContaining({ route }), own }
     )
   })
+})
+
+describe('folderPage', () => {
+  const pages = [
+    page('/components/record-board/', []),
+    page('/charts/line-chart/', ['LineChart'])
+  ]
+
+  it.each([
+    ['./dist/components/RecordBoard/index.js', '/components/record-board/'],
+    ['./dist/LineChart/index.js', '/charts/line-chart/']
+  ])('finds the page of the component folder %s', (target, route) => {
+    expect(folderPage(pages, target)?.page.route).toBe(route)
+  })
+
+  it('reports a component folder with no page', () => {
+    expect(folderPage(pages, './dist/components/Gone/index.js')).toBeNull()
+  })
+
+  it.each(['./dist/tables/index.js', './dist/index.js', './dist/hooks/a.js'])(
+    'skips %s, which is no component folder',
+    (target) => {
+      expect(folderPage(pages, target)).toBeUndefined()
+    }
+  )
 })

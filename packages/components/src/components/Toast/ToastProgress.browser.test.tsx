@@ -12,10 +12,10 @@ import {
 import { commands, page } from 'vitest/browser'
 
 import { keepFramesRunning } from '@oztix/roadie-browser-testing'
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import { Toast, type ToastPosition, createToastManager } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {

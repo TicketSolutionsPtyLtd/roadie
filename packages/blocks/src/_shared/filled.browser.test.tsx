@@ -14,7 +14,7 @@ import { SideBySide } from '../SideBySide'
 import { Stats } from '../Stats'
 import { Testimonial } from '../Testimonial'
 import { photo, withBrowserPage } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { MODES, setMode, textContrast, textFloor } from '../_test/contrast'
 import type { BlockEmphasis, BlockIntent, ItemEmphasis } from './surface'
 
 const actions = [
@@ -238,7 +238,7 @@ const INTENTS: (BlockIntent | undefined)[] = [
   'info'
 ]
 
-// Every element that draws its own words, with the floor its size needs.
+// Every element that draws its own words.
 function textOf(container: HTMLElement) {
   return [...container.querySelectorAll<HTMLElement>('*')].filter(
     (element) =>
@@ -252,10 +252,8 @@ function textOf(container: HTMLElement) {
 
 function unreadable(container: HTMLElement) {
   return textOf(container).flatMap((element) => {
-    const large = parseFloat(getComputedStyle(element).fontSize) >= 24
     const lc = textContrast(element)
-    const floor = large ? MINIMUM_LC.large : MINIMUM_LC.body
-    return lc < floor
+    return lc < textFloor(element)
       ? [`${element.textContent!.trim()} (Lc ${lc.toFixed(0)})`]
       : []
   })

@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import type { TokenEntry } from '../../src/tokens/manifest.ts'
+import type { ExportTarget } from '../package-exports.mjs'
 import {
   type ManifestPart,
   componentFiles,
@@ -10,13 +11,15 @@ import {
   readComponents,
   readFileComponents
 } from './components.ts'
-import { type PageMatch, pageForComponent, readDocsPages } from './docs.ts'
 import {
-  type ExportTarget,
-  createProgram,
-  exportEntries,
-  moduleExports
-} from './exports.ts'
+  PAGE_STATUSES,
+  type PageMatch,
+  folderPage,
+  missingStatus,
+  pageForComponent,
+  readDocsPages
+} from './docs.ts'
+import { createProgram, manifestEntries, moduleExports } from './exports.ts'
 import { type ManifestType, type TypeSource, readTypes } from './types.ts'
 
 export const MANIFEST_FILE = 'roadie.manifest.json'
@@ -172,7 +175,7 @@ export function buildManifest({
   const pkg = JSON.parse(
     readFileSync(path.join(packageDir, 'package.json'), 'utf8')
   ) as PackageJson
-  const entries = exportEntries(pkg.exports, packageDir)
+  const entries = manifestEntries(pkg.exports, packageDir)
   const sources = entries.flatMap((entry) => entry.source ?? [])
   const program = createProgram(
     [...new Set([...sources, ...sources.flatMap(componentFiles)])],
@@ -184,6 +187,8 @@ export function buildManifest({
   const pageAt = (route: string) =>
     pages.find((page) => page.route === route.split('#')[0])
   const linksUsed = new Set<string>()
+  const noStatus = new Set<string>()
+  const noPage: string[] = []
 
   const exports: ManifestExport[] = []
   const components: ManifestComponent[] = []
@@ -197,6 +202,8 @@ export function buildManifest({
   const addComponents = (importName: string, docs: ManifestPart[]) => {
     for (const { root, parts } of groupCompounds(docs)) {
       const match = pageForComponent(pages, root.name)
+      const unstatused = missingStatus(match)
+      if (unstatused) noStatus.add(unstatused)
       const links = documentedElsewhere[importName]
       const route = match
         ? undefined
@@ -308,6 +315,14 @@ export function buildManifest({
           new Set(reExported.map(([name]) => name))
         )
       )
+    } else if (
+      !(importName in documentedElsewhere) &&
+      !(importName in documentedSubpaths)
+    ) {
+      const match = folderPage(pages, entry.target)
+      if (match === null) noPage.push(importName)
+      const unstatused = missingStatus(match ?? undefined)
+      if (unstatused) noStatus.add(unstatused)
     }
   }
 
@@ -329,9 +344,15 @@ export function buildManifest({
   const undocumented = components
     .filter((component) => !component.docs)
     .map((component) => `${component.import} ${component.name}`)
+    .concat(noPage)
   if (undocumented.length > 0) {
     throw new Error(
       `No docs page for ${undocumented.join(', ')}. Give it a page, or link where it's documented in scripts/manifest/elsewhere.ts.`
+    )
+  }
+  if (noStatus.size > 0) {
+    throw new Error(
+      `No status on ${[...noStatus].join(', ')}. Set metadata.status to one of ${PAGE_STATUSES.join(', ')}; docs/contributing/DOCS_PAGES.md says which.`
     )
   }
   const unused = Object.entries(documentedElsewhere)

@@ -2,9 +2,10 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../../vitest.browser.css?inline'
 import { tapOn } from '../../utils/touchTestUtils'
-import { useStylesheet } from '../Pane/testUtils'
 import { RecordTable, tableColumns } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'
 import type { RecordViewDefaults } from './types'

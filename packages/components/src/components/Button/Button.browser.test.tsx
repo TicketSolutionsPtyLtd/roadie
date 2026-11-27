@@ -3,10 +3,11 @@ import { type ReactNode } from 'react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Button, IconButton } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Badge } from '../Badge'
-import { useStylesheet } from '../Pane/testUtils'
 import { Toggle } from '../Toggle'
 
 let removeStylesheet = () => {}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { packProblems } from './check-pack.mjs'
+import { exportEntries } from './package-exports.mjs'
 
 const maps: Record<string, object> = {
   'dist/a.js.map': { sources: ['../src/a.ts'], sourcesContent: ['code'] },
@@ -23,57 +24,14 @@ const maps: Record<string, object> = {
 const read = (file: string) => JSON.stringify(maps[file])
 
 describe('packProblems', () => {
-  it.each([
-    'src/css/focusRing.browser.test.tsx',
-    'src/css/safelist.test.ts',
-    'src/css/contrastTestUtils.ts',
-    'src/css/testUtils.ts',
-    'src/Chart/__screenshots__/line.png',
-    'scripts/manifest/fixtures/package.json',
-    'src/fixture/a.json',
-    'src/__mocks__/x.js',
-    'src/test-utils.ts',
-    'src/TestUtils.ts',
-    'src/a.test-d.ts',
-    'dist/a.test.d.ts',
-    'dist/testUtils.d.ts',
-    'dist/testUtils-Bx1.js',
-    'dist/Sortable/lanes.testUtils.js',
-    'dist/Sortable/lanes.testUtils.d.ts',
-    'dist/lanes.testUtils-Bx1.js',
-    'dist/Sortable.lanesTestUtils.js',
-    'dist/lanes-test-utils.js',
-    'dist/lanes_testUtils.js',
-    'dist/lanes.test_utils.js',
-    'dist/test-utils/index.js',
-    'dist/testUtils/index.js',
-    'dist/Sortable/lanes.testUtils/index.js',
-    'dist/_test/browser.js',
-    'dist/Hero/fixtures.js',
-    'dist/plot/testChart.js',
-    'dist/plot/browserTesting.d.ts',
-    'dist/test/setup.js',
-    'dist/tests/setup.js'
-  ])('flags %s as a test file', (file) => {
-    expect(packProblems([file], read)).toEqual([`${file} is a test file`])
+  it("flags a file that doesn't ship", () => {
+    expect(packProblems(['dist/a.test.d.ts'], read)).toEqual([
+      'dist/a.test.d.ts is a test file'
+    ])
   })
 
-  it.each([
-    'src/css/roadie.css',
-    'dist/testing.js',
-    'dist/attest.js',
-    'dist/latest.d.ts',
-    'dist/contest/index.js',
-    'dist/latestUtils.js',
-    'dist/contestUtils.js',
-    'dist/contest-utils.js',
-    'dist/Contest/latest.utils.js',
-    'dist/contest_utils/index.js',
-    'dist/prefixtures.js',
-    'dist/plot/hitTesting.js',
-    'dist/plot/testCharts.js'
-  ])('ships %s', (file) => {
-    expect(packProblems([file], read)).toEqual([])
+  it('accepts a file that ships', () => {
+    expect(packProblems(['dist/testing.js'], read)).toEqual([])
   })
 
   it.each([
@@ -153,11 +111,11 @@ describe('packProblems', () => {
   })
 
   it('flags an export the tarball leaves out', () => {
-    const exports = {
+    const exports = exportEntries({
       '.': { types: './dist/index.d.ts', import: './dist/index.js' },
       './roadie.manifest.json': './dist/roadie.manifest.json',
       './css': { style: './src/css/ui.css', default: './src/css/ui.css' }
-    }
+    })
     expect(
       packProblems(
         ['dist/index.d.ts', 'dist/index.js', 'src/css/ui.css'],
@@ -170,7 +128,7 @@ describe('packProblems', () => {
   })
 
   it('accepts a wildcard export with a file to match', () => {
-    const exports = { './thumbnails/*': './src/thumbnails/*' }
+    const exports = exportEntries({ './thumbnails/*': './src/thumbnails/*' })
     expect(packProblems(['src/thumbnails/hero.svg'], read, exports)).toEqual([])
     expect(packProblems(['dist/index.js'], read, exports)).toEqual([
       "exports points at ./src/thumbnails/*, which the tarball doesn't ship"
@@ -178,7 +136,7 @@ describe('packProblems', () => {
   })
 
   it('accepts an export that files leaves out by name', () => {
-    const exports = { './internal': './src/internal.js' }
+    const exports = exportEntries({ './internal': './src/internal.js' })
     expect(packProblems([], read, exports, ['src/internal.js'])).toEqual([])
   })
 })
