@@ -45,97 +45,6 @@ function workload() {
   return [performance.now() - start, sold]
 }
 
-// EXPERIMENT (INNO-1760): main-thread rendering work, style and layout forced
-// synchronously over DOM built the way a virtualised list builds it.
-function renderWorkload() {
-  const host = document.createElement('div')
-  host.style.cssText =
-    'position:fixed;left:0;top:0;width:1200px;height:800px;overflow:hidden;visibility:hidden'
-  document.body.append(host)
-  const start = performance.now()
-  let size = 0
-  for (let round = 0; round < 12; round++) {
-    const grid = document.createElement('div')
-    grid.style.cssText = `display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:${round % 3}px`
-    for (let i = 0; i < 160; i++) {
-      const card = document.createElement('div')
-      card.style.cssText =
-        'display:grid;gap:4px;padding:12px;border:1px solid;border-radius:8px'
-      const title = document.createElement('p')
-      title.style.fontWeight = '600'
-      title.textContent = `Show ${(i * 7919) % 2000} at the venue`
-      const city = document.createElement('p')
-      city.textContent = `City ${i}`
-      const details = document.createElement('div')
-      details.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap'
-      for (const value of [(i * 31) % 997, (i * 13) % 5000]) {
-        const item = document.createElement('span')
-        item.textContent = `${value} sold`
-        details.append(item)
-      }
-      card.append(title, city, details)
-      grid.append(card)
-    }
-    host.replaceChildren(grid)
-    size += host.scrollHeight
-    host.style.width = `${1100 + round * 7}px`
-    size += grid.offsetHeight
-  }
-  host.remove()
-  return [performance.now() - start, size]
-}
-
-async function median(page: Page, run: () => number[]) {
-  const times: number[] = []
-  for (let i = 0; i < 7; i++) {
-    const [ms] = await page.evaluate(run)
-    times.push(ms!)
-  }
-  return times.sort((a, b) => a - b)[3]!
-}
-
-let probe: Promise<Record<string, unknown>> | undefined
-
-/** EXPERIMENT: this machine's CPU and its times for both workloads at rate 1. */
-const calibrationProbe: BrowserCommand<[]> = async ({ page }) => {
-  if (!isChromium(page)) return {}
-  const session = await devtools(page)
-  probe ??= (async () => {
-    await session.send('Emulation.setCPUThrottlingRate', { rate: 1 })
-    const { cpus } = await import('node:os')
-    const jsMs = await median(page, workload)
-    const renderMs = await median(page, renderWorkload)
-    const result = {
-      model: cpus()[0]?.model,
-      cores: cpus().length,
-      jsMs,
-      renderMs
-    }
-    console.log(`Perf probe: ${JSON.stringify(result)}`)
-    return result
-  })()
-  return probe
-}
-
-/** EXPERIMENT: Chromium's running main-thread totals, in ms. */
-const taskMetrics: BrowserCommand<[]> = async ({ page }) => {
-  if (!isChromium(page)) return {}
-  const { metrics } = await (
-    await devtools(page)
-  ).send('Performance.getMetrics')
-  return Object.fromEntries(
-    [
-      'TaskDuration',
-      'ScriptDuration',
-      'RecalcStyleDuration',
-      'LayoutDuration'
-    ].map((name) => [
-      name,
-      (metrics.find((metric) => metric.name === name)?.value ?? 0) * 1000
-    ])
-  )
-}
-
 let calibration: Promise<number> | undefined
 
 /** The rate that makes this machine run the workload in REFERENCE_MS. */
@@ -240,8 +149,6 @@ const profileCpu: BrowserCommand<
 }
 
 export const frameCommands = {
-  calibrationProbe,
-  taskMetrics,
   throttleCpu,
   renderMetrics,
   recordFrames,
