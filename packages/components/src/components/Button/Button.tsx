@@ -13,9 +13,8 @@ import {
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { type VariantProps, cva } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { isDev } from '../../utils/isDev'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { intentVariants } from '../../variants'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 
@@ -110,7 +109,10 @@ export function Button({
     }
   }, [props.render, href])
 
-  const classes = cn(buttonVariants({ intent, emphasis, size, className }))
+  const classes = mergeClassName(
+    buttonVariants({ intent, emphasis, size }),
+    className
+  )
   // Disabled but focusable, so focus stays put through a keyboard submit.
   const busy = pending && !props.disabled
   // CSS can't scale a bare text node, so a label is wrapped once the button
@@ -137,7 +139,9 @@ export function Button({
     return (
       <RoadieRoutedLink
         data-slot='button'
-        className={classes}
+        className={
+          typeof classes === 'function' ? classes({ disabled }) : classes
+        }
         href={href}
         external={external}
         target={target}

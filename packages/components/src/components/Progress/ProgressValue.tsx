@@ -4,8 +4,7 @@ import { type ReactNode, type RefAttributes, use } from 'react'
 
 import { Progress as ProgressPrimitive } from '@base-ui/react/progress'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { ProgressValueTextContext } from './ProgressContext'
 
 type ValueRenderer = NonNullable<ProgressPrimitive.Value.Props['children']>
@@ -29,7 +28,7 @@ export function ProgressValue({
   return (
     <ProgressPrimitive.Value
       data-slot='progress-value'
-      className={cn(
+      className={mergeClassName(
         'col-start-2 justify-self-end text-sm whitespace-nowrap text-subtle tabular-nums',
         className
       )}
