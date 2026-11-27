@@ -4,9 +4,8 @@ import type { ReactNode, RefAttributes } from 'react'
 
 import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { isEmptyNode } from '../../utils/isEmptyNode'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { useFieldControlProps } from '../Field/FieldContext'
 import { SliderContext, type SliderSize } from './SliderContext'
@@ -83,9 +82,11 @@ export function SliderRoot<Value extends SliderValueType>({
         disabled={disabled ?? field.disabled}
         orientation={direction}
         locale={locale}
-        className={cn(
-          'group/slider grid w-full grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5',
-          'data-[orientation=vertical]:w-auto',
+        className={mergeClassName(
+          [
+            'group/slider grid w-full grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5',
+            'data-[orientation=vertical]:w-auto'
+          ],
           className
         )}
         {...props}

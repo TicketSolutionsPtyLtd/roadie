@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import {
   floatingPopupClass,
   listPopupWidthClass,
@@ -19,10 +18,8 @@ export function SelectPopup({ className, ...props }: SelectPopupProps) {
   return (
     <SelectPrimitive.Popup
       data-slot='select-popup'
-      className={cn(
-        floatingPopupClass,
-        listPopupWidthClass,
-        scrollingPopupRimClass,
+      className={mergeClassName(
+        [floatingPopupClass, listPopupWidthClass, scrollingPopupRimClass],
         className
       )}
       {...props}
