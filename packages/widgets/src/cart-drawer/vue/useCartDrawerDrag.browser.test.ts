@@ -49,6 +49,9 @@ const duringNextReport = (element: Element, during: () => void) =>
       })
   )
 
+// So a later report, not the observer's first, carries the resize.
+const firstReports = (element: Element) => duringNextReport(element, () => {})
+
 // The drawer writes in a frame callback, so one more frame has run it.
 const nextFrame = () =>
   withFrames(async () => {
@@ -70,12 +73,13 @@ describe('useCartDrawerDrag height tracking', () => {
     ['header', 'setHeaderElement', 'headerHeight'],
     ['footer', 'setFooterElement', 'footerHeight']
   ] as const)(
-    'writes a resized %s’s height a frame after its observer reports, not in the report',
+    'writes a resized %s’s height after its observer reports, not in the report',
     async (_, setElement, height) => {
       const drag = mountDrag()
       const element = box(40)
       drag[setElement](element)
       expect(drag[height].value).toBe(40)
+      await firstReports(element)
 
       element.style.height = '80px'
       let inReport = 0
@@ -92,6 +96,7 @@ describe('useCartDrawerDrag height tracking', () => {
     const drag = mountDrag()
     const header = box(40)
     drag.setHeaderElement(header)
+    await firstReports(header)
     const writes = writesTo(drag.headerHeight)
 
     header.style.height = '80px'
@@ -107,6 +112,7 @@ describe('useCartDrawerDrag height tracking', () => {
     const drag = mountDrag()
     const header = box(40)
     drag.setHeaderElement(header)
+    await firstReports(header)
     const writes = writesTo(drag.headerHeight)
 
     header.style.height = '80px'

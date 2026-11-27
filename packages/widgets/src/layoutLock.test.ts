@@ -8,14 +8,15 @@ describe('the jsdom layout lock', () => {
     vi.restoreAllMocks()
   })
 
-  it.each(['getBoundingClientRect', 'clientWidth'])(
-    'refuses a faked %s',
-    (key) => {
-      expect(() =>
-        Object.defineProperty(Element.prototype, key, { value: () => 100 })
-      ).toThrow(TypeError)
-    }
-  )
+  it.each([
+    ['getBoundingClientRect', Element.prototype],
+    ['clientWidth', Element.prototype],
+    ['offsetHeight', HTMLElement.prototype]
+  ] as const)('refuses a faked %s', (key, proto) => {
+    expect(() =>
+      Object.defineProperty(proto, key, { value: () => 100 })
+    ).toThrow(TypeError)
+  })
 
   it.each(['ResizeObserver', 'IntersectionObserver'])(
     'refuses a stubbed %s, on the global and the document’s window',
