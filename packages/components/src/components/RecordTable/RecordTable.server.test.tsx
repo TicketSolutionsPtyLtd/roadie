@@ -19,7 +19,7 @@ import {
   useRecords
 } from '../Records'
 import { useRecordsContext } from '../Records/context'
-import { showFields, testShows } from '../Records/testUtils'
+import { ShowRecords, showFields, testShows } from '../Records/testUtils'
 import { RecordTable } from './RecordTablePreset'
 import {
   bulkBar,
@@ -60,33 +60,33 @@ function Server({
     pageSize: 10
   })
   const page = position.page ?? 0
-  const records = useRecords({
-    data: SHOWS.slice(page * 10, (page + 1) * 10),
-    fields: showFields,
-    getRowId: (row) => row.id,
-    rowCount,
-    rowCountExact,
-    selectable: true,
-    view,
-    onViewChange: (next) => {
-      onViewChange(next)
-      setView(next)
-    },
-    position,
-    onPositionChange: (next) => {
-      onPositionChange(next)
-      setPosition(next)
-    }
-  })
   return (
-    <Records.Root records={records} layouts={layouts} caption='Shows'>
+    <ShowRecords
+      data={SHOWS.slice(page * 10, (page + 1) * 10)}
+      getRowId={(row) => row.id}
+      rowCount={rowCount}
+      rowCountExact={rowCountExact}
+      selectable
+      view={view}
+      onViewChange={(next) => {
+        onViewChange(next)
+        setView(next)
+      }}
+      position={position}
+      onPositionChange={(next) => {
+        onPositionChange(next)
+        setPosition(next)
+      }}
+      layouts={layouts}
+      caption='Shows'
+    >
       <Records.Search />
       <Records.Actions actions={tableActions} />
       <Records.Content />
       <Records.Pagination />
       <Records.BulkActions actions={actions} />
       <Records.Status />
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
@@ -311,17 +311,17 @@ describe('Records server search in a custom field', () => {
       )
     }
     function Table() {
-      const records = useRecords({
-        data: SHOWS.slice(0, 10),
-        fields: showFields,
-        defaultPosition: { pageSize: 10 },
-        rowCount: 120,
-        onViewChange
-      })
       return (
-        <Records.Provider records={records} layouts={layouts}>
+        <ShowRecords
+          data={SHOWS.slice(0, 10)}
+          defaultPosition={{ pageSize: 10 }}
+          rowCount={120}
+          onViewChange={onViewChange}
+          layouts={layouts}
+          bare
+        >
           <Custom />
-        </Records.Provider>
+        </ShowRecords>
       )
     }
     render(<Table />)
@@ -345,23 +345,22 @@ function Outside({
   echo?: number
 }) {
   const [view, setView] = React.useState(EMPTY_VIEW)
-  const records = useRecords({
-    data: SHOWS.slice(0, 10),
-    fields: showFields,
-    defaultPosition: { pageSize: 10 },
-    getRowId: (row) => row.id,
-    rowCount: 120,
-    selectable: true,
-    view,
-    onViewChange: (next) => {
-      onViewChange(next)
-      if (echo) setTimeout(() => setView(next), echo)
-      else setView(next)
-    },
-    onSelectionChange
-  })
   return (
-    <Records.Root records={records} layouts={layouts}>
+    <ShowRecords
+      data={SHOWS.slice(0, 10)}
+      defaultPosition={{ pageSize: 10 }}
+      getRowId={(row) => row.id}
+      rowCount={120}
+      selectable
+      view={view}
+      onViewChange={(next) => {
+        onViewChange(next)
+        if (echo) setTimeout(() => setView(next), echo)
+        else setView(next)
+      }}
+      onSelectionChange={onSelectionChange}
+      layouts={layouts}
+    >
       {['', 'Perth', 'Hobart'].map((search) => (
         <button
           key={search}
@@ -373,7 +372,7 @@ function Outside({
       ))}
       <Records.Search />
       <Records.Content />
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
@@ -466,20 +465,19 @@ describe('Records server selection taken against a query', () => {
       ...EMPTY_VIEW,
       query: { ...EMPTY_VIEW.query, filters: [STATUS, CITY] }
     })
-    const records = useRecords({
-      data: server ? SHOWS.slice(0, 10) : SHOWS,
-      fields: showFields,
-      defaultPosition: { pageSize: 10 },
-      getRowId: (row) => row.id,
-      rowCount: server ? 64 : undefined,
-      selectable: true,
-      view,
-      onViewChange: setView
-    })
     const setQuery = (query: Partial<RecordView['query']>) =>
       setView({ ...view, query: { ...view.query, ...query } })
     return (
-      <Records.Root records={records} layouts={layouts}>
+      <ShowRecords
+        data={server ? SHOWS.slice(0, 10) : SHOWS}
+        defaultPosition={{ pageSize: 10 }}
+        getRowId={(row) => row.id}
+        rowCount={server ? 64 : undefined}
+        selectable
+        view={view}
+        onViewChange={setView}
+        layouts={layouts}
+      >
         <button type='button' onClick={() => setQuery({ search: 'Hobart' })}>
           Hobart only
         </button>
@@ -500,7 +498,7 @@ describe('Records server selection taken against a query', () => {
         <Records.BulkActions
           actions={[{ label: 'Export', onAction: vi.fn() }]}
         />
-      </Records.Root>
+      </ShowRecords>
     )
   }
 
@@ -544,23 +542,22 @@ describe('Records server selection in the render a query applies', () => {
     const [selection, setSelection] = React.useState<RecordSelection>({
       ids: []
     })
-    const records = useRecords({
-      data: SHOWS.slice(0, 10),
-      fields: showFields,
-      defaultPosition: { pageSize: 10 },
-      getRowId: (row) => row.id,
-      rowCount: 120,
-      selectable: true,
-      view,
-      onViewChange: setView,
-      selection,
-      onSelectionChange: (next) => {
-        onSelectionChange(next)
-        setSelection(next)
-      }
-    })
     return (
-      <Records.Root records={records} layouts={layouts}>
+      <ShowRecords
+        data={SHOWS.slice(0, 10)}
+        defaultPosition={{ pageSize: 10 }}
+        getRowId={(row) => row.id}
+        rowCount={120}
+        selectable
+        view={view}
+        onViewChange={setView}
+        selection={selection}
+        onSelectionChange={(next) => {
+          onSelectionChange(next)
+          setSelection(next)
+        }}
+        layouts={layouts}
+      >
         <button
           type='button'
           onClick={() => {
@@ -574,7 +571,7 @@ describe('Records server selection in the render a query applies', () => {
         <Records.Content />
         <Records.BulkActions actions={[]} />
         <Spy seen={seen} />
-      </Records.Root>
+      </ShowRecords>
     )
   }
 
@@ -629,20 +626,19 @@ describe('Records server selection in the render a query applies', () => {
     function Fresh() {
       const [view, setView] = React.useState(EMPTY_VIEW)
       const [ids, setIds] = React.useState<readonly string[]>([])
-      const records = useRecords({
-        data: SHOWS.slice(0, 10),
-        fields: showFields,
-        defaultPosition: { pageSize: 10 },
-        getRowId: (row) => row.id,
-        rowCount: 120,
-        selectable: true,
-        view,
-        onViewChange: setView,
-        selection: { ids },
-        onSelectionChange: (next) => setIds('ids' in next ? next.ids : [])
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
+        <ShowRecords
+          data={SHOWS.slice(0, 10)}
+          defaultPosition={{ pageSize: 10 }}
+          getRowId={(row) => row.id}
+          rowCount={120}
+          selectable
+          view={view}
+          onViewChange={setView}
+          selection={{ ids }}
+          onSelectionChange={(next) => setIds('ids' in next ? next.ids : [])}
+          layouts={layouts}
+        >
           <button
             type='button'
             onClick={() =>
@@ -653,7 +649,7 @@ describe('Records server selection in the render a query applies', () => {
           </button>
           <Records.Content />
           <Records.BulkActions actions={[]} />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Fresh />)
