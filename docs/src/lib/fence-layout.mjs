@@ -95,7 +95,7 @@ export function toPreviewCode(code) {
 // as '/users/jane.doe' or a path under /api/ stays as written. A query or hash
 // may follow.
 const ASSET_URL =
-  /(['"])(\/(?!\/|api\/)[\w./-]*\.(?:avif|csv|gif|ico|jpe?g|mp3|mp4|pdf|png|svg|txt|webm|webp|woff2?)(?:[?#][^'"\s]*)?)\1/gi
+  /(['"])(\/(?!\/|api\/)[\w./-]*\.(?:avif|csv|gif|ico|jpe?g|json|mp3|mp4|pdf|png|svg|txt|webm|webp|woff2?)(?:[?#][^'"\s]*)?)\1/gi
 
 /** Prefixes the docs' base path to asset URLs, so fences use the plain URL a consumer would. */
 export const withBasePath = (code, basePath) =>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { MapAreaGeometry } from './engine'
-import { areaCentre, areaContains } from './geometry'
+import { areaCentre, areaContains, wrapLng } from './geometry'
 
 // A 2×2 square with a 1×1 hole in its middle, in [lng, lat].
 const square: MapAreaGeometry = {
@@ -70,5 +70,17 @@ describe('areaCentre', () => {
 
   it('uses the first part of a multipolygon', () => {
     expect(areaCentre(islands)).toEqual({ lat: 0.5, lng: 0.5 })
+  })
+})
+
+describe('wrapLng', () => {
+  it.each([
+    [45, 45],
+    [-176.3, -176.3],
+    [190, -170],
+    [-190, 170],
+    [730, 10]
+  ])('reads a longitude of %s as %s', (lng, wrapped) => {
+    expect(wrapLng(lng)).toBeCloseTo(wrapped)
   })
 })

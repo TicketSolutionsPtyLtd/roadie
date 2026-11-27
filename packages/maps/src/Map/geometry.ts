@@ -60,3 +60,10 @@ export function areaCentre(area: MapAreaGeometry): LatLng {
   const sum = points.reduce(([x, y], [lng, lat]) => [x + lng, y + lat], [0, 0])
   return { lat: sum[1] / points.length, lng: sum[0] / points.length }
 }
+
+/**
+ * A longitude from -180 to 180. A map panned across the date line counts on
+ * past 180, where boundaries start again from -180.
+ */
+export const wrapLng = (lng: number) =>
+  ((((lng + 180) % 360) + 360) % 360) - 180

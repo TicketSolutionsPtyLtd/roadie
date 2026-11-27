@@ -24,6 +24,12 @@ export type MapContextValue = {
     area: MapAreaLayer | readonly MapAreaLayer[] | null
   ) => void
   /**
+   * Gives the areas a part names, by the ids it drew them with, their active
+   * look, or with `null` none of them. The map lights every part's together.
+   * It does nothing on an engine without `setActiveAreas`.
+   */
+  setActiveAreas: (id: string, areas: readonly string[] | null) => void
+  /**
    * Adds, moves or, with `null`, removes a place a part marks, such as a pin,
    * so fitting the map to its places includes it.
    */

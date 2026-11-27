@@ -10,6 +10,8 @@ import { googleEngine } from './googleEngine'
 
 type Style = { stylers: { color?: string }[] }
 type Options = { mapId?: string; styles?: Style[] }
+type Feature = { getProperty: (name: string) => unknown }
+type AreaStyle = (feature: Feature) => Record<string, unknown>
 
 class FakeMap {
   static made: FakeMap[] = []
@@ -18,9 +20,20 @@ class FakeMap {
   center: LatLng
   zoom: number
   handlers: Record<string, Set<() => void>> = {}
+  areaStyle: AreaStyle | undefined
+  features: Feature[] = []
   data = {
-    setStyle() {},
-    addGeoJson: () => [],
+    setStyle: (style: AreaStyle) => {
+      this.areaStyle = style
+    },
+    addGeoJson: (collection: {
+      features: { properties: Record<string, unknown> }[]
+    }) => {
+      this.features = collection.features.map(({ properties }) => ({
+        getProperty: (name) => properties[name]
+      }))
+      return this.features
+    },
     remove() {},
     forEach() {}
   }
@@ -148,6 +161,34 @@ describe('googleEngine', () => {
 
     expect(google.options.mapId).toBe('a-map-id')
     expect(google.styles).toBeUndefined()
+  })
+
+  it('outlines each area at its own width, or 2px when it gives none', async () => {
+    const { map, google } = await mount()
+    const area = {
+      geometry: {
+        type: 'Polygon' as const,
+        coordinates: [
+          [
+            [153.03, -27.46],
+            [153.04, -27.46],
+            [153.04, -27.45],
+            [153.03, -27.46]
+          ] as [number, number][]
+        ]
+      },
+      fill: 'rgb(0, 0, 0)',
+      fillOpacity: 0.5,
+      line: 'rgb(0, 0, 0)'
+    }
+    map.setAreas([
+      { ...area, id: 'thin', lineWidth: 0.5 },
+      { ...area, id: 'plain' }
+    ])
+
+    expect(
+      google.features.map((feature) => google.areaStyle!(feature).strokeWeight)
+    ).toEqual([0.5, 2])
   })
 
   it('names Google’s focusable map with the label, inside Roadie’s landmark', async () => {

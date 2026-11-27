@@ -1,7 +1,7 @@
 {
-  ".": { "own": 23075, "full": 354111, "initial": 103026 },
-  "./map": { "own": 14886, "full": 344345, "initial": 91676 },
-  "./map-areas": { "own": 4939, "full": 13048, "initial": 13048 },
+  ".": { "own": 23422, "full": 354211, "initial": 103335 },
+  "./map": { "own": 15083, "full": 344501, "initial": 91841 },
+  "./map-areas": { "own": 5036, "full": 13184, "initial": 13184 },
   "./map-clusters": { "own": 4783, "full": 48810, "initial": 48810 },
-  "./map-google": { "own": 1794, "full": 1794, "initial": 1794 }
+  "./map-google": { "own": 1804, "full": 1804, "initial": 1804 }
 }
