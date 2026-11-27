@@ -83,7 +83,7 @@
   },
   "dependencies": {
     "@oztix/roadie-core": "workspace:*",
-    "focus-trap": "8.2.4"
+    "focus-trap": "8.2.6"
   },
   "peerDependencies": {
     "react": "^19.2.0",
@@ -143,7 +143,7 @@
     "@phosphor-icons/react": "2.1.10",
     "@phosphor-icons/vue": "2.2.1",
     "@tailwindcss/vite": "4.3.5",
-    "@tanstack/react-query": "5.106.1",
+    "@tanstack/react-query": "5.108.4",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
     "@testing-library/vue": "8.1.0",
@@ -156,7 +156,7 @@
     "@vitest/coverage-v8": "5.1.0",
     "@vue/test-utils": "2.5.1",
     "jsdom": "31.0.0",
-    "motion": "14.9.1",
+    "motion": "14.14.0",
     "playwright": "1.65.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -165,7 +165,7 @@
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.8",
     "vitest": "5.1.0",
-    "vue": "3.5.45",
+    "vue": "3.5.46",
     "vue-tsc": "3.3.14"
   },
   "turbo": {
