@@ -30,7 +30,8 @@ const tenths = (ms: number) => Math.round(ms * 10) / 10
 export function summariseFrames(deltas: readonly number[]): FrameStats {
   const sorted = [...deltas].sort((a, b) => a - b)
   // Nearest rank, so the p95 frame is slow only when more than 5% of frames
-  // are. Rounding the rank down read 3 slow frames in 60 as a miss.
+  // are. Rounding the rank down read 3 slow frames in 60 as a miss. p50 is
+  // now the lower median of an even count; no budget reads it.
   const at = (quantile: number) =>
     sorted[Math.max(0, Math.ceil(quantile * sorted.length) - 1)] ?? 0
   const missed = (delta: number) =>

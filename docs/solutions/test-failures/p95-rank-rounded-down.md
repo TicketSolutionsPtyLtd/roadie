@@ -9,8 +9,8 @@ problem_type: test_failure
 
 ## Symptom
 
-Perf jobs failed on scenarios the PR didn't touch, about one job in
-thirteen: RecordGrid, Card, Combobox, PhoneField, Collapsible, Accordion, and
+Perf jobs failed on scenarios the PR didn't touch, about one job in nine:
+RecordGrid, Card, Combobox, PhoneField, Collapsible, Accordion, and
 Pane scrolls and transitions. The failing run looked like a slow runner: p95
 33.3ms, 3.3% of frames dropped, no long task, and a passing rerun.
 
@@ -22,16 +22,16 @@ while the dropped-share check, which sets the worst frame aside, passed them.
 Nearest rank (`sorted[ceil(0.95 * n) - 1]`) reads the 57th, so p95 is slow
 only when more than 5% of frames are.
 
-Replaying the verdicts of 850 `perf (components)` frame reports (19 to 27
-Nov) with nearest rank, the model matching every recorded p95 verdict:
+Each `perf (components)` job uploads one frame report, a line per scenario.
+Replaying 850 of them (19 to 27 Nov) with nearest rank, after checking that
+the replay reproduced every p95 verdict the old rule recorded:
 
-- Jobs failing an unexcused budget: 91 to 46. From 25 Nov noon, on
-  non-sample branches: 23 of 305 to 6.
-- The backdrop-blur misses still missed: DateRangePicker's drawer in 674
-  of 676 runs, and Dialog, Drawer, CommandPalette and the rest in every
-  run. The 2,000-item
-  Combobox without `virtualized`, an accepted miss on the 5% line, now
-  passes about half its runs; its exception stays.
+- Jobs failing an unexcused budget: 91 of 850 to 46. From 25 Nov noon,
+  leaving out the eight-runner sampling branches: 23 of 305 to 6.
+- The backdrop-blur misses still missed: DateRangePicker's drawer in 674 of
+  676 runs, and Dialog, Drawer, CommandPalette and the rest in every run.
+- The 2,000-item Combobox without `virtualized`, an accepted miss on the 5%
+  line, now passes about half its runs; its exception stays.
 
 Ruled out:
 
