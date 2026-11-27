@@ -13,7 +13,6 @@ const OWNER: Record<string, string> = {
   'dashboard.css': 'dashboard',
   'empty-state.css': 'empty-state',
   'data-table.css': 'data-table',
-  'map.css': 'map',
   'navigator-pending.css': 'navigator',
   'number-field.css': 'number-field',
   'pane-columns.css': 'pane',

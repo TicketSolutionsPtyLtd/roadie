@@ -13,8 +13,8 @@ import roadieCss from '../../vitest.guards.css?inline'
 
 // Limits: a string scan, not a selector parser. It reads the CSS and class
 // strings of core, components, blocks, charts, editor and widgets as
-// vitest.guards.css compiles them, test files left out; illustrations and
-// docs aren't read. It runs with components' browser tests, so a change to
+// vitest.guards.css compiles them, test files left out; illustrations, maps
+// and docs aren't read. It runs with components' browser tests, so a change to
 // blocks, charts, editor or widgets alone is checked by the next full run,
 // not by that pull request. It knows nested rules, :is(), :where(), :not()
 // and :has() nesting and escapes, not namespaces or `of S` in :nth-child().

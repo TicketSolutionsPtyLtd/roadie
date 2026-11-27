@@ -33,7 +33,6 @@ const EXEMPT: Record<string, string> = {
   Drawer: closed,
   Field: 'The DatePicker, FileUpload, OTPField and Select fixtures wrap it.',
   ImageCrop: later,
-  Map: 'No fixture yet: it moves to @oztix/roadie-maps first (INNO-1574).',
   Menu: closed,
   Popover: closed,
   Prose: later,

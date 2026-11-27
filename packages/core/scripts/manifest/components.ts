@@ -36,7 +36,7 @@ export const SKIPPED_PROPS = new Set([
   'dangerouslySetInnerHTML'
 ])
 const OUR_SOURCES =
-  /(^|\/)(core|components|widgets|charts|editor|blocks|illustrations)\//
+  /(^|\/)(core|components|widgets|charts|editor|blocks|maps|illustrations)\//
 
 export function isOurs(fileName: string | undefined) {
   return (

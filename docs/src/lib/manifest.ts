@@ -3,6 +3,7 @@ import charts from '@oztix/roadie-charts/roadie.manifest.json'
 import components from '@oztix/roadie-components/roadie.manifest.json'
 import editor from '@oztix/roadie-editor/roadie.manifest.json'
 import illustrations from '@oztix/roadie-illustrations/roadie.manifest.json'
+import maps from '@oztix/roadie-maps/roadie.manifest.json'
 import widgets from '@oztix/roadie-widgets/roadie.manifest.json'
 
 /** The subset of a `roadie.manifest.json` component the docs read. */
@@ -31,7 +32,7 @@ export type ManifestComponent = ManifestPart & {
 
 const byName = new Map<string, ManifestComponent>(
   // Illustrations comes after components, so its SpotIllustration replaces the deprecated one.
-  [components, illustrations, charts, editor, blocks, widgets].flatMap(
+  [components, illustrations, charts, maps, editor, blocks, widgets].flatMap(
     (manifest: { components: ManifestComponent[] }) =>
       manifest.components.map((component) => [component.name, component])
   )

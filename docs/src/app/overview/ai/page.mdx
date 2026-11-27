@@ -89,12 +89,13 @@ Most docs pages have a markdown copy, and `llms.txt` indexes them. Any agent tha
 
 ## Package manifests
 
-Core, components, charts, editor, blocks, illustrations, and widgets each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs, and the plugin's skills do.
+Core, components, charts, maps, editor, blocks, illustrations, and widgets each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs, and the plugin's skills do.
 
 ```ts
 import core from '@oztix/roadie-core/roadie.manifest.json' with { type: 'json' }
 import components from '@oztix/roadie-components/roadie.manifest.json' with { type: 'json' }
 import charts from '@oztix/roadie-charts/roadie.manifest.json' with { type: 'json' }
+import maps from '@oztix/roadie-maps/roadie.manifest.json' with { type: 'json' }
 import editor from '@oztix/roadie-editor/roadie.manifest.json' with { type: 'json' }
 import blocks from '@oztix/roadie-blocks/roadie.manifest.json' with { type: 'json' }
 import illustrations from '@oztix/roadie-illustrations/roadie.manifest.json' with { type: 'json' }

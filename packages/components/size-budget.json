@@ -1,5 +1,5 @@
 {
-  ".": { "own": 257750, "full": 698435, "initial": 446080 },
+  ".": { "own": 238506, "full": 434730, "initial": 421323 },
   "./accordion": { "own": 1760, "full": 10687, "initial": 10687 },
   "./autocomplete": { "own": 7408, "full": 66301, "initial": 54040 },
   "./avatar": { "own": 2092, "full": 14681, "initial": 14681 },
@@ -45,8 +45,6 @@
   "./link-button": { "own": 504, "full": 8915, "initial": 8915 },
   "./list": { "own": 2759, "full": 11706, "initial": 11706 },
   "./logo": { "own": 3085, "full": 11346, "initial": 11346 },
-  "./map": { "own": 34815, "full": 353773, "initial": 101709 },
-  "./map-google": { "own": 1794, "full": 1794, "initial": 1794 },
   "./mark": { "own": 760, "full": 9121, "initial": 9121 },
   "./marquee": { "own": 1496, "full": 9686, "initial": 9686 },
   "./menu": { "own": 6054, "full": 56209, "initial": 56209 },
@@ -90,5 +88,6 @@
   "./toolbar": { "own": 5535, "full": 24980, "initial": 24980 },
   "./tooltip": { "own": 5083, "full": 38802, "initial": 38802 },
   "./spot-illustrations": { "own": 10056, "full": 18401, "initial": 18401 },
+  "./cascade": { "own": 394, "full": 394, "initial": 394 },
   ". { Button }": { "own": 1747, "full": 13040, "initial": 12587 }
 }

@@ -2,7 +2,7 @@
 title: A map that waits for MapLibre's load event can hang when its page stops painting
 date: 2026-11-08
 category: test-failures
-module: components
+module: maps
 tags:
   [vitest, browser-mode, webkit, chromium, maplibre, requestAnimationFrame, map]
 problem_type: test_failure

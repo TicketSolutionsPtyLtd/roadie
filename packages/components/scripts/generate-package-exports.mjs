@@ -22,6 +22,8 @@ generateExports(new URL('..', import.meta.url), {
       types: './dist/components/SpotIllustration/index.d.ts',
       import: './dist/components/SpotIllustration/index.js'
     },
+    // For packages built on Roadie: intent classes and the accent scope.
+    './cascade': { types: './dist/cascade.d.ts', import: './dist/cascade.js' },
     './roadie.manifest.json': './dist/roadie.manifest.json'
   }
 })

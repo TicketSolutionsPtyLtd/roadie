@@ -14,8 +14,7 @@ import { isPlainLinkClick } from '../../utils/isPlainLinkClick'
 import { resolveLinkKind } from '../../utils/resolveLinkKind'
 
 /**
- * Internal client-side anchor used by every Roadie surface that opts
- * into smart-href routing. Reads {@link useRoadieLink} once, classifies
+ * The routed anchor under every Roadie surface that takes `href`. Reads {@link useRoadieLink} once, classifies
  * the `href`, and renders one of:
  *
  * - **External** (`https://…`, `//…`): plain `<a>` with
@@ -34,7 +33,8 @@ import { resolveLinkKind } from '../../utils/resolveLinkKind'
  *   vector reaching a user-controlled href.
  *
  * Public as `Link` from `@oztix/roadie-components/link`, for links in
- * rendered content. Smart-href components (Button, Card, Breadcrumb,
+ * rendered content, and unstyled as `RoadieRoutedLink`, for packages
+ * built on Roadie. Smart-href components (Button, Card, Breadcrumb,
  * Carousel, Tabs) compose it internally.
  */
 export type RoadieRoutedLinkProps = Omit<

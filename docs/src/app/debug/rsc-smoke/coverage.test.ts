@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import components from '@oztix/roadie-components/roadie.manifest.json' with { type: 'json' }
 import editor from '@oztix/roadie-editor/roadie.manifest.json' with { type: 'json' }
+import maps from '@oztix/roadie-maps/roadie.manifest.json' with { type: 'json' }
 
 // Each needs a function or a client hook's instance as a required prop, which
 // a Server Component can't pass.
@@ -15,7 +16,7 @@ const canary = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8')
 
 describe('the RSC canary', () => {
   it('renders every compound from its subpath', () => {
-    const compounds = [components, editor].flatMap((manifest) =>
+    const compounds = [components, editor, maps].flatMap((manifest) =>
       manifest.components.filter(
         (component) =>
           'parts' in component && (component.parts?.length ?? 0) > 0
