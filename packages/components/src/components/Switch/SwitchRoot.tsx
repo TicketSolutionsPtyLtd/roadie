@@ -8,6 +8,7 @@ import { CheckIcon } from '@phosphor-icons/react/ssr'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isEmptyNode } from '../../utils/isEmptyNode'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { useFieldControlProps } from '../Field/FieldContext'
 import { SwitchThumb } from './SwitchThumb'
@@ -78,7 +79,10 @@ export function SwitchRoot({
       aria-required={resolvedRequired || undefined}
       aria-labelledby={labelId}
       aria-describedby={describedBy}
-      className={cn(switchVariants({ size }), !hasRow && className)}
+      className={mergeClassName(
+        switchVariants({ size }),
+        hasRow ? undefined : className
+      )}
       {...props}
     >
       <span

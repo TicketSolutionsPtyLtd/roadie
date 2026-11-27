@@ -358,6 +358,22 @@ describe('Button', () => {
       })
     })
 
+    it('resolves a className function against the disabled state', () => {
+      render(
+        <Button
+          href='/events/123'
+          disabled
+          className={(state) => (state.disabled ? 'opacity-50' : undefined)}
+        >
+          Events
+        </Button>
+      )
+      expect(screen.getByRole('link', { name: 'Events' })).toHaveClass(
+        'btn',
+        'opacity-50'
+      )
+    })
+
     it('marks a disabled link aria-disabled and stops navigation', () => {
       const onClick = vi.fn()
       render(

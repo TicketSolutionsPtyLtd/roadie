@@ -32,6 +32,20 @@ describe('summariseFrames', () => {
   ])('reads %s', (_, deltas, expected) => {
     expect(summariseFrames(deltas)).toMatchObject(expected)
   })
+
+  // Nearest rank: the p95 frame is slow only when more than 5% of frames are.
+  const slow = (count: number, total: number) => [
+    ...smooth(total - count),
+    ...Array.from({ length: count }, () => 33.3)
+  ]
+  it.each([
+    [3, 60, 16.7],
+    [4, 60, 33.3],
+    [6, 120, 16.7],
+    [7, 120, 33.3]
+  ])('reads p95 with %i of %i frames slow as %sms', (count, total, p95) => {
+    expect(summariseFrames(slow(count, total)).p95).toBe(p95)
+  })
 })
 
 describe('budgetMisses', () => {

@@ -13,24 +13,27 @@ export {
 
 const TINTED = '.emphasis-subtle, .emphasis-subtler'
 
-// Body text under 0010's Lc 75 that already shipped. Each leaves once its
-// ticket is fixed; anything else fails.
+// Body text under 0010's Lc 75 that already shipped. Each is either a
+// documented exception in decision 0010 or leaves once its ticket is fixed;
+// anything else fails.
 const KNOWN_LOW_CONTRAST: {
   matches: (element: Element) => boolean
   /** Just under the lowest Lc measured when listed, so a worse pair fails. */
   floor: number
+  /** The ticket, and the decision entry that accepts or tracks it. */
   ticket: string
 }[] = [
   {
     // Cards' secondary text on a tinted card in a tinted section, where the
-    // tints stack. Lc 70.0 at the lowest, in light mode. Other blocks'
-    // stacked tints aren't covered: they hold to 75.
+    // tints stack. Lc 70.0 at the lowest, in light mode. Accepted as an
+    // exception in docs/decisions/0010-apca-contrast.md (INNO-1756). Other
+    // blocks' stacked tints aren't covered: they hold to 75.
     matches: (element) =>
       element.matches('.text-subtle') &&
       !!element.closest('[data-block="cards"]') &&
       !!element.closest(TINTED)?.parentElement?.closest(TINTED),
     floor: 69,
-    ticket: 'INNO-1756'
+    ticket: 'INNO-1756, documented exception in decision 0010'
   }
 ]
 
