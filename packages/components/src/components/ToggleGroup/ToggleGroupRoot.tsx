@@ -11,7 +11,8 @@ import {
 
 import { ToggleGroup as ToggleGroupPrimitive } from '@base-ui/react/toggle-group'
 
-import { mergeClassName } from '../../utils/mergeClassName'
+import { cn } from '@oztix/roadie-core/utils'
+
 import { mergeRefs } from '../../utils/mergeRefs'
 import { type RoadieIntent, intentVariants } from '../../variants'
 import {
@@ -175,8 +176,9 @@ export function ToggleGroupRoot<Value extends string = string>({
         onBlur={handleBlur}
         onPointerDown={handlePointerDown}
         onClick={handleClick}
-        className={mergeClassName(
-          [toggleGroupVariants({ emphasis }), intent && intentVariants[intent]],
+        className={cn(
+          toggleGroupVariants({ emphasis }),
+          intent && intentVariants[intent],
           className
         )}
         {...props}

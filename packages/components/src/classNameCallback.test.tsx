@@ -9,7 +9,6 @@ import { Progress } from './components/Progress'
 import { RadioGroup } from './components/RadioGroup'
 import { Switch } from './components/Switch'
 import { Toggle } from './components/Toggle'
-import { ToggleGroup } from './components/ToggleGroup'
 
 const PROBE = 'callback-probe'
 
@@ -82,17 +81,6 @@ const families: Family[] = [
       </Toggle>
     ),
     ['toggle']
-  ],
-  [
-    'ToggleGroup',
-    (c) => (
-      <ToggleGroup.Root aria-label='View' className={c}>
-        <ToggleGroup.Item value='list' className={c}>
-          List
-        </ToggleGroup.Item>
-      </ToggleGroup.Root>
-    ),
-    ['toggle-group', 'toggle-group-item']
   ]
 ]
 

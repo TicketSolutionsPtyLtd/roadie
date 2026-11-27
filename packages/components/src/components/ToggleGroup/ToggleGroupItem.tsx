@@ -4,8 +4,9 @@ import { type RefAttributes, use } from 'react'
 
 import { Toggle as TogglePrimitive } from '@base-ui/react/toggle'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { isIconOnly } from '../../utils/isIconOnly'
-import { mergeClassName } from '../../utils/mergeClassName'
 import { ToggleGroupContext } from './ToggleGroupContext'
 import { toggleGroupItemVariants } from './variants'
 
@@ -29,7 +30,7 @@ export function ToggleGroupItem<Value extends string = string>({
       nativeButton={nativeButton ?? !props.render}
       data-slot='toggle-group-item'
       data-icon-only={isIconOnly(props.children) ? '' : undefined}
-      className={mergeClassName(
+      className={cn(
         toggleGroupItemVariants({ size, emphasis, raisePressed }),
         className
       )}

@@ -337,6 +337,7 @@ export default defineConfig({
         'Slider',
         'Tabs',
         'Toast',
+        'ToggleGroup',
         'Toolbar',
         'Tooltip'
       ].map((folder) => `packages/components/src/components/${folder}/**`)
