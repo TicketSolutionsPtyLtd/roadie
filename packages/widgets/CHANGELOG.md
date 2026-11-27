@@ -1,5 +1,38 @@
 # @oztix/roadie-widgets
 
+## 3.8.1
+
+### Patch Changes
+
+- a5cd671: A page that mounts both the React and Vue `CartDrawer` now keeps body scroll locked until both have closed, since the two skins share one scroll lock, open height, and height spring. Nothing else changes for apps.
+- 7cb1c90: The React and Vue `CartDrawer` skins now run one shared drag and snap module instead of a copy each. Nothing changes for apps.
+- 638cf4a: Fix `CartDrawer` flashing to full height for a frame as it opens, in React. A drag that starts while the drawer is still settling now follows the pointer instead of toggling it, and the closed drawer rests at exactly `--cart-drawer-height`. In Vue, `initialState: 'open'` now opens the drawer when `open` is omitted, and two drawers on one page no longer overwrite each other's `--cart-drawer-height`.
+- 84f7705: The cart's "Removing…" veil now drops its blur and turns solid when someone reduces transparency, in the React and Vue skins.
+- Updated dependencies [dbaf0ab]
+- Updated dependencies [8439a22]
+- Updated dependencies [11fc6aa]
+- Updated dependencies [3fadb5a]
+- Updated dependencies [31eb39d]
+- Updated dependencies [811255b]
+- Updated dependencies [4439322]
+- Updated dependencies [5f33a58]
+- Updated dependencies [f92641f]
+- Updated dependencies [5343e23]
+- Updated dependencies [fb98580]
+- Updated dependencies [c925d33]
+- Updated dependencies [260ae3c]
+- Updated dependencies [04dc330]
+- Updated dependencies [4e8b502]
+- Updated dependencies [40a22c0]
+- Updated dependencies [32c666b]
+- Updated dependencies [9b1ef0e]
+- Updated dependencies [44501ab]
+- Updated dependencies [a71f81b]
+- Updated dependencies [523432d]
+- Updated dependencies [91b0f63]
+- Updated dependencies [37d1715]
+  - @oztix/roadie-core@2.14.0
+
 ## 3.8.0
 
 ### Minor Changes
