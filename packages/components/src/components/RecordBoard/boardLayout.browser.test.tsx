@@ -280,21 +280,43 @@ describe('boardLayout in a browser', { timeout: 30_000 }, () => {
     expect(titles('On sale')).toEqual(['Ocean Alley 1'])
   })
 
-  it('lifts each card off its column as a raised surface', () => {
-    render(<Shows />)
-    const card = column('On sale').querySelector('[data-slot="record-card"]')!
-    expect(card).toHaveClass('emphasis-raised')
-    expect(getComputedStyle(card).boxShadow).not.toBe('none')
-    expect(getComputedStyle(card).backgroundColor).not.toBe(
-      getComputedStyle(column('On sale')).backgroundColor
-    )
-  })
+  it.each(['light', 'dark'])(
+    'lifts each card off its column as a raised surface, in %s mode',
+    (mode) => {
+      document.documentElement.classList.toggle('dark', mode === 'dark')
+      try {
+        render(<Shows />)
+        const card = column('On sale').querySelector(
+          '[data-slot="record-card"]'
+        )!
+        expect(card).toHaveClass('emphasis-raised')
+        expect(getComputedStyle(card).boxShadow).not.toBe('none')
+        expect(getComputedStyle(card).backgroundColor).not.toBe(
+          getComputedStyle(column('On sale')).backgroundColor
+        )
+      } finally {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+  )
 
   it('keeps a selected card subtle in accent, not raised', () => {
     render(<Shows selected={['show-0']} />)
     const card = column('On sale').querySelector('[data-slot="record-card"]')!
     expect(card).toHaveClass('emphasis-subtle', 'intent-accent')
     expect(card).not.toHaveClass('emphasis-raised')
+  })
+
+  it('keeps a card the same size when it is selected', async () => {
+    render(<Shows selected={['show-1']} />)
+    const card = column('On sale').querySelector('[data-slot="record-card"]')!
+    const before = card.getBoundingClientRect()
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await expect.poll(() => card.className).toContain('emphasis-subtle')
+    const after = card.getBoundingClientRect()
+    expect([after.width, after.height]).toEqual([before.width, before.height])
   })
 
   it('raises its loading placeholders to match the cards', () => {

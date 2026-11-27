@@ -49,7 +49,9 @@ export const RecordPlaceholder = memo(function RecordPlaceholder({
         <div
           className={cn(
             'grid content-start overflow-hidden rounded-xl',
-            raised ? 'emphasis-raised' : 'border border-subtle',
+            raised
+              ? 'emphasis-raised border border-transparent'
+              : 'border border-subtle',
             !banner && bodyClass
           )}
         >
