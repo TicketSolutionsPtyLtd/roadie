@@ -707,13 +707,15 @@ describe('Editor in a Field', () => {
     ).toBeInTheDocument()
   })
 
-  it('reports invalid and is described by the error text while the Field is invalid', async () => {
+  it('reports invalid and adds the error text to its description while the Field is invalid', async () => {
     const { rerender } = render(<DescriptionField />)
     const textbox = await screen.findByRole('textbox', { name: LABEL })
 
     rerender(<DescriptionField invalid />)
 
-    await waitFor(() => expect(textbox).toHaveAccessibleDescription(ERROR))
+    await waitFor(() =>
+      expect(textbox).toHaveAccessibleDescription(`${HELP} ${ERROR}`)
+    )
     expect(textbox).toHaveAttribute('aria-invalid', 'true')
     expect(frameOf(textbox)).toHaveAttribute('aria-invalid', 'true')
   })
