@@ -317,6 +317,31 @@ export default defineConfig({
       },
       ['**/*.test.{ts,tsx}']
     ),
+    // Folders still to move onto mergeClassName (INNO-1712).
+    roadieRules(
+      ['packages/*/src/**/*.tsx'],
+      { 'roadie/no-dropped-class-name-callback': 'error' },
+      [
+        'Autocomplete',
+        'Collapsible',
+        'Combobox',
+        'Dialog',
+        'Drawer',
+        'Menu',
+        'Navigator',
+        'NumberField',
+        'OTPField',
+        'Popover',
+        'ScrollArea',
+        'Select',
+        'Slider',
+        'Tabs',
+        'Toast',
+        'ToggleGroup',
+        'Toolbar',
+        'Tooltip'
+      ].map((folder) => `packages/components/src/components/${folder}/**`)
+    ),
     // The testing preset covers the tests; these are the helpers they wait in.
     roadieRules(
       [

@@ -4,8 +4,7 @@ import { type RefAttributes, useState } from 'react'
 
 import { CheckboxGroup as CheckboxGroupPrimitive } from '@base-ui/react/checkbox-group'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import {
   type CheckboxEmphasis,
   CheckboxGroupContext,
@@ -59,7 +58,10 @@ export function CheckboxGroupRoot({
     >
       <CheckboxGroupPrimitive
         data-slot='checkbox-group'
-        className={cn(checkboxGroupVariants({ direction, size, className }))}
+        className={mergeClassName(
+          checkboxGroupVariants({ direction, size }),
+          className
+        )}
         disabled={disabled ?? fieldContext.disabled}
         aria-labelledby={
           labelId ?? ((inField && fieldContext.labelId) || undefined)
