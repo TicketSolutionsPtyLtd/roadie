@@ -209,29 +209,51 @@ export function sortableDraggable({
   onDraggingChange
 }: SortableDraggableOptions): Cleanup {
   const data = sortableItemData(group, value, label)
+  // Without a handle: whether the press began on a control inside the item.
+  let onControl = false
   const drag = draggable({
     element,
     dragHandle: handle,
+    // A control's own press wins, such as a menu that opens on pointerdown.
+    canDrag: () => !onControl,
     getInitialData: () => data,
     onDragStart: () => onDraggingChange(true),
     onDrop: () => onDraggingChange(false)
   })
   if (handle) return drag
   // A link or image inside drags itself, which the item ignores, so a press
-  // on one hands the drag to the item. Clicks still follow the link.
-  const handOver = (event: PointerEvent) => {
-    const inner =
-      event.target instanceof Element &&
-      event.target.closest<HTMLElement>('a[href], img')
-    if (inner && element.contains(inner) && !inner.hasAttribute('draggable'))
-      inner.draggable = false
+  // on one hands the drag to the item until the next press. Clicks still
+  // follow the link.
+  const lent = new Set<HTMLElement>()
+  const giveBack = () => {
+    for (const inner of lent) inner.removeAttribute('draggable')
+    lent.clear()
   }
-  element.addEventListener('pointerdown', handOver, { capture: true })
+  const press = (event: PointerEvent) => {
+    giveBack()
+    const target = event.target instanceof Element ? event.target : null
+    onControl = Boolean(
+      target?.closest(CONTROLS) &&
+      !target.closest('[data-slot="sortable-handle"]')
+    )
+    for (const selector of ['a[href]', 'img']) {
+      const inner = target?.closest<HTMLElement>(selector)
+      if (!inner || !element.contains(inner) || inner.hasAttribute('draggable'))
+        continue
+      inner.draggable = false
+      lent.add(inner)
+    }
+  }
+  element.addEventListener('pointerdown', press, { capture: true })
   return () => {
     drag()
-    element.removeEventListener('pointerdown', handOver, { capture: true })
+    element.removeEventListener('pointerdown', press, { capture: true })
+    giveBack()
   }
 }
+
+const CONTROLS =
+  'button, input, select, textarea, [contenteditable=""], [contenteditable="true"], [role="menuitem"]'
 
 /** A drop on one of this list's items, or on its drop zone (`target: null`). */
 export type SortableDrop =

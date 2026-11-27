@@ -35,7 +35,7 @@ export type SortableItemProps = Omit<ComponentProps<'div'>, 'children'> & {
   disabled?: boolean
   /** Swaps the default `<div>`, e.g. `<li />` inside a list. */
   render?: RoadieRenderProp
-  /** Where a pointer can pick the item up: its handle, or anywhere on it, as for a board's cards. A click still reaches its links and buttons, and the keyboard moves it from the handle's menu. @default 'handle' */
+  /** Where a pointer can pick the item up: its handle, or anywhere on it but its buttons and fields, as for a board's cards. A click still reaches its links and buttons, the keyboard moves it from the handle's menu, and its text can't be selected. @default 'handle' */
   dragFrom?: 'handle' | 'item'
   children?: React.ReactNode
 }
