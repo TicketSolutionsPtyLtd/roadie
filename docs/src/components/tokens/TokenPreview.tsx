@@ -249,6 +249,12 @@ function variablePreview(token: TokenEntry) {
         />
       )
     case 'Focus ring':
+      if (name.startsWith('--outline-color-'))
+        return (
+          <span
+            className={cn(tile, 'outline-4 outline-solid', token.classes?.[0])}
+          />
+        )
       if (name === '--focus-ring-width')
         return <FocusRing width={literal(token)} opacity='100%' />
       return name.endsWith('-dark') ? (

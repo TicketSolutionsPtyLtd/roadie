@@ -51,7 +51,12 @@ const TRANSITIONED = [
   'outline-color',
   'transform'
 ]
-const FOCUS_RING = ['--focus-ring-width', '--focus-ring-opacity']
+const FOCUS_RING = [
+  '--focus-ring-width',
+  '--focus-ring-opacity',
+  '--outline-color-focus',
+  '--outline-color-focus-danger'
+]
 
 /** A live example's element, once its fence has rendered. */
 async function example(page: Page, heading: string, element: Locator) {

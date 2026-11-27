@@ -169,7 +169,9 @@ export const rhythmTable = (tokens: TokenEntry[]): TwinTable => ({
 
 const FOCUS_RING_LABELS: Record<string, string> = {
   '--focus-ring-width': 'Width',
-  '--focus-ring-opacity': 'Opacity in light and dark mode'
+  '--focus-ring-opacity': 'Opacity in light and dark mode',
+  '--outline-color-focus': 'Colour',
+  '--outline-color-focus-danger': 'Colour when invalid'
 }
 
 /** The focus ring tokens, each with what it sets and its value, less deprecated ones. */
@@ -182,11 +184,17 @@ export function focusRing(tokens: TokenEntry[]) {
   )
   if (missing.length)
     throw new Error(`No focus ring token ${missing.join(', ')}`)
-  return ring.map(({ name, value }) => ({
-    name,
-    label: FOCUS_RING_LABELS[name] ?? name,
-    value: value!.light!
-  }))
+  const order = Object.keys(FOCUS_RING_LABELS)
+  // An unlisted token's -1 becomes the largest index, so it sorts last.
+  const rank = (name: string) => order.indexOf(name) >>> 0
+  return [...ring]
+    .sort((a, b) => rank(a.name) - rank(b.name))
+    .map(({ name, value, classes }) => ({
+      name,
+      label: FOCUS_RING_LABELS[name] ?? name,
+      // A colour's color-mix() is too long to read; its class says it.
+      value: classes?.[0] ?? value!.light!
+    }))
 }
 
 export const focusRingTable = (tokens: TokenEntry[]): TwinTable => ({

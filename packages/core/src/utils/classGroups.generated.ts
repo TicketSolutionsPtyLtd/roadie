@@ -10,6 +10,7 @@ export type RoadieClassGroupIds =
   | 'semantic-text-color'
   | 'semantic-bg-color'
   | 'semantic-border-color'
+  | 'semantic-outline-color'
   | 'intent'
   | 'emphasis'
   | 'selection'
@@ -108,6 +109,10 @@ export const classGroups: Record<RoadieClassGroupIds, string[]> = {
     'border-strong',
     'border-inverted'
   ],
+  'semantic-outline-color': [
+    'outline-focus',
+    'outline-focus-danger'
+  ],
   intent: [
     'intent-neutral',
     'intent-brand',
@@ -158,5 +163,7 @@ export const conflictingClassGroups: Partial<Record<GroupId, GroupId[]>> = {
   'semantic-bg-color': ['bg-color'],
   'bg-color': ['semantic-bg-color'],
   'semantic-border-color': ['border-color'],
-  'border-color': ['semantic-border-color']
+  'border-color': ['semantic-border-color'],
+  'semantic-outline-color': ['outline-color'],
+  'outline-color': ['semantic-outline-color']
 }
