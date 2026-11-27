@@ -5,8 +5,7 @@ import type { KeyboardEvent, RefAttributes } from 'react'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { useDirection } from '@base-ui/react/direction-provider'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { useFieldControlProps } from '../Field/FieldContext'
 
@@ -43,7 +42,7 @@ export function ComboboxInput({
   return (
     <ComboboxPrimitive.Input
       data-slot='combobox-input'
-      className={cn(
+      className={mergeClassName(
         'min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle',
         className
       )}

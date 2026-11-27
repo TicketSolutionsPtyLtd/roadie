@@ -112,8 +112,106 @@ const foundPopupItemIn = (identifier, sourceCode) => {
   return false
 }
 
+const jsxRoot = (name) =>
+  name.type === 'JSXMemberExpression' ? jsxRoot(name.object) : name
+
+// Whether `match` holds for the node or anything inside it.
+const anyNode = (node, match) =>
+  !!node &&
+  typeof node.type === 'string' &&
+  (match(node) ??
+    Object.entries(node).some(
+      ([key, child]) =>
+        key !== 'parent' && [child].flat().some((part) => anyNode(part, match))
+    ))
+
+// `className`, or `props.className`, read anywhere inside the node.
+const readsClassName = (node) =>
+  anyNode(node, (part) =>
+    part.type === 'Identifier'
+      ? part.name === 'className'
+      : part.type === 'Property'
+        ? readsClassName(part.value)
+        : part.property?.name === 'className' || undefined
+  )
+
+// What a className can come from: each branch, or what a variable starts as.
+const joinsIn = (expression, sourceCode) => {
+  if (expression.type === 'ConditionalExpression') {
+    return [expression.consequent, expression.alternate].flatMap((branch) =>
+      joinsIn(branch, sourceCode)
+    )
+  }
+  if (expression.type === 'LogicalExpression') {
+    return [expression.left, expression.right].flatMap((side) =>
+      joinsIn(side, sourceCode)
+    )
+  }
+  if (expression.type !== 'Identifier') return [expression]
+  for (
+    let scope = sourceCode.getScope(expression);
+    scope;
+    scope = scope.upper
+  ) {
+    const def = scope.set.get(expression.name)?.defs[0]
+    if (!def) continue
+    return def.type === 'Variable' && def.node.init
+      ? joinsIn(def.node.init, sourceCode)
+      : []
+  }
+  return []
+}
+
+const callsClassName = (node) =>
+  anyNode(node, (part) => part.callee?.name === 'className' || undefined)
+
+// Passed through, resolved by hand, or joined with the joiner.
+const keepsCallback = (node) =>
+  node.type === 'MemberExpression' ||
+  (/Function/.test(node.type) && callsClassName(node.body)) ||
+  node.callee?.name === 'mergeClassName'
+
 const rules = {
   ...published.rules,
+  // clsx skips a function, so cn() drops the state callback Base UI's prop
+  // types accept (INNO-1712).
+  'no-dropped-class-name-callback': {
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          "A Base UI part joins a consumer's className with mergeClassName."
+      },
+      schema: []
+    },
+    create(context) {
+      const primitives = new Set()
+      return {
+        "ImportDeclaration[source.value=/^@base-ui\\x2Freact/][importKind!='type']"(
+          node
+        ) {
+          for (const specifier of node.specifiers) {
+            if (specifier.importKind !== 'type') {
+              primitives.add(specifier.local.name)
+            }
+          }
+        },
+        "JSXAttribute[name.name='className'] > JSXExpressionContainer"(node) {
+          const element = node.parent.parent
+          if (!primitives.has(jsxRoot(element.name).name)) return
+          const drops = joinsIn(node.expression, context.sourceCode).some(
+            (join) => !keepsCallback(join) && readsClassName(join)
+          )
+          if (!drops) return
+          context.report({
+            node: node.expression,
+            message:
+              "Join a consumer's className with mergeClassName from utils/mergeClassName, which keeps a callback; cn() and cva drop it."
+          })
+        }
+      }
+    }
+  },
   // Base UI opens a popup in a frame and keeps a closed one mounted, inert,
   // until its exit ends, and Linux WebKit runs no frames while idle, so a
   // found item can belong to the popup that's closing (#1072, #1080, #1083, #1086).

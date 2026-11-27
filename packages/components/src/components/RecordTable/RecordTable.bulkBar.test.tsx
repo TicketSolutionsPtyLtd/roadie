@@ -13,7 +13,12 @@ import {
   type RecordsInstance,
   useRecords
 } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import { showColumns } from './testUtils'
 
 afterEach(() => vi.restoreAllMocks())
@@ -28,21 +33,21 @@ function Bulk({
   actions: RecordsBulkAction[]
   rows?: number
 }) {
-  const records = useRecords<TestShow>({
-    data: testShows(rows),
-    fields: showFields,
-    getRowId: (row) => row.id,
-    selectable: true,
-    // Few rows a page keeps each update cheap; 120 records still span pages.
-    defaultPosition: { pageSize: 10 }
-  })
   return (
-    <Records.Root records={records} layouts={layouts} caption='Shows'>
+    <ShowRecords
+      data={testShows(rows)}
+      getRowId={(row) => row.id}
+      selectable
+      // Few rows a page keeps each update cheap; 120 records still span pages.
+      defaultPosition={{ pageSize: 10 }}
+      layouts={layouts}
+      caption='Shows'
+    >
       <Records.Search />
       <Records.Content />
       <Records.BulkActions actions={actions} recordName={shows} />
       <Records.Status />
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
@@ -207,14 +212,15 @@ describe('RecordTable selection bar', () => {
 
   it('puts the bar in the header when composed in a Pane', async () => {
     function InPane() {
-      const records = useRecords<TestShow>({
-        data: testShows(12),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        selectable: true
-      })
       return (
-        <Records.Provider records={records} layouts={layouts} caption='Shows'>
+        <ShowRecords
+          data={testShows(12)}
+          getRowId={(row) => row.id}
+          selectable
+          layouts={layouts}
+          caption='Shows'
+          bare
+        >
           <Pane>
             <Pane.Body>
               <Records.Content fill />
@@ -225,7 +231,7 @@ describe('RecordTable selection bar', () => {
               />
             </Pane.Footer>
           </Pane>
-        </Records.Provider>
+        </ShowRecords>
       )
     }
     const { container } = render(<InPane />)
@@ -255,19 +261,18 @@ describe('RecordTable selection bar', () => {
   it('shows no bar, and warns, for records that are not selectable', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     function Unselectable() {
-      const records = useRecords<TestShow>({
-        data: testShows(12),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        selection: { ids: ['show-0'] }
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
+        <ShowRecords
+          data={testShows(12)}
+          getRowId={(row) => row.id}
+          selection={{ ids: ['show-0'] }}
+          layouts={layouts}
+        >
           <Records.Content />
           <Records.BulkActions
             actions={[{ label: 'Export', onAction: vi.fn() }]}
           />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     const { container } = render(<Unselectable />)

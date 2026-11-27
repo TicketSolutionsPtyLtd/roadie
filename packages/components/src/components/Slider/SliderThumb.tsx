@@ -4,8 +4,7 @@ import { type RefAttributes, useLayoutEffect, useMemo, useState } from 'react'
 
 import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { useSliderContext } from './SliderContext'
 import { sliderThumbVariants } from './variants'
@@ -45,7 +44,7 @@ export function SliderThumb({
       aria-describedby={
         [describedBy, ariaDescribedBy].filter(Boolean).join(' ') || undefined
       }
-      className={cn(sliderThumbVariants({ size }), className)}
+      className={mergeClassName(sliderThumbVariants({ size }), className)}
       {...props}
     />
   )

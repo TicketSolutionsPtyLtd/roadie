@@ -24,8 +24,9 @@ import { RecordGrid, gridLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
-import { Records, type RecordsRangeResult, useRecords } from '../Records'
+import { Records, type RecordsRangeResult } from '../Records'
 import {
+  ShowRecords,
   type TestShow,
   boxStates,
   showFields,
@@ -318,7 +319,6 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
     const user = userEvent.setup()
     const column = tableColumns<TestShow>(showFields)
     function Switching() {
-      const records = useRecords({ data: testShows(6), fields: showFields })
       const [layouts] = useState(() => [
         tableLayout([
           column.field('show', { pin: true }),
@@ -329,10 +329,10 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
       ])
       return (
         <div style={{ width: 900 }}>
-          <Records records={records} layouts={layouts} caption='Shows'>
+          <ShowRecords data={testShows(6)} layouts={layouts} caption='Shows'>
             <Records.Header />
             <Records.Content />
-          </Records>
+          </ShowRecords>
         </div>
       )
     }

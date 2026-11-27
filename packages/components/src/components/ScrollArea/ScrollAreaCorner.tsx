@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { ScrollArea as ScrollAreaPrimitive } from '@base-ui/react/scroll-area'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { scrollAreaCornerVariants } from './variants'
 
 export type ScrollAreaCornerProps = ScrollAreaPrimitive.Corner.Props &
@@ -18,7 +17,7 @@ export function ScrollAreaCorner({
   return (
     <ScrollAreaPrimitive.Corner
       data-slot='scroll-area-corner'
-      className={cn(scrollAreaCornerVariants({ className }))}
+      className={mergeClassName(scrollAreaCornerVariants(), className)}
       {...props}
     />
   )

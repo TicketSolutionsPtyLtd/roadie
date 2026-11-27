@@ -10,7 +10,12 @@ import { RecordTable, tableColumns, tableLayout } from '.'
 import { RoadieLinkProvider } from '../../providers/RoadieLinkProvider'
 import { Menu } from '../Menu'
 import { Records, type RecordsBulkAction, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import {
   bulkBar,
   countMenuItems,
@@ -23,16 +28,16 @@ afterEach(() => vi.restoreAllMocks())
 const layouts = [tableLayout(showColumns)]
 
 function Bulk({ actions }: { actions: RecordsBulkAction[] }) {
-  const records = useRecords({
-    data: testShows(120),
-    fields: showFields,
-    getRowId: (row) => row.id,
-    selectable: true,
-    // Few rows a page keeps each update cheap; 120 records still span pages.
-    defaultPosition: { pageSize: 10 }
-  })
   return (
-    <Records.Root records={records} layouts={layouts} caption='Shows'>
+    <ShowRecords
+      data={testShows(120)}
+      getRowId={(row) => row.id}
+      selectable
+      // Few rows a page keeps each update cheap; 120 records still span pages.
+      defaultPosition={{ pageSize: 10 }}
+      layouts={layouts}
+      caption='Shows'
+    >
       <Records.Search />
       <Records.Content />
       <Records.Pagination />
@@ -41,7 +46,7 @@ function Bulk({ actions }: { actions: RecordsBulkAction[] }) {
         recordName={{ one: 'show', other: 'shows' }}
       />
       <Records.Status />
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
@@ -148,17 +153,16 @@ describe('RecordTable bulk actions', () => {
         query: { search: '', filters: [], sort: [] },
         layout: { type: 'table' }
       })
-      const records = useRecords({
-        data: testShows(120),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        selectable: true,
-        view,
-        onViewChange: setView,
-        defaultPosition: { pageSize: 10 }
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
+        <ShowRecords
+          data={testShows(120)}
+          getRowId={(row) => row.id}
+          selectable
+          view={view}
+          onViewChange={setView}
+          defaultPosition={{ pageSize: 10 }}
+          layouts={layouts}
+        >
           <button
             type='button'
             onClick={() =>
@@ -172,7 +176,7 @@ describe('RecordTable bulk actions', () => {
             actions={[{ label: 'Refund', intent: 'danger', onAction }]}
             recordName={{ one: 'show', other: 'shows' }}
           />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Controlled />)
@@ -394,18 +398,15 @@ describe('RecordTable row actions', () => {
   it('opens a named menu per row with the consumer items', async () => {
     const onEdit = vi.fn()
     function Actions() {
-      const records = useRecords({
-        data: testShows(3),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        rowActions: (row) => (
-          <Menu.Item onClick={() => onEdit(row.id)}>Edit</Menu.Item>
-        )
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
+        <ShowRecords
+          data={testShows(3)}
+          getRowId={(row) => row.id}
+          rowActions={(row) => (
+            <Menu.Item onClick={() => onEdit(row.id)}>Edit</Menu.Item>
+          )}
+          layouts={layouts}
+        />
       )
     }
     render(<Actions />)
@@ -432,16 +433,6 @@ describe('RecordTable row links', () => {
     onEdit?: (id: string) => void
     selectable?: boolean
   }) {
-    const records = useRecords({
-      data: testShows(3),
-      fields: showFields,
-      getRowId: (row) => row.id,
-      selectable,
-      getRowHref: (row) => `/shows/${row.id}`,
-      rowActions: (row) => (
-        <Menu.Item onClick={() => onEdit(row.id)}>Edit</Menu.Item>
-      )
-    })
     const Link = ({ href, ...props }: React.ComponentProps<'a'>) => (
       <a
         href={href}
@@ -454,9 +445,16 @@ describe('RecordTable row links', () => {
     )
     return (
       <RoadieLinkProvider Link={Link}>
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
+        <ShowRecords
+          data={testShows(3)}
+          getRowId={(row) => row.id}
+          selectable={selectable}
+          getRowHref={(row) => `/shows/${row.id}`}
+          rowActions={(row) => (
+            <Menu.Item onClick={() => onEdit(row.id)}>Edit</Menu.Item>
+          )}
+          layouts={layouts}
+        />
       </RoadieLinkProvider>
     )
   }
@@ -581,17 +579,15 @@ describe('RecordTable row links', () => {
 describe('RecordTable row links: rows without a record page', () => {
   it('links only the rows getRowHref names', () => {
     function Partly() {
-      const records = useRecords({
-        data: testShows(3),
-        fields: showFields,
-        getRowId: (row) => row.id,
-        getRowHref: (row) =>
-          row.id === 'show-1' ? undefined : `/shows/${row.id}`
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
+        <ShowRecords
+          data={testShows(3)}
+          getRowId={(row) => row.id}
+          getRowHref={(row) =>
+            row.id === 'show-1' ? undefined : `/shows/${row.id}`
+          }
+          layouts={layouts}
+        />
       )
     }
     render(<Partly />)
@@ -613,16 +609,13 @@ describe('RecordTable row links: no column can carry the link', () => {
   ]
 
   function NumberOnly({ rows = 3 }: { rows?: number }) {
-    const records = useRecords({
-      data: testShows(rows),
-      fields: showFields,
-      getRowId: (row) => row.id,
-      getRowHref: (row) => `/shows/${row.id}`
-    })
     return (
-      <Records.Root records={records} layouts={numbers}>
-        <Records.Content />
-      </Records.Root>
+      <ShowRecords
+        data={testShows(rows)}
+        getRowId={(row) => row.id}
+        getRowHref={(row) => `/shows/${row.id}`}
+        layouts={numbers}
+      />
     )
   }
 
@@ -647,16 +640,13 @@ describe('RecordTable row links: no column can carry the link', () => {
 describe('RecordTable row links: rows with no title', () => {
   it('links no row whose title is empty', () => {
     function Untitled() {
-      const records = useRecords({
-        data: [{ ...testShows(1)[0]!, show: '' }, testShows(2)[1]!],
-        fields: showFields,
-        getRowId: (row) => row.id,
-        getRowHref: (row) => `/shows/${row.id}`
-      })
       return (
-        <Records.Root records={records} layouts={layouts}>
-          <Records.Content />
-        </Records.Root>
+        <ShowRecords
+          data={[{ ...testShows(1)[0]!, show: '' }, testShows(2)[1]!]}
+          getRowId={(row) => row.id}
+          getRowHref={(row) => `/shows/${row.id}`}
+          layouts={layouts}
+        />
       )
     }
     render(<Untitled />)
@@ -728,14 +718,13 @@ describe('RecordTable row titles: lists', () => {
 describe('Records.Search', () => {
   it('takes its own accessible name', () => {
     function Named() {
-      const records = useRecords({ data: testShows(3), fields: showFields })
       return (
-        <Records.Root records={records} layouts={layouts}>
+        <ShowRecords data={testShows(3)} layouts={layouts}>
           <Records.Search
             placeholder='Search'
             aria-label='Search shows by name'
           />
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Named />)

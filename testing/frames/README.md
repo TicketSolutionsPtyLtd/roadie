@@ -30,7 +30,9 @@ it('scrolls 10,000 rows at 60fps', async () => {
   runs, such as a real pointer through `commands.pointer`.
 - `expectFrameBudget` fails when the p95 frame is over 17.5ms (16.7 plus the
   frame clock's jitter) or more than 5% of frames drop, over at least 60
-  frames, setting the worst frame aside so one hitch can't fail a run.
+  frames, setting the worst frame aside so one hitch can't fail a run. p95
+  reads by nearest rank, so it's slow only when more than 5% of frames are
+  ([why](../../docs/solutions/test-failures/p95-rank-rounded-down.md)).
   `knownMiss: 'INNO-…'` records a filed miss without failing, until it's fixed.
   `exception: '…'` records a miss accepted by design, naming why, so the table
   shows it and CI doesn't fail. Today that's the full-page backdrop blur
