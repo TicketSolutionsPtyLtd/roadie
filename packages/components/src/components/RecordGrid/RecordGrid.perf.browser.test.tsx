@@ -45,8 +45,9 @@ describe('RecordGrid scrolls at 60fps on a slowed CPU', () => {
         () => {
           viewport.scrollTop += 60
         },
-        { warmup: 60 }
-      )
+        { warmup: import.meta.env.VITE_NO_WARMUP ? 0 : 60 }
+      ),
+      { note: import.meta.env.VITE_NO_WARMUP ? 'cold' : 'warm' }
     )
     expect(viewport.scrollTop).toBeGreaterThan(5000)
     expect(
