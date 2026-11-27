@@ -7,7 +7,13 @@ export const sortableItemVariants = cva(
     variants: {
       dragFrom: {
         handle: '',
-        item: 'not-data-disabled:cursor-grab'
+        // The item's link overlay (data-interactive-target) covers the item
+        // with its own pointer cursor, so it takes the item's cursor too. A
+        // button or field inside keeps its own.
+        item: [
+          'not-data-disabled:cursor-grab not-data-disabled:data-dragging:cursor-grabbing',
+          'not-data-disabled:[&_[data-interactive-target]]:cursor-[inherit]'
+        ]
       }
     }
   }

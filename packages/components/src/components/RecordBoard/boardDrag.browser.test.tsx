@@ -117,3 +117,56 @@ describe('dragging a board card', { timeout: 30_000 }, () => {
     ).toBeVisible()
   })
 })
+
+/** The cursor the pointer would show over the middle of an element. */
+const cursorOver = (element: Element) => {
+  const { left, top, width, height } = element.getBoundingClientRect()
+  const hit = document.elementFromPoint(left + width / 2, top + height / 2)
+  return { hit, cursor: hit ? getComputedStyle(hit).cursor : '' }
+}
+
+describe('a board card cursor', () => {
+  it('shows grab over the body, and over the link that covers it', () => {
+    render(<Shows getRowHref={(show) => `#${show.id}`} />)
+    const body = card('Ocean Alley 1').querySelector(
+      '[data-slot="card-description"]'
+    )!
+    const over = cursorOver(body)
+    expect(over.hit).toBe(screen.getByRole('link', { name: 'Ocean Alley 1' }))
+    expect(over.cursor).toBe('grab')
+  })
+
+  it('shows grab over the body of a card with no link', () => {
+    render(<Shows />)
+    const body = card('Ocean Alley 1').querySelector(
+      '[data-slot="card-description"]'
+    )!
+    expect(cursorOver(body).cursor).toBe('grab')
+  })
+
+  it('shows grabbing over the link while the card is dragged', () => {
+    render(<Shows getRowHref={(show) => `#${show.id}`} />)
+    const item = card('Ocean Alley 1').closest<HTMLElement>(
+      '[data-slot="sortable-item"]'
+    )!
+    item.setAttribute('data-dragging', '')
+    const link = screen.getByRole('link', { name: 'Ocean Alley 1' })
+    expect(getComputedStyle(link).cursor).toBe('grabbing')
+    expect(getComputedStyle(item).cursor).toBe('grabbing')
+  })
+
+  it('keeps a button its own cursor', () => {
+    render(
+      <Shows
+        getRowHref={(show) => `#${show.id}`}
+        rowActions={() => <Menu.Item>Archive</Menu.Item>}
+      />
+    )
+    const actions = within(card('Ocean Alley 1')).getByRole('button', {
+      name: 'More actions for Ocean Alley 1'
+    })
+    const over = cursorOver(actions)
+    expect(actions.contains(over.hit)).toBe(true)
+    expect(over.cursor).toBe('pointer')
+  })
+})
