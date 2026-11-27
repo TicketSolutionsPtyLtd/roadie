@@ -8,8 +8,12 @@ import {
 
 import { RecordTable, tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import { PRIORITY_HIDES_BELOW } from './layout'
 import { frame } from './testUtils'
 
@@ -66,20 +70,15 @@ const widths: [number, string[]][] = [
 ]
 
 function Composed() {
-  const records = useRecords({
-    data: testShows(8),
-    fields: showFields,
-    getRowId: (row) => row.id,
-    selectable: true
-  })
   return (
-    <Records.Provider
-      records={records}
+    <ShowRecords
+      data={testShows(8)}
+      getRowId={(row) => row.id}
+      selectable
       layouts={[tableLayout(columns)]}
       caption='Shows'
-    >
-      <Records.Content />
-    </Records.Provider>
+      bare
+    />
   )
 }
 
