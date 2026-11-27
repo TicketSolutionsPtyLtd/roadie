@@ -232,11 +232,10 @@ const html = getBootstrapScript({
 ```
 
 Both paths use the same synchronous sRGB to OKLCH converter, which matches
-`colorjs.io`'s lightness and chroma to four decimal places. Modern browsers
-(Chrome 111+, Safari 15.4+, and Firefox 113+) render the accent scale from
-`oklch()` math directly, so the two custom properties are enough for a cold
-load with no flash. Older browsers fall back to the compiled CSS accent until
-the client-side accent effect runs.
+`colorjs.io`'s lightness and chroma to four decimal places. Every
+[supported browser](/overview/getting-started#browser-support) renders the
+accent scale from `oklch()` math directly, so the two custom properties are
+enough for a cold load with no flash.
 
 ## Resetting to the default
 
@@ -358,6 +357,48 @@ export default async function CollectionPage({ params }) {
 }
 ```
 
+### Accent from an image
+
+To tint an event's page from its artwork, take the accent from the image's
+pixels with `accentFromPixels` from `@oztix/roadie-core/colors`. It finds the
+image's dominant hue, where a vivid pixel counts for far more than a muted
+one, and returns a hex for `accentColor`, or `null` when the image is grey,
+near white, near black, or transparent, which keeps the accent around it.
+
+Do it once on the server, where the image is uploaded or first served, and
+store the hex with the event. The page then renders its accent in the first
+paint, with nothing to download or decode in the browser. Read a small copy:
+a 32px one has every colour that matters, and a larger image is sampled.
+
+```tsx
+// Where the artwork is uploaded, with an image library such as sharp
+import sharp from 'sharp'
+
+import { accentFromPixels } from '@oztix/roadie-core/colors'
+
+const { data } = await sharp(artwork)
+  .resize(32, 32, { fit: 'inside' })
+  .ensureAlpha()
+  .raw()
+  .toBuffer({ resolveWithObject: true })
+
+await saveEvent({ ...event, accent: accentFromPixels(data) })
+```
+
+```tsx
+// The event's page
+<ThemeProvider accentColor={event.accent ?? null}>
+  <TicketList event={event} />
+</ThemeProvider>
+```
+
+In the browser, draw the image to a canvas and pass
+`getImageData(…).data`. A canvas can only read an image from another origin
+when that host sends `Access-Control-Allow-Origin` for your app's origin and
+the image loads with `crossOrigin='anonymous'`; otherwise `getImageData`
+throws. Run it after the first paint, so the page shows the parent's accent
+until the hex arrives.
+
 ## Helpers
 
 - `DEFAULT_ACCENT_COLOR` is the Oztix blue default, from
@@ -372,8 +413,11 @@ export default async function CollectionPage({ params }) {
 - `getAccentStyleSync(hex)` returns the inner CSS, for React.
 - `getAccentStyleTagSync(hex)` returns a full `<style>` tag, for any
   framework.
-- `getAccentStyleTag(hex)` is the async variant, with full hex fallbacks for
-  browsers without OKLCH.
+- `getAccentStyleTag(hex)` is deprecated. It resolves to the same tag as
+  `getAccentStyleTagSync`.
+- `accentFromPixels(pixels, { channels })` returns an accent hex, or `null`,
+  from raw RGBA or RGB bytes, from `@oztix/roadie-core/colors`. See
+  [Accent from an image](#accent-from-an-image).
 - `getBootstrapScript(options)` combines the theme script and the accent
   style tag for one head injection.
 

@@ -12,10 +12,11 @@ import {
 } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Dialog } from '../Dialog'
 import { Drawer } from '../Drawer'
-import { useStylesheet } from '../Pane/testUtils'
 import { MapEngineContext } from './MapEngineContext'
 import type { MapEngine, MapEngineInstance, MapPalette } from './engine'
 import blankStyle from './fixtures/blank-style.json?url'

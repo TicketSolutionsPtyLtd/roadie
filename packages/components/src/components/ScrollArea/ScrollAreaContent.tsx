@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { ScrollArea as ScrollAreaPrimitive } from '@base-ui/react/scroll-area'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { scrollAreaContentVariants } from './variants'
 
 export type ScrollAreaContentProps = ScrollAreaPrimitive.Content.Props &
@@ -24,7 +23,7 @@ export function ScrollAreaContent({
   return (
     <ScrollAreaPrimitive.Content
       data-slot='scroll-area-content'
-      className={cn(scrollAreaContentVariants({ className }))}
+      className={mergeClassName(scrollAreaContentVariants(), className)}
       // Base UI sets `min-width: fit-content` inline.
       style={fitWidth ? style : { minWidth: 0, ...style }}
       {...props}

@@ -12,9 +12,15 @@ const require = createRequire(import.meta.url)
 // the scope's limit.
 type Rule = { selector: string; body: string; layers: string[]; limit?: string }
 
-// Compiles roadie.css with the safelist's candidates, as `build:css` does.
+// Compiles roadie.css with the safelists' candidates, as `build:css` does.
 const compileRoadie = async () => {
-  const safelist = await readFile(resolve(cssDir, 'safelist.html'), 'utf8')
+  const safelist = (
+    await Promise.all(
+      ['safelist.html', 'safelist.families.html'].map((file) =>
+        readFile(resolve(cssDir, file), 'utf8')
+      )
+    )
+  ).join('\n')
   const candidates = [...safelist.matchAll(/class="([^"]*)"/g)].flatMap(
     ([, classes = '']) => classes.split(/\s+/).filter(Boolean)
   )

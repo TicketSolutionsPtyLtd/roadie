@@ -37,6 +37,8 @@ export type NavigatorSlotMeta = {
   onSelect?: () => void
   placement: NavigatorPlacement
   priority: NavigatorVisibilityPriority
+  /** `Navigator.Search`: opens the page's CommandPalette rather than routing, and leads the pinned items. */
+  search?: boolean
 }
 
 const RANK: Record<NavigatorVisibilityPriority, number> = {
@@ -82,7 +84,10 @@ export function deriveMobileSlots(
   automatic: NavigatorSlotMeta[],
   pinned: NavigatorSlotMeta[]
 ): MobileSlots {
-  const [circle, ...extraPinned] = pinned
+  const [circle, ...extraPinned] = [
+    ...pinned.filter((slot) => slot.search),
+    ...pinned.filter((slot) => !slot.search)
+  ]
   const capacity = phoneBarCapacity(circle !== undefined)
   const needsMore = automatic.length > capacity || extraPinned.length > 0
   if (!needsMore) return { tabs: automatic, overflow: [], pinned: circle }

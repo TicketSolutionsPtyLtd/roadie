@@ -4,8 +4,7 @@ import { Fragment, type ReactNode, type RefAttributes, use } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { SelectContext } from './SelectContext'
 import { SelectValueSummary } from './SelectValueSummary'
 
@@ -47,7 +46,7 @@ export function SelectValue({
   return (
     <SelectPrimitive.Value
       data-slot='select-value'
-      className={cn(
+      className={mergeClassName(
         'min-w-0 flex-1 truncate data-[placeholder]:text-subtle',
         className
       )}

@@ -5,8 +5,7 @@ import type { RefAttributes } from 'react'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { FIRST_ROW } from './variants'
 
 export type ComboboxTriggerProps = ComboboxPrimitive.Trigger.Props &
@@ -20,9 +19,11 @@ export function ComboboxTrigger({
   return (
     <ComboboxPrimitive.Trigger
       data-slot='combobox-trigger'
-      className={cn(
-        'shrink-0 text-subtle transition-transform duration-moderate data-[popup-open]:rotate-180',
-        FIRST_ROW,
+      className={mergeClassName(
+        [
+          'shrink-0 text-subtle transition-transform duration-moderate data-[popup-open]:rotate-180',
+          FIRST_ROW
+        ],
         className
       )}
       {...props}

@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { overlayBackdropVariants } from '../../variants'
 import { useDrawerEmphasis } from './DrawerContext'
 
@@ -17,13 +16,15 @@ export function DrawerBackdrop({ className, ...props }: DrawerBackdropProps) {
   return (
     <DrawerPrimitive.Backdrop
       data-slot='drawer-backdrop'
-      className={cn(
-        'fixed inset-0 z-overlay',
-        overlayBackdropVariants[emphasis],
-        // Fades with the live swipe, not only on release.
-        'opacity-[calc(1_-_var(--drawer-swipe-progress,0))]',
-        'transition-opacity duration-slow ease-enter data-[swiping]:duration-0',
-        'data-[ending-style]:opacity-0 data-[starting-style]:opacity-0',
+      className={mergeClassName(
+        [
+          'fixed inset-0 z-overlay',
+          overlayBackdropVariants[emphasis],
+          // Fades with the live swipe, not only on release.
+          'opacity-[calc(1_-_var(--drawer-swipe-progress,0))]',
+          'transition-opacity duration-slow ease-enter data-[swiping]:duration-0',
+          'data-[ending-style]:opacity-0 data-[starting-style]:opacity-0'
+        ],
         className
       )}
       {...props}

@@ -3,9 +3,10 @@ import { createRef } from 'react'
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import { Accordion } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {

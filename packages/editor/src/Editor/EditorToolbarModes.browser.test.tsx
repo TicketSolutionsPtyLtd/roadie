@@ -13,6 +13,7 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem } from '@oztix/roadie-browser-testing'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 import { Editor, type EditorProps } from '.'
@@ -531,9 +532,7 @@ describe('Floating toolbar keys', () => {
     )
 
     await userEvent.keyboard('{Enter}')
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', { name: 'Heading 2' })
-    )
+    await pickMenuItem(userEvent, { item: 'Heading 2', role: 'menuitemradio' })
 
     await waitFor(() =>
       expect(

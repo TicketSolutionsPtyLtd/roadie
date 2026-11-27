@@ -134,7 +134,7 @@ function Shows() {
 }
 ```
 
-`Records.Header` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its header, never in `Pane.Search`.
+`Records.Header` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, the Configure button, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its header, never in `Pane.Search`.
 
 In a header under 40rem, the search takes the whole row while it has focus. The other controls hide from sight and screen readers, and come back once focus leaves the search. Tab out of the search shows them first, so it lands on the next one.
 
@@ -148,9 +148,9 @@ Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Recor
 - `Records.Content` in `Pane.Body`, below the header. Its column headers stick under the header. Placed straight in `Pane.Body`, a wide table runs to the pane's edges, with the pane's inset inside its first and last cells, so its first column lines up with the search and columns scrolled sideways pass under any pinned ones. Narrow rows, a `fill` or `maxHeight` box, and a pane with a `measure` keep the inset.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
-- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
+- `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, at every width, and sticks it to the foot of deprecated cards.
 
-On a phone the table turns into cards: the event, its venue, and its status, with the start, sold, and gross as details. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
+On a phone the table re-flows its rows: the event, its venue, and its status. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
@@ -194,11 +194,11 @@ const column = tableColumns(fields)
 const layouts = [
   tableLayout([
     column.field('name', { pin: true, narrow: 'title' }),
-    column.field('startsAt', { narrow: 'detail' }),
+    column.field('startsAt'),
     column.field('venue', { narrow: 'description' }),
     column.field('status', { narrow: 'trailing' }),
-    column.field('sold', { narrow: 'detail' }),
-    column.field('gross', { narrow: 'detail' })
+    column.field('sold'),
+    column.field('gross')
   ])
 ]
 
@@ -273,7 +273,7 @@ A column presents one field. `tableColumns(fields).field(key, options)` takes:
 - `cell` to render the value yourself, such as an order number in `font-mono`. The column sizes from the field's text and reserves no room for an empty value, since your cell draws its own. If it falls back to `RecordValue`, which reads "Not available", give the column a `width`.
 - `kind: 'image'` to show the value, an image URL, as a 40px thumbnail, with `alt` to describe it from the row. Its header is read to screen readers but not shown, and it never sorts from there; give its field `searchable: false` and `sortable: false`. A record without an image shows a neutral tile with an image icon.
 - `priority` to hide the column as the table narrows. See [Column priority](#column-priority).
-- `narrow` to place the column when the table turns into list rows or cards. See [Narrow layouts](#narrow-layouts).
+- `narrow` to place the column when the table re-flows its rows or turns into cards. See [Narrow layouts](#narrow-layouts).
 
 The view's `layout.columns` orders and hides columns: `order` lists keys to bring forward and `hidden` lists keys to leave out. Pinned columns stay first and shown whatever the view says.
 
@@ -562,7 +562,7 @@ render(<Controlled />)
 
 ### Options
 
-`Records.Options` is the Configure button in the header, after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
+The standard header's Configure button sits after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
 
 - **Sort** lists each level the view sorts by: a field, then its direction in the field's own terms, such as A to Z, Low to high, or Earliest first. Add sort starts with the first sortable field, its natural way, and Add another sort breaks ties with a field not sorted yet. A header click still sorts by that column alone. A level on a field that doesn't sort isn't listed, and changes here leave it in the view. A level that repeats a field sorts nothing, so changes here drop it.
 - **Columns** lists the table's columns in their order. Drag a handle to move a column, or click it, or press Enter on it, for a Move menu. The eye beside each column shows or hides it, and a hidden column stays in the list, dimmed, in its place. Pinned columns always come first and always show, so the list names them rather than offering them. The last shown column can't be hidden.
@@ -621,7 +621,57 @@ function Configured() {
 render(<Configured />)
 ```
 
-`label` renames the button, its tooltip, and the panel, which are "Configure table" for the table. In your own header, put `Records.Options` after the search and any `Records.ViewActions`, and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
+The button and panel are named "Configure table" for the table. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which is called once the page is idle or the button is reached.
+
+#### View drawer
+
+In your own header, put `Records.View` after the search and any `Records.ViewActions`, and before `Records.Actions`. It's an icon button, named View with a tooltip, that opens the same settings in a bottom drawer at every size: the Layout switcher when there's more than one layout, the sort, and the shown layout's own settings, such as the table's columns or the grid's card fields. Every change applies at once, and the button shows only when there's something to set. `label` renames the button, its tooltip, and the drawer.
+
+```tsx-live-noinline
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  field.location('location', { label: 'Location' }),
+  field.number('sold', { label: 'Sold' }),
+  field.money('gross', { label: 'Gross', format: 'compactCurrency' })
+]
+const column = tableColumns(fields)
+const layouts = [
+  tableLayout([
+    column.field('name', { pin: true }),
+    column.field('location'),
+    column.field('sold'),
+    column.field('gross')
+  ]),
+  gridLayout({ title: 'name', description: 'location', details: ['sold', 'gross'] })
+]
+const names = ['Nectarine Hoedown', 'Lampshade Disco', 'Ember Galah Ball', 'Raffia Spaceship']
+const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
+const events = Array.from({ length: 8 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${index + 1}`,
+  location: cities[index % cities.length],
+  sold: (index * 37) % 2400,
+  gross: (index * 7919) % 250000
+}))
+
+function Viewed() {
+  const records = useRecords({ data: events, fields, getRowId: (row) => row.id })
+  return (
+    <Records records={records} layouts={layouts} caption='Events'>
+      <Records.Header>
+        <Records.Search placeholder='Search events' className='min-w-40 grow basis-0' />
+        <Records.View />
+      </Records.Header>
+      <Records.Content />
+    </Records>
+  )
+}
+
+render(<Viewed />)
+```
+
+`Records.Options` is deprecated: it still works as the standard header's Configure button, warns once in development, and goes in a major release. Use `Records.View` in its place.
 
 #### Layouts
 
@@ -821,6 +871,70 @@ render(
 
 Keep the views your app stores as `RecordView` JSON, the same shape as the URL reads, so a view saved on one screen opens from a link, a preset, or a search hand-off alike.
 
+### Grouped
+
+A view's `layout.groupBy` groups the rows by up to three fields with options, such as a status, outermost first, in the options' order. Each field after the first groups the rows inside each group before it. Records with no value follow in a "No" group, such as "No status", and an option with no records is left out. Inside a group, rows keep the view's sort. The URL keeps it as `groupBy=status,venue`. To group a table by default, set it in `defaultView` or the saved view, so people can always turn it off. A field that holds a list, or has no options, can't group. People pick the field, or None, from Group by in the table's settings, then Then by and And then by, and changing the columns keeps the grouping. Group by is left out when no shown column's field can group, or when the table loads by range.
+
+Each group starts with a row spanning the columns, holding its title and count, with headings in tiers by level as in a [grouped list](/components/record-list#grouped). The title is a button that collapses the group's rows, for the session only, and a field's `groupHeading` adds content under its groups' titles at any level. Narrow, the title stays above its re-flowed rows, its text starting at their edge. Grouping applies to one page of rows at a time, so a group can continue on the next page, and a grouped table renders every row on its page rather than only those near the screen. A table that loads by range stays ungrouped. A Shift range follows the order on screen, across groups, and skips the rows of a collapsed group.
+
+```tsx-live-noinline-expand
+const names = ['Marzipan Thunderclap', 'Ember Galah Ball', 'Nectarine Hoedown', 'Tuxedo Possum Cabaret', 'Lampshade Disco', 'Raffia Spaceship']
+const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre']
+const statuses = ['on-sale', 'selling-fast', 'sold-out']
+const events = Array.from({ length: 12 }, (_, index) => ({
+  id: `event-${index}`,
+  name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
+  venue: venues[index % venues.length],
+  status: statuses[(index * 2) % statuses.length],
+  sold: (index * 37) % 2400
+}))
+const suburbs = {
+  'Kazoo Hollow Room': 'Fitzroy',
+  'Antler Kettle Hall': 'Brunswick',
+  'Echidna Gaslight Theatre': 'Collingwood'
+}
+
+const field = recordFields()
+const fields = [
+  field.text('name', { label: 'Event' }),
+  {
+    ...field.option('venue', {
+      label: 'Venue',
+      options: venues.map((venue) => ({ value: venue, label: venue }))
+    }),
+    groupHeading: ({ value }) => suburbs[value] ?? null
+  },
+  field.option('status', {
+    label: 'Status',
+    status: {
+      'on-sale': { intent: 'success', label: 'On sale' },
+      'selling-fast': { intent: 'warning', label: 'Selling fast' },
+      'sold-out': { intent: 'neutral', label: 'Sold out' }
+    }
+  }),
+  field.number('sold', { label: 'Sold' })
+]
+const column = tableColumns(fields)
+
+render(
+  <RecordTable
+    caption='Events by status and venue'
+    data={events}
+    fields={fields}
+    columns={[
+      column.field('name', { pin: true }),
+      column.field('venue'),
+      column.field('sold')
+    ]}
+    getRowId={(row) => row.id}
+    getRowHref={(row) => `#${row.id}`}
+    recordName={{ one: 'event', other: 'events' }}
+    bulkActions={[{ label: 'Export', onAction: () => {} }]}
+    defaultView={{ layout: { type: 'table', groupBy: ['status', 'venue'] } }}
+  />
+)
+```
+
 ### Selection and actions
 
 `bulkActions` turns on a checkbox for each record and shows the bulk actions once something is selected. An action gets the selection and the query and request it was taken against: the picked ids, or every matching record but some. It never gets a record the search and filters hide. Selection is session state, like the page, and works controlled with `selection` and `onSelectionChange` or uncontrolled with `defaultSelection`. A search or filter change drops picked records it hides, and drops a "select all".
@@ -976,7 +1090,7 @@ actions={[
 
 `totals` (or `'sum'`) adds up the number and money fields in the browser. Shares, indexes, and points don't add up, so they stay blank, and so does money whose rows name their own currency through `currencyKey`. Give a column `total: false` to leave it blank too, as for an id held as a number. On a RecordTable column it only hides the total, which `records.totals` still holds; on a DataTable column it leaves the column out of the sum. Each total reads in its field's format.
 
-The totals row sticks with the headings and stays in view when records are selected, since the bulk actions cover only the headings. Under 40rem, the totals read as one line above the list rows or cards.
+The totals row sticks with the headings and stays in view when records are selected, since the bulk actions cover only the headings. Under 40rem, the same row wraps onto one line above the rows, or above cards.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -1280,7 +1394,7 @@ render(
 
 ### Column priority
 
-Give columns people can do without a `priority`, so they hide as a wide table narrows, before it turns into list rows. Priority 3 hides below 64rem of the table's own width, 2 below 56rem, and 1 below 48rem, and the header and rows hide together. Pinned columns and the title never hide, so `pin` and `narrow: 'title'` win over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
+Give columns people can do without a `priority`, so they hide as a wide table narrows, before its rows re-flow. Priority 3 hides below 64rem of the table's own width, 2 below 56rem, and 1 below 48rem, and the header and rows hide together. Pinned columns and the title never hide, so `pin` and `narrow: 'title'` win over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
 
 ```tsx
 const columns = [
@@ -1293,7 +1407,7 @@ const columns = [
 
 ### Narrow layouts
 
-Under 40rem of its own width, 640px at the default text size, the table drops its columns and lists its records. It measures the table, not the screen, so a table in a side panel turns into a list on a wide monitor too. Each column picks its place with `narrow`:
+Under 40rem of its own width, 640px at the default text size, the table drops its columns and re-flows each record into a row of a title and its details. It measures the table, not the screen, so a table in a side panel re-flows on a wide monitor too. Each column picks its place with `narrow`:
 
 | `narrow` | Where the column goes |
 | --- | --- |
@@ -1301,16 +1415,20 @@ Under 40rem of its own width, 640px at the default text size, the table drops it
 | `'description'` | One line under the title, in subtle text. |
 | `'leading'` | Before the title. An image column goes here unless you say otherwise. |
 | `'trailing'` | At the end of the row, such as a status badge. |
-| `'detail'` | A label and value on a card. Any detail column turns the rows into cards. |
+| `'detail'` | Deprecated. A label and value on a card. Any detail column turns the rows into cards. |
 | `'hidden'` | Left out of the narrow layout. The default for every column but images. |
 
-The server can't measure the table, so it renders wide, and a phone switches to the list once the page hydrates. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
+A table keeps its rows, cells, and column headers at every width, and CSS moves each cell to its place, so the server paints the narrow rows and nothing moves as the page hydrates. Totals wrap onto one line above the rows, the label first and each total beside its column's heading, and each group's title stays above its rows. A screen reader reads each record the same way at every width: the headers hide from sight but not from it, and the columns left out of the narrow layout hide from both. A tap anywhere on a row opens its record. The row's text lines up with the header.
 
-Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions float at the foot of the screen, keeping the first action and putting the rest in a More actions menu when they don't fit.
+To show records another way on a phone, such as [`RecordList`](/components/record-list) or [`RecordGrid`](/components/record-grid), your app chooses which to render: by route, by a device hint from the server, or with its own container query around both. RecordTable has no prop to switch, so the table keeps its semantics wherever it renders.
 
-#### List rows
+Only deprecated cards still swap the table for a list once the page hydrates, since the server can't measure the table. Cards reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, cards stay inside the box. The examples below sit in a 360px box.
 
-With no detail columns, each record is a list row of a fixed height: leading, title, description, and trailing. An image column becomes the leading thumbnail. Switch to Wide to see the same table turn back into columns.
+Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions take the header row, which shows again while records are selected, keeping the first action and putting the rest in a More actions menu when they don't fit. Cards stick them to the foot of the scrolling box instead.
+
+#### Rows
+
+With no detail columns, each record is a row of a fixed height: leading, title, description, and trailing, then any row actions. An image column becomes the leading thumbnail. Switch to Wide to see the same table turn back into columns.
 
 ```tsx-live-noinline-expand
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
@@ -1378,9 +1496,11 @@ render(<NarrowEvents />)
 
 #### Cards
 
+> **Deprecated.** Cards leave `RecordTable` at the next major, with `narrow: 'detail'` and the `narrow` prop. For records as cards, use [`RecordGrid`](/components/record-grid). Until then, tables that use them work as they do now.
+
 Give columns `narrow: 'detail'` and each record becomes a card, with the details listed under its title as labels and values. An image column becomes the card's 16:9 banner, with the trailing value on its top end. Cards grow to fit their content, and past 100 records the list measures each as it renders.
 
-To choose for yourself, pass `narrow: 'list'` or `narrow: 'cards'` to `tableLayout`, or `narrow` to `RecordTable`. List rows leave out detail columns, and cards without details show just the title, description, and trailing.
+To choose for yourself, pass `narrow: 'list'` or `narrow: 'cards'` to `tableLayout`, or `narrow` to `RecordTable`. Rows leave out detail columns, and cards without details show just the title, description, and trailing.
 
 ```tsx-live-noinline
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
@@ -1428,9 +1548,9 @@ render(
 
 #### Select mode
 
-A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the header instead. Tap it to enter Select mode: each record shows a checkbox, a tap selects the record rather than opening it, and the header offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the floating bar shows the count, the offer to select every matching record, and the bulk actions. With several actions, their labels collapse to icons; a lone action keeps its label.
+A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the header instead. Tap it to enter Select mode: each record shows a checkbox in its leading place, a tap selects the record rather than opening it, and the header offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the bar in the header row shows the count, the offer to select every matching record, and the bulk actions. With several actions, their labels collapse to icons; a lone action keeps its label.
 
-`RecordTable` places the Select button for you. When you compose the parts, put `Records.Select` beside the search; it shows only while the layout selects through Select mode.
+`RecordTable` places the Select button for you. When you compose the parts, put `Records.Select` beside the search; it shows only while the layout selects through Select mode. For a table inside `Records.Header`, that's under 40rem of the header, decided in CSS, so the server paints it; anywhere else it shows once the table measures itself narrow.
 
 ```tsx-live-noinline
 const customers = ['Mia Tran', 'Jack Ellis', 'Ava Nguyen', 'Noah Smith', 'Isla Brown', 'Leo Wilson']
@@ -1599,7 +1719,7 @@ column.field('location', { pin: true })`}
   <Guideline.Do
     code={`<Records.Header searchPlaceholder='Search events' />`}
   >
-    Keep the standard header, or put `Records.Options` after the search in
+    Keep the standard header, or put `Records.View` after the search in
     your own. People sort, move, and hide columns there, and the view keeps
     it.
   </Guideline.Do>
@@ -1664,12 +1784,14 @@ column.field('location', { pin: true })`}
 
 ## Accessibility
 
-- `caption` names the table. Wide, every part reads as a table, with column headers and cells. Narrow, the records are a list named by the caption, each an item with its place in the whole list (`aria-posinset` and `aria-setsize`) when the list holds only some of them.
+- `caption` names the table. Every part reads as a table at every width, with column headers and cells. Deprecated cards, under 40rem, are a list named by the caption, each an item with its place in the whole list (`aria-posinset` and `aria-setsize`) when the list holds only some of them.
 - A sortable column's header is a button. The sorted column carries `aria-sort`.
 - When the table scrolls sideways, its frame is a region named "Shows, scrolls sideways" for a caption of Shows, and the scroller is its one tab stop, so keyboard users can scroll it with the arrow keys. In its own box (`maxHeight` or `fill`), the box is the region, named "Shows, scrolls".
-- Wide, the totals are a row in the table's head, under the column headers, with its label as the row's header, so each total reads with its column's name. Narrow, they're a paragraph above the list, each total after its heading.
+- The totals are a row in the table's head, under the column headers, with its label as the row's header, so each total reads with its column's name. Under 40rem each total also shows its heading, which is read with it, and above cards they're a paragraph, each total after its heading.
 - `Records.Status` is a live region. It announces Loading, the error, and the result count while a search or filter narrows the list.
 - When the table holds only some of its rows (a page of several, more than 100 rows, or a list loaded by range), it carries `aria-rowcount`, counting every match (up to 300,000 loading by range), the header row, and the totals row when there is one, and each row its `aria-rowindex`, so screen readers announce "row 52 of 121". Loading by range, the count is `-1` until the total is known.
+- Grouped, each group is a `rowgroup` holding a row with one cell spanning the columns, and its rows follow in a `rowgroup` of their own, as rowgroups can't nest. The group's title is an `h2` heading, with `h3` and `h4` for the second and third levels, holding a button named by the title and count, such as "On sale 4", whose `aria-expanded` says whether the group shows and whose `aria-controls` names its rows. Content from `groupHeading` follows the heading and hides with the group. A grouped table carries no `aria-rowcount`, as its title rows aren't records. The same markup holds at every width; only deprecated cards group as a list does.
+- The Group by selects in Configure are labelled "Group by", "Then by", and "And then by". Each appears once the one before it holds a field.
 - Loading by range, the table is `aria-busy` while a range loads, placeholders are hidden from screen readers, and a failed range is announced, such as "Couldn't load more shows". The result count is announced only once the total is known. The header checkbox is named "Select loaded rows".
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
 - The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click, or with the arrows, not on Tab. While they're open, the rest of the page is hidden from screen readers, as for any combobox. Clear keeps focus in the field and keeps the page's scope. [Keys](#keys) lists what each key does.
@@ -1681,8 +1803,9 @@ column.field('location', { pin: true })`}
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
 - Each row's actions menu is named "More actions for" the record's title. Table actions past the first sit behind a button named "More actions". A running action's control stays focusable but disabled, with `aria-busy`. A confirmation is an alert dialog.
 - The view button is named "View:" and the view's name, with ", unsaved changes" once the view has changed, as its tooltip shows, and opens a menu. Save view and Reset view sit in a group named "Unsaved changes". Save as new view and Rename view open a dialog of that name with focus in its Name field, the whole name selected to rename, and an empty name says "Enter a name". Delete view asks in an alert dialog. Focus returns to the view button as each closes. While a handler runs, its control stays focusable but disabled, with `aria-busy`.
+- `Records.View` is an icon button named "View", with a tooltip that says so. The drawer it opens is a dialog named "View", with a Close button first and the same controls as Configure; Escape closes it and returns focus to the button.
 - The Configure button is named "Configure table", as is the dialog it opens. Given more than one layout, its Layout switcher is a group named "Layout" of toggle buttons, with the shown layout pressed. Its sort controls are named "Sort by", then "Then by, level 2" and so on, and for each level the field's order, such as "Sold order". Adding a level moves focus to its field, and removing one moves focus to the Remove of the level that takes its place, or of the one before it, or to Add sort. Each column's handle is named "Reorder" and the column, its eye is a toggle button named "Show" and the column, pressed while the column shows (the last shown column's is disabled and says why), and each move is announced, such as "Gross moved to position 1 of 4 columns".
-- In Select mode, each record's checkbox covers the record, so a tap anywhere on it toggles, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. Select mode's controls are a group named "Select mode", and the floating bulk actions a group named "Bulk actions", where Escape leaves Select mode. When the bar goes, focus lands on Select, or on the records.
+- In Select mode, a tap anywhere on a record toggles it, and the link steps aside. "Select" and "Done" are one button, which keeps focus as it switches. Select mode's controls are a group named "Select mode", and the bulk actions a toolbar named "Bulk actions" in the header row, or a group of that name where a list floats them. Escape in either leaves Select mode. When the bar goes, focus lands on Select, or on the records.
 - Focus follows the record across a switch between the table and the list, onto the same record's link or first control.
 - A row with `getRowHref` holds a real link: it opens in a new tab with Cmd or Ctrl, and works with every other link convention, not just a click handler.
 

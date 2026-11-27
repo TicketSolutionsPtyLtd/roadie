@@ -18,7 +18,7 @@ export function parseExampleMeta(meta) {
     const key = word.split('=')[0]
     if (word.includes('=') && !OPTION_KEYS.has(key)) {
       throw new Error(
-        `Unknown live example option "${word}". Options are ${[...OPTION_KEYS].map((option) => `${option}=`).join(', ')}, eager, and bleed.`
+        `Unknown live example option "${word}". Options are ${[...OPTION_KEYS].map((option) => `${option}=`).join(', ')}, eager, bleed, and framed.`
       )
     }
   }
@@ -31,6 +31,7 @@ export function parseExampleMeta(meta) {
     id,
     eager: words.includes('eager'),
     bleed: words.includes('bleed'),
+    framed: words.includes('framed'),
     previewLayout: previewLayoutOf(words)
   }
 }
@@ -52,6 +53,21 @@ function checkCaptions(node) {
   if (long !== undefined) {
     throw new Error(
       `A caption names a state in ${MAX_CAPTION_WORDS} words or fewer. ${fence} has {/* ${long} */} at column 0; shorten it, or indent the comment if it explains the code rather than captioning it.`
+    )
+  }
+}
+
+// A palette's root, not its parts, followed by its props up to the next tag.
+const PALETTE_ROOT = /<CommandPalette(?:\.Root)?(?=[\s/>])([^<]*)/g
+const BINDS_NOTHING = /\bshortcut\s*=\s*\{\s*false\s*\}/
+
+// A palette that binds ⌘K in the page takes it from the docs search (INNO-1640).
+function checkShortcut(node, framed) {
+  if (framed) return
+  for (const [, props] of node.value.matchAll(PALETTE_ROOT)) {
+    if (BINDS_NOTHING.test(props)) continue
+    throw new Error(
+      `A live example's CommandPalette binds ⌘K, which the docs search owns. The fence on line ${node.position?.start.line} mounts one; give it shortcut={false} and open it from a button, or add framed to the fence so it runs in its own frame.`
     )
   }
 }
@@ -87,6 +103,7 @@ export function collectLiveExamples(tree) {
 
     const meta = parseExampleMeta(node.meta)
     checkCaptions(node)
+    checkShortcut(node, meta.framed)
     let id = meta.id
     if (id === undefined) {
       const base = anchor ?? 'example'
@@ -102,6 +119,7 @@ export function collectLiveExamples(tree) {
       code: node.value,
       eager: meta.eager,
       bleed: meta.bleed,
+      framed: meta.framed,
       previewLayout: meta.previewLayout,
       node
     })
@@ -122,15 +140,20 @@ export const exampleHref = (page, id) => `/examples/${page}/${id}/`
 export default function remarkLiveExamples() {
   return (tree, file) => {
     const page = pageSlugOf(file.path)
-    for (const { id, eager, previewLayout, node } of collectLiveExamples(
-      tree
-    )) {
+    for (const {
+      id,
+      eager,
+      framed,
+      previewLayout,
+      node
+    } of collectLiveExamples(tree)) {
       node.data ??= {}
       node.data.hProperties = {
         ...node.data.hProperties,
         'data-example-id': id,
         ...(page && { 'data-example-page': page }),
         ...(eager && { 'data-example-eager': '' }),
+        ...(framed && { 'data-example-framed': '' }),
         ...(previewLayout && { 'data-preview-layout': previewLayout })
       }
     }

@@ -192,7 +192,7 @@ describe('Field + Slider integration', () => {
     }
   })
 
-  it('describes by the error text when the field is invalid', () => {
+  it('adds the error text to the helper text when the field is invalid', () => {
     render(
       <Field invalid>
         <Slider label='Price' defaultValue={40} />
@@ -201,7 +201,7 @@ describe('Field + Slider integration', () => {
       </Field>
     )
     expect(screen.getByRole('slider')).toHaveAccessibleDescription(
-      'Pick a lower price'
+      'Up to $250 Pick a lower price'
     )
   })
 

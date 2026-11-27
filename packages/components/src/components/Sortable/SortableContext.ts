@@ -4,8 +4,16 @@ import { type ComponentType, createContext, use } from 'react'
 
 import type { SortableHandleProps } from './SortableHandle'
 import type { SortableItemProps } from './SortableItem'
-import type { SortableGroup } from './dnd'
+import type { SortableGroup, SortableSource } from './dnd'
 import type { SortableAxis, TextDirection } from './order'
+
+export type SortableTransferTarget = {
+  name: string
+  /** The list's section, when it isn't the item's own: its submenu in the Move menu. */
+  section?: string
+  /** Lands the item at the end of that list. */
+  move: () => void
+}
 
 export type SortableRootContextValue = {
   items: readonly string[]
@@ -14,10 +22,14 @@ export type SortableRootContextValue = {
   disabled: boolean
   group: SortableGroup
   move: (value: string, to: number, focus: boolean) => void
+  /** Whether a drop of this item lands here: its own, or one this list takes. */
+  accepts: (source: SortableSource) => boolean
   /** Records the item's name for announcements; returns its cleanup. */
   nameItem: (value: string, name: string | undefined) => () => void
   /** Marks a disabled item, so a drop from it is ignored; returns its cleanup. */
   lockItem: (value: string) => () => void
+  /** The other lists in the group that would take this item, for its Move menu. */
+  transferTargets: (value: string) => SortableTransferTarget[]
   /** Moved by the menu; its handle takes focus once it re-renders. */
   takeFocus: (value: string) => boolean
   // Passed through context so `List` can render a sortable row without
@@ -45,3 +57,11 @@ export type SortableItemContextValue = {
 
 export const SortableItemContext =
   createContext<SortableItemContextValue | null>(null)
+
+/** The events that asked a handle for its menu: an arrow key, a keyboard click, or a press and its click. */
+export type SortableMenuOpening = readonly Event[]
+
+/** Set around the handle `SortableHandleLazy` loads, which opens its menu the way they asked. */
+export const SortableOpeningContext = createContext<
+  SortableMenuOpening | undefined
+>(undefined)

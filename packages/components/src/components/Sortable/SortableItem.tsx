@@ -27,7 +27,7 @@ import { type SortableEdge, dropIndex } from './order'
 import { sortableDropIndicatorVariants, sortableItemVariants } from './variants'
 
 export type SortableItemProps = Omit<ComponentProps<'div'>, 'children'> & {
-  /** Identifies the item; one of the root's `items`. */
+  /** Identifies the item; one of the root's `items`, unless it's disabled, such as while it animates out. */
   value: string
   /** The item's name in the Move menu and announcements, as in "Move SKU down". */
   label?: string
@@ -35,6 +35,8 @@ export type SortableItemProps = Omit<ComponentProps<'div'>, 'children'> & {
   disabled?: boolean
   /** Swaps the default `<div>`, e.g. `<li />` inside a list. */
   render?: RoadieRenderProp
+  /** Where a pointer can pick the item up: its handle, or anywhere on it but its buttons and fields, as for a board's cards. A click still reaches its links and buttons, the keyboard moves it from the handle's menu, and its text can't be selected. @default 'handle' */
+  dragFrom?: 'handle' | 'item'
   children?: React.ReactNode
 }
 
@@ -44,13 +46,14 @@ export function SortableItem({
   label,
   disabled: itemDisabled = false,
   render,
+  dragFrom = 'handle',
   className,
   children,
   ref: forwarded,
   ...props
 }: SortableItemProps) {
   const root = useSortableRoot('Sortable.Item')
-  const { items, axis, dir, group, nameItem, lockItem } = root
+  const { items, axis, dir, group, accepts, nameItem, lockItem } = root
   const index = items.indexOf(value)
   // An unlisted item would take drops at index -1, so it isn't registered.
   const listed = index !== -1
@@ -86,9 +89,11 @@ export function SortableItem({
       value,
       axis,
       onDropEdgeChange: setDropEdge,
+      accepts,
       movesTo: (source, edge) => {
+        if (!source.sameList) return true
         const { items, index, dir } = position.current
-        const from = items.indexOf(source)
+        const from = items.indexOf(source.value)
         return dropIndex({ from, target: index, edge, axis, dir }) !== from
       }
     })
@@ -96,15 +101,17 @@ export function SortableItem({
       cleanup()
       setDropEdge(null)
     }
-  }, [element, group, value, axis, listed])
+  }, [element, group, value, axis, listed, accepts])
 
   useEffect(() => {
-    if (!element || !handle || disabled) return
+    const anywhere = dragFrom === 'item'
+    if (!element || (!handle && !anywhere) || disabled) return
     const cleanup = sortableDraggable({
       element,
-      handle,
+      handle: anywhere ? undefined : (handle ?? undefined),
       group,
       value,
+      label,
       onDraggingChange: setDragging
     })
     // A drag torn down mid-flight never gets its drop, so reset here.
@@ -112,10 +119,11 @@ export function SortableItem({
       cleanup()
       setDragging(false)
     }
-  }, [element, handle, group, value, disabled])
+  }, [element, handle, group, value, label, disabled, dragFrom])
 
   useDevWarning(
     !listed &&
+      !itemDisabled &&
       `Roadie: Sortable.Item "${value}" is not in its Sortable's items, so it can't move.`
   )
 
@@ -139,7 +147,7 @@ export function SortableItem({
           'data-disabled': disabled ? '' : undefined,
           ...props,
           ref: setElement,
-          className: cn(sortableItemVariants(), className),
+          className: cn(sortableItemVariants({ dragFrom }), className),
           children: (
             <>
               {children}

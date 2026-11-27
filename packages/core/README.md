@@ -42,8 +42,15 @@ Dark mode swaps every token when `<html>` has the `dark` class, so there are
 no `dark:` variants. Tailwind's default palette is off: use semantic colours
 such as `bg-normal`, `text-subtle` and `border-normal`.
 
-`@oztix/roadie-core/css/compiled` is a prebuilt sheet of Roadie's own
-utilities for hosts that can't run Tailwind v4.
+`@oztix/roadie-core/css/compiled` is a prebuilt sheet for hosts that can't run
+Tailwind v4. It holds the base styles and only the utilities core's
+safelists name, with the tokens they use: Roadie's intent, emphasis, semantic
+colour, text style, motion, and layering utilities
+(`src/css/safelist.families.html`), and each other class the docs site names
+or a Roadie package uses (`src/css/safelist.html`). Any other
+utility, such as `grid`, `gap-2`, or `p-6`, does nothing, so lay out in the
+host's own CSS. The sheet is minified and its nesting is flattened, so it
+needs no browser support for CSS nesting.
 
 ## JavaScript
 
@@ -56,6 +63,7 @@ Each helper lives on its own subpath:
 | `@oztix/roadie-core/theme`               | `getThemeScript` and `getBootstrapScript` for the first paint, and `DEFAULT_ACCENT_COLOR` |
 | `@oztix/roadie-core/datetime`            | House date, time, range, duration and countdown formats                                   |
 | `@oztix/roadie-core/number`              | `currencyFormat`, the house money options for `Intl.NumberFormat` and NumberFlow          |
+| `@oztix/roadie-core/phone`               | `parsePhone`, `formatPhone` and `isPossiblePhone` for E.164 numbers, and `phoneCountries` |
 | `@oztix/roadie-core/image`               | Oztix image URLs, widths and `srcset`s                                                    |
 | `@oztix/roadie-core/navigator`           | The cookie and script that keep `Navigator` expanded or collapsed across loads            |
 | `@oztix/roadie-core/dataviz`             | Chart palettes, `chartColorVar`, `chartHex` for canvas and PDF, palette checks            |

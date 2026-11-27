@@ -10,8 +10,10 @@ import { NavigatorExpandToggle } from './NavigatorExpandToggle'
 import { NavigatorGroup, type NavigatorGroupProps } from './NavigatorGroup'
 import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
+import { NavigatorSearch, type NavigatorSearchProps } from './NavigatorSearch'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import type { NavigatorSlotGroup, NavigatorSlotMeta } from './mobileSlots'
+import { searchSlotMeta } from './searchSlot'
 import {
   firstRoutedSecondary,
   secondaryDescendantValues,
@@ -21,7 +23,9 @@ import {
 export type PrimaryEntry =
   | {
       kind: 'item'
-      element: ReactElement<NavigatorItemProps>
+      element:
+        | ReactElement<NavigatorItemProps>
+        | ReactElement<NavigatorSearchProps>
       slot: NavigatorSlotMeta
     }
   | {
@@ -34,6 +38,8 @@ export type PrimaryEntry =
 export type CollectedSlots = {
   brand: ReactElement[]
   toggles: ReactElement[]
+  /** A pinned `Navigator.Search`, which sits under the brand rather than with the pinned items. */
+  search: PrimaryEntry[]
   cluster: PrimaryEntry[]
   pinned: PrimaryEntry[]
   automatic: NavigatorSlotMeta[]
@@ -84,15 +90,18 @@ function groupSlots(element: ReactElement<NavigatorGroupProps>, key: string) {
     priority: element.props.visibilityPriority
   }
   const slots: NavigatorSlotMeta[] = []
+  let hasSearch = false
   Children.forEach(element.props.children, (child) => {
     if (!isValidElement(child)) return
-    if (child.type === NavigatorGroupTitle) {
+    if (child.type === NavigatorSearch) {
+      hasSearch = true
+    } else if (child.type === NavigatorGroupTitle) {
       group.title = (child.props as { children?: ReactNode }).children
     } else if (child.type === NavigatorItem) {
       slots.push(toSlotMeta(child.props as NavigatorItemProps, group))
     }
   })
-  return { group, slots }
+  return { group, slots, hasSearch }
 }
 
 // Matches by element type, one level into Group; see COMPOUND_PATTERNS.md §1.2.
@@ -100,6 +109,7 @@ export function collectSlots(children: ReactNode): CollectedSlots {
   const result: CollectedSlots = {
     brand: [],
     toggles: [],
+    search: [],
     cluster: [],
     pinned: [],
     automatic: [],
@@ -128,13 +138,30 @@ export function collectSlots(children: ReactNode): CollectedSlots {
       place({ kind: 'item', element, slot }, [slot])
       return
     }
+    if (child.type === NavigatorSearch) {
+      const element = child as ReactElement<NavigatorSearchProps>
+      const slot = searchSlotMeta(element.props)
+      if (slot.placement === 'pinned') {
+        result.search.push({ kind: 'item', element, slot })
+        result.pinnedSlots.push(slot)
+        result.ordered.push(slot)
+      } else {
+        place({ kind: 'item', element, slot }, [slot])
+      }
+      return
+    }
     if (child.type === NavigatorExpandToggle) {
       result.toggles.push(child)
       return
     }
     if (child.type === NavigatorGroup) {
       const element = child as ReactElement<NavigatorGroupProps>
-      const { group, slots } = groupSlots(element, `group-${groupCount++}`)
+      const { group, slots, hasSearch } = groupSlots(
+        element,
+        `group-${groupCount++}`
+      )
+      // Search only works as a direct child of Primary.
+      if (hasSearch) result.hasStrayChild = true
       if (slots.length > 0) {
         place({ kind: 'group', element, group, slots }, slots)
       }

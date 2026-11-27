@@ -13,6 +13,18 @@ describe('IconButton', () => {
     expect(button).toHaveClass('btn-icon-md')
   })
 
+  it('keeps its aria-label as its name while pending', () => {
+    const { getByRole } = render(
+      <IconButton aria-label='Refresh' pending>
+        +
+      </IconButton>
+    )
+    expect(getByRole('button', { name: 'Refresh' })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
+  })
+
   it('renders with different emphasis', () => {
     const { rerender, getByRole } = render(
       <IconButton emphasis='strong' intent='accent' aria-label='Strong'>

@@ -4,13 +4,25 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RecordTable, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Menu } from '../Menu'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
 import { showFields, testShows } from '../Records/testUtils'
-import { ALL, WIDE_BOX, frame, rect, slot, wideColumns } from './testUtils'
+import {
+  ALL,
+  WIDE_BOX,
+  bulkBar,
+  frame,
+  rect,
+  slot,
+  wideColumns
+} from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -166,78 +178,131 @@ const narrowColumns = [
   { ...wideColumns[1]!, narrow: 'description' as const },
   ...wideColumns.slice(2)
 ]
-const listRows = (container: HTMLElement) => [
-  ...container.querySelectorAll<HTMLElement>(
-    '[data-slot="record-table-list-row"]'
-  )
+const tableRows = (container: HTMLElement) => [
+  ...container.querySelectorAll<HTMLElement>('[data-slot="record-table-row"]')
 ]
-const hitAt = (element: HTMLElement) => {
-  const { left, top, width, height } = element.getBoundingClientRect()
-  return document.elementFromPoint(left + width / 2, top + height / 2)
+const shownCheckboxes = () => screen.queryAllByRole('checkbox')
+
+function NarrowShows({
+  width = 360,
+  rows = 8,
+  onExport = () => {},
+  selection,
+  more = []
+}: {
+  width?: number
+  rows?: number
+  onExport?: (selection: unknown) => void
+  selection?: string[]
+  more?: string[]
+}) {
+  return (
+    <div style={{ width }}>
+      <RecordTable
+        caption='Shows'
+        data={testShows(rows)}
+        fields={showFields}
+        columns={narrowColumns}
+        getRowId={(row) => row.id}
+        getRowHref={(row) => `#${row.id}`}
+        rowActions={() => null}
+        defaultSelection={selection && { ids: selection }}
+        bulkActions={[
+          {
+            label: 'Export',
+            onAction: ({ selection }) => onExport(selection)
+          },
+          ...more.map((label) => ({ label, onAction: () => {} }))
+        ]}
+      />
+    </div>
+  )
 }
 
-describe('RecordTable Select mode on narrow rows in a browser', () => {
-  it('selects rows by click and ends after a bulk action', async () => {
+describe('RecordTable Select mode on re-flowed rows in a browser', () => {
+  it('keeps one table, its checkboxes hidden and Select in the toolbar', async () => {
+    const { container } = render(<NarrowShows />)
+    await frame()
+    expect(screen.getByRole('table', { name: 'Shows' })).toBeVisible()
+    expect(screen.queryByRole('listitem')).toBeNull()
+    expect(tableRows(container)).toHaveLength(8)
+    expect(shownCheckboxes()).toEqual([])
+    expect(screen.getByRole('button', { name: 'Select' })).toBeVisible()
+  })
+
+  it('follows a row’s link on a tap until Select mode', async () => {
+    const { container } = render(<NarrowShows />)
+    await frame()
+    await userEvent.click(
+      within(tableRows(container)[1]!).getByText('Melbourne')
+    )
+    expect(location.hash).toBe('#show-1')
+    expect(bulkBar()).toBeNull()
+  })
+
+  it('selects rows by tap in Select mode, with the bar in the header row, and ends after a bulk action', async () => {
     const actions: unknown[] = []
     const hash = location.hash
     const { container } = render(
-      <div style={{ width: 360 }}>
-        <RecordTable
-          caption='Shows'
-          data={testShows(8)}
-          fields={showFields}
-          columns={narrowColumns}
-          getRowId={(row) => row.id}
-          getRowHref={(row) => `#${row.id}`}
-          rowActions={() => null}
-          bulkActions={[
-            {
-              label: 'Export',
-              onAction: ({ selection }) => void actions.push(selection)
-            }
-          ]}
-        />
-      </div>
+      <NarrowShows onExport={(selection) => actions.push(selection)} />
     )
-    await expect.poll(() => listRows(container).length).toBe(8)
+    await frame()
     await userEvent.click(screen.getByRole('button', { name: 'Select' }))
-    const first = listRows(container)[0]!
-    expect(hitAt(within(first).getByText('Brisbane'))).toBe(
-      within(first).getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    const first = tableRows(container)[0]!
+    const checkbox = within(first).getByRole('checkbox', {
+      name: 'Select Ocean Alley 1'
+    })
+    expect(checkbox).toBeVisible()
+    // First in the row, before the title.
+    expect(rect(checkbox).right).toBeLessThan(
+      rect(within(first).getByText('Ocean Alley 1')).left
     )
-    for (const row of listRows(container).slice(0, 3))
-      await userEvent.click(row)
-    const bar = screen.getByRole('group', { name: 'Bulk actions' })
-    expect(bar.textContent).toContain('3 selected')
+    for (const row of tableRows(container).slice(0, 3))
+      await userEvent.click(within(row).getAllByRole('cell')[2]!)
     expect(location.hash).toBe(hash)
+    const bar = bulkBar()!
+    expect(bar.textContent).toContain('3 selected')
+    expect(slot(container, 'record-table-head').contains(bar)).toBe(true)
+    expect(rect(bar).bottom).toBeLessThanOrEqual(rect(first).top + 1)
     await userEvent.click(within(bar).getByRole('button', { name: 'Export' }))
     expect(actions).toEqual([{ ids: ['show-0', 'show-1', 'show-2'] }])
     await expect
       .poll(() => screen.queryByRole('button', { name: 'Select' }))
       .not.toBeNull()
-    expect(container.querySelectorAll('[role="checkbox"]')).toHaveLength(0)
+    expect(shownCheckboxes()).toEqual([])
+  })
+
+  it('makes room for the checkbox only in Select mode', async () => {
+    const { container } = render(<NarrowShows />)
+    await frame()
+    const title = () =>
+      rect(within(tableRows(container)[0]!).getByText('Ocean Alley 1')).left
+    const before = title()
+    expect(before - rect(tableRows(container)[0]!).left).toBeLessThan(20)
+    await userEvent.click(screen.getByRole('button', { name: 'Select' }))
+    await frame()
+    expect(title()).toBeGreaterThan(before + 20)
+  })
+
+  it('tints the gaps between a selected row’s cells too', async () => {
+    const { container } = render(<NarrowShows selection={['show-0']} />)
+    await frame()
+    const [selected, rest] = tableRows(container)
+    const cell = within(selected!).getAllByRole('cell')[2]!
+    expect(background(selected!)).toBe(background(cell))
+    expect(background(selected!)).not.toBe(background(rest!))
   })
 
   it('tints the row, not the checkbox, while the row is hovered', async () => {
-    const { container } = render(
-      <div style={{ width: 360 }}>
-        <RecordTable
-          caption='Shows'
-          data={testShows(3)}
-          fields={showFields}
-          columns={narrowColumns}
-          bulkActions={[{ label: 'Export', onAction: () => {} }]}
-        />
-      </div>
-    )
+    const { container } = render(<NarrowShows rows={3} />)
     await userEvent.click(screen.getByRole('button', { name: 'Select' }))
-    const first = listRows(container)[0]!
-    const surface = first.firstElementChild!
-    const rest = background(surface)
-    await userEvent.hover(first)
+    const first = tableRows(container)[0]!
+    const cell = within(first).getAllByRole('cell')[1]!
+    const rest = background(cell)
+    await userEvent.hover(cell)
     await frame()
     await frame()
-    expect(background(surface)).not.toBe(rest)
+    expect(background(cell)).not.toBe(rest)
     expect(background(first.querySelector('[data-slot="checkbox"]')!)).toBe(
       'rgba(0, 0, 0, 0)'
     )
@@ -245,62 +310,71 @@ describe('RecordTable Select mode on narrow rows in a browser', () => {
   })
 
   it('keeps the toolbar controls at the search field height', async () => {
-    render(
-      <div style={{ width: 360 }}>
-        <RecordTable
-          caption='Shows'
-          data={testShows(8)}
-          fields={showFields}
-          columns={narrowColumns}
-          bulkActions={[{ label: 'Export', onAction: () => {} }]}
-          actions={[
-            { label: 'Export CSV', onAction: () => {} },
-            { label: 'Print door list', onAction: () => {} }
-          ]}
-        />
-      </div>
-    )
+    render(<NarrowShows />)
     await frame()
-    const search = screen.getByRole('combobox', { name: 'Search and filter' })
-    const field =
-      search.closest<HTMLElement>('[data-slot="query-field"]') ?? search
-    const height = field.getBoundingClientRect().height
-    for (const name of ['Select', 'Configure table', 'More actions'])
-      expect(
-        screen.getByRole('button', { name }).getBoundingClientRect().height
-      ).toBe(height)
+    const height = rect(searchField()).height
+    for (const name of ['Select', 'Configure table'])
+      expect(rect(screen.getByRole('button', { name })).height).toBe(height)
   })
 
-  it('fits the floating bar to the records, with the rest in More actions', async () => {
-    const { container } = render(
-      <div style={{ width: 360 }}>
-        <RecordTable
-          caption='Shows'
-          data={testShows(8)}
-          fields={showFields}
-          columns={narrowColumns}
-          getRowId={(row) => row.id}
-          defaultSelection={{ ids: ['show-0'] }}
-          bulkActions={[
-            'Export orders',
-            'Archive shows',
-            'Print door list',
-            'Email ticket holders'
-          ].map((label) => ({ label, onAction: () => {} }))}
-        />
-      </div>
-    )
-    const bar = await screen.findByRole('group', { name: 'Bulk actions' })
+  it('shows the checkboxes, and no Select, above 40rem', async () => {
+    render(<NarrowShows width={WIDE_BOX} selection={['show-0']} />)
     await frame()
-    await frame()
-    const records = rect(slot(container, 'records'))
-    expect(rect(bar).width).toBeLessThanOrEqual(records.width)
-    expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth)
-    const buttons = within(bar).getAllByRole('button')
-    expect(buttons.at(-1)).toHaveAccessibleName('More actions')
+    expect(screen.queryByRole('button', { name: 'Select' })).toBeNull()
     expect(
-      within(bar).getByRole('button', { name: 'Export orders' })
+      screen.getByRole('checkbox', { name: 'Select Ball Park Music 1' })
     ).toBeVisible()
+    expect(bulkBar()!.textContent).toContain('1 selected')
+  })
+})
+
+describe('RecordTable bulk bar focus in a browser', () => {
+  it('fits the header bar to a narrow table, with the rest in More actions', async () => {
+    const { container } = render(
+      <NarrowShows
+        selection={['show-0']}
+        more={['Archive shows', 'Print door list', 'Email ticket holders']}
+      />
+    )
+    await frame()
+    await frame()
+    const bar = bulkBar()!
+    expect(rect(bar).right).toBeLessThanOrEqual(
+      rect(slot(container, 'record-table-frame')).right + 1
+    )
+    expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth)
+    expect(within(bar).getAllByRole('button').at(-1)).toHaveAccessibleName(
+      'More actions'
+    )
+    expect(within(bar).getByRole('button', { name: 'Export' })).toBeVisible()
+  })
+
+  it('hands focus to Select page, not the hidden Select, as the bar goes above 40rem', async () => {
+    render(<NarrowShows width={WIDE_BOX} />)
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    within(bulkBar()!).getAllByRole('button')[0]!.focus()
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(bulkBar).toBeNull()
+    expect(document.activeElement).toBe(
+      screen.getByRole('checkbox', { name: 'Select page' })
+    )
+  })
+
+  it('leaves Select mode with Escape from the bar under 40rem', async () => {
+    render(<NarrowShows />)
+    await frame()
+    await userEvent.click(screen.getByRole('button', { name: 'Select' }))
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    within(bulkBar()!).getAllByRole('button')[0]!.focus()
+    await userEvent.keyboard('{Escape}')
+    await expect
+      .poll(() => screen.queryByRole('button', { name: 'Select' }))
+      .not.toBeNull()
+    expect(shownCheckboxes()).toEqual([])
   })
 })
 
@@ -332,13 +406,17 @@ describe('RecordTable Select mode from an app control in a browser', () => {
         </>
       )
     }
-    const { container } = render(<AppMenu />)
+    render(<AppMenu />)
     await userEvent.click(screen.getByRole('button', { name: 'Select shows' }))
     expect(screen.getByRole('table', { name: 'Shows' })).toBeVisible()
     expect(screen.queryByRole('group', { name: 'Select mode' })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Narrow' }))
-    await expect.poll(() => listRows(container).length).toBe(8)
-    expect(screen.getByRole('group', { name: 'Select mode' })).toBeVisible()
+    await expect
+      .poll(() => screen.queryByRole('group', { name: 'Select mode' }))
+      .not.toBeNull()
     expect(screen.getByRole('button', { name: 'Done' })).toBeVisible()
+    expect(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    ).toBeVisible()
   })
 })

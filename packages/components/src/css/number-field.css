@@ -17,17 +17,6 @@
       );
     outline-offset: 0;
   }
-
-  .dark
-    [data-slot='number-field-group'][data-emphasis='subtler'][data-editable='false']:has(
-      [data-slot='number-field-input']:focus-visible:not([data-pointer-focus])
-    ) {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-accent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
 }
 
 /* The field utilities draw their ring in the utilities layer, so the override

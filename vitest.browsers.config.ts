@@ -1,6 +1,15 @@
+import { statSync } from 'node:fs'
 import { matchesGlob, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Reporter, TestCase, Vitest } from 'vitest/node'
+import type {
+  BaseSequencer,
+  Reporter,
+  TestCase,
+  TestSpecification,
+  Vitest
+} from 'vitest/node'
+
+import { balanceShards } from './scripts/lib/balance-shards.mjs'
 
 type Browser = 'chromium' | 'webkit' | 'firefox'
 
@@ -118,6 +127,26 @@ class UnmatchedQuarantineReporter implements Reporter {
       console.log(
         `::warning file=${file},title=Quarantined test not found::No test named "${test}" ran; update or remove its quarantine entry`
       )
+    }
+  }
+}
+
+// Vitest's own shards slice files by count in hash order, and Firefox runs
+// files one at a time, so a shard that drew the heaviest files ran twice as
+// long as another. Size stands in for duration, as in Vitest's own sort, and
+// is the same on every runner. Each package passes its own BaseSequencer,
+// since vitest doesn't resolve from the repo root.
+export function sizeBalanced(Base: typeof BaseSequencer) {
+  return class SizeBalancedSequencer extends Base {
+    override async shard(files: TestSpecification[]) {
+      const { shard, root } = this.ctx.config
+      if (!shard) return files
+      const weighted = files.map((spec) => ({
+        item: spec,
+        key: `${spec.project.name}\0${relative(root, spec.moduleId)}`,
+        weight: statSync(spec.moduleId).size
+      }))
+      return balanceShards(weighted, shard.index, shard.count)
     }
   }
 }

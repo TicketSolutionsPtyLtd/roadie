@@ -1,0 +1,734 @@
+export const metadata = {
+  title: 'CommandPalette',
+  description: 'A searchable list of pages and actions in a dialog',
+  status: 'alpha',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A searchable list of pages and actions in a dialog.
+
+## Import
+
+```tsx
+import { CommandPalette } from '@oztix/roadie-components/command-palette'
+```
+
+## Examples
+
+### Default
+
+Pass the commands as `items`, and render each one in the list's child
+function. A command with `href` is a link; one with `onSelect` runs it.
+Either way, picking it closes the palette. This example opens from its own
+button, with `open` and `onOpenChange`, and `shortcut={false}`, as this site's
+palette has the shortcut: press ⌘K, or Ctrl+K, to try that one.
+`onOpenChange` says why it changed: `'item-press'` when a command was picked,
+`'shortcut'` for the keys, and Base UI's reasons, such as `'escape-key'`,
+otherwise.
+
+```tsx-live-noinline
+function Search() {
+  const [open, setOpen] = useState(false)
+  const commands = [
+    { label: 'Events', href: '#events' },
+    { label: 'Orders', href: '#orders' },
+    { label: 'Settings', href: '#settings', keywords: ['preferences'] },
+    { label: 'New event', onSelect: () => {} },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={commands}>
+        <CommandPalette.Input placeholder='Search pages and actions' />
+        <CommandPalette.List>
+          {(command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              href={command.href}
+              onSelect={command.onSelect}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<Search />)
+```
+
+### With the shortcut and a trigger
+
+Left uncontrolled, a palette opens with ⌘K on a Mac, or Ctrl+K elsewhere, from
+anywhere on the page. `CommandPalette.Trigger` opens it from a button that
+shows that shortcut, and can sit anywhere, such as an app's header.
+[`Navigator.Search`](/components/navigator#search) does the same from the
+navigation, as this site's Search does.
+
+```tsx
+<>
+  <CommandPalette.Trigger />
+  <CommandPalette items={commands}>
+    <CommandPalette.Input placeholder='Search pages and actions' />
+    <CommandPalette.List>
+      {(command) => (
+        <CommandPalette.Item key={command.label} value={command} href={command.href}>
+          {command.label}
+        </CommandPalette.Item>
+      )}
+    </CommandPalette.List>
+  </CommandPalette>
+</>
+```
+
+### States
+
+A command with `disabled` stays in the list, dimmed, and can't be picked.
+When nothing matches, `CommandPalette.Empty` shows its text.
+
+```tsx-live-noinline
+function SearchStates() {
+  const [open, setOpen] = useState(false)
+  const commands = [
+    { label: 'Events', href: '#events' },
+    { label: 'Payouts', disabled: true },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={commands}>
+        <CommandPalette.Input placeholder='Search pages and actions' />
+        <CommandPalette.List>
+          {(command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              href={command.href}
+              disabled={command.disabled}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<SearchStates />)
+```
+
+### Composition
+
+#### With groups, icons and shortcuts
+
+Pass groups as `items`, each with its own `items`, and render each group's
+commands through `CommandPalette.Collection`. `icon` goes before a label and
+`shortcut` after it, as a hint.
+
+```tsx-live-noinline
+function GroupedSearch() {
+  const [open, setOpen] = useState(false)
+  const groups = [
+    {
+      label: 'Go to',
+      items: [
+        { label: 'Events', href: '#events', icon: <TicketIcon weight='bold' className='size-4' /> },
+        { label: 'Orders', href: '#orders', icon: <ShoppingCartIcon weight='bold' className='size-4' /> },
+      ],
+    },
+    {
+      label: 'Actions',
+      items: [
+        { label: 'New event', shortcut: ['mod', 'e'], icon: <PlusIcon weight='bold' className='size-4' /> },
+        { label: 'Invite teammate', icon: <UsersIcon weight='bold' className='size-4' /> },
+      ],
+    },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={groups}>
+        <CommandPalette.Input placeholder='Search pages and actions' />
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(command) => (
+                  <CommandPalette.Item
+                    key={command.label}
+                    value={command}
+                    href={command.href}
+                    icon={command.icon}
+                    shortcut={command.shortcut}
+                  >
+                    {command.label}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages or actions match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<GroupedSearch />)
+```
+
+#### With type tabs and a key footer
+
+`CommandPalette.Scopes` narrows the list to one type. Give a command, or its
+group, a `scope`, and add a `CommandPalette.Scope` with that value; All comes
+first and shows everything. Tab and Shift+Tab change type from the search,
+as they change operator in [QueryField](/components/query-field), and leave
+it past the last type or before All. The left and right arrows change type
+too, when the search is empty or the caret is at that end of it.
+`CommandPalette.Footer` holds `CommandPalette.Hint`s that remind people of
+the keys, and hides on a phone.
+
+```tsx-live-noinline
+function TypedSearch() {
+  const [open, setOpen] = useState(false)
+  const groups = [
+    {
+      label: 'Events',
+      scope: 'events',
+      items: [{ label: 'Velvet Dingo Fest' }, { label: 'Lampshade Disco' }],
+    },
+    {
+      label: 'Venues',
+      scope: 'venues',
+      items: [{ label: 'Kazoo Hollow Room' }, { label: 'Iguana Teapot Hall' }],
+    },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={groups}>
+        <CommandPalette.Input placeholder='Search events and venues' />
+        <CommandPalette.Scopes>
+          <CommandPalette.Scope value='events'>Events</CommandPalette.Scope>
+          <CommandPalette.Scope value='venues'>Venues</CommandPalette.Scope>
+        </CommandPalette.Scopes>
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(command) => (
+                  <CommandPalette.Item key={command.label} value={command}>
+                    {command.label}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>Nothing matches</CommandPalette.Empty>
+        <CommandPalette.Footer>
+          <CommandPalette.Hint shortcut={['escape']}>Close</CommandPalette.Hint>
+          <CommandPalette.Hint shortcut={['tab']}>Change type</CommandPalette.Hint>
+        </CommandPalette.Footer>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<TypedSearch />)
+```
+
+#### With pages
+
+Give a command `page` to open a second step, such as the statuses under
+"Change status…". Declare each step with `CommandPalette.Page`, its own
+`items` and a list to render them; the first page's list steps aside while it's
+open. Picking the command clears the search and shows the page's `label` in
+the input row. **Backspace** on an empty search, **Escape**, or a tap on the
+chip goes back.
+A command on the page runs and closes the palette as usual, and the next
+opening starts on the first page. The type tabs hide while a page is open.
+
+```tsx-live-noinline
+function StatusSearch() {
+  const [open, setOpen] = useState(false)
+  const [status, setStatus] = useState('Draft')
+  const commands = [
+    { label: 'Change status…', page: 'status' },
+    { label: 'Invite teammate', onSelect: () => {} },
+  ]
+  const statuses = ['Draft', 'On sale', 'Sold out'].map((label) => ({
+    label,
+    onSelect: () => setStatus(label),
+  }))
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Velvet Dingo Fest: {status}</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={commands}>
+        <CommandPalette.Input placeholder='Search actions' />
+        <CommandPalette.List>
+          {(command) => (
+            <CommandPalette.Item
+              key={command.label}
+              value={command}
+              page={command.page}
+              onSelect={command.onSelect}
+            >
+              {command.label}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No actions match</CommandPalette.Empty>
+        <CommandPalette.Page value='status' label='Change status' items={statuses}>
+          <CommandPalette.List>
+            {(option) => (
+              <CommandPalette.Item key={option.label} value={option} onSelect={option.onSelect}>
+                {option.label}
+              </CommandPalette.Item>
+            )}
+          </CommandPalette.List>
+          <CommandPalette.Empty>No statuses match</CommandPalette.Empty>
+        </CommandPalette.Page>
+        <CommandPalette.Footer>
+          <CommandPalette.Hint shortcut={['escape']}>Back or close</CommandPalette.Hint>
+        </CommandPalette.Footer>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<StatusSearch />)
+```
+
+#### With Navigator's pages
+
+`useNavigatorCommands` from `@oztix/roadie-components/navigator` returns
+Navigator's destinations, their secondary pages, and any saved views listed
+there, as groups of link commands. Pass them as `items`, so the palette lists
+the same pages as the navigation without writing them twice. The first group
+holds the destinations and has no label. Each destination with secondary
+pages follows, labelled with its name.
+
+Navigator reads its tree as it renders, so call the hook in a component inside
+`<Navigator>`, such as your page's header. Outside one it returns `[]`. Items
+that don't link, such as a menu or an item with only `onSelect`, are left out,
+and so is `Navigator.Search`. A destination without its own `href` links to its
+first page, as its tile does.
+
+```tsx-live-noinline-expand
+function PageSearch() {
+  const [open, setOpen] = useState(false)
+  const groups = useNavigatorCommands()
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Find a page</Button>
+      <CommandPalette open={open} onOpenChange={setOpen} shortcut={false} items={groups}>
+        <CommandPalette.Input placeholder='Search pages' />
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.value ?? ''} items={group.items}>
+              {group.label ? (
+                <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              ) : null}
+              <CommandPalette.Collection>
+                {(command) => (
+                  <CommandPalette.Item
+                    key={command.value}
+                    value={command}
+                    href={command.href}
+                    icon={command.icon}
+                  >
+                    {command.label}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+function OrganiserApp() {
+  const titles = {
+    '/events/all': 'All events',
+    '/events/on-sale': 'On sale',
+    '/events/perth': 'Perth gigs',
+    '/orders': 'Orders',
+    '/payouts': 'Payouts'
+  }
+
+  return (
+    <DemoRouter initialPath='/events/all'>
+      {(path) => (
+        <Navigator value={path} className='h-full'>
+          <Navigator.Primary aria-label='Organiser'>
+            <Navigator.Brand href='/events/all' />
+            <Navigator.Item value='/events' href='/events/all' icon={<TicketIcon />}>
+              Events
+              <Navigator.Secondary aria-label='Event views'>
+                <Navigator.Group>
+                  <Navigator.GroupTitle>Views</Navigator.GroupTitle>
+                  <Navigator.Item value='/events/all' href='/events/all'>All events</Navigator.Item>
+                  <Navigator.Item value='/events/on-sale' href='/events/on-sale'>On sale</Navigator.Item>
+                </Navigator.Group>
+                <Navigator.Group>
+                  <Navigator.GroupTitle>Your views</Navigator.GroupTitle>
+                  <Navigator.Item value='/events/perth' href='/events/perth'>Perth gigs</Navigator.Item>
+                </Navigator.Group>
+              </Navigator.Secondary>
+            </Navigator.Item>
+            <Navigator.Item value='/orders' href='/orders' icon={<ShoppingCartIcon />}>
+              Orders
+            </Navigator.Item>
+            <Navigator.Item value='/payouts' href='/payouts' icon={<WalletIcon />}>
+              Payouts
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Pane>
+            <Pane.Header>
+              <Pane.Title>{titles[path]}</Pane.Title>
+              <Pane.Actions>
+                <PageSearch />
+              </Pane.Actions>
+            </Pane.Header>
+          </Pane>
+        </Navigator>
+      )}
+    </DemoRouter>
+  )
+}
+
+render(
+  <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
+    <OrganiserApp />
+  </div>
+)
+```
+
+The commands carry `value`, `label`, `href`, `icon`, and, for a page in a
+titled `Navigator.Group` such as "Your views", that title as `keywords`. A page
+without its own icon takes its destination's.
+
+#### With server results
+
+When the app searches for itself, pass `filter={null}` so the palette shows
+`items` as given, in that order, and read the search with `onQueryChange`.
+Set `status` to `'loading'` while a search runs, and `CommandPalette.Status`
+shows a spinner with its text; the last results stay until new ones arrive.
+Set it to `'error'` when a search fails, and `CommandPalette.Error` shows its
+text with the `actions` you pass, such as a Button that searches again.
+`CommandPalette.Empty` stays hidden in both. Here, a search for "tour" fails
+the first time.
+
+```tsx-live-noinline
+function ServerSearch() {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [attempt, setAttempt] = useState(0)
+  const [status, setStatus] = useState('idle')
+  const [results, setResults] = useState([])
+
+  useEffect(() => {
+    if (query === '') return
+    // Stands in for a fetch to the app's search.
+    const timer = setTimeout(() => {
+      const text = query.toLowerCase()
+      if (text.includes('tour') && attempt === 0) {
+        setResults([])
+        setStatus('error')
+        return
+      }
+      const events = [
+        'Velvet Dingo Fest',
+        'Ironbark Satellite Tour',
+        'Lampshade Disco',
+        'Pumice Rodeo Tour',
+        'Ochre Kite Weekender',
+      ]
+      setResults(events.filter((event) => event.toLowerCase().includes(text)))
+      setStatus('idle')
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [query, attempt])
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search events</Button>
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        shortcut={false}
+        items={query ? results : []}
+        filter={null}
+        status={status}
+        onQueryChange={(next) => {
+          setQuery(next)
+          setAttempt(0)
+          setStatus(next ? 'loading' : 'idle')
+        }}
+      >
+        <CommandPalette.Input placeholder='Search events' />
+        <CommandPalette.Status>Searching…</CommandPalette.Status>
+        <CommandPalette.List>
+          {(event) => (
+            <CommandPalette.Item key={event} value={event}>
+              {event}
+            </CommandPalette.Item>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>
+          {query ? 'No events match' : 'Type to search events'}
+        </CommandPalette.Empty>
+        <CommandPalette.Error
+          actions={
+            <Button
+              emphasis='strong'
+              onClick={() => {
+                setAttempt((count) => count + 1)
+                setStatus('loading')
+              }}
+            >
+              Try again
+            </Button>
+          }
+        >
+          We couldn't search events
+        </CommandPalette.Error>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<ServerSearch />)
+```
+
+On a page, put a `CommandPalette.Status` and `CommandPalette.Error` inside
+`CommandPalette.Page`, and give the page its own `filter={null}` when the app
+searches its commands. Like `CommandPalette.Empty`, each shows only while its
+own page is open, and `status` covers whichever page that is.
+
+#### With recent commands
+
+The palette keeps no history. To show what someone picked lately, hold it in
+the app's state and put a "Recent" group first in `items`. Here it shows while
+the search is empty.
+
+```tsx-live-noinline
+function RecentSearch() {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [recent, setRecent] = useState(['Orders'])
+  const pages = ['Events', 'Orders', 'Payouts', 'Settings']
+  const remember = (label) =>
+    setRecent((current) => [label, ...current.filter((item) => item !== label)].slice(0, 3))
+  const groups = [
+    ...(query === '' && recent.length > 0
+      ? [{ label: 'Recent', items: recent.map((label) => ({ label })) }]
+      : []),
+    { label: 'Pages', items: pages.map((label) => ({ label })) },
+  ]
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Go to a page</Button>
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        shortcut={false}
+        items={groups}
+        onQueryChange={setQuery}
+      >
+        <CommandPalette.Input placeholder='Search pages' />
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(command) => (
+                  <CommandPalette.Item
+                    key={command.label}
+                    value={command}
+                    onSelect={() => remember(command.label)}
+                  >
+                    {command.label}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No pages match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<RecentSearch />)
+```
+
+#### With a long list
+
+Add `virtualized` to the root for hundreds or thousands of commands. The list
+then draws only the rows near the scroll position, so opening and typing stay
+smooth. It takes flat `items` or groups. With groups, the label of the group in
+view sticks to the top of the list.
+
+```tsx-live-noinline
+function LongSearch() {
+  const [open, setOpen] = useState(false)
+  const kinds = [
+    { label: 'Teapot halls', name: 'Iguana Teapot Hall' },
+    { label: 'Hollow rooms', name: 'Kazoo Hollow Room' },
+    { label: 'Teacup rooms', name: 'Wobbly Teacup Room' }
+  ]
+  const groups = kinds.map((kind, offset) => ({
+    label: kind.label,
+    items: Array.from(
+      { length: 667 - (offset === 2 ? 1 : 0) },
+      (_, index) => `${kind.name} ${index * 3 + offset + 1}`
+    )
+  }))
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Search venues</Button>
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        shortcut={false}
+        items={groups}
+        virtualized
+      >
+        <CommandPalette.Input placeholder='Search 2,000 venues' />
+        <CommandPalette.List>
+          {(group) => (
+            <CommandPalette.Group key={group.label} items={group.items}>
+              <CommandPalette.GroupLabel>{group.label}</CommandPalette.GroupLabel>
+              <CommandPalette.Collection>
+                {(venue) => (
+                  <CommandPalette.Item key={venue} value={venue}>
+                    {venue}
+                  </CommandPalette.Item>
+                )}
+              </CommandPalette.Collection>
+            </CommandPalette.Group>
+          )}
+        </CommandPalette.List>
+        <CommandPalette.Empty>No venues match</CommandPalette.Empty>
+      </CommandPalette>
+    </>
+  )
+}
+
+render(<LongSearch />)
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Name commands as places or actions'>
+  <Guideline.Do>
+    Use the page's name for a place, such as "Orders", and a verb for an
+    action, such as "Invite teammate".
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't add "Go to" or "Open" to every command. A group label says it once.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Match what people type'>
+  <Guideline.Do>
+    Add `keywords` for the other words people use, such as "preferences" for
+    Settings.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put keywords in the label to make it match.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+### Shortcut
+
+The palette binds ⌘K on Apple platforms and Ctrl+K elsewhere. Pass another key
+list to `shortcut`, such as `['mod', 'p']`, or `false` for none. Give one
+palette per page a shortcut: `CommandPalette.Trigger` opens that one, and a
+second palette with a shortcut takes it over, with a warning in development.
+A field that handles the same keys itself, such as the editor's link
+shortcut, calls `preventDefault`, and the palette leaves the key to it.
+
+### Matching
+
+Typing ranks the commands: an exact match first, then labels that start with
+the text, then labels with a word that starts with it, then labels that
+contain it. A command that matches only through its `keywords` comes after
+those. Case and accents don't count. Groups keep their order, and their
+commands are ranked within them. Each opening starts with an empty search.
+With `filter={null}`, the palette neither matches nor ranks, and shows the
+app's results in its order.
+
+### On a phone
+
+Below the `sm` breakpoint the palette fills the screen, with the input at the
+top and a Close button beside it. `CommandPalette.Input` draws that Close, so
+keep it as the palette's input. It's the same list, keys and screen reader
+flow at every size.
+
+## Accessibility
+
+- The palette is a modal dialog named "Search and commands"; set `label` to
+  name it otherwise. Focus starts in the input and stays in the dialog.
+- The input is a combobox named "Search" (`aria-label` overrides it). It
+  points `aria-activedescendant` at the highlighted command, so screen readers
+  read it as the arrows move.
+- The first command is highlighted, so **Enter** picks it straight away. The
+  **arrow keys** move the highlight and wrap at either end.
+- With `CommandPalette.Scopes`, **Tab** and **Shift+Tab** change type from
+  the search, and the input's `aria-keyshortcuts` names whichever has a type
+  to go to. Past the last type, or before All, they move focus as usual, so
+  the tabs, a toggle group named "Type", are reachable. The **left and right
+  arrows** change type too, from an empty search or the caret at that end of
+  it.
+- **Escape** closes the palette, and focus goes back to what opened it. The
+  shortcut closes it too. On a page, **Escape** goes back to the page before
+  instead.
+- On a page, **Backspace** on an empty search goes back; with text, it deletes
+  text as usual. The list is named for the page, such as "Change status", so
+  screen readers say where the arrows are. The page's chip is a button named
+  by its text and where it goes back to, such as "Change status, back to all
+  commands", so a phone without a keyboard can go back too.
+- `CommandPalette.Trigger` carries the shortcut in `aria-keyshortcuts`, so
+  screen readers announce it; the keycaps are visual.
+- `CommandPalette.Status` and `CommandPalette.Error` are polite live
+  regions, so screen readers say "Searching…" and the error as they appear,
+  without moving focus from the input. The error's actions are reachable with
+  **Tab**, and when a retry clears the error, focus goes back to the search.
+- A command with `href` is a link, so it opens in a new tab with a modified
+  click, as any link does.
+- In a `virtualized` list, each command carries `aria-setsize` and
+  `aria-posinset`, so screen readers say its place in the whole list, or in
+  its group, not just the rows drawn. A group's label stays mounted while any
+  of its commands is drawn, so the group keeps its name.
+
+<PropsDefinitions component='CommandPalette' />

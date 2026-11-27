@@ -17,8 +17,11 @@ import {
   it,
   vi
 } from 'vitest'
-import { userEvent as browserUserEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import type { RecordPosition } from '@oztix/roadie-core/records'
 
 import {
@@ -28,12 +31,15 @@ import {
   tableLayout
 } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { keepFramesRunning } from '../../css/testUtils'
 import { Menu } from '../Menu'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
-import { Records, useRecords } from '../Records'
+import { Records } from '../Records'
 import { useNarrow } from '../Records/narrow'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import type { RecordTableNarrowLayout } from './narrow'
 import { frame } from './testUtils'
 
@@ -56,6 +62,11 @@ const titleOnly = [
   column.field('show', { pin: true, narrow: 'title' }),
   column.field('gross', { narrow: 'trailing' })
 ]
+// A detail column turns the rows into deprecated cards, the one layout that still swaps.
+const swapColumns = [
+  ...narrowColumns,
+  column.field('status', { narrow: 'detail' })
+]
 const base = {
   caption: 'Shows',
   fields: showFields,
@@ -63,10 +74,9 @@ const base = {
   getRowId: (row: TestShow) => row.id
 }
 
-const listRows = (container: HTMLElement) => [
-  ...container.querySelectorAll<HTMLElement>(
-    '[data-slot="record-table-list-row"]'
-  )
+// A table that can't be selected keeps its rows and re-flows them.
+const tableRows = (container: HTMLElement) => [
+  ...container.querySelectorAll<HTMLElement>('[data-slot="record-table-row"]')
 ]
 const box = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-testid="box"]')!
@@ -85,7 +95,28 @@ function Boxed({ width, children }: { width: number; children: ReactNode }) {
 }
 
 describe('RecordTable narrow list rows in a browser', () => {
-  it('gives every list row the fixed height', async () => {
+  it('leaves detail columns out of a narrow row', async () => {
+    const { container } = render(
+      <Boxed width={360}>
+        <RecordTable
+          {...base}
+          columns={[
+            ...narrowColumns,
+            column.field('status', { narrow: 'detail' })
+          ]}
+          narrow='list'
+          data={testShows(2)}
+        />
+      </Boxed>
+    )
+    await expect.poll(() => tableRows(container).length).toBe(2)
+    const shownText = [...tableRows(container)[1]!.children]
+      .filter((cell) => getComputedStyle(cell).display !== 'none')
+      .map((cell) => cell.textContent)
+    expect(shownText).toEqual(['Ball Park Music 1', 'Melbourne', '37'])
+  })
+
+  it('gives every narrow row the fixed height', async () => {
     const { container } = render(
       <Boxed width={360}>
         <RecordTable
@@ -96,8 +127,8 @@ describe('RecordTable narrow list rows in a browser', () => {
         />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(20)
-    for (const row of listRows(container))
+    await expect.poll(() => tableRows(container).length).toBe(20)
+    for (const row of tableRows(container))
       expect(row.getBoundingClientRect().height).toBe(64)
   })
 
@@ -113,13 +144,13 @@ describe('RecordTable narrow list rows in a browser', () => {
         />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(20)
+    await expect.poll(() => tableRows(container).length).toBe(20)
     const left = container
       .querySelector<HTMLElement>('[data-slot="records"]')!
       .getBoundingClientRect().left
-    const title = listRows(container)[0]!.querySelector<HTMLElement>(
-      '[data-slot="list-item-title"]'
-    )!
+    const title = within(tableRows(container)[0]!).getByRole('link', {
+      name: 'Ocean Alley 1'
+    })
     // Within a pixel: the link's own box rounds differently per engine.
     expect(
       Math.abs(title.getBoundingClientRect().left - left)
@@ -132,8 +163,8 @@ describe('RecordTable narrow list rows in a browser', () => {
         <RecordTable {...base} data={testShows(5)} columns={titleOnly} />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(5)
-    for (const row of listRows(container))
+    await expect.poll(() => tableRows(container).length).toBe(5)
+    for (const row of tableRows(container))
       expect(row.getBoundingClientRect().height).toBe(48)
   })
 
@@ -143,66 +174,62 @@ describe('RecordTable narrow list rows in a browser', () => {
         <RecordTable {...base} data={testShows(3)} />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(3)
-    const surface = listRows(container)[0]!.firstElementChild!
-    expect(getComputedStyle(surface).cursor).not.toBe('pointer')
-  })
-
-  it('keeps a linked row untinted while its More button is hovered', async () => {
-    const { container } = render(
-      <Boxed width={360}>
-        <RecordTable
-          {...base}
-          data={testShows(3)}
-          getRowHref={(row) => `/shows/${row.id}`}
-          rowActions={() => null}
-        />
-      </Boxed>
+    await expect.poll(() => tableRows(container).length).toBe(3)
+    expect(getComputedStyle(tableRows(container)[0]!).cursor).not.toBe(
+      'pointer'
     )
-    await expect.poll(() => listRows(container).length).toBe(3)
-    const surface = listRows(container)[0]!.firstElementChild!
-    const rest = getComputedStyle(surface).backgroundColor
-    const more = screen.getByRole('button', {
-      name: 'More actions for Ocean Alley 1'
-    })
-    await browserUserEvent.hover(more)
-    // A tint would run as a transition, so none left running means none came.
-    const box = more.getBoundingClientRect()
-    const stopFrames = keepFramesRunning(() => ({
-      x: box.left + box.width / 2,
-      y: box.top + box.height / 2
-    }))
-    try {
-      await expect.poll(() => surface.getAnimations().length).toBe(0)
-    } finally {
-      await stopFrames()
-    }
-    expect(more.matches(':hover')).toBe(true)
-    expect(getComputedStyle(surface).backgroundColor).toBe(rest)
   })
 
-  it('runs the loading bar along the top of the list', async () => {
+  it('runs the loading bar along the top of the rows', async () => {
     const { container } = render(
       <Boxed width={360}>
         <RecordTable {...base} data={testShows(5)} loading />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(5)
+    await expect.poll(() => tableRows(container).length).toBe(5)
     const bar = container
       .querySelector('[data-slot="record-table-progress"] > *')!
       .getBoundingClientRect()
-    const list = screen
-      .getByRole('list', { name: 'Shows' })
-      .getBoundingClientRect()
+    const list = tableRows(container)[0]!.getBoundingClientRect()
     expect(bar.height).toBeGreaterThan(0)
     expect(bar.height).toBeLessThanOrEqual(4)
     expect(Math.abs(bar.top - list.top)).toBeLessThanOrEqual(1)
   })
 
-  it('switches to the table and back as the box resizes', async () => {
+  it('keeps a selected record selected across the switch', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <Boxed width={800}>
+        <RecordTable {...base} data={testShows(20)} selectable />
+      </Boxed>
+    )
+    await user.click(
+      await screen.findByRole('checkbox', { name: 'Select Ball Park Music 1' })
+    )
+    await resize(container, 360)
+    await expect
+      .poll(() =>
+        tableRows(container)
+          .filter((row) => row.hasAttribute('data-selected'))
+          .map((row) => row.dataset.rowId)
+      )
+      .toEqual(['show-1'])
+    await resize(container, 800)
+    expect(
+      await screen.findByRole('checkbox', { name: 'Select Ball Park Music 1' })
+    ).toBeChecked()
+  })
+
+  // Deprecated cards still swap for a list under 40rem.
+  it('switches a table with cards to the list and back as the box resizes', async () => {
     const { container } = render(
       <Boxed width={360}>
-        <RecordTable {...base} data={testShows(20)} />
+        <RecordTable
+          {...base}
+          columns={swapColumns}
+          data={testShows(20)}
+          selectable
+        />
       </Boxed>
     )
     await expect
@@ -220,28 +247,32 @@ describe('RecordTable narrow list rows in a browser', () => {
     expect(screen.queryByRole('table')).toBeNull()
   })
 
-  it('keeps a selected record selected across the switch', async () => {
-    const user = userEvent.setup()
-    const { container } = render(
-      <Boxed width={800}>
-        <RecordTable {...base} data={testShows(20)} selectable />
-      </Boxed>
-    )
-    await user.click(
-      await screen.findByRole('checkbox', { name: 'Select Ball Park Music 1' })
-    )
+  it('still switches after its own scroll box comes and goes', async () => {
+    function Toggled() {
+      const [boxed, setBoxed] = useState(true)
+      return (
+        <Boxed width={800}>
+          <button type='button' onClick={() => setBoxed((was) => !was)}>
+            Toggle box
+          </button>
+          <RecordTable
+            {...base}
+            columns={swapColumns}
+            data={testShows(10)}
+            selectable
+            maxHeight={boxed ? '400px' : undefined}
+          />
+        </Boxed>
+      )
+    }
+    const { container } = render(<Toggled />)
+    await screen.findByRole('table', { name: 'Shows' })
+    screen.getByRole('button', { name: 'Toggle box' }).click()
+    await frame()
     await resize(container, 360)
     await expect
-      .poll(() =>
-        listRows(container)
-          .filter((row) => row.hasAttribute('data-selected'))
-          .map((row) => row.dataset.rowId)
-      )
-      .toEqual(['show-1'])
-    await resize(container, 800)
-    expect(
-      await screen.findByRole('checkbox', { name: 'Select Ball Park Music 1' })
-    ).toBeChecked()
+      .poll(() => screen.queryByRole('list', { name: 'Shows' }))
+      .not.toBeNull()
   })
 
   it('enters Select mode without an outline flashing round the rows', async () => {
@@ -255,12 +286,12 @@ describe('RecordTable narrow list rows in a browser', () => {
         />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(6)
+    await expect.poll(() => tableRows(container).length).toBe(6)
     await user.click(screen.getByRole('button', { name: 'Select' }))
     await frame()
-    for (const row of listRows(container)) {
-      const style = getComputedStyle(row.firstElementChild!)
-      expect(parseFloat(style.outlineWidth) || 0).toBe(0)
+    for (const row of tableRows(container)) {
+      // Chromium reports a width for an outline that is none.
+      expect(getComputedStyle(row).outlineStyle).toBe('none')
     }
   })
 
@@ -275,18 +306,19 @@ describe('RecordTable narrow list rows in a browser', () => {
         />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBeGreaterThan(0)
+    await expect.poll(() => tableRows(container).length).toBeGreaterThan(0)
     const viewport = container.querySelector<HTMLElement>(
       '[data-slot="record-table-viewport"]'
     )!
     expect(viewport.scrollWidth).toBe(viewport.clientWidth)
   })
 
-  it('keeps rows whole inside their own scroll box', async () => {
+  it('keeps cards whole inside their own scroll box', async () => {
     const { container } = render(
       <Boxed width={360}>
         <RecordTable
           {...base}
+          columns={swapColumns}
           data={testShows(10)}
           selectable
           defaultSelection={{ ids: ['show-0'] }}
@@ -294,41 +326,16 @@ describe('RecordTable narrow list rows in a browser', () => {
         />
       </Boxed>
     )
-    await expect.poll(() => listRows(container).length).toBe(10)
+    const cards = () => [
+      ...container.querySelectorAll('[data-slot="record-table-card"]')
+    ]
+    await expect.poll(() => cards().length).toBeGreaterThan(0)
     const viewport = container
-      .querySelector<HTMLElement>('[data-slot="record-table-viewport"]')!
+      .querySelector('[data-slot="record-table-viewport"]')!
       .getBoundingClientRect()
-    const surface = listRows(container)[0]!.firstElementChild!
-    const box = surface.getBoundingClientRect()
-    expect(box.left).toBeGreaterThanOrEqual(viewport.left)
-    expect(box.right).toBeLessThanOrEqual(viewport.right)
-    expect(getComputedStyle(surface).borderTopLeftRadius).not.toBe('0px')
-  })
-
-  it('still switches after its own scroll box comes and goes', async () => {
-    function Toggled() {
-      const [boxed, setBoxed] = useState(true)
-      return (
-        <Boxed width={800}>
-          <button type='button' onClick={() => setBoxed((was) => !was)}>
-            Toggle box
-          </button>
-          <RecordTable
-            {...base}
-            data={testShows(10)}
-            maxHeight={boxed ? '400px' : undefined}
-          />
-        </Boxed>
-      )
-    }
-    const { container } = render(<Toggled />)
-    await screen.findByRole('table', { name: 'Shows' })
-    screen.getByRole('button', { name: 'Toggle box' }).click()
-    await frame()
-    await resize(container, 360)
-    await expect
-      .poll(() => screen.queryByRole('list', { name: 'Shows' }))
-      .not.toBeNull()
+    const card = cards()[0]!.getBoundingClientRect()
+    expect(card.left).toBeGreaterThanOrEqual(viewport.left)
+    expect(card.right).toBeLessThanOrEqual(viewport.right)
   })
 
   it("keeps focus on a record's checkbox as Select mode goes wide", async () => {
@@ -356,56 +363,7 @@ describe('RecordTable narrow list rows in a browser', () => {
       )
   })
 
-  it('joins selected neighbours into one block', async () => {
-    const { container } = render(
-      <Boxed width={360}>
-        <RecordTable
-          {...base}
-          data={testShows(10)}
-          selectable
-          defaultSelection={{ ids: ['show-1', 'show-2', 'show-4'] }}
-        />
-      </Boxed>
-    )
-    await expect.poll(() => listRows(container).length).toBe(10)
-    const surface = (id: string) =>
-      getComputedStyle(
-        container.querySelector<HTMLElement>(
-          `[data-slot="record-table-list-row"][data-row-id="${id}"] > div`
-        )!
-      )
-    const bottomCorners = (id: string) => [
-      surface(id).borderBottomLeftRadius,
-      surface(id).borderBottomRightRadius
-    ]
-    expect(['show-0', 'show-1', 'show-2', 'show-4'].map(bottomCorners)).toEqual(
-      [
-        ['12px', '12px'],
-        ['0px', '0px'],
-        ['12px', '12px'],
-        ['12px', '12px']
-      ]
-    )
-    expect(surface('show-2').borderTopLeftRadius).toBe('0px')
-    expect(surface('show-2').borderBottomLeftRadius).not.toBe('0px')
-    expect(surface('show-2').borderBottomLeftRadius).toBe(
-      surface('show-5').borderTopLeftRadius
-    )
-    expect(surface('show-4').borderTopLeftRadius).not.toBe('0px')
-    expect(surface('show-1').borderTopLeftRadius).not.toBe('0px')
-    const divider = (id: string) =>
-      getComputedStyle(
-        container.querySelector(
-          `[data-row-id="${id}"] [data-slot="list-item-content"]`
-        )!,
-        '::after'
-      ).backgroundColor !== 'rgba(0, 0, 0, 0)'
-    expect(
-      ['show-0', 'show-1', 'show-2', 'show-3', 'show-4', 'show-5'].map(divider)
-    ).toEqual([false, false, false, false, false, true])
-  })
-
-  it('moves focus to the same record after a switch', async () => {
+  it('keeps focus on the record’s link as the table narrows', async () => {
     const { container } = render(
       <Boxed width={800}>
         <RecordTable
@@ -418,10 +376,10 @@ describe('RecordTable narrow list rows in a browser', () => {
     const table = await screen.findByRole('table', { name: 'Shows' })
     within(table).getByRole('link', { name: 'Julia Jacklin 1' }).focus()
     await resize(container, 360)
-    const list = await screen.findByRole('list', { name: 'Shows' })
-    await expect
-      .poll(() => document.activeElement)
-      .toBe(within(list).getByRole('link', { name: 'Julia Jacklin 1' }))
+    await frame()
+    expect(document.activeElement).toBe(
+      within(table).getByRole('link', { name: 'Julia Jacklin 1' })
+    )
   })
 
   it('lands a restored range row under the toolbar', async () => {
@@ -455,7 +413,7 @@ describe('RecordTable narrow list rows in a browser', () => {
     )!
     await expect
       .poll(() => {
-        const row = listRows(container).find(
+        const row = tableRows(container).find(
           (element) => element.dataset.rowId === 'show-480'
         )
         if (!row) return null
@@ -538,8 +496,16 @@ const selectSix = {
   bulkActions: [{ label: 'Export', onAction: () => {} }]
 }
 
-const listOf = () => screen.getByRole('list', { name: 'Shows' })
-const itemsOf = () => within(listOf()).getAllByRole('listitem')
+// Cards are a list; rows re-flow in their table.
+const listOf = () =>
+  screen.queryByRole('list', { name: 'Shows' }) ??
+  screen.getByRole('table', { name: 'Shows' })
+const itemsOf = () => {
+  const list = listOf()
+  return list.getAttribute('role') === 'list'
+    ? within(list).getAllByRole('listitem')
+    : within(list).getAllByRole('row').slice(1)
+}
 const inBox = (ui: ReactNode, width = 360) =>
   render(<Boxed width={width}>{ui}</Boxed>)
 const enterSelect = (user: ReturnType<typeof userEvent.setup>) =>
@@ -558,28 +524,25 @@ function Composed({
   narrow?: RecordTableNarrowLayout
   select?: boolean
 }) {
-  const records = useRecords({ ...six, selectable: select })
   return (
-    <Records.Root
-      records={records}
+    <ShowRecords
+      {...six}
+      selectable={select}
       layouts={[tableLayout(columns, { narrow })]}
       caption='Shows'
     >
       {select && <Records.Select />}
       <Records.Content />
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
 function Selected({ bulkActions = false }: { bulkActions?: boolean }) {
-  const records = useRecords({
-    ...six,
-    selectable: true,
-    defaultSelection: { ids: ['show-0'] }
-  })
   return (
-    <Records.Root
-      records={records}
+    <ShowRecords
+      {...six}
+      selectable
+      defaultSelection={{ ids: ['show-0'] }}
       layouts={[tableLayout(statusColumns)]}
       caption='Shows'
     >
@@ -589,16 +552,15 @@ function Selected({ bulkActions = false }: { bulkActions?: boolean }) {
           actions={[{ label: 'Export', onAction: () => {} }]}
         />
       )}
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
 describe('RecordTable narrow list rows by role in a browser', () => {
-  it('renders a list named by the caption, not a table', () => {
+  it('keeps a table named by the caption, not a list', () => {
     inBox(<RecordTable {...six} />)
-    // Explicit, since WebKit drops the role from a list with no markers.
-    expect(listOf()).toHaveAttribute('role', 'list')
-    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.getByRole('table', { name: 'Shows' })).toBeInTheDocument()
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
     const items = itemsOf()
     expect(items).toHaveLength(6)
     expect(items[0]!.textContent).toContain('Ocean Alley 1')
@@ -628,10 +590,10 @@ describe('RecordTable narrow list rows by role in a browser', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders list rows when forced, even with a detail column', () => {
+  it('keeps rows when forced, even with a detail column', () => {
     inBox(<Composed columns={detailColumns} narrow='list' />)
-    expect(listOf().querySelector('[data-slot="card"]')).toBeNull()
-    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(document.querySelector('[data-slot="card"]')).toBeNull()
+    expect(screen.getByRole('table', { name: 'Shows' })).toBeInTheDocument()
   })
 
   it('marks the list busy under a progress bar while loading', () => {
@@ -665,6 +627,29 @@ describe('RecordTable narrow list rows by role in a browser', () => {
     inBox(<RecordTable {...six} data={[]} />)
     expect(screen.queryByRole('list', { name: 'Shows' })).toBeNull()
     expect(document.querySelector('[data-slot="records-empty"]')).not.toBeNull()
+  })
+
+  it.each([
+    ['the rows', testShows(6)],
+    ['the empty state', []]
+  ])('keeps focus in the records when Retry brings %s', async (_, data) => {
+    function Retrying() {
+      const [error, setError] = useState(true)
+      return (
+        <RecordTable
+          {...six}
+          data={data}
+          error={error}
+          onRetry={() => setError(false)}
+        />
+      )
+    }
+    const user = userEvent.setup()
+    inBox(<Retrying />)
+    screen.getByRole('button', { name: 'Retry' }).focus()
+    await user.keyboard('{Enter}')
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+    expect(document.activeElement).toBe(scroller())
   })
 
   it.each([
@@ -717,7 +702,7 @@ describe('RecordTable Select mode in a browser', () => {
     expect(transition('Done')).toBe(transition('Select all'))
   })
 
-  it('floats the bulk actions, with each Select mode control once', async () => {
+  it('puts the bulk actions in the header row, with each Select mode control once', async () => {
     const user = userEvent.setup()
     inBox(
       // A short page, so it renders quickly and still offers every match.
@@ -729,16 +714,13 @@ describe('RecordTable Select mode in a browser', () => {
     )
     await enterSelect(user)
     await user.click(screen.getByRole('button', { name: 'Select all' }))
-    const floating = screen.getByRole('group', { name: 'Bulk actions' })
-    expect(floating).toHaveAttribute('data-slot', 'records-bulk-actions')
-    expect(screen.queryByRole('toolbar', { name: 'Bulk actions' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Clear selection' })).toBeNull()
+    expect(
+      within(listOf()).getByRole('toolbar', { name: 'Bulk actions' })
+    ).toBeVisible()
+    expect(screen.queryByRole('group', { name: 'Bulk actions' })).toBeNull()
     expect(
       screen.getAllByRole('button', { name: 'Deselect all' })
     ).toHaveLength(1)
-    expect(
-      within(floating).getByRole('button', { name: /^Select all 20/ })
-    ).toBeInTheDocument()
   })
 
   it('makes the checkbox the row target instead of the link', async () => {
@@ -752,12 +734,9 @@ describe('RecordTable Select mode in a browser', () => {
     const box = within(listOf()).getByRole('checkbox', {
       name: 'Select Ocean Alley 1'
     })
-    expect(box).toHaveAttribute('data-interactive-target')
     await user.click(box)
     expect(box).toHaveAttribute('aria-checked', 'true')
-    expect(box.closest('[data-slot="record-table-list-row"]')).toHaveAttribute(
-      'data-selected'
-    )
+    expect(box.closest('[data-row-id]')).toHaveAttribute('data-selected')
   })
 
   it('selects cards by their checkbox too', async () => {
@@ -841,14 +820,14 @@ describe('RecordTable Select mode in a browser', () => {
     await expect
       .poll(() => screen.queryByRole('button', { name: 'Done' }))
       .not.toBeNull()
-    expect(within(listOf()).getAllByRole('checkbox')).toHaveLength(6)
+    // Each row's, and Select page in the bar.
+    expect(within(listOf()).getAllByRole('checkbox')).toHaveLength(7)
     expect(
       within(listOf()).getByRole('checkbox', { name: 'Select Ocean Alley 1' })
     ).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByRole('group', { name: 'Bulk actions' })).toHaveAttribute(
-      'data-slot',
-      'records-bulk-actions'
-    )
+    expect(
+      within(listOf()).getByRole('toolbar', { name: 'Bulk actions' })
+    ).toBeVisible()
   })
 
   it('keeps a running bulk action busy, and settles it, across a switch to narrow', async () => {
@@ -869,10 +848,11 @@ describe('RecordTable Select mode in a browser', () => {
       )
     )
     await resize(container, 360)
-    const floating = await screen.findByRole('group', { name: 'Bulk actions' })
-    expect(
-      within(floating).getByRole('button', { name: 'Export' })
-    ).toHaveAttribute('aria-busy', 'true')
+    const bar = await screen.findByRole('toolbar', { name: 'Bulk actions' })
+    expect(within(bar).getByRole('button', { name: 'Export' })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
     await user.click(
       within(listOf()).getByRole('checkbox', {
         name: 'Select Ball Park Music 1'
@@ -955,16 +935,35 @@ describe('RecordTable Select mode in a browser', () => {
     expect(document.activeElement).toBe(scroller())
   })
 
+  it('leaves Select mode with Escape when composed with Records.Provider', async () => {
+    function Provided() {
+      return (
+        <ShowRecords
+          {...six}
+          selectable
+          defaultSelection={{ ids: ['show-0'] }}
+          layouts={[tableLayout(statusColumns)]}
+          caption='Shows'
+          bare
+        />
+      )
+    }
+    const user = userEvent.setup()
+    inBox(<Provided />)
+    within(listOf())
+      .getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+      .focus()
+    await user.keyboard('{Escape}')
+    expect(within(listOf()).queryAllByRole('checkbox')).toHaveLength(0)
+  })
+
   it('settles with one narrow and one wide Content under one Root', () => {
     function Twice() {
-      const records = useRecords({
-        ...six,
-        selectable: true,
-        defaultSelection: { ids: ['show-0'] }
-      })
       return (
-        <Records.Root
-          records={records}
+        <ShowRecords
+          {...six}
+          selectable
+          defaultSelection={{ ids: ['show-0'] }}
           layouts={[tableLayout(statusColumns)]}
           caption='Shows'
         >
@@ -974,12 +973,11 @@ describe('RecordTable Select mode in a browser', () => {
           <div style={{ width: 900 }}>
             <Records.Content />
           </div>
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Twice />)
-    expect(screen.getByRole('list', { name: 'Shows' })).toBeInTheDocument()
-    expect(screen.getByRole('table', { name: 'Shows' })).toBeInTheDocument()
+    expect(screen.getAllByRole('table', { name: 'Shows' })).toHaveLength(2)
   })
 })
 
@@ -1052,7 +1050,8 @@ describe('RecordTable narrow range failure in a browser', () => {
     ).not.toBeNull()
   })
 
-  it.each(['list', 'cards'] as const)(
+  // A table that can't be selected keeps its rows: RecordTable.range covers its errors.
+  it.each(['cards'] as const)(
     'keeps the loaded %s and lists the error in place of the failed range',
     async (layout) => {
       const user = userEvent.setup()

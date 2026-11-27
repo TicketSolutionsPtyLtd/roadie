@@ -143,8 +143,10 @@ thing its own, such as a building for a venue.
 A view is a search, filters, sort, and layout, saved under a name. Each filter
 is a chip. Chips are ANDed, and the values inside one chip are ORed. Query and
 layout are independent, so the same search reads as a table or a grid of
-cards, and Configure switches between them. Page, scroll row, and selection
-are session state, never part of a view.
+cards, and Configure or the View drawer switches between the layouts a screen
+offers. A view can
+also hold a list, board, calendar, or map layout, for a screen that draws its
+own. Page, scroll row, and selection are session state, never part of a view.
 
 ```json
 {
@@ -698,6 +700,38 @@ that names a filter already applied, in the view or the scope, still suggests
 it, marked Already applied. Taking it clears those words and adds nothing, so
 with "Location is in Melbourne" applied, `melb syd` can take both words.
 
+### Your own filter UI
+
+An app with its own filter editor or search can use the engine's own rules.
+
+```ts
+const filters = parseRecordValue('20 and 50', { field, now, timeZone })
+// [{ field: 'capacity', operator: 'between', value: [20, 50] }]
+
+const applied = new Set(view.query.filters.map(recordFilterKey))
+const fresh = filters.filter(
+  (filter) =>
+    recordFilterFits(filter, fields) && !applied.has(recordFilterKey(filter))
+)
+```
+
+`parseRecordValue(text, { field, now, timeZone })` reads text as one field's
+value, exactly as `field:value` does in `parseRecordQuery`: numbers,
+comparisons and ranges, options and places, options joined by `or`, date
+phrases, yes and no, `empty`, and a leading `!` or `-` as the opposite. It
+returns every filter the text reads as, best first, each once, and none for a
+field that doesn't filter. Label one with `describeRecordFilter`.
+
+`recordFilterKey(filter)` is a filter's identity, as `equalRecordViews`
+compares chips. Filters that filter the same way share it, whatever their key
+order, the order or repeats of their values, or how a relative range is
+written, so `last-month` and a period of month -1 are one filter. Compare it
+or use it as a key, but never parse it: its text may change.
+
+`recordFilterFits(filter, fields)` says whether your fields can apply a
+filter: its field exists, filters, and takes its operator. `validateRecordView`
+checks the value too, and says why.
+
 ## URL format
 
 `recordViewToSearchParams(view, position)` writes a view as search params, so a list
@@ -715,8 +749,32 @@ holds something invalid.
 | `q`                                       | The search text                                                                                                                                             |
 | `f`                                       | One per chip, in order, as `field:operator:value`. Lists are comma separated                                                                                |
 | `sort`                                    | Fields in order, descending with a leading dash, such as `-starts,name`                                                                                     |
-| `layout`, `columns`, `hidden`, `fields`   | The layout and its settings                                                                                                                                 |
+| `layout`, `columns`, `hidden`, `fields`, `groupBy`, `dateField` | The layout and its settings, as the next table shows |
 | `page`, `size`, `row`                     | Where the reader is: the page, or in a list loaded by range, the first row on screen. The URL counts pages from 1, and `position.page` counts from 0        |
+
+Each layout writes `layout` and its own settings. A table with no settings
+writes nothing, since `table` is what a URL without `layout` reads as.
+
+| Layout   | View                                                         | URL                                             |
+| -------- | ------------------------------------------------------------ | ----------------------------------------------- |
+| Table    | `{ type: 'table', columns?: { order?, hidden? }, groupBy? }` | `layout=table&columns=name,starts&hidden=gross` |
+| Grid     | `{ type: 'grid', fields?, groupBy? }`                        | `layout=grid&fields=name,starts`                |
+| List     | `{ type: 'list', fields?, groupBy? }`                        | `layout=list&fields=name,starts&groupBy=venue`  |
+| Board    | `{ type: 'board', groupBy }`                                 | `layout=board&groupBy=status,venue`             |
+| Calendar | `{ type: 'calendar', dateField }`                            | `layout=calendar&dateField=starts`              |
+| Map      | `{ type: 'map' }`                                            | `layout=map`                                    |
+
+`groupBy` lists the fields to group records by, outermost first, up to three.
+Each is a field with options or statuses that holds a single value, since a
+record in a list of values would sit in more than one group, and each is named
+once. Grouping means the same in every layout that offers it. A board makes
+its columns from the first level and draws at most two, so it keeps a third
+for the other layouts with a warning. `dateField` names a date field that holds
+one date, not a list of dates. A view that groups by or places records on any
+other field fails `validateRecordView`. A map saves
+no centre or zoom: it fits the records it shows. A layout this release doesn't
+know, such as one from a newer release, gives your fallback view with the
+problem.
 
 On the docs site, the view from [Views](#views) on its first page shows as the
 params `recordViewToSearchParams` writes, one a line.

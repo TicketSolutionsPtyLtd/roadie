@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  type Dispatch,
-  type RefObject,
-  type SetStateAction,
-  createContext,
-  use
-} from 'react'
+import { type Context, type RefObject, createContext, use } from 'react'
 
 import type { RecordView } from '@oztix/roadie-core/records'
 
@@ -20,9 +14,6 @@ export type RecordsContextValue = {
   layouts: readonly AnyRecordLayout[]
   /** Accessible name for the records, such as the table's. */
   caption?: string
-  /** The mounted toolbar and its height, so Content's header sticks under it. */
-  toolbar: RecordsToolbarBox | null
-  setToolbar: Dispatch<SetStateAction<RecordsToolbarBox | null>>
   /** Whether Content fills its parent's height. */
   contentFill: boolean
   setContentFill: (fill: boolean) => void
@@ -49,18 +40,75 @@ export type RecordsContextValue = {
   queryRevision: RefObject<{ key: string; count: number }>
 }
 
-export type RecordsToolbarBox = { element: HTMLElement; height: number }
+// Split by how often each part changes, as Navigator's is, so a part renders
+// only for what it reads.
 
+/** The scope, setters and refs: stable for the life of the records. */
+export type RecordsStableValue = Pick<
+  RecordsContextValue,
+  | 'scope'
+  | 'setContentFill'
+  | 'setSelectMode'
+  | 'setBulkMounted'
+  | 'setBulkSlot'
+  | 'setSelectControls'
+  | 'setBulkRunning'
+  | 'setBulkConfirming'
+  | 'latestRecords'
+  | 'queryRevision'
+>
+/** The layouts, and what the parts register with each other as they mount. */
+export type RecordsLayoutValue = Pick<
+  RecordsContextValue,
+  | 'layouts'
+  | 'caption'
+  | 'contentFill'
+  | 'selectMode'
+  | 'bulkMounted'
+  | 'bulkSlot'
+  | 'selectControls'
+  | 'bulkRunning'
+  | 'bulkConfirming'
+>
+
+/** What a tick changes. A part that reads none of these leaves a tick alone. */
+export const SELECTION_KEYS = [
+  'selection',
+  'selectedCount',
+  'isSelected',
+  'toggleRow',
+  'selectPage',
+  'selecting',
+  'setSelecting'
+] as const satisfies readonly (keyof RecordsState)[]
+/** The records without their selection, which keep their identity through a tick. */
+export type RecordsData = Omit<RecordsState, (typeof SELECTION_KEYS)[number]>
+
+export const RecordsStableContext = createContext<RecordsStableValue | null>(
+  null
+)
+export const RecordsLayoutContext = createContext<RecordsLayoutValue | null>(
+  null
+)
+export const RecordsDataContext = createContext<RecordsData | null>(null)
+/** Everything, the selection too, so it changes with every change. */
 export const RecordsContext = createContext<RecordsContextValue | null>(null)
 
-export function useRecordsContext() {
-  const context = use(RecordsContext)
-  if (!context)
+function useRequired<T>(context: Context<T | null>) {
+  const value = use(context)
+  if (!value)
     throw new Error(
       'Records parts must be inside Records.Root or Records.Provider'
     )
-  return context
+  return value
 }
+
+/** Everything, so it renders on every change: what shows the selection reads it. */
+export const useRecordsContext = () => useRequired(RecordsContext)
+export const useRecordsStable = () => useRequired(RecordsStableContext)
+export const useRecordsLayoutValue = () => useRequired(RecordsLayoutContext)
+/** The records without their selection, so a tick renders nothing. */
+export const useRecordsData = () => useRequired(RecordsDataContext)
 
 /** Select mode as shown: a selection made where Select mode applies is in it before the state commits. */
 export const isSelecting = (
@@ -69,6 +117,13 @@ export const isSelecting = (
 ) =>
   selectMode &&
   (records.selecting || (records.selectable && records.selectedCount > 0))
+
+/** Whether Select mode applies: the shown layout said so as it mounted, or its definition selects that way under 40rem. */
+export const selectModeApplies = (
+  layouts: readonly AnyRecordLayout[],
+  view: RecordView,
+  selectMode: boolean
+) => selectMode || activeLayout(layouts, view)?.selectMode === 'narrow'
 
 /** The layout the view names, or the first one given. */
 export const activeLayout = (

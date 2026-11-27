@@ -10,10 +10,16 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { pickMenuItem, pickOption } from '@oztix/roadie-browser-testing'
+import {
+  apcaLc,
+  shownFill,
+  shownText
+} from '@oztix/roadie-browser-testing/contrast'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
-import { apcaLc, shownFill, shownText } from './contrastTestUtils'
 import { LINE_END, MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Email'
@@ -85,9 +91,7 @@ async function openSettings() {
       await within(sheet).findByRole('button', { name: 'Settings' })
     )
   } else {
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Select section' })
-    )
+    await pickMenuItem(userEvent, { item: 'Select section', staysOpen: true })
     await waitFor(() =>
       expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Settings')
     )
@@ -137,18 +141,14 @@ describe('Editor email section settings', () => {
     const onValueChange = renderEmail(email(section()))
     const drawer = await openSettings()
 
-    await userEvent.click(
-      within(drawer).getByRole('combobox', { name: 'Show to' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Tickets left' })
-    )
-    await userEvent.click(
-      within(drawer).getByRole('combobox', { name: 'When' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Is less than' })
-    )
+    await pickOption(userEvent, {
+      from: within(drawer).getByRole('combobox', { name: 'Show to' }),
+      option: 'Tickets left'
+    })
+    await pickOption(userEvent, {
+      from: within(drawer).getByRole('combobox', { name: 'When' }),
+      option: 'Is less than'
+    })
     await userEvent.type(
       within(drawer).getByRole('textbox', { name: 'Value' }),
       '50'
@@ -166,10 +166,7 @@ describe('Editor email section settings', () => {
     const onValueChange = renderEmail(email(section()))
     const drawer = await openSettings()
     const showTo = within(drawer).getByRole('combobox', { name: 'Show to' })
-    await userEvent.click(showTo)
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Tickets left' })
-    )
+    await pickOption(userEvent, { from: showTo, option: 'Tickets left' })
     await waitFor(() =>
       expect(savedSection(onValueChange).attrs).toEqual({
         showWhen: { key: 'tickets_left', op: 'exists' }
@@ -216,12 +213,10 @@ describe('Editor email section settings', () => {
       await screen.findByText('Only when Tickets left is set')
     ).toBeVisible()
     const drawer = await openSettings()
-    await userEvent.click(
-      within(drawer).getByRole('combobox', { name: 'Show to' })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Everyone' })
-    )
+    await pickOption(userEvent, {
+      from: within(drawer).getByRole('combobox', { name: 'Show to' }),
+      option: 'Everyone'
+    })
     // A click on the page keeps the change.
     await userEvent.click(document.body, { position: { x: 4, y: 4 } })
 
@@ -519,12 +514,11 @@ describe('Editor email section settings', () => {
     const blocks = await screen.findByRole('dialog', { name: 'Blocks' })
 
     await userEvent.hover(within(textbox).getByText('Gates 6pm'))
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Block actions' })
-    )
-    await userEvent.click(
-      await screen.findByRole('menuitem', { name: 'Select section' })
-    )
+    await pickMenuItem(userEvent, {
+      from: await screen.findByRole('button', { name: 'Block actions' }),
+      item: 'Select section',
+      staysOpen: true
+    })
     await waitFor(() =>
       expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Settings')
     )
