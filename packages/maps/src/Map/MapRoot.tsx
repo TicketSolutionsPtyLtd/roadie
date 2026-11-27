@@ -200,9 +200,7 @@ export function MapRoot({
   >({})
   const setActiveAreas = useCallback(
     (id: string, active: readonly string[] | null) => {
-      setActiveSets(({ [id]: _old, ...others }) =>
-        active ? { ...others, [id]: active } : others
-      )
+      setActiveSets((known) => withEntry(known, id, active))
     },
     []
   )
