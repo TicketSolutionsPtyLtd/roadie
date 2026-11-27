@@ -23,6 +23,7 @@ import {
   formatSeatRange,
   isSafeImageUrl
 } from '../../cart'
+import { cartRemovingVeilClass } from '../veil'
 
 type CartEventGroupProps = {
   event: CartEvent
@@ -55,10 +56,7 @@ export function CartEventGroup({
       )}
     >
       {removing && (
-        <div
-          role='status'
-          className='absolute -inset-4 z-docked grid place-content-center bg-raised/60 backdrop-blur-sm @xl:rounded-xl'
-        >
+        <div role='status' className={cartRemovingVeilClass}>
           <span className='flex items-center gap-2 text-ui-meta font-bold text-subtle intent-danger'>
             <CircleNotchIcon
               weight='bold'

@@ -49,6 +49,10 @@
       "types": "./dist/number/index.d.ts",
       "import": "./dist/number/index.js"
     },
+    "./phone": {
+      "types": "./dist/phone/index.d.ts",
+      "import": "./dist/phone/index.js"
+    },
     "./dataviz": {
       "types": "./dist/dataviz/index.d.ts",
       "import": "./dist/dataviz/index.js"
@@ -97,7 +101,7 @@
     "clean": "rm -rf node_modules dist",
     "build": "pnpm generate:tokens && pnpm generate:manifest --alongside \"tsdown && node scripts/records-json-schema.mjs && pnpm build:css\"",
     "build:quiet": "tsdown --log-level warn && node scripts/records-json-schema.mjs && pnpm build:css",
-    "build:css": "tailwindcss -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
+    "build:css": "tailwindcss -i scripts/css-compiled.css -o dist/roadie.compiled.css --minify",
     "generate:tokens": "node scripts/generate-tokens.mjs",
     "generate:manifest": "node scripts/manifest/generate.ts --tokens",
     "check:package": "pnpm check:exports && pnpm check:pack",
@@ -108,12 +112,15 @@
     "format": "oxfmt",
     "lint:fix": "oxlint . --fix",
     "lint": "oxlint .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest run --project node",
+    "test:browser": "vitest run --project 'browser (*)' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",
+    "test:watch": "vitest --project node",
+    "test:coverage": "vitest run --project node --coverage",
     "typecheck": "tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p scripts/manifest",
-    "size": "size-limit",
-    "size:check": "size-limit --limit"
+    "build:css:floor": "tailwindcss -i scripts/css-floor.css -o node_modules/.cache/roadie/roadie.floor.css --minify",
+    "size": "pnpm build:css:floor && size-limit && node ../../scripts/size-budget.mjs --check",
+    "size:check": "pnpm size",
+    "size:update": "node ../../scripts/size-budget.mjs --update"
   },
   "author": {
     "name": "Luke Brooker",
@@ -128,15 +135,18 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
-    "@size-limit/preset-small-lib": "14.3.0",
+    "@size-limit/file": "14.3.0",
     "@tailwindcss/cli": "4.3.5",
     "@types/node": "24.19.2",
     "@vitejs/plugin-react": "6.3.0",
+    "@vitest/browser-playwright": "5.1.0",
     "@vitest/coverage-v8": "5.1.0",
     "ajv": "8.20.0",
     "chokidar-cli": "3.0.0",
     "github-slugger": "2.0.0",
     "jscodeshift": "17.4.0",
+    "libphonenumber-js": "1.13.17",
+    "playwright": "1.65.0",
     "react-docgen-typescript": "2.4.0",
     "size-limit": "14.3.0",
     "tailwindcss": "4.3.5",
@@ -147,51 +157,20 @@
   },
   "size-limit": [
     {
-      "name": "datetime",
-      "path": "dist/datetime/index.js",
-      "limit": "9.7 KB"
+      "name": "css/compiled",
+      "path": "dist/roadie.compiled.css",
+      "limit": "15.9 KB"
     },
     {
-      "name": "datetime formatting only",
-      "path": "dist/datetime/index.js",
-      "import": "{ formatDateTime, formatDateRange, formatRelative, formatDuration }",
-      "limit": "2.25 KB"
+      "name": "css/compiled uncompressed",
+      "path": "dist/roadie.compiled.css",
+      "brotli": false,
+      "limit": "148 KB"
     },
     {
-      "name": "number",
-      "path": "dist/number/index.js",
-      "limit": "560 B"
-    },
-    {
-      "name": "records",
-      "path": "dist/records/index.js",
-      "limit": "44.5 KB"
-    },
-    {
-      "name": "records without validation",
-      "path": "dist/records/index.js",
-      "import": "{ matchesRecordQuery, resolveRecordQuery, parseRecordQuery, recordViewToSearchParams, equalRecordViews }",
-      "limit": "15.8 KB"
-    },
-    {
-      "name": "records/json-schema",
-      "path": "dist/records/json-schema/index.js",
-      "limit": "27.3 KB"
-    },
-    {
-      "name": "records/elasticsearch",
-      "path": "dist/records/elasticsearch/index.js",
-      "limit": "1.45 KB"
-    },
-    {
-      "name": "records/meilisearch",
-      "path": "dist/records/meilisearch/index.js",
-      "limit": "1.65 KB"
-    },
-    {
-      "name": "theme",
-      "path": "dist/theme/index.js",
-      "limit": "1.3 KB"
+      "name": "css with no sources scanned",
+      "path": "node_modules/.cache/roadie/roadie.floor.css",
+      "limit": "9.5 KB"
     }
   ]
 }

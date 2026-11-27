@@ -165,7 +165,7 @@ export function MapRoot({
   const viewport = useRef<HTMLDivElement | null>(null)
   const [host, setHost] = useState<HTMLDivElement | null>(null)
   useLayoutEffect(() => {
-    viewport.current ??= createViewport()
+    if (!viewport.current) viewport.current = createViewport()
     setHost(viewport.current)
   }, [])
   const [initialView] = useState<MapView>(() => {
@@ -190,18 +190,14 @@ export function MapRoot({
   >({})
   const setArea = useCallback(
     (id: string, area: MapAreaLayer | readonly MapAreaLayer[] | null) => {
-      setAreaSets(({ [id]: _old, ...others }) =>
-        area ? { ...others, [id]: area } : others
-      )
+      setAreaSets((known) => withEntry(known, id, area))
     },
     []
   )
   const areas = useMemo(() => Object.values(areaSets).flat(), [areaSets])
   const [places, setPlaces] = useState<Record<string, LatLng>>({})
   const setPlace = useCallback((id: string, place: LatLng | null) => {
-    setPlaces(({ [id]: _old, ...others }) =>
-      place ? { ...others, [id]: place } : others
-    )
+    setPlaces((known) => withEntry(known, id, place))
   }, [])
   const content = useMemo(
     () => [
@@ -525,6 +521,14 @@ const NO_FIELD = { fieldId: '', labelId: '', helperTextId: '', errorTextId: '' }
 const SAME_PLACE = 1e-7
 const SAME_ZOOM = 1e-3
 
+/** `record` with `id` holding `value`, or without `id` when there is none. */
+function withEntry<T>(record: Record<string, T>, id: string, value: T | null) {
+  const others = Object.fromEntries(
+    Object.entries(record).filter(([key]) => key !== id)
+  )
+  return value ? { ...others, [id]: value } : others
+}
+
 // An area's corners, kept per geometry, as a map of postcodes would
 // otherwise walk every point each time one changes.
 const cornersOf = new WeakMap<MapAreaLayer['geometry'], LatLng[]>()
@@ -665,6 +669,8 @@ function MapLayer({ ref, expanded, label, frame, viewport }: MapLayerProps) {
   useLayoutEffect(() => {
     if (expanded && layer.current) moveIn(layer.current)
   }, [expanded, moveIn])
+  // The theme's own class, such as `dark`, never a consumer's.
+  const { className: themeClass } = cascade
   // Given no style, the accent scope's style is a plain object.
   const { style: accentStyle, ...accentScope } =
     useAccentScopeProps<never>(undefined)
@@ -699,7 +705,7 @@ function MapLayer({ ref, expanded, label, frame, viewport }: MapLayerProps) {
       className={cn(
         'fixed inset-0 z-modal overscroll-none bg-sunken outline-none data-closed:hidden',
         cascade.intent,
-        cascade.className
+        themeClass
       )}
       style={accentStyle as CSSProperties | undefined}
       {...accentScope}

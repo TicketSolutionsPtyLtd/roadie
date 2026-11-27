@@ -263,6 +263,31 @@ describe('Editor email filled section', () => {
     )
   })
 
+  it('rings a selected band 2px out, as any selected block', () => {
+    // Drawn as the canvas draws a selected section, which is no node view.
+    render(
+      <div data-slot='editor' data-preset='email'>
+        <div data-slot='editor-content'>
+          <div data-email='' className='prose'>
+            <div
+              data-type='section'
+              data-filled=''
+              className='ProseMirror-selectednode emphasis-subtle intent-neutral'
+            >
+              <p>Bringing a friend?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    const section = screen
+      .getByText('Bringing a friend?')
+      .closest<HTMLElement>('[data-type="section"]')!
+
+    expect(getComputedStyle(section).outlineStyle).toBe('solid')
+    expect(getComputedStyle(section).outlineOffset).toBe('2px')
+  })
+
   it('sets the band against a spacer beside it, as the email does', async () => {
     const spacer = { type: 'spacer', attrs: { height: 32 } }
     render(

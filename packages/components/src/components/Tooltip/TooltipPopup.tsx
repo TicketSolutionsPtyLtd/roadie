@@ -4,8 +4,7 @@ import type { ReactNode, RefAttributes } from 'react'
 
 import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { KbdShortcut, hasShortcut } from '../Kbd/KbdShortcut'
 import { type TooltipEmphasis, tooltipPopupVariants } from './variants'
 
@@ -28,9 +27,11 @@ export function TooltipPopup({
   return (
     <TooltipPrimitive.Popup
       data-slot='tooltip-popup'
-      className={cn(
-        tooltipPopupVariants({ emphasis }),
-        withShortcut ? 'flex items-center gap-2' : undefined,
+      className={mergeClassName(
+        [
+          tooltipPopupVariants({ emphasis }),
+          withShortcut ? 'flex items-center gap-2' : undefined
+        ],
         className
       )}
       {...props}

@@ -12,8 +12,9 @@ import {
 } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 import { MapEngineContext } from './MapEngineContext'
 import blankStyle from './fixtures/blank-style.json?url'
 import { Map, type MapActions, type MapAreaInView } from './index'

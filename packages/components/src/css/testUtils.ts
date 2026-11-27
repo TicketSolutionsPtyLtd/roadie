@@ -1,4 +1,3 @@
-import { onTestFinished } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
 const HOVER = '(hover: hover)'
@@ -31,35 +30,6 @@ export function setHoverCapable(capable: boolean) {
     rule.media.mediaText = hover === capable ? 'all' : 'not all'
 }
 
-type Point = { x: number; y: number }
-
-// Headless WebKit on Linux runs no frames while a page sits idle, so
-// requestAnimationFrame, ResizeObserver and CSS animations stall until the
-// pointer moves (docs/solutions/test-failures/
-// linux-webkit-no-frames-while-idle.md). Wiggles the pointer a pixel at `at()`
-// about once a frame until stopped, or until the test finishes.
-export function keepFramesRunning(at: () => Point) {
-  let running = true
-  const wiggling = (async () => {
-    for (let step = 0; running; step++) {
-      const { x, y } = at()
-      await commands.pointer([
-        { type: 'move', x: x + (step % 2), y },
-        // Paces the wiggle to a frame: frames can't, as they're what it wakes.
-        // eslint-disable-next-line roadie/no-fixed-sleep
-        { type: 'wait', ms: 16 }
-      ])
-    }
-  })()
-  wiggling.catch(() => {})
-  const stop = async () => {
-    running = false
-    await wiggling
-  }
-  onTestFinished(stop)
-  return stop
-}
-
 // Wakes rendering with a pointer move, then waits two frames, so scroll events
 // the page has queued and the frame callbacks they request have run. Two
 // points, so the pointer really moves wherever it was.
@@ -70,18 +40,6 @@ export async function nudgeFrames() {
   ])
   await new Promise(requestAnimationFrame)
   await new Promise(requestAnimationFrame)
-}
-
-// Runs a wait that only frames can end, such as a transition settling or an
-// exit animation unmounting a popup, with frames kept running from the corner.
-export async function withFrames<T>(wait: () => Promise<T>) {
-  const stop = keepFramesRunning(() => ({ x: 0, y: 0 }))
-  try {
-    return await wait()
-  } finally {
-    // A pointer error here mustn't hide why the wait failed.
-    await stop().catch(() => {})
-  }
 }
 
 // A native drag leaves Linux WebKit counting the mouse as pressed for the whole

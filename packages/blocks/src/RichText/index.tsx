@@ -9,8 +9,8 @@ import { BlockHeading, descriptionClass } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
-  type SpotIllustrationName,
-  spotIllustration
+  SpotIllustrationByName,
+  type SpotIllustrationName
 } from '../_shared/illustrations'
 import {
   type BlockAlign,
@@ -116,7 +116,6 @@ function Statement({
   illustration = 'Heart'
 }: PresetProps) {
   const { align, emphasis } = block
-  const Illustration = spotIllustration(illustration, 'Heart')
   const onSurface = emphasis != null
   return (
     <BlockSurface
@@ -131,7 +130,12 @@ function Statement({
         onSurface ? '@4xl:py-12' : 'py-8 @xl:py-16 @4xl:py-32'
       )}
     >
-      <Illustration outline className='size-16' />
+      <SpotIllustrationByName
+        name={illustration}
+        fallback='Heart'
+        outline
+        className='size-16'
+      />
       {title ? (
         <BlockHeading
           {...block.heading}

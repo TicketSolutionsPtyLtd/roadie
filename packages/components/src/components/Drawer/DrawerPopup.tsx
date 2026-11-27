@@ -4,8 +4,7 @@ import { type RefAttributes, use, useLayoutEffect } from 'react'
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import type { RoadieIntent } from '../../variants'
 import { DrawerSizeContext, useDrawerSide } from './DrawerContext'
 import { type DrawerSize, drawerPopupVariants } from './variants'
@@ -35,8 +34,9 @@ export function DrawerPopup({
     <DrawerPrimitive.Popup
       data-slot='drawer-popup'
       data-size={resolvedSize}
-      className={cn(
-        drawerPopupVariants({ intent, side, size: resolvedSize, className })
+      className={mergeClassName(
+        drawerPopupVariants({ intent, side, size: resolvedSize }),
+        className
       )}
       {...props}
     />

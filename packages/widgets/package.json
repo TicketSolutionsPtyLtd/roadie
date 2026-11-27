@@ -62,22 +62,24 @@
     "build": "pnpm generate:manifest --alongside tsdown",
     "check:package": "pnpm check:dts && pnpm check:exports && pnpm check:pack",
     "build:quiet": "pnpm generate:manifest --alongside tsdown --log-level warn",
-    "check:dts": "node scripts/check-dts.mjs",
+    "check:dts": "node ../core/scripts/check-dts.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
     "check:pack": "node ../core/scripts/check-pack.mjs",
     "clean": "rm -rf node_modules dist",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
     "dev": "tsdown --watch --log-level warn",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run --project jsdom",
+    "test:browser": "vitest run --project 'browser (*)' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",
+    "test:watch": "vitest --project jsdom",
+    "test:coverage": "vitest run --project jsdom --coverage",
+    "typecheck": "vue-tsc --noEmit && vue-tsc --noEmit -p tsconfig.browser.json",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "size": "size-limit",
-    "size:check": "size-limit --limit"
+    "size": "node ../../scripts/size-budget.mjs --check",
+    "size:check": "node ../../scripts/size-budget.mjs --check",
+    "size:update": "node ../../scripts/size-budget.mjs --update"
   },
   "dependencies": {
     "@oztix/roadie-core": "workspace:*",
@@ -135,11 +137,12 @@
     "@arethetypeswrong/cli": "0.18.5",
     "@number-flow/react": "0.6.2",
     "@number-flow/vue": "0.5.2",
+    "@oztix/roadie-browser-testing": "workspace:*",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@phosphor-icons/vue": "2.2.1",
-    "@size-limit/preset-small-lib": "14.3.0",
+    "@tailwindcss/vite": "4.3.5",
     "@tanstack/react-query": "5.106.1",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
@@ -149,14 +152,15 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.3.0",
     "@vitejs/plugin-vue": "6.0.11",
+    "@vitest/browser-playwright": "5.1.0",
     "@vitest/coverage-v8": "5.1.0",
     "@vue/test-utils": "2.5.1",
     "jsdom": "31.0.0",
     "motion": "14.9.1",
+    "playwright": "1.65.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-focus-lock": "2.13.7",
-    "size-limit": "14.3.0",
     "tsdown": "0.23.7",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.8",
@@ -164,42 +168,6 @@
     "vue": "3.5.45",
     "vue-tsc": "3.3.14"
   },
-  "size-limit": [
-    {
-      "name": "cart-drawer/core",
-      "path": "dist/cart-drawer/core/index.js",
-      "limit": "2.3 KB",
-      "ignore": [
-        "@oztix/roadie-core"
-      ]
-    },
-    {
-      "name": "cart-drawer/react",
-      "path": "dist/cart-drawer/react/index.js",
-      "limit": "9.5 KB",
-      "ignore": [
-        "react",
-        "react-dom",
-        "@oztix/roadie-core",
-        "@oztix/roadie-components",
-        "@tanstack/react-query",
-        "motion",
-        "@number-flow/react",
-        "react-focus-lock"
-      ]
-    },
-    {
-      "name": "cart-drawer/vue",
-      "path": "dist/cart-drawer/vue/index.js",
-      "limit": "15.3 KB",
-      "ignore": [
-        "vue",
-        "focus-trap",
-        "@number-flow/vue",
-        "@phosphor-icons/vue"
-      ]
-    }
-  ],
   "turbo": {
     "build": {
       "dependsOn": [

@@ -7,7 +7,7 @@ import { usePendingNavigationSnapshot } from '../../providers/PendingNavigationC
 /** `visible` draws the indicator, `leaving` fades it out, `idle` draws nothing. */
 export type FramePendingState = 'idle' | 'visible' | 'leaving'
 
-// PENDING_FADE matches the sheet's --duration-moderate, which the pull-back shares.
+// PENDING_FADE matches --duration-moderate: the glow's fade and the panes' pull-back.
 export const PENDING_ARM = 150
 export const PENDING_MINIMUM = 600
 export const PENDING_FADE = 200

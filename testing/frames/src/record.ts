@@ -1,4 +1,4 @@
-import type { Engine, FrameStats, MissMarks } from './stats'
+import type { Engine, FrameStats, MissMarks, RunNote } from './stats'
 
 export type FrameReport = FrameStats & {
   engine: Engine
@@ -13,7 +13,8 @@ export type FrameReport = FrameStats & {
 }
 
 export type FrameRecord = FrameReport &
-  MissMarks & {
+  MissMarks &
+  RunNote & {
     file: string
     scenario: string
     pass: boolean

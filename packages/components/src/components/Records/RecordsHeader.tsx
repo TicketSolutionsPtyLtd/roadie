@@ -1,23 +1,22 @@
 'use client'
 
-import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useStickyPart } from '../../utils/stickyStack'
 import { surfaceClass, useSurface } from '../../utils/surface'
 import { RecordsActions } from './RecordsActions'
-import { RecordsOptions } from './RecordsOptions'
+import { RecordsConfigure } from './RecordsOptions'
 import { RecordsSearch } from './RecordsSearch'
 import { RecordsSelect } from './RecordsSelect'
 import {
   RecordsViewActions,
   type RecordsViewActionsProps
 } from './RecordsViewActions'
-import { useRecordsContext } from './context'
-import { useNarrow } from './narrow'
+import { useRecordsStable } from './context'
 import { SearchFocusContext } from './searchFocus'
 import { useLeaveSelectOnEscape } from './selectMode'
-import { useStickyTop } from './stickyTop'
 import type { RecordsAction } from './types'
 
 export type RecordsHeaderProps<Row extends object = object> = {
@@ -46,55 +45,32 @@ export function RecordsHeader<Row extends object>({
   viewActions,
   className
 }: RecordsHeaderProps<Row>) {
-  const { toolbar, setToolbar } = useRecordsContext()
+  const { scope } = useRecordsStable()
   const leaveSelect = useLeaveSelectOnEscape()
   const ref = useRef<HTMLDivElement>(null)
-  const top = useStickyTop(ref, null)
+  // The content's sticky parts stack under it while both are stuck.
+  const top = useStickyPart(ref, {
+    tier: 1,
+    stack: scope,
+    publishOn: '[data-slot="records"]'
+  })
   useSurface(ref)
-  const narrow = useNarrow(ref)
   const [searchFocused, setSearchFocused] = useState(false)
-
-  // The content's header stacks under this height while both are stuck.
-  useLayoutEffect(() => {
-    const element = ref.current
-    if (!element) return
-    const measure = () => {
-      const height = element.offsetHeight
-      setToolbar((held) =>
-        // The first toolbar mounted keeps the place another one would take.
-        (held?.element === element && held.height === height) ||
-        (held && held.element !== element && held.element.isConnected)
-          ? held
-          : { element, height }
-      )
-    }
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(element, { box: 'border-box' })
-    return () => {
-      observer.disconnect()
-      setToolbar((held) => (held?.element === element ? null : held))
-    }
-  }, [setToolbar])
-  // Takes the place another toolbar left, which this one's own effect won't notice.
-  useLayoutEffect(() => {
-    const element = ref.current
-    if (toolbar === null && element)
-      setToolbar((held) => held ?? { element, height: element.offsetHeight })
-  }, [toolbar, setToolbar])
 
   return (
     <div
       ref={ref}
       data-slot='records-header'
-      data-search-focused={narrow && searchFocused ? '' : undefined}
+      data-search-focused={searchFocused ? '' : undefined}
       style={{ top }}
       onKeyDown={leaveSelect}
       className={cn(
         // Its padding takes the place of the gap below, so the surface reaches the content while stuck.
         'sticky z-docked mb-[calc(var(--records-gap,0px)*-1)] flex flex-wrap items-start gap-2 pb-3',
+        // Its controls fold by its room; 20rem stands in for their width, which containment drops.
+        '@container/records-header [contain-intrinsic-inline-size:20rem]',
         // A narrow toolbar gives a focused search the row, the rest hidden from Tab and screen readers too.
-        'data-search-focused:*:not-data-[slot=records-search]:hidden',
+        '@max-[40rem]:data-search-focused:*:not-data-[slot=records-search]:hidden',
         surfaceClass,
         className
       )}
@@ -110,7 +86,7 @@ export function RecordsHeader<Row extends object>({
             />
             <RecordsSelect />
             {viewActions && <RecordsViewActions {...viewActions} />}
-            <RecordsOptions />
+            <RecordsConfigure />
             {actions && (
               <RecordsActions actions={actions} className='ms-auto' />
             )}

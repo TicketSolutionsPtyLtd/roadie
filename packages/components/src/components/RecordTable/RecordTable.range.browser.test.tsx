@@ -20,6 +20,10 @@ import {
 } from 'vitest'
 import { userEvent as browserUser, page } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
 import type { RecordPosition } from '@oztix/roadie-core/records'
 
 import { RecordTable } from '.'
@@ -31,7 +35,6 @@ import {
   historyEntryKey,
   rememberPaneScroll
 } from '../Pane/paneScroll'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { ROW_PX, showColumns } from './testUtils'
 

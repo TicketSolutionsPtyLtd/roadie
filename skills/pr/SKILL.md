@@ -38,7 +38,8 @@ Prefer a small table or pseudocode to a long paragraph.
   passed), with the engines for browser tests, or a CI run link.
 - For UI, screenshots at phone and desktop widths, in light and dark, from
   the demo the host workflow asks for, embedded from its screenshot branch
-  (`/roadie:demo` step 4). The preview link stays in the session.
+  (`/roadie:demo` step 4; in Roadie, `pnpm screenshots <pr> <images…>`
+  prints the markdown). The preview link stays in the session.
 - For UI, the explore note from `/roadie:implement`'s gate (step 8): what
   the pass exercised (interactions, keyboard, overlays, edge content, and
   the console), at which widths and in which engines, what it didn't and

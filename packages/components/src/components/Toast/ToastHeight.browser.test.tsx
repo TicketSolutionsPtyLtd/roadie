@@ -2,6 +2,8 @@ import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
+
 import {
   Toast,
   type ToastManager,
@@ -9,7 +11,6 @@ import {
   createToastManager
 } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 
 // Transitions stay on here: the bug only shows while the height transition runs.
 let removeStylesheet = () => {}

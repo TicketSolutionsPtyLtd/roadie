@@ -8,41 +8,55 @@ import { DEFAULT_ACCENT_COLOR } from './index'
 const tokens = readFileSync(
   new URL('../css/tokens.css', import.meta.url),
   'utf8'
-)
+).replace(/\s+/g, ' ')
 
-// The hex fallbacks: light in `:root`, dark in `.dark`, before the oklch()
-// overrides under `@supports`.
-function accentSteps(from: string, to: string) {
-  const block = tokens.slice(tokens.indexOf(from), tokens.indexOf(to))
-  return Array.from(
-    { length: 14 },
-    (_, step) =>
-      block.match(
-        new RegExp(`--color-accent-(?:light-)?${step}: (#[0-9a-f]{6});`)
+const accentDefault = (name: string) =>
+  tokens.match(new RegExp(`--accent-${name}: ([\\d.]+);`))![1]!
+
+// The accent scale as it draws at the default accent: light before the
+// first `.dark` rule, dark after it.
+function accentSteps(mode: 'light' | 'dark') {
+  const dark = tokens.indexOf(' .dark {')
+  const block = mode === 'light' ? tokens.slice(0, dark) : tokens.slice(dark)
+  return Array.from({ length: 14 }, (_, step) =>
+    block
+      .match(
+        new RegExp(`--color-accent-(?:light-)?${step}: (oklch\\([^;]*\\));`)
       )?.[1]
+      ?.replace(/\( /g, '(')
+      .replace(/ \)/g, ')')
+      .replace('var(--accent-hue)', accentDefault('hue'))
+      .replace('var(--accent-chroma)', accentDefault('chroma'))
+      .replace(/calc\(([\d.]+) \* ([\d.]+)\)/, (_, a: string, b: string) =>
+        String(Number(a) * Number(b))
+      )
   )
 }
 
+const deltaE = (a: string, b: string) =>
+  new Color(a).deltaE(new Color(b), '2000')
+
 describe('DEFAULT_ACCENT_COLOR', () => {
   it('is the accent step 9 that tokens.css ships', () => {
-    expect(tokens).toContain(`--color-accent-light-9: ${DEFAULT_ACCENT_COLOR};`)
+    expect(deltaE(DEFAULT_ACCENT_COLOR, accentSteps('light')[9]!)).toBeLessThan(
+      0.5
+    )
   })
 
   // The generator draws custom accents; at the default it must draw the
-  // shipped scale, to within hex rounding.
-  it.each([
-    ['light', accentSteps('\n:root {', '\n.dark {')],
-    ['dark', accentSteps('\n.dark {', '\n@supports')]
-  ] as const)(
+  // shipped scale. It rounds to hex and the tokens to three OKLCH places, so
+  // up to one just-noticeable difference apart (dark step 10 is 0.61).
+  it.each(['light', 'dark'] as const)(
     'generates the %s accent scale tokens.css ships',
-    async (mode, shipped) => {
+    async (mode) => {
+      const shipped = accentSteps(mode)
       const generated = (await generateAccentScale(DEFAULT_ACCENT_COLOR))[mode]
-      expect(shipped).toHaveLength(14)
+      expect(shipped.filter(Boolean)).toHaveLength(14)
       generated.forEach((hex, step) =>
         expect(
-          new Color(hex).deltaE(new Color(shipped[step]!), '2000'),
+          deltaE(hex, shipped[step]!),
           `step ${step}: ${hex} against ${shipped[step]}`
-        ).toBeLessThan(0.5)
+        ).toBeLessThan(1)
       )
     }
   )

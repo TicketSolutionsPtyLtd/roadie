@@ -4,13 +4,14 @@ import { type RefAttributes, use } from 'react'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { keepTouchTap } from '../../utils/keepTouchTap'
+import { mergeClassName } from '../../utils/mergeClassName'
 import {
   PointerHighlightContext,
   optionHighlightClass
 } from '../../utils/optionHighlight'
+import { useVirtualItem } from '../../utils/virtualList'
+import { optionRowClass } from '../../variants'
 
 export type ComboboxItemProps = ComboboxPrimitive.Item.Props &
   RefAttributes<HTMLDivElement>
@@ -23,15 +24,16 @@ export function ComboboxItem({
   onPointerCancel,
   onMouseUp,
   onClickCapture,
+  ref,
   ...props
 }: ComboboxItemProps) {
   const byPointer = use(PointerHighlightContext)
+  const virtualItem = useVirtualItem(ref, props.value)
   return (
     <ComboboxPrimitive.Item
       data-slot='combobox-item'
-      className={cn(
-        'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
-        optionHighlightClass(byPointer),
+      className={mergeClassName(
+        [optionRowClass, optionHighlightClass(byPointer)],
         className
       )}
       {...keepTouchTap({
@@ -43,6 +45,7 @@ export function ComboboxItem({
         onClickCapture
       })}
       {...props}
+      {...virtualItem}
     />
   )
 }

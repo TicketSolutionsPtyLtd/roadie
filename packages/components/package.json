@@ -84,6 +84,10 @@
       "types": "./dist/components/Combobox/index.d.ts",
       "import": "./dist/components/Combobox/index.js"
     },
+    "./command-palette": {
+      "types": "./dist/components/CommandPalette/index.d.ts",
+      "import": "./dist/components/CommandPalette/index.js"
+    },
     "./countdown": {
       "types": "./dist/components/Countdown/index.d.ts",
       "import": "./dist/components/Countdown/index.js"
@@ -148,6 +152,10 @@
       "types": "./dist/components/Fieldset/index.d.ts",
       "import": "./dist/components/Fieldset/index.js"
     },
+    "./file-upload": {
+      "types": "./dist/components/FileUpload/index.d.ts",
+      "import": "./dist/components/FileUpload/index.js"
+    },
     "./highlight": {
       "types": "./dist/components/Highlight/index.d.ts",
       "import": "./dist/components/Highlight/index.js"
@@ -159,6 +167,10 @@
     "./image": {
       "types": "./dist/components/Image/index.d.ts",
       "import": "./dist/components/Image/index.js"
+    },
+    "./image-crop": {
+      "types": "./dist/components/ImageCrop/index.d.ts",
+      "import": "./dist/components/ImageCrop/index.js"
     },
     "./input": {
       "types": "./dist/components/Input/index.d.ts",
@@ -232,6 +244,10 @@
       "types": "./dist/components/Pattern/index.d.ts",
       "import": "./dist/components/Pattern/index.js"
     },
+    "./phone-field": {
+      "types": "./dist/components/PhoneField/index.d.ts",
+      "import": "./dist/components/PhoneField/index.js"
+    },
     "./popover": {
       "types": "./dist/components/Popover/index.d.ts",
       "import": "./dist/components/Popover/index.js"
@@ -256,9 +272,21 @@
       "types": "./dist/components/RadioGroup/index.d.ts",
       "import": "./dist/components/RadioGroup/index.js"
     },
+    "./record-board": {
+      "types": "./dist/components/RecordBoard/index.d.ts",
+      "import": "./dist/components/RecordBoard/index.js"
+    },
+    "./record-calendar": {
+      "types": "./dist/components/RecordCalendar/index.d.ts",
+      "import": "./dist/components/RecordCalendar/index.js"
+    },
     "./record-grid": {
       "types": "./dist/components/RecordGrid/index.d.ts",
       "import": "./dist/components/RecordGrid/index.js"
+    },
+    "./record-list": {
+      "types": "./dist/components/RecordList/index.d.ts",
+      "import": "./dist/components/RecordList/index.js"
     },
     "./record-table": {
       "types": "./dist/components/RecordTable/index.d.ts",
@@ -360,6 +388,7 @@
     "!dist/**/*.d.ts.map",
     "src/css",
     "!src/**/*.test.*",
+    "!src/**/__snapshots__",
     "!src/**/{testUtils,*TestUtils}.*"
   ],
   "publishConfig": {
@@ -367,11 +396,12 @@
   },
   "scripts": {
     "build": "pnpm generate:exports && pnpm generate:manifest --alongside tsdown && pnpm check:use-client",
-    "check:package": "pnpm check:dts && pnpm check:node-esm && pnpm check:exports && pnpm check:pack",
+    "check:package": "pnpm check:dts && pnpm check:server && pnpm check:node-esm && pnpm check:exports && pnpm check:pack",
     "build:quiet": "pnpm generate:exports && pnpm generate:manifest --alongside tsdown --log-level warn",
     "generate:exports": "node scripts/generate-package-exports.mjs",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
-    "check:dts": "node scripts/check-dts.mjs",
+    "check:dts": "node ../core/scripts/check-dts.mjs",
+    "check:server": "node --conditions=react-server ../core/scripts/check-server-entries.mjs",
     "check:use-client": "node ../core/scripts/check-use-client.mjs",
     "check:node-esm": "node scripts/check-node-esm.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
@@ -392,9 +422,23 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "typecheck": "tsc --noEmit",
-    "size": "size-limit",
-    "size:check": "size-limit --limit"
+    "build:css:size": "tailwindcss -i scripts/css-rules.css -o node_modules/.cache/roadie/components.rules.css --minify && tailwindcss -i scripts/css-scanned.css -o node_modules/.cache/roadie/components.scanned.css --minify",
+    "size": "pnpm build:css:size && size-limit && node ../../scripts/size-budget.mjs --check",
+    "size:check": "pnpm size",
+    "size:update": "node ../../scripts/size-budget.mjs --update"
   },
+  "size-limit": [
+    {
+      "name": "css/components rules",
+      "path": "node_modules/.cache/roadie/components.rules.css",
+      "limit": "7.6 KB"
+    },
+    {
+      "name": "css/components with dist scanned, and the floor",
+      "path": "node_modules/.cache/roadie/components.scanned.css",
+      "limit": "45.7 KB"
+    }
+  ],
   "peerDependencies": {
     "@ark-ui/react": "^5.0.0",
     "@base-ui/react": "^1.8.0",
@@ -422,10 +466,12 @@
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "3.0.0",
     "@babel/core": "7.29.13",
     "@base-ui/react": "1.9.0",
+    "@oztix/roadie-browser-testing": "workspace:*",
     "@oztix/roadie-frames": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@rolldown/plugin-babel": "0.3.1",
-    "@size-limit/preset-small-lib": "14.3.0",
+    "@size-limit/file": "14.3.0",
+    "@tailwindcss/cli": "4.3.5",
     "@tailwindcss/vite": "4.3.5",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",

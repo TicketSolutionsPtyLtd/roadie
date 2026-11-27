@@ -14,8 +14,12 @@ import { cn } from '@oztix/roadie-core/utils'
 import { useDevWarning } from '../../utils/useDevWarning'
 import {
   RecordsContext,
-  type RecordsToolbarBox,
-  useRecordsContext
+  type RecordsData,
+  RecordsDataContext,
+  RecordsLayoutContext,
+  RecordsStableContext,
+  SELECTION_KEYS,
+  useRecordsLayoutValue
 } from './context'
 import type { AnyRecordLayout } from './layouts'
 import { useLeaveSelectOnEscape } from './selectMode'
@@ -29,6 +33,22 @@ export type RecordsProviderProps<Row extends object = object> = {
   /** Accessible name for the records, such as the table's. */
   caption?: string
   children?: ReactNode
+}
+
+const selectionKeys: ReadonlySet<string> = new Set(SELECTION_KEYS)
+const sameButSelection = (held: RecordsState, next: RecordsState) =>
+  Object.keys(next).every(
+    (key) =>
+      selectionKeys.has(key) ||
+      Object.is(held[key as keyof RecordsData], next[key as keyof RecordsData])
+  )
+
+/** The last records whose every part but the selection is the same, so a tick leaves the data alone. */
+function useHeldData(records: RecordsState): RecordsData {
+  const [held, setHeld] = useState(records)
+  if (held === records || sameButSelection(held, records)) return held
+  setHeld(records)
+  return records
 }
 
 /** Shares records with parts spread across a layout, such as a `Pane`'s header, body and footer. */
@@ -45,7 +65,6 @@ export function RecordsProvider<Row extends object>({
       `[Roadie] Records has two layouts of one type (${types.join(', ')}). Records shows and offers only the first of each.`
   )
   const [contentFill, setContentFill] = useState(false)
-  const [toolbar, setToolbar] = useState<RecordsToolbarBox | null>(null)
   const [selectMode, setSelectMode] = useState(false)
   const [bulkMounted, setBulkMounted] = useState(false)
   const [bulkSlot, setBulkSlot] = useState<HTMLElement | null>(null)
@@ -67,35 +86,41 @@ export function RecordsProvider<Row extends object>({
         count: queryRevision.current.count + 1
       }
   })
+  // Split by how often each part changes, as Navigator's is. The compiler
+  // keeps each value while what it holds does.
+  const stable = {
+    scope,
+    setContentFill,
+    setSelectMode,
+    setBulkMounted,
+    setBulkSlot,
+    setSelectControls,
+    setBulkRunning,
+    setBulkConfirming,
+    latestRecords,
+    queryRevision
+  }
+  const layout = {
+    layouts,
+    caption,
+    contentFill,
+    selectMode,
+    bulkMounted,
+    bulkSlot,
+    selectControls,
+    bulkRunning,
+    bulkConfirming
+  }
+  const data = useHeldData(shared)
+  const all = { ...stable, ...layout, records: shared }
   return (
-    <RecordsContext
-      value={{
-        records: shared,
-        scope,
-        layouts,
-        caption,
-        toolbar,
-        setToolbar,
-        contentFill,
-        setContentFill,
-        selectMode,
-        setSelectMode,
-        bulkMounted,
-        setBulkMounted,
-        bulkSlot,
-        setBulkSlot,
-        selectControls,
-        setSelectControls,
-        bulkRunning,
-        setBulkRunning,
-        bulkConfirming,
-        setBulkConfirming,
-        latestRecords,
-        queryRevision
-      }}
-    >
-      {children}
-    </RecordsContext>
+    <RecordsStableContext value={stable}>
+      <RecordsLayoutContext value={layout}>
+        <RecordsDataContext value={data}>
+          <RecordsContext value={all}>{children}</RecordsContext>
+        </RecordsDataContext>
+      </RecordsLayoutContext>
+    </RecordsStableContext>
   )
 }
 RecordsProvider.displayName = 'Records.Provider'
@@ -122,7 +147,7 @@ function RecordsRootElement({
   onKeyDown,
   ...props
 }: ComponentProps<'div'>) {
-  const { contentFill } = useRecordsContext()
+  const { contentFill } = useRecordsLayoutValue()
   const leaveSelect = useLeaveSelectOnEscape()
   return (
     <div

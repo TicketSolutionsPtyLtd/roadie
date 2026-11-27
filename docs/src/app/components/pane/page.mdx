@@ -116,7 +116,8 @@ keeps a width that reads well.
 `readable` is 65 characters of the pane's own text size. If the body text is
 larger than the pane's, set its size on the `Pane` so the measure counts the
 right characters. Content is centred; `measureAlign='start'` holds it to the
-start instead.
+start instead. `Pane.Body` and anything beside it fill the measure, as content
+placed straight in the pane does.
 
 ```tsx-live
 <div className='h-80 overflow-hidden rounded-2xl border border-subtle'>
@@ -124,10 +125,12 @@ start instead.
     <Pane.Header>
       <Pane.Title>Settings</Pane.Title>
     </Pane.Header>
-    <Field>
-      <Field.Label>Display name</Field.Label>
-      <Field.Input defaultValue='Sam Okafor' />
-    </Field>
+    <Pane.Body>
+      <Field>
+        <Field.Label>Display name</Field.Label>
+        <Field.Input defaultValue='Sam Okafor' />
+      </Field>
+    </Pane.Body>
   </Pane>
 </div>
 ```
@@ -195,6 +198,10 @@ render(<Composed />)
 - This pane shows Back because it has an `onBack` and nothing sits to its left.
   Inside a `Navigator`, the columns decide. See
   [Back and Close](#back-and-close).
+- `Pane.Header` keeps one control's height even with nothing in it, or when the
+  columns hide its Back or Close. The server renders it, so the first paint, a
+  skeleton, and the loaded pane all start their content at the same line. Leave
+  `Pane.Header` out of a pane that should have no top chrome.
 
 ### Titles
 
@@ -567,6 +574,47 @@ render(<Loading />)
 - `pending` holds the frame's pending indicator for a wait Roadie can't see,
   such as a fetch without Suspense or a mutation. It sets `aria-busy` on the
   pane.
+
+### Printing
+
+Printing a page prints the pane being read as a document. Inside a `Navigator`
+that is the top pane, the one a phone shows, with its title and all of its
+content flowing across as many pages as it needs. The navigation, the other
+panes, the inspector, and the pane's Back, Close, actions, search, footer, and
+scrollbar stay off the paper. A `Pane` outside a `Navigator` prints whole the
+same way. Nothing needs a prop: it's how every pane prints.
+
+Those parts leave themselves out with the same `print:hidden` you'd use, so to
+print `Pane.Actions`, `Pane.Search`, or `Pane.Footer` anyway, give it its
+screen display for print in its `className`: `print:flex` on actions or search,
+`print:block` on a footer. Hide anything else in the
+pane that has no place on paper, such as a Print or Download button, with
+`print:hidden`. To name the PDF someone saves from the
+print dialog, set `document.title` before you call `window.print()`, and put it
+back after.
+
+```tsx
+function PrintInvoice({ number }) {
+  return (
+    <Button
+      className='print:hidden'
+      onClick={() => {
+        const title = document.title
+        document.title = `Tax invoice ${number}`
+        window.addEventListener('afterprint', () => (document.title = title), {
+          once: true
+        })
+        window.print()
+      }}
+    >
+      Print
+    </Button>
+  )
+}
+```
+
+To print a pane that isn't the top one, such as the list while a detail is open
+beside it, close the detail first.
 
 ## Guidelines
 

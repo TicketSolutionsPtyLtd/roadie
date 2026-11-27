@@ -17,6 +17,7 @@ const SPOT = fileURLToPath(new URL('../../src/spot/', import.meta.url))
 export const SVGS = join(SPOT, 'svgs')
 const MODULES = join(SPOT, 'illustrations')
 const BARREL = join(SPOT, 'index.ts')
+const LOADERS = join(SPOT, 'loaders.ts')
 const TAGS = join(SPOT, 'tags.json')
 
 export { componentName }
@@ -67,6 +68,24 @@ export {
 } from './SpotIllustration'
 
 ${exports.join('\n')}
+`
+}
+
+function loadersFor(slugs: string[]) {
+  const entries = slugs.map((slug) => {
+    const name = componentName(slug)
+    const line = `  ${name}: () => import('./illustrations/${name}')`
+    // Measured with its comma, as oxfmt wraps it.
+    return line.length < PRINT_WIDTH
+      ? line
+      : `  ${name}: () =>\n    import('./illustrations/${name}')`
+  })
+  return `${HEADER}
+
+/** Each spot illustration's own module, by name, so one loads without the rest. */
+export const SPOT_ILLUSTRATION_LOADERS = {
+${entries.join(',\n')}
+}
 `
 }
 
@@ -146,6 +165,7 @@ export function generate(all = sources(), tags = readTags()) {
     ])
   )
   files.set(BARREL, barrelFor(all.map((s) => s.slug)))
+  files.set(LOADERS, loadersFor(all.map((s) => s.slug)))
   const warnings = failures.length
     ? []
     : all.flatMap(({ file, slug, svg }) =>
@@ -173,7 +193,7 @@ if (import.meta.main) {
   for (const f of stale(files)) rmSync(f)
   for (const [path, contents] of files) writeFileSync(path, contents)
   execFileSync('pnpm', ['exec', 'oxfmt', ...files.keys()], { stdio: 'inherit' })
-  console.log(`Generated ${files.size - 1} spot illustrations.`)
+  console.log(`Generated ${files.size - 2} spot illustrations.`)
   if (warnings.length)
     console.warn(
       `These stray from how the set is drawn; look at them in spot:preview:\n${warnings.map((w) => `  ${w}`).join('\n')}`

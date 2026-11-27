@@ -6,12 +6,12 @@ import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import type { CardSize } from '@oztix/roadie-core/dashboard-layout'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { Chart } from '../Chart'
 import { PLOT_HEIGHTS } from '../Chart/context'
-import { useStylesheet } from '../testUtils'
 import { ChartPlot } from './ChartPlot'
 import { afterResize } from './browserTesting'
 import { seriesMarkId } from './series'

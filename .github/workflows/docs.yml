@@ -9,22 +9,17 @@ on:
       - 'docs/**'
       - 'packages/**'
 
-# Allow only one docs deployment at a time
-concurrency:
-  group: 'pages'
-  cancel-in-progress: true
-
 jobs:
-  build-and-deploy:
-    name: Build and deploy docs
+  build:
+    name: Build docs
     runs-on: ubuntu-latest
+    # A newer push makes this build stale, so cancel it.
+    concurrency:
+      group: docs-build
+      cancel-in-progress: true
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      pages: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -34,6 +29,9 @@ jobs:
 
       - name: Setup
         uses: ./.github/composite-actions/setup
+        with:
+          # Not the job id: `build` would share CI's build job cache keys.
+          cache-scope: docs-build
 
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
@@ -51,10 +49,43 @@ jobs:
         with:
           path: docs/out
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
-
       - name: Save Turbo cache
         if: ${{ !cancelled() }}
         uses: ./.github/composite-actions/turbo-cache-save
+
+  # Deploy in its own job, after the upload, as GitHub's Pages starter
+  # workflows do. In the same job, deploy-pages lists the run's artifacts
+  # under a second after the upload finalizes and can find none
+  # (actions/deploy-pages#451). See
+  # docs/solutions/best-practices/deploy-pages-artifact-not-listed-yet.md.
+  deploy:
+    name: Deploy docs
+    needs: build
+    runs-on: ubuntu-latest
+    # One deployment at a time. Never cancel one mid-deploy; a newer run
+    # waiting here replaces an older one that hasn't started.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy-retry.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+      # deploy-pages looks the artifact up once, with no retry. If the list
+      # still lags, nothing was deployed, so wait and look again.
+      - name: Wait for the artifact list to catch up
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 30
+
+      - name: Deploy to GitHub Pages (retry)
+        id: deploy-retry
+        if: steps.deploy.outcome == 'failure'
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

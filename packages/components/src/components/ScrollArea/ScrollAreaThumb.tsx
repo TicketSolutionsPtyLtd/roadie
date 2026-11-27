@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { ScrollArea as ScrollAreaPrimitive } from '@base-ui/react/scroll-area'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { scrollAreaThumbVariants } from './variants'
 
 export type ScrollAreaThumbProps = ScrollAreaPrimitive.Thumb.Props &
@@ -15,7 +14,7 @@ export function ScrollAreaThumb({ className, ...props }: ScrollAreaThumbProps) {
   return (
     <ScrollAreaPrimitive.Thumb
       data-slot='scroll-area-thumb'
-      className={cn(scrollAreaThumbVariants({ className }))}
+      className={mergeClassName(scrollAreaThumbVariants(), className)}
       {...props}
     />
   )

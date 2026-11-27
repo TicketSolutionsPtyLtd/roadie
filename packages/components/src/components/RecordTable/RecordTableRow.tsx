@@ -14,9 +14,16 @@ import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
 import { handleRowClick, onRowControl } from '../Records/rowLink'
-import { tableRowSize } from '../Records/rowSizing'
 import { useKeepFocusInTable } from '../Records/tableFocus'
-import { type ColumnLayout, priorityProps } from './layout'
+import { RowElement } from './RecordTableRowPlace'
+import {
+  type ColumnLayout,
+  NARROW_ACTIONS_CLASS,
+  NARROW_SELECT_CLASS,
+  narrowRowClass,
+  priorityClass,
+  priorityProps
+} from './layout'
 import type { RecordTableColumn } from './types'
 
 // WebKit builds without overflow-clip-margin drop the clip instead of the
@@ -27,7 +34,11 @@ const cellOverflowClass =
 export const rowClass =
   'grid min-w-(--record-table-min-width) grid-cols-(--record-table-columns)'
 
-const titleClampClass = 'line-clamp-2 min-w-0 wrap-anywhere'
+/** A body row's height, which the table sets and its window reads. */
+export const rowHeightClass = 'h-(--record-table-row-height)'
+
+const titleClampClass =
+  'line-clamp-2 min-w-0 wrap-anywhere @max-[40rem]/record-table-frame:line-clamp-1'
 
 const isFigure = (column: RecordTableColumn) =>
   column.field.type === 'number' || column.field.type === 'money'
@@ -67,18 +78,6 @@ export const pinStyle = (start: number | undefined) =>
           start === 0 ? '0rem' : `calc(${start}rem + var(--content-inset))`
       } as CSSProperties)
 
-/** The column whose value names the row: the narrow title, else the first pinned text column, else the first text one. Never an image. */
-export function titleColumn<Column extends RecordTableColumn<never>>(
-  columns: readonly Column[]
-) {
-  const named = columns.filter((column) => column.kind !== 'image')
-  return (
-    named.find((column) => column.narrow === 'title') ??
-    named.find((column) => column.pin && column.field.type === 'text') ??
-    named.find((column) => column.field.type === 'text')
-  )
-}
-
 const titleText = (
   record: object,
   title: RecordTableColumn | undefined,
@@ -113,8 +112,11 @@ type RecordTableRowProps = {
   onToggle: (id: string, range: boolean) => void
   rowActions?: (row: object) => ReactNode
   href?: string
-  /** One-based, counting the header row, when the table holds only some of its rows. */
-  rowIndex?: number
+}
+
+const checkboxShown = (row: HTMLElement) => {
+  const cell = row.querySelector('[data-slot="record-table-select-cell"]')
+  return cell !== null && getComputedStyle(cell).display !== 'none'
 }
 
 // Memoised so rows a change doesn't touch skip re-rendering.
@@ -128,8 +130,7 @@ export const RecordTableRow = memo(function RecordTableRow({
   selected,
   onToggle,
   rowActions,
-  href,
-  rowIndex
+  href
 }: RecordTableRowProps) {
   const rowRef = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(rowRef)
@@ -141,13 +142,14 @@ export const RecordTableRow = memo(function RecordTableRow({
     handleRowClick(
       event.nativeEvent,
       event.currentTarget,
-      selectable ? (range) => onToggle(id, range) : undefined
+      // A re-flowed row hides its checkbox until Select mode, and follows its link until then.
+      selectable && checkboxShown(event.currentTarget)
+        ? (range) => onToggle(id, range)
+        : undefined
     )
   return (
-    <div
+    <RowElement
       ref={rowRef}
-      role='row'
-      aria-rowindex={rowIndex}
       data-slot='record-table-row'
       data-row-id={id}
       data-selected={selected || undefined}
@@ -168,14 +170,23 @@ export const RecordTableRow = memo(function RecordTableRow({
       onAuxClick={linked ? onRowClick : undefined}
       className={cn(
         rowClass,
-        tableRowSize.heightClass,
+        rowHeightClass,
+        narrowRowClass(layout),
         'border-b border-subtler',
         clickable && clickableRowClass,
         selectedRowClass
       )}
     >
       {selectable && (
-        <div role='cell' className={cn(selectCellClass, cellOverflowClass)}>
+        <div
+          role='cell'
+          data-slot='record-table-select-cell'
+          className={cn(
+            selectCellClass,
+            cellOverflowClass,
+            layout.narrow && NARROW_SELECT_CLASS
+          )}
+        >
           <RecordsRowCheckbox
             id={id}
             title={name ?? id}
@@ -200,9 +211,10 @@ export const RecordTableRow = memo(function RecordTableRow({
             key={column.key}
             role='cell'
             data-pin={column.pin || undefined}
-            {...priorityProps(column, layout, index)}
+            {...priorityProps(layout, index)}
             className={cn(
               cellClass(column),
+              priorityClass(layout, index),
               cellOverflowClass,
               // On the cell, so a custom cell inherits it and an empty value stays muted.
               isTitle && 'font-semibold text-strong',
@@ -216,9 +228,10 @@ export const RecordTableRow = memo(function RecordTableRow({
                 href={href}
                 emphasis='subtle'
                 data-row-link=''
-                // A custom cell lays itself out, as it does unlinked.
                 className={cn(
-                  'is-focusable-overlay',
+                  // Covers the cell but lets clicks through, so they still select the row.
+                  'is-focusable-overlay after:pointer-events-none after:absolute after:inset-0',
+                  // A custom cell lays itself out, as it does unlinked.
                   clamps ? titleClampClass : 'flex min-w-0'
                 )}
               >
@@ -236,7 +249,11 @@ export const RecordTableRow = memo(function RecordTableRow({
         <div
           role='cell'
           data-row-control
-          className={cn(actionsCellClass, cellOverflowClass)}
+          className={cn(
+            actionsCellClass,
+            cellOverflowClass,
+            layout.narrow && NARROW_ACTIONS_CLASS
+          )}
         >
           <RecordsRowActions
             title={name ?? id}
@@ -245,7 +262,7 @@ export const RecordTableRow = memo(function RecordTableRow({
           />
         </div>
       )}
-    </div>
+    </RowElement>
   )
 })
 RecordTableRow.displayName = 'RecordTableRow'

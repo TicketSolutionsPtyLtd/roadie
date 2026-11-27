@@ -2,9 +2,10 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
+import * as spot from '@oztix/roadie-illustrations/spot'
+
 import { CallToAction } from '.'
 import { BlocksProvider } from '../Provider'
-import { SPOT_ILLUSTRATIONS } from '../_shared/illustrations'
 
 const actions = [
   { label: 'Talk to us', href: '/contact/sales' },
@@ -23,7 +24,7 @@ describe('CallToAction', () => {
   ] as const)(
     'draws the %s illustration by the photo as %s',
     (illustration, expected) => {
-      const Expected = SPOT_ILLUSTRATIONS[expected]
+      const Expected = spot[expected]
       const { container: reference } = render(<Expected outline />)
       const { container } = render(
         <CallToAction

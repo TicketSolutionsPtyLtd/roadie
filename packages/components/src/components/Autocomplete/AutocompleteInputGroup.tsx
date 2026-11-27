@@ -5,8 +5,7 @@ import type { RefAttributes } from 'react'
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete'
 import { type VariantProps } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { autocompleteInputGroupVariants } from './variants'
 
@@ -28,8 +27,9 @@ export function AutocompleteInputGroup({
   return (
     <AutocompletePrimitive.InputGroup
       data-slot='autocomplete-input-group'
-      className={cn(
-        autocompleteInputGroupVariants({ intent, emphasis, size, className })
+      className={mergeClassName(
+        autocompleteInputGroupVariants({ intent, emphasis, size }),
+        className
       )}
       aria-invalid={(inField && fieldContext.invalid) || undefined}
       {...props}
