@@ -32,12 +32,15 @@ export const testPalette: MapPalette = {
 
 /**
  * An engine with a flat projection: a degree is 1,000px, centred on the
- * view's centre in a 400×300 frame. Tests drive its moves and clicks.
+ * view's centre in a 400×300 frame. Tests drive its moves and clicks. With
+ * `zoomScales`, each zoom step from 14 doubles the scale, as real maps do.
  */
 export function fakeEngine(
-  attribution: MapEngine['attribution'] = [{ label: 'Tiles Co' }]
+  attribution: MapEngine['attribution'] = [{ label: 'Tiles Co' }],
+  { zoomScales = false }: { zoomScales?: boolean } = {}
 ) {
   let view: MapView = { center: venue, zoom: 14 }
+  const scale = () => (zoomScales ? 1000 * 2 ** (view.zoom - 14) : 1000)
   const moves = new Set<() => void>()
   const moveEnds = new Set<() => void>()
   const clicks = new Set<(place: LatLng) => void>()
@@ -60,12 +63,12 @@ export function fakeEngine(
       })
     ),
     project: ({ lat, lng }) => ({
-      x: 200 + (lng - view.center.lng) * 1000,
-      y: 150 - (lat - view.center.lat) * 1000
+      x: 200 + (lng - view.center.lng) * scale(),
+      y: 150 - (lat - view.center.lat) * scale()
     }),
     unproject: ({ x, y }) => ({
-      lat: view.center.lat - (y - 150) / 1000,
-      lng: view.center.lng + (x - 200) / 1000
+      lat: view.center.lat - (y - 150) / scale(),
+      lng: view.center.lng + (x - 200) / scale()
     }),
     on: ((
       event: 'move' | 'moveend' | 'click',
