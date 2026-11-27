@@ -57,8 +57,8 @@ const columnsClass = cn(
   'grid snap-x snap-mandatory auto-cols-[85%] grid-flow-col gap-3 overflow-x-auto overscroll-x-contain pb-2',
   '@lg/record-board:auto-cols-[minmax(14rem,1fr)]'
 )
-const columnClass =
-  'grid snap-start content-start gap-2 rounded-xl emphasis-subtle p-2'
+// Its cards' drop zone fills the rest, so a drop lands anywhere in the column.
+const columnClass = 'grid snap-start gap-2 rounded-xl emphasis-subtle p-2'
 
 export function RecordBoardContent({
   className,
@@ -176,6 +176,7 @@ export function RecordBoardContent({
           onToggle={onToggle}
           rowActions={frame.rowActions}
           handle={movable && <Sortable.Handle size='xs' />}
+          raised
         />
       )}
     </BoardCards>
@@ -237,7 +238,7 @@ export function RecordBoardContent({
                 key={cellValue(column)}
                 aria-label={column.label}
                 data-slot='record-board-column'
-                className={columnClass}
+                className={cn(columnClass, 'grid-rows-[auto_1fr]')}
               >
                 <h2
                   aria-hidden
@@ -319,6 +320,7 @@ function BoardCards({
             value={record.id}
             data-record-id={record.id}
             label={titleOf(record)}
+            dragFrom='item'
             render={<li />}
           >
             {children(record)}
@@ -333,9 +335,9 @@ function BoardSkeleton({ parts }: { parts: RecordCardParts }) {
   return (
     <div aria-hidden data-slot='record-board-skeleton' className={columnsClass}>
       {[2, 1, 1].map((count, index) => (
-        <ul key={index} className={cn(columnClass, 'text-sm')}>
+        <ul key={index} className={cn(columnClass, 'content-start text-sm')}>
           {Array.from({ length: count }, (_, card) => (
-            <RecordPlaceholder key={card} parts={parts} card />
+            <RecordPlaceholder key={card} parts={parts} card raised />
           ))}
         </ul>
       ))}

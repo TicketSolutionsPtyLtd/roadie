@@ -7,6 +7,7 @@ import { Radio } from '@base-ui/react/radio'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isEmptyNode } from '../../utils/isEmptyNode'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { RadioGroupContext } from './RadioGroupContext'
 import {
   radioGroupItemSizes,
@@ -16,6 +17,8 @@ import {
 
 export type RadioGroupItemProps = Radio.Root.Props &
   RefAttributes<HTMLButtonElement> & {
+    /** A string goes on the row; a function of the radio's state goes on the radio. */
+    className?: Radio.Root.Props['className']
     /** Names the radio. The whole row becomes the click target. */
     label?: ReactNode
     /** A line of help under the label, read as the radio's description. */
@@ -42,13 +45,22 @@ export function RadioGroupItem({
     ? `${generatedId}-description`
     : undefined
 
+  // A string styles the row; a function needs the radio's state, so it styles the radio.
+  const [rowClassName, controlClassName] =
+    typeof className === 'function'
+      ? [undefined, className]
+      : [className, undefined]
+
   const radio = (
     <Radio.Root
-      className={cn(
-        sizes.circle,
-        'flex shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-focus transition-[background-color,border-color,outline-width,outline-color] duration-moderate data-[invalid]:data-[unchecked]:border-[var(--intent-9)] data-[invalid]:data-[unchecked]:bg-[var(--intent-2)] data-[invalid]:outline-focus-danger data-[invalid]:intent-danger data-[checked]:border-[var(--intent-bg-strong)] data-[checked]:bg-[var(--intent-bg-strong)] data-[checked]:shadow-none data-[checked]:intent-accent data-[invalid]:data-[checked]:intent-danger',
-        emphasis !== 'normal' &&
-          'focus-visible:outline-[length:var(--focus-ring-width)]'
+      className={mergeClassName(
+        [
+          sizes.circle,
+          'flex shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-focus transition-[background-color,border-color,outline-width,outline-color] duration-moderate data-[invalid]:data-[unchecked]:border-[var(--intent-9)] data-[invalid]:data-[unchecked]:bg-[var(--intent-2)] data-[invalid]:outline-focus-danger data-[invalid]:intent-danger data-[checked]:border-[var(--intent-bg-strong)] data-[checked]:bg-[var(--intent-bg-strong)] data-[checked]:shadow-none data-[checked]:intent-accent data-[invalid]:data-[checked]:intent-danger',
+          emphasis !== 'normal' &&
+            'focus-visible:outline-[length:var(--focus-ring-width)]'
+        ],
+        controlClassName
       )}
       // aria-invalid belongs on the radiogroup; ARIA doesn't support it on a radio.
       data-invalid={invalid || undefined}
@@ -100,7 +112,7 @@ export function RadioGroupItem({
     <label
       data-slot='radio-group-item'
       className={cn(
-        radioGroupItemVariants({ emphasis, size, className }),
+        radioGroupItemVariants({ emphasis, size, className: rowClassName }),
         direction === 'horizontal' && emphasis === 'normal' && 'flex-1'
       )}
     >

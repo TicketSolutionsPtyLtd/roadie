@@ -8,6 +8,7 @@ import { CheckIcon, MinusIcon } from '@phosphor-icons/react/ssr'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isEmptyNode } from '../../utils/isEmptyNode'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { useFieldControlProps } from '../Field/FieldContext'
 import { CheckboxGroupContext } from './CheckboxGroupContext'
@@ -20,6 +21,8 @@ import {
 
 export type CheckboxProps = CheckboxPrimitive.Root.Props &
   RefAttributes<HTMLElement> & {
+    /** A string goes on the row; a function of the checkbox's state goes on the box. */
+    className?: CheckboxPrimitive.Root.Props['className']
     /** Names the checkbox. The whole row becomes the click target. */
     label?: ReactNode
     /** A line of help under the label, read as the checkbox's description. */
@@ -60,6 +63,11 @@ export function Checkbox({
   const invalid = invalidProp ?? (inField ? field.invalid : undefined)
   const required = requiredProp ?? (inField ? field.required : undefined)
   const disabled = disabledProp ?? (inField ? field.disabled : undefined)
+  // A string styles the row; a function needs the box's state, so it styles the box.
+  const [rowClassName, controlClassName] =
+    typeof className === 'function'
+      ? [undefined, className]
+      : [className, undefined]
   const generatedId = useId()
   const hasLabel = !isEmptyNode(label)
   const hasDescription = !isEmptyNode(description)
@@ -84,11 +92,14 @@ export function Checkbox({
       aria-invalid={invalid || undefined}
       aria-labelledby={labelId}
       aria-describedby={describedBy}
-      className={cn(
-        sizes.box,
-        'flex shrink-0 items-center justify-center rounded-md border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-focus transition-[background-color,border-color,outline-width,outline-color] duration-moderate aria-[invalid=true]:border-[var(--color-danger-9)] aria-[invalid=true]:bg-[var(--color-danger-2)] aria-[invalid=true]:outline-focus-danger data-[checked]:border-[var(--intent-bg-strong)] data-[checked]:bg-[var(--intent-bg-strong)] data-[checked]:shadow-none data-[checked]:intent-accent aria-[invalid=true]:data-[checked]:intent-danger data-[indeterminate]:border-[var(--intent-bg-strong)] data-[indeterminate]:bg-[var(--intent-bg-strong)] data-[indeterminate]:shadow-none data-[indeterminate]:intent-accent aria-[invalid=true]:data-[indeterminate]:intent-danger',
-        emphasis !== 'normal' &&
-          'focus-visible:outline-[length:var(--focus-ring-width)]'
+      className={mergeClassName(
+        [
+          sizes.box,
+          'flex shrink-0 items-center justify-center rounded-md border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-focus transition-[background-color,border-color,outline-width,outline-color] duration-moderate aria-[invalid=true]:border-[var(--color-danger-9)] aria-[invalid=true]:bg-[var(--color-danger-2)] aria-[invalid=true]:outline-focus-danger data-[checked]:border-[var(--intent-bg-strong)] data-[checked]:bg-[var(--intent-bg-strong)] data-[checked]:shadow-none data-[checked]:intent-accent aria-[invalid=true]:data-[checked]:intent-danger data-[indeterminate]:border-[var(--intent-bg-strong)] data-[indeterminate]:bg-[var(--intent-bg-strong)] data-[indeterminate]:shadow-none data-[indeterminate]:intent-accent aria-[invalid=true]:data-[indeterminate]:intent-danger',
+          emphasis !== 'normal' &&
+            'focus-visible:outline-[length:var(--focus-ring-width)]'
+        ],
+        controlClassName
       )}
       {...props}
     >
@@ -140,7 +151,7 @@ export function Checkbox({
     <label
       data-slot='checkbox'
       className={cn(
-        checkboxVariants({ emphasis, size, className }),
+        checkboxVariants({ emphasis, size, className: rowClassName }),
         group?.direction === 'horizontal' && emphasis === 'normal' && 'flex-1'
       )}
     >

@@ -1,10 +1,17 @@
 import { cva } from 'class-variance-authority'
 
 // Dimmed in place, so the list keeps its shape while the preview moves.
-export const sortableItemVariants = cva([
-  'relative',
-  'data-dragging:opacity-40 motion-safe:transition-opacity'
-])
+export const sortableItemVariants = cva(
+  ['relative', 'data-dragging:opacity-40 motion-safe:transition-opacity'],
+  {
+    variants: {
+      dragFrom: {
+        handle: '',
+        item: 'not-data-disabled:cursor-grab'
+      }
+    }
+  }
+)
 
 // Straddles the item's edge, so it sits in the seam between two items.
 export const sortableDropIndicatorVariants = cva(

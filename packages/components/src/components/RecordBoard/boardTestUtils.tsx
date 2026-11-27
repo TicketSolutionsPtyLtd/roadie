@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 
 import { screen, within } from '@testing-library/react'
 
@@ -28,6 +28,9 @@ export function Shows({
   defaultView,
   groupBy = 'status',
   onViewChange,
+  loading,
+  getRowHref,
+  rowActions,
   save = (_, status) => status ?? ''
 }: {
   onMove?: Move
@@ -39,6 +42,9 @@ export function Shows({
   defaultView?: RecordViewDefaults
   groupBy?: (keyof TestShow & string) | readonly (keyof TestShow & string)[]
   onViewChange?: UseRecordsOptions<TestShow>['onViewChange']
+  loading?: boolean
+  getRowHref?: (show: TestShow) => string
+  rowActions?: (show: TestShow) => ReactNode
   /** The status the app stores once a move resolves, or undefined to leave its data as it was. Other changed fields are stored as given. */
   save?: (show: TestShow, status: string | null) => string | undefined
 }) {
@@ -49,6 +55,9 @@ export function Shows({
     getRowId: (row) => row.id,
     defaultView,
     onViewChange,
+    loading,
+    getRowHref,
+    rowActions,
     selectable: selected !== undefined,
     defaultSelection: selected && { ids: selected }
   })

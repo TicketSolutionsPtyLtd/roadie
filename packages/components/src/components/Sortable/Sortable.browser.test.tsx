@@ -772,3 +772,79 @@ describe('Sortable handle alignment', () => {
     expect(handle('A').getBoundingClientRect().top).toBeCloseTo(labelTop, 0)
   })
 })
+
+describe('Sortable.Item dragFrom="item"', { timeout: 30_000 }, () => {
+  const thumbnail =
+    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"/%3E'
+  function Linked({ onReorder }: { onReorder: SortableProps['onReorder'] }) {
+    return (
+      <Sortable items={['a', 'b']} onReorder={onReorder} label='links'>
+        <ul>
+          {['a', 'b'].map((value) => (
+            <Sortable.Item
+              key={value}
+              value={value}
+              label={value}
+              dragFrom='item'
+              render={<li />}
+            >
+              <a href={`#${value}`} className='flex gap-2 p-2'>
+                <img src={thumbnail} alt={`Thumbnail ${value}`} />
+                {value}
+              </a>
+            </Sortable.Item>
+          ))}
+        </ul>
+      </Sortable>
+    )
+  }
+
+  it('drags from an image inside a link, and gives the link its drag back', async () => {
+    const onReorder = vi.fn<SortableProps['onReorder']>()
+    render(<Linked onReorder={onReorder} />)
+    const link = screen.getByRole('link', { name: 'Thumbnail a a' })
+    await userEvent.dragAndDrop(
+      screen.getByRole('img', { name: 'Thumbnail a' }),
+      screen.getByRole('link', { name: 'Thumbnail b b' }),
+      { targetPosition: { x: 20, y: 50 } }
+    )
+    await expect.poll(() => onReorder.mock.calls[0]?.[0]).toEqual(['b', 'a'])
+    cleanup()
+    expect(link.hasAttribute('draggable')).toBe(false)
+  })
+
+  it('leaves a drag that starts on a button to the button', async () => {
+    const onReorder = vi.fn<SortableProps['onReorder']>()
+    render(
+      <Sortable items={['a', 'b']} onReorder={onReorder} label='buttons'>
+        <ul>
+          {['a', 'b'].map((value) => (
+            <Sortable.Item
+              key={value}
+              value={value}
+              label={value}
+              dragFrom='item'
+              render={<li className='flex gap-2 p-2' />}
+            >
+              <span>{value}</span>
+              <button type='button'>Edit {value}</button>
+            </Sortable.Item>
+          ))}
+        </ul>
+      </Sortable>
+    )
+    const b = screen.getByText('b', { exact: true }).closest('li')!
+    // Past b's bottom edge, so a drop there moves a after it.
+    const below = { x: 4, y: b.getBoundingClientRect().height - 2 }
+    await userEvent.dragAndDrop(
+      screen.getByRole('button', { name: 'Edit a' }),
+      b,
+      { targetPosition: below }
+    )
+    expect(onReorder).not.toHaveBeenCalled()
+    await userEvent.dragAndDrop(screen.getByText('a', { exact: true }), b, {
+      targetPosition: below
+    })
+    await expect.poll(() => onReorder.mock.calls[0]?.[0]).toEqual(['b', 'a'])
+  })
+})
