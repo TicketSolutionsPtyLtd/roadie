@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import {
   floatingPopupClass,
   listPopupWidthClass,
@@ -22,10 +21,8 @@ export function AutocompletePopup({
   return (
     <AutocompletePrimitive.Popup
       data-slot='autocomplete-popup'
-      className={cn(
-        floatingPopupClass,
-        listPopupWidthClass,
-        scrollingPopupRimClass,
+      className={mergeClassName(
+        [floatingPopupClass, listPopupWidthClass, scrollingPopupRimClass],
         className
       )}
       {...props}

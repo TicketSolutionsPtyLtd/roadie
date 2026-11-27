@@ -4,9 +4,8 @@ import { type RefAttributes, use } from 'react'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { keepTouchTap } from '../../utils/keepTouchTap'
+import { mergeClassName } from '../../utils/mergeClassName'
 import {
   PointerHighlightContext,
   optionHighlightClass
@@ -33,7 +32,10 @@ export function ComboboxItem({
   return (
     <ComboboxPrimitive.Item
       data-slot='combobox-item'
-      className={cn(optionRowClass, optionHighlightClass(byPointer), className)}
+      className={mergeClassName(
+        [optionRowClass, optionHighlightClass(byPointer)],
+        className
+      )}
       {...keepTouchTap({
         onPointerDownCapture,
         onPointerMove,

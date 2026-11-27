@@ -3,9 +3,11 @@ import type { ReactElement } from 'react'
 import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { Autocomplete } from './components/Autocomplete'
 import { Button } from './components/Button'
 import { CheckboxGroup } from './components/CheckboxGroup'
 import { Collapsible } from './components/Collapsible'
+import { Combobox } from './components/Combobox'
 import { Progress } from './components/Progress'
 import { RadioGroup } from './components/RadioGroup'
 import { Select } from './components/Select'
@@ -189,6 +191,104 @@ const families: Family[] = [
       </ToggleGroup.Root>
     ),
     ['toggle-group', 'toggle-group-item']
+  ],
+  [
+    'Autocomplete',
+    (c) => (
+      <Autocomplete.Root items={['Rock']} defaultOpen defaultValue='Rock'>
+        <Autocomplete.InputGroup className={c}>
+          <Autocomplete.Input aria-label='Genre' className={c} />
+          <Autocomplete.Clear className={c} />
+          <Autocomplete.Trigger className={c} />
+        </Autocomplete.InputGroup>
+        <Autocomplete.Portal>
+          <Autocomplete.Positioner className={c}>
+            <Autocomplete.Popup className={c}>
+              <Autocomplete.Status className={c}>1 genre</Autocomplete.Status>
+              <Autocomplete.Empty className={c}>No genres</Autocomplete.Empty>
+              <Autocomplete.Group items={['Rock']} className={c}>
+                <Autocomplete.GroupLabel className={c}>
+                  Genres
+                </Autocomplete.GroupLabel>
+                <Autocomplete.Item value='Rock' className={c}>
+                  Rock
+                </Autocomplete.Item>
+              </Autocomplete.Group>
+            </Autocomplete.Popup>
+          </Autocomplete.Positioner>
+        </Autocomplete.Portal>
+      </Autocomplete.Root>
+    ),
+    [
+      'autocomplete-input-group',
+      'autocomplete-input',
+      'autocomplete-clear',
+      'autocomplete-trigger',
+      'autocomplete-positioner',
+      'autocomplete-popup',
+      'autocomplete-status',
+      'autocomplete-empty',
+      'autocomplete-group',
+      'autocomplete-group-label',
+      'autocomplete-item'
+    ]
+  ],
+  [
+    'Combobox',
+    (c) => (
+      <Combobox.Root
+        multiple
+        items={['Rock']}
+        defaultValue={['Rock']}
+        defaultOpen
+      >
+        <Combobox.Label className={c}>Genres</Combobox.Label>
+        <Combobox.InputGroup className={c}>
+          <Combobox.Chips className={c}>
+            <Combobox.Chip className={c}>
+              Rock
+              <Combobox.ChipRemove aria-label='Remove Rock' className={c} />
+            </Combobox.Chip>
+            <Combobox.Input className={c} />
+          </Combobox.Chips>
+          <Combobox.Clear className={c} />
+          <Combobox.Trigger className={c} />
+        </Combobox.InputGroup>
+        <Combobox.Portal>
+          <Combobox.Positioner className={c}>
+            <Combobox.Popup className={c}>
+              <Combobox.Status className={c}>1 genre</Combobox.Status>
+              <Combobox.Empty className={c}>No genres</Combobox.Empty>
+              <Combobox.Group items={['Rock']} className={c}>
+                <Combobox.GroupLabel className={c}>Genres</Combobox.GroupLabel>
+                <Combobox.Item value='Rock' className={c}>
+                  Rock
+                  <Combobox.ItemIndicator className={c} />
+                </Combobox.Item>
+              </Combobox.Group>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox.Root>
+    ),
+    [
+      'combobox-label',
+      'combobox-input-group',
+      'combobox-chips',
+      'combobox-chip',
+      'combobox-chip-remove',
+      'combobox-input',
+      'combobox-clear',
+      'combobox-trigger',
+      'combobox-positioner',
+      'combobox-popup',
+      'combobox-status',
+      'combobox-empty',
+      'combobox-group',
+      'combobox-group-label',
+      'combobox-item',
+      'combobox-item-indicator'
+    ]
   ]
 ]
 
