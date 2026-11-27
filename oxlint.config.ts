@@ -317,6 +317,9 @@ export default defineConfig({
       },
       ['**/*.test.{ts,tsx}']
     ),
+    roadieRules(['packages/*/src/**/*.tsx'], {
+      'roadie/no-dropped-class-name-callback': 'error'
+    }),
     // The testing preset covers the tests; these are the helpers they wait in.
     roadieRules(
       [

@@ -4,8 +4,7 @@ import type { ReactNode, RefAttributes } from 'react'
 
 import { Progress as ProgressPrimitive } from '@base-ui/react/progress'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { type RoadieIntent, intentVariants } from '../../variants'
 import {
   ProgressHasIntentContext,
@@ -41,9 +40,11 @@ export function ProgressRoot({
           data-slot='progress'
           // An explicit undefined would wipe Base UI's default and getAriaValueText
           {...(valueText !== undefined && { 'aria-valuetext': valueText })}
-          className={cn(
-            'grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1.5',
-            intent && intentVariants[intent],
+          className={mergeClassName(
+            [
+              'grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1.5',
+              intent && intentVariants[intent]
+            ],
             className
           )}
           {...props}

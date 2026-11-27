@@ -4,7 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { OTPField as OTPFieldPrimitive } from '@base-ui/react/otp-field'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { mergeClassName } from '../../utils/mergeClassName'
 
 export type OTPFieldSeparatorProps = OTPFieldPrimitive.Separator.Props &
   RefAttributes<HTMLDivElement>
@@ -16,7 +16,7 @@ export function OTPFieldSeparator({
   return (
     <OTPFieldPrimitive.Separator
       data-slot='otp-field-separator'
-      className={cn(
+      className={mergeClassName(
         'h-0.5 w-3 shrink-0 rounded-full bg-current text-subtler',
         className
       )}

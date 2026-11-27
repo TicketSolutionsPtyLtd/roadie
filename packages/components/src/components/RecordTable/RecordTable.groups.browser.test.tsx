@@ -22,8 +22,9 @@ import { type RecordField, recordFields } from '@oztix/roadie-core/records'
 import { RecordTable, tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
-import { Records, useRecords } from '../Records'
+import { Records } from '../Records'
 import {
+  ShowRecords,
   type TestShow,
   groupedShowFields,
   showFields,
@@ -54,7 +55,6 @@ function ShowTable({
   columnMin?: number
   inPane?: boolean
 }) {
-  const records = useRecords(options)
   const fields = options.fields as readonly RecordField[]
   const layouts = useMemo(() => {
     const column = tableColumns<TestShow>(fields)
@@ -68,10 +68,10 @@ function ShowTable({
     ]
   }, [fields, columnMin])
   const content = (
-    <Records records={records} layouts={layouts} caption='Shows'>
+    <ShowRecords {...options} layouts={layouts} caption='Shows'>
       <Records.Header />
       <Records.Content />
-    </Records>
+    </ShowRecords>
   )
   return (
     <div style={{ width }}>{inPane ? <Pane>{content}</Pane> : content}</div>

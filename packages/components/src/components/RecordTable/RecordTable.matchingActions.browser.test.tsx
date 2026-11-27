@@ -18,8 +18,13 @@ import {
 
 import { RecordTable, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { Records, type RecordsAction, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { Records, type RecordsAction } from '../Records'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import { showColumns } from './testUtils'
 
 let removeStylesheet = () => {}
@@ -123,20 +128,16 @@ describe('RecordTable table actions in a wide toolbar', () => {
 })
 
 function OwnActions({ actions }: { actions: RecordsAction<TestShow>[] }) {
-  const records = useRecords({
-    data: testShows(12),
-    fields: showFields,
-    getRowId: (row) => row.id
-  })
   return (
-    <Records.Root
-      records={records}
+    <ShowRecords
+      data={testShows(12)}
+      getRowId={(row) => row.id}
       layouts={[tableLayout(showColumns)]}
       caption='Shows'
     >
       <Records.Actions actions={actions} />
       <Records.Content />
-    </Records.Root>
+    </ShowRecords>
   )
 }
 

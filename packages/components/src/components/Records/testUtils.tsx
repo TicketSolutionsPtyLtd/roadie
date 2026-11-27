@@ -1,4 +1,11 @@
+import type { ReactNode } from 'react'
+
 import { recordFields } from '@oztix/roadie-core/records'
+
+import { Records, useRecords } from '.'
+import type { AnyRecordLayout } from './layouts'
+import type { RecordsField } from './types'
+import type { RecordsInstance, UseRecordsOptions } from './useRecords'
 
 export type TestShow = {
   id: string
@@ -88,3 +95,32 @@ export const boxStates = [
   ['empty', 'records-empty', { data: [] }],
   ['error', 'records-error', { data: [], error: true }]
 ] as const
+
+export type ShowRecordsProps = Omit<UseRecordsOptions<TestShow>, 'fields'> & {
+  /** The show fields unless given. */
+  fields?: readonly RecordsField[]
+  layouts: readonly AnyRecordLayout[]
+  caption?: string
+  /** Records.Provider in place of Records.Root, so no element wraps the parts. */
+  bare?: boolean
+  /** The parts, or a function of the records for a test that reads them. Records.Content unless given. */
+  children?: ReactNode | ((records: RecordsInstance<TestShow>) => ReactNode)
+}
+
+/** useRecords over test shows, in Records.Root with the given layouts. */
+export function ShowRecords({
+  fields = showFields,
+  layouts,
+  caption,
+  bare = false,
+  children = <Records.Content />,
+  ...options
+}: ShowRecordsProps) {
+  const records = useRecords({ fields, ...options })
+  const Wrapper = bare ? Records.Provider : Records.Root
+  return (
+    <Wrapper records={records} layouts={layouts} caption={caption}>
+      {typeof children === 'function' ? children(records) : children}
+    </Wrapper>
+  )
+}

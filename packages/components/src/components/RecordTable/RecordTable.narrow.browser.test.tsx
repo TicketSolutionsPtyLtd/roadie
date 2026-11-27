@@ -32,9 +32,14 @@ import {
 } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Menu } from '../Menu'
-import { Records, useRecords } from '../Records'
+import { Records } from '../Records'
 import { useNarrow } from '../Records/narrow'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import type { RecordTableNarrowLayout } from './narrow'
 import { frame } from './testUtils'
 
@@ -519,28 +524,25 @@ function Composed({
   narrow?: RecordTableNarrowLayout
   select?: boolean
 }) {
-  const records = useRecords({ ...six, selectable: select })
   return (
-    <Records.Root
-      records={records}
+    <ShowRecords
+      {...six}
+      selectable={select}
       layouts={[tableLayout(columns, { narrow })]}
       caption='Shows'
     >
       {select && <Records.Select />}
       <Records.Content />
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
 function Selected({ bulkActions = false }: { bulkActions?: boolean }) {
-  const records = useRecords({
-    ...six,
-    selectable: true,
-    defaultSelection: { ids: ['show-0'] }
-  })
   return (
-    <Records.Root
-      records={records}
+    <ShowRecords
+      {...six}
+      selectable
+      defaultSelection={{ ids: ['show-0'] }}
       layouts={[tableLayout(statusColumns)]}
       caption='Shows'
     >
@@ -550,7 +552,7 @@ function Selected({ bulkActions = false }: { bulkActions?: boolean }) {
           actions={[{ label: 'Export', onAction: () => {} }]}
         />
       )}
-    </Records.Root>
+    </ShowRecords>
   )
 }
 
@@ -935,19 +937,15 @@ describe('RecordTable Select mode in a browser', () => {
 
   it('leaves Select mode with Escape when composed with Records.Provider', async () => {
     function Provided() {
-      const records = useRecords({
-        ...six,
-        selectable: true,
-        defaultSelection: { ids: ['show-0'] }
-      })
       return (
-        <Records.Provider
-          records={records}
+        <ShowRecords
+          {...six}
+          selectable
+          defaultSelection={{ ids: ['show-0'] }}
           layouts={[tableLayout(statusColumns)]}
           caption='Shows'
-        >
-          <Records.Content />
-        </Records.Provider>
+          bare
+        />
       )
     }
     const user = userEvent.setup()
@@ -961,14 +959,11 @@ describe('RecordTable Select mode in a browser', () => {
 
   it('settles with one narrow and one wide Content under one Root', () => {
     function Twice() {
-      const records = useRecords({
-        ...six,
-        selectable: true,
-        defaultSelection: { ids: ['show-0'] }
-      })
       return (
-        <Records.Root
-          records={records}
+        <ShowRecords
+          {...six}
+          selectable
+          defaultSelection={{ ids: ['show-0'] }}
           layouts={[tableLayout(statusColumns)]}
           caption='Shows'
         >
@@ -978,7 +973,7 @@ describe('RecordTable Select mode in a browser', () => {
           <div style={{ width: 900 }}>
             <Records.Content />
           </div>
-        </Records.Root>
+        </ShowRecords>
       )
     }
     render(<Twice />)

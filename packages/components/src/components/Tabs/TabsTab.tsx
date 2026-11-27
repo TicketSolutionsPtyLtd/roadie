@@ -4,9 +4,8 @@ import { type RefAttributes, use } from 'react'
 
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { isIconOnly } from '../../utils/isIconOnly'
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { TabsContext } from './TabsContext'
@@ -87,7 +86,7 @@ export function TabsTab({
     <TabsPrimitive.Tab
       data-slot='tabs-tab'
       data-icon-only={iconOnly ? '' : undefined}
-      className={cn(tabsTabVariants({ emphasis, size }), className)}
+      className={mergeClassName(tabsTabVariants({ emphasis, size }), className)}
       {...props}
       {...(finalRender !== undefined && { nativeButton: false })}
       render={finalRender}

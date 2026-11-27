@@ -11,8 +11,13 @@ import { tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
 import { Pane } from '../Pane'
-import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import { Records } from '../Records'
+import {
+  ShowRecords,
+  type TestShow,
+  showFields,
+  testShows
+} from '../Records/testUtils'
 import { rect, slot } from './testUtils'
 
 let removeStylesheet = () => {}
@@ -57,19 +62,20 @@ function ShowsPane({
   actions = false,
   nested = false
 }: Options & { layouts: typeof wide }) {
-  const records = useRecords({
-    data: testShows(80),
-    fields: showFields,
-    getRowId: (row) => row.id,
-    selectable
-  })
   const toolbar = (
     <Records.Header
       actions={actions ? [{ label: 'Export', onAction: () => {} }] : undefined}
     />
   )
   return (
-    <Records.Provider records={records} layouts={layouts} caption='Shows'>
+    <ShowRecords
+      data={testShows(80)}
+      getRowId={(row) => row.id}
+      selectable={selectable}
+      layouts={layouts}
+      caption='Shows'
+      bare
+    >
       <Pane className='h-full'>
         <Pane.Header>
           <Pane.Title>Shows</Pane.Title>
@@ -84,7 +90,7 @@ function ShowsPane({
           )}
         </Pane.Body>
       </Pane>
-    </Records.Provider>
+    </ShowRecords>
   )
 }
 
@@ -350,18 +356,16 @@ describe.each([390, 360])('Narrow rows in a pane at %ipx', (width) => {
 describe('RecordTable in a card in a pane', () => {
   it('stays inside the card', async () => {
     function CardPane() {
-      const records = useRecords({
-        data: testShows(20),
-        fields: showFields,
-        getRowId: (row) => row.id
-      })
       return (
         <Pane className='h-full'>
           <Pane.Body>
             <div data-testid='card' className='p-4'>
-              <Records records={records} layouts={wide} caption='Shows'>
-                <Records.Content />
-              </Records>
+              <ShowRecords
+                data={testShows(20)}
+                getRowId={(row) => row.id}
+                layouts={wide}
+                caption='Shows'
+              />
             </div>
           </Pane.Body>
         </Pane>

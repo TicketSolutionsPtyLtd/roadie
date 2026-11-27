@@ -4,8 +4,7 @@ import { type RefAttributes, use } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { focusedRowHighlightClass, optionRowClass } from '../../variants'
 import { SelectContext } from './SelectContext'
@@ -37,7 +36,10 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
   return (
     <SelectPrimitive.Item
       data-slot='select-item'
-      className={cn(optionRowClass, focusedRowHighlightClass, className)}
+      className={mergeClassName(
+        [optionRowClass, focusedRowHighlightClass],
+        className
+      )}
       {...props}
     >
       {content}
