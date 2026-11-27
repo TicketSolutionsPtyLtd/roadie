@@ -28,6 +28,11 @@ it('scrolls 10,000 rows at 60fps', async () => {
 - `measureFrames(step, { frames })` runs `step` at the start of each frame,
   as input would. `measureWhile(run)` counts frames while an async driver
   runs, such as a real pointer through `commands.pointer`.
+- `measureFrames(step, { warmup: 60 })` runs 60 uncounted frames of `step`
+  first. Use it when the first run of a step drops frames while the browser
+  compiles its code: a cold first scroll of RecordGrid dropped 10 to 20% of
+  frames on every runner, and none once warm
+  ([why](../../docs/solutions/test-failures/first-scroll-compiles-in-measured-frames.md)).
 - `expectFrameBudget` fails when the p95 frame is over 17.5ms (16.7 plus the
   frame clock's jitter) or more than 5% of frames drop, over at least 60
   frames, setting the worst frame aside so one hitch can't fail a run. p95
