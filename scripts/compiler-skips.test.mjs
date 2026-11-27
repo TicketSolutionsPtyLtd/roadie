@@ -33,8 +33,6 @@ const SKIPS = {
     'A react-hooks/exhaustive-deps disable turns the compiler off for it',
   'components/src/components/CommandPalette/CommandPaletteRoot.tsx#CommandPaletteRoot':
     HOISTED,
-  'components/src/components/DateRangePicker/ExtendedDateRangePicker.tsx#ExtendedDateRangePicker':
-    'Compiler todo: "Unexpected terminal kind `logical` for logical test block"',
   'components/src/components/FileUpload/FileUploadPageDrop.tsx#FileUploadPageDrop':
     '++ and -- on a module variable',
   'components/src/components/FileUpload/FileUploadRoot.tsx#FileUploadRoot':

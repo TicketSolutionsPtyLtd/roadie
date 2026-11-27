@@ -8,6 +8,7 @@ import { type VariantProps } from 'class-variance-authority'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { RadioGroupContext, type RadioGroupEmphasis } from './RadioGroupContext'
 import { type RadioGroupSize, radioGroupVariants } from './variants'
 
@@ -29,6 +30,7 @@ export function RadioGroupRoot({
   invalid,
   required,
   disabled,
+  'aria-describedby': ariaDescribedBy,
   ...props
 }: RadioGroupRootProps) {
   const fieldContext = useFieldContext()
@@ -36,6 +38,10 @@ export function RadioGroupRoot({
   const resolvedRequired = required ?? fieldContext.required
   const inField = !!fieldContext.fieldId
   const [labelId, setLabelId] = useState<string>()
+  const fieldProps = useFieldControlProps({
+    invalid: resolvedInvalid,
+    'aria-describedby': ariaDescribedBy
+  })
 
   return (
     <RadioGroupContext
@@ -56,14 +62,8 @@ export function RadioGroupRoot({
         aria-labelledby={
           labelId ?? ((inField && fieldContext.labelId) || undefined)
         }
-        aria-describedby={
-          (inField &&
-            (fieldContext.invalid
-              ? fieldContext.errorTextId
-              : fieldContext.helperTextId)) ||
-          undefined
-        }
         {...props}
+        aria-describedby={fieldProps['aria-describedby']}
       />
     </RadioGroupContext>
   )

@@ -9,6 +9,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { isEmptyNode } from '../../utils/isEmptyNode'
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { SwitchThumb } from './SwitchThumb'
 import { switchTickVariants, switchVariants } from './variants'
 
@@ -37,6 +38,7 @@ export function SwitchRoot({
   id,
   children,
   render,
+  'aria-describedby': ariaDescribedBy,
   ...props
 }: SwitchRootProps) {
   const field = useFieldContext()
@@ -52,9 +54,12 @@ export function SwitchRoot({
 
   const resolvedInvalid = invalid ?? field.invalid
   const resolvedRequired = required ?? field.required
-  const fieldTextId = field.invalid ? field.errorTextId : field.helperTextId
+  const fieldProps = useFieldControlProps({
+    invalid: resolvedInvalid,
+    'aria-describedby': ariaDescribedBy
+  })
   const describedBy =
-    [descriptionId, inField && fieldTextId].filter(Boolean).join(' ') ||
+    [descriptionId, fieldProps['aria-describedby']].filter(Boolean).join(' ') ||
     undefined
 
   const hasRow = hasLabel || hasDescription

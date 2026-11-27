@@ -12,7 +12,11 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { useFieldContext, useFieldControlError } from '../Field/FieldContext'
+import {
+  useFieldContext,
+  useFieldControlError,
+  useFieldControlProps
+} from '../Field/FieldContext'
 import {
   FileUploadContext,
   type FileUploadUpload as Upload,
@@ -365,7 +369,7 @@ export function FileUploadRoot({
   const isDisabled = Boolean(disabled || field.disabled)
   const full = maxFiles > 1 && files.length >= maxFiles
   const invalid = Boolean(field.invalid) || error !== null
-  const describedBy = invalid ? field.errorTextId : field.helperTextId
+  const { 'aria-describedby': describedBy } = useFieldControlProps({ invalid })
 
   return (
     <div
@@ -415,7 +419,7 @@ export function FileUploadRoot({
           disabled: isDisabled,
           invalid,
           labelId: field.labelId || undefined,
-          describedBy: describedBy || undefined,
+          describedBy,
           fullId: full && !isDisabled ? `${ownId}-full` : undefined
         }}
       >

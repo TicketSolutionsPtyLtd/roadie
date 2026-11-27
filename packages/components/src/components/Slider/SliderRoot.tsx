@@ -8,6 +8,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { isEmptyNode } from '../../utils/isEmptyNode'
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { SliderContext, type SliderSize } from './SliderContext'
 import { SliderControl } from './SliderControl'
 import { SliderIndicator } from './SliderIndicator'
@@ -61,8 +62,7 @@ export function SliderRoot<Value extends SliderValueType>({
   const inField = !!field.fieldId
   const hasLabel = !isEmptyNode(label)
   const resolvedInvalid = invalid ?? field.invalid
-  // Field.ErrorText renders from the field's own invalid, not the slider's.
-  const fieldTextId = field.invalid ? field.errorTextId : field.helperTextId
+  const fieldProps = useFieldControlProps({ invalid: resolvedInvalid })
   const thumbCount = countThumbs(props.value ?? props.defaultValue)
 
   return (
@@ -70,7 +70,7 @@ export function SliderRoot<Value extends SliderValueType>({
       value={{
         size,
         invalid: resolvedInvalid,
-        describedBy: (inField && fieldTextId) || undefined,
+        describedBy: fieldProps['aria-describedby'],
         fieldId: field.fieldId || undefined
       }}
     >
