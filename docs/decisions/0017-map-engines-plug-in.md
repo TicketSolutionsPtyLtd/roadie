@@ -31,8 +31,11 @@ credits control.
 ## Consequences
 
 Apps pick an engine once, through `MapProvider`. `maplibreEngine` takes other
-tiles. A new engine is a subpath that implements `MapEngine` and must pass
-the contract suite unchanged.
+tiles, and `googleEngine` (`@oztix/roadie-components/map-google`) draws with
+Google Maps, loading Google's script itself so Roadie needs no Google
+package. A new engine is a subpath that implements `MapEngine` and must pass
+the contract suite unchanged; `googleEngine` hasn't run it yet, since that
+needs a key and spends Google Maps calls.
 
 ## Links
 
