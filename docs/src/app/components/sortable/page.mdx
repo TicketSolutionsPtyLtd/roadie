@@ -305,7 +305,10 @@ render(<ColumnSettings />)
   a submenu named for it, opened with the Right arrow.
   The item lands at the end of that list, and focus follows it.
 - **Pointer**: a press on the handle that turns into a drag never opens the
-  menu. A click without a drag does.
+  menu. A click without a drag does. With `dragFrom='item'`, as on a board's
+  cards, a pointer picks the item up from anywhere on it, while a click still
+  reaches its links and buttons. On a touch screen a drag starts with a long
+  press, so a swipe still scrolls.
 - **Motion**: the dragged item fades without a transition when reduced motion
   is on. In forced colours the drop line uses the system highlight colour.
 

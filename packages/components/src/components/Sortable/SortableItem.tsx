@@ -35,6 +35,8 @@ export type SortableItemProps = Omit<ComponentProps<'div'>, 'children'> & {
   disabled?: boolean
   /** Swaps the default `<div>`, e.g. `<li />` inside a list. */
   render?: RoadieRenderProp
+  /** Where a pointer can pick the item up: its handle, or anywhere on it, as for a board's cards. A click still reaches its links and buttons, and the keyboard moves it from the handle's menu. @default 'handle' */
+  dragFrom?: 'handle' | 'item'
   children?: React.ReactNode
 }
 
@@ -44,6 +46,7 @@ export function SortableItem({
   label,
   disabled: itemDisabled = false,
   render,
+  dragFrom = 'handle',
   className,
   children,
   ref: forwarded,
@@ -101,10 +104,11 @@ export function SortableItem({
   }, [element, group, value, axis, listed, accepts])
 
   useEffect(() => {
-    if (!element || !handle || disabled) return
+    const anywhere = dragFrom === 'item'
+    if (!element || (!handle && !anywhere) || disabled) return
     const cleanup = sortableDraggable({
       element,
-      handle,
+      handle: anywhere ? undefined : (handle ?? undefined),
       group,
       value,
       label,
@@ -115,7 +119,7 @@ export function SortableItem({
       cleanup()
       setDragging(false)
     }
-  }, [element, handle, group, value, label, disabled])
+  }, [element, handle, group, value, label, disabled, dragFrom])
 
   useDevWarning(
     !listed &&
@@ -143,7 +147,7 @@ export function SortableItem({
           'data-disabled': disabled ? '' : undefined,
           ...props,
           ref: setElement,
-          className: cn(sortableItemVariants(), className),
+          className: cn(sortableItemVariants({ dragFrom }), className),
           children: (
             <>
               {children}

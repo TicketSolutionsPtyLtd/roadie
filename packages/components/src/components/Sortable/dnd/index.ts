@@ -191,14 +191,15 @@ export function sortableDropZone({
 
 export type SortableDraggableOptions = {
   element: HTMLElement
-  handle: HTMLElement
+  /** Left out, the item drags from anywhere on it. */
+  handle?: HTMLElement
   group: SortableGroup
   value: string
   label?: string
   onDraggingChange: (dragging: boolean) => void
 }
 
-/** Drags the item by its handle. */
+/** Drags the item by its handle, or from anywhere on it without one. */
 export function sortableDraggable({
   element,
   handle,
@@ -208,13 +209,28 @@ export function sortableDraggable({
   onDraggingChange
 }: SortableDraggableOptions): Cleanup {
   const data = sortableItemData(group, value, label)
-  return draggable({
+  const drag = draggable({
     element,
     dragHandle: handle,
     getInitialData: () => data,
     onDragStart: () => onDraggingChange(true),
     onDrop: () => onDraggingChange(false)
   })
+  if (handle) return drag
+  // A link or image inside drags itself, which the item ignores, so a press
+  // on one hands the drag to the item. Clicks still follow the link.
+  const handOver = (event: PointerEvent) => {
+    const inner =
+      event.target instanceof Element &&
+      event.target.closest<HTMLElement>('a[href], img')
+    if (inner && element.contains(inner) && !inner.hasAttribute('draggable'))
+      inner.draggable = false
+  }
+  element.addEventListener('pointerdown', handOver, { capture: true })
+  return () => {
+    drag()
+    element.removeEventListener('pointerdown', handOver, { capture: true })
+  }
 }
 
 /** A drop on one of this list's items, or on its drop zone (`target: null`). */
