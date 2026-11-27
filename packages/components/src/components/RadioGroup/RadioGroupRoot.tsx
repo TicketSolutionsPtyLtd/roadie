@@ -5,8 +5,7 @@ import { type RefAttributes, useState } from 'react'
 import { RadioGroup as RadioGroupPrimitive } from '@base-ui/react/radio-group'
 import { type VariantProps } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { useFieldContext } from '../Field'
 import { useFieldControlProps } from '../Field/FieldContext'
 import { RadioGroupContext, type RadioGroupEmphasis } from './RadioGroupContext'
@@ -56,7 +55,10 @@ export function RadioGroupRoot({
     >
       <RadioGroupPrimitive
         data-slot='radio-group'
-        className={cn(radioGroupVariants({ direction, size, className }))}
+        className={mergeClassName(
+          radioGroupVariants({ direction, size }),
+          className
+        )}
         disabled={disabled ?? fieldContext.disabled}
         aria-invalid={resolvedInvalid || undefined}
         aria-labelledby={
