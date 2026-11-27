@@ -37,11 +37,16 @@ describe('RecordGrid scrolls at 60fps on a slowed CPU', () => {
     const viewport = root.querySelector<HTMLElement>(
       '[data-slot="record-grid-viewport"]'
     )!
+    // The first scroll in a cold browser drops 10 to 20% of frames while the
+    // cards' code compiles, however fast the runner (INNO-1760).
     await expectFrameBudget(
       `RecordGrid, ${count.toLocaleString('en-AU')} cards, scroll`,
-      await measureFrames(() => {
-        viewport.scrollTop += 60
-      })
+      await measureFrames(
+        () => {
+          viewport.scrollTop += 60
+        },
+        { warmup: 60 }
+      )
     )
     expect(viewport.scrollTop).toBeGreaterThan(5000)
     expect(
