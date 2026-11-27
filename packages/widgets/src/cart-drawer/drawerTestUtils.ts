@@ -23,7 +23,7 @@ export type DrawerMountProps = {
 
 const inTenMinutes = () => new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
-function cartClient(): CartClient {
+export function cartClient(): CartClient {
   const summary: CartSummary = {
     cartId: 'c1',
     ticketCount: 2,
