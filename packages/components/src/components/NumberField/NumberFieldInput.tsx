@@ -7,7 +7,7 @@ import NumberFlow, { type Format } from '@number-flow/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 import { NumberFieldContext } from './NumberFieldContext'
 
 export type NumberFieldInputProps = NumberFieldPrimitive.Input.Props &
@@ -28,6 +28,7 @@ export function NumberFieldInput({
   onCompositionStart,
   onKeyDown,
   onBlur,
+  'aria-describedby': describedBy,
   ...props
 }: NumberFieldInputProps) {
   const {
@@ -45,12 +46,15 @@ export function NumberFieldInput({
     pointerFocus,
     setPointerFocus
   } = use(NumberFieldContext)
-  const field = useFieldContext()
   const chip = emphasis === 'subtler' && editable
   const flowFormat = animatableFormat(format)
   const animates = value != null && flowFormat !== null
   const editing = editable && editingSince === stepCount
   const showsText = !animates || editing
+  const fieldProps = useFieldControlProps({
+    invalid,
+    'aria-describedby': describedBy
+  })
 
   return (
     <span
@@ -91,9 +95,7 @@ export function NumberFieldInput({
         data-pointer-focus={pointerFocus || undefined}
         readOnly={!editable || undefined}
         aria-invalid={invalid || undefined}
-        aria-describedby={
-          (field.invalid ? field.errorTextId : field.helperTextId) || undefined
-        }
+        aria-describedby={fieldProps['aria-describedby']}
         onPointerDown={(event) => {
           setPointerFocus?.(false)
           setEditingSince?.(stepCount)

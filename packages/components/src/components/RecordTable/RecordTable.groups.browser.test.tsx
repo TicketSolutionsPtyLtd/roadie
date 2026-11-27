@@ -17,9 +17,9 @@ import {
   loadBrandFont,
   useStylesheet
 } from '@oztix/roadie-browser-testing/stylesheet'
-import type { RecordField } from '@oztix/roadie-core/records'
+import { type RecordField, recordFields } from '@oztix/roadie-core/records'
 
-import { tableColumns, tableLayout } from '.'
+import { RecordTable, tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Pane } from '../Pane'
 import { Records, useRecords } from '../Records'
@@ -102,6 +102,38 @@ const groupsShown = () => {
 
 const toggle = (name: string) => screen.getByRole('button', { name })
 
+// Where an element's first text starts, past any padding.
+const textLeft = (element: Element) => {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  let node = walker.nextNode()
+  while (node && !node.textContent!.trim()) node = walker.nextNode()
+  const range = document.createRange()
+  range.selectNodeContents(node!)
+  return range.getBoundingClientRect().left
+}
+
+type PictureShow = TestShow & { image?: string }
+const PICTURE =
+  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect width="80" height="80" fill="teal"/%3E%3C/svg%3E'
+const pictureShows: PictureShow[] = testShows(6).map((show) => ({
+  ...show,
+  image: PICTURE
+}))
+const pictureFields = [
+  ...showFields,
+  recordFields<PictureShow>().text('image', { label: 'Image' })
+]
+const pictureColumn = tableColumns<PictureShow>(pictureFields)
+const plainColumns = [
+  pictureColumn.field('show'),
+  pictureColumn.field('city', { narrow: 'description' }),
+  pictureColumn.field('sold', { narrow: 'trailing' })
+]
+const withThumbnail = [
+  pictureColumn.field('image', { kind: 'image' }),
+  ...plainColumns
+]
+
 describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
   it('heads each group with a row spanning the table, its title and count, in option order, with no-value records last', () => {
     const shows = testShows(6)
@@ -181,15 +213,6 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
         ? { ...one, groupHeading: () => <span>Doors at 7</span> }
         : one
     )
-    // Where an element's first text starts, past any padding.
-    const textLeft = (element: Element) => {
-      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
-      let node = walker.nextNode()
-      while (node && !node.textContent!.trim()) node = walker.nextNode()
-      const range = document.createRange()
-      range.selectNodeContents(node!)
-      return range.getBoundingClientRect().left
-    }
     // In a pane, the frame insets its first and last cells.
     for (const [selectable, inPane] of [
       [false, false],
@@ -428,6 +451,44 @@ describe('tableLayout grouped in a browser', { timeout: 30_000 }, () => {
       )!
       expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth)
     })
+
+  const leads = {
+    none: 'with nothing leading',
+    thumbnail: 'with a thumbnail leading',
+    select: 'in Select mode',
+    both: 'in Select mode with a thumbnail'
+  } as const
+  for (const width of [390, 1024])
+    for (const [lead, name] of Object.entries(leads))
+      it(`lines a title's text up with the rows' title text at ${width}px, ${name}`, async () => {
+        const user = userEvent.setup()
+        const select = lead === 'select' || lead === 'both'
+        render(
+          <div style={{ width }}>
+            <RecordTable
+              caption='Shows'
+              data={pictureShows}
+              fields={pictureFields}
+              columns={
+                lead === 'none' || lead === 'select'
+                  ? plainColumns
+                  : withThumbnail
+              }
+              selectable={select}
+              defaultView={byStatus}
+            />
+          </div>
+        )
+        if (select && width < 640)
+          await user.click(screen.getByRole('button', { name: 'Select' }))
+        await frame()
+        const title = screen.getByRole('heading', {
+          level: 2,
+          name: 'On sale 2'
+        })
+        const rowTitle = screen.getByText('Ocean Alley 1')
+        expect(Math.abs(textLeft(title) - textLeft(rowTitle))).toBeLessThan(1)
+      })
 
   it('groups from Configure, keeping the columns, and ungroups from None', async () => {
     const user = userEvent.setup()

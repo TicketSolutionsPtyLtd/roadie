@@ -7,16 +7,22 @@ import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomple
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext } from '../Field'
+import { useFieldControlProps } from '../Field/FieldContext'
 
 export type AutocompleteInputProps = AutocompletePrimitive.Input.Props &
   RefAttributes<HTMLInputElement>
 
 export function AutocompleteInput({
   className,
+  'aria-describedby': describedBy,
   ...props
 }: AutocompleteInputProps) {
-  const fieldContext = useFieldContext()
-  const inField = !!fieldContext.fieldId
+  const inField = !!useFieldContext().fieldId
+  const fieldProps = useFieldControlProps(
+    { 'aria-label': props['aria-label'], 'aria-describedby': describedBy },
+    // Opening the list aria-hides Field.Label; aria-labelledby still reads it.
+    { labelled: true }
+  )
 
   return (
     <AutocompletePrimitive.Input
@@ -25,19 +31,9 @@ export function AutocompleteInput({
         'min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle',
         className
       )}
-      {...(inField && {
-        id: fieldContext.fieldId,
-        // Opening the list aria-hides Field.Label; aria-labelledby still reads it.
-        'aria-labelledby': props['aria-label']
-          ? undefined
-          : fieldContext.labelId,
-        'aria-invalid': fieldContext.invalid || undefined,
-        'aria-required': fieldContext.required || undefined,
-        'aria-describedby': fieldContext.invalid
-          ? fieldContext.errorTextId || undefined
-          : fieldContext.helperTextId || undefined
-      })}
+      {...(inField && fieldProps)}
       {...props}
+      aria-describedby={fieldProps['aria-describedby']}
     />
   )
 }
