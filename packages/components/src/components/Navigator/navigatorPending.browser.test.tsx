@@ -4,10 +4,10 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 import { cn } from '@oztix/roadie-core/utils'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
 import { paneVariants } from '../Pane/variants'
 import {
   navigatorNestedRootClass,

@@ -1,9 +1,13 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, expect, it } from 'vitest'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { showFields, testShows } from '../Records/testUtils'
 import { ROW_PX, frame, showColumns } from './testUtils'
 

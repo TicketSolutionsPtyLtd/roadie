@@ -5,18 +5,16 @@ import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { apcaLc, over, shownFill } from '@oztix/roadie-browser-testing/contrast'
+import { STILL, useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import { Kbd } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
 import { hydrationShift } from '../../utils/hydrationTestUtils'
 import { Button } from '../Button'
-import { useStylesheet } from '../Pane/testUtils'
 import { Tabs } from '../Tabs'
 import { Toggle } from '../Toggle'
 import { ToggleGroup } from '../ToggleGroup'
-
-const STILL = '*, *::before, *::after { transition: none !important }'
 
 let removeStylesheets = () => {}
 beforeAll(() => {

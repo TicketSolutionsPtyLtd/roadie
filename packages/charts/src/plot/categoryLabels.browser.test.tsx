@@ -4,11 +4,15 @@ import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+
 import roadieCss from '../../vitest.browser.css?inline'
 import { Funnel } from '../Funnel'
 import { RankedBars } from '../RankedBars'
 import { StackedBars } from '../StackedBars'
-import { loadBrandFont, useStylesheet } from '../testUtils'
 import {
   afterResize,
   expectNoOverlap,

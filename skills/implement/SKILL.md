@@ -75,8 +75,9 @@ run them yourself in each engine before the demo.
 A new public export, utility, or component ships from every place the host's
 wiring list names. Read the list each time rather than working from memory. In
 Roadie it's `AGENTS.md` "Wiring something new" (exports, tsdown entries, the
-safelist, and `cn()` groups), PR workflow section 2 (size budgets), and
-section 4 (a new component's docs page and index tile).
+safelist, and the class-family rules that generate `cn()`'s groups), PR
+workflow section 2 (size budgets), and section 4 (a new component's docs page
+and index tile).
 
 ## 6. Rebuild dist where it's read
 

@@ -13,6 +13,7 @@ import {
 import { page, userEvent } from 'vitest/browser'
 
 import { withFrames } from '@oztix/roadie-browser-testing'
+import { useStylesheet } from '@oztix/roadie-browser-testing/stylesheet'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { Autocomplete } from '../components/Autocomplete'
@@ -22,7 +23,6 @@ import { DateField } from '../components/DateField'
 import { DateRangePicker } from '../components/DateRangePicker'
 import { Drawer } from '../components/Drawer'
 import { Menu } from '../components/Menu'
-import { useStylesheet } from '../components/Pane/testUtils'
 import { Select } from '../components/Select'
 import { tapOn } from './touchTestUtils'
 

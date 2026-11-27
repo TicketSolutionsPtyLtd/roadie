@@ -2,11 +2,16 @@
 // Uploads a PR's screenshots to the repo's `screenshots` branch with `gh api`
 // and prints the markdown to paste under Evidence. Nothing is committed
 // locally, so no hook runs and no orphan branch is checked out.
-// Usage: node scripts/pr-screenshots.mjs <pr number> <image>...
+// Usage: node scripts/pr-screenshots.mjs [--repo owner/name] <pr number> <image>...
 import { spawnSync } from 'node:child_process'
 import { readFileSync, statSync } from 'node:fs'
 
-import { markdown, planUpload, upload } from './lib/pr-screenshots.mjs'
+import {
+  markdown,
+  parseArgs,
+  planUpload,
+  upload
+} from './lib/pr-screenshots.mjs'
 
 function gh(args, input) {
   const result = spawnSync('gh', args, {
@@ -32,13 +37,13 @@ async function api(method, path, body) {
 }
 
 try {
-  const [pr, ...paths] = process.argv.slice(2)
+  const { repo: named, pr, paths } = parseArgs(process.argv.slice(2))
   const uploads = planUpload(
     pr,
     paths.map((path) => ({ path, bytes: statSync(path).size }))
   )
   const view = 'repo view --json nameWithOwner --jq .nameWithOwner'
-  const repo = gh(view.split(' ')).trim()
+  const repo = named ?? gh(view.split(' ')).trim()
   await upload({
     api,
     repo,

@@ -13,6 +13,10 @@ import {
 } from 'vitest'
 
 import {
+  loadBrandFont,
+  useStylesheet
+} from '@oztix/roadie-browser-testing/stylesheet'
+import {
   type RecordPosition,
   type RecordView,
   recordFields
@@ -21,7 +25,6 @@ import {
 import { RecordTable, tableColumns, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Menu } from '../Menu'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Records, useRecords } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import type { RecordTableNarrowLayout } from './narrow'

@@ -17,8 +17,12 @@ import {
   useTransform
 } from 'motion/react'
 
-import { MEASURE_PROGRESS_MAX, TAP_PX, decideSnapTarget } from '../../cart'
-import { DRAWER_SPRING, openDrawerHeight } from '../../cart/drawer'
+import { MEASURE_PROGRESS_MAX } from '../../cart'
+import {
+  DRAWER_SPRING,
+  createDrawerDrag,
+  openDrawerHeight
+} from '../../cart/drawer'
 
 export type UseCartDrawerDragReturn = {
   state: 'open' | 'closed'
@@ -71,10 +75,7 @@ export function useCartDrawerDrag(
   const headerObserverRef = useRef<ResizeObserver | null>(null)
   const footerObserverRef = useRef<ResizeObserver | null>(null)
 
-  // Gates drag re-entry and filters out other concurrent pointers (multi-touch).
-  const activePointerIdRef = useRef<number | null>(null)
-  // Held in a ref so an unmount mid-drag can detach listeners and avoid a leak.
-  const dragCleanupRef = useRef<(() => void) | null>(null)
+  const [drag] = useState(() => createDrawerDrag())
 
   // Only measure while fully closed: morphing sizes would inflate closedHeight.
   const isClosedEnoughToMeasure = useCallback(
@@ -142,28 +143,41 @@ export function useCartDrawerDrag(
     return () => {
       headerObserverRef.current?.disconnect()
       footerObserverRef.current?.disconnect()
-      // Detach any drag listeners still live at unmount (drag in progress).
-      dragCleanupRef.current?.()
+      drag.dispose()
     }
-  }, [])
+  }, [drag])
 
-  // useLayoutEffect: settle the motion value before paint (external store can't be mutated during render).
-  useLayoutEffect(() => {
-    if (isDragging) return
-    dragHeight.set(state === 'open' ? maxHeight : closedHeight)
-  }, [isDragging, closedHeight, maxHeight, state, dragHeight])
-
-  const snapTo = useCallback(
-    (next: 'open' | 'closed') => {
-      const target = next === 'open' ? maxHeight : closedHeight
+  // Where the running spring is heading, so a re-render doesn't restart it.
+  const springTargetRef = useRef<number | null>(null)
+  const springTo = useCallback(
+    (target: number) => {
+      springTargetRef.current = target
       animate(
         dragHeight,
         target,
         reducedMotion ? { duration: 0 } : DRAWER_SPRING
       )
+    },
+    [dragHeight, reducedMotion]
+  )
+
+  // useLayoutEffect: settle the motion value before paint (external store can't be mutated during render).
+  // A `set()` under a running spring draws one frame there before the spring
+  // takes it back, so a spring is retargeted instead, as when the footer
+  // re-measures while the drawer closes.
+  useLayoutEffect(() => {
+    if (isDragging) return
+    const target = state === 'open' ? maxHeight : closedHeight
+    if (!dragHeight.isAnimating()) dragHeight.set(target)
+    else if (springTargetRef.current !== target) springTo(target)
+  }, [isDragging, closedHeight, maxHeight, state, dragHeight, springTo])
+
+  const snapTo = useCallback(
+    (next: 'open' | 'closed') => {
+      springTo(next === 'open' ? maxHeight : closedHeight)
       setState(next)
     },
-    [closedHeight, maxHeight, dragHeight, reducedMotion]
+    [closedHeight, maxHeight, springTo]
   )
 
   const toggle = useCallback(() => {
@@ -172,79 +186,23 @@ export function useCartDrawerDrag(
 
   const handleDragStart = useCallback(
     (e: ReactPointerEvent) => {
-      // Re-entry guard: honour only the first pointer so a second finger can't install duplicate listeners.
-      if (activePointerIdRef.current !== null) return
-      const pointerId = e.pointerId
-      activePointerIdRef.current = pointerId
-
-      const startY = e.clientY
-      const startHeight = dragHeight.get()
-      const wasOpen = state === 'open'
-
-      let lastClientY = startY
-      let lastTime = Date.now()
-      let velocity = 0
+      const started = drag.start({
+        pointer: e,
+        wasOpen: state === 'open',
+        getHeight: () => dragHeight.get(),
+        setHeight: (px) => dragHeight.set(px),
+        bounds: () => ({ closedHeight, maxHeight }),
+        onRelease: (target) => {
+          setIsDragging(false)
+          snapTo(target)
+        }
+      })
+      if (!started) return
       setIsDragging(true)
-
-      const detach = () => {
-        window.removeEventListener('pointermove', onMove)
-        window.removeEventListener('pointerup', onUp)
-        window.removeEventListener('pointercancel', onUp)
-        activePointerIdRef.current = null
-        dragCleanupRef.current = null
-      }
-
-      const onMove = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return
-        const delta = startY - ev.clientY // positive = dragged up = opening
-        const newHeight = Math.min(
-          maxHeight,
-          Math.max(closedHeight, startHeight + delta)
-        )
-
-        const now = Date.now()
-        const dt = now - lastTime
-        if (dt > 0) {
-          // px / sec; positive = moving up
-          velocity = ((lastClientY - ev.clientY) / dt) * 1000
-        }
-        lastClientY = ev.clientY
-        lastTime = now
-
-        dragHeight.set(newHeight)
-      }
-
-      const onUp = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return
-        detach()
-        setIsDragging(false)
-
-        const currentHeight = dragHeight.get()
-        const totalMove = Math.abs(currentHeight - startHeight)
-
-        if (totalMove < TAP_PX) {
-          // Low-movement release = tap = toggle.
-          snapTo(wasOpen ? 'closed' : 'open')
-          return
-        }
-
-        // Core helper uses Y-position (up = negative); this hook tracks height (up = positive), so invert velocity/offset.
-        const target = decideSnapTarget({
-          velocity: -velocity,
-          offset: -(currentHeight - startHeight),
-          currentState: wasOpen ? 'open' : 'closed',
-          openY: 0,
-          closedY: maxHeight - closedHeight
-        })
-        snapTo(target)
-      }
-
-      window.addEventListener('pointermove', onMove)
-      window.addEventListener('pointerup', onUp)
-      window.addEventListener('pointercancel', onUp)
-      dragCleanupRef.current = detach
+      // Hand the height over to the pointer: stop any snap spring still settling.
+      dragHeight.stop()
     },
-    [closedHeight, maxHeight, dragHeight, state, snapTo]
+    [drag, closedHeight, maxHeight, dragHeight, state, snapTo]
   )
 
   return {

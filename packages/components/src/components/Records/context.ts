@@ -1,13 +1,6 @@
 'use client'
 
-import {
-  type Context,
-  type Dispatch,
-  type RefObject,
-  type SetStateAction,
-  createContext,
-  use
-} from 'react'
+import { type Context, type RefObject, createContext, use } from 'react'
 
 import type { RecordView } from '@oztix/roadie-core/records'
 
@@ -21,9 +14,6 @@ export type RecordsContextValue = {
   layouts: readonly AnyRecordLayout[]
   /** Accessible name for the records, such as the table's. */
   caption?: string
-  /** The mounted toolbar, so Content's header sticks under it. Its height is a custom property named by `scope`, so a resize renders nothing. */
-  toolbar: HTMLElement | null
-  setToolbar: Dispatch<SetStateAction<HTMLElement | null>>
   /** Whether Content fills its parent's height. */
   contentFill: boolean
   setContentFill: (fill: boolean) => void
@@ -57,7 +47,6 @@ export type RecordsContextValue = {
 export type RecordsStableValue = Pick<
   RecordsContextValue,
   | 'scope'
-  | 'setToolbar'
   | 'setContentFill'
   | 'setSelectMode'
   | 'setBulkMounted'
@@ -73,7 +62,6 @@ export type RecordsLayoutValue = Pick<
   RecordsContextValue,
   | 'layouts'
   | 'caption'
-  | 'toolbar'
   | 'contentFill'
   | 'selectMode'
   | 'bulkMounted'
