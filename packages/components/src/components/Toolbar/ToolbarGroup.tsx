@@ -16,7 +16,7 @@ export function ToolbarGroup({ className, ...props }: ToolbarGroupProps) {
       className={mergeClassName(
         [
           'flex flex-wrap items-center gap-1',
-          'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto'
+          'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto data-[orientation=vertical]:*:data-icon-only:aspect-square'
         ],
         className
       )}

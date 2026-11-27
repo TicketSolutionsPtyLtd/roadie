@@ -44,7 +44,9 @@ export const toolbarVariants = cva('flex min-w-0 items-center gap-1 p-1', {
       // Touch screens and phones keep one row and scroll it sideways.
       horizontal:
         'flex-wrap pointer-coarse:w-max pointer-coarse:flex-nowrap max-md:w-max max-md:flex-nowrap',
-      vertical: 'flex-col items-stretch *:w-auto'
+      // Items stretch to the widest; an icon-only one stays square while
+      // nothing wider holds the column open.
+      vertical: 'flex-col items-stretch *:w-auto *:data-icon-only:aspect-square'
     }
   },
   defaultVariants: { orientation: 'horizontal' }

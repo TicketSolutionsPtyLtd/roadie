@@ -23,9 +23,11 @@ export function ToolbarButton({
   ...props
 }: ToolbarButtonProps) {
   const { size } = use(ToolbarContext)
+  // Marks the item, so a vertical toolbar keeps it square.
+  const iconOnly = isIconOnly(props.children) ? '' : undefined
   const look = (extra: object) => {
     const shared = { ...extra, size, emphasis: 'subtler' } as const
-    return isIconOnly(props.children) ? (
+    return iconOnly !== undefined ? (
       // Its label comes from the consumer's aria-label or aria-labelledby.
       <IconButton {...(shared as IconButtonProps)} />
     ) : (
@@ -40,6 +42,7 @@ export function ToolbarButton({
     return (
       <ToolbarPrimitive.Link
         data-slot='toolbar-button'
+        data-icon-only={iconOnly}
         // With an href, render is an element; a function would get the link's state.
         render={
           (render as ToolbarPrimitive.Link.Props['render']) ??
@@ -58,6 +61,7 @@ export function ToolbarButton({
   return (
     <ToolbarPrimitive.Button
       data-slot='toolbar-button'
+      data-icon-only={iconOnly}
       render={
         render ??
         ((buttonProps, { disabled }): ReactElement =>
