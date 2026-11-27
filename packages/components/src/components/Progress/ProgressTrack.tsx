@@ -16,7 +16,8 @@ export function ProgressTrack({ className, ...props }: ProgressTrackProps) {
       className={mergeClassName(
         [
           'relative col-span-full h-1.5 w-full overflow-hidden rounded-full bg-(--intent-4)',
-          'forced-colors:outline forced-colors:outline-1'
+          // Sets the outline's style as well as its width.
+          'forced-colors:outline-1'
         ],
         className
       )}

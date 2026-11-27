@@ -1,8 +1,16 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { compile } from 'tailwindcss'
 import { describe, expect, it } from 'vitest'
 
 import { cn } from './cn'
+
+/** The declarations Tailwind writes for one class, without its selector. */
+async function declarations(className: string) {
+  const css = (await compile('@tailwind utilities;')).build([className])
+  const [rules = ''] = css.replace(/\/\*[\s\S]*?\*\//g, '').split('@property')
+  return [...rules.matchAll(/[\w-]+:\s*[^;{}]+;/g)].map(([d]) => d)
+}
 
 describe('cn', () => {
   it('dedupes Roadie semantic colour groups (last write wins)', () => {
@@ -131,6 +139,26 @@ describe('cn', () => {
   it('dedupes a Roadie named z-index against a numeric z-index', () => {
     expect(cn('z-overlay', 'z-80')).toBe('z-80')
     expect(cn('z-40', 'z-tooltip')).toBe('z-tooltip')
+  })
+
+  // tailwind-merge counts a bare `outline` as a width. Tailwind v4 writes the
+  // same style and width for it as for `outline-1`, so the merge loses nothing.
+  it.each([
+    ['outline', 'outline-1'],
+    ['outline-1', 'outline'],
+    ['forced-colors:outline', 'forced-colors:outline-1']
+  ])(
+    'drops %s before %s, which writes the same CSS',
+    async (earlier, later) => {
+      expect(cn(earlier, later)).toBe(later)
+      const kept = await declarations(later)
+      expect(kept).toContain('outline-width: 1px;')
+      expect(await declarations(earlier)).toEqual(kept)
+    }
+  )
+
+  it('keeps an outline style beside an outline width', () => {
+    expect(cn('outline-dashed', 'outline-1')).toBe('outline-dashed outline-1')
   })
 
   it('keeps unrelated classes intact', () => {
