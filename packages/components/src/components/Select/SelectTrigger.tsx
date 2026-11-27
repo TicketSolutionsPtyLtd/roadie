@@ -5,8 +5,7 @@ import { type RefAttributes, use } from 'react'
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { type VariantProps } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import type { RoadieIntent } from '../../variants'
 import { useFieldContext } from '../Field'
 import { useFieldControlProps } from '../Field/FieldContext'
@@ -53,13 +52,13 @@ export function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       data-slot='select-trigger'
-      className={cn(
+      className={mergeClassName(
         selectTriggerVariants({
           intent,
           emphasis: emphasis ?? undefined,
-          size,
-          className
-        })
+          size
+        }),
+        className
       )}
       {...(inField && {
         'aria-labelledby': fieldProps['aria-labelledby'],

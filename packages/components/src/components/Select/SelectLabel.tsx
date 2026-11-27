@@ -4,8 +4,7 @@ import { type RefAttributes, use } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { OptionalIndicator, RequiredIndicator } from '../Indicator'
 import { SelectContext } from './SelectContext'
 
@@ -24,7 +23,7 @@ export function SelectLabel({
   return (
     <SelectPrimitive.Label
       data-slot='select-label'
-      className={cn(
+      className={mergeClassName(
         'flex items-center gap-1 text-sm font-medium text-normal',
         className
       )}

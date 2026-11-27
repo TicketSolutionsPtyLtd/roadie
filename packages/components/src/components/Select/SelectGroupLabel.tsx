@@ -4,8 +4,7 @@ import type { RefAttributes } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { mergeClassName } from '../../utils/mergeClassName'
 import { optionGroupLabelClass } from '../../variants'
 
 export type SelectGroupLabelProps = SelectPrimitive.GroupLabel.Props &
@@ -18,7 +17,7 @@ export function SelectGroupLabel({
   return (
     <SelectPrimitive.GroupLabel
       data-slot='select-group-label'
-      className={cn(optionGroupLabelClass, className)}
+      className={mergeClassName(optionGroupLabelClass, className)}
       {...props}
     />
   )
