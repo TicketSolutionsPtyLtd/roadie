@@ -105,22 +105,6 @@
     pointer-events: none;
     filter: grayscale(0.3);
   }
-
-  .dark & {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-accent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
-
-  .dark &[aria-invalid='true'] {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-danger-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
 }
 
 @utility is-interactive-field-group {
@@ -212,22 +196,6 @@
     pointer-events: none;
     filter: grayscale(0.3);
   }
-
-  .dark & {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-accent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
-
-  .dark &[aria-invalid='true'] {
-    outline-color: color-mix(
-      in oklch,
-      var(--color-danger-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
 }
 
 /* ─── Disclosure animation ─── */
@@ -297,14 +265,6 @@
       );
     outline-offset: 0;
   }
-
-  .dark &:focus-visible {
-    outline-color: color-mix(
-      in oklch,
-      var(--intent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
-  }
 }
 
 /* is-focusable's ring drawn inset on the element's ::after overlay instead of
@@ -326,14 +286,6 @@
         transparent
       );
     outline-offset: calc(var(--focus-ring-width) * -1);
-  }
-
-  .dark &:focus-visible::after {
-    outline-color: color-mix(
-      in oklch,
-      var(--intent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
   }
 }
 
@@ -462,16 +414,5 @@
     --emphasis-fill-state: var(--emphasis-fill-active);
     --emphasis-shadow-state: var(--emphasis-shadow-active);
     transform: scale(0.99);
-  }
-
-  .dark
-    &:has(:where([data-interactive-target]):focus-visible):where(
-      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
-    ) {
-    outline-color: color-mix(
-      in oklch,
-      var(--intent-9) var(--focus-ring-opacity-dark),
-      transparent
-    );
   }
 }

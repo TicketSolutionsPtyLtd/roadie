@@ -78,7 +78,7 @@ async function pressOn(target: Element) {
 describe('is-focusable', () => {
   it.each([
     ['light', false, '--focus-ring-opacity'],
-    ['dark', true, '--focus-ring-opacity-dark']
+    ['dark', true, '--focus-ring-opacity']
   ])(
     'shows the focus-ring tokens’ ring on keyboard focus in %s mode',
     async (_mode, dark, opacity) => {
